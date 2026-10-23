@@ -1,4 +1,7 @@
 //! TCP framing: `[u32 BE length][i32 BE crc32(body)][body]`, where `length = 4 + body.len()`.
+//!
+//! Bit 31 of the length marks a control frame: same `[crc32][body]` layout, but the body is not
+//! an RPC. The client sends one with body `01` right after game-server authentication.
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use tokio_util::codec::{Decoder, Encoder};
@@ -6,7 +9,14 @@ use tokio_util::codec::{Decoder, Encoder};
 const MAX_FRAME: usize = 16 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Frame(pub Bytes);
+pub enum Frame {
+    /// A normal CRC-checked frame body.
+    Rpc(Bytes),
+    /// A control frame (bit 31 of the length set), CRC-checked like [`Frame::Rpc`].
+    Flagged(Bytes),
+}
+
+const FLAG: usize = 0x8000_0000;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CodecError {
@@ -29,7 +39,9 @@ impl Decoder for FrameCodec {
         if src.len() < 4 {
             return Ok(None);
         }
-        let len = u32::from_be_bytes(src[..4].try_into().unwrap()) as usize;
+        let raw = u32::from_be_bytes(src[..4].try_into().unwrap()) as usize;
+        let flagged = raw & FLAG != 0;
+        let len = raw & !FLAG;
         if !(4..=MAX_FRAME).contains(&len) {
             return Err(CodecError::BadLength(len));
         }
@@ -44,7 +56,7 @@ impl Decoder for FrameCodec {
         if computed != header {
             return Err(CodecError::Crc { header, computed });
         }
-        Ok(Some(Frame(body)))
+        Ok(Some(if flagged { Frame::Flagged(body) } else { Frame::Rpc(body) }))
     }
 }
 
@@ -52,10 +64,14 @@ impl Encoder<Frame> for FrameCodec {
     type Error = CodecError;
 
     fn encode(&mut self, frame: Frame, dst: &mut BytesMut) -> Result<(), CodecError> {
-        dst.reserve(8 + frame.0.len());
-        dst.put_u32(frame.0.len() as u32 + 4);
-        dst.put_u32(crc32fast::hash(&frame.0));
-        dst.put_slice(&frame.0);
+        let (body, flag) = match frame {
+            Frame::Rpc(body) => (body, 0),
+            Frame::Flagged(body) => (body, FLAG),
+        };
+        dst.reserve(8 + body.len());
+        dst.put_u32(((body.len() + 4) | flag) as u32);
+        dst.put_u32(crc32fast::hash(&body));
+        dst.put_slice(&body);
         Ok(())
     }
 }
@@ -67,17 +83,26 @@ mod tests {
     #[test]
     fn roundtrip() {
         let mut buf = BytesMut::new();
-        FrameCodec.encode(Frame(Bytes::from_static(b"hello")), &mut buf).unwrap();
+        FrameCodec.encode(Frame::Rpc(Bytes::from_static(b"hello")), &mut buf).unwrap();
         assert_eq!(&buf[..4], &9u32.to_be_bytes());
         let f = FrameCodec.decode(&mut buf).unwrap().unwrap();
-        assert_eq!(&f.0[..], b"hello");
+        assert_eq!(f, Frame::Rpc(Bytes::from_static(b"hello")));
         assert!(buf.is_empty());
+    }
+
+    #[test]
+    fn flagged() {
+        // Captured from the client after game-server authentication.
+        let mut buf = BytesMut::from(&[0x80, 0, 0, 5, 0xa5, 0x05, 0xdf, 0x1b, 0x01, 0xff][..]);
+        let f = FrameCodec.decode(&mut buf).unwrap().unwrap();
+        assert_eq!(f, Frame::Flagged(Bytes::from_static(&[0x01])));
+        assert_eq!(&buf[..], &[0xff]);
     }
 
     #[test]
     fn partial() {
         let mut full = BytesMut::new();
-        FrameCodec.encode(Frame(Bytes::from_static(b"abc")), &mut full).unwrap();
+        FrameCodec.encode(Frame::Rpc(Bytes::from_static(b"abc")), &mut full).unwrap();
         let mut part = BytesMut::from(&full[..6]);
         assert!(FrameCodec.decode(&mut part).unwrap().is_none());
     }

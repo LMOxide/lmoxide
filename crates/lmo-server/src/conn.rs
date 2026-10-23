@@ -22,11 +22,17 @@ pub struct Conn {
 impl Conn {
     /// Next RPC from the client, or `None` on disconnect.
     pub async fn recv(&mut self) -> anyhow::Result<Option<Rpc>> {
-        let Some(frame) = self.framed.next().await.transpose()? else {
-            return Ok(None);
+        let body = loop {
+            match self.framed.next().await.transpose()? {
+                None => return Ok(None),
+                Some(Frame::Rpc(body)) => break body,
+                Some(Frame::Flagged(raw)) => {
+                    warn!(hex = %hex(&raw), "control frame (bit 31 set), ignored");
+                }
+            }
         };
-        debug!(len = frame.0.len(), hex = %hex(&frame.0), "frame in");
-        let rpc = Rpc::decode(frame.0)?;
+        debug!(len = body.len(), hex = %hex(&body), "frame in");
+        let rpc = Rpc::decode(body)?;
         info!(
             caller = ?rpc.header.caller_id,
             args = rpc.args.len(),
@@ -56,7 +62,7 @@ impl Conn {
         info!(args = rpc.args.len(), "-> {}", rpc.describe());
         let body = rpc.encode();
         debug!(hex = %hex(&body), "frame out");
-        self.framed.send(Frame(body)).await?;
+        self.framed.send(Frame::Rpc(body)).await?;
         Ok(())
     }
 }

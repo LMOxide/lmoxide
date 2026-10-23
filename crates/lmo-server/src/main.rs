@@ -1,4 +1,5 @@
 mod conn;
+mod game;
 mod http;
 mod territory;
 mod universe;
@@ -26,6 +27,9 @@ pub struct Config {
     /// Territory manager / player agent port.
     #[arg(long, env = "LMO_TERRITORY_PORT", default_value_t = 7101)]
     pub territory_port: u16,
+    /// Game server port (playfields).
+    #[arg(long, env = "LMO_GAME_PORT", default_value_t = 7102)]
+    pub game_port: u16,
     /// Path to an installed client ("LEGO Minifigures Online" folder); its files are served
     /// to the patcher.
     #[arg(long, env = "LMO_CLIENT_DIR")]
@@ -68,10 +72,13 @@ async fn main() -> anyhow::Result<()> {
         territory::handle,
     ));
 
+    let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
+
     tokio::select! {
         r = http => r??,
         r = universe => r??,
         r = territory => r??,
+        r = game => r??,
         _ = tokio::signal::ctrl_c() => {}
     }
     Ok(())

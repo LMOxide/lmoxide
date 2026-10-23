@@ -6,7 +6,8 @@ use std::sync::Arc;
 use lmo_net::{
     Endpoint, Reader, Writer,
     methods::{player_agent as agent, player_interface as interface},
-    proto::FidData,
+    proto::{FidData, PlayfieldProxyData, ProtoId32},
+    types::Id32,
 };
 use tracing::{info, warn};
 
@@ -58,6 +59,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .await?;
             }
             (Some(Endpoint::PlayerAgent), agent::CLIENT_REPLY_KEEP_COOKIE) => {}
+            (Some(Endpoint::PlayerAgent), agent::CREATE_CHARACTER_WITH_DATA) => {
+                let dim = r.u32()?;
+                let n = r.container_len()?;
+                let mut data = Vec::with_capacity(n);
+                for _ in 0..n {
+                    data.push((r.string()?, r.string()?));
+                }
+                let (region, age, gender) = (r.u16()?, r.u16()?, r.u16()?);
+                let igr = r.string()?;
+                let (user_type, service_type) = (r.u32()?, r.u32()?);
+                info!(account, dim, ?data, region, age, gender, %igr, user_type, service_type, "CreateCharacterWithData");
+                // Until characters are stored: send the client straight to a game server.
+                let character = Id32::new(CHARACTER_TYPE, account);
+                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::LOGIN_CONNECT_READY, login_connect_ready(&cfg, character))
+                    .await?;
+            }
             (Some(Endpoint::PlayerAgent), agent::GET_DIMENSION_LIST) => {
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::SET_DIMENSION_LIST, dimension_list())
                     .await?;
@@ -65,7 +82,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
             _ => warn!(args = %crate::conn::hex(&rpc.args), "unhandled"),
         }
     }
-    let _ = cfg;
     Ok(())
 }
 
@@ -106,4 +122,27 @@ fn dimension_list() -> bytes::Bytes {
     let w = Writer::new().container_len(1).u32(1);
     let w = (0..7).fold(w, |w, _| w.u32(0));
     w.bool(true).u32(0).bool(true).finish()
+}
+
+/// `ID32` type of characters (the client's character-list code uses 50000).
+const CHARACTER_TYPE: u32 = 50000;
+/// First playfield in Funcom's smoke-test list.
+const START_PLAYFIELD: u32 = 1200;
+
+/// `LoginConnectReady(gameServerAddress, nCookie, cClientCharacterID, PlayfieldProxy)`
+/// (decoder 0x7bf400): string, u32, ID32, embedded `PlayfieldProxyData` protobuf.
+fn login_connect_ready(cfg: &Config, character: Id32) -> bytes::Bytes {
+    let pf = PlayfieldProxyData {
+        dimension_id: Some(1),
+        model_id: Some(ProtoId32 { r#type: None, instance: Some(START_PLAYFIELD) }),
+        ..Default::default()
+    };
+    character
+        .write(
+            Writer::new()
+                .string(&cfg.public_addr(cfg.game_port))
+                .u32(crate::universe::cookie_for(character.instance)),
+        )
+        .proto(&pf)
+        .finish()
 }
