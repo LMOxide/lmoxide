@@ -93,6 +93,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                     .await?;
+                // UpdateTokenAmount(uint32 tokenID, uint64 gained, uint64 spent): health potions
+                // (token 150) shown on the potion button.
+                let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(START_POTIONS).u64(0).finish();
+                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
+                    .await?;
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
                 // The client's own IIRs (u32 length + records). Only headers are decoded; the
@@ -105,8 +110,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 debug!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR");
                 match h.name() {
                     Some("CharInPlayIIR_t") => {
-                        // Acknowledge: the client waits in WaitingToReceiveInPlay for this.
-                        let echo = iir::pass_blob(&[iir::record("CharInPlayIIR_t", h.identity, false, |w| w)]);
+                        // Acknowledge: the client waits in WaitingToReceiveInPlay for this. Then the
+                        // active team slot: a change of it makes the client apply the minifigure's
+                        // item effects, including its abilities (shortcut slots 104/105); sent with
+                        // the world it is too early and has no effect.
+                        let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
+                        if let Some(&(slot, _)) = me.team.first() {
+                            // ParentStatChanged only reacts to a different slot, and the client
+                            // may already assume this one: clear it first.
+                            records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
+                            records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
+                            records.extend(health_records(h.identity));
+                        }
+                        let echo = iir::pass_blob(&records);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
                         if presence.is_none() {
@@ -130,6 +146,34 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if let Some(p) = &presence {
                             world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
                         }
+                    }
+                    Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_QUEUE_COMMAND) => {
+                        // A queued command (minifigure swap, ability, ...). It completes only
+                        // when the server answers with the same record as action 4 (success).
+                        let command_type = rest.get(1..5).map_or(0, |b| u32::from_be_bytes(b.try_into().unwrap()));
+                        info!(command_type, rest = %crate::conn::hex(rest), "command");
+                        let mut reply = blob.to_vec();
+                        reply[blob.len() - rest.len()] = BCC_COMMAND_SUCCEEDED;
+                        let mut records = vec![Bytes::from(reply)];
+                        if command_type == COMMAND_CYCLE_WEAPON && rest.len() >= 4 {
+                            // CycleToNextWeaponCommand: subclass ends with the u32 team slot
+                            let slot = u32::from_be_bytes(rest[rest.len() - 4..].try_into().unwrap());
+                            if let Some(i) = me.team.iter().position(|&(s, _)| s == slot) {
+                                me.team[..=i].rotate_right(1);
+                                let costume = int32_stat(h.identity, STAT_MONSTER_DATA, monster_data_for(me.team[0].1));
+                                records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
+                                records.push(costume.clone());
+                                // health is per minifigure: send the newly active one's (always
+                                // full until damage exists)
+                                records.extend(health_records(h.identity));
+                                if let Some(p) = &presence {
+                                    world::broadcast(p.id(), vec![costume]);
+                                }
+                                info!(slot, template = me.team[0].1, "active minifigure");
+                            }
+                        }
+                        let blob = iir::pass_blob(&records);
+                        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
                     _ => info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR"),
                 }
@@ -229,6 +273,12 @@ pub fn remote_spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
     let mut records = spawn_records(id, c);
     records.push(iir::record("CharInPlayIIR_t", id, false, |w| w));
     records
+}
+
+/// The active minifigure's health (each minifigure has its own; Life is the maximum). Always
+/// full for now.
+fn health_records(id: Id32) -> Vec<Bytes> {
+    vec![int32_stat(id, STAT_LIFE, START_HEALTH), int32_stat(id, STAT_HEALTH, START_HEALTH)]
 }
 
 /// `UpdateMessage` op 1 (Activate 0x6ef4e0): removes the GameObject with this Id.
@@ -400,6 +450,18 @@ const STAT_HEALTH: u32 = 27;
 const STAT_LEVEL: u32 = 54;
 const STAT_GM_LEVEL: u32 = 215;
 const STAT_CHAR_RADIUS: u32 = 421;
+const STAT_MONSTER_DATA: u32 = 359;
+/// Active minifigure team slot (inventory 101 position), client name e_ActiveWeapon.
+const STAT_ACTIVE_WEAPON: u32 = 2000405;
+const TOKEN_HEALTH_POTIONS: u32 = 150;
+const START_POTIONS: u64 = 5;
+/// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
+/// CommandMessage protobuf, command data. The client queues a command with action 3 and the
+/// server answers 4 (OnSuccess), 5 (OnFailure), 7/8/9 (abort one/queued/all).
+const BCC_QUEUE_COMMAND: u8 = 3;
+const BCC_COMMAND_SUCCEEDED: u8 = 4;
+/// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
+const COMMAND_CYCLE_WEAPON: u32 = 0x30;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
 const STAT_COMMAND_QUEUE_SIZE: u32 = 1360;
 
