@@ -5,7 +5,10 @@ use std::sync::Arc;
 
 use lmo_net::{
     Endpoint, Reader, Writer, iir,
-    methods::{client_to_gameserver_rpc as agent, gameserver_to_client_rpc as client},
+    methods::{
+        client_to_gameserver_rpc as agent, game_char_agent, game_char_interface,
+        gameserver_to_client_rpc as client,
+    },
     proto::{
         PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir,
         ProtoGameCodeDynelIir, ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry, ProtoQuat,
@@ -74,6 +77,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let args = Writer::new().u32(seq).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PONG, args).await?;
             }
+            (Some(Endpoint::GameCharAgent), game_char_agent::PING) => {
+                // Pong(uint32 i_nSequence, bigtime_t i_nServerTime); server time in microseconds
+                let seq = r.u32()?;
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map_or(0, |d| d.as_micros() as u64);
+                let args = Writer::new().u32(seq).u64(now).finish();
+                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::PONG, args)
+                    .await?;
+            }
+            // Client-side bookkeeping that needs no answer (to be persisted later).
+            (
+                Some(Endpoint::GameCharAgent),
+                game_char_agent::TUTORIAL_SHOWN
+                | game_char_agent::ADD_SHORTCUT
+                | game_char_agent::REMOVE_SHORTCUT
+                | game_char_agent::SET_PLAYER_GUI_LAYOUT_MODE,
+            ) => {}
             _ => warn!(args = %crate::conn::hex(&rpc.args), "unhandled"),
         }
     }
