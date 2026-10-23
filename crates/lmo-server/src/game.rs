@@ -492,31 +492,6 @@ fn full_player_character(id: Id32, c: &Character) -> bytes::Bytes {
 }
 
 const START_HEALTH: u32 = 100;
-/// A character's body and costume come from its MonsterData stat (RDB type 1010514). Each
-/// minifigure item template has a SetStatGameAction setting MonsterData to its own monsterdata
-/// (template 1000620 body: `d2 02 00 00 00 | 67 01 00 00 | f2 02 ...` then the u32 value);
-/// the 2212 in the templates' stat block is the generic body ("Aztec_Warrior").
-/// `CoreCharacterFullUpdateIIR::Transfer` applies `stats.monster_data` before building the
-/// animated mesh; without it remote characters are invisible.
-const MINIFIGURE_MONSTER_DATA: [(u32, u32); 16] = [
-    (663917, 663907), // Queen
-    (663918, 663902), // Animal Control
-    (663919, 663906), // Jewel Thief
-    (663920, 663876), // Tribal Woman
-    (663921, 663855), // Ballerina
-    (663922, 663904),
-    (663923, 663903), // Faun
-    (663924, 663905),
-    (663925, 663909),
-    (663926, 663916),
-    (663927, 663912),
-    (663928, 663915), // Kendo Fighter
-    (663929, 663910), // Astronaut
-    (663930, 663911), // Laser Mech
-    (663931, 663914),
-    (663932, 663913), // Farmer
-];
-
 /// Left- and right-click (normal and special) spells of a minifigure item template, from the
 /// client's MinifigureUpgradeData (RDB 1000643; tools/re/extract_minifig_spells.py).
 fn minifigure_spells(template: u32) -> Vec<u32> {
@@ -526,9 +501,16 @@ fn minifigure_spells(template: u32) -> Vec<u32> {
     TABLE.get(&template.to_string()).cloned().unwrap_or_default()
 }
 
-/// Monsterdata for a minifigure item template (the generic body if unknown).
+/// MonsterData (body and costume, RDB 1010514) for a minifigure item template, from
+/// data/minifigure_monster_data.json (tools/re/extract_minifig_monster_data.py: each template's
+/// SetStatGameAction on stat 359). 2212, the value in the templates' own stat block, is only the
+/// generic body ("Aztec_Warrior"). `CoreCharacterFullUpdateIIR::Transfer` applies
+/// `stats.monster_data` before building the animated mesh; without it characters are invisible.
 fn monster_data_for(template: u32) -> u32 {
-    MINIFIGURE_MONSTER_DATA.iter().find(|(t, _)| *t == template).map_or(2212, |(_, m)| *m)
+    static TABLE: std::sync::LazyLock<HashMap<String, u32>> = std::sync::LazyLock::new(|| {
+        serde_json::from_str(include_str!("../../../data/minifigure_monster_data.json")).expect("minifigure_monster_data.json")
+    });
+    TABLE.get(&template.to_string()).copied().unwrap_or(2212)
 }
 
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
