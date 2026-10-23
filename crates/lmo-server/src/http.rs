@@ -35,6 +35,70 @@ struct HttpState {
     /// Content-addressed patch files (`/patch/rdb/full/<md5>`): download lists and the RDB
     /// hash index.
     full: HashMap<String, Vec<u8>>,
+    upstream: Option<Upstream>,
+}
+
+/// Fallback for files the archived client lacks: Funcom's patch server (still online as of
+/// 2026-10) with a local cache, so each file is downloaded at most once.
+struct Upstream {
+    base: String,
+    cache: PathBuf,
+    client: reqwest::Client,
+}
+
+impl Upstream {
+    /// `rel` is relative to `HttpPatchAddr`, e.g. `rdb/res/1c/7/c6c1...`.
+    async fn get(&self, rel: &str) -> Option<Vec<u8>> {
+        if rel.split('/').any(|p| p == ".." || p.is_empty()) {
+            return None;
+        }
+        let cached = self.cache.join(rel);
+        if let Ok(data) = tokio::fs::read(&cached).await {
+            return Some(decode_ioz(data));
+        }
+        let url = format!("{}/{rel}", self.base);
+        let resp = match self.client.get(&url).send().await {
+            Ok(r) if r.status().is_success() => r,
+            Ok(r) => {
+                warn!(%url, status = %r.status(), "upstream miss");
+                return None;
+            }
+            Err(e) => {
+                warn!(%url, "upstream error: {e}");
+                return None;
+            }
+        };
+        let data = decode_ioz(resp.bytes().await.ok()?.to_vec());
+        info!(%url, len = data.len(), "fetched from upstream");
+        if let Some(parent) = cached.parent() {
+            let _ = tokio::fs::create_dir_all(parent).await;
+        }
+        let _ = tokio::fs::write(&cached, &data).await;
+        Some(data)
+    }
+}
+
+/// Funcom's patch server sends resources as `"IOz1" + u32 LE size + zlib`. The client's
+/// on-demand loader expects them uncompressed (as stored in the local RDB, where the file name
+/// is the md5 of the uncompressed data), so unwrap them here.
+fn decode_ioz(data: Vec<u8>) -> Vec<u8> {
+    use std::io::Read;
+    if data.len() < 8 || &data[..4] != b"IOz1" {
+        return data;
+    }
+    let size = u32::from_le_bytes(data[4..8].try_into().unwrap()) as usize;
+    let mut out = Vec::with_capacity(size);
+    match flate2::read::ZlibDecoder::new(&data[8..]).read_to_end(&mut out) {
+        Ok(_) if out.len() == size => out,
+        r => {
+            warn!(?r, expected = size, got = out.len(), "bad IOz1 payload, passing through");
+            data
+        }
+    }
+}
+
+fn octets(data: Vec<u8>) -> Response {
+    ([(header::CONTENT_TYPE, "application/octet-stream")], Body::from(data)).into_response()
 }
 
 /// Download list the Windows client patches against (see `PatchInfoClient.txt`).
@@ -75,7 +139,15 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
             }
         }
     }
-    let state = Arc::new(HttpState { cfg, rdb, patch_info, full });
+    let upstream = cfg.upstream.as_ref().map(|base| Upstream {
+        base: base.trim_end_matches('/').to_string(),
+        cache: cfg.cache_dir.clone().unwrap_or_else(|| PathBuf::from("rdb-cache")),
+        client: reqwest::Client::new(),
+    });
+    if let Some(u) = &upstream {
+        info!(base = %u.base, cache = %u.cache.display(), "upstream fallback enabled");
+    }
+    let state = Arc::new(HttpState { cfg, rdb, patch_info, full, upstream });
     let app = Router::new()
         .route("/control/{folder}/LocalConfig.xml", get(local_config))
         .route("/control/{folder}/PatchInfoClient.txt", get(patch_info_client))
@@ -134,13 +206,16 @@ async fn rdb_resource(
     Path((a, b, rest)): Path<(String, String, String)>,
 ) -> Response {
     let hash = format!("{a}{b}{rest}").to_ascii_lowercase();
-    match s.rdb.get(&hash) {
-        Some(p) => send_file(p.clone()).await,
-        None => {
-            warn!(%hash, "RDB resource not found");
-            StatusCode::NOT_FOUND.into_response()
-        }
+    if let Some(p) = s.rdb.get(&hash) {
+        return send_file(p.clone()).await;
     }
+    if let Some(u) = &s.upstream
+        && let Some(data) = u.get(&format!("rdb/res/{a}/{b}/{rest}")).await
+    {
+        return octets(data);
+    }
+    warn!(%hash, "RDB resource not found");
+    StatusCode::NOT_FOUND.into_response()
 }
 
 async fn full_file(State(s): State<Arc<HttpState>>, Path(hash): Path<String>) -> Response {
@@ -150,6 +225,11 @@ async fn full_file(State(s): State<Arc<HttpState>>, Path(hash): Path<String>) ->
             ([(header::CONTENT_TYPE, "application/octet-stream")], data.clone()).into_response()
         }
         None => {
+            if let Some(u) = &s.upstream
+                && let Some(data) = u.get(&format!("rdb/full/{hash}")).await
+            {
+                return octets(data);
+            }
             warn!(%hash, "content-addressed patch file not found");
             StatusCode::NOT_FOUND.into_response()
         }
@@ -163,13 +243,16 @@ async fn patch_file(State(s): State<Arc<HttpState>>, Path(path): Path<String>) -
     };
     // Requests may be prefixed with the patch folder; resolve case-insensitively.
     let rel = path.strip_prefix(&format!("{PATCH_FOLDER}/")).unwrap_or(&path);
-    match resolve_ci(dir, rel) {
-        Some(p) => send_file(p).await,
-        None => {
-            warn!(%path, "patch file not found");
-            StatusCode::NOT_FOUND.into_response()
-        }
+    if let Some(p) = resolve_ci(dir, rel) {
+        return send_file(p).await;
     }
+    if let Some(u) = &s.upstream
+        && let Some(data) = u.get(&path).await
+    {
+        return octets(data);
+    }
+    warn!(%path, "patch file not found");
+    StatusCode::NOT_FOUND.into_response()
 }
 
 async fn login_page(RawQuery(q): RawQuery) -> Response {
@@ -286,6 +369,19 @@ fn filter_download_list(xml: &str, rdb: &HashMap<String, PathBuf>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ioz1_roundtrip() {
+        use std::io::Write;
+        let raw = b"hello hello hello hello".to_vec();
+        let mut z = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+        z.write_all(&raw).unwrap();
+        let mut packed = b"IOz1".to_vec();
+        packed.extend_from_slice(&(raw.len() as u32).to_le_bytes());
+        packed.extend_from_slice(&z.finish().unwrap());
+        assert_eq!(decode_ioz(packed), raw);
+        assert_eq!(decode_ioz(b"plain".to_vec()), b"plain");
+    }
 
     #[test]
     fn filter_recomputes_counts() {

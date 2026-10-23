@@ -1,0 +1,938 @@
+[
+ {
+  "name": "AddToGroupIIR_c",
+  "type_id": "0x0df44b73",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a7a0",
+  "site": "0x96c303"
+ },
+ {
+  "name": "AreaFormulaIIR_t",
+  "type_id": "0xce30be4e",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x9697b0",
+  "site": "0x96c0e7"
+ },
+ {
+  "name": "AttackResultIIR",
+  "type_id": "0xe104fc6d",
+  "class": "n3InfoItem",
+  "proto": "AttackResultIIRProto",
+  "factory": "0xde14f0",
+  "site": "0xde183e"
+ },
+ {
+  "name": "AutoToggleCombatIIR_c",
+  "type_id": "0x107e921f",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0xde1410",
+  "site": "0xde1820"
+ },
+ {
+  "name": "BankIIR_t",
+  "type_id": "0x0ba1c1cb",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x9693c0",
+  "site": "0x96c060"
+ },
+ {
+  "name": "BehaviorControlCenterIIR_c",
+  "type_id": "0x642cd3d6",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b170",
+  "site": "0x96c411"
+ },
+ {
+  "name": "BrickSystemIIR",
+  "type_id": "0x03460382",
+  "class": "n3InfoItem",
+  "proto": "BrickSystemProto::BrickSystemIIRProto",
+  "factory": "0xde16c0",
+  "site": "0xde187a"
+ },
+ {
+  "name": "ChainKillIIR_t",
+  "type_id": "0x0eed7068",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969660",
+  "site": "0x96c0ba"
+ },
+ {
+  "name": "ChainSpellIIR_t",
+  "type_id": "0xe3784800",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969820",
+  "site": "0x96c0f6"
+ },
+ {
+  "name": "CharDCMoveIIR_t",
+  "type_id": "0x4517aa81",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b560",
+  "site": "0x96c498"
+ },
+ {
+  "name": "CharInPlayIIR_t",
+  "type_id": "0x864cfef8",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b2c0",
+  "site": "0x96c43e"
+ },
+ {
+  "name": "CharacterActionIIR_t",
+  "type_id": "0x6b6fd368",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96afb0",
+  "site": "0x96c3d5"
+ },
+ {
+  "name": "ChatTextIIR_t",
+  "type_id": "0xe0b51102",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969900",
+  "site": "0x96c114"
+ },
+ {
+  "name": "ClimbingDynelFullUpdateIIR_c",
+  "type_id": "0x1fd6412b",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0x96a730",
+  "site": "0x96c2f4"
+ },
+ {
+  "name": "ClonedFeatsIIR_c",
+  "type_id": "0xf7bf33dc",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x9696d0",
+  "site": "0x96c0c9"
+ },
+ {
+  "name": "CombatLogIIR",
+  "type_id": "0x34c0b9a2",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0xde1650",
+  "site": "0xde186b"
+ },
+ {
+  "name": "CoreClaimIIR",
+  "type_id": "0x06ec1255",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bbf0",
+  "site": "0x96c5b5"
+ },
+ {
+  "name": "CoreDestructibleFullUpdateIIR_c",
+  "type_id": "0x97abe417",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0x96a110",
+  "site": "0x96c222"
+ },
+ {
+  "name": "CoreDoorFullUpdateIIR_c",
+  "type_id": "0xf1935d91",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0x96a030",
+  "site": "0x96c204"
+ },
+ {
+  "name": "CoreFullPlayerCharacterIIR",
+  "type_id": "0xbe8fa878",
+  "class": "n3InfoItem",
+  "proto": "ProtoFullCharacterIIR",
+  "factory": "0x969510",
+  "site": "0x96c08d"
+ },
+ {
+  "name": "CoreProjectileFullUpdateIIR",
+  "type_id": "0x6c3425d2",
+  "class": "CoreProjectileFullUpdateIIR",
+  "proto": null,
+  "factory": "0x96a260",
+  "site": "0x96c24f"
+ },
+ {
+  "name": "CoreProjectileIIR",
+  "type_id": "0x133ef72a",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a2d0",
+  "site": "0x96c25e"
+ },
+ {
+  "name": "CoreRegenIIR",
+  "type_id": "0xb4d73eb4",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969740",
+  "site": "0x96c0d8"
+ },
+ {
+  "name": "DebugShowGameActionAreaIIR",
+  "type_id": "0x6e0f47ad",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969e70",
+  "site": "0x96c1c8"
+ },
+ {
+  "name": "DeleteItemIIR_t",
+  "type_id": "0x72491de9",
+  "class": "n3InfoItem",
+  "proto": "ProtoDeleteItemIIR",
+  "factory": "0x96b4f0",
+  "site": "0x96c489"
+ },
+ {
+  "name": "DestructibleFullUpdateIIR_c",
+  "type_id": "0x6bd56736",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0xde1730",
+  "site": "0xde1889"
+ },
+ {
+  "name": "DoorFullUpdateIIR_c",
+  "type_id": "0x33a56fb0",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0xde17a0",
+  "site": "0xde1898"
+ },
+ {
+  "name": "EffectPackageIIR",
+  "type_id": "0x9bb211bd",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bd40",
+  "site": "0x96c5e2"
+ },
+ {
+  "name": "FanaticCommandIIR_t",
+  "type_id": "0xee4aa85c",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x98e200",
+  "site": "0x98e2df"
+ },
+ {
+  "name": "FanaticIIR_t",
+  "type_id": "0x1c4528a7",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x98e190",
+  "site": "0x98e2d0"
+ },
+ {
+  "name": "FloatStatIIR",
+  "type_id": "0x09012e82",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969ac0",
+  "site": "0x96c150"
+ },
+ {
+  "name": "FlushRDBCachesIIR_c",
+  "type_id": "0x45ecfd79",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x9699e0",
+  "site": "0x96c132"
+ },
+ {
+  "name": "FormatFeedbackIIR_t",
+  "type_id": "0x8d5a8b6b",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969970",
+  "site": "0x96c123"
+ },
+ {
+  "name": "FullPlayerCharacterIIR",
+  "type_id": "0x737a6df9",
+  "class": "FullPlayerCharacterIIR",
+  "proto": null,
+  "factory": "0xde1560",
+  "site": "0xde184d"
+ },
+ {
+  "name": "GMStatIIR_c",
+  "type_id": "0xbf12aa7c",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969c40",
+  "site": "0x96c17d"
+ },
+ {
+  "name": "GameActionListIIR_t",
+  "type_id": "0xf508f4c1",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969e00",
+  "site": "0x96c1b9"
+ },
+ {
+  "name": "GameTimeIIR_t",
+  "type_id": "0x4f57dc08",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969890",
+  "site": "0x96c105"
+ },
+ {
+  "name": "GuildUpdateIIR_c",
+  "type_id": "0x2550c99a",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bb80",
+  "site": "0x96c5a6"
+ },
+ {
+  "name": "HateListUpdateIIR",
+  "type_id": "0x8a01e5a1",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b100",
+  "site": "0x96c402"
+ },
+ {
+  "name": "Int32StatIIR",
+  "type_id": "0xa2f53610",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969bc0",
+  "site": "0x96c15f"
+ },
+ {
+  "name": "IntendedTeleportIIR_c",
+  "type_id": "0x10d27bc0",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bfe0",
+  "site": "0x96c63c"
+ },
+ {
+  "name": "JournalUpdateIIR",
+  "type_id": "0x663f2472",
+  "class": "n3InfoItem",
+  "proto": "JournalUpdateIIRProto",
+  "factory": "0x96b790",
+  "site": "0x96c4e3"
+ },
+ {
+  "name": "KnubotActorIIR",
+  "type_id": "0xe856cd72",
+  "class": "n3InfoItem",
+  "proto": "KnubotActorIIRProto::KnubotActorMessage",
+  "factory": "0x96be90",
+  "site": "0x96c60f"
+ },
+ {
+  "name": "KnubotAnswerIIR",
+  "type_id": "0x714bc8ff",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96ae60",
+  "site": "0x96c3a8"
+ },
+ {
+  "name": "KnubotAnswerListIIR",
+  "type_id": "0xbb85d501",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a9d0",
+  "site": "0x96c34e"
+ },
+ {
+  "name": "KnubotAppendTextIIR",
+  "type_id": "0x07cd7336",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96aa40",
+  "site": "0x96c35d"
+ },
+ {
+  "name": "KnubotCloseChatWindowIIR",
+  "type_id": "0x78e103c7",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96adf0",
+  "site": "0x96c399"
+ },
+ {
+  "name": "KnubotFinishTradeIIR",
+  "type_id": "0xb7edf596",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96af40",
+  "site": "0x96c3c6"
+ },
+ {
+  "name": "KnubotOpenChatWindowIIR",
+  "type_id": "0x5ed6cdeb",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96ad80",
+  "site": "0x96c38a"
+ },
+ {
+  "name": "KnubotStartTradeIIR",
+  "type_id": "0xc0ad769b",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96aed0",
+  "site": "0x96c3b7"
+ },
+ {
+  "name": "LockedToChangedIIR_t",
+  "type_id": "0x6b0aec58",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969d20",
+  "site": "0x96c19b"
+ },
+ {
+  "name": "LookAtIIR_t",
+  "type_id": "0x0d155695",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b250",
+  "site": "0x96c42f"
+ },
+ {
+  "name": "LootAddItemsIIR",
+  "type_id": "0xf331274b",
+  "class": "n3InfoItem",
+  "proto": "LootAddItemsIIRProto",
+  "factory": "0x96bdb0",
+  "site": "0x96c5f1"
+ },
+ {
+  "name": "LootBagFullUpdateIIR_c",
+  "type_id": "0xf096251e",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0x96a180",
+  "site": "0x96c231"
+ },
+ {
+  "name": "LootCharNeedGreedUpdateIIR_c",
+  "type_id": "0x8acd1ac8",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a650",
+  "site": "0x96c2d6"
+ },
+ {
+  "name": "LootDeleteItemsIIR",
+  "type_id": "0x6ac7b325",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a5e0",
+  "site": "0x96c2c7"
+ },
+ {
+  "name": "LootRemoveItemsIIR_c",
+  "type_id": "0x70010162",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a570",
+  "site": "0x96c2b8"
+ },
+ {
+  "name": "LootSpecialLootUpdateIIR_c",
+  "type_id": "0xe9eb9694",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a500",
+  "site": "0x96c2a9"
+ },
+ {
+  "name": "LootUpdateAllowedLootersIIR",
+  "type_id": "0x51bef2cb",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a420",
+  "site": "0x96c28b"
+ },
+ {
+  "name": "LuaIIR",
+  "type_id": "0x884e405a",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bc60",
+  "site": "0x96c5c4"
+ },
+ {
+  "name": "MagicBuffIIR_c",
+  "type_id": "0x6b87e316",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969f50",
+  "site": "0x96c1e6"
+ },
+ {
+  "name": "MainQuestUpdateIIR_c",
+  "type_id": "0x504b7924",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96aab0",
+  "site": "0x96c36c"
+ },
+ {
+  "name": "MasterLooterOpenIIR_c",
+  "type_id": "0x26d0edd5",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a3b0",
+  "site": "0x96c27c"
+ },
+ {
+  "name": "MoveInventoryItemIIR_t",
+  "type_id": "0x2a8a1b49",
+  "class": "n3InfoItem",
+  "proto": "ProtoMoveInventoryItemIIR",
+  "factory": "0x96b480",
+  "site": "0x96c47a"
+ },
+ {
+  "name": "MoveTaskIIR_c",
+  "type_id": "0x96c46740",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b640",
+  "site": "0x96c4b6"
+ },
+ {
+  "name": "NPCDebugManagerIIR_c",
+  "type_id": "0x9f2c283b",
+  "class": "NPCDebugManagerIIR_c",
+  "proto": null,
+  "factory": "0x96ac30",
+  "site": "0x96c56a"
+ },
+ {
+  "name": "NewAllowedLooterIIR_c",
+  "type_id": "0x1e2e0139",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a340",
+  "site": "0x96c26d"
+ },
+ {
+  "name": "NewCurrentLooterIIR_c",
+  "type_id": "0xd06568c8",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a490",
+  "site": "0x96c29a"
+ },
+ {
+  "name": "NewLevelIIR_t",
+  "type_id": "0x6d314743",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x9695f0",
+  "site": "0x96c0ab"
+ },
+ {
+  "name": "PVPDropItemIIR_t",
+  "type_id": "0x7057225b",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bb10",
+  "site": "0x96c597"
+ },
+ {
+  "name": "PetIIR_c",
+  "type_id": "0x1f4cb0f7",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b020",
+  "site": "0x96c3e4"
+ },
+ {
+  "name": "PlayfieldDebugManagerIIR_c",
+  "type_id": "0xee7f5776",
+  "class": "PlayfieldDebugManagerIIR_c",
+  "proto": null,
+  "factory": "0x96ad10",
+  "site": "0x96c588"
+ },
+ {
+  "name": "PlayfieldFIIR_t",
+  "type_id": "0x5d85bfc7",
+  "class": "PlayfieldFIIR_t",
+  "proto": null,
+  "factory": "0x969ee0",
+  "site": "0x96c1d7"
+ },
+ {
+  "name": "QuestCooldownIIR",
+  "type_id": "0x9cc129c5",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b950",
+  "site": "0x96c51f"
+ },
+ {
+  "name": "QuestFullUpdateIIR",
+  "type_id": "0x63268258",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a880",
+  "site": "0x96c321"
+ },
+ {
+  "name": "QuestGoalIIR",
+  "type_id": "0xf848501d",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b720",
+  "site": "0x96c4d4"
+ },
+ {
+  "name": "QuestIIR_c",
+  "type_id": "0x97e02314",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b330",
+  "site": "0x96c44d"
+ },
+ {
+  "name": "QuestRewardSelectionIIR_c",
+  "type_id": "0x80138d7b",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b870",
+  "site": "0x96c501"
+ },
+ {
+  "name": "QuestRewardUpdateIIR",
+  "type_id": "0xb4d46a38",
+  "class": "n3InfoItem",
+  "proto": "QuestRewardUpdateIIRProto",
+  "factory": "0x96b800",
+  "site": "0x96c4f2"
+ },
+ {
+  "name": "QuestUpdateIIR",
+  "type_id": "0x196bf327",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b8e0",
+  "site": "0x96c510"
+ },
+ {
+  "name": "RegenIIR",
+  "type_id": "0xda7b49f5",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0xde15d0",
+  "site": "0xde185c"
+ },
+ {
+  "name": "RemoveFromGroupIIR_c",
+  "type_id": "0xe4ff0c85",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a810",
+  "site": "0x96c312"
+ },
+ {
+  "name": "RequestDebugInfoIIR",
+  "type_id": "0xd1ecce00",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96ab90",
+  "site": "0x96c55b"
+ },
+ {
+  "name": "ScriptTextIIR_t",
+  "type_id": "0xe6c3ccef",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96ab20",
+  "site": "0x96c37b"
+ },
+ {
+  "name": "ScryLuaIIR",
+  "type_id": "0x55acd7d1",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bcd0",
+  "site": "0x96c5d3"
+ },
+ {
+  "name": "ScryScriptIIR_c",
+  "type_id": "0xa36d3b74",
+  "class": "n3InfoItem",
+  "proto": "ProtoScryScriptIIR",
+  "factory": "0x96baa0",
+  "site": "0x96c54c"
+ },
+ {
+  "name": "ServerPosDebugInfoIIR_c",
+  "type_id": "0xafe243e6",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a960",
+  "site": "0x96c33f"
+ },
+ {
+  "name": "SetNameIIR_t",
+  "type_id": "0xadce0cda",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b5d0",
+  "site": "0x96c4a7"
+ },
+ {
+  "name": "SetPosIIR_c",
+  "type_id": "0x04b80b24",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a8f0",
+  "site": "0x96c330"
+ },
+ {
+  "name": "SimpleCharFullUpdateIIR_t",
+  "type_id": "0xfa015807",
+  "class": "SimpleCharFullUpdateIIR_t",
+  "proto": null,
+  "factory": "0xde1480",
+  "site": "0xde182f"
+ },
+ {
+  "name": "SimpleDynelFullUpdateIIR_c",
+  "type_id": "0x66aedd50",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0x969fc0",
+  "site": "0x96c1f5"
+ },
+ {
+  "name": "SimpleDynelVisualChangeIIR_c",
+  "type_id": "0xe7f4f8f8",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a6c0",
+  "site": "0x96c2e5"
+ },
+ {
+  "name": "SkillIIR_t",
+  "type_id": "0xd558ff16",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b1e0",
+  "site": "0x96c420"
+ },
+ {
+  "name": "SpawnClientNPCIIR",
+  "type_id": "0x073abf57",
+  "class": "n3InfoItem",
+  "proto": "SpawnClientNPCProto::SpawnClientNPCMessage",
+  "factory": "0x96be20",
+  "site": "0x96c600"
+ },
+ {
+  "name": "SpellBookIIR_t",
+  "type_id": "0x6ba10936",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969430",
+  "site": "0x96c06f"
+ },
+ {
+  "name": "StatIIR_t",
+  "type_id": "0xf98e10b3",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969a50",
+  "site": "0x96c141"
+ },
+ {
+  "name": "StatUpdateIIR_c",
+  "type_id": "0x96b8dc59",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969cb0",
+  "site": "0x96c18c"
+ },
+ {
+  "name": "StopEffectPackageIIR",
+  "type_id": "0x6bf109df",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bf00",
+  "site": "0x96c61e"
+ },
+ {
+  "name": "StopIIR_c",
+  "type_id": "0xd751ebb4",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b6b0",
+  "site": "0x96c4c5"
+ },
+ {
+  "name": "StringStatIIR",
+  "type_id": "0xc415e6ed",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x969b40",
+  "site": "0x96c16e"
+ },
+ {
+  "name": "TeleportFailedIIR_c",
+  "type_id": "0x78bb8c2e",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96bf70",
+  "site": "0x96c62d"
+ },
+ {
+  "name": "ThreatLevelIIR_c",
+  "type_id": "0x1745ef6c",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b090",
+  "site": "0x96c3f3"
+ },
+ {
+  "name": "ThreatMeterDataIIR_c",
+  "type_id": "0x8753247d",
+  "class": "ThreatMeterDataIIR_c",
+  "proto": null,
+  "factory": "0x96aca0",
+  "site": "0x96c579"
+ },
+ {
+  "name": "TimeScaleIIR_t",
+  "type_id": "0xdd9bf66a",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x7d7ce0",
+  "site": "0x7d800d"
+ },
+ {
+  "name": "TombStoneFullUpdateIIR_c",
+  "type_id": "0x0d80e7c9",
+  "class": "SimpleDynelFullUpdateIIR_c",
+  "proto": "ProtoSimpleDynelIIR",
+  "factory": "0x96a1f0",
+  "site": "0x96c240"
+ },
+ {
+  "name": "ToolMessageIIR_t",
+  "type_id": "0x444a6cd8",
+  "class": "n3InfoItem",
+  "proto": "ToolMessageIIR_t",
+  "factory": "0x96b9c0",
+  "site": "0x96c52e"
+ },
+ {
+  "name": "ToolMessageInternalIIR_t",
+  "type_id": "0x3188c31b",
+  "class": "n3InfoItem",
+  "proto": "ToolMessageInternalIIR_t",
+  "factory": "0x96ba30",
+  "site": "0x96c53d"
+ },
+ {
+  "name": "TradeskillReplyIIR_c",
+  "type_id": "0x9062d559",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b410",
+  "site": "0x96c46b"
+ },
+ {
+  "name": "TradeskillRequestIIR_c",
+  "type_id": "0x06b9cd94",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96b3a0",
+  "site": "0x96c45c"
+ },
+ {
+  "name": "UpdateClientVisualIIR_t",
+  "type_id": "0x356184b3",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x9694a0",
+  "site": "0x96c07e"
+ },
+ {
+  "name": "UpdateInventoryIIR_t",
+  "type_id": "0xa74d2814",
+  "class": "n3InfoItem",
+  "proto": "ProtoInventoryGame",
+  "factory": "0x969d90",
+  "site": "0x96c1aa"
+ },
+ {
+  "name": "UpdateMessage",
+  "type_id": "0x0f5fcade",
+  "class": "n3InfoItem",
+  "proto": "dw::UpdateMessage",
+  "factory": "0x969580",
+  "site": "0x96c09c"
+ },
+ {
+  "name": "UpdateSimpleDynelIIR_c",
+  "type_id": "0x30536411",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x96a0a0",
+  "site": "0x96c213"
+ },
+ {
+  "name": "n3AddRemovePlayfieldModule",
+  "type_id": "0x761ccbb2",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x7d7c00",
+  "site": "0x7d801c"
+ },
+ {
+  "name": "n3TeleportIIR_t",
+  "type_id": "0x5a32f0d7",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x7d7c70",
+  "site": "0x7d7ffe"
+ },
+ {
+  "name": "n3ToClientFadeIIR_t",
+  "type_id": "0x66180b20",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x7d7b90",
+  "site": "0x7d7fef"
+ },
+ {
+  "name": "n3ToClientQuitIIR_t",
+  "type_id": "0x04b82b2d",
+  "class": "n3InfoItem",
+  "proto": null,
+  "factory": "0x7d7b20",
+  "site": "0x7d7fe0"
+ }
+]

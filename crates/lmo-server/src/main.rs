@@ -30,10 +30,20 @@ pub struct Config {
     /// Game server port (playfields).
     #[arg(long, env = "LMO_GAME_PORT", default_value_t = 7102)]
     pub game_port: u16,
+    /// Playfield new characters start in.
+    #[arg(long, env = "LMO_START_PLAYFIELD", default_value_t = 1200)]
+    pub start_playfield: u32,
     /// Path to an installed client ("LEGO Minifigures Online" folder); its files are served
     /// to the patcher.
     #[arg(long, env = "LMO_CLIENT_DIR")]
     pub client_dir: Option<PathBuf>,
+    /// Patch server to fetch files missing from the local client from (Funcom's original,
+    /// e.g. http://update.lego.funcom.com/legoupm). Disabled when unset.
+    #[arg(long, env = "LMO_UPSTREAM")]
+    pub upstream: Option<String>,
+    /// Where files fetched from --upstream are cached (default ./rdb-cache).
+    #[arg(long, env = "LMO_CACHE_DIR")]
+    pub cache_dir: Option<PathBuf>,
     /// Serve the client's download list as-is instead of dropping resources missing from
     /// the local RDB.
     #[arg(long)]

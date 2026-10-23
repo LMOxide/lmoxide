@@ -7,6 +7,9 @@ CLIENT=${1:?usage: dev-run.sh <client-dir> [log-dir]}
 LOGS=${2:-/tmp}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 export WINEPREFIX=${WINEPREFIX:-$HOME/.local/share/lmo-wine}
+# Fetch files the archived client lacks from Funcom's patch server (set LMO_UPSTREAM= to disable).
+export LMO_UPSTREAM=${LMO_UPSTREAM-http://update.lego.funcom.com/legoupm}
+export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../rdb-cache")}
 
 pkill -x LMO.exe || true
 pkill -x lmo-server || true

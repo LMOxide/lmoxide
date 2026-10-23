@@ -158,6 +158,10 @@ impl Writer {
     pub fn container_len(self, len: usize) -> Self {
         self.u32((len as u32 + 1) * CONTAINER_MULTIPLIER)
     }
+    /// Nested `BinaryStream` (blob): u32 length + bytes.
+    pub fn blob(self, b: &[u8]) -> Self {
+        self.u32(b.len() as u32).raw(b)
+    }
     /// Embedded protobuf message: u32 length + encoded bytes.
     pub fn proto(self, msg: &impl prost::Message) -> Self {
         let b = msg.encode_to_vec();

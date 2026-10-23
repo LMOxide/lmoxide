@@ -126,15 +126,13 @@ fn dimension_list() -> bytes::Bytes {
 
 /// `ID32` type of characters (the client's character-list code uses 50000).
 const CHARACTER_TYPE: u32 = 50000;
-/// First playfield in Funcom's smoke-test list.
-const START_PLAYFIELD: u32 = 1200;
 
 /// `LoginConnectReady(gameServerAddress, nCookie, cClientCharacterID, PlayfieldProxy)`
 /// (decoder 0x7bf400): string, u32, ID32, embedded `PlayfieldProxyData` protobuf.
 fn login_connect_ready(cfg: &Config, character: Id32) -> bytes::Bytes {
     let pf = PlayfieldProxyData {
         dimension_id: Some(1),
-        model_id: Some(ProtoId32 { r#type: None, instance: Some(START_PLAYFIELD) }),
+        model_id: Some(ProtoId32 { r#type: Some(crate::game::PLAYFIELD_TYPE), instance: Some(cfg.start_playfield) }),
         ..Default::default()
     };
     character

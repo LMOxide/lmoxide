@@ -5,6 +5,7 @@
 //! arguments serialized as a big-endian [`stream`] ("BinaryStream" in the client).
 
 pub mod codec;
+pub mod iir;
 pub mod rpc;
 pub mod stream;
 pub mod types;
