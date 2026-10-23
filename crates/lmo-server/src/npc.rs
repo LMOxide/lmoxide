@@ -257,10 +257,11 @@ fn cast_record(caster: Id32, target: Id32, spell: u32, action: u8) -> bytes::Byt
         ..Default::default()
     };
     lmo_net::iir::record("BehaviorControlCenterIIR_c", caster, false, |w| {
+        // MagicCommand_c::ReadSubClass: u64 spell, u8 posFlag (1: no position), u32, u32,
+        // u32 activation, u8 canExecute, 3 x u8, ID32, u32, u32 flag
         let w = w.u8(action).u32(COMMAND_MAGIC).proto(&msg).u32(0).u32(spell).u8(1);
-        let w = (0..3).fold(w, |w, _| w.u32(0)).u8(0x20);
-        let w = (0..3).fold(w, |w, _| w.u32(0));
-        w.u32(0xffff_ffff).u32(0)
+        let w = (0..3).fold(w, |w, _| w.u32(0)).u8(0x20).u8(0).u8(0).u8(0);
+        w.u32(0).u32(0).u32(0xffff_ffff).u32(0)
     })
 }
 
