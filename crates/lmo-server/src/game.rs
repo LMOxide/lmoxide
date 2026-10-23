@@ -32,7 +32,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut character = 0;
     let mut name = String::new();
     let pos = Arc::new(Mutex::new(START_POS));
-    let (outbox, mut inbox) = mpsc::unbounded_channel::<Vec<Bytes>>();
+    let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
         let rpc = tokio::select! {
@@ -40,9 +40,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 Some(rpc) => rpc,
                 None => break,
             },
-            Some(records) = inbox.recv() => {
-                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
-                    .await?;
+            Some(out) = inbox.recv() => {
+                match out {
+                    world::Out::Records(records) => {
+                        let blob = iir::pass_blob(&records);
+                        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+                    }
+                    world::Out::Rpc { target, method, args } => conn.send_as(Some(character), target, method, args).await?,
+                }
                 continue;
             }
         };
@@ -68,6 +73,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let mut records = vec![playfield_full_update(cfg.start_playfield)];
                 records.extend(spawn_records(me, cfg.start_playfield, &name, START_POS));
                 records.insert(3, full_player_character(me));
+                if cfg.gm_level != 0 {
+                    records.push(int32_stat(me, STAT_GM_LEVEL, cfg.gm_level));
+                }
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                     .await?;
             }
@@ -89,7 +97,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if presence.is_none() {
                             let (id, playfield, name, pos_handle) = (h.identity, cfg.start_playfield, name.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || spawn_records(id, playfield, &name, *pos.lock().unwrap());
+                            let spawn = move || remote_spawn_records(id, playfield, &name, *pos.lock().unwrap());
                             presence = Some(world::join(id, playfield, pos_handle, spawn, outbox.clone()));
                         }
                     }
@@ -120,6 +128,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::PONG, args)
                     .await?;
             }
+            (Some(Endpoint::GameCharAgent), game_char_agent::VICINITY_CHAT_MESSAGE) => {
+                // VicinityChatMessage(const String& message, const int mood) -> everyone on the
+                // playfield, sender included: GameCharInterface::VicinityChatMessage(fromName,
+                // message, mood, gmLDBNametagInstance).
+                let message = r.string()?;
+                let mood = r.i32()?;
+                info!(%name, %message, mood, "chat");
+                if let Some(p) = &presence {
+                    let args = Writer::new().string(&name).string(&message).i32(mood).i32(0).finish();
+                    let out = world::Out::Rpc {
+                        target: Endpoint::GameCharInterface,
+                        method: game_char_interface::VICINITY_CHAT_MESSAGE,
+                        args,
+                    };
+                    world::send_playfield(p.id(), true, out);
+                }
+            }
             // Client-side bookkeeping that needs no answer (to be persisted later).
             (
                 Some(Endpoint::GameCharAgent),
@@ -135,7 +160,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
 }
 
 /// The IIRs that make a character exist on a client: its DreamWorld GameObject, the dynel,
-/// and its stats. The player's own client additionally needs `full_player_character`.
+/// and its stats. The player's own client additionally needs `full_player_character` (and
+/// sends its own CharInPlayIIR_t); others get `remote_spawn_records`.
 pub fn spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec<Bytes> {
     vec![
         create_game_object(id, playfield, pos),
@@ -143,8 +169,14 @@ pub fn spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec
         int32_stat(id, STAT_LIFE, START_HEALTH),
         int32_stat(id, STAT_HEALTH, START_HEALTH),
         int32_stat(id, STAT_LEVEL, 1),
-        iir::record("CharInPlayIIR_t", id, false, |w| w),
     ]
+}
+
+/// What other clients need to see a character: its spawn records, already in play.
+pub fn remote_spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec<Bytes> {
+    let mut records = spawn_records(id, playfield, name, pos);
+    records.push(iir::record("CharInPlayIIR_t", id, false, |w| w));
+    records
 }
 
 /// `UpdateMessage` op 1 (Activate 0x6ef4e0): removes the GameObject with this Id.
@@ -181,7 +213,7 @@ pub async fn run_bot(playfield: u32) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let spawn = move || spawn_records(id, playfield, "Bot", *spawn_pos.lock().unwrap());
+    let spawn = move || remote_spawn_records(id, playfield, "Bot", *spawn_pos.lock().unwrap());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let mut t = 0.0f32;
@@ -277,14 +309,41 @@ fn full_player_character(id: Id32) -> bytes::Bytes {
 }
 
 const START_HEALTH: u32 = 100;
-/// MonsterData (RDB type 1010514) of every minifigure item template: the shared animated body.
-/// Without it remote characters are invisible ("has no animated mesh", 0x5f2960).
-const MINIFIGURE_MONSTER_DATA: u32 = 2212;
+/// A character's body and costume come from its MonsterData stat (RDB type 1010514). Each
+/// minifigure item template has a SetStatGameAction setting MonsterData to its own monsterdata
+/// (template 1000620 body: `d2 02 00 00 00 | 67 01 00 00 | f2 02 ...` then the u32 value);
+/// the 2212 in the templates' stat block is the generic body ("Aztec_Warrior").
+/// `CoreCharacterFullUpdateIIR::Transfer` applies `stats.monster_data` before building the
+/// animated mesh; without it remote characters are invisible.
+const MINIFIGURE_MONSTER_DATA: [(u32, u32); 16] = [
+    (663917, 663907), // Queen
+    (663918, 663902), // Animal Control
+    (663919, 663906), // Jewel Thief
+    (663920, 663876), // Tribal Woman
+    (663921, 663855), // Ballerina
+    (663922, 663904),
+    (663923, 663903), // Faun
+    (663924, 663905),
+    (663925, 663909),
+    (663926, 663916),
+    (663927, 663912),
+    (663928, 663915), // Kendo Fighter
+    (663929, 663910), // Astronaut
+    (663930, 663911), // Laser Mech
+    (663931, 663914),
+    (663932, 663913), // Farmer
+];
+
+/// Monsterdata for a minifigure item template (the generic body if unknown).
+fn monster_data_for(template: u32) -> u32 {
+    MINIFIGURE_MONSTER_DATA.iter().find(|(t, _)| *t == template).map_or(2212, |(_, m)| *m)
+}
 
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
 const STAT_LIFE: u32 = 1;
 const STAT_HEALTH: u32 = 27;
 const STAT_LEVEL: u32 = 54;
+const STAT_GM_LEVEL: u32 = 215;
 
 /// Near the portals in playfield 1200 (from the client's RDBTeleportLocations).
 const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
@@ -316,7 +375,8 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
             life: Some(START_HEALTH),
             health: Some(START_HEALTH),
             level: Some(1),
-            monster_data: Some(MINIFIGURE_MONSTER_DATA),
+            // the active (first) team slot's minifigure
+            monster_data: Some(monster_data_for(START_TEAM[0].1)),
             monster_scale: Some(100),
             ..Default::default()
         }),

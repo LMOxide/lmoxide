@@ -10,10 +10,19 @@ use std::{
 };
 
 use bytes::Bytes;
-use lmo_net::types::Id32;
+use lmo_net::{Endpoint, types::Id32};
 use tokio::sync::mpsc;
 
-pub type Outbox = mpsc::UnboundedSender<Vec<Bytes>>;
+/// What a member's connection is asked to send to its client.
+#[derive(Clone, Debug)]
+pub enum Out {
+    /// IIR records, sent as one `PassBlob`.
+    Records(Vec<Bytes>),
+    /// An RPC on one of the client's endpoints.
+    Rpc { target: Endpoint, method: u32, args: Bytes },
+}
+
+pub type Outbox = mpsc::UnboundedSender<Out>;
 pub type Position = Arc<Mutex<[f32; 3]>>;
 
 struct Member {
@@ -40,10 +49,10 @@ pub fn join(
     let mut theirs = Vec::new();
     for other in members.values().filter(|m| m.playfield == playfield) {
         theirs.extend((other.spawn)());
-        let _ = other.outbox.send(mine.clone());
+        let _ = other.outbox.send(Out::Records(mine.clone()));
     }
     if !theirs.is_empty() {
-        let _ = outbox.send(theirs);
+        let _ = outbox.send(Out::Records(theirs));
     }
     members.insert(id, Member { playfield, pos, spawn: Box::new(spawn), outbox });
     Presence { id }
@@ -60,11 +69,16 @@ pub fn someone_else(me: Id32, playfield: u32) -> Option<[f32; 3]> {
 
 /// Sends records to every other character on the sender's playfield.
 pub fn broadcast(from: Id32, records: Vec<Bytes>) {
+    send_playfield(from, false, Out::Records(records));
+}
+
+/// Sends `out` to the characters on `from`'s playfield (including `from` if `to_self`).
+pub fn send_playfield(from: Id32, to_self: bool, out: Out) {
     let members = MEMBERS.lock().unwrap();
     let Some(playfield) = members.get(&from).map(|m| m.playfield) else { return };
     for (id, m) in members.iter() {
-        if *id != from && m.playfield == playfield {
-            let _ = m.outbox.send(records.clone());
+        if (to_self || *id != from) && m.playfield == playfield {
+            let _ = m.outbox.send(out.clone());
         }
     }
 }
@@ -91,7 +105,7 @@ fn broadcast_all(about: Id32, records: Vec<Bytes>) {
     let members = MEMBERS.lock().unwrap();
     for (id, m) in members.iter() {
         if *id != about {
-            let _ = m.outbox.send(records.clone());
+            let _ = m.outbox.send(Out::Records(records.clone()));
         }
     }
 }

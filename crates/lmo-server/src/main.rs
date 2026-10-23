@@ -54,6 +54,10 @@ pub struct Config {
     /// other players look like).
     #[arg(long, env = "LMO_BOT")]
     pub bot: bool,
+    /// GM level given to every character (stat GmLevel). Free-text chat and the client's GM
+    /// chat commands need a non-zero level; ordinary LMO players only had macro chat.
+    #[arg(long, env = "LMO_GM_LEVEL", default_value_t = 0)]
+    pub gm_level: u32,
 }
 
 impl Config {
