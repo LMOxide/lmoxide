@@ -218,6 +218,9 @@ pub fn spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
         int32_stat(id, STAT_LIFE, START_HEALTH),
         int32_stat(id, STAT_HEALTH, START_HEALTH),
         int32_stat(id, STAT_LEVEL, 1),
+        // collision capsule radius = CharRadius x MonsterScale / 10000 (SimpleChar_t::SetStat)
+        int32_stat(id, STAT_CHAR_RADIUS, 50),
+        int32_stat(id, STAT_COMMAND_QUEUE_SIZE, 3),
     ]
 }
 
@@ -394,6 +397,9 @@ const STAT_LIFE: u32 = 1;
 const STAT_HEALTH: u32 = 27;
 const STAT_LEVEL: u32 = 54;
 const STAT_GM_LEVEL: u32 = 215;
+const STAT_CHAR_RADIUS: u32 = 421;
+/// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
+const STAT_COMMAND_QUEUE_SIZE: u32 = 1360;
 
 /// Near the portals in playfield 1200 (from the client's RDBTeleportLocations).
 const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
