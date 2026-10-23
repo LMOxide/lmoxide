@@ -12,7 +12,36 @@
 
 use bytes::Bytes;
 
-use crate::{rpc::endpoint_hash, stream::Writer, types::Id32};
+use crate::{
+    rpc::endpoint_hash,
+    stream::{self, Reader, Writer},
+    types::Id32,
+};
+
+include!(concat!(env!("OUT_DIR"), "/iir_types.rs"));
+
+/// Registered name of an IIR type id, if known.
+pub fn name(type_id: u32) -> Option<&'static str> {
+    IIR_TYPES.iter().find(|(id, _)| *id == type_id).map(|(_, n)| *n)
+}
+
+/// The fixed part of a record: type id, identity, pass-on flag. The rest is class-specific.
+#[derive(Debug, Clone, Copy)]
+pub struct Header {
+    pub type_id: u32,
+    pub identity: Id32,
+    pub pass_on: bool,
+}
+
+impl Header {
+    pub fn read(r: &mut Reader) -> stream::Result<Self> {
+        Ok(Self { type_id: r.u32()?, identity: Id32::read(r)?, pass_on: r.bool()? })
+    }
+
+    pub fn name(&self) -> Option<&'static str> {
+        name(self.type_id)
+    }
+}
 
 /// IIR type id for a registered IIR name (e.g. `"PlayfieldFIIR_t"`).
 pub const fn type_id(name: &str) -> u32 {

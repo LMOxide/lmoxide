@@ -1,6 +1,7 @@
 mod conn;
 mod game;
 mod http;
+mod sessions;
 mod territory;
 mod universe;
 

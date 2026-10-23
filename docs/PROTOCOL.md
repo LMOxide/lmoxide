@@ -92,7 +92,10 @@ Embedded protobuf (e.g. `FidData_c`, `PlayfieldProxy`): u32 length + encoded mes
 | 13 | → game server: `ClientToGameserverRPC::Authenticate2(charInstance, cookie, "LMOv1.5@557666_Win32")` | ← `GameserverToClientRPC::AckAuthenticate(1)` |
 | 14 | → control frame `01`, `ClientToGameserverRPC::Ping(seq)` (← `Pong`), `GameCharAgent::Ping(seq)` every ~1 s | client FlowControl state `WaitingForFullUpdate` |
 | 15 | ← `GameserverToClientRPC::PassBlob` with `PlayfieldFIIR_t` (playfield 51100:1200) | client loads the playfield ("Entering playfield" screen) **verified** |
-| 16 | ← `SimpleCharFullUpdateIIR_t` + `FullPlayerCharacterIIR` for the character | both construct cleanly but never activate — **next** (see "Dynel creation") |
+| 16 | (wait until the account's territory connection has closed — see below) | |
+| 17 | ← `UpdateMessage` (create dw::GameObject), `SimpleCharFullUpdateIIR_t`, `FullPlayerCharacterIIR` | character dynel created; FlowControl → WaitingToSendInPlay **verified** |
+| 18 | → `ClientToGameserverRPC::SignalPassBlob` with `CharInPlayIIR_t` ← echo `CharInPlayIIR_t` | FlowControl → **InPlay**, world rendered **verified** ([screenshot](img/first-inplay.png)) |
+| 19 | → client IIRs: `CharDCMoveIIR_t` (position), `MoveTaskIIR_c`, `QuestCooldownIIR`; GameCharAgent requests (item shop, gear, guild, tutorials) | **next**: appearance (minifigure), stats, movement echo, the GameChar RPCs |
 
 ## IIRs (state updates)
 
@@ -118,7 +121,24 @@ Pitfalls found:
   `PlayfieldProxyData.running_instance` is the key of the client's playfield map.
 - `CoreCharacterFullUpdateIIR` asserts `generic_stats_size == g_Int32StatsOrder.size()` (= 1).
 
-### Dynel creation (open question)
+### Dynel creation (solved)
+
+Order: `UpdateMessage` creates a DreamWorld GameObject; then the dynel IIR (`SimpleCharFullUpdateIIR_t`)
+whose PollStatus waits for that GameObject creates the dynel through `SimpleCharFactory`.
+
+`UpdateMessage` (`dw::UpdateMessage`, ReadSubClass `0x6ef680`): u8 op (0 = create), ID32,
+u32 playfield key, blob. The blob is **little-endian** DreamWorld reflection data (`0x6ef090`):
+an object is `u32 byte length` + (`u32 field id`, value)*, field id = ELF/PJW hash of the field
+name (`0x4ab4a0`). Struct-typed fields nest the same way; primitive u32 fields are 4 LE bytes.
+`dw::GameObject` fields (`0x6f3a10`): `Id` (ID32 = struct {type @0, instance @4}, `0x6f3e80`),
+`Position`, `Rotation`, `Scale` (Vector3Member/quaternion structs). Only `Id` is needed.
+
+Territory race: the client drops its territory connection when it moves to the game server, and
+FlowControl (`0x410290`) logs out if that disconnect is noticed in any state but 1/3/4/5/7
+(7 = WaitingForFullUpdate). The game server therefore waits for the account's territory
+connection to close (`sessions.rs`) before sending the world.
+
+### Dynel creation — original notes
 
 Character IIRs (`SimpleCharFullUpdateIIR_t`, type check 50000) derive from
 `GameCodeDynelFullUpdateIIR`. Their `PollStatus` (`0x7442f0`) returns 1 only when a

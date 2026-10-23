@@ -20,6 +20,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .and_then(|v| v.parse().ok())
         .unwrap_or(1);
     let mut account = 0;
+    let mut _session = None;
     let mut keepalive = tokio::time::interval(KEEPALIVE);
     keepalive.tick().await;
     loop {
@@ -42,6 +43,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let version = r.u32()?;
                 let valid = cookie == crate::universe::cookie_for(account);
                 info!(account, cookie, version, valid, "Authenticate");
+                _session = Some(crate::sessions::territory_opened(account));
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::AUTHENTICATE_ACK, args)
                     .await?;

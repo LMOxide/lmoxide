@@ -35,14 +35,35 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
+                // Characters are keyed by account instance for now (see territory.rs).
+                if !crate::sessions::territory_closed(character, std::time::Duration::from_secs(10)).await {
+                    warn!(character, "territory connection still open; sending the world anyway");
+                }
+                // Give the client a moment to process the territory disconnect.
+                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 let me = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 let blob = iir::pass_blob(&[
                     playfield_full_update(cfg.start_playfield),
+                    create_game_object(me, cfg.start_playfield, START_POS),
                     simple_char_full_update(me, cfg.start_playfield, "tester", START_POS),
                     full_player_character(me),
                 ]);
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob)
                     .await?;
+            }
+            (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
+                // The client's own IIRs (u32 length + records). Only headers are decoded.
+                let len = r.u32()? as usize;
+                let blob = r.bytes(len, "blob")?;
+                let mut br = Reader::new(blob);
+                let h = iir::Header::read(&mut br)?;
+                info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(br.remaining()), "client IIR");
+                if h.name() == Some("CharInPlayIIR_t") {
+                    // Acknowledge: the client waits in WaitingToReceiveInPlay for this.
+                    let echo = iir::pass_blob(&[iir::record("CharInPlayIIR_t", h.identity, false, |w| w)]);
+                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
+                        .await?;
+                }
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::PING) => {
                 let seq = r.u32()?;
@@ -175,4 +196,59 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
             .u32(EMPTY)
             .u32(EMPTY)
     })
+}
+
+/// Field ids in DreamWorld reflection data are the ELF/PJW hash of the field name (0x4ab4a0).
+fn elf_hash(name: &str) -> u32 {
+    let mut h: u32 = 0;
+    for &b in name.as_bytes() {
+        h = (h << 4).wrapping_add(b as u32);
+        let g = h & 0xf000_0000;
+        if g != 0 {
+            h ^= g >> 24;
+        }
+        h &= !g;
+    }
+    h
+}
+
+/// `UpdateMessage` (dw::UpdateMessage, op 0 = create): creates the DreamWorld GameObject that
+/// dynel IIRs wait for (GameCodeDynelFullUpdateIIR::PollStatus needs it, n3DynelFactory asserts
+/// it). Layout (ReadSubClass 0x6ef680): u8 op, ID32, [op 0: u32 playfield key, blob].
+/// The blob is a reflected dw::GameObject (0x6ef090): u32 byte length, then (u32 field id,
+/// value) pairs; fields registered in 0x6f3a10: Id (ID32, +0x148), Position (Vector3Member),
+/// Rotation, Scale. AddGameObject (0x6edf10) keys the object by its Id. Unlike the outer
+/// stream, the reflection data is little-endian (the nested BinaryStream doesn't byte-swap).
+/// A reflected object: u32 LE byte length, then (u32 LE field id, value) pairs.
+fn reflect(fields: &[(u32, &[u8])]) -> Vec<u8> {
+    let mut body = Vec::new();
+    for (id, value) in fields {
+        body.extend_from_slice(&id.to_le_bytes());
+        body.extend_from_slice(value);
+    }
+    let mut out = (body.len() as u32).to_le_bytes().to_vec();
+    out.extend_from_slice(&body);
+    out
+}
+
+fn create_game_object(id: Id32, playfield: u32, pos: [f32; 3]) -> bytes::Bytes {
+    // Only Id: Position is a reflected struct (Vector3Member) and the dynel IIR carries the
+    // position anyway. ID32 is itself a reflected struct {type @0, instance @4} (0x6f3e80),
+    // so it nests as its own length + fields; u32 fields are plain little-endian values.
+    let _ = pos;
+    let id_value = reflect(&[(elf_hash("type"), &id.kind.to_le_bytes()), (elf_hash("instance"), &id.instance.to_le_bytes())]);
+    let object = reflect(&[(elf_hash("Id"), &id_value)]);
+    iir::record("UpdateMessage", id, false, |w| id.write(w.u8(0)).u32(playfield).blob(&object))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn elf_hash_matches_client() {
+        // classic PJW/ELF hash values
+        assert_eq!(elf_hash(""), 0);
+        assert_eq!(elf_hash("Id"), (b'I' as u32) * 16 + b'd' as u32);
+    }
 }

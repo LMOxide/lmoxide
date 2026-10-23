@@ -69,6 +69,27 @@ fn main() {
     }
     writeln!(out, "];").unwrap();
     fs::write(PathBuf::from(env::var("OUT_DIR").unwrap()).join("methods.rs"), out).unwrap();
+
+    // IIR names/type ids extracted from LMO.exe by tools/re/extract_iir.py
+    let iir_json = root.join("data/iir_types.json");
+    println!("cargo:rerun-if-changed={}", iir_json.display());
+    let v: serde_json::Value = serde_json::from_slice(&fs::read(&iir_json).unwrap()).unwrap();
+    let mut out = String::from("// @generated from data/iir_types.json\n/// `(type id, registered name)` of every IIR the client knows.\npub const IIR_TYPES: &[(u32, &str)] = &[\n");
+    let mut rows: Vec<(u32, String)> = v
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| {
+            let id = u32::from_str_radix(e["type_id"].as_str().unwrap().trim_start_matches("0x"), 16).unwrap();
+            (id, e["name"].as_str().unwrap().to_string())
+        })
+        .collect();
+    rows.sort();
+    for (id, name) in rows {
+        writeln!(out, "    (0x{id:08x}, {name:?}),").unwrap();
+    }
+    out.push_str("];\n");
+    fs::write(PathBuf::from(env::var("OUT_DIR").unwrap()).join("iir_types.rs"), out).unwrap();
 }
 
 fn to_screaming_snake(s: &str) -> String {

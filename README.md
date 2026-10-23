@@ -4,8 +4,10 @@ A server emulator, in Rust, for the LEGO Minifigures Online client (Funcom, shut
 
 **Status:** the real client patches against this server, logs in through the universe agent and
 territory manager, requests character creation, and connects and authenticates to the game
-server, and loads the starting playfield ("Entering playfield"). Spawning the player character
-(creating its dynel) is the next piece of work — see docs/PROTOCOL.md "Dynel creation". See
+server, loads the starting playfield and **enters the game world** (FlowControl `InPlay`) with a
+(still invisible) character. Appearance, stats and gameplay messages are next.
+
+![first time in play](docs/img/first-inplay.png) See
 [docs/PROTOCOL.md](docs/PROTOCOL.md) for everything learned so far.
 
 ## Layout
