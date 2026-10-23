@@ -822,6 +822,7 @@ dependencies = [
  "futures",
  "lmo-net",
  "md-5",
+ "prost",
  "reqwest",
  "serde",
  "serde_json",

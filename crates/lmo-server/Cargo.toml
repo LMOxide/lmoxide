@@ -12,6 +12,7 @@ clap.workspace = true
 flate2.workspace = true
 futures.workspace = true
 md-5.workspace = true
+prost.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true

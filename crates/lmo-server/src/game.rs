@@ -89,7 +89,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 let mut records = vec![playfield_full_update(me.playfield)];
-                records.extend(spawn_records(id, &me));
+                records.extend(spawn_records(id, &me.spec()));
                 records.insert(3, full_player_character(id, &me));
                 if cfg.gm_level != 0 {
                     records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
@@ -138,7 +138,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if presence.is_none() {
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() });
+                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() }.spec());
                             presence = Some(world::join(id, me.playfield, pos_handle, spawn, outbox.clone()));
                         }
                     }
@@ -161,7 +161,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // A queued command (minifigure swap, ability, ...). It completes only
                         // when the server answers with the same record as action 4 (success).
                         let command_type = rest.get(1..5).map_or(0, |b| u32::from_be_bytes(b.try_into().unwrap()));
-                        info!(command_type, rest = %crate::conn::hex(rest), "command");
+                        match parse_command(rest) {
+                            Some((msg, data)) => {
+                                let target = msg.target.as_ref().map(|t| (t.r#type.unwrap_or(0), t.instance.unwrap_or(0)));
+                                // MagicCommand data: u32, u32 spell, ...
+                                let spell = (command_type == COMMAND_MAGIC)
+                                    .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
+                                    .flatten();
+                                info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
+                            }
+                            None => info!(command_type, rest = %crate::conn::hex(rest), "command (unparsed)"),
+                        }
                         let action_at = blob.len() - rest.len();
                         let mut reply = blob.to_vec();
                         reply[action_at] = BCC_COMMAND_SUCCEEDED;
@@ -277,13 +287,13 @@ fn reported_position(kind: &str, rest: &[u8]) -> Option<[f32; 3]> {
 /// The IIRs that make a character exist on a client: its DreamWorld GameObject, the dynel,
 /// and its stats. The player's own client additionally needs `full_player_character` (and
 /// sends its own CharInPlayIIR_t); others get `remote_spawn_records`.
-pub fn spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
+pub fn spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
     vec![
         create_game_object(id, c.playfield, c.pos),
         simple_char_full_update(id, c),
-        int32_stat(id, STAT_LIFE, START_HEALTH),
-        int32_stat(id, STAT_HEALTH, START_HEALTH),
-        int32_stat(id, STAT_LEVEL, 1),
+        int32_stat(id, STAT_LIFE, c.max_health),
+        int32_stat(id, STAT_HEALTH, c.health),
+        int32_stat(id, STAT_LEVEL, c.level),
         // collision capsule radius = CharRadius x MonsterScale / 10000 (SimpleChar_t::SetStat)
         int32_stat(id, STAT_CHAR_RADIUS, 50),
         int32_stat(id, STAT_COMMAND_QUEUE_SIZE, 3),
@@ -291,10 +301,19 @@ pub fn spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
 }
 
 /// What other clients need to see a character: its spawn records, already in play.
-pub fn remote_spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
+pub fn remote_spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
     let mut records = spawn_records(id, c);
     records.push(iir::record("CharInPlayIIR_t", id, false, |w| w));
     records
+}
+
+/// A queued command from a BehaviorControlCenterIIR_c body: u8 action, u32 CommandType,
+/// u32 length + CommandMessage protobuf, then the command's own data.
+fn parse_command(rest: &[u8]) -> Option<(lmo_net::proto::CommandMessage, &[u8])> {
+    use prost::Message;
+    let len = u32::from_be_bytes(rest.get(5..9)?.try_into().ok()?) as usize;
+    let msg = lmo_net::proto::CommandMessage::decode(rest.get(9..9 + len)?).ok()?;
+    Some((msg, &rest[9 + len..]))
 }
 
 /// The active minifigure's health (each minifigure has its own; Life is the maximum). Always
@@ -340,7 +359,7 @@ pub async fn run_bot(playfield: u32) {
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
     let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec() };
-    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() });
+    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let mut t = 0.0f32;
@@ -515,8 +534,38 @@ fn int32_stat(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
     iir::record("Int32StatIIR", id, false, |w| w.u32(stat).u32(value))
 }
 
-fn simple_char_full_update(id: Id32, c: &Character) -> bytes::Bytes {
-    let (playfield, name, pos) = (c.playfield, c.name.as_str(), c.pos);
+/// What the character IIRs need to know about a character, player or NPC.
+pub struct CharSpec<'a> {
+    pub name: &'a str,
+    pub playfield: u32,
+    pub pos: [f32; 3],
+    /// Body and costume (RDB 1010514).
+    pub monster_data: u32,
+    pub level: u32,
+    pub health: u32,
+    pub max_health: u32,
+    /// Set for NPCs.
+    pub npc: Option<proto_core_character_iir::NpcStats>,
+}
+
+impl Character {
+    pub fn spec(&self) -> CharSpec<'_> {
+        CharSpec {
+            name: &self.name,
+            playfield: self.playfield,
+            pos: self.pos,
+            // the active (first) team slot's minifigure
+            monster_data: self.team.first().map_or(2212, |&(_, t)| monster_data_for(t)),
+            level: 1,
+            health: START_HEALTH,
+            max_health: START_HEALTH,
+            npc: None,
+        }
+    }
+}
+
+fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
+    let (playfield, name, pos) = (c.playfield, c.name, c.pos);
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
@@ -526,14 +575,14 @@ fn simple_char_full_update(id: Id32, c: &Character) -> bytes::Bytes {
     let core = ProtoCoreCharacterIir {
         name: Some(name.to_string()),
         stats: Some(proto_core_character_iir::CharacterStats {
-            life: Some(START_HEALTH),
-            health: Some(START_HEALTH),
-            level: Some(1),
-            // the active (first) team slot's minifigure
-            monster_data: Some(c.team.first().map_or(2212, |&(_, t)| monster_data_for(t))),
+            life: Some(c.max_health),
+            health: Some(c.health),
+            level: Some(c.level),
+            monster_data: Some(c.monster_data),
             monster_scale: Some(100),
             ..Default::default()
         }),
+        npc_stats: c.npc.clone(),
         generic_stats: vec![0],
         dimension_id: Some(1),
         ..Default::default()
