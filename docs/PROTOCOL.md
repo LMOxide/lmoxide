@@ -154,6 +154,28 @@ GameObjects: `0x6e4960`/`0x6e4f80`/`0x6e5520`/`0x6e5ae0` (DreamWorld playfield m
 from `0x9e0860`…), `0xdf2d80` (game code), `0x6ea4c0`/`0x6fce20` (via `0x6fab80`). The playfield
 IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another candidate.
 
+### Characters in the world
+
+- **Stats** (HUD health bar etc.) live in the dynel's `StatHolder_t`; `Int32StatIIR` (u32 stat,
+  u32 value) sets them. Ids: data/stats.json (Life 1 = max health, Health 27, Level 54,
+  MonsterData 359, GmLevel 215).
+- **Body and costume** come from `CharacterStats.monster_data` (plus `monster_scale` 100):
+  each minifigure item template has a SetStatGameAction MonsterData → its own monsterdata
+  (Astronaut 663929 → 663910; table in game.rs). 2212 in the templates' stat block is only the
+  generic body ("Aztec_Warrior"). Without monster_data remote characters are invisible.
+- **Other characters** need `UpdateMessage` (GameObject) + `SimpleCharFullUpdateIIR_t` + stats +
+  `CharInPlayIIR_t`. Despawn: `UpdateMessage` op 1 (u8 1, ID32).
+- **Movement relay**: the client sends `MoveTaskIIR_c` for click-to-move (u8 task type 0, start
+  pos, u8 0x0f, 10 zero bytes, f32, u32 n, n waypoints, 16 zero bytes) and `CharDCMoveIIR_t`
+  for keyboard movement (u8 flags, pos, ...). Relaying MoveTaskIIR_c with the mover's identity
+  makes remote characters walk. Move tasks are read by a factory (u8 type → creator table) and
+  validated (`IsValid`).
+- **Free-text chat** needs GmLevel ≠ 0 (ChatGUI module criteria `stat:gmlevel!=0`); "Say" goes
+  through a separate chat server ("ChatClient - Not a valid Chatserver host" until
+  `PlayerInterface::ChatServerConnectReady`), not yet implemented.
+- **Open issue**: keyboard movement starts (CharDCMoveIIR_t with velocity) but the character
+  stays put, and minifigure swapping fails with "CommandQueue is full".
+
 ## Missing game data
 
 The archive lacks the RDB packs (playfield data type 1000049, many 1000141, …). Funcom's patch
@@ -193,6 +215,12 @@ send a bug report to Funcom on close — kill the process instead (`pkill -x LMO
 end-to-end cycle including a screenshot of the game window (`grim -T` works on hidden
 workspaces); `tools/ghidra/decompile.sh` / `xrefs.sh` against the analyzed project.
 
+- **Linux build with symbols**: the Linux client of the same version (1.5.557666, from
+  lmo.files.aronwk.com) exports ~143k demangled symbols. `tools/re/linux_fn.sh -l REGEX` lists
+  them; `tools/re/linux_fn.sh REGEX` disassembles with named call targets. Prefer it to the
+  Windows exe for finding code; addresses differ.
+- `tools/re/rdb.py` reads `RDB/RDBHashIndex.bin` (`types`, `ids T`, `find ID`, `get T ID`).
+- `tools/client-keys.sh` types into the hidden client window (Hyprland `send_key_state`).
 - `tools/re/pe.py`, `d.py <va> [bytes]` (disassemble with string annotations), `dispatch.py <string>`
   (find string xrefs and containing function), `vt.py <func>` (vtable containing a function).
   They need a Python venv with `pefile capstone` (and `protobuf` for `extract_protos.py`).
