@@ -154,8 +154,8 @@ pub fn despawn_record(id: Id32) -> Bytes {
 
 /// `CharDCMoveIIR_t` (ReadSubClass 0x605e40, direct-control/keyboard movement): u8 flags
 /// (bit 4: yaw-only rotation, bits 2/3: no velocity blocks), position, rotation y and w, u8 mode,
-/// f32, u8, u8 — as the client sends it (0x1c). Kept for relaying tests; flags (0x1c), position,
-/// heading (two floats), u8, f32, u8, u8. Activate (0x605a90) moves non-local dynels.
+/// f32, u8, u8, as the client sends it. Activate (0x605a90) only moves non-local dynels whose
+/// movement state allows it; the bot uses `move_task_record` instead, which works.
 #[allow(dead_code)]
 pub fn move_record(id: Id32, pos: [f32; 3], heading: [f32; 2]) -> Bytes {
     iir::record("CharDCMoveIIR_t", id, false, |w| {
