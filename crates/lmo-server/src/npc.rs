@@ -19,7 +19,8 @@ use tokio::sync::mpsc;
 use tracing::info;
 
 use crate::{
-    game::{CharSpec, STAT_HEALTH, int32_stat, move_task_record, remote_spawn_records},
+    game::{
+        BCC_STATE_LIMBO, CharSpec, STAT_BCC_STATE, STAT_HEALTH, combat_log_record, int32_stat, move_task_record, remote_spawn_records},
     world,
 };
 
@@ -112,30 +113,50 @@ fn appear(id: Id32) {
     }
 }
 
-/// `attacker` hits NPC `target` for `damage`. Returns false if `target` isn't a live NPC.
-pub fn hit(attacker: Id32, target: Id32, damage: u32) -> bool {
+/// `attacker` hits NPC `target` with `spell` for `damage`. Returns whether it died, or `None`
+/// if `target` isn't a live NPC.
+pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
     let mut npcs = NPCS.lock().unwrap();
-    let Some(npc) = npcs.get_mut(&target) else { return false };
+    let npc = npcs.get_mut(&target)?;
     if npc.presence.is_none() || npc.health == 0 {
-        return false;
+        return None;
     }
-    npc.health = npc.health.saturating_sub(damage);
+    let dealt = damage.min(npc.health);
+    npc.health -= dealt;
     let health = npc.health;
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
-    world::send_playfield(target, true, world::Out::Records(vec![int32_stat(target, STAT_HEALTH, health)]));
+    let mut records = vec![combat_log_record(attacker, target, spell, dealt), int32_stat(target, STAT_HEALTH, health)];
+    if health == 0 {
+        // Limbo: the client plays the death and stops targeting it
+        records.push(int32_stat(target, STAT_BCC_STATE, BCC_STATE_LIMBO));
+    }
+    world::send_playfield(target, true, world::Out::Records(records));
     if health == 0 {
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
         drop(npcs);
         tokio::spawn(async move {
-            // let the death (health 0) show before the body disappears
-            tokio::time::sleep(Duration::from_secs(2)).await;
+            // let the death play before the body disappears
+            tokio::time::sleep(Duration::from_secs(3)).await;
             drop(presence);
             tokio::time::sleep(RESPAWN).await;
             appear(target);
         });
     }
-    true
+    Some(health == 0)
+}
+
+/// Hits every live NPC on `playfield` within `radius` of `center`.
+pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
+    let targets: Vec<Id32> = NPCS
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
+        .filter(|(_, n)| distance(*n.pos.lock().unwrap(), center) <= radius)
+        .map(|(id, _)| *id)
+        .collect();
+    targets.into_iter().filter(|t| hit(attacker, *t, spell, damage) == Some(true)).count() as u32
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {

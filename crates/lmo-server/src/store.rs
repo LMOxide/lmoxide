@@ -12,6 +12,9 @@ pub struct Character {
     pub pos: [f32; 3],
     /// Minifigure team: (inventory 101 position, item template). The first entry is active.
     pub team: Vec<(u32, u32)>,
+    /// Minifigure XP (the star counter).
+    #[serde(default)]
+    pub stars: u64,
 }
 
 pub struct Store {

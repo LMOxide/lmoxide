@@ -44,6 +44,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         playfield: cfg.start_playfield,
         pos: START_POS,
         team: START_TEAM.to_vec(),
+        stars: 0,
     };
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
@@ -98,9 +99,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .await?;
                 // UpdateTokenAmount(uint32 tokenID, uint64 gained, uint64 spent): health potions
                 // (token 150) shown on the potion button.
-                let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(START_POTIONS).u64(0).finish();
-                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
-                    .await?;
+                for (token, gained) in [(TOKEN_HEALTH_POTIONS, START_POTIONS), (TOKEN_STARS, me.stars)] {
+                    let args = Writer::new().u32(token).u64(gained).u64(0).finish();
+                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
+                        .await?;
+                }
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
                 // The client's own IIRs (u32 length + records). Only headers are decoded; the
@@ -169,10 +172,31 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
                                     .flatten();
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
-                                if let (Some(spell), Some((kind, instance))) = (spell, target) {
+                                if let Some(spell) = spell {
                                     let special = me.team.first().is_some_and(|&(_, t)| minifigure_spells(t).get(1) == Some(&spell));
                                     let damage = if special { SPECIAL_DAMAGE } else { NORMAL_DAMAGE };
-                                    crate::npc::hit(h.identity, Id32::new(kind, instance), damage);
+                                    // MagicCommand data: u32, u32 spell, u8 0 + ground position, or u8 1.
+                                    // Melee attacks target the caster itself and hit what's around it.
+                                    let ground = (data.get(8) == Some(&0)).then(|| {
+                                        let f = |i: usize| f32::from_be_bytes(data[i..i + 4].try_into().unwrap());
+                                        [f(9), f(13), f(17)]
+                                    }).filter(|_| data.len() >= 21);
+                                    let kills = match target.map(|(kind, instance)| Id32::new(kind, instance)) {
+                                        Some(t) if t != h.identity && crate::npc::is_npc(t) => {
+                                            u32::from(crate::npc::hit(h.identity, t, spell, damage) == Some(true))
+                                        }
+                                        _ => {
+                                            let center = ground.unwrap_or_else(|| *pos.lock().unwrap());
+                                            crate::npc::hit_area(h.identity, me.playfield, center, AREA_RADIUS, spell, damage)
+                                        }
+                                    };
+                                    if kills > 0 {
+                                        // stars (token 100) for each defeated enemy; totals, not deltas
+                                        me.stars += u64::from(kills) * STARS_PER_KILL;
+                                        let args = Writer::new().u32(TOKEN_STARS).u64(me.stars).u64(0).finish();
+                                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
+                                            .await?;
+                                    }
                                 }
                             }
                             None => info!(command_type, rest = %crate::conn::hex(rest), "command (unparsed)"),
@@ -182,15 +206,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         reply[action_at] = BCC_COMMAND_SUCCEEDED;
                         let mut records = vec![Bytes::from(reply.clone())];
                         if command_type == COMMAND_MAGIC {
-                            // Experiment: a MagicCommand stays queued after OnSuccess and blocks
-                            // further casts (MagicCommand_c::CanQueue); abort it once the cast
-                            // animation has had time to play.
-                            reply[action_at] = BCC_ABORT_COMMAND;
-                            let outbox = outbox.clone();
-                            tokio::spawn(async move {
-                                tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
-                                let _ = outbox.send(world::Out::Records(vec![Bytes::from(reply)]));
-                            });
+                            // A MagicCommand only executes (and later finishes, freeing the queue
+                            // for the next cast) once the server allows it: action 10 sets
+                            // m_bCanExecute (MagicCommand_c::CanExecute, RunCommand 0x136d280).
+                            reply[action_at] = BCC_CAN_EXECUTE;
+                            records.push(Bytes::from(reply));
                         }
                         if command_type == COMMAND_CYCLE_WEAPON && rest.len() >= 4 {
                             // CycleToNextWeaponCommand: subclass ends with the u32 team slot
@@ -327,6 +347,17 @@ fn health_records(id: Id32) -> Vec<Bytes> {
     vec![int32_stat(id, STAT_LIFE, START_HEALTH), int32_stat(id, STAT_HEALTH, START_HEALTH)]
 }
 
+/// `CombatLogIIR` (AttackUtils_c::ActivateCombatLog 0x175bc26): the floating damage number.
+/// u32 count, entries of 5 u32 (type, spell, amount, attacker instance, target instance), the
+/// attacker ID32, u32 command queue id (0 = show now). Type 2 has no chat line. Attacker and
+/// target must be type-50000 characters.
+pub fn combat_log_record(attacker: Id32, target: Id32, spell: u32, amount: u32) -> Bytes {
+    iir::record("CombatLogIIR", attacker, false, |w| {
+        let w = w.u32(1).u32(2).u32(spell).u32(amount).u32(attacker.instance).u32(target.instance);
+        attacker.write(w).u32(0)
+    })
+}
+
 /// `UpdateMessage` op 1 (Activate 0x6ef4e0): removes the GameObject with this Id.
 pub fn despawn_record(id: Id32) -> Bytes {
     iir::record("UpdateMessage", id, false, |w| id.write(w.u8(1)))
@@ -363,7 +394,7 @@ pub async fn run_bot(playfield: u32) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec() };
+    let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec(), stars: 0 };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
@@ -502,6 +533,9 @@ fn monster_data_for(template: u32) -> u32 {
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
 const STAT_LIFE: u32 = 1;
 pub const STAT_HEALTH: u32 = 27;
+/// BCCState; 29 is Limbo (dead: death effect, "CombatChat_CharacterKilled").
+pub const STAT_BCC_STATE: u32 = 20;
+pub const BCC_STATE_LIMBO: u32 = 29;
 const STAT_LEVEL: u32 = 54;
 const STAT_GM_LEVEL: u32 = 215;
 const STAT_CHAR_RADIUS: u32 = 421;
@@ -509,18 +543,23 @@ const STAT_MONSTER_DATA: u32 = 359;
 /// Active minifigure team slot (inventory 101 position), client name e_ActiveWeapon.
 const STAT_ACTIVE_WEAPON: u32 = 2000405;
 const TOKEN_HEALTH_POTIONS: u32 = 150;
+/// Minifigure XP, shown as the star counter (top left).
+const TOKEN_STARS: u32 = 100;
+const STARS_PER_KILL: u64 = 10;
 const START_POTIONS: u64 = 5;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
 /// CommandMessage protobuf, command data. The client queues a command with action 3 and the
 /// server answers 4 (OnSuccess), 5 (OnFailure), 7/8/9 (abort one/queued/all).
 const BCC_QUEUE_COMMAND: u8 = 3;
 const BCC_COMMAND_SUCCEEDED: u8 = 4;
-const BCC_ABORT_COMMAND: u8 = 7;
+const BCC_CAN_EXECUTE: u8 = 10;
 const COMMAND_MAGIC: u32 = 4;
 /// Damage of a minifigure's normal (left-click) and special (right-click) ability until spell
 /// data is modelled.
 const NORMAL_DAMAGE: u32 = 15;
 const SPECIAL_DAMAGE: u32 = 30;
+/// Reach of untargeted (melee/area) attacks.
+const AREA_RADIUS: f32 = 3.0;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
