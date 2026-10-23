@@ -1,0 +1,17 @@
+syntax = "proto2";
+import "Inventory.proto";
+import "ID32.proto";
+message ProtoLootBagIIR {
+  message SpecialLootOwnerEntry {
+    required uint32 pos = 1;
+    optional ProtoID32 owner = 2;
+  }
+  optional uint32 cash = 1;
+  optional ProtoID32 current_looter_id = 2;
+  optional ProtoID32 owner_id = 3;
+  optional ProtoID32 dropper_id = 4;
+  optional ProtoID32 allowed_looter_id = 5;
+  repeated ProtoLootBagIIR.SpecialLootOwnerEntry special_loot_owner = 6;
+  optional bool has_master_looter = 7;
+  optional ProtoInventoryGame inventory = 8;
+}

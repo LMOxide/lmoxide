@@ -1,0 +1,43 @@
+syntax = "proto2";
+message LoreTreeBuf {
+  enum LinkType {
+    Tag = 0;
+    Stat = 1;
+  }
+  message LoreStat {
+    optional uint32 id = 1;
+    optional uint32 action = 2;
+    optional int32 int_value = 3;
+    optional float float_value = 4;
+    optional string string_value = 5;
+  }
+  message LoreMedia {
+    optional uint32 rdb_id = 1;
+    optional uint32 type = 2;
+  }
+  message LoreReward {
+    optional uint32 reward_id = 1;
+    optional uint32 type = 2;
+  }
+  message LoreLink {
+    optional LoreTreeBuf.LinkType type = 1;
+    optional uint32 id = 2;
+  }
+  message LoreNode {
+    optional uint32 id = 1;
+    optional uint32 parent_id = 2;
+    optional string name = 3;
+    repeated uint32 child_id = 4;
+    repeated LoreTreeBuf.LoreLink link = 5;
+    optional uint32 criteria_lua_script_id = 6;
+    optional uint32 reward_lua_script_id = 7;
+    optional bool is_invisible = 8;
+    optional uint32 node_type = 9;
+    repeated LoreTreeBuf.LoreStat node_stats = 10;
+    repeated LoreTreeBuf.LoreMedia node_media = 11;
+    repeated LoreTreeBuf.LoreReward node_rewards = 12;
+  }
+  optional uint32 version = 1;
+  repeated LoreTreeBuf.LoreNode node = 2;
+  optional uint32 max_id = 3;
+}

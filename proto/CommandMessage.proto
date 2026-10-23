@@ -1,0 +1,14 @@
+syntax = "proto2";
+import "ID32.proto";
+message CommandMessage {
+  optional uint32 bcc_action_id = 1;
+  optional uint32 commandqueue_client_id = 2;
+  optional uint32 commandqueue_server_id = 3;
+  optional uint32 anim_random = 4;
+  optional uint32 flags = 5;
+  optional uint32 execution_status = 6;
+  optional ProtoID32 target = 10;
+  optional uint32 recharge_time = 11;
+  optional uint32 activation_time = 12;
+  optional string failure_description = 13;
+}

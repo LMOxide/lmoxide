@@ -1,0 +1,30 @@
+syntax = "proto2";
+message EndlessClientData {
+  optional uint32 image_id = 1 [default = 0];
+  optional string image_description_tdb = 2 [default = ""];
+  optional string title_tdb = 3 [default = ""];
+  optional string description_tdb = 4 [default = ""];
+  optional string invitation_tdb = 5 [default = ""];
+  optional string continue_tdb = 6 [default = ""];
+  optional string quest_requirement_tdb = 7 [default = ""];
+  optional string quest_hint_tdb = 8 [default = ""];
+  repeated uint32 reward_image = 9;
+  optional string tip_caption_tdb = 10 [default = ""];
+  optional string requirements_caption_tdb = 11 [default = ""];
+  optional string description_caption_tdb = 12 [default = ""];
+  optional string continue_title_tdb = 13 [default = ""];
+  optional string continue_text_tdb = 14 [default = ""];
+  optional string continue_enter_tdb = 15 [default = ""];
+  optional string continue_exit_tdb = 16 [default = ""];
+  optional string continue_invitation_has_answered = 17 [default = ""];
+  optional string continue_invitation_needs_answer = 18 [default = ""];
+  optional string invitation_leave_tdb = 19 [default = ""];
+  optional string invitation_join_tdb = 20 [default = ""];
+  optional uint32 required_token = 21 [default = 0];
+  optional string splash_screen_tdb = 22 [default = ""];
+  optional bool splash_screen_progress = 23 [default = true];
+  optional string splash_screen_bottom_tdb = 24 [default = ""];
+  optional string leave_title_tdb = 25 [default = ""];
+  optional string leave_text_tdb = 26 [default = ""];
+  optional uint32 talkinghead_icon_id = 27 [default = 0];
+}

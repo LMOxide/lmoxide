@@ -1,0 +1,5 @@
+syntax = "proto2";
+message ProtoID32 {
+  optional uint32 type = 1;
+  optional uint32 instance = 2;
+}

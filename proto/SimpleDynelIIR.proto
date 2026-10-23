@@ -1,0 +1,25 @@
+syntax = "proto2";
+message ProtoSimpleDynelIIR {
+  optional uint32 kdtree = 1;
+  optional string name = 2;
+  optional string display_name = 3;
+  optional bool show_popup_on_use = 4;
+  optional uint32 cars_group = 5;
+  optional uint32 quest_item_effect = 6;
+  optional uint32 waypoint_type = 7;
+  optional uint32 template_item_id = 8;
+  optional bool is_closed = 12;
+  optional bool is_obb_hit_collision = 14;
+  optional uint32 ressurection_point_id = 15;
+  optional uint32 trap_owner = 16;
+  optional uint32 flags = 17;
+  optional uint32 side = 18;
+  optional uint32 player_faction = 19;
+  optional uint32 lore_item_effect = 20;
+  optional uint32 item_particle_effect = 21;
+  optional uint32 overridecursor = 22;
+  optional bool is_hidden = 23;
+  optional uint32 interaction_radius = 24;
+  optional bool reflect_projectile = 25;
+  optional uint32 client_script_id = 26;
+}

@@ -1,0 +1,17 @@
+syntax = "proto2";
+message GameTriggerBuf {
+  message Trigger {
+    optional uint32 id = 1;
+    optional uint32 type = 2;
+    optional uint32 script_id = 3;
+    optional uint32 id_value = 4;
+    optional string hash1_value = 5;
+    optional string hash2_value = 6;
+    optional sint32 int_value = 7;
+    optional string str_value = 8;
+    optional uint32 playfield_id = 9;
+  }
+  optional uint32 version = 1;
+  repeated GameTriggerBuf.Trigger trigger = 2;
+  optional uint32 max_trigger_id = 3;
+}

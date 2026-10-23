@@ -1,0 +1,16 @@
+syntax = "proto2";
+message MinifigureUpgradeData {
+  message MinifigureUpgradeAbility {
+    optional uint32 position = 1;
+    optional uint32 template_id = 2;
+    optional int32 slot_position = 3;
+    optional string shop_item_id = 4;
+  }
+  message MinifigureUpgradeEntry {
+    optional uint32 minifigure_id = 1;
+    optional uint32 left_click_id = 2;
+    optional uint32 right_click_id = 3;
+    repeated MinifigureUpgradeData.MinifigureUpgradeAbility ability_list = 4;
+  }
+  repeated MinifigureUpgradeData.MinifigureUpgradeEntry MinifigureUpgradeList = 1;
+}

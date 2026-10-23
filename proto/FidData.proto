@@ -1,0 +1,12 @@
+syntax = "proto2";
+message FidData {
+  required uint32 player_instance = 1;
+  required fixed32 expansion_flags = 2;
+  required fixed32 subscription_flags = 3;
+  required uint32 veteran_months = 4;
+  required uint32 offline_levels = 5;
+  required uint32 character_slots = 6;
+  optional string facebook_auth_url = 7;
+  optional uint32 unique_login_days = 8;
+  optional uint32 login_method = 9;
+}

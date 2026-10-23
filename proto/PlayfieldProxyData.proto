@@ -1,0 +1,19 @@
+syntax = "proto2";
+import "ID32.proto";
+message PlayfieldProxyData {
+  optional uint32 dimension_id = 1;
+  optional ProtoID32 model_id = 2;
+  optional uint32 group = 3;
+  optional uint32 sub_group = 4;
+  optional uint32 instance_alias = 5;
+  optional fixed32 running_instance = 6;
+  optional uint32 team_size = 7;
+  optional uint32 playfield_level = 8;
+  optional uint32 endless_protobuf_id = 9;
+  optional uint32 elemental_type = 10;
+  optional uint32 endless_progress = 11;
+  optional uint32 identifier = 12;
+  optional uint32 endless_protobuf_resource_id = 13;
+  optional uint32 normalized_level = 14;
+  optional uint32 client_protobuf_resource_id = 15;
+}

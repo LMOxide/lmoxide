@@ -1,0 +1,27 @@
+syntax = "proto2";
+import "ID32.proto";
+message ProtoScryScriptIIR {
+  enum Type {
+    StartScriptGroupOnClient = 0;
+    StartScriptGroupOnClientWait = 1;
+    ScriptMessage = 2;
+    StopScriptGroupOnClient = 3;
+    RestartScriptGroupOnClient = 4;
+    ScriptCompleted = 5;
+    PlayOrSkipQuestion = 6;
+    PreloadAssets = 7;
+    PlayOrSkipResultPlay = 8;
+    PlayOrSkipResultSkip = 9;
+  }
+  message Variable {
+    optional string name = 1;
+    optional ProtoID32 id_value = 2;
+  }
+  optional uint32 version = 1;
+  optional ProtoScryScriptIIR.Type type = 2;
+  optional sint32 int_parameter = 3;
+  optional string string_parameter_one = 4;
+  optional string string_parameter_two = 5;
+  optional ProtoID32 id_parameter = 6;
+  repeated ProtoScryScriptIIR.Variable variable = 7;
+}

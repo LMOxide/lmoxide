@@ -1,0 +1,12 @@
+syntax = "proto2";
+import "Math.proto";
+message ProtoGameCodeDynelIIR {
+  message RunningEffects {
+    optional uint32 effect_id = 1;
+    optional float run_time = 2;
+  }
+  optional ProtoVec3 position = 1;
+  optional ProtoQuat rotation = 2;
+  optional uint32 playfield_instance = 3;
+  repeated ProtoGameCodeDynelIIR.RunningEffects running_effects = 4;
+}

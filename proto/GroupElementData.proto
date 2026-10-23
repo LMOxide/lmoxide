@@ -1,0 +1,23 @@
+syntax = "proto2";
+import "PlayfieldProxyData.proto";
+message GroupElementData {
+  optional uint32 character_instance = 1;
+  optional uint32 player_id = 2;
+  optional uint32 dimension = 3;
+  optional fixed32 subscription_flags = 4;
+  optional PlayfieldProxyData playfield = 5;
+  optional uint32 character_class = 6;
+  optional string name = 7;
+  optional uint32 max_team_size = 8;
+  optional bool is_coward = 9;
+  optional uint32 faction = 10;
+  optional uint32 powerrank = 11;
+  optional uint32 pvpperformance = 12;
+  optional bool disable_minigames = 13;
+  optional bool disable_fvfvf = 14;
+  optional bool enable_nightmare = 15;
+  optional uint32 faction_rank = 16;
+  optional string firstname = 17;
+  optional string lastname = 18;
+  optional uint32 member_slot_index = 19;
+}

@@ -1,0 +1,19 @@
+syntax = "proto2";
+import "Inventory.proto";
+import "ID32.proto";
+message ProtoMailMessages {
+  message Mail {
+    required uint64 mail_id = 1;
+    optional uint32 sender_id = 2;
+    required string sender_name = 3;
+    required uint32 receiver_id = 4;
+    required string receiver_name = 5;
+    optional string message = 6;
+    optional uint32 flags = 7;
+    optional uint64 money = 8;
+    required uint32 send_time = 9;
+    required uint32 timeout_time = 10;
+    repeated ProtoInventoryGameEntry mail_items = 11;
+  }
+  repeated ProtoMailMessages.Mail mails = 1;
+}

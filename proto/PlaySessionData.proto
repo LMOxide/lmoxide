@@ -1,0 +1,30 @@
+syntax = "proto2";
+import "FidData.proto";
+import "PlayfieldProxyData.proto";
+message PlaySessionData {
+  message StrStrEntry {
+    required string key = 1;
+    required string value = 2;
+  }
+  message Int32Entry {
+    required uint32 key = 1;
+    required int32 value = 2;
+  }
+  required FidData fid_data = 1;
+  required fixed32 character_instance = 2;
+  required uint32 dimension_id = 3;
+  required fixed32 cookie = 4;
+  required fixed32 ip_address = 5;
+  optional bool login = 6;
+  optional bool create_character = 7;
+  optional PlayfieldProxyData playfield = 8;
+  repeated PlaySessionData.Int32Entry player_service_map = 9;
+  repeated PlaySessionData.StrStrEntry data_map = 10;
+  optional uint32 offline_levels = 11;
+  optional string internet_gaming_room_id = 12;
+  optional uint32 user_type = 13;
+  optional uint32 service_type = 14;
+  optional string account_name = 15;
+  optional bool relogin = 16;
+  optional string language = 17;
+}

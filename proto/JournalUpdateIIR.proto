@@ -1,0 +1,35 @@
+syntax = "proto2";
+message JournalUpdateIIRProto {
+  message DeletedQuestType {
+    optional uint32 quest_id = 1;
+    optional bool failed = 2;
+  }
+  message DeletedQuestListType {
+    optional uint32 main_quest_id = 1;
+    repeated JournalUpdateIIRProto.DeletedQuestType quest = 2;
+  }
+  message AddedQuestType {
+    optional uint32 quest_id = 1;
+    optional bool failed = 2;
+    optional uint32 timestamp = 3;
+    optional uint32 distance = 4;
+    optional uint32 repeat_count = 5;
+    optional string solved_text = 6;
+  }
+  message AddedQuestListType {
+    optional uint32 main_quest_id = 1;
+    repeated JournalUpdateIIRProto.AddedQuestType quest = 2;
+  }
+  message AddedMainQuestType {
+    optional uint32 main_quest_id = 1;
+    optional uint32 region_name_category = 2;
+    optional uint32 region_name_instance = 3;
+    optional uint32 super_region_name_category = 4;
+    optional uint32 super_region_name_instance = 5;
+    repeated JournalUpdateIIRProto.AddedQuestType quest = 6;
+  }
+  repeated uint32 deleted_main_quest = 1;
+  repeated JournalUpdateIIRProto.DeletedQuestListType deleted_quest = 2;
+  repeated JournalUpdateIIRProto.AddedMainQuestType added_main_quest = 3;
+  repeated JournalUpdateIIRProto.AddedQuestListType added_quest = 4;
+}

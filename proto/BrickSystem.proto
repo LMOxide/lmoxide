@@ -1,0 +1,52 @@
+syntax = "proto2";
+package BrickSystemProto;
+message BrickStud {
+  optional int32 x = 1;
+  optional int32 y = 2;
+}
+message Brick {
+  optional uint32 piece_id = 1;
+  optional uint32 piece_type = 2;
+  optional uint32 template_id = 3;
+  optional uint32 colour = 4;
+  repeated BrickStud BrickStudList = 5;
+  optional uint32 level = 6;
+  optional uint64 pieceXP = 7;
+  optional uint32 rotation = 8;
+  optional uint32 currencyTokenType = 9;
+}
+message BrickSystemMessage {
+  repeated Brick brickList = 1;
+  repeated BrickConfiguration configurationList = 2;
+}
+message BrickInAConfiguration {
+  optional uint32 piece_id = 1;
+  optional uint32 rotation = 2;
+  optional uint32 positionX = 3;
+  optional uint32 positionY = 4;
+  optional uint32 brick_id = 5;
+}
+message BrickConfiguration {
+  optional uint32 configurationID = 1;
+  optional uint32 plateID = 2;
+  repeated BrickInAConfiguration brickList = 3;
+}
+message BrickSystemIIRProto {
+  optional uint32 version = 1;
+  optional uint32 IIRActionType = 2;
+  optional BrickConfiguration configurationToSave = 3;
+  optional uint32 configurationToSwitch = 4;
+}
+message BrickLevelUpData {
+  optional uint32 level = 1;
+  optional uint64 tokenThreshold = 2;
+}
+message BrickLevelUpDataEntry {
+  optional uint32 piece_type = 1;
+  optional uint32 maxLevel = 2 [default = 10];
+  optional uint64 brickTokenXPCap = 3 [default = 2000];
+  repeated BrickLevelUpData levelUpDataList = 4;
+}
+message BrickLevelUpList {
+  repeated BrickLevelUpDataEntry levelUpDataEntry = 1;
+}

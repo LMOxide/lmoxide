@@ -1,0 +1,31 @@
+syntax = "proto2";
+message LuaScriptList {
+  message LuaScript {
+    enum Source {
+      EngineStartup = 0;
+      MainQuestCondition = 1;
+      QuestGoalCondition = 2;
+      Anim = 3;
+      Scry = 4;
+      EffectTimelineCondition = 5;
+      ClientEngineStartup = 6;
+      ServerEngineStartup = 7;
+      Code = 8;
+      GameTrigger = 9;
+      MagicSpell = 11;
+      LuaLib = 12;
+      GenericClientServer = 13;
+      ToolOnly = 14;
+      GenericServer = 15;
+      ModuleServer = 16;
+      ModuleClientServer = 17;
+    }
+    optional uint32 id = 1;
+    optional LuaScriptList.LuaScript.Source source = 2;
+    optional string raw_script = 3;
+    optional bytes compiled_script = 4;
+  }
+  optional uint32 version = 1;
+  repeated LuaScriptList.LuaScript script = 2;
+  optional uint32 max_id = 3;
+}

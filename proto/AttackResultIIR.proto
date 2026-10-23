@@ -1,0 +1,34 @@
+syntax = "proto2";
+import "ID32.proto";
+message AttackResultIIRProto {
+  message RedirectDamageEntry {
+    optional ProtoID32 attacker = 1;
+    optional ProtoID32 defender = 2;
+    optional ProtoID32 target = 3;
+    optional int32 damage = 4;
+    optional uint32 template_id = 5;
+    optional int32 barrier_stat = 6;
+    optional int32 barrier = 7;
+    optional bool is_absorb = 8;
+    optional uint32 redirectedTemplateID = 9;
+  }
+  message AttackResult {
+    optional float damage = 1;
+    optional uint32 damage_type = 2;
+    optional uint32 result = 3;
+    optional uint32 offensive_level = 4;
+    optional uint32 defensive_level = 5;
+    optional bool is_critical_hit = 6;
+    optional bool killing_blow = 7;
+    repeated AttackResultIIRProto.RedirectDamageEntry redirect_damage_entry = 8;
+    optional uint32 attack_type = 9;
+  }
+  message AttackResultEntry {
+    optional ProtoID32 attacker = 1;
+    optional ProtoID32 target = 2;
+    optional AttackResultIIRProto.AttackResult attack_result = 3;
+    optional uint32 template_id = 4;
+  }
+  repeated AttackResultIIRProto.AttackResultEntry attack_result_entry = 1;
+  optional uint32 command_queue_id = 2;
+}

@@ -1,0 +1,37 @@
+syntax = "proto2";
+message TeleportWindowData {
+  message TeleportWindow {
+    message TeleportWindowRewardList {
+      optional uint32 description = 1;
+      repeated uint32 icon_list = 2;
+    }
+    message TeleportWindowEntry {
+      optional uint32 playfield_id = 1;
+      optional uint32 playfield_type = 2;
+      optional uint32 required_membership = 3;
+      optional uint32 required_level = 4;
+      optional string required_quest_task_hash = 5;
+      optional uint32 cooldown_buff_id = 6;
+      optional string teleport_point = 7;
+      optional uint32 rewards_description = 15;
+      optional uint32 level_description = 8;
+      optional uint32 level_hint = 9;
+      optional uint32 quest_description = 10;
+      optional uint32 quest_hint = 11;
+      optional uint32 membership_description = 12;
+      optional uint32 membership_hint = 13;
+      optional uint32 image_id = 16;
+      optional uint32 image_description = 17;
+      optional uint32 elemental_type = 18 [default = 0];
+      optional bool requires_elemental_type = 19 [default = false];
+      optional string elemental_type_description = 20;
+      optional string elemental_type_hint = 21;
+      optional uint32 required_minifigure_count = 22 [default = 0];
+      optional uint32 minimum_npc_level = 23 [default = 0];
+      repeated TeleportWindowData.TeleportWindow.TeleportWindowRewardList rewards_list = 14;
+    }
+    optional uint32 teleport_window_id = 1;
+    repeated TeleportWindowData.TeleportWindow.TeleportWindowEntry TeleportWindowEntryList = 2;
+  }
+  repeated TeleportWindowData.TeleportWindow TeleportWindowList = 1;
+}

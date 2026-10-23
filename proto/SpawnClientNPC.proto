@@ -1,0 +1,12 @@
+syntax = "proto2";
+package SpawnClientNPCProto;
+import "Math.proto";
+message SpawnClientNPCMessage {
+  optional uint32 version = 1;
+  optional uint32 itemTemplate = 2;
+  optional string aiPointName = 3;
+  optional ProtoVec3 position = 4;
+  optional ProtoQuat rotation = 5;
+  optional string cinematicActorAlias = 6;
+  optional bool isCinematic = 7;
+}

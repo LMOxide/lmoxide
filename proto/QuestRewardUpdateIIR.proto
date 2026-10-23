@@ -1,0 +1,19 @@
+syntax = "proto2";
+import "Inventory.proto";
+message QuestRewardListProto {
+  message QuestRewardItemType {
+    optional ProtoAcgItem item = 1;
+    optional uint32 amount = 2;
+  }
+  repeated QuestRewardListProto.QuestRewardItemType non_optional_reward = 1;
+  repeated QuestRewardListProto.QuestRewardItemType optional_reward = 2;
+}
+message QuestRewardUpdateIIRProto {
+  optional uint32 quest_id = 1;
+  optional QuestRewardListProto quest_reward = 2;
+  optional uint32 item_inventory_space_required = 3;
+  optional uint32 quest_inventory_space_required = 4;
+  optional uint32 resource_inventory_space_required = 5;
+  optional uint32 update_type = 6;
+  optional uint32 quest_reward_queue_count = 7;
+}

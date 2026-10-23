@@ -1,0 +1,20 @@
+syntax = "proto2";
+message MinifigurePartsData {
+  enum partLocation {
+    Head = 1;
+    Torso = 2;
+    Legs = 3;
+    Spark = 4;
+  }
+  message MinifigurePartsEntry {
+    optional uint32 part_template_id = 1;
+    optional uint32 part_token_id = 2;
+    optional MinifigurePartsData.partLocation part_location = 3;
+  }
+  message MinifigureEntry {
+    optional uint32 minifigure_template_id = 1;
+    repeated MinifigurePartsData.MinifigurePartsEntry parts_list = 2;
+  }
+  repeated MinifigurePartsData.MinifigureEntry MinifigureList = 1;
+  repeated uint32 minifig_craft_templates = 2;
+}

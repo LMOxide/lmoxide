@@ -1,0 +1,21 @@
+syntax = "proto2";
+import "JournalUpdateIIR.proto";
+import "Inventory.proto";
+import "BrickSystem.proto";
+message ProtoFullCharacterIIR {
+  message TagTimestamp {
+    optional uint32 tag_id = 1;
+    optional uint32 timestamp = 2;
+  }
+  repeated uint32 character_tag = 1;
+  optional uint32 free_feat_respecs = 2;
+  optional uint32 feat_resets = 3;
+  optional uint32 expansion_flags = 4;
+  repeated ProtoInventoryGame inventory = 6;
+  optional uint32 buyback_item_count = 7;
+  optional bool has_new_claim_items = 8;
+  optional bool has_spellbook = 9;
+  optional JournalUpdateIIRProto journal = 10;
+  repeated ProtoFullCharacterIIR.TagTimestamp tag_timestamps = 11;
+  optional BrickSystemProto.BrickSystemMessage colected_brick_list = 12;
+}

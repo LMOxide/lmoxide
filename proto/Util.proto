@@ -1,0 +1,13 @@
+syntax = "proto2";
+message ProtoEndpoint {
+  optional fixed32 type = 1;
+  optional uint32 instance = 2;
+  optional uint32 token = 3;
+}
+message RpcHeader {
+  required ProtoEndpoint caller_id = 1;
+  required ProtoEndpoint endpoint_id = 2;
+  repeated ProtoEndpoint routing_destination = 5;
+  repeated ProtoEndpoint full_routing_context = 3;
+  required uint32 method_instance = 4;
+}

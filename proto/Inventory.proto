@@ -1,0 +1,45 @@
+syntax = "proto2";
+import "ID32.proto";
+message ProtoDecryptionKey {
+  optional fixed32 key1 = 1;
+  optional fixed32 key2 = 2;
+  optional fixed32 key3 = 3;
+  optional fixed32 key4 = 4;
+}
+message ProtoAcgItem {
+  optional ProtoDecryptionKey key1 = 1;
+  optional ProtoDecryptionKey key2 = 2;
+  optional ProtoDecryptionKey key3 = 3;
+  optional fixed32 template1 = 4;
+  optional fixed32 template2 = 5;
+  optional fixed32 template3 = 6;
+  optional uint32 level = 7;
+  optional fixed32 hash = 8;
+}
+message ProtoInventoryGameEntry {
+  message StatValue {
+    optional uint32 stat = 1;
+    optional uint32 value = 2;
+  }
+  message SlotMap {
+    optional uint32 slot = 1;
+    optional ProtoAcgItem item = 2;
+  }
+  optional uint64 item_id = 1;
+  repeated ProtoInventoryGameEntry.StatValue stat_list = 2;
+  optional ProtoAcgItem item_data = 3;
+  repeated ProtoInventoryGameEntry.SlotMap slot_map = 4;
+  optional string creator_name = 5;
+  optional string maxAvailableItems = 6;
+  optional bool is_static_item = 7;
+}
+message ProtoInventoryGame {
+  message InventoryListEntry {
+    required uint32 pos = 1;
+    required ProtoInventoryGameEntry item = 2;
+  }
+  required ProtoID32 inventory_id = 1;
+  optional uint32 max_size = 2;
+  optional uint32 disabled_slots_count = 3;
+  repeated ProtoInventoryGame.InventoryListEntry items = 4;
+}

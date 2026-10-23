@@ -1,0 +1,19 @@
+[package]
+name = "lmo-server"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+bytes.workspace = true
+clap.workspace = true
+futures.workspace = true
+md-5.workspace = true
+lmo-net.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LEGO Minifigures Online</title>
+<style>
+  /* Shown inside the client's embedded (2015-era) CEF browser: keep to ES5 and plain CSS. */
+  html, body { margin: 0; height: 100%; background: #1b3a6b; color: #fff;
+    font-family: "Trebuchet MS", Arial, sans-serif; }
+  .box { width: 320px; margin: 60px auto; padding: 24px; background: rgba(0,0,0,.35);
+    border-radius: 8px; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  label { display: block; margin: 12px 0 4px; font-size: 14px; }
+  input { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; border: 0;
+    border-radius: 4px; }
+  button { margin-top: 18px; width: 100%; padding: 10px; font-size: 16px; border: 0;
+    border-radius: 4px; background: #f5c400; color: #000; cursor: pointer; }
+  #status { margin-top: 12px; font-size: 13px; min-height: 1em; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>LEGO Minifigures Online</h1>
+  <form id="login">
+    <label for="username">Username</label>
+    <input id="username" autocomplete="username" autofocus>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password">
+    <button type="submit">Log in</button>
+  </form>
+  <div id="status"></div>
+</div>
+<script>
+  document.getElementById('login').onsubmit = function (e) {
+    e.preventDefault();
+    var u = document.getElementById('username').value;
+    var p = document.getElementById('password').value;
+    var status = document.getElementById('status');
+    if (!u) { status.textContent = 'Enter a username.'; return; }
+    // `user` is injected by the client's DWWebHelper.exe; login() hands the
+    // credentials to the game, which then connects to the universe server.
+    if (typeof user === 'undefined' || !user.login) {
+      status.textContent = 'Not running inside the game client.';
+      return;
+    }
+    status.textContent = 'Logging in...';
+    user.login(u, p);
+  };
+</script>
+</body>
+</html>

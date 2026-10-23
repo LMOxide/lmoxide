@@ -1,0 +1,31 @@
+syntax = "proto2";
+package KnubotActorIIRProto;
+import "Math.proto";
+import "ID32.proto";
+enum KnubotActorIIRType {
+  SetActiveActor = 0;
+  MoveCameraToActor = 1;
+  MoveCameraToStaticPoint = 2;
+  StartEffectPackage = 3;
+  StartAnimation = 4;
+  RemoveActor = 5;
+  AddCinematicActorReference = 6;
+  ClearCinematicState = 7;
+  MoveActorToPos = 8;
+  MoveActorToActor = 9;
+  ChangeGuiVisibility = 10;
+  StopEffectPackage = 11;
+}
+message KnubotActorMessage {
+  optional uint32 version = 1;
+  optional KnubotActorIIRType iirType = 2;
+  optional string actorStringAlias = 3;
+  optional uint32 effectPackage = 4;
+  optional string aiStaticPoint = 5;
+  optional ProtoVec3 position = 6;
+  optional uint32 animation = 7;
+  optional ProtoID32 actorReference = 8;
+  optional int32 guiVisibility = 9;
+  optional bool instantTeleport = 10 [default = false];
+  optional bool followActor = 11 [default = false];
+}

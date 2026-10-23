@@ -1,0 +1,80 @@
+syntax = "proto2";
+import "Math.proto";
+message QuestGiverList {
+  enum QuestGiverType {
+    BoundedArea = 0;
+    Dynel = 1;
+    NPC = 2;
+  }
+  enum QuestMediaType {
+    Image = 1;
+    Audio = 2;
+    Video = 3;
+  }
+  message MainQuestReward {
+    optional uint32 template_id = 1;
+    optional uint32 type = 2;
+  }
+  message MainQuest {
+    optional uint32 template_id = 1;
+    optional string hash = 2;
+    optional string name = 3;
+    optional uint32 first_quest_template_id = 4;
+    optional uint32 last_quest_template_id = 5;
+    optional uint32 condition_script_id = 6;
+    optional uint32 type = 7;
+    optional uint32 prev_template_id = 8;
+    optional uint32 next_template_id = 9;
+    optional uint32 tier = 10;
+    optional uint32 first_main_quest_template_id = 11;
+    optional uint32 last_main_quest_template_id = 12;
+    repeated QuestGiverList.MainQuestReward reward = 13;
+    repeated QuestGiverList.MainQuestReward optional_reward = 14;
+    optional uint32 xp_reward = 15;
+    optional uint32 cash_reward = 16;
+    optional uint32 cooldown_id = 17;
+    optional uint32 difficulty = 18;
+    optional uint32 sort_order = 19;
+    optional int32 flags = 20;
+  }
+  message Quest {
+    optional uint32 template_id = 1;
+    optional string hash = 2;
+    optional string name = 3;
+    optional uint32 main_quest_template_id = 4;
+    optional uint32 start_scry_script_id = 5;
+    optional uint32 tier = 6;
+    optional bool start_new_tier = 7;
+    optional uint32 repeat_count = 8;
+    optional uint32 media_rdbid = 9;
+    optional QuestGiverList.QuestMediaType media_type = 10;
+    optional uint32 difficulty = 11;
+    optional uint32 xp_reward = 12;
+    optional uint32 cash_reward = 13;
+  }
+  message QuestGoal {
+    optional uint32 template_id = 1;
+    optional string hash = 2;
+    optional string name = 3;
+    optional uint32 quest_template_id = 4;
+    optional uint32 phase = 5;
+  }
+  message QuestGiverPos {
+    optional QuestGiverList.QuestGiverType type = 1;
+    optional uint32 object_id = 2;
+    optional uint32 playfield_id = 3;
+    optional ProtoVec3 pos = 4;
+  }
+  message QuestGiver {
+    optional QuestGiverList.QuestGiverType type = 1;
+    optional uint32 object_id = 2;
+    optional uint32 id = 9;
+    optional uint32 main_quest_template_id = 13;
+  }
+  optional uint32 version = 1;
+  repeated QuestGiverList.QuestGiver quest_giver = 2;
+  repeated QuestGiverList.MainQuest main_quest = 3;
+  repeated QuestGiverList.Quest quest = 4;
+  repeated QuestGiverList.QuestGiverPos quest_giver_pos = 5;
+  repeated QuestGiverList.QuestGoal quest_goal = 6;
+}
