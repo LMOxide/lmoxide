@@ -40,3 +40,14 @@ pub async fn territory_closed(account: u32, timeout: Duration) -> bool {
     let Some(mut rx) = rx else { return true };
     tokio::time::timeout(timeout, rx.wait_for(|open| !*open)).await.is_ok()
 }
+
+/// account instance -> login name (shown as the character name until characters are stored)
+static NAMES: LazyLock<Mutex<HashMap<u32, String>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+pub fn set_name(account: u32, name: &str) {
+    NAMES.lock().unwrap().insert(account, name.to_string());
+}
+
+pub fn name(account: u32) -> Option<String> {
+    NAMES.lock().unwrap().get(&account).cloned()
+}

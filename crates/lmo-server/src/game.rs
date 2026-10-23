@@ -1,7 +1,9 @@
 //! Game server: the playfield connection the client opens after `LoginConnectReady`
 //! (`ClientToGameserverRPC` / `GameserverToClientRPC`, then the gamecode endpoints).
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+
+use bytes::Bytes;
 
 use lmo_net::{
     Endpoint, Reader, Writer, iir,
@@ -16,9 +18,10 @@ use lmo_net::{
     },
     types::Id32,
 };
-use tracing::{info, warn};
+use tokio::sync::mpsc;
+use tracing::{debug, info, warn};
 
-use crate::{Config, conn::Conn};
+use crate::{Config, conn::Conn, world};
 
 pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     conn.local = Endpoint::ClientToGameserverRPC;
@@ -27,7 +30,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .and_then(|v| v.parse().ok())
         .unwrap_or(1);
     let mut character = 0;
-    while let Some(rpc) = conn.recv().await? {
+    let mut name = String::new();
+    let pos = Arc::new(Mutex::new(START_POS));
+    let (outbox, mut inbox) = mpsc::unbounded_channel::<Vec<Bytes>>();
+    let mut presence: Option<world::Presence> = None;
+    loop {
+        let rpc = tokio::select! {
+            rpc = conn.recv() => match rpc? {
+                Some(rpc) => rpc,
+                None => break,
+            },
+            Some(records) = inbox.recv() => {
+                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
+                    .await?;
+                continue;
+            }
+        };
         let mut r = Reader::new(&rpc.args);
         match (rpc.target(), rpc.method()) {
             (Some(Endpoint::ClientToGameserverRPC), agent::AUTHENTICATE2) => {
@@ -35,7 +53,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let cookie = r.u32()?;
                 let version = r.string()?;
                 let valid = cookie == crate::universe::cookie_for(character);
-                info!(character, cookie, %version, valid, "Authenticate2");
+                name = crate::sessions::name(character).unwrap_or_else(|| "Player".into());
+                info!(character, cookie, %version, valid, %name, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
@@ -46,30 +65,44 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 let me = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                let blob = iir::pass_blob(&[
-                    playfield_full_update(cfg.start_playfield),
-                    create_game_object(me, cfg.start_playfield, START_POS),
-                    simple_char_full_update(me, cfg.start_playfield, "tester", START_POS),
-                    full_player_character(me),
-                    int32_stat(me, STAT_LIFE, START_HEALTH),
-                    int32_stat(me, STAT_HEALTH, START_HEALTH),
-                    int32_stat(me, STAT_LEVEL, 1),
-                ]);
-                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob)
+                let mut records = vec![playfield_full_update(cfg.start_playfield)];
+                records.extend(spawn_records(me, cfg.start_playfield, &name, START_POS));
+                records.insert(3, full_player_character(me));
+                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                     .await?;
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
-                // The client's own IIRs (u32 length + records). Only headers are decoded.
+                // The client's own IIRs (u32 length + records). Only headers are decoded; the
+                // client sends one record per blob.
                 let len = r.u32()? as usize;
                 let blob = r.bytes(len, "blob")?;
                 let mut br = Reader::new(blob);
                 let h = iir::Header::read(&mut br)?;
-                info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(br.remaining()), "client IIR");
-                if h.name() == Some("CharInPlayIIR_t") {
-                    // Acknowledge: the client waits in WaitingToReceiveInPlay for this.
-                    let echo = iir::pass_blob(&[iir::record("CharInPlayIIR_t", h.identity, false, |w| w)]);
-                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
-                        .await?;
+                let rest = br.remaining();
+                debug!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR");
+                match h.name() {
+                    Some("CharInPlayIIR_t") => {
+                        // Acknowledge: the client waits in WaitingToReceiveInPlay for this.
+                        let echo = iir::pass_blob(&[iir::record("CharInPlayIIR_t", h.identity, false, |w| w)]);
+                        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
+                            .await?;
+                        if presence.is_none() {
+                            let (id, playfield, name, pos_handle) = (h.identity, cfg.start_playfield, name.clone(), pos.clone());
+                            let pos = pos.clone();
+                            let spawn = move || spawn_records(id, playfield, &name, *pos.lock().unwrap());
+                            presence = Some(world::join(id, playfield, pos_handle, spawn, outbox.clone()));
+                        }
+                    }
+                    Some("CharDCMoveIIR_t" | "MoveTaskIIR_c") => {
+                        if h.name() == Some("CharDCMoveIIR_t") && rest.len() >= 13 {
+                            let f = |i: usize| f32::from_be_bytes(rest[i..i + 4].try_into().unwrap());
+                            *pos.lock().unwrap() = [f(1), f(5), f(9)];
+                        }
+                        if let Some(p) = &presence {
+                            world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
+                        }
+                    }
+                    _ => info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR"),
                 }
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::PING) => {
@@ -99,6 +132,69 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+/// The IIRs that make a character exist on a client: its DreamWorld GameObject, the dynel,
+/// and its stats. The player's own client additionally needs `full_player_character`.
+pub fn spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec<Bytes> {
+    vec![
+        create_game_object(id, playfield, pos),
+        simple_char_full_update(id, playfield, name, pos),
+        int32_stat(id, STAT_LIFE, START_HEALTH),
+        int32_stat(id, STAT_HEALTH, START_HEALTH),
+        int32_stat(id, STAT_LEVEL, 1),
+        iir::record("CharInPlayIIR_t", id, false, |w| w),
+    ]
+}
+
+/// `UpdateMessage` op 1 (Activate 0x6ef4e0): removes the GameObject with this Id.
+pub fn despawn_record(id: Id32) -> Bytes {
+    iir::record("UpdateMessage", id, false, |w| id.write(w.u8(1)))
+}
+
+/// `CharDCMoveIIR_t` (ReadSubClass 0x605e40, direct-control/keyboard movement): u8 flags
+/// (bit 4: yaw-only rotation, bits 2/3: no velocity blocks), position, rotation y and w, u8 mode,
+/// f32, u8, u8 — as the client sends it (0x1c). Kept for relaying tests; flags (0x1c), position,
+/// heading (two floats), u8, f32, u8, u8. Activate (0x605a90) moves non-local dynels.
+#[allow(dead_code)]
+pub fn move_record(id: Id32, pos: [f32; 3], heading: [f32; 2]) -> Bytes {
+    iir::record("CharDCMoveIIR_t", id, false, |w| {
+        w.u8(0x1c).f32(pos[0]).f32(pos[1]).f32(pos[2]).f32(heading[0]).f32(heading[1]).u8(0).f32(0.0).u8(0).u8(0)
+    })
+}
+
+/// `MoveTaskIIR_c` as the client sends it for click-to-move: u8 0, start position, u8 0x0f,
+/// 10 zero bytes, f32 (0.07 in samples), u32 n, n waypoints, 16 zero bytes. Layout copied from
+/// client traffic; field meanings beyond the positions are unknown.
+pub fn move_task_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> Bytes {
+    iir::record("MoveTaskIIR_c", id, false, |w| {
+        let w = w.u8(0).f32(from[0]).f32(from[1]).f32(from[2]).u8(0x0f).u32(0).u32(0).u16(0).f32(0.072).u32(2);
+        let w = [from, to].iter().fold(w, |w, p| w.f32(p[0]).f32(p[1]).f32(p[2]));
+        w.u32(0).u32(0).u32(0).u32(0)
+    })
+}
+
+/// A server-side character that circles whoever else is on the playfield, standing in for a
+/// second player (`--bot`).
+pub async fn run_bot(playfield: u32) {
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, 0x0b07);
+    let (outbox, mut inbox) = mpsc::unbounded_channel();
+    let pos = Arc::new(Mutex::new(START_POS));
+    let spawn_pos = pos.clone();
+    let spawn = move || spawn_records(id, playfield, "Bot", *spawn_pos.lock().unwrap());
+    let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
+    tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    let mut t = 0.0f32;
+    let mut tick = tokio::time::interval(std::time::Duration::from_millis(1000));
+    loop {
+        tick.tick().await;
+        t += 0.6;
+        let center = world::someone_else(id, playfield).unwrap_or(START_POS);
+        let from = *pos.lock().unwrap();
+        let to = [center[0] + 4.0 * t.cos(), center[1], center[2] + 4.0 * t.sin()];
+        *pos.lock().unwrap() = to;
+        world::broadcast(id, vec![move_task_record(id, from, to)]);
+    }
 }
 
 /// ID32 type of playfields (key of the client's PlayfieldFactory map, 0x96cee0).
@@ -181,6 +277,10 @@ fn full_player_character(id: Id32) -> bytes::Bytes {
 }
 
 const START_HEALTH: u32 = 100;
+/// MonsterData (RDB type 1010514) of every minifigure item template: the shared animated body.
+/// Without it remote characters are invisible ("has no animated mesh", 0x5f2960).
+const MINIFIGURE_MONSTER_DATA: u32 = 2212;
+
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
 const STAT_LIFE: u32 = 1;
 const STAT_HEALTH: u32 = 27;
@@ -216,6 +316,8 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
             life: Some(START_HEALTH),
             health: Some(START_HEALTH),
             level: Some(1),
+            monster_data: Some(MINIFIGURE_MONSTER_DATA),
+            monster_scale: Some(100),
             ..Default::default()
         }),
         generic_stats: vec![0],

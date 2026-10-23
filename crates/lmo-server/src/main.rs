@@ -4,6 +4,7 @@ mod http;
 mod sessions;
 mod territory;
 mod universe;
+mod world;
 
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
@@ -49,6 +50,10 @@ pub struct Config {
     /// the local RDB.
     #[arg(long)]
     pub no_filter_download_list: bool,
+    /// Add a server-side character that walks around the start position (for testing what
+    /// other players look like).
+    #[arg(long, env = "LMO_BOT")]
+    pub bot: bool,
 }
 
 impl Config {
@@ -84,6 +89,9 @@ async fn main() -> anyhow::Result<()> {
     ));
 
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
+    if cfg.bot {
+        tokio::spawn(game::run_bot(cfg.start_playfield));
+    }
 
     tokio::select! {
         r = http => r??,

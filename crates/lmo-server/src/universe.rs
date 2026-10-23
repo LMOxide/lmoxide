@@ -35,6 +35,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let answer = r.string()?;
                 info!(%username, answer_len = answer.len(), "AnswerChallenge");
                 let player = Id32::new(PLAYER_ID_TYPE, account_instance(&username));
+                crate::sessions::set_name(player.instance, &username);
                 // The client handler (0xb4b580) treats nAuthStatus 1 as authenticated, reports
                 // any non-zero eReason as a login problem, and asserts that our caller
                 // instance equals the player instance.
