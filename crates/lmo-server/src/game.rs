@@ -7,8 +7,9 @@ use lmo_net::{
     Endpoint, Reader, Writer, iir,
     methods::{client_to_gameserver_rpc as agent, gameserver_to_client_rpc as client},
     proto::{
-        PlayfieldProxyData, ProtoCoreCharacterIir, ProtoFullCharacterIir, ProtoGameCodeDynelIir,
-        ProtoId32, ProtoQuat, ProtoVec3,
+        PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir,
+        ProtoGameCodeDynelIir, ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry, ProtoQuat,
+        ProtoVec3, proto_inventory_game::InventoryListEntry,
     },
     types::Id32,
 };
@@ -130,7 +131,10 @@ const EMPTY: u32 = 0x3f1;
 /// cont<u32 -> element>                    0xe43450
 /// ```
 fn full_player_character(id: Id32) -> bytes::Bytes {
-    let proto = ProtoFullCharacterIir::default();
+    let proto = ProtoFullCharacterIir {
+        inventory: vec![minifigure_inventory(id.instance)],
+        ..Default::default()
+    };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {
         w.proto(&proto)
             .u32(FULL_CHARACTER_VERSION)
@@ -250,5 +254,41 @@ mod tests {
         // classic PJW/ELF hash values
         assert_eq!(elf_hash(""), 0);
         assert_eq!(elf_hash("Id"), (b'I' as u32) * 16 + b'd' as u32);
+    }
+}
+
+/// Inventory 101 holds the minifigures; positions 6, 8 and 20 are the three active team slots
+/// (the client's Lua `player:GetInventoryItem(101, 6/8/20)`, and CreateMinifigureItem asks for
+/// exactly those positions).
+const MINIFIGURE_INVENTORY: u32 = 101;
+/// Minifigure item templates 663917..=663932 (listed in a client Lua table of minifigures).
+const START_TEAM: [(u32, u32); 3] = [(6, 663929), (8, 663921), (20, 663932)];
+
+fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
+    ProtoAcgItem {
+        template1: Some(template),
+        template2: Some(template),
+        template3: Some(template),
+        level: Some(level),
+        ..Default::default()
+    }
+}
+
+fn minifigure_inventory(character: u32) -> ProtoInventoryGame {
+    ProtoInventoryGame {
+        inventory_id: ProtoId32 { r#type: Some(MINIFIGURE_INVENTORY), instance: Some(character) },
+        max_size: Some(64),
+        disabled_slots_count: None,
+        items: START_TEAM
+            .iter()
+            .map(|&(pos, template)| InventoryListEntry {
+                pos,
+                item: ProtoInventoryGameEntry {
+                    item_id: Some(u64::from(template)),
+                    item_data: Some(acg_item(template, 1)),
+                    ..Default::default()
+                },
+            })
+            .collect(),
     }
 }
