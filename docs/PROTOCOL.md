@@ -119,6 +119,10 @@ Pitfalls found:
   client reads needs at least its count (`PlayfieldFIIR_t` blob 2 empty → out-of-memory dialog).
 - Playfield ID32 type is 51100 (key of the PlayfieldFactory map, `0x96cee0`).
   `PlayfieldProxyData.running_instance` is the key of the client's playfield map.
+- Character stats: the HUD (Flash `GetStat`, native `0x821eb0`) reads the dynel's `StatHolder_t`
+  (+0xac). `Int32StatIIR` (u32 stat, u32 value; applied by `0x87b270` → StatHolder SetStat) sets
+  them; ids are the engine's `stats::e_*` (data/stats.json: Life 1 = max health, Health 27).
+  Neither the proto `CharacterStats` nor the full update's two (u32,u32) maps (+0x14c/+0x154) feed it.
 - `CoreCharacterFullUpdateIIR` asserts `generic_stats_size == g_Int32StatsOrder.size()` (= 1).
 
 ### Dynel creation (solved)

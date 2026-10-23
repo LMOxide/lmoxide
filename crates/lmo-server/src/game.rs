@@ -9,7 +9,7 @@ use lmo_net::{
     proto::{
         PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir,
         ProtoGameCodeDynelIir, ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry, ProtoQuat,
-        ProtoVec3, proto_inventory_game::InventoryListEntry,
+        ProtoVec3, proto_core_character_iir, proto_inventory_game::InventoryListEntry,
     },
     types::Id32,
 };
@@ -48,6 +48,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     create_game_object(me, cfg.start_playfield, START_POS),
                     simple_char_full_update(me, cfg.start_playfield, "tester", START_POS),
                     full_player_character(me),
+                    int32_stat(me, STAT_LIFE, START_HEALTH),
+                    int32_stat(me, STAT_HEALTH, START_HEALTH),
+                    int32_stat(me, STAT_LEVEL, 1),
                 ]);
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob)
                     .await?;
@@ -156,6 +159,12 @@ fn full_player_character(id: Id32) -> bytes::Bytes {
     })
 }
 
+const START_HEALTH: u32 = 100;
+/// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
+const STAT_LIFE: u32 = 1;
+const STAT_HEALTH: u32 = 27;
+const STAT_LEVEL: u32 = 54;
+
 /// Near the portals in playfield 1200 (from the client's RDBTeleportLocations).
 const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
 
@@ -166,6 +175,13 @@ const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
 /// (0x5f4650): u8 'B', u32, ProtoCoreCharacterIIR (generic_stats must have exactly as many
 /// entries as g_Int32StatsOrder, which holds one stat), u32 n + n u32, blob, cont, cont<u32,u8>,
 /// cont, u32 n + n (u32,u32), u32 n + n (u32,u32), cont<u32,u32>, cont<u32,u32>.
+/// `Int32StatIIR` (ReadSubClass 0x87a940): u32 stat, u32 value. Applying it (0x87b270) calls
+/// the dynel's `StatHolder_t` (+0xac) SetStat — the same holder Flash's `GetStat` reads, so this
+/// is what the HUD health bar (`GetStat(e_Health) / GetStat(e_Life)`) sees.
+fn int32_stat(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
+    iir::record("Int32StatIIR", id, false, |w| w.u32(stat).u32(value))
+}
+
 fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> bytes::Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
@@ -175,6 +191,12 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
     };
     let core = ProtoCoreCharacterIir {
         name: Some(name.to_string()),
+        stats: Some(proto_core_character_iir::CharacterStats {
+            life: Some(START_HEALTH),
+            health: Some(START_HEALTH),
+            level: Some(1),
+            ..Default::default()
+        }),
         generic_stats: vec![0],
         dimension_id: Some(1),
         ..Default::default()
@@ -183,7 +205,7 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
         let w = w.proto(&dynel).u8(4).u8(0);
         let w = (0..5).fold(w, |w, _| w.u32(0)).string(name);
         let w = (0..4).fold(w, |w, _| w.u32(0));
-        w.u32(0)
+        let w = w.u32(0)
             .u32(0)
             .u32(0)
             // CoreCharacterFullUpdateIIR
@@ -194,11 +216,9 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
             .blob(&[])
             .u32(EMPTY)
             .u32(EMPTY)
-            .u32(EMPTY)
-            .u32(0)
-            .u32(0)
-            .u32(EMPTY)
-            .u32(EMPTY)
+            .u32(EMPTY);
+        // two (u32, u32) maps (+0x14c, +0x154); their consumer isn't known yet
+        w.u32(0).u32(0).u32(EMPTY).u32(EMPTY)
     })
 }
 
