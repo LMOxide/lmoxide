@@ -34,11 +34,20 @@ LMO_CLIENT_ARGS="-username tester -password test" tools/dev-run.sh "$PWD/../clie
 
 Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101.
 
-## Reverse-engineering tools
+## Tools
 
-```sh
-python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf
-cd tools/re && ../../.venv/bin/python extract_rpc.py ../../data/rpc_methods.json
-```
+| Command | What it does |
+|---|---|
+| `tools/test-run.sh [secs]` | restart server + client (auto-login), wait, print a summary of RPCs, warnings and client progress; full logs in `logs/` |
+| `tools/dev-run.sh <client-dir> <log-dir>` | restart server + client and leave them running |
+| `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
+| `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |
+| `tools/re/py d.py <va> [bytes]` | disassemble with string annotations |
+| `tools/re/py extract_rpc.py <out.json>` | regenerate `data/rpc_methods.json` |
+| `tools/re/py extract_protos.py <exe> <dir>` | regenerate `proto/` |
+| `tools/ghidra/analyze.sh` | one-time Ghidra import + analysis into `../ghidra/` |
+| `tools/ghidra/decompile.sh <va...>` | decompiled C of the functions containing each address |
 
-The scripts read `../client/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`.
+Setup for the Python tools: `python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf`.
+They read `../client/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`. Ghidra comes
+from `/opt/ghidra` (Arch `ghidra` package) or `$GHIDRA_HOME`.

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Run a tools/re script with the repo's venv:  tools/re/py method.py GetStartupData
+DIR=$(cd "$(dirname "$0")" && pwd)
+cd "$DIR" && exec "$(cd ../.. && pwd)/.venv/bin/python" "$@"
