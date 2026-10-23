@@ -10,6 +10,7 @@ its "stream bad after '<arg>'" error strings. For client->server methods (`*Agen
 the Sender function that serializes them."""
 import json, os, re, sys
 from pe import find_str, str_start, xrefs, func_start, cstr, img, BASE
+from extract_rpc import receiver_table
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = json.load(open(os.path.join(HERE, '../../data/rpc_methods.json')))
@@ -37,10 +38,9 @@ def describe(section, cls, mid, sig):
     if section == 'receivers':
         bad = strings_with(f'{cls}::Dispatch{name}')
         args = [re.search(r"after '([^']+)'", s).group(1) for _, s in bad if "after '" in s]
-        funcs = sorted({f for va, _ in bad for f in funcs_referencing(va)})
-        if not funcs:  # no arguments -> no error strings; fall back to the payload log string
-            funcs = sorted({f for va, _ in strings_with(f'{cls}::{name}(') for f in funcs_referencing(va)})
-        print(f'  dispatch fn: {", ".join(hex(f) for f in funcs) or "?"}')
+        # The DispatchMethod switch maps id -> Dispatch function reliably (strings get pooled).
+        disp = receiver_table(cls, with_disp=True).get(int(mid, 16), (None, None))[1]
+        print(f'  dispatch fn: {hex(disp) if disp else "?"}')
         if args:
             print(f'  read order:  {", ".join(args)}')
     else:

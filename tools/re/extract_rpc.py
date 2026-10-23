@@ -34,7 +34,7 @@ def sig_of(s, cls):
     s=s.split(cls+'::',1)[1]
     return s.replace(' streamed payload of size','').strip()
 
-def receiver_table(cls):
+def receiver_table(cls, with_disp=False):
     key=cls+'::DispatchMethod('
     tbl={}
     for s in find_str(key):
@@ -83,7 +83,8 @@ def receiver_table(cls):
                         for st in strs:
                             m=re.match(re.escape(cls)+r'::Dispatch(\w+) ?\(\)',st)
                             if m: name=m.group(1); break
-                    tbl[mid & 0xffffffff]=sig or (name and name+'(?)') or f'?disp@{disp:x}'
+                    v=sig or (name and name+'(?)') or f'?disp@{disp:x}'
+                    tbl[mid & 0xffffffff]=(v,disp) if with_disp else v
     return tbl
 
 def sender_table(cls):

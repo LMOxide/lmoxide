@@ -1,6 +1,9 @@
 //! The client's `BinaryStream` serialization: big-endian scalars, strings prefixed with a
 //! u16 length. Strings of 0x8000 bytes or more are written as `ffff 01ff` followed by a
 //! u32 length (seen in `UniverseAgentSender::InitiateAuthentication`).
+//!
+//! Containers (vectors, maps) start with a u32 `(len + 1) * 1009`; readers reject values that
+//! aren't a multiple of 1009. Embedded protobufs are a u32 length followed by the message.
 
 use bytes::{BufMut, Bytes, BytesMut};
 
@@ -10,7 +13,11 @@ pub enum StreamError {
     Eof { what: &'static str, offset: usize },
     #[error("invalid utf-8 string at offset {0}")]
     Utf8(usize),
+    #[error("bad container length {raw:#x} at offset {offset}")]
+    BadContainer { raw: u32, offset: usize },
 }
+
+const CONTAINER_MULTIPLIER: u32 = 0x3f1;
 
 pub type Result<T> = std::result::Result<T, StreamError>;
 
@@ -76,6 +83,16 @@ impl<'a> Reader<'a> {
         self.bytes(len, "string")
     }
 
+    /// Container length prefix: `(len + 1) * 1009`.
+    pub fn container_len(&mut self) -> Result<usize> {
+        let at = self.pos;
+        let raw = self.u32()?;
+        if raw == 0 || raw % CONTAINER_MULTIPLIER != 0 {
+            return Err(StreamError::BadContainer { raw, offset: at });
+        }
+        Ok((raw / CONTAINER_MULTIPLIER - 1) as usize)
+    }
+
     pub fn string(&mut self) -> Result<String> {
         let at = self.pos;
         let b = self.string_bytes()?;
@@ -137,6 +154,15 @@ impl Writer {
     pub fn string(self, s: &str) -> Self {
         self.string_bytes(s.as_bytes())
     }
+    /// Container length prefix: `(len + 1) * 1009`.
+    pub fn container_len(self, len: usize) -> Self {
+        self.u32((len as u32 + 1) * CONTAINER_MULTIPLIER)
+    }
+    /// Embedded protobuf message: u32 length + encoded bytes.
+    pub fn proto(self, msg: &impl prost::Message) -> Self {
+        let b = msg.encode_to_vec();
+        self.u32(b.len() as u32).raw(&b)
+    }
     pub fn finish(self) -> Bytes {
         self.buf.freeze()
     }
@@ -153,6 +179,15 @@ mod tests {
         let mut r = Reader::new(&b);
         assert_eq!(r.string().unwrap(), "abc");
         assert_eq!(r.u32().unwrap(), 7);
+    }
+
+    #[test]
+    fn container_len() {
+        let b = Writer::new().container_len(0).container_len(2).finish();
+        assert_eq!(&b[..], &[0, 0, 0x03, 0xf1, 0, 0, 0x0b, 0xd3]);
+        let mut r = Reader::new(&b);
+        assert_eq!(r.container_len().unwrap(), 0);
+        assert_eq!(r.container_len().unwrap(), 2);
     }
 
     #[test]

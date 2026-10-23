@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One test cycle: restart server + client, wait, print a condensed summary.
 #   tools/test-run.sh [seconds=50]
-# Env: LMO_CLIENT_DIR (default ../client/LEGO Minifigures Online),
+# Env: LMO_AUTOPLAY=1 (scripted EnterGame via tools/client/startup.lua), LMO_CLIENT_DIR (default ../client/LEGO Minifigures Online),
 #      LMO_CLIENT_ARGS (default auto-login as tester), LMO_SERVER_ARGS, KEEP=1 (leave running).
 # Full logs: logs/server.log, logs/client.log (copied from the client's ClientLog.txt).
 set -uo pipefail
@@ -26,10 +26,16 @@ strip "$LOGS/server.log" \
 echo "   404s: $(strip "$LOGS/server.log" | grep -cE 'not found') (rdb/client files)"
 
 echo "== client: patcher, network, errors"
-grep -E 'CorePatcher changing|Network\.|Universe\.|Login|login|FATAL|Exception|Assert' "$LOGS/client.log" 2>/dev/null \
+grep -E 'CorePatcher changing|FlowControl - State|<AUTOPLAY>|Network\.GameClient|Universe\.|FATAL|Exception|Assert' "$LOGS/client.log" 2>/dev/null \
   | grep -vE 'UniversalConfig|LoginStateWaitingToEnterGame' \
   | sed -E 's/^\[[0-9-]+ ([0-9:]+)\.[0-9]+ #[0-9]+\] \[SGID:[0-9]+; TID:[0-9]+\] /\1 /' \
   | cut -c1-220 | tail -25
+
+# Screenshot of the game window (works on hidden workspaces via the foreign-toplevel id).
+if command -v hyprctl >/dev/null && command -v grim >/dev/null; then
+  id=$(hyprctl clients -j | python3 -c 'import json,sys; print(next((c["stableId"] for c in json.load(sys.stdin) if c["class"].lower()=="lmo.exe"), ""))')
+  [[ -n $id ]] && grim -T "$id" "$LOGS/screen.png" && echo "== screenshot: $LOGS/screen.png"
+fi
 
 if [[ -z ${KEEP:-} ]]; then
   pkill -x LMO.exe; pkill -x lmo-server

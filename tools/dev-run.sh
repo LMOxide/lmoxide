@@ -21,5 +21,12 @@ for _ in $(seq 50); do curl -sf http://127.0.0.1:8080/track >/dev/null && break;
 # The launcher normally fetches this; point the client at our control server.
 curl -sf http://127.0.0.1:8080/control/lmo_live/LocalConfig.xml >"$CLIENT/LocalConfig.xml"
 rm -f "$CLIENT/ClientLog.txt"
+# LMO_AUTOPLAY=1 swaps in tools/client/startup.lua (scripted login flow); otherwise restore stock.
+if [[ ! -f "$CLIENT/Data/startup.lua.orig" ]]; then cp "$CLIENT/Data/startup.lua" "$CLIENT/Data/startup.lua.orig"; fi
+if [[ -n ${LMO_AUTOPLAY:-} ]]; then
+  cp "$ROOT/tools/client/startup.lua" "$CLIENT/Data/startup.lua"
+else
+  cp "$CLIENT/Data/startup.lua.orig" "$CLIENT/Data/startup.lua"
+fi
 (cd "$CLIENT" && WINEDEBUG=-all wine LMO.exe -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &)
 echo "server log: $LOGS/server.log, client log: $CLIENT/ClientLog.txt"
