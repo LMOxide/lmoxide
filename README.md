@@ -2,8 +2,9 @@
 
 A server emulator, in Rust, for the LEGO Minifigures Online client (Funcom, shut down 2016).
 
-**Status:** the real client patches against this server, logs in through the universe agent,
-and authenticates with the territory manager. Character list/creation is next. See
+**Status:** the real client patches against this server, logs in through the universe agent and
+territory manager, requests character creation, and connects and authenticates to the game
+server, where it waits for its world state (IIR full update) — the next piece of work. See
 [docs/PROTOCOL.md](docs/PROTOCOL.md) for everything learned so far.
 
 ## Layout
@@ -38,7 +39,7 @@ Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101
 
 | Command | What it does |
 |---|---|
-| `tools/test-run.sh [secs]` | restart server + client (auto-login), wait, print a summary of RPCs, warnings and client progress; full logs in `logs/` |
+| `tools/test-run.sh [secs]` | restart server + client (auto-login), wait, print a summary of RPCs, warnings and client progress, screenshot the game window to `logs/screen.png`; `LMO_AUTOPLAY=1` also presses "start" via Lua |
 | `tools/dev-run.sh <client-dir> <log-dir>` | restart server + client and leave them running |
 | `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
 | `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |
@@ -47,6 +48,7 @@ Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101
 | `tools/re/py extract_protos.py <exe> <dir>` | regenerate `proto/` |
 | `tools/ghidra/analyze.sh` | one-time Ghidra import + analysis into `../ghidra/` |
 | `tools/ghidra/decompile.sh <va...>` | decompiled C of the functions containing each address |
+| `tools/ghidra/xrefs.sh <va...>` | references to each address (code and data, one level through vtables) |
 
 Setup for the Python tools: `python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf`.
 They read `../client/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`. Ghidra comes
