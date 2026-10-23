@@ -20,7 +20,7 @@ use tracing::info;
 
 use crate::{
     game::{
-        BCC_STATE_LIMBO, CharSpec, STAT_BCC_STATE, STAT_HEALTH, combat_log_record, int32_stat, move_task_record, remote_spawn_records},
+        BCC_STATE_LIMBO, COMMAND_MAGIC, CharSpec, STAT_BCC_STATE, STAT_HEALTH, combat_log_record, int32_stat, move_task_record, remote_spawn_records},
     world,
 };
 
@@ -34,6 +34,40 @@ const LEASH_RANGE: f32 = 25.0;
 const MELEE_RANGE: f32 = 1.8;
 const RESPAWN: Duration = Duration::from_secs(20);
 const TICK: Duration = Duration::from_millis(750);
+const ATTACK_INTERVAL: Duration = Duration::from_millis(2500);
+const NPC_DAMAGE: u32 = 8;
+/// Full health of a minifigure.
+pub const PLAYER_HEALTH: u32 = 100;
+
+/// Players' combat state: each minifigure has its own health.
+#[derive(Default)]
+struct PlayerCombat {
+    active: u32,
+    health: HashMap<u32, u32>,
+}
+
+static PLAYERS: LazyLock<Mutex<HashMap<Id32, PlayerCombat>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// Makes `template` the player's active minifigure and returns its health.
+pub fn set_active_minifigure(player: Id32, template: u32) -> u32 {
+    let mut players = PLAYERS.lock().unwrap();
+    let p = players.entry(player).or_default();
+    p.active = template;
+    *p.health.entry(template).or_insert(PLAYER_HEALTH)
+}
+
+pub fn player_left(player: Id32) {
+    PLAYERS.lock().unwrap().remove(&player);
+}
+
+/// Damages the player's active minifigure; returns its new health (`None` if unknown).
+fn damage_player(player: Id32, damage: u32) -> Option<u32> {
+    let mut players = PLAYERS.lock().unwrap();
+    let p = players.get_mut(&player)?;
+    let h = p.health.entry(p.active).or_insert(PLAYER_HEALTH);
+    *h = h.saturating_sub(damage);
+    Some(*h)
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SpawnDef {
@@ -42,6 +76,13 @@ pub struct SpawnDef {
     pub level: u32,
     pub health: u32,
     pub pos: [f32; 3],
+    /// Attack spell (RDB 1000621); defaults to "XX_Axe Chop".
+    #[serde(default = "default_spell")]
+    pub spell: u32,
+}
+
+fn default_spell() -> u32 {
+    2029
 }
 
 struct Npc {
@@ -50,6 +91,7 @@ struct Npc {
     health: u32,
     pos: world::Position,
     presence: Option<world::Presence>,
+    last_attack: Option<std::time::Instant>,
 }
 
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -69,7 +111,7 @@ pub fn start() {
             let id = Id32::new(crate::territory::CHARACTER_TYPE, instance);
             instance += 1;
             let pos = Arc::new(Mutex::new(def.pos));
-            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None });
+            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None });
             appear(id);
         }
     }
@@ -173,6 +215,55 @@ fn approach(from: [f32; 3], to: [f32; 3], keep: f32) -> [f32; 3] {
     [from[0] + (to[0] - from[0]) * t, to[1], from[2] + (to[2] - from[2]) * t]
 }
 
+/// NPC `id` swings at `player` if its attack is ready: the cast (a MagicCommand created on the
+/// NPC: BCC actions 16 queue, 4 success, 10 can-execute), the damage number and the player's
+/// new health. At 0 the client switches to the next minifigure itself.
+fn attack(id: Id32, player: Id32) {
+    let spell = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get_mut(&id) else { return };
+        if npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
+            return;
+        }
+        npc.last_attack = Some(std::time::Instant::now());
+        npc.def.spell
+    };
+    let Some(health) = damage_player(player, NPC_DAMAGE) else { return };
+    let mut records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
+    records.push(combat_log_record(id, player, spell, NPC_DAMAGE));
+    records.push(int32_stat(player, STAT_HEALTH, health));
+    world::send_playfield(id, false, world::Out::Records(records));
+}
+
+/// BCC action that queues a server-created command on the destination character.
+const BCC_QUEUE: u8 = 16;
+static NEXT_SERVER_COMMAND: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
+
+/// A BehaviorControlCenterIIR_c carrying a MagicCommand cast by `caster` at `target`. The data
+/// part copies what the client sends for its own casts, with the spell swapped in.
+fn cast_record(caster: Id32, target: Id32, spell: u32, action: u8) -> bytes::Bytes {
+    use std::sync::atomic::Ordering;
+    let server_id = if action == BCC_QUEUE {
+        NEXT_SERVER_COMMAND.fetch_add(1, Ordering::Relaxed)
+    } else {
+        NEXT_SERVER_COMMAND.load(Ordering::Relaxed) - 1
+    };
+    let msg = lmo_net::proto::CommandMessage {
+        bcc_action_id: Some(605),
+        commandqueue_server_id: Some(server_id),
+        flags: Some(0),
+        execution_status: Some(0),
+        target: Some(lmo_net::proto::ProtoId32 { r#type: Some(target.kind), instance: Some(target.instance) }),
+        ..Default::default()
+    };
+    lmo_net::iir::record("BehaviorControlCenterIIR_c", caster, false, |w| {
+        let w = w.u8(action).u32(COMMAND_MAGIC).proto(&msg).u32(0).u32(spell).u8(1);
+        let w = (0..3).fold(w, |w, _| w.u32(0)).u8(0x20);
+        let w = (0..3).fold(w, |w, _| w.u32(0));
+        w.u32(0xffff_ffff).u32(0)
+    })
+}
+
 /// Chase the nearest player in range; walk home when there is none or it ran too far.
 async fn ai() {
     let mut tick = tokio::time::interval(TICK);
@@ -190,11 +281,15 @@ async fn ai() {
             let target = world::positions(playfield)
                 .into_iter()
                 .filter(|(other, p)| !is_npc(*other) && distance(*p, home) < LEASH_RANGE)
-                .map(|(_, p)| p)
-                .filter(|p| distance(*p, here) < AGGRO_RANGE)
-                .min_by(|a, b| distance(*a, here).total_cmp(&distance(*b, here)));
+                .filter(|(_, p)| distance(*p, here) < AGGRO_RANGE)
+                .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
             let goal = match target {
-                Some(p) => approach(here, p, MELEE_RANGE),
+                Some((player, p)) => {
+                    if distance(p, here) <= MELEE_RANGE + 1.0 {
+                        attack(id, player);
+                    }
+                    approach(here, p, MELEE_RANGE)
+                }
                 None => home,
             };
             if distance(goal, here) > 0.3 {

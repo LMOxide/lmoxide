@@ -121,12 +121,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // item effects, including its abilities (shortcut slots 104/105); sent with
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
-                        if let Some(&(slot, _)) = me.team.first() {
+                        if let Some(&(slot, template)) = me.team.first() {
                             // ParentStatChanged only reacts to a different slot, and the client
                             // may already assume this one: clear it first.
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
-                            records.extend(health_records(h.identity));
+                            records.extend(health_records(h.identity, template));
                         }
                         let echo = iir::pass_blob(&records);
                         // The HUD shows the active minifigure's left/right-click spells, but they
@@ -220,9 +220,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let costume = int32_stat(h.identity, STAT_MONSTER_DATA, monster_data_for(me.team[0].1));
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                                 records.push(costume.clone());
-                                // health is per minifigure: send the newly active one's (always
-                                // full until damage exists)
-                                records.extend(health_records(h.identity));
+                                // health is per minifigure: send the newly active one's
+                                records.extend(health_records(h.identity, me.team[0].1));
                                 if let Some(p) = &presence {
                                     world::broadcast(p.id(), vec![costume]);
                                 }
@@ -280,6 +279,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         }
     }
     if character != 0 {
+        crate::npc::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         me.pos = *pos.lock().unwrap();
         match store.save(character, &me) {
             Ok(()) => info!(character, pos = ?me.pos, "character saved"),
@@ -341,10 +341,11 @@ fn parse_command(rest: &[u8]) -> Option<(lmo_net::proto::CommandMessage, &[u8])>
     Some((msg, &rest[9 + len..]))
 }
 
-/// The active minifigure's health (each minifigure has its own; Life is the maximum). Always
-/// full for now.
-fn health_records(id: Id32) -> Vec<Bytes> {
-    vec![int32_stat(id, STAT_LIFE, START_HEALTH), int32_stat(id, STAT_HEALTH, START_HEALTH)]
+/// Makes `template` the active minifigure and sends its health (each minifigure has its own;
+/// Life is the maximum).
+fn health_records(id: Id32, template: u32) -> Vec<Bytes> {
+    let health = crate::npc::set_active_minifigure(id, template);
+    vec![int32_stat(id, STAT_LIFE, crate::npc::PLAYER_HEALTH), int32_stat(id, STAT_HEALTH, health)]
 }
 
 /// `CombatLogIIR` (AttackUtils_c::ActivateCombatLog 0x175bc26): the floating damage number.
@@ -553,7 +554,7 @@ const START_POTIONS: u64 = 5;
 const BCC_QUEUE_COMMAND: u8 = 3;
 const BCC_COMMAND_SUCCEEDED: u8 = 4;
 const BCC_CAN_EXECUTE: u8 = 10;
-const COMMAND_MAGIC: u32 = 4;
+pub const COMMAND_MAGIC: u32 = 4;
 /// Damage of a minifigure's normal (left-click) and special (right-click) ability until spell
 /// data is modelled.
 const NORMAL_DAMAGE: u32 = 15;
