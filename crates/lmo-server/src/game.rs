@@ -1,7 +1,10 @@
 //! Game server: the playfield connection the client opens after `LoginConnectReady`
 //! (`ClientToGameserverRPC` / `GameserverToClientRPC`, then the gamecode endpoints).
 
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use bytes::Bytes;
 
@@ -123,6 +126,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.extend(health_records(h.identity));
                         }
                         let echo = iir::pass_blob(&records);
+                        // The HUD shows the active minifigure's left/right-click spells, but they
+                        // can't be cast until learned: LearnSpell(int spell) for the whole team.
+                        for spell in me.team.iter().flat_map(|&(_, t)| minifigure_spells(t)) {
+                            let args = Writer::new().i32(spell as i32).finish();
+                            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LEARN_SPELL, args)
+                                .await?;
+                        }
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
                         if presence.is_none() {
@@ -152,9 +162,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // when the server answers with the same record as action 4 (success).
                         let command_type = rest.get(1..5).map_or(0, |b| u32::from_be_bytes(b.try_into().unwrap()));
                         info!(command_type, rest = %crate::conn::hex(rest), "command");
+                        let action_at = blob.len() - rest.len();
                         let mut reply = blob.to_vec();
-                        reply[blob.len() - rest.len()] = BCC_COMMAND_SUCCEEDED;
-                        let mut records = vec![Bytes::from(reply)];
+                        reply[action_at] = BCC_COMMAND_SUCCEEDED;
+                        let mut records = vec![Bytes::from(reply.clone())];
+                        if command_type == COMMAND_MAGIC {
+                            // Experiment: a MagicCommand stays queued after OnSuccess and blocks
+                            // further casts (MagicCommand_c::CanQueue); abort it once the cast
+                            // animation has had time to play.
+                            reply[action_at] = BCC_ABORT_COMMAND;
+                            let outbox = outbox.clone();
+                            tokio::spawn(async move {
+                                tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+                                let _ = outbox.send(world::Out::Records(vec![Bytes::from(reply)]));
+                            });
+                        }
                         if command_type == COMMAND_CYCLE_WEAPON && rest.len() >= 4 {
                             // CycleToNextWeaponCommand: subclass ends with the u32 team slot
                             let slot = u32::from_be_bytes(rest[rest.len() - 4..].try_into().unwrap());
@@ -439,6 +461,15 @@ const MINIFIGURE_MONSTER_DATA: [(u32, u32); 16] = [
     (663932, 663913), // Farmer
 ];
 
+/// Left- and right-click (normal and special) spells of a minifigure item template, from the
+/// client's MinifigureUpgradeData (RDB 1000643; tools/re/extract_minifig_spells.py).
+fn minifigure_spells(template: u32) -> Vec<u32> {
+    static TABLE: std::sync::LazyLock<HashMap<String, Vec<u32>>> = std::sync::LazyLock::new(|| {
+        serde_json::from_str(include_str!("../../../data/minifigure_spells.json")).expect("minifigure_spells.json")
+    });
+    TABLE.get(&template.to_string()).cloned().unwrap_or_default()
+}
+
 /// Monsterdata for a minifigure item template (the generic body if unknown).
 fn monster_data_for(template: u32) -> u32 {
     MINIFIGURE_MONSTER_DATA.iter().find(|(t, _)| *t == template).map_or(2212, |(_, m)| *m)
@@ -460,6 +491,8 @@ const START_POTIONS: u64 = 5;
 /// server answers 4 (OnSuccess), 5 (OnFailure), 7/8/9 (abort one/queued/all).
 const BCC_QUEUE_COMMAND: u8 = 3;
 const BCC_COMMAND_SUCCEEDED: u8 = 4;
+const BCC_ABORT_COMMAND: u8 = 7;
+const COMMAND_MAGIC: u32 = 4;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
