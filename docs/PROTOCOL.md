@@ -91,7 +91,51 @@ Embedded protobuf (e.g. `FidData_c`, `PlayfieldProxy`): u32 length + encoded mes
 | 12 | ← `PlayerInterface::LoginConnectReady(addr, cookie, ID32 char, PlayfieldProxy)` | decoder `0x7bf400`; we use char type 50000, playfield 1200 |
 | 13 | → game server: `ClientToGameserverRPC::Authenticate2(charInstance, cookie, "LMOv1.5@557666_Win32")` | ← `GameserverToClientRPC::AckAuthenticate(1)` |
 | 14 | → control frame `01`, `ClientToGameserverRPC::Ping(seq)` (← `Pong`), `GameCharAgent::Ping(seq)` every ~1 s | client FlowControl state `WaitingForFullUpdate` |
-| 15 | **next**: the full update — IIR objects (`CoreFullPlayerCharacterIIR`, `CoreCharacterFullUpdateIIR`, `n3PlayfieldFullUpdateIIR_t`, `CharInPlayIIR_t`, …), presumably via `GameserverToClientRPC::PassBlob` (dispatch `0x7b6980`) | |
+| 15 | ← `GameserverToClientRPC::PassBlob` with `PlayfieldFIIR_t` (playfield 51100:1200) | client loads the playfield ("Entering playfield" screen) **verified** |
+| 16 | ← `SimpleCharFullUpdateIIR_t` + `FullPlayerCharacterIIR` for the character | both construct cleanly but never activate — **next** (see "Dynel creation") |
+
+## IIRs (state updates)
+
+`GameserverToClientRPC::PassBlob(BinaryStream)` = u32 length + a sequence of IIR records,
+processed by `n3Engine::AddNetWorkMessage` (`0x7d4540`). Record (`0x7d6b20`):
+
+```
+u32   type id = Java string hash of the registered name     (data/iir_types.json, 117 names)
+ID32  identity (the dynel/playfield the IIR is about)
+bool  isToBePassedOn
+[u32 len + protobuf]  if the class has a header message (GameCodeDynel IIRs: ProtoGameCodeDynelIIR)
+...   ReadSubClass (vtable +0x20)
+```
+
+The engine calls `PollStatus` (vtable +4): 1 → `Activate` (+8), 2 → queue and retry each frame,
+3 → drop (`0x7d56e0`). Builders live in `lmo_net::iir`; layouts are documented next to each
+builder in `crates/lmo-server/src/game.rs`.
+
+Pitfalls found:
+- Reading from an empty `BinaryStream` yields an uninitialised value. Every blob/list the
+  client reads needs at least its count (`PlayfieldFIIR_t` blob 2 empty → out-of-memory dialog).
+- Playfield ID32 type is 51100 (key of the PlayfieldFactory map, `0x96cee0`).
+  `PlayfieldProxyData.running_instance` is the key of the client's playfield map.
+- `CoreCharacterFullUpdateIIR` asserts `generic_stats_size == g_Int32StatsOrder.size()` (= 1).
+
+### Dynel creation (open question)
+
+Character IIRs (`SimpleCharFullUpdateIIR_t`, type check 50000) derive from
+`GameCodeDynelFullUpdateIIR`. Their `PollStatus` (`0x7442f0`) returns 1 only when a
+`dw::GameObject` exists for the identity (map at `0x1ef76e0`, value at +0x18); `Activate`
+(`0x743fc0`) then creates the dynel through the dynel factory map (`0x1ef7994`; `SimpleCharFactory`
+is registered for 50000 in `0xde1b80`), and `n3DynelFactory` (`0x7d3110`) asserts the GameObject
+exists. So something must create the GameObject first — not yet found. Candidates creating
+GameObjects: `0x6e4960`/`0x6e4f80`/`0x6e5520`/`0x6e5ae0` (DreamWorld playfield modules, called
+from `0x9e0860`…), `0xdf2d80` (game code), `0x6ea4c0`/`0x6fce20` (via `0x6fab80`). The playfield
+IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another candidate.
+
+## Missing game data
+
+The archive lacks the RDB packs (playfield data type 1000049, many 1000141, …). Funcom's patch
+server `http://update.lego.funcom.com/legoupm` still serves them (2026-10); `--upstream` makes the
+HTTP service fetch and cache them (`rdb-cache/`), unwrapping `IOz1` = "IOz1" + u32 LE size + zlib.
+The client stores fetched resources in its own `RDB/` folder.
 
 ### Encodings
 
@@ -119,7 +163,9 @@ See `Data/smoketest.lua` (Funcom's automated test) and `tools/client/startup.lua
 
 ## Tooling
 
-See the README "Tools" table. Highlights: `tools/test-run.sh` (with `LMO_AUTOPLAY=1`) for one
+See the README "Tools" table. When the client hits an assertion it opens a dialog that would
+send a bug report to Funcom on close — kill the process instead (`pkill -x LMO.exe`).
+`winedbg` (attach + `bt all`, see `logs/bt.txt` usage in history) gives backtraces of a stuck client. Highlights: `tools/test-run.sh` (with `LMO_AUTOPLAY=1`) for one
 end-to-end cycle including a screenshot of the game window (`grim -T` works on hidden
 workspaces); `tools/ghidra/decompile.sh` / `xrefs.sh` against the analyzed project.
 

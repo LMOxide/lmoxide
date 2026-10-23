@@ -6,7 +6,10 @@ use std::sync::Arc;
 use lmo_net::{
     Endpoint, Reader, Writer, iir,
     methods::{client_to_gameserver_rpc as agent, gameserver_to_client_rpc as client},
-    proto::{PlayfieldProxyData, ProtoId32},
+    proto::{
+        PlayfieldProxyData, ProtoCoreCharacterIir, ProtoFullCharacterIir, ProtoGameCodeDynelIir,
+        ProtoId32, ProtoQuat, ProtoVec3,
+    },
     types::Id32,
 };
 use tracing::{info, warn};
@@ -32,7 +35,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
-                let blob = iir::pass_blob(&[playfield_full_update(cfg.start_playfield)]);
+                let me = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                let blob = iir::pass_blob(&[
+                    playfield_full_update(cfg.start_playfield),
+                    simple_char_full_update(me, cfg.start_playfield, "tester", START_POS),
+                    full_player_character(me),
+                ]);
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob)
                     .await?;
             }
@@ -61,11 +69,110 @@ fn playfield_full_update(playfield: u32) -> bytes::Bytes {
     let proxy = PlayfieldProxyData {
         dimension_id: Some(1),
         model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield) }),
+        // key of the client's playfield map ("Inserting playfield N in map"); dynels refer to it
+        // via ProtoGameCodeDynelIIR.playfield_instance
+        running_instance: Some(playfield),
         ..Default::default()
     };
     iir::record("PlayfieldFIIR_t", id, false, |w| {
         let empty_list = 0u32.to_be_bytes();
         let w = w.u32(0).u32(0).u32(0).proto(&proxy).u32(0).blob(&empty_list).blob(&empty_list);
         (0..6).fold(w, |w, _| w.u32(0))
+    })
+}
+
+/// Version the client's CoreFullPlayerCharacterIIR reader expects (0x1b81edc).
+const FULL_CHARACTER_VERSION: u32 = 24;
+/// Empty 1009-encoded container.
+const EMPTY: u32 = 0x3f1;
+
+/// `FullPlayerCharacterIIR` (the player's own character), minimal: every list empty.
+/// Header protobuf `ProtoFullCharacterIIR`, then CoreFullPlayerCharacterIIR::ReadSubClass
+/// (0x602ed0) and FullPlayerCharacterIIR's additions (0xe3f9f0):
+///
+/// ```text
+/// u32 version (24)
+/// u32 n,   n x u32                        0x9cd8c0
+/// cont<u32>                               0x5f8d80
+/// u32 n,   n x element                    0x9cdf60
+/// cont<u32 -> u32>                        0x60aa60
+/// cont<u32 -> element>                    0x630ab0
+/// cont<u32 -> u32>                        0x5f9f70
+/// cont<ID32>, cont<ID32>                  0x970930 (IdentityLists)
+/// [0x67d240 if flag +0xf1]
+/// u32 n,   n x (u32, u64, u64)
+/// u32 n,   n x element                    0x5dafa0
+/// u32 n,   n x u32
+/// cont<u32 -> 5 x u32>                    0xa83b30
+/// u32 n,   n x (u32, u32)
+/// u32 n,   n x (u32, u32)
+/// cont<u32 -> element>                    0xe43450
+/// ```
+fn full_player_character(id: Id32) -> bytes::Bytes {
+    let proto = ProtoFullCharacterIir::default();
+    iir::record("FullPlayerCharacterIIR", id, false, |w| {
+        w.proto(&proto)
+            .u32(FULL_CHARACTER_VERSION)
+            .u32(0)
+            .u32(EMPTY)
+            .u32(0)
+            .u32(EMPTY)
+            .u32(EMPTY)
+            .u32(EMPTY)
+            .u32(EMPTY)
+            .u32(EMPTY)
+            .u32(0)
+            .u32(0)
+            .u32(0)
+            .u32(EMPTY)
+            .u32(0)
+            .u32(0)
+            .u32(EMPTY)
+    })
+}
+
+/// Near the portals in playfield 1200 (from the client's RDBTeleportLocations).
+const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
+
+/// `SimpleCharFullUpdateIIR_t`: creates the character dynel (it is a GameCodeDynelFullUpdateIIR,
+/// i.e. an n3DynelFactoryCallbackObject). Header protobuf `ProtoGameCodeDynelIIR` (position,
+/// rotation, playfield). SimpleChar part (0xe0b150): u8 version 4, u8, 5 u32, string, 4 u32,
+/// u32 n + n u32, u32 n + n (u32,u32), u32 n + n (u32,u32); then CoreCharacterFullUpdateIIR
+/// (0x5f4650): u8 'B', u32, ProtoCoreCharacterIIR (generic_stats must have exactly as many
+/// entries as g_Int32StatsOrder, which holds one stat), u32 n + n u32, blob, cont, cont<u32,u8>,
+/// cont, u32 n + n (u32,u32), u32 n + n (u32,u32), cont<u32,u32>, cont<u32,u32>.
+fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> bytes::Bytes {
+    let dynel = ProtoGameCodeDynelIir {
+        position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
+        rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
+        playfield_instance: Some(playfield),
+        running_effects: vec![],
+    };
+    let core = ProtoCoreCharacterIir {
+        name: Some(name.to_string()),
+        generic_stats: vec![0],
+        dimension_id: Some(1),
+        ..Default::default()
+    };
+    iir::record("SimpleCharFullUpdateIIR_t", id, false, |w| {
+        let w = w.proto(&dynel).u8(4).u8(0);
+        let w = (0..5).fold(w, |w, _| w.u32(0)).string(name);
+        let w = (0..4).fold(w, |w, _| w.u32(0));
+        w.u32(0)
+            .u32(0)
+            .u32(0)
+            // CoreCharacterFullUpdateIIR
+            .u8(b'B')
+            .u32(0)
+            .proto(&core)
+            .u32(0)
+            .blob(&[])
+            .u32(EMPTY)
+            .u32(EMPTY)
+            .u32(EMPTY)
+            .u32(0)
+            .u32(0)
+            .u32(EMPTY)
+            .u32(EMPTY)
     })
 }

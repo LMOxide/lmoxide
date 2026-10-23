@@ -4,7 +4,8 @@ A server emulator, in Rust, for the LEGO Minifigures Online client (Funcom, shut
 
 **Status:** the real client patches against this server, logs in through the universe agent and
 territory manager, requests character creation, and connects and authenticates to the game
-server, where it waits for its world state (IIR full update) — the next piece of work. See
+server, and loads the starting playfield ("Entering playfield"). Spawning the player character
+(creating its dynel) is the next piece of work — see docs/PROTOCOL.md "Dynel creation". See
 [docs/PROTOCOL.md](docs/PROTOCOL.md) for everything learned so far.
 
 ## Layout
@@ -49,6 +50,8 @@ Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101
 | `tools/ghidra/analyze.sh` | one-time Ghidra import + analysis into `../ghidra/` |
 | `tools/ghidra/decompile.sh <va...>` | decompiled C of the functions containing each address |
 | `tools/ghidra/xrefs.sh <va...>` | references to each address (code and data, one level through vtables) |
+| `tools/ghidra/symbols.sh <regex> [n]` | symbols matching a regex; for vtables, the first n slots |
+| `tools/re/py extract_iir.py <out.json>` | regenerate `data/iir_types.json` (IIR names, type ids, classes, protobufs) |
 
 Setup for the Python tools: `python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf`.
 They read `../client/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`. Ghidra comes
