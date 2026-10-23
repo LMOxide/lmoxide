@@ -58,7 +58,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let blob = iir::pass_blob(&records);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
-                    world::Out::Rpc { target, method, args } => conn.send_as(Some(character), target, method, args).await?,
                 }
                 continue;
             }
@@ -151,20 +150,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::VICINITY_CHAT_MESSAGE) => {
-                // VicinityChatMessage(const String& message, const int mood) -> everyone on the
-                // playfield, sender included: GameCharInterface::VicinityChatMessage(fromName,
-                // message, mood, gmLDBNametagInstance).
+                // VicinityChatMessage(const String& message, const int mood), sent after the chat
+                // filter approved it. The client ignores GameCharInterface::VicinityChatMessage;
+                // others see the line through their chat-server connection (chat.rs). The
+                // sender has already echoed it.
                 let message = r.string()?;
                 let mood = r.i32()?;
                 info!(name = %me.name, %message, mood, "chat");
                 if let Some(p) = &presence {
-                    let args = Writer::new().string(&me.name).string(&message).i32(mood).i32(0).finish();
-                    let out = world::Out::Rpc {
-                        target: Endpoint::GameCharInterface,
-                        method: game_char_interface::VICINITY_CHAT_MESSAGE,
-                        args,
-                    };
-                    world::send_playfield(p.id(), true, out);
+                    for other in world::neighbours(p.id()) {
+                        crate::chat::vicinity(other.instance, character, &me.name, mood, &message);
+                    }
+                    if cfg.bot {
+                        // the test bot answers, so incoming chat can be seen with one client
+                        crate::chat::vicinity(character, BOT_INSTANCE, "Bot", 0, &format!("you said: {message}"));
+                    }
                 }
             }
             // Client-side bookkeeping that needs no answer (to be persisted later).
@@ -258,10 +258,12 @@ pub fn move_task_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> Bytes {
     })
 }
 
+const BOT_INSTANCE: u32 = 0x0b07;
+
 /// A server-side character that circles whoever else is on the playfield, standing in for a
 /// second player (`--bot`).
 pub async fn run_bot(playfield: u32) {
-    let id = Id32::new(crate::territory::CHARACTER_TYPE, 0x0b07);
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, BOT_INSTANCE);
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();

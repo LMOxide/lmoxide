@@ -74,6 +74,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(account, dim, ?data, region, age, gender, %igr, user_type, service_type, "CreateCharacterWithData");
                 // Until characters are stored: send the client straight to a game server.
                 let character = Id32::new(CHARACTER_TYPE, account);
+                // ChatServerConnectReady(const String& address, uint cookie, const ID32& characterID):
+                // the client only stores the address ("host:port") and connects after the
+                // character's full update; it must come before LoginConnectReady.
+                let chat = character
+                    .write(
+                        Writer::new()
+                            .string(&cfg.public_addr(cfg.chat_port))
+                            .u32(crate::universe::cookie_for(account)),
+                    )
+                    .finish();
+                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::CHAT_SERVER_CONNECT_READY, chat)
+                    .await?;
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::LOGIN_CONNECT_READY, login_connect_ready(&cfg, character))
                     .await?;
             }

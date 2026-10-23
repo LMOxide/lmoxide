@@ -170,11 +170,22 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
   for keyboard movement (u8 flags, pos, ...). Relaying MoveTaskIIR_c with the mover's identity
   makes remote characters walk. Move tasks are read by a factory (u8 type → creator table) and
   validated (`IsValid`).
-- **Free-text chat** needs GmLevel ≠ 0 (ChatGUI module criteria `stat:gmlevel!=0`); "Say" goes
-  through a separate chat server ("ChatClient - Not a valid Chatserver host" until
-  `PlayerInterface::ChatServerConnectReady`), not yet implemented.
-- **Open issue**: keyboard movement starts (CharDCMoveIIR_t with velocity) but the character
-  stays put, and minifigure swapping fails with "CommandQueue is full".
+- **Keyboard movement** needs stat CharRadius (421): the collision capsule radius is
+  CharRadius × MonsterScale / 10000, and with 0 `Vehicle_t::CollideAndSlide` blocks every step.
+  CommandQueueSize (1360) defaults to 1, which makes the queue "full".
+- **Chat** (chat.rs): free-text chat needs GmLevel ≠ 0 (ChatGUI criteria `stat:gmlevel!=0`).
+  The chat server is plain IRC (CRLF lines, zlib unless LocalConfig `ChatCompression=false`) at
+  the address from `PlayerInterface::ChatServerConnectReady(String "host:port", u32 cookie,
+  ID32)`, sent before LoginConnectReady. Client: `PASS :<cookie>`, `NICK <name>-<PlayerID>`,
+  `USER ...`; server: `001`, and `JOIN #ChatGroup_General_D1_1` (the window's default "Global"
+  tab needs a joined `#<group>_D<dim>_<n>` channel). Before sending, the client asks a
+  hard-coded filter URL (`http://chatfilter.funcom.com/rest/chat_filter?...`; patched to our
+  `/rest/chat_filter` by tools/patch-client.py) and sends only if it answers
+  `{"result":"0","filtered":"..."}`. Channel lines then arrive as `FILTEREDPRIVMSG <target>
+  [<hash>] :<text>` and are relayed as `PRIVMSG`; "Say" goes to the game server
+  (`GameCharAgent::VicinityChatMessage`) and is shown to others via IRC `VICINITYCHAT`.
+- **Client file patches** survive the patcher because the HTTP server rebuilds FileList.bin
+  (RootHash) and PatchVersion from the local files (see http.rs `rebuild_file_list`).
 
 ## Missing game data
 

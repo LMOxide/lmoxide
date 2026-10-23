@@ -11,7 +11,7 @@ use std::{collections::HashMap, net::SocketAddr, path::PathBuf, sync::Arc};
 use axum::{
     Router,
     body::Body,
-    extract::{Path, RawQuery, State},
+    extract::{Path, Query, RawQuery, State},
     http::{StatusCode, Uri, header},
     response::{IntoResponse, Response},
     routing::get,
@@ -22,7 +22,8 @@ use crate::Config;
 
 /// The folder name the client appends to `ControlHttpPatchAddr`/`HttpPatchAddr`.
 pub const PATCH_FOLDER: &str = "lmo_live";
-/// Patch version of the last live build (matches the shipped client's `LocalConfig.xml`).
+/// Patch version of the last live build (matches the shipped client's `LocalConfig.xml`): the
+/// md5 of its LMO.exe, prefixed with "x".
 const PATCH_VERSION: &str = "xeefee462924c2cb689283928e67e6519";
 const PATCH_INFO_CLIENT: &str = include_str!("../../../data/PatchInfoClient.txt");
 
@@ -30,8 +31,11 @@ struct HttpState {
     cfg: Arc<Config>,
     /// Lower-case resource hash -> file in the client's `RDB/` tree.
     rdb: HashMap<String, PathBuf>,
-    /// `PatchInfoClient.txt`, with the platform download list hash pointing at `download_list`.
+    /// `PatchInfoClient.txt`, with the platform download list hash pointing at `download_list`
+    /// and the client file list hashes at `file_list`.
     patch_info: String,
+    /// `PatchVersion` for LocalConfig.xml (follows the local LMO.exe, see `rebuild_file_list`).
+    patch_version: String,
     /// Content-addressed patch files (`/patch/rdb/full/<md5>`): download lists and the RDB
     /// hash index.
     full: HashMap<String, Vec<u8>>,
@@ -129,6 +133,26 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
         None => PATCH_INFO_CLIENT.to_string(),
     };
     let mut full = HashMap::new();
+    // Client files (LMO.exe etc.) as they are locally, so a patched LMO.exe (tools/patch-client.py)
+    // isn't "repaired" by the patcher.
+    let mut patch_version = PATCH_VERSION.to_string();
+    let mut patch_info = patch_info;
+    if let Some((list, exe_md5)) = cfg.client_dir.as_deref().and_then(rebuild_file_list) {
+        let root = hex_md5(&list);
+        info!(root_hash = %root, exe = %exe_md5, "client file list from local files");
+        patch_version = format!("x{exe_md5}");
+        patch_info = patch_info
+            .lines()
+            .map(|l| match l.split_once('=') {
+                Some((k @ ("RootHash" | "RootHash-Win32"), _)) => format!("{k}={root}"),
+                Some(("PatchVersion", _)) => format!("PatchVersion={patch_version}"),
+                Some(("PatchVersion-Win32", _)) => format!("PatchVersion-Win32={exe_md5}"),
+                _ => l.to_string(),
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        full.insert(root, list);
+    }
     if let Some(list) = download_list {
         full.insert(hex_md5(list.as_bytes()), list.into_bytes());
     }
@@ -147,7 +171,7 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
     if let Some(u) = &upstream {
         info!(base = %u.base, cache = %u.cache.display(), "upstream fallback enabled");
     }
-    let state = Arc::new(HttpState { cfg, rdb, patch_info, full, upstream });
+    let state = Arc::new(HttpState { cfg, rdb, patch_info, patch_version, full, upstream });
     let app = Router::new()
         .route("/control/{folder}/LocalConfig.xml", get(local_config))
         .route("/control/{folder}/PatchInfoClient.txt", get(patch_info_client))
@@ -155,6 +179,7 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
         .route("/patch/rdb/full/{hash}", get(full_file))
         .route("/patch/{*path}", get(patch_file))
         .route("/track", get(track))
+        .route("/rest/chat_filter", get(chat_filter))
         .route("/auth/", get(login_page))
         .fallback(fallback)
         .with_state(state);
@@ -164,7 +189,7 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn local_config_xml(cfg: &Config) -> String {
+pub fn local_config_xml(cfg: &Config, patch_version: &str) -> String {
     let http = cfg.public_addr(cfg.http_port);
     let universe = cfg.public_addr(cfg.universe_port);
     format!(
@@ -183,7 +208,8 @@ pub fn local_config_xml(cfg: &Config) -> String {
       <LoginURL>http://{http}/auth/</LoginURL>
       <UniverseAddr>{universe}</UniverseAddr>
       <FunnelTrackerAddr>http://{http}/track</FunnelTrackerAddr>
-      <PatchVersion>{PATCH_VERSION}</PatchVersion>
+      <PatchVersion>{patch_version}</PatchVersion>
+      <ChatCompression>false</ChatCompression>
     </Client>
     <ResourceSources>HashedFileSystemSource,HTTPSource,FileSystemSource</ResourceSources>
   </Universe>
@@ -194,7 +220,59 @@ pub fn local_config_xml(cfg: &Config) -> String {
 
 async fn local_config(State(s): State<Arc<HttpState>>, Path(folder): Path<String>) -> Response {
     info!(%folder, "LocalConfig.xml");
-    ([(header::CONTENT_TYPE, "text/xml")], local_config_xml(&s.cfg)).into_response()
+    ([(header::CONTENT_TYPE, "text/xml")], local_config_xml(&s.cfg, &s.patch_version)).into_response()
+}
+
+/// `FileList.bin` (the client file list, `RootHash` = its md5) with the client folder's top-level
+/// files (LMO.exe, DLLs) rehashed from disk. Layout: "CFHL", u32 1, u16 count, then entries:
+/// u8 type, u16 name length, name; directories (type 1) are followed by u16 count and their
+/// entries, files (other types) by u32 size and md5[16]. Returns the list and LMO.exe's md5, or
+/// `None` if the list can't be read. Always served when available: after one patch run the
+/// local FileList.bin is already ours, and falling back to the shipped RootHash would make the
+/// patcher restore the original files.
+fn rebuild_file_list(dir: &std::path::Path) -> Option<(Vec<u8>, String)> {
+    let mut list = std::fs::read(dir.join("FileList.bin")).ok()?;
+    if list.get(..8)? != b"CFHL\x01\0\0\0" {
+        return None;
+    }
+    let u16_at = |l: &[u8], at: usize| l.get(at..at + 2).map(|b| u16::from_le_bytes([b[0], b[1]]) as usize);
+    // Skips one entry (recursively for directories), returning the offset after it.
+    fn skip(l: &[u8], at: usize) -> Option<usize> {
+        let len = u16::from_le_bytes(l.get(at + 1..at + 3)?.try_into().ok()?) as usize;
+        let after_name = at + 3 + len;
+        if *l.get(at)? == 1 {
+            let n = u16::from_le_bytes(l.get(after_name..after_name + 2)?.try_into().ok()?);
+            (0..n).try_fold(after_name + 2, |at, _| skip(l, at))
+        } else {
+            Some(after_name + 20)
+        }
+    }
+    let count = u16_at(&list, 8)?;
+    let (mut at, mut exe_md5) = (10, None);
+    for _ in 0..count {
+        let next = skip(&list, at)?;
+        if list[at] != 1 {
+            let len = u16_at(&list, at + 1)?;
+            let name = String::from_utf8(list[at + 3..at + 3 + len].to_vec()).ok()?;
+            let (size_at, md5_at) = (at + 3 + len, at + 7 + len);
+            if let Ok(data) = std::fs::read(dir.join(&name)) {
+                let digest = {
+                    use md5::{Digest, Md5};
+                    Md5::digest(&data)
+                };
+                if name.eq_ignore_ascii_case("LMO.exe") {
+                    exe_md5 = Some(hex_md5(&data));
+                }
+                if list[md5_at..md5_at + 16] != digest[..] {
+                    info!(%name, "client file differs from the shipped file list");
+                    list[size_at..size_at + 4].copy_from_slice(&(data.len() as u32).to_le_bytes());
+                    list[md5_at..md5_at + 16].copy_from_slice(&digest);
+                }
+            }
+        }
+        at = next;
+    }
+    exe_md5.map(|m| (list, m))
 }
 
 async fn patch_info_client(State(s): State<Arc<HttpState>>) -> String {
@@ -243,6 +321,12 @@ async fn patch_file(State(s): State<Arc<HttpState>>, Path(path): Path<String>) -
     };
     // Requests may be prefixed with the patch folder; resolve case-insensitively.
     let rel = path.strip_prefix(&format!("{PATCH_FOLDER}/")).unwrap_or(&path);
+    // client/<h[0:2]>/<h[2:]>: content-addressed client files, e.g. our rebuilt FileList.bin
+    if let Some((a, b)) = rel.strip_prefix("client/").and_then(|h| h.split_once('/'))
+        && let Some(data) = s.full.get(&format!("{a}{b}").to_ascii_lowercase())
+    {
+        return octets(data.clone());
+    }
     if let Some(p) = resolve_ci(dir, rel) {
         return send_file(p).await;
     }
@@ -259,6 +343,18 @@ async fn login_page(RawQuery(q): RawQuery) -> Response {
     debug!(query = q.unwrap_or_default(), "login page");
     ([(header::CONTENT_TYPE, "text/html; charset=utf-8")], include_str!("../../../data/login.html"))
         .into_response()
+}
+
+/// The chat filter the client asks before sending a line (`ProjectChatServerInterface::SendMessage`;
+/// the URL is patched into LMO.exe by tools/patch-client.py). The reply is flat JSON read by
+/// `ParseChatFilterReply`, which doesn't decode escapes: result 0 = send `filtered`, 1/2 =
+/// rejected. Nothing is filtered here.
+async fn chat_filter(Query(q): Query<HashMap<String, String>>) -> Response {
+    let text = q.get("chat_message").cloned().unwrap_or_default();
+    info!(from = q.get("from_char").map(String::as_str).unwrap_or(""), %text, "chat filter");
+    let text = text.replace(['"', '\\'], "'");
+    let body = format!(r#"{{"result":"0","filtered":"{text}","hash":"x"}}"#);
+    ([(header::CONTENT_TYPE, "application/json")], body).into_response()
 }
 
 async fn track(RawQuery(q): RawQuery) -> &'static str {

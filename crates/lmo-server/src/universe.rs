@@ -75,3 +75,9 @@ pub fn account_instance(username: &str) -> u32 {
 pub fn cookie_for(instance: u32) -> u32 {
     instance ^ 0x6c47_0581
 }
+
+/// Inverse of [`cookie_for`] (the chat server identifies clients by the cookie).
+pub fn account_for_cookie(cookie: u32) -> Option<u32> {
+    let account = cookie ^ 0x6c47_0581;
+    (account <= 0x7fff_ffff).then_some(account)
+}

@@ -1,3 +1,4 @@
+mod chat;
 mod conn;
 mod game;
 mod http;
@@ -33,6 +34,9 @@ pub struct Config {
     /// Game server port (playfields).
     #[arg(long, env = "LMO_GAME_PORT", default_value_t = 7102)]
     pub game_port: u16,
+    /// Chat server port (plain-text IRC).
+    #[arg(long, env = "LMO_CHAT_PORT", default_value_t = 7200)]
+    pub chat_port: u16,
     /// Playfield new characters start in.
     #[arg(long, env = "LMO_START_PLAYFIELD", default_value_t = 1200)]
     pub start_playfield: u32,
@@ -97,7 +101,9 @@ async fn main() -> anyhow::Result<()> {
     ));
 
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
+    tokio::spawn(chat::listen(cfg.addr(cfg.chat_port)));
     if cfg.bot {
+        chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(cfg.start_playfield));
     }
 

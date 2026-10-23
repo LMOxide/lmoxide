@@ -5,7 +5,7 @@
 #   tools/client-keys.sh text "hello"    type lowercase letters, digits and spaces
 set -euo pipefail
 send() { hyprctl dispatch "hl.dsp.send_key_state({mods=\"\", key=\"$1\", state=\"$2\", window=\"class:lmo.exe\"})" >/dev/null; }
-press() { send "$1" down; sleep 0.05; send "$1" up; sleep 0.05; }
+press() { send "$1" down; sleep 0.08; send "$1" up; sleep 0.12; }
 case $1 in
   key) press "$2" ;;
   hold) send "$2" down; sleep "${3:-1}"; send "$2" up ;;

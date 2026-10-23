@@ -10,7 +10,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use lmo_net::{Endpoint, types::Id32};
+use lmo_net::types::Id32;
 use tokio::sync::mpsc;
 
 /// What a member's connection is asked to send to its client.
@@ -18,8 +18,6 @@ use tokio::sync::mpsc;
 pub enum Out {
     /// IIR records, sent as one `PassBlob`.
     Records(Vec<Bytes>),
-    /// An RPC on one of the client's endpoints.
-    Rpc { target: Endpoint, method: u32, args: Bytes },
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;
@@ -65,6 +63,13 @@ pub fn someone_else(me: Id32, playfield: u32) -> Option<[f32; 3]> {
         .iter()
         .find(|(id, m)| **id != me && m.playfield == playfield)
         .map(|(_, m)| *m.pos.lock().unwrap())
+}
+
+/// The other characters on `from`'s playfield.
+pub fn neighbours(from: Id32) -> Vec<Id32> {
+    let members = MEMBERS.lock().unwrap();
+    let Some(playfield) = members.get(&from).map(|m| m.playfield) else { return vec![] };
+    members.iter().filter(|(id, m)| **id != from && m.playfield == playfield).map(|(id, _)| *id).collect()
 }
 
 /// Sends records to every other character on the sender's playfield.
