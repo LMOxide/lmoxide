@@ -21,7 +21,12 @@ use lmo_net::{
 use tokio::sync::mpsc;
 use tracing::{debug, info, warn};
 
-use crate::{Config, conn::Conn, world};
+use crate::{
+    Config,
+    conn::Conn,
+    store::{Character, Store},
+    world,
+};
 
 pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     conn.local = Endpoint::ClientToGameserverRPC;
@@ -29,9 +34,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(1);
+    let store = Store::new(&cfg.data_dir);
     let mut character = 0;
-    let mut name = String::new();
+    let mut me = Character {
+        name: String::new(),
+        playfield: cfg.start_playfield,
+        pos: START_POS,
+        team: START_TEAM.to_vec(),
+    };
     let pos = Arc::new(Mutex::new(START_POS));
+    let mut last_save = std::time::Instant::now();
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -58,8 +70,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let cookie = r.u32()?;
                 let version = r.string()?;
                 let valid = cookie == crate::universe::cookie_for(character);
-                name = crate::sessions::name(character).unwrap_or_else(|| "Player".into());
-                info!(character, cookie, %version, valid, %name, "Authenticate2");
+                me = store.load(character).unwrap_or_else(|| Character {
+                    name: crate::sessions::name(character).unwrap_or_else(|| "Player".into()),
+                    ..me.clone()
+                });
+                *pos.lock().unwrap() = me.pos;
+                info!(character, cookie, %version, valid, name = %me.name, playfield = me.playfield, pos = ?me.pos, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
@@ -69,12 +85,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                let me = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                let mut records = vec![playfield_full_update(cfg.start_playfield)];
-                records.extend(spawn_records(me, cfg.start_playfield, &name, START_POS));
-                records.insert(3, full_player_character(me));
+                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                let mut records = vec![playfield_full_update(me.playfield)];
+                records.extend(spawn_records(id, &me));
+                records.insert(3, full_player_character(id, &me));
                 if cfg.gm_level != 0 {
-                    records.push(int32_stat(me, STAT_GM_LEVEL, cfg.gm_level));
+                    records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
                 }
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                     .await?;
@@ -95,16 +111,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
                         if presence.is_none() {
-                            let (id, playfield, name, pos_handle) = (h.identity, cfg.start_playfield, name.clone(), pos.clone());
+                            let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || remote_spawn_records(id, playfield, &name, *pos.lock().unwrap());
-                            presence = Some(world::join(id, playfield, pos_handle, spawn, outbox.clone()));
+                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() });
+                            presence = Some(world::join(id, me.playfield, pos_handle, spawn, outbox.clone()));
                         }
                     }
-                    Some("CharDCMoveIIR_t" | "MoveTaskIIR_c") => {
-                        if h.name() == Some("CharDCMoveIIR_t") && rest.len() >= 13 {
-                            let f = |i: usize| f32::from_be_bytes(rest[i..i + 4].try_into().unwrap());
-                            *pos.lock().unwrap() = [f(1), f(5), f(9)];
+                    Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
+                        if let Some(p) = reported_position(kind, rest) {
+                            *pos.lock().unwrap() = p;
+                            if last_save.elapsed() > SAVE_INTERVAL {
+                                last_save = std::time::Instant::now();
+                                me.pos = p;
+                                if let Err(e) = store.save(character, &me) {
+                                    warn!(character, "saving character failed: {e:#}");
+                                }
+                            }
                         }
                         if let Some(p) = &presence {
                             world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
@@ -134,9 +156,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // message, mood, gmLDBNametagInstance).
                 let message = r.string()?;
                 let mood = r.i32()?;
-                info!(%name, %message, mood, "chat");
+                info!(name = %me.name, %message, mood, "chat");
                 if let Some(p) = &presence {
-                    let args = Writer::new().string(&name).string(&message).i32(mood).i32(0).finish();
+                    let args = Writer::new().string(&me.name).string(&message).i32(mood).i32(0).finish();
                     let out = world::Out::Rpc {
                         target: Endpoint::GameCharInterface,
                         method: game_char_interface::VICINITY_CHAT_MESSAGE,
@@ -156,16 +178,43 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
             _ => warn!(args = %crate::conn::hex(&rpc.args), "unhandled"),
         }
     }
+    if character != 0 {
+        me.pos = *pos.lock().unwrap();
+        match store.save(character, &me) {
+            Ok(()) => info!(character, pos = ?me.pos, "character saved"),
+            Err(e) => warn!(character, "saving character failed: {e:#}"),
+        }
+    }
     Ok(())
+}
+
+/// Characters are saved on disconnect and, while moving, at most this often.
+const SAVE_INTERVAL: std::time::Duration = std::time::Duration::from_secs(10);
+
+/// Where a movement IIR says the character is (CharDCMoveIIR_t) or is heading
+/// (MoveTaskIIR_c: the path's last waypoint). See `move_record` / `move_task_record`.
+fn reported_position(kind: &str, rest: &[u8]) -> Option<[f32; 3]> {
+    let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
+    let at = |i: usize| Some([f(i)?, f(i + 4)?, f(i + 8)?]);
+    match kind {
+        "CharDCMoveIIR_t" => at(1),
+        _ => {
+            let n = rest.get(28..32).map(|b| u32::from_be_bytes(b.try_into().unwrap()))? as usize;
+            if n == 0 || n > 64 {
+                return None;
+            }
+            at(32 + 12 * (n - 1))
+        }
+    }
 }
 
 /// The IIRs that make a character exist on a client: its DreamWorld GameObject, the dynel,
 /// and its stats. The player's own client additionally needs `full_player_character` (and
 /// sends its own CharInPlayIIR_t); others get `remote_spawn_records`.
-pub fn spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec<Bytes> {
+pub fn spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
     vec![
-        create_game_object(id, playfield, pos),
-        simple_char_full_update(id, playfield, name, pos),
+        create_game_object(id, c.playfield, c.pos),
+        simple_char_full_update(id, c),
         int32_stat(id, STAT_LIFE, START_HEALTH),
         int32_stat(id, STAT_HEALTH, START_HEALTH),
         int32_stat(id, STAT_LEVEL, 1),
@@ -173,8 +222,8 @@ pub fn spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec
 }
 
 /// What other clients need to see a character: its spawn records, already in play.
-pub fn remote_spawn_records(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> Vec<Bytes> {
-    let mut records = spawn_records(id, playfield, name, pos);
+pub fn remote_spawn_records(id: Id32, c: &Character) -> Vec<Bytes> {
+    let mut records = spawn_records(id, c);
     records.push(iir::record("CharInPlayIIR_t", id, false, |w| w));
     records
 }
@@ -213,7 +262,8 @@ pub async fn run_bot(playfield: u32) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let spawn = move || remote_spawn_records(id, playfield, "Bot", *spawn_pos.lock().unwrap());
+    let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec() };
+    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() });
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let mut t = 0.0f32;
@@ -282,9 +332,9 @@ const EMPTY: u32 = 0x3f1;
 /// u32 n,   n x (u32, u32)
 /// cont<u32 -> element>                    0xe43450
 /// ```
-fn full_player_character(id: Id32) -> bytes::Bytes {
+fn full_player_character(id: Id32, c: &Character) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
-        inventory: vec![minifigure_inventory(id.instance)],
+        inventory: vec![minifigure_inventory(id.instance, &c.team)],
         ..Default::default()
     };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {
@@ -362,7 +412,8 @@ fn int32_stat(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
     iir::record("Int32StatIIR", id, false, |w| w.u32(stat).u32(value))
 }
 
-fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) -> bytes::Bytes {
+fn simple_char_full_update(id: Id32, c: &Character) -> bytes::Bytes {
+    let (playfield, name, pos) = (c.playfield, c.name.as_str(), c.pos);
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
@@ -376,7 +427,7 @@ fn simple_char_full_update(id: Id32, playfield: u32, name: &str, pos: [f32; 3]) 
             health: Some(START_HEALTH),
             level: Some(1),
             // the active (first) team slot's minifigure
-            monster_data: Some(monster_data_for(START_TEAM[0].1)),
+            monster_data: Some(c.team.first().map_or(2212, |&(_, t)| monster_data_for(t))),
             monster_scale: Some(100),
             ..Default::default()
         }),
@@ -477,12 +528,12 @@ fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
     }
 }
 
-fn minifigure_inventory(character: u32) -> ProtoInventoryGame {
+fn minifigure_inventory(character: u32, team: &[(u32, u32)]) -> ProtoInventoryGame {
     ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(MINIFIGURE_INVENTORY), instance: Some(character) },
         max_size: Some(64),
         disabled_slots_count: None,
-        items: START_TEAM
+        items: team
             .iter()
             .map(|&(pos, template)| InventoryListEntry {
                 pos,

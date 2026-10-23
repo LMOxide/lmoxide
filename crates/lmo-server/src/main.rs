@@ -2,6 +2,7 @@ mod conn;
 mod game;
 mod http;
 mod sessions;
+mod store;
 mod territory;
 mod universe;
 mod world;
@@ -58,6 +59,9 @@ pub struct Config {
     /// chat commands need a non-zero level; ordinary LMO players only had macro chat.
     #[arg(long, env = "LMO_GM_LEVEL", default_value_t = 0)]
     pub gm_level: u32,
+    /// Where saved characters are kept.
+    #[arg(long, env = "LMO_DATA_DIR", default_value = "lmo-data")]
+    pub data_dir: PathBuf,
 }
 
 impl Config {

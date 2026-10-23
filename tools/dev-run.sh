@@ -12,6 +12,8 @@ export LMO_UPSTREAM=${LMO_UPSTREAM-http://update.lego.funcom.com/legoupm}
 export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../rdb-cache")}
 # Development characters are GMs: free-text chat and GM chat commands need it.
 export LMO_GM_LEVEL=${LMO_GM_LEVEL:-1}
+# Saved characters (outside the repo).
+export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../lmo-data")}
 
 pkill -x LMO.exe || true
 pkill -x lmo-server || true
