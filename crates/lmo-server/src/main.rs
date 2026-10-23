@@ -2,6 +2,7 @@ mod chat;
 mod conn;
 mod game;
 mod http;
+mod npc;
 mod sessions;
 mod store;
 mod territory;
@@ -102,6 +103,7 @@ async fn main() -> anyhow::Result<()> {
 
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
     tokio::spawn(chat::listen(cfg.addr(cfg.chat_port)));
+    npc::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(cfg.start_playfield));

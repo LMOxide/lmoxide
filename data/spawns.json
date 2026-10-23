@@ -1,0 +1,12 @@
+{
+  "1200": [
+    { "name": "Skeleton Warrior", "monster_data": 82410, "level": 1, "health": 60, "pos": [328.0, 48.75, 112.0] },
+    { "name": "Skeleton Pirate", "monster_data": 207001, "level": 1, "health": 60, "pos": [314.0, 48.75, 116.0] },
+    { "name": "Pirate Scout", "monster_data": 201478, "level": 1, "health": 60, "pos": [324.0, 48.75, 102.0] }
+  ],
+  "1300": [
+    { "name": "Skeleton Warrior", "monster_data": 82410, "level": 1, "health": 60, "pos": [154.3, 44.0, 255.7] },
+    { "name": "Skeleton Warrior", "monster_data": 82410, "level": 1, "health": 60, "pos": [192.0, 30.0, 270.3] },
+    { "name": "Skeleton Archer", "monster_data": 82409, "level": 1, "health": 60, "pos": [194.0, 30.0, 273.0] }
+  ]
+}

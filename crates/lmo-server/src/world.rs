@@ -65,6 +65,12 @@ pub fn someone_else(me: Id32, playfield: u32) -> Option<[f32; 3]> {
         .map(|(_, m)| *m.pos.lock().unwrap())
 }
 
+/// Every character on `playfield` with its position.
+pub fn positions(playfield: u32) -> Vec<(Id32, [f32; 3])> {
+    let members = MEMBERS.lock().unwrap();
+    members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, *m.pos.lock().unwrap())).collect()
+}
+
 /// The other characters on `from`'s playfield.
 pub fn neighbours(from: Id32) -> Vec<Id32> {
     let members = MEMBERS.lock().unwrap();

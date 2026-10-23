@@ -169,6 +169,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
                                     .flatten();
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
+                                if let (Some(spell), Some((kind, instance))) = (spell, target) {
+                                    let special = me.team.first().is_some_and(|&(_, t)| minifigure_spells(t).get(1) == Some(&spell));
+                                    let damage = if special { SPECIAL_DAMAGE } else { NORMAL_DAMAGE };
+                                    crate::npc::hit(h.identity, Id32::new(kind, instance), damage);
+                                }
                             }
                             None => info!(command_type, rest = %crate::conn::hex(rest), "command (unparsed)"),
                         }
@@ -496,7 +501,7 @@ fn monster_data_for(template: u32) -> u32 {
 
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
 const STAT_LIFE: u32 = 1;
-const STAT_HEALTH: u32 = 27;
+pub const STAT_HEALTH: u32 = 27;
 const STAT_LEVEL: u32 = 54;
 const STAT_GM_LEVEL: u32 = 215;
 const STAT_CHAR_RADIUS: u32 = 421;
@@ -512,6 +517,10 @@ const BCC_QUEUE_COMMAND: u8 = 3;
 const BCC_COMMAND_SUCCEEDED: u8 = 4;
 const BCC_ABORT_COMMAND: u8 = 7;
 const COMMAND_MAGIC: u32 = 4;
+/// Damage of a minifigure's normal (left-click) and special (right-click) ability until spell
+/// data is modelled.
+const NORMAL_DAMAGE: u32 = 15;
+const SPECIAL_DAMAGE: u32 = 30;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
@@ -530,7 +539,7 @@ const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
 /// `Int32StatIIR` (ReadSubClass 0x87a940): u32 stat, u32 value. Applying it (0x87b270) calls
 /// the dynel's `StatHolder_t` (+0xac) SetStat — the same holder Flash's `GetStat` reads, so this
 /// is what the HUD health bar (`GetStat(e_Health) / GetStat(e_Life)`) sees.
-fn int32_stat(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
+pub fn int32_stat(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
     iir::record("Int32StatIIR", id, false, |w| w.u32(stat).u32(value))
 }
 
@@ -544,6 +553,8 @@ pub struct CharSpec<'a> {
     pub level: u32,
     pub health: u32,
     pub max_health: u32,
+    /// CARS target group: 0 for players, 3 for enemies (attackable by players).
+    pub cars_group: u32,
     /// Set for NPCs.
     pub npc: Option<proto_core_character_iir::NpcStats>,
 }
@@ -559,6 +570,7 @@ impl Character {
             level: 1,
             health: START_HEALTH,
             max_health: START_HEALTH,
+            cars_group: 0,
             npc: None,
         }
     }
@@ -580,6 +592,7 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
             level: Some(c.level),
             monster_data: Some(c.monster_data),
             monster_scale: Some(100),
+            cars_group: (c.cars_group != 0).then_some(c.cars_group),
             ..Default::default()
         }),
         npc_stats: c.npc.clone(),
