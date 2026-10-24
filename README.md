@@ -43,7 +43,11 @@ Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101
 | Command | What it does |
 |---|---|
 | `tools/test-run.sh [secs]` | restart server + client (auto-login), wait, print a summary of RPCs, warnings and client progress, screenshot the game window to `logs/screen.png`; `LMO_AUTOPLAY=1` also presses "start" via Lua |
-| `tools/dev-run.sh <client-dir> <log-dir>` | restart server + client and leave them running |
+| `tools/dev-run.sh <client-dir> <log-dir>` | restart server + client and leave them running; `LMO_RUNNER=wine\|proton\|linux` picks how the client runs (`linux` = native build, `<client-dir>` is then the Linux client) |
+| `tools/proton-run.sh /abs/LMO.exe [args]` | run the Windows client under Steam's Proton without Steam (prefix `~/.local/share/lmo-proton`) |
+| `tools/linux-client/setup-linux-client.sh <dir> [host:8080]` | make the extracted native Linux client (`LMO_Linux_v1.5.557666.zip`) run today: moves the bundled libstdc++ aside, builds a stub `libgconf-2.so.4`, patches the chat filter URL |
+| `tools/linux-client/play.sh <dir> <server-ip> <username>` | start the native Linux client against a server (fetches `LocalConfig.xml`, forces SDL's X11 driver) |
+| `tools/lan-server.sh [lan-ip]` | run the server for LAN play (binds 0.0.0.0, advertises the LAN IP) |
 | `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
 | `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |
 | `tools/re/py d.py <va> [bytes]` | disassemble with string annotations |

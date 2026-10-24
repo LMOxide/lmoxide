@@ -33,12 +33,12 @@ grep -E 'CorePatcher changing|FlowControl - State|<AUTOPLAY>|Network\.GameClient
 
 # Screenshot of the game window (works on hidden workspaces via the foreign-toplevel id).
 if command -v hyprctl >/dev/null && command -v grim >/dev/null; then
-  id=$(hyprctl clients -j | python3 -c 'import json,sys; print(next((c["stableId"] for c in json.load(sys.stdin) if c["class"].lower()=="lmo.exe"), ""))')
+  id=$(hyprctl clients -j | python3 -c 'import json,sys; print(next((c["stableId"] for c in json.load(sys.stdin) if c["class"].lower() in ("lmo.exe","lmo") or c["title"].startswith("LEGO Minifigures")), ""))')
   [[ -n $id ]] && grim -T "$id" "$LOGS/screen.png" && echo "== screenshot: $LOGS/screen.png"
 fi
 
 if [[ -z ${KEEP:-} ]]; then
-  pkill -x LMO.exe; pkill -x lmo-server
+  pkill -x LMO.exe; pkill -x LMO; pkill -x lmo-server
   WINEPREFIX=${WINEPREFIX:-$HOME/.local/share/lmo-wine} wineserver -k 2>/dev/null
 fi
 true

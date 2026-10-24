@@ -16,8 +16,11 @@ export LMO_GM_LEVEL=${LMO_GM_LEVEL:-1}
 export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../lmo-data")}
 
 pkill -x LMO.exe || true
+pkill -x LMO || true
 pkill -x lmo-server || true
 wineserver -k 2>/dev/null || true
+WINEPREFIX=${LMO_PROTON_PREFIX:-$HOME/.local/share/lmo-proton}/pfx \
+  "${PROTON:-$HOME/.local/share/Steam/steamapps/common/Proton - Experimental}/files/bin/wineserver" -k 2>/dev/null || true
 sleep 1
 
 cargo build --manifest-path "$ROOT/Cargo.toml" -q
@@ -35,5 +38,12 @@ if [[ -n ${LMO_AUTOPLAY:-} ]]; then
 else
   cp "$CLIENT/Data/startup.lua.orig" "$CLIENT/Data/startup.lua"
 fi
-(cd "$CLIENT" && WINEDEBUG=-all wine LMO.exe -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &)
+case ${LMO_RUNNER:-wine} in
+  wine) (cd "$CLIENT" && WINEDEBUG=-all wine LMO.exe -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &) ;;
+  # Valve's Proton outside the Steam client (own prefix in ~/.local/share/lmo-proton).
+  proton) (cd "$CLIENT" && "$ROOT/tools/proton-run.sh" "$CLIENT/LMO.exe" -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &) ;;
+  # Native Linux build: <client-dir> is the extracted Linux client.
+  linux) (cd "$CLIENT" && SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. ./LMO -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &) ;;
+  *) echo "unknown LMO_RUNNER=$LMO_RUNNER (wine|proton|linux)" >&2; exit 1 ;;
+esac
 echo "server log: $LOGS/server.log, client log: $CLIENT/ClientLog.txt"
