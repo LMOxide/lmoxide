@@ -70,9 +70,10 @@ After changing a client or overlay dir, send the server `SIGHUP` (or restart it)
 
 | Route | Answer |
 |---|---|
-| `GET /lmoxide/v1/info` | JSON `Info`: `protocol` (1), `name`, `universe_addr`, `http_addr`, `https_addr`, `platforms`, `ready` (platforms whose manifest is built), `manifest_key` (ed25519, hex), `login_public_key` (hex or null), `warnings`, `revisions` (platform → manifest revision, see below), `install_bytes` (platform → size of a complete install), `api_url` (the public lmoxide-api base URL, or null), `website` (or null). The newer fields may be missing from older servers. |
+| `GET /lmoxide/v1/info` | JSON `Info`: `protocol` (1), `name`, `universe_addr`, `http_addr`, `https_addr`, `platforms`, `ready` (platforms whose manifest is built), `manifest_key` (ed25519, hex), `login_public_key` (hex or null), `warnings`, `revisions` (platform → manifest revision, see below), `install_bytes` (platform → size of a complete install), `api_url` (the public lmoxide-api base URL, or null), `website` (or null), `patchers` (patcher name → platform → newest version offered). The newer fields may be missing from older servers. |
 | `GET /lmoxide/v1/manifest/{windows\|linux}` | JSON `SignedManifest` (below), with `ETag: "<revision>"`; `If-None-Match` with the installed manifest's revision answers `304` while nothing changed; `404` if the platform isn't configured, `503` + `Retry-After` while indexing |
 | `GET /lmoxide/v1/files/{sha256}` | file body by lower-case sha256, streamed from disk; supports `Range` (`206`), `Cache-Control: immutable`; `404` for anything not in a current manifest |
+| `GET /lmoxide/v1/patchers/{windows\|linux}` | JSON list of `SignedRelease` (below): the newest build of each patcher for that platform, `[]` if none; `404` without `--patcher-dir` |
 | `GET /lmoxide/v1/login-key` | the game server's login public key, `text/plain`, 512 hex characters + newline (read from the key file on each request; for hand-patched clients: `patch-client.py --login-key-url`); `404` without `--login-public-key-file`, `503` while the file is missing or invalid |
 
 ### Manifest
@@ -112,6 +113,25 @@ set to 0: it changes with any file, the launch info or the address, but not when
 merely rebuilds the same manifest. Patchers check for updates cheaply by comparing `revisions`
 in `info` (or by `If-None-Match`) with the revision of their saved manifest, and only then fetch
 and verify the signed manifest, which stays authoritative.
+
+### Patcher releases (self-update)
+
+With `--patcher-dir`, the server hands out builds of the patchers themselves. Files in that
+directory named `<name>-<version>-<platform>[.exe]` (e.g. `lmoxide-patcher-0.2.0-linux`,
+`lmoxide-patcher-gui-0.2.0-windows.exe`; the version is dotted numbers) are hashed and the
+newest of each name and platform is listed as a `Release` `{format, name, version, platform,
+size, sha256, generated_at}` inside a `SignedRelease` `{format, key, signature, release}`
+envelope. The body is downloaded from `/lmoxide/v1/files/{sha256}`. Releases are signed with
+the manifest key over the context `lmoxide-release-v1\0` (a manifest signature can't pass for
+a release), so a patcher accepts one only if it is signed by the key an install already
+trusts. Drop a new build in the directory and send SIGHUP to publish it.
+
+Updating is optional and up to the patcher: `lmoxide-patcher self-update --server URL`
+(trusting the key of `--dir`, default `~/Games/LMO`, or `--trust`) replaces the running
+binary; the GUI offers it when the server has a newer `lmoxide-patcher-gui` (Settings can turn
+the check off). The new build is downloaded next to the program, checked against the signed
+sha256 and renamed over it (on Windows the old one moves to `<exe>.old`, removed at the next
+start), so a failed update leaves the old build working.
 
 ### Signature
 
@@ -159,6 +179,7 @@ Every flag has an `LMOXIDE_…` environment variable (`--help` shows them):
 | `--server-name` | `LMOXIDE_SERVER_NAME` | `LMOxide` |
 | `--api-url` | `LMOXIDE_PUBLIC_API_URL` | none (announced in `info` for patchers' status line) |
 | `--website` | `LMOXIDE_WEBSITE` | none (announced in `info`) |
+| `--patcher-dir` | `LMOXIDE_PATCHER_DIR` | none (no patcher self-updates) |
 | `--client-dir` | `LMOXIDE_CLIENT_DIR` | (Windows client) |
 | `--linux-client-dir` | `LMOXIDE_LINUX_CLIENT_DIR` | |
 | `--windows-overlay-dir`, `--linux-overlay-dir` | `LMOXIDE_WINDOWS_OVERLAY_DIR`, `LMOXIDE_LINUX_OVERLAY_DIR` | |
@@ -189,6 +210,7 @@ manifest already installs `LocalConfig.xml`).
 lmoxide-patcher install --server http://lmo.example.org:8080 --dir ~/Games/LMO   # also: update
 lmoxide-patcher verify  --server http://lmo.example.org:8080 --dir ~/Games/LMO [--full]
 lmoxide-patcher info    --server http://lmo.example.org:8080
+lmoxide-patcher self-update --server http://lmo.example.org:8080
 ```
 
 Options: `--platform windows|linux` (default: this OS), `--dir` (default `~/Games/LMO`),
@@ -208,4 +230,5 @@ Other patchers (such as a GUI) use the same library, `lmoxide-patch`: `client::C
 `sync::Options::cancel` (an `AtomicBool` that stops hashing and downloads with
 `Error::Cancelled`), `sync::load_manifest` (the saved manifest, verified with the stored key),
 `Launch::command` (the client's start command, optionally wrapped, e.g. by `wine`),
-`default_install_dir()`, and `Error::Unreachable` for servers that can't be reached.
+`default_install_dir()`, `Error::Unreachable` for servers that can't be reached, and
+`selfupdate::{check, install, cleanup}` for updating the patcher itself.

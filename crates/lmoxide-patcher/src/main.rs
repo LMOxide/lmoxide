@@ -5,6 +5,7 @@
 //! lmoxide-patcher install --server http://192.168.5.69:8080 --dir ~/Games/LMO
 //! lmoxide-patcher verify  --server http://192.168.5.69:8080 --dir ~/Games/LMO
 //! lmoxide-patcher info    --server http://192.168.5.69:8080
+//! lmoxide-patcher self-update --server http://192.168.5.69:8080
 //! ```
 //!
 //! The first install trusts the key that signed the manifest and remembers it in
@@ -25,6 +26,7 @@ use lmoxide_patch::{
     Error, Manifest, Platform, SignedManifest,
     client::{Client, Trust},
     manifest::parse_public_key,
+    selfupdate,
     sync::{self, Options, Plan, Progress, ProgressFn, Reason},
 };
 
@@ -48,6 +50,19 @@ enum Cmd {
         /// Rehash every file instead of trusting unchanged size and modification time.
         #[arg(long)]
         full: bool,
+    },
+    /// Replace this program with the newest build the server offers, if it is newer. The build
+    /// must be signed with the key the install in --dir trusts (or --trust).
+    SelfUpdate {
+        /// Patch server URL, e.g. http://192.168.5.69:8080.
+        #[arg(long, env = "LMOXIDE_SERVER")]
+        server: String,
+        /// Install whose trusted key the build must be signed with (default ~/Games/LMO).
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// Signing key to trust instead (hex).
+        #[arg(long)]
+        trust: Option<String>,
     },
     /// Show what the server offers.
     Info {
@@ -104,6 +119,9 @@ async fn main() -> ExitCode {
 }
 
 async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
+    if let Ok(exe) = std::env::current_exe() {
+        selfupdate::cleanup(&exe);
+    }
     match cli.cmd {
         Cmd::Info { server } => {
             let info = Client::new(&server)?.info().await?;
@@ -134,9 +152,38 @@ async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
             if let Some(site) = &info.website {
                 println!("website:      {site}");
             }
+            for (name, builds) in &info.patchers {
+                let builds: Vec<String> = builds.iter().map(|(p, v)| format!("{v} ({p})")).collect();
+                println!("{:<13} {}", format!("{name}:"), builds.join(", "));
+            }
             for w in &info.warnings {
                 println!("warning:      {w}");
             }
+            Ok(ExitCode::SUCCESS)
+        }
+        Cmd::SelfUpdate { server, dir, trust } => {
+            let key = match trust {
+                Some(k) => parse_public_key(&k)?,
+                None => {
+                    let dir = match dir {
+                        Some(d) => d,
+                        None => lmoxide_patch::default_install_dir().context("no home directory; pass --dir")?,
+                    };
+                    lmoxide_patch::client::stored_key(&dir)?.with_context(|| {
+                        format!("{} has no trusted server key: install from this server first, or pass --trust", dir.display())
+                    })?
+                }
+            };
+            let client = Client::new(&server)?;
+            let current = env!("CARGO_PKG_VERSION");
+            let Some(release) = selfupdate::check(&client, "lmoxide-patcher", Platform::host(), current, &key).await? else {
+                println!("lmoxide-patcher {current} is the newest the server offers");
+                return Ok(ExitCode::SUCCESS);
+            };
+            let exe = std::env::current_exe()?;
+            println!("updating lmoxide-patcher {current} → {} ({})", release.version, indicatif::HumanBytes(release.size));
+            selfupdate::install(&client, &release, &exe, &sync::no_progress()).await?;
+            println!("done: {} is now {}", exe.display(), release.version);
             Ok(ExitCode::SUCCESS)
         }
         Cmd::Install(args) => {

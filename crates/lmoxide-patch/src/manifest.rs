@@ -61,6 +61,10 @@ pub struct Info {
     /// The server's website (news, account registration).
     #[serde(default)]
     pub website: Option<String>,
+    /// Patcher builds the server hands out (`GET /lmoxide/v1/patchers/{platform}`): name (e.g.
+    /// `lmoxide-patcher-gui`) → platform → newest version.
+    #[serde(default)]
+    pub patchers: BTreeMap<String, BTreeMap<Platform, String>>,
 }
 
 /// One platform's complete install.
@@ -214,13 +218,7 @@ pub struct SignedManifest {
 impl SignedManifest {
     pub fn sign(manifest: &Manifest, key: &SigningKey) -> Result<Self> {
         let json = serde_json::to_string(manifest)?;
-        let signature = key.sign(&signed_message(&json));
-        Ok(Self {
-            format: MANIFEST_FORMAT,
-            key: public_key_hex(&key.verifying_key()),
-            signature: hex::encode(signature.to_bytes()),
-            manifest: json,
-        })
+        Ok(Self { format: MANIFEST_FORMAT, key: public_key_hex(&key.verifying_key()), signature: sign(SIGNATURE_CONTEXT, &json, key), manifest: json })
     }
 
     /// The signing key this envelope claims (only meaningful once verified against a trusted key).
@@ -233,17 +231,7 @@ impl SignedManifest {
         if self.format != MANIFEST_FORMAT {
             return Err(Error::Format(self.format));
         }
-        let expected = public_key_hex(trusted);
-        if !self.key.eq_ignore_ascii_case(&expected) {
-            return Err(Error::KeyMismatch { expected, got: self.key.clone() });
-        }
-        let sig: [u8; 64] = hex::decode(&self.signature)
-            .ok()
-            .and_then(|b| b.try_into().ok())
-            .ok_or(Error::BadSignature)?;
-        trusted
-            .verify_strict(&signed_message(&self.manifest), &Signature::from_bytes(&sig))
-            .map_err(|_| Error::BadSignature)?;
+        verify(SIGNATURE_CONTEXT, &self.manifest, &self.key, &self.signature, trusted)?;
         let manifest: Manifest = serde_json::from_str(&self.manifest)?;
         manifest.validate()?;
         Ok(manifest)
@@ -259,8 +247,20 @@ impl SignedManifest {
     }
 }
 
-fn signed_message(json: &str) -> Vec<u8> {
-    [SIGNATURE_CONTEXT, json.as_bytes()].concat()
+/// Hex ed25519 signature over `context` + `json`.
+pub(crate) fn sign(context: &[u8], json: &str, key: &SigningKey) -> String {
+    hex::encode(key.sign(&[context, json.as_bytes()].concat()).to_bytes())
+}
+
+/// Checks that `key` (hex, as an envelope names it) is `trusted` and that `signature` (hex) is
+/// its signature over `context` + `json`.
+pub(crate) fn verify(context: &[u8], json: &str, key: &str, signature: &str, trusted: &VerifyingKey) -> Result<()> {
+    let expected = public_key_hex(trusted);
+    if !key.eq_ignore_ascii_case(&expected) {
+        return Err(Error::KeyMismatch { expected, got: key.to_string() });
+    }
+    let sig: [u8; 64] = hex::decode(signature).ok().and_then(|b| b.try_into().ok()).ok_or(Error::BadSignature)?;
+    trusted.verify_strict(&[context, json.as_bytes()].concat(), &Signature::from_bytes(&sig)).map_err(|_| Error::BadSignature)
 }
 
 /// A new random signing key.

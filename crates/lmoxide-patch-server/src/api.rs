@@ -8,6 +8,7 @@ use axum::{
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Json, Response},
 };
+use bytes::Bytes;
 use lmoxide_patch::{Info, PROTOCOL_VERSION, Platform, is_sha256_hex, manifest::public_key_hex};
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
@@ -34,6 +35,7 @@ pub async fn info(State(app): State<Arc<App>>) -> Json<Info> {
         install_bytes: catalog.manifests.iter().map(|(p, m)| (*p, m.install_bytes)).collect(),
         api_url: app.cfg.api_url.clone(),
         website: app.cfg.website.clone(),
+        patchers: catalog.patchers.clone(),
     })
 }
 
@@ -82,6 +84,16 @@ pub async fn manifest(State(app): State<Arc<App>>, Path(platform): Path<String>,
         )
             .into_response(),
     }
+}
+
+/// Signed patcher releases for a platform (`[]` if none); 404 without `--patcher-dir`.
+pub async fn patchers(State(app): State<Arc<App>>, Path(platform): Path<String>) -> Response {
+    let Ok(platform) = platform.parse::<Platform>() else { return StatusCode::NOT_FOUND.into_response() };
+    if app.cfg.patcher_dir.is_none() {
+        return (StatusCode::NOT_FOUND, "no patcher releases on this server").into_response();
+    }
+    let body = app.catalog().releases.get(&platform).cloned().unwrap_or_else(|| Bytes::from_static(b"[]"));
+    ([(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")], Body::from(body)).into_response()
 }
 
 /// File bodies by sha256, streamed from disk with Range support (resumable downloads).

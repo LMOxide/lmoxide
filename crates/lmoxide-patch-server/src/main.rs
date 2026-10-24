@@ -153,6 +153,11 @@ pub struct Config {
     /// the local RDB.
     #[arg(long, env = "LMOXIDE_NO_FILTER_DOWNLOAD_LIST")]
     pub no_filter_download_list: bool,
+    /// Patcher builds to hand out for self-updates, named `<name>-<version>-<platform>[.exe]`
+    /// (e.g. `lmoxide-patcher-gui-0.2.0-linux`); the newest of each is signed and served at
+    /// /lmoxide/v1/patchers/{platform}. Rescanned on SIGHUP.
+    #[arg(long, env = "LMOXIDE_PATCHER_DIR")]
+    pub patcher_dir: Option<PathBuf>,
     /// Client kit tarball (patches/linux-client/make-kit.sh) served at `/client-kit.tar.gz`.
     #[arg(long, env = "LMOXIDE_CLIENT_KIT")]
     pub client_kit: Option<PathBuf>,
@@ -216,6 +221,7 @@ fn router(app: Arc<App>) -> Router {
         .route("/lmoxide/v1/manifest/{platform}", get(api::manifest))
         .route("/lmoxide/v1/files/{sha256}", get(api::file))
         .route("/lmoxide/v1/login-key", get(api::login_key))
+        .route("/lmoxide/v1/patchers/{platform}", get(api::patchers))
         .fallback(stock::fallback)
         .layer(tower_http::limit::RequestBodyLimitLayer::new(MAX_REQUEST_BODY))
         .with_state(app)

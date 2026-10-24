@@ -1,5 +1,5 @@
 //! The LMOxide patcher protocol, shared by `lmoxide-patch-server` and the patchers (the
-//! `lmoxide-patcher` CLI, a future GUI).
+//! `lmoxide-patcher` CLI, `lmoxide-patcher-gui`).
 //!
 //! The stock client's own patcher only knows Funcom's RDB layout and can't install a client or
 //! change its executable, so LMOxide servers also offer a simple file-sync protocol under
@@ -9,19 +9,24 @@
 //! - `GET /lmoxide/v1/manifest/{platform}`: a [`SignedManifest`] wrapping the [`Manifest`] of
 //!   one platform's complete install, already patched for this server
 //! - `GET /lmoxide/v1/files/{sha256}`: file bodies by content hash (HTTP Range supported)
+//! - `GET /lmoxide/v1/patchers/{platform}`: signed [`release`]s of the patchers themselves
 //!
 //! Manifests are signed with the server's ed25519 key, so a patcher that pinned that key can
 //! fetch everything over plain HTTP (which the stock client needs anyway) and still detect
 //! tampering: file bodies are checked against the signed sha256.
 //!
 //! Without the default `client` feature this crate has only the types, signing and the
-//! [`hashcache`]; with it, [`client`] (HTTP) and [`sync`] (plan, download, verify).
+//! [`hashcache`]; with it, [`client`] (HTTP), [`sync`] (plan, download, verify) and
+//! [`selfupdate`] (replacing a patcher with a newer release).
 
 pub mod hashcache;
 pub mod manifest;
+pub mod release;
 
 #[cfg(feature = "client")]
 pub mod client;
+#[cfg(feature = "client")]
+pub mod selfupdate;
 #[cfg(feature = "client")]
 pub mod sync;
 
@@ -44,7 +49,7 @@ pub enum Error {
     UnsafePath(String),
     #[error("invalid key: {0}")]
     BadKey(String),
-    #[error("manifest signed by {got}, expected {expected}")]
+    #[error("signed by {got}, expected {expected}")]
     KeyMismatch { expected: String, got: String },
     #[error("bad manifest signature")]
     BadSignature,

@@ -8,7 +8,7 @@
 //! server's login key file changes, or on SIGHUP (after updating a client dir).
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     fs, io,
     path::{Path, PathBuf},
     sync::{Arc, RwLock},
@@ -19,7 +19,7 @@ use anyhow::Context;
 use bytes::Bytes;
 use ed25519_dalek::SigningKey;
 use lmoxide_net::login::FUNCOM_SESSION_KEY;
-use lmoxide_patch::{Platform, SignedManifest, hashcache::HashCache, manifest};
+use lmoxide_patch::{Platform, SignedManifest, hashcache::HashCache, manifest, release};
 use tracing::{info, warn};
 
 use crate::{
@@ -45,8 +45,12 @@ pub struct Catalog {
     pub warnings: Vec<String>,
     /// Signed manifest per platform; missing while still being built.
     pub manifests: HashMap<Platform, Published>,
-    /// sha256 -> file, for every file of every manifest.
+    /// sha256 -> file, for every file of every manifest and every patcher release.
     pub files: HashMap<String, PathBuf>,
+    /// Signed patcher releases (JSON list) per platform, from `--patcher-dir`.
+    pub releases: HashMap<Platform, Bytes>,
+    /// Patcher name → platform → version, for `/lmoxide/v1/info`.
+    pub patchers: BTreeMap<String, BTreeMap<Platform, String>>,
 }
 
 /// A platform's signed manifest as served.
@@ -195,6 +199,8 @@ pub async fn prepare(app: &Arc<App>) -> anyhow::Result<Prepared> {
         warnings: prepared.warnings.clone(),
         manifests: old.manifests.clone(),
         files: old.files.clone(),
+        releases: old.releases.clone(),
+        patchers: old.patchers.clone(),
     };
     *app.catalog.write().unwrap() = Arc::new(catalog);
     Ok(prepared)
@@ -299,7 +305,44 @@ fn publish_blocking(app: &App, mut prepared: Prepared) -> anyhow::Result<Catalog
             catalog.files.insert(src.sha256.clone().unwrap(), src.path.clone());
         }
     }
+    if let Some(dir) = &cfg.patcher_dir {
+        publish_releases(app, dir, &mut catalog).with_context(|| format!("--patcher-dir {}", dir.display()))?;
+    }
     Ok(catalog)
+}
+
+/// Signs the newest build of each patcher per platform in `dir` (files named
+/// `<name>-<version>-<platform>[.exe]`, see `lmoxide_patch::release`).
+fn publish_releases(app: &App, dir: &Path, catalog: &mut Catalog) -> anyhow::Result<()> {
+    let mut newest: BTreeMap<(String, Platform), (String, PathBuf)> = BTreeMap::new();
+    for e in fs::read_dir(dir)?.filter_map(Result::ok) {
+        let path = e.path();
+        let Some((name, version, platform)) = e.file_name().to_str().and_then(release::parse_file_name) else {
+            continue;
+        };
+        if !path.is_file() {
+            continue;
+        }
+        let slot = newest.entry((name, platform)).or_insert_with(|| (version.clone(), path.clone()));
+        if release::compare_versions(&version, &slot.0).is_gt() {
+            *slot = (version, path);
+        }
+    }
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    let mut lists: BTreeMap<Platform, Vec<release::SignedRelease>> = BTreeMap::new();
+    for ((name, platform), (version, path)) in newest {
+        let sha256 = lmoxide_patch::hashcache::sha256_file(&path)?;
+        let size = fs::metadata(&path)?.len();
+        info!(%name, %version, %platform, "patcher release");
+        let r = release::Release { format: release::RELEASE_FORMAT, name: name.clone(), version: version.clone(), platform, size, sha256: sha256.clone(), generated_at: now };
+        lists.entry(platform).or_default().push(release::SignedRelease::sign(&r, &app.signing)?);
+        catalog.patchers.entry(name).or_default().insert(platform, version);
+        catalog.files.insert(sha256, path);
+    }
+    for (platform, list) in lists {
+        catalog.releases.insert(platform, Bytes::from(serde_json::to_vec(&list)?));
+    }
+    Ok(())
 }
 
 /// Deletes blobs no manifest refers to any more (old patched executables).

@@ -99,6 +99,15 @@ impl Client {
         Ok(Some(self.check(&url, resp)?.json().await?))
     }
 
+    /// The patcher releases offered for `platform`, unverified (see
+    /// [`crate::release::SignedRelease::verify`]); empty if the server offers none.
+    pub async fn releases(&self, platform: Platform) -> Result<Vec<crate::release::SignedRelease>> {
+        match self.get(&self.url(&format!("patchers/{platform}"))).await {
+            Err(Error::Status { status: 404, .. }) => Ok(Vec::new()),
+            r => Ok(r?.json().await?),
+        }
+    }
+
     /// Requests a file body, from byte `offset` on (HTTP Range). The response status tells
     /// whether the range was honoured (206) or the whole body follows (200).
     pub(crate) async fn file(&self, sha256: &str, offset: u64) -> Result<reqwest::Response> {
