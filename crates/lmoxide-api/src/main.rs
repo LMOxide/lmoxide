@@ -296,3 +296,19 @@ async fn shutdown_signal() {
     #[cfg(not(unix))]
     let _ = tokio::signal::ctrl_c().await;
 }
+
+#[cfg(test)]
+mod tests {
+    /// `docs/openapi.json` is committed for clients (the web UI) that don't build this repo.
+    /// Regenerate it with `UPDATE_OPENAPI=1 cargo test -p lmoxide-api`.
+    #[test]
+    fn committed_openapi_is_current() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/openapi.json");
+        let current = format!("{}\n", super::openapi().1.to_pretty_json().unwrap());
+        if std::env::var_os("UPDATE_OPENAPI").is_some() {
+            std::fs::write(path, &current).unwrap();
+        }
+        let committed = std::fs::read_to_string(path).unwrap_or_default();
+        assert!(committed == current, "docs/openapi.json is stale: run UPDATE_OPENAPI=1 cargo test -p lmoxide-api");
+    }
+}

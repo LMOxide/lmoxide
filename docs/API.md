@@ -38,6 +38,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 |---|---|---|---|
 | GET | `/v1/status` | public* | game server up, version, players online, maintenance |
 | GET | `/v1/online` | public* | characters in play (in-game name, playfield) |
+| GET | `/v1/playfields` | public | playfield ids with names (for the ids in other answers) |
 | POST | `/v1/auth/login` | - | `{username, password}` → `{token, expires_at, scope, account}` |
 | POST | `/v1/auth/logout` | any | ends the session |
 | POST | `/v1/auth/register` | - | `{username, password}`, only with `--open-registration` |

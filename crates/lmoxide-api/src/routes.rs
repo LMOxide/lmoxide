@@ -24,6 +24,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::new()
         .routes(routes!(status))
         .routes(routes!(online_players))
+        .routes(routes!(playfields))
         .routes(routes!(login))
         .routes(routes!(logout))
         .routes(routes!(register))
@@ -362,6 +363,31 @@ async fn online_players(State(state): State<Arc<AppState>>, MaybeAuth(auth): May
     }
     let players = control(&state)?.players().await.map_err(ApiError::game_server)?;
     Ok(Json(players.into_iter().map(|p| PublicPlayer { character_name: p.character_name, playfield: p.playfield }).collect()))
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Playfield {
+    pub id: u32,
+    pub name: String,
+}
+
+/// Playfield ids in the other answers, with their names (worlds, dungeons, the LEGO Center).
+#[utoipa::path(get, path = "/v1/playfields", tag = "public",
+    responses((status = OK, body = [Playfield])), security(()))]
+async fn playfields() -> Json<Vec<Playfield>> {
+    #[derive(Deserialize)]
+    struct File {
+        destinations: BTreeMap<u32, Dest>,
+    }
+    #[derive(Deserialize)]
+    struct Dest {
+        name: String,
+    }
+    static LIST: std::sync::LazyLock<Vec<(u32, String)>> = std::sync::LazyLock::new(|| {
+        let f: File = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
+        f.destinations.into_iter().map(|(id, d)| (id, d.name)).collect()
+    });
+    Json(LIST.iter().map(|(id, name)| Playfield { id: *id, name: name.clone() }).collect())
 }
 
 // ------------------------------------------------------------------ sessions

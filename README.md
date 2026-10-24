@@ -35,7 +35,9 @@ with the client, which can't be played without a server since Funcom shut theirs
 `tools/re/extract_*.py` scripts regenerate them from a client. No client files themselves are
 included: bring your own copy.
 
-The web UI and the Discord bot live in their own repositories and talk to `lmoxide-api`.
+The web UI and the Discord bot live in their own repositories and talk to `lmoxide-api`
+([docs/WEB-UI.md](docs/WEB-UI.md), contract: [docs/openapi.json](docs/openapi.json);
+`tools/web-dev-backend.sh` runs a local API with demo accounts).
 
 ## How it fits together
 
