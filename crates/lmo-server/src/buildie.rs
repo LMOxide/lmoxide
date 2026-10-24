@@ -44,8 +44,8 @@ const CARS_BUILDABLE: u32 = 1;
 const CARS_BUILT: u32 = 5;
 /// A player's build rate (recorded: 62 per tick).
 const PLAYER_RATE: u32 = 62;
-/// Tick interval: not recoverable from the recording (no timestamps); 0.1 s fits its ping
-/// spacing and the 0.1 in the buildie's Destructible fields (docs/TUNABLES.md).
+/// Tick interval: the item stat `BuildableServerInterval` (0.1 on buildie templates, also the
+/// 0.1 in the buildie's Destructible fields).
 const TICK: Duration = Duration::from_millis(100);
 /// The builder must stay this close (assumed).
 const BUILD_RANGE: f32 = 6.0;
