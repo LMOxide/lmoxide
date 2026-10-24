@@ -28,6 +28,8 @@ use crate::game::PLAYFIELD_TYPE;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Destination {
+    #[serde(default)]
+    pub name: String,
     /// Arrival point (a resurrection point; its Guid is in the data file).
     pub pos: [f32; 3],
     /// Facing (radians around the vertical axis).
@@ -56,6 +58,11 @@ const PORTAL_RADIUS: f32 = 3.0;
 
 pub fn destination(playfield: u32) -> Option<&'static Destination> {
     DATA.destinations.get(&playfield.to_string())
+}
+
+/// Every destination, by playfield.
+pub fn destinations() -> impl Iterator<Item = (u32, &'static Destination)> {
+    DATA.destinations.iter().filter_map(|(k, d)| Some((k.parse().ok()?, d)))
 }
 
 /// Arrival points next to each playfield's portals, by the playfield the portal leads to

@@ -110,6 +110,18 @@ pub fn start() {
     info!(count = BUILDIES.lock().unwrap().len(), "buildies spawned");
 }
 
+/// Every buildie, for the test commands (devcmd.rs): (name, playfield, position, state).
+pub fn points() -> Vec<(String, u32, [f32; 3], String)> {
+    let mut v: Vec<_> = BUILDIES
+        .lock()
+        .unwrap()
+        .values()
+        .map(|b| (b.def.name.clone(), b.def.playfield, b.def.pos, format!("{:?}", b.state)))
+        .collect();
+    v.sort_by(|a, b| (a.1, &a.0).cmp(&(b.1, &b.0)));
+    v
+}
+
 /// Whether an unbuilt buildie stands at `at` (a jump pad there doesn't work yet).
 pub fn unbuilt_at(playfield: u32, at: [f32; 3]) -> bool {
     BUILDIES

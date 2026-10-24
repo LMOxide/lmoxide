@@ -166,6 +166,16 @@ fn cars_group(pad: &Pad, playfield: u32) -> u32 {
     if crate::buildie::unbuilt_at(playfield, pad.pos) { CARS_INACTIVE } else { CARS_GROUP }
 }
 
+/// Every pad, for the test commands (devcmd.rs): (name, playfield, position).
+pub fn points() -> Vec<(String, u32, [f32; 3])> {
+    let mut v: Vec<_> = PADS
+        .iter()
+        .flat_map(|(&pf, pads)| pads.iter().map(move |p| (p.look.clone().unwrap_or_else(|| "pad".into()), pf, p.pos)))
+        .collect();
+    v.sort_by(|a, b| a.1.cmp(&b.1));
+    v
+}
+
 /// A working pad at `at`.
 fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
     PADS.get(&playfield)?

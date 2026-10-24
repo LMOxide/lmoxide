@@ -488,7 +488,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let playfield = r.u32()?;
                 let spawn = r.u32()?;
                 info!(playfield, spawn, "TeleportMe");
-                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), potions_spent)
+                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), None, potions_spent)
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
@@ -511,7 +511,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(answer, "teleport window answer");
                 if answer > 0 || answer < -1 {
                     let playfield = (answer as u32) & 0x7fff_ffff;
-                    teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, potions_spent)
+                    teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
                         .await?;
                 }
             }
@@ -521,7 +521,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let window = r.u32()?;
                 let playfield = r.u32()?;
                 info!(window, playfield, "teleport window bypass");
-                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, potions_spent)
+                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CLIENT_ATTEMPT_CLOSING_PLAYER_DESTINATION_PLAYFIELD) => {
@@ -608,7 +608,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let message = r.string()?;
                 let mood = r.i32()?;
                 info!(name = %me.name, %message, mood, "chat");
-                if let Some(p) = &presence {
+                if crate::devcmd::is_command(&message) {
+                    // a test command (devcmd.rs), not relayed
+                    let here = *pos.lock().unwrap();
+                    match crate::devcmd::run(&message, me.playfield, here) {
+                        crate::devcmd::Action::Reply(lines) => {
+                            for line in lines {
+                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            }
+                        }
+                        crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                                .await?;
+                        }
+                    }
+                } else if let Some(p) = &presence {
                     for other in world::neighbours(p.id()) {
                         crate::chat::vicinity(other.instance, character, &me.name, mood, &message);
                     }
@@ -850,15 +865,18 @@ async fn teleport(
     pos: &world::Position,
     playfield: u32,
     spot: Option<u32>,
+    at: Option<([f32; 3], f32)>,
     potions_spent: u64,
 ) -> anyhow::Result<()> {
-    // arrive at the chosen teleport spot (World Map); through a teleport window, by the portal
-    // back to where the player came from; else at the playfield's arrival point
-    let arrival = match spot {
-        Some(g) => crate::teleport::spot(playfield, g).map(|s| (s.pos, s.rot)),
-        None => crate::teleport::return_point(playfield, me.playfield).map(|d| (d.pos, d.rot)),
-    }
-    .or_else(|| crate::teleport::destination(playfield).map(|d| (d.pos, d.rot)));
+    // arrive where asked (test commands), at the chosen teleport spot (World Map); through a
+    // teleport window, by the portal back to where the player came from; else at the
+    // playfield's arrival point
+    let arrival = at
+        .or_else(|| match spot {
+            Some(g) => crate::teleport::spot(playfield, g).map(|s| (s.pos, s.rot)),
+            None => crate::teleport::return_point(playfield, me.playfield).map(|d| (d.pos, d.rot)),
+        })
+        .or_else(|| crate::teleport::destination(playfield).map(|d| (d.pos, d.rot)));
     let Some((arrive_pos, arrive_rot)) = arrival else {
         warn!(playfield, "no destination data for playfield");
         return Ok(());
@@ -1083,6 +1101,8 @@ pub fn move_task_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> Bytes {
 }
 
 const BOT_INSTANCE: u32 = 0x0b07;
+/// Sender instance of the test commands' chat answers.
+const SERVER_INSTANCE: u32 = 0x5e7e;
 
 /// A server-side character that circles whoever else is on the playfield, standing in for a
 /// second player (`--bot`).

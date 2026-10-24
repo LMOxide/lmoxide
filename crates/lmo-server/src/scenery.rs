@@ -54,6 +54,15 @@ fn wanted(name: &str) -> bool {
 }
 
 static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+/// (name, playfield, position) of every spawned piece, for the test commands (devcmd.rs).
+static PIECES: Mutex<Vec<(String, u32, [f32; 3])>> = Mutex::new(Vec::new());
+
+/// Spawned pieces whose name contains `pattern`, sorted by playfield.
+pub fn points(pattern: &str) -> Vec<(String, u32, [f32; 3])> {
+    let mut v: Vec<_> = PIECES.lock().unwrap().iter().filter(|p| p.0.contains(pattern)).cloned().collect();
+    v.sort_by(|a, b| a.1.cmp(&b.1));
+    v
+}
 
 /// Puts every piece into its world.
 pub fn start() {
@@ -66,6 +75,7 @@ pub fn start() {
         for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name)) {
             let (outbox, mut inbox) = mpsc::unbounded_channel();
             tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+            PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
             let id = Id32::new(SIMPLE_DYNEL_TYPE, piece.guid);
             let pos = Arc::new(Mutex::new(piece.pos));
             presences.push(world::join(id, playfield, pos, move || spawn_records(&piece, playfield), outbox));

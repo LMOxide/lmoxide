@@ -4,6 +4,7 @@ mod collection;
 mod combat;
 mod community;
 mod conn;
+mod devcmd;
 mod dash;
 mod effects;
 mod game;

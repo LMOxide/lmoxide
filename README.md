@@ -38,6 +38,21 @@ LMO_CLIENT_ARGS="-username tester -password test" tools/dev-run.sh "$PWD/../clie
 
 Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101.
 
+## Test commands
+
+Typed into the normal chat in game (free text needs a GM level; `tools/lan-server.sh` sets 1).
+A line starting with `!` (or `/`, if the client lets it through) goes to the server, not to other
+players; answers come back as chat lines from "Server" (`crates/lmo-server/src/devcmd.rs`).
+
+| Command | Does |
+|---|---|
+| `!where` | current playfield and position |
+| `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror` |
+| `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
+
+New features add their targets to `devcmd.rs` `targets`.
+
 ## Tools
 
 | Command | What it does |
