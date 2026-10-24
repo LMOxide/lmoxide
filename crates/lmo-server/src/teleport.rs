@@ -59,9 +59,14 @@ pub fn destination(playfield: u32) -> Option<&'static Destination> {
     DATA.destinations.get(&playfield.to_string())
 }
 
+/// The hub, where portals leading back into their own world go (the worlds' gates home: e.g.
+/// the Medieval Kingdom's only nearby portal is listed as leading to the Kingdom itself).
+const HUB: u32 = 1200;
+
 /// The portal (destination playfield) the player is standing in, if any.
 pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<u32> {
-    DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS).map(|p| p.to)
+    let portal = DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
+    Some(if portal.to == playfield { HUB } else { portal.to })
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
