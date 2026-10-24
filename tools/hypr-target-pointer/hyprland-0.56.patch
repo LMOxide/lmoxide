@@ -1,0 +1,279 @@
+diff --git a/hyprland/target-pointer.cpp b/hyprland/target-pointer.cpp
+index 1c2a8f7..f83ee79 100644
+--- a/hyprland/target-pointer.cpp
++++ b/hyprland/target-pointer.cpp
+@@ -1,12 +1,20 @@
+ #include <hyprland/src/Compositor.hpp>
++#include <hyprland/src/desktop/state/ViewState.hpp>
++#include <hyprland/src/desktop/state/ViewHitTester.hpp>
++#include <hyprland/src/desktop/view/Window.hpp>
++#include <hyprland/src/xwayland/XSurface.hpp>
+ #include <hyprland/src/desktop/view/WLSurface.hpp>
+-#include <hyprland/src/managers/PointerManager.hpp>
++#include <hyprland/src/pointer/PointerManager.hpp>
+ #include <hyprland/src/managers/SeatManager.hpp>
+ #include <hyprland/src/managers/SessionLockManager.hpp>
+ #include <hyprland/src/managers/input/InputManager.hpp>
+ #include <hyprland/src/plugins/PluginAPI.hpp>
+ #include <hyprland/src/protocols/core/DataDevice.hpp>
+ #include <hyprland/src/helpers/time/Time.hpp>
++#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
++#include <hyprland/src/managers/eventLoop/EventLoopTimer.hpp>
++#include <functional>
++#include <optional>
+ #include <algorithm>
+ #include <charconv>
+ #include <cmath>
+@@ -129,7 +137,7 @@ bool parseRequest(const std::string& request, ParsedRequest& parsed, std::string
+ }
+ 
+ PHLWINDOW findWindow(uintptr_t address) {
+-    for (const auto& window : g_pCompositor->m_windows) {
++    for (const auto& window : Desktop::viewState()->windows()) {
+         if (window && reinterpret_cast<uintptr_t>(window.get()) == address) return window;
+     }
+     return nullptr;
+@@ -143,33 +151,15 @@ uint32_t buttonCode(const std::string& button) {
+ 
+ Vector2D localForSurface(SP<CWLSurfaceResource> surface, const Vector2D& cursor) {
+     if (!surface) return {};
+-    if (const auto window = g_pCompositor->getWindowFromSurface(surface))
+-        return g_pCompositor->vectorToSurfaceLocal(cursor, window, surface);
+     const auto wrapper = Desktop::View::CWLSurface::fromResource(surface);
+     if (!wrapper) return {};
++    if (const auto window = Desktop::View::CWindow::fromView(wrapper->view()))
++        return Desktop::viewState()->hitTest().surfaceLocalAt(cursor, window, surface);
+     const auto box = wrapper->getSurfaceBoxGlobal();
+     if (!box) return {};
+     return cursor - Vector2D{box->x, box->y};
+ }
+ 
+-class PointerFocusRestore {
+-  public:
+-    PointerFocusRestore() : surface(g_pSeatManager->m_state.pointerFocus.lock()), cursor(g_pPointerManager->position()), local(localForSurface(surface, cursor)) {}
+-    ~PointerFocusRestore() {
+-        const auto now = static_cast<uint32_t>(Time::millis(Time::steadyNow()));
+-        g_pSeatManager->setPointerFocus(surface, local);
+-        if (surface) {
+-            g_pSeatManager->sendPointerMotion(now, local);
+-            g_pSeatManager->sendPointerFrame();
+-        }
+-    }
+-
+-  private:
+-    SP<CWLSurfaceResource> surface;
+-    Vector2D               cursor;
+-    Vector2D               local;
+-};
+-
+ struct TargetPoint {
+     SP<CWLSurfaceResource> surface;
+     Vector2D               local;
+@@ -177,7 +167,7 @@ struct TargetPoint {
+ };
+ 
+ TargetPoint resolveTarget(PHLWINDOW window, double x, double y, bool forceMain = false) {
+-    const auto size = window->m_realSize->goal();
++    const auto size = window->size(Desktop::View::IGeometric::GEOMETRIC_GOAL);
+     if (x < 0 || y < 0 || x >= size.x || y >= size.y)
+         throw std::runtime_error(std::format("coordinate ({:.1f},{:.1f}) is outside window size {:.1f}x{:.1f}", x, y, size.x, size.y));
+ 
+@@ -185,9 +175,9 @@ TargetPoint resolveTarget(PHLWINDOW window, double x, double y, bool forceMain =
+     if (window->m_isX11 || forceMain)
+         return {window->wlSurface()->resource(), local, window->m_isX11 ? "xwayland" : "main"};
+ 
+-    const auto global = window->m_realPosition->goal() + local;
++    const auto global = window->position(Desktop::View::IGeometric::GEOMETRIC_GOAL) + local;
+     Vector2D surfaceLocal;
+-    auto surface = g_pCompositor->vectorWindowToSurface(global, window, surfaceLocal);
++    auto surface = Desktop::viewState()->hitTest().windowSurfaceAt(global, window, surfaceLocal);
+     if (!surface) throw std::runtime_error("no input surface exists at the requested window coordinate");
+     return {surface, surfaceLocal, surface == window->wlSurface()->resource() ? "main" : "subsurface"};
+ }
+@@ -202,55 +192,139 @@ void ensureSafeToInject(PHLWINDOW window) {
+     if (PROTO::data && PROTO::data->dndActive()) throw std::runtime_error("a drag-and-drop operation is active");
+ }
+ 
++// A pointer transaction runs as timed steps on the event loop. Clients such as XWayland drop
++// button events that arrive in the same burst as the enter and the leave that restores the
++// physical pointer focus, so the steps are spaced out and the focus is restored at the end.
++struct Step {
++    int                   delayMs;
++    std::function<void()> fn;
++};
++
++struct Transaction {
++    std::vector<Step>      steps;
++    size_t                 next = 0;
++    SP<CWLSurfaceResource> target;
++    SP<CWLSurfaceResource> restoreSurface;
++    Vector2D               restoreLocal;
++};
++
++std::optional<Transaction> g_transaction;
++SP<CEventLoopTimer>        g_timer;
++std::string                g_trace;
++
++uint32_t                   nowMs() {
++    return static_cast<uint32_t>(Time::millis(Time::steadyNow()));
++}
++
++void frame() {
++    g_pSeatManager->sendPointerFrame();
++    // Timer callbacks don't flush client buffers; without this every step leaves in one burst.
++    wl_display_flush_clients(g_pCompositor->m_wlDisplay);
++}
++
++void runSteps(SP<CEventLoopTimer>, void*) {
++    if (!g_transaction) return;
++    auto& tx = *g_transaction;
++    // The physical pointer moved to another surface meanwhile: stop, the seat already follows it.
++    if (tx.next > 1 && g_pSeatManager->m_state.pointerFocus.lock() != tx.target) {
++        g_trace += std::format(" aborted@{}", tx.next);
++        g_transaction.reset();
++        return;
++    }
++    while (tx.next < tx.steps.size()) {
++        g_trace += std::format(" s{}", tx.next);
++        tx.steps[tx.next++].fn();
++        if (tx.next < tx.steps.size() && tx.steps[tx.next].delayMs > 0) {
++            g_timer->updateTimeout(std::chrono::milliseconds(tx.steps[tx.next].delayMs));
++            return;
++        }
++    }
++    if (g_pSeatManager->m_state.pointerFocus.lock() == tx.target) {
++        g_pSeatManager->setPointerFocus(tx.restoreSurface, tx.restoreLocal);
++        if (tx.restoreSurface) {
++            g_pSeatManager->sendPointerMotion(nowMs(), tx.restoreLocal);
++            frame();
++        }
++    }
++    g_transaction.reset();
++}
++
+ std::string handleRequest(eHyprCtlOutputFormat, std::string request) {
+     try {
++        if (request.ends_with("status")) return g_trace;
++        g_trace.clear();
+         ParsedRequest parsed;
+         std::string error;
+         if (!parseRequest(request, parsed, error)) return jsonError(error);
++        if (g_transaction) return jsonError("another pointer transaction is still running");
+         const auto window = findWindow(parsed.address);
+         ensureSafeToInject(window);
+ 
+-        if (window->m_isX11) throw std::runtime_error("XWayland targets must use the same-session broker's XTEST route");
++        const auto start = resolveTarget(window, parsed.x1, parsed.y1, parsed.action == "drag");
++        const auto size  = window->size(Desktop::View::IGeometric::GEOMETRIC_GOAL);
++        if (parsed.action == "drag" && (parsed.x2 < 0 || parsed.y2 < 0 || parsed.x2 >= size.x || parsed.y2 >= size.y))
++            throw std::runtime_error("drag endpoint leaves the target window");
+ 
+-        PointerFocusRestore restore;
+-        const auto now = static_cast<uint32_t>(Time::millis(Time::steadyNow()));
+-        auto start = resolveTarget(window, parsed.x1, parsed.y1, parsed.action == "drag");
+-        g_pSeatManager->setPointerFocus(start.surface, start.local);
+-        g_pSeatManager->sendPointerMotion(now, start.local);
+-        g_pSeatManager->sendPointerFrame();
++        Transaction tx;
++        tx.target         = start.surface;
++        tx.restoreSurface = g_pSeatManager->m_state.pointerFocus.lock();
++        tx.restoreLocal   = localForSurface(tx.restoreSurface, Pointer::mgr()->position());
++        auto& steps       = tx.steps;
++        const auto local  = start.local;
++        const auto target = start.surface;
++        // XWayland hands pointer events to the topmost X window at the root position, and X
++        // windows of all workspaces overlap there, so raise the target in the X stacking first.
++        const auto xsurface = window->m_isX11 ? window->m_xwaylandSurface.lock() : nullptr;
++        steps.push_back({0, [xsurface] {
++                             if (xsurface) xsurface->restackToTop();
++                         }});
++        steps.push_back({xsurface ? 30 : 0, [target, local] {
++                             g_pSeatManager->setPointerFocus(target, local);
++                             g_pSeatManager->sendPointerMotion(nowMs(), local);
++                             frame();
++                         }});
++        const auto button = buttonCode(parsed.button);
++        auto       press  = [button](wl_pointer_button_state state) {
++            return [button, state] {
++                g_pSeatManager->sendPointerButton(nowMs(), button, state);
++                frame();
++            };
++        };
+ 
+         if (parsed.action == "click") {
+-            const auto button = buttonCode(parsed.button);
+             for (int i = 0; i < parsed.amount; ++i) {
+-                g_pSeatManager->sendPointerButton(now, button, WL_POINTER_BUTTON_STATE_PRESSED);
+-                g_pSeatManager->sendPointerFrame();
+-                g_pSeatManager->sendPointerButton(now, button, WL_POINTER_BUTTON_STATE_RELEASED);
+-                g_pSeatManager->sendPointerFrame();
++                steps.push_back({40, press(WL_POINTER_BUTTON_STATE_PRESSED)});
++                steps.push_back({60, press(WL_POINTER_BUTTON_STATE_RELEASED)});
+             }
+         } else if (parsed.action == "scroll") {
+-            const auto value120 = parsed.amount * 120;
+-            g_pSeatManager->sendPointerAxis(now, WL_POINTER_AXIS_VERTICAL_SCROLL, static_cast<double>(parsed.amount) * 15.0,
+-                                            parsed.amount, value120, WL_POINTER_AXIS_SOURCE_WHEEL,
+-                                            WL_POINTER_AXIS_RELATIVE_DIRECTION_IDENTICAL);
+-            g_pSeatManager->sendPointerFrame();
++            const int direction = parsed.amount > 0 ? 1 : -1;
++            for (int i = 0; i < std::abs(parsed.amount); ++i)
++                steps.push_back({i == 0 ? 40 : 30, [direction] {
++                                     g_pSeatManager->sendPointerAxis(nowMs(), WL_POINTER_AXIS_VERTICAL_SCROLL, direction * 15.0, direction, direction * 120,
++                                                                     WL_POINTER_AXIS_SOURCE_WHEEL, WL_POINTER_AXIS_RELATIVE_DIRECTION_IDENTICAL);
++                                     frame();
++                                 }});
+         } else if (parsed.action == "drag") {
+-            const auto button = buttonCode(parsed.button);
+-            g_pSeatManager->sendPointerButton(now, button, WL_POINTER_BUTTON_STATE_PRESSED);
+-            g_pSeatManager->sendPointerFrame();
++            steps.push_back({40, press(WL_POINTER_BUTTON_STATE_PRESSED)});
+             for (int i = 1; i <= parsed.amount; ++i) {
+-                const double t = static_cast<double>(i) / parsed.amount;
+-                const Vector2D local{parsed.x1 + (parsed.x2 - parsed.x1) * t, parsed.y1 + (parsed.y2 - parsed.y1) * t};
+-                const auto size = window->m_realSize->goal();
+-                if (local.x < 0 || local.y < 0 || local.x >= size.x || local.y >= size.y)
+-                    throw std::runtime_error("drag endpoint or path leaves the target window");
+-                g_pSeatManager->sendPointerMotion(now, local);
+-                g_pSeatManager->sendPointerFrame();
++                const double   t = static_cast<double>(i) / parsed.amount;
++                const Vector2D point{parsed.x1 + (parsed.x2 - parsed.x1) * t, parsed.y1 + (parsed.y2 - parsed.y1) * t};
++                steps.push_back({16, [point] {
++                                     g_pSeatManager->sendPointerMotion(nowMs(), point);
++                                     frame();
++                                 }});
+             }
+-            g_pSeatManager->sendPointerButton(now, button, WL_POINTER_BUTTON_STATE_RELEASED);
+-            g_pSeatManager->sendPointerFrame();
++            steps.push_back({40, press(WL_POINTER_BUTTON_STATE_RELEASED)});
+         }
++        steps.push_back({150, [] {}});
+ 
+-        return jsonOk(parsed, start.local, start.kind);
++        int total = 0;
++        for (const auto& step : steps) total += step.delayMs;
++        g_transaction = std::move(tx);
++        runSteps(g_timer, nullptr);
++        auto out = jsonOk(parsed, start.local, start.kind);
++        out.insert(out.size() - 1, std::format(",\"duration_ms\":{}", total));
++        return out;
+     } catch (const std::exception& exception) { return jsonError(exception.what()); }
+ }
+ 
+@@ -269,7 +343,14 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+         PHANDLE, SHyprCtlCommand{.name = "cutarget", .exact = false, .fn = handleRequest});
+     if (!command) throw std::runtime_error("same-session-target-pointer: failed to register cutarget command");
+ 
+-    return {"same-session-target-pointer", "Atomic window-targeted pointer events without cursor movement", "Gabe", "0.1.0"};
++    g_timer = makeShared<CEventLoopTimer>(std::nullopt, runSteps, nullptr);
++    g_pEventLoopManager->addTimer(g_timer);
++
++    return {"same-session-target-pointer", "Atomic window-targeted pointer events without cursor movement", "Gabe", "0.3.0-restack"};
+ }
+ 
+-APICALL EXPORT void PLUGIN_EXIT() {}
++APICALL EXPORT void PLUGIN_EXIT() {
++    g_transaction.reset();
++    if (g_timer) g_pEventLoopManager->removeTimer(g_timer);
++    g_timer.reset();
++}
