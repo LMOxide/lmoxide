@@ -35,6 +35,7 @@ playfield resources) aren't listed; neither are protocol constants.
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
+| Charge level counter buff | not sent | — | Big Blast's tick also adds counter buff 31416 (no visual; the MagicBuffIIR_c counter update isn't decoded yet). The orb buff is re-cast every tick as live did. |
 | Charge hold before auto-fire | `game.rs` `CHARGE_HOLD` | 3 s after full charge | Assumed. |
 | Re-cast after an automatic fire | `game.rs` `CHARGE_RECAST_GAP` | re-sends refused until the client stops for 0.5 s | Assumed. A still-held button re-sends the cast after the server ends the channel. |
 | Unreleased charge fallback | `game.rs` `CHARGE_TIMEOUT` | 6 s | Safety net if the release never arrives. |

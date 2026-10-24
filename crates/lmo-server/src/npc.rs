@@ -357,7 +357,11 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     let health = npc.health;
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
     let kind = npc.def.kind;
-    let mut records = vec![int32_stat(target, STAT_HEALTH, health)];
+    let mut records = vec![if kind == Kind::Smashable {
+        crate::game::stat_record(target, STAT_HEALTH, health)
+    } else {
+        int32_stat(target, STAT_HEALTH, health)
+    }];
     records.insert(0, combat_log_record(attacker, target, spell, dealt));
     if kind == Kind::Enemy && health == 0 {
         // Limbo: the client plays the death and stops targeting it
@@ -367,7 +371,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         // as the original server did: Health 0 plays the smash, the visual change leaves the
         // debris, CarsGroup 5 makes it untargetable; the debris stays (it isn't despawned)
         records.push(visual_change_record(target, SMASHED_VISUAL_STATE, 0));
-        records.push(int32_stat(target, STAT_CARS_GROUP, CARS_INACTIVE));
+        records.push(crate::game::stat_record(target, STAT_CARS_GROUP, CARS_INACTIVE));
     }
     world::send_playfield(target, true, world::Out::Records(records));
     if health == 0 {

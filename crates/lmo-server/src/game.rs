@@ -780,11 +780,10 @@ struct Charge {
     damage: u32,
 }
 
-/// A held charge, from press to release: shows its channel buff (the growing orb) on the caster
-/// once, lasting the whole charge and hold (re-applying it would restart the effect), and if
-/// the player keeps holding past full charge plus CHARGE_HOLD, fires at full charge and ends
-/// the client's channel itself (BCC action 20 back to the caster). Released earlier, the buff
-/// is removed and `fire_charge` fires.
+/// A held charge, from press to release: shows its channel buff (the growing orb) on the caster,
+/// re-cast every channel tick, and if the player keeps holding past full charge plus
+/// CHARGE_HOLD, fires at full charge and ends the client's channel itself (BCC action 20 back to
+/// the caster). Released earlier, the buff is removed and `fire_charge` fires.
 #[allow(clippy::too_many_arguments)]
 fn run_charge(
     caster: Id32,
@@ -803,14 +802,23 @@ fn run_charge(
     let until = full + CHARGE_HOLD;
     let buff = p.channel_buff;
     let full_item = p.charge_items.last().copied();
+    let tick = std::time::Duration::from_secs_f32(p.channel_interval.max(0.1));
     tokio::spawn(async move {
-        if let Some(buff) = buff {
-            let add = crate::effects::buff_add(caster, buff, caster, (until.as_secs_f32() * 100.0) as i32);
-            world::send_playfield(caster, true, world::Out::Records(vec![add]));
-        }
+        // The channel buff (Big Blast: 635802, the orb, TimeExist 0.75 s) is cast on the press
+        // and again on every channel tick (the spell's tick action list), as live did; each
+        // add lasts 1.5 ticks so the orb stays up between ticks.
+        let duration_cs = (tick.as_secs_f32() * 150.0) as i32;
         let started = std::time::Instant::now();
+        let mut next_tick = std::time::Duration::ZERO;
         while active.load(std::sync::atomic::Ordering::Relaxed) && started.elapsed() < until {
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            if let Some(buff) = buff
+                && started.elapsed() >= next_tick
+            {
+                let add = crate::effects::buff_add(caster, buff, caster, duration_cs);
+                world::send_playfield(caster, true, world::Out::Records(vec![add]));
+                next_tick += tick;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         }
         if active.swap(false, std::sync::atomic::Ordering::Relaxed) {
             // held too long: fire at full charge, in the direction faced now
@@ -1156,6 +1164,12 @@ const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
 /// is what the HUD health bar (`GetStat(e_Health) / GetStat(e_Life)`) sees.
 pub fn int32_stat(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
     iir::record("Int32StatIIR", id, false, |w| w.u32(stat).u32(value))
+}
+
+/// `StatIIR_t`: u32 stat, u32 value. What the original server sent for stat changes (e.g. a
+/// destructible's Health 0, which plays its smash right away).
+pub fn stat_record(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
+    iir::record("StatIIR_t", id, false, |w| w.u32(stat).u32(value))
 }
 
 /// What the character IIRs need to know about a character, player or NPC.
