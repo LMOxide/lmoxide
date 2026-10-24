@@ -58,6 +58,17 @@ pub fn destination(playfield: u32) -> Option<&'static Destination> {
     DATA.destinations.get(&playfield.to_string())
 }
 
+/// Arrival points next to each playfield's portals, by the playfield the portal leads to
+/// (tools/re/extract_return_points.py). Live used source-specific "TP_From<source>" points whose
+/// positions were server-side; these stand in for them (docs/TUNABLES.md).
+static RETURNS: LazyLock<HashMap<String, HashMap<String, Destination>>> =
+    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/return_points.json")).expect("return_points.json"));
+
+/// Where to arrive in `playfield` when coming back from `from` through a teleport window.
+pub fn return_point(playfield: u32, from: u32) -> Option<&'static Destination> {
+    RETURNS.get(&playfield.to_string())?.get(&from.to_string())
+}
+
 /// The hub, where portals leading back into their own world go (the worlds' gates home: e.g.
 /// the Medieval Kingdom's only nearby portal is listed as leading to the Kingdom itself).
 const HUB: u32 = 1200;
@@ -172,4 +183,18 @@ pub fn signal_spots_args(playfield: u32) -> Bytes {
         .or_else(|| SPOTS.get(&playfield.to_string()).and_then(|l| l.first()).map(|s| s.pos))
         .unwrap_or_default();
     spots(lmo_net::Writer::new().u32(playfield).f32(centre[0]).f32(centre[1]).f32(centre[2]), playfield).finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn return_points_stay_clear_of_portals() {
+        // coming back to the hub from Isle of Yarr: next to the hub's Isle of Yarr portal
+        let p = return_point(1200, 4200).expect("hub return point");
+        let portal = DATA.portals["1200"].iter().find(|q| q.to == 4200).unwrap();
+        let d = ((p.pos[0] - portal.pos[0]).powi(2) + (p.pos[2] - portal.pos[2]).powi(2)).sqrt();
+        assert!(d > PORTAL_RADIUS && d < 10.0, "{d}");
+    }
 }

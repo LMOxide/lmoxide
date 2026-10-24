@@ -60,6 +60,7 @@ Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101
 | `tools/ghidra/xrefs.sh <va...>` | references to each address (code and data, one level through vtables) |
 | `tools/ghidra/symbols.sh <regex> [n]` | symbols matching a regex; for vtables, the first n slots |
 | `tools/re/py extract_iir.py <out.json>` | regenerate `data/iir_types.json` (IIR names, type ids, classes, protobufs) |
+| `tools/re/py extract_return_points.py` | regenerate `data/return_points.json` (arrival next to the portal back to where the player came from) |
 
 Setup for the Python tools: `python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf`.
 They read `../client/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`. Ghidra comes

@@ -75,6 +75,7 @@ playfield resources) aren't listed; neither are protocol constants.
 |---|---|---|---|
 | Portal trigger radius | `teleport.rs` `PORTAL_RADIUS` | 3 m | Portal positions are client data; the radius is assumed. |
 | Portal → teleport window | `data/destinations.json` portals `window` (`tools/re/extract_portal_windows.py`) | the window whose arrival point names the source, else the destination's plain window | Which portal opened which window was server script data. Every portal opens its window (live behaviour inferred from the client: only server scripts open it). |
+| Arrival when coming back through a teleport window | `data/return_points.json` (`tools/re/extract_return_points.py`), `teleport.rs` `return_point` | a walkable spot 5–8 m from the portal leading back to where the player came from, on the side facing the playfield's main arrival point, facing away from the portal (yaw convention assumed: atan2(dx, dz)) | Live arrived at source-specific `TP_From<source>` points (named in the teleport windows); their positions were server-side and are in no client data. World Map travel keeps its chosen spot; 6 portals without a nearby walkable spot use the main arrival point. |
 | A world's portal to itself leads to the hub | `teleport.rs` `portal_at` | — | Inference (the Medieval Kingdom's only nearby portal is listed as leading to itself). |
 | Collision radius stat | `game.rs` `STAT_CHAR_RADIUS` | 50 (0.5 m) | Assumed; needed for keyboard movement. |
 | Command queue size | `game.rs` `STAT_COMMAND_QUEUE_SIZE` | 3 | Assumed. |

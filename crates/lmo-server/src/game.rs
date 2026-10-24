@@ -842,11 +842,13 @@ async fn teleport(
     spot: Option<u32>,
     potions_spent: u64,
 ) -> anyhow::Result<()> {
-    // arrive at the chosen teleport spot, or the playfield's arrival point
-    let arrival = spot
-        .and_then(|g| crate::teleport::spot(playfield, g))
-        .map(|s| (s.pos, s.rot))
-        .or_else(|| crate::teleport::destination(playfield).map(|d| (d.pos, d.rot)));
+    // arrive at the chosen teleport spot (World Map); through a teleport window, by the portal
+    // back to where the player came from; else at the playfield's arrival point
+    let arrival = match spot {
+        Some(g) => crate::teleport::spot(playfield, g).map(|s| (s.pos, s.rot)),
+        None => crate::teleport::return_point(playfield, me.playfield).map(|d| (d.pos, d.rot)),
+    }
+    .or_else(|| crate::teleport::destination(playfield).map(|d| (d.pos, d.rot)));
     let Some((arrive_pos, arrive_rot)) = arrival else {
         warn!(playfield, "no destination data for playfield");
         return Ok(());
