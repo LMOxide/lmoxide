@@ -84,6 +84,21 @@
         "kind": "npc",
         "name": "Video Game Guy"
       }
+    },
+    {
+      "label": "sandstorm",
+      "about": "Egyptian Warrior with 4 Pirate Corsairs (Sand Storm: ground ring, dust and slow on enemies)",
+      "team": [
+        "Egyptian Warrior",
+        "Roman Commander",
+        "Astronaut"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
     }
   ]
 }

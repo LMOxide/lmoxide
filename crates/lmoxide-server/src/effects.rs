@@ -94,11 +94,23 @@ pub fn effect_package_hook(target: Id32, package: u32, hook: &str, stop: &str, v
     })
 }
 
-/// An effect package played at a ground position (`target` owns it): see `effect_package`.
-pub fn effect_package_at(target: Id32, package: u32, at: [f32; 3]) -> Bytes {
-    iir::record("EffectPackageIIR", target, false, |w| {
-        target.write(w).u32(package).string("").string("").f32(0.0).u8(0).u32(new_instance()).f32(at[0]).f32(at[1]).f32(at[2]).u32(0)
+/// An effect package played at a ground position, owned by `owner` (the record's identity), as
+/// the original server sent ground effects: zero named target, the position, the owning
+/// `spell` (0: none). Ends by itself or with `stop_effect_package` (same instance).
+pub fn effect_package_at(owner: Id32, package: u32, at: [f32; 3]) -> Bytes {
+    ground_effect(owner, package, at, 0, new_instance())
+}
+
+/// `effect_package_at` with the owning spell and instance.
+pub fn ground_effect(owner: Id32, package: u32, at: [f32; 3], spell: u32, instance: u32) -> Bytes {
+    iir::record("EffectPackageIIR", owner, false, |w| {
+        Id32::new(0, 0).write(w).u32(package).string("").string("").f32(0.0).u8(0).u32(instance).f32(at[0]).f32(at[1]).f32(at[2]).u32(spell)
     })
+}
+
+/// `StopEffectPackageIIR` (owner): u32 package, u32 owning spell, u32 instance (recorded).
+pub fn stop_effect_package(owner: Id32, package: u32, spell: u32, instance: u32) -> Bytes {
+    iir::record("StopEffectPackageIIR", owner, false, |w| w.u32(package).u32(spell).u32(instance))
 }
 
 /// A fresh effect package instance id.

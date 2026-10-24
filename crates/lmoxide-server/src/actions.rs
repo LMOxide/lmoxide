@@ -63,6 +63,9 @@ struct Stats {
     /// Time from the press to the hit (the client's attack animation).
     #[serde(rename = "ItemDelay")]
     item_delay: Option<u32>,
+    /// The nano's visual (played by the client for buffs; the server sends it for the others).
+    #[serde(rename = "EffectPackage")]
+    effect_package: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -438,7 +441,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
                 let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
                 show(run, vec![area_formula_record(caster, &ids, nano, center)]);
                 for (id, pos) in hits {
-                    cast_nano(run, nano, Target { id: Some(id), pos }, depth + 1);
+                    cast_nano_shown(run, nano, Target { id: Some(id), pos }, depth + 1, false);
                 }
             }
         }
@@ -458,7 +461,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
                 let mid = [from[0] + dir[0] * length / 2.0, from[1], from[2] + dir[1] * length / 2.0];
                 show(run, vec![area_formula_record(caster, &ids, nano, mid)]);
                 for (id, pos) in hits {
-                    cast_nano(run, nano, Target { id: Some(id), pos }, depth + 1);
+                    cast_nano_shown(run, nano, Target { id: Some(id), pos }, depth + 1, false);
                 }
             }
         }
@@ -474,11 +477,18 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
             }
         }
         "CorePersistentGroundEffect" => {
+            let lifetime = a.u("Arg1").map_or(GROUND_DEFAULT_LIFETIME, |t| Duration::from_millis(100 * t as u64));
             if let Some(package) = a.u("EffectPackage") {
-                show(run, vec![effects::effect_package_at(caster, package, who.pos)]);
+                // the ground effect (e.g. Sand Storm's ring) lasts as long as the zone
+                let instance = effects::new_instance();
+                show(run, vec![effects::ground_effect(caster, package, who.pos, spell, instance)]);
+                let run = run.clone();
+                tokio::spawn(async move {
+                    tokio::time::sleep(lifetime).await;
+                    show(&run, vec![effects::stop_effect_package(run.caster.id, package, spell, instance)]);
+                });
             }
             if let Some(nano) = a.u("NanoTemplate") {
-                let lifetime = a.u("Arg1").map_or(GROUND_DEFAULT_LIFETIME, |t| Duration::from_millis(100 * t as u64));
                 let delay = Duration::from_millis(10 * a.u("DelayTime").unwrap_or(0) as u64);
                 ground_zone(run, nano, who.pos, delay, GROUND_PULSE, lifetime, depth);
             }
@@ -501,6 +511,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
 
 /// Casts nano `nano` on `target`: shows it as a buff when it is one, then runs its list 0 there.
 fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32) {
+    cast_nano_shown(run, nano, target, depth, true)
+}
+
+/// `cast_nano`; `own_effect`: send a non-buff nano's EffectPackage on the target (not for an
+/// area formula's nano: the formula record shows it).
+fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: bool) {
     if depth > MAX_DEPTH {
         return;
     }
@@ -508,8 +524,16 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32) {
     let caster = run.caster.id;
     let on_caster = target.id == Some(caster);
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client));
+    let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
+    if !is_buff
+        && own_effect
+        && let (Some(id), Some(package)) = (target.id, n.stats.effect_package)
+    {
+        // a hit nano's own effect on whom it hits (live: e.g. 318181 -> 319901)
+        show(run, vec![effects::effect_package(id, package)]);
+    }
     if let Some(id) = target.id
-        && (n.stats.time_exist.is_some() || (on_caster && !server_actions))
+        && is_buff
     {
         // a buff without TimeExist lasts until the channel's end list removes it, or on a plain
         // press (a combo buff) for the combo window
