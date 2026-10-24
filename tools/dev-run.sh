@@ -25,7 +25,8 @@ fi
 
 # the test client only: the native Linux client is also "LMO" and may be the user's own
 pkill -x LMO.exe || true
-for p in $(pgrep -x LMO); do [[ $(readlink "/proc/$p/cwd") == "$(realpath "$CLIENT")" ]] && kill "$p"; done
+# (SIGKILL: the Linux client ignores SIGTERM)
+for p in $(pgrep -x LMO); do [[ $(readlink "/proc/$p/cwd") == "$(realpath "$CLIENT")" ]] && kill -9 "$p"; done
 # Only the servers an earlier dev-run started (other sessions may run their own lmoxide-server).
 PIDS=$LOGS/dev-run.pids
 stop_servers() {

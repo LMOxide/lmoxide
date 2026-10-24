@@ -86,6 +86,17 @@
       }
     },
     {
+      "label": "modes",
+      "about": "Hun Warrior, Classic King and Mr. Good and Evil with 4 Pirate Corsairs (specials that swap both attacks: Mount Up!, Royal Steed, Evil Potion)",
+      "team": ["Hun Warrior", "Classic King", "Mr. Good and Evil"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
+    },
+    {
       "label": "sandstorm",
       "about": "Egyptian Warrior with 4 Pirate Corsairs (Sand Storm: ground ring, dust and slow on enemies)",
       "team": [

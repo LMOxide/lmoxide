@@ -132,25 +132,26 @@ static SPELLS: LazyLock<HashMap<u32, Spell>> = LazyLock::new(|| {
 
 /// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
 /// plain press (`cast`): it has server-side PreUse or OnUse actions.
-/// Only those whose actions reach a WeaponHit: the others' damage came from actions the server
-/// doesn't run, so they keep the plain hit in game.rs.
+/// Only those whose actions reach a WeaponHit (the others' damage came from actions the server
+/// doesn't run, so they keep the plain hit in game.rs) or a shortcut override (mode switches
+/// like Mount Up!, which don't hit).
 pub fn is_ability(spell: u32) -> bool {
     SPELLS.get(&spell).is_some_and(|s| {
         s.minifigure.is_some()
             && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(|a| !a.client)))
-            && reaches_weapon_hit(spell, &mut Vec::new())
+            && reaches(spell, &["WeaponHit", "OverrideShortcut"], &mut Vec::new())
     })
 }
 
-/// Whether `spell`'s server actions (and the nanos they cast) include a WeaponHit.
-fn reaches_weapon_hit(spell: u32, seen: &mut Vec<u32>) -> bool {
+/// Whether `spell`'s server actions (and the nanos they cast) include one of `kinds`.
+fn reaches(spell: u32, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
     if seen.contains(&spell) {
         return false;
     }
     seen.push(spell);
     let Some(s) = SPELLS.get(&spell) else { return false };
     s.lists.values().flatten().filter(|a| !a.client).any(|a| {
-        a.kind == "WeaponHit" || ["Value", "NanoTemplate"].iter().filter_map(|k| a.u(k)).any(|n| reaches_weapon_hit(n, seen))
+        kinds.contains(&a.kind.as_str()) || ["Value", "NanoTemplate"].iter().filter_map(|k| a.u(k)).any(|n| reaches(n, kinds, seen))
     })
 }
 
@@ -748,6 +749,11 @@ mod tests {
         assert!([317_739, 317_740, 317_741].iter().all(|s| learned.contains(s)), "{learned:?}");
         // a combo buff is still shown as a buff (its only server action is the override)
         assert!(SPELLS[&317_746].lists[ON_USE].iter().all(|a| a.kind == "OverrideShortcut"));
+        // Hun Warrior's Mount Up! doesn't hit, but its buff swaps both attacks
+        assert!(is_ability(500_468));
+        assert_eq!(override_targets(&[500_468]), vec![505_615, 505_955]);
+        let learned = crate::collection::spells_to_learn(498_522);
+        assert!(learned.contains(&505_615) && learned.contains(&505_955), "{learned:?}");
     }
 
     #[test]
