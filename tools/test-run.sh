@@ -38,7 +38,8 @@ if command -v hyprctl >/dev/null && command -v grim >/dev/null; then
 fi
 
 if [[ -z ${KEEP:-} ]]; then
-  pkill -x LMO.exe; pkill -x LMO; pkill -x lmoxide-server; pkill -x lmoxide-patch-s
+  pkill -x LMO.exe; pkill -x LMO
+  [[ -f $LOGS/dev-run.pids ]] && { kill $(cat "$LOGS/dev-run.pids") 2>/dev/null; rm -f "$LOGS/dev-run.pids"; }
   WINEPREFIX=${WINEPREFIX:-$HOME/.local/share/lmo-wine} wineserver -k 2>/dev/null
 fi
 true

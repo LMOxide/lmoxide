@@ -15,8 +15,9 @@ DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
 
 pkill -x LMO.exe || true
 pkill -x LMO || true
-pkill -x lmoxide-server || true
-pkill -x lmoxide-patch-s || true   # process names are cut to 15 characters
+# Only the servers an earlier dev-run started (other sessions may run their own lmoxide-server).
+PIDS=$LOGS/dev-run.pids
+if [[ -f $PIDS ]]; then kill $(cat "$PIDS") 2>/dev/null || true; rm -f "$PIDS"; fi
 wineserver -k 2>/dev/null || true
 WINEPREFIX=${LMO_PROTON_PREFIX:-$HOME/.local/share/lmo-proton}/pfx \
   "${PROTON:-$HOME/.local/share/Steam/steamapps/common/Proton - Experimental}/files/bin/wineserver" -k 2>/dev/null || true
@@ -27,11 +28,17 @@ cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-p
 RUST_LOG=${RUST_LOG:-info,lmoxide_server=debug} \
   "$ROOT/target/debug/lmoxide-server" --data-dir "$DATA" --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" \
   ${LMOXIDE_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
+echo $! >>"$PIDS"
+# The patch server patches the login key into the LMO.exe it serves (and derives PatchVersion
+# from it): start it once the game server has written the key, else the client's patcher sees
+# a different exe and tries to "repair" it.
+for _ in $(seq 100); do [[ -s $DATA/login-public-key.txt ]] && break; sleep 0.2; done
 # the Windows client tree, even when running the Linux client (its LocalConfig.xml is the same)
 PATCH_CLIENT=${LMOXIDE_PATCH_CLIENT_DIR:-$([[ ${LMO_RUNNER:-wine} == linux ]] && realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online" || echo "$CLIENT")}
 RUST_LOG=${RUST_LOG:-info} "$ROOT/target/debug/lmoxide-patch-server" --client-dir "$PATCH_CLIENT" \
   --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" ${LMOXIDE_PATCH_ARGS:-} >"$LOGS/patch-server.log" 2>&1 &
+echo $! >>"$PIDS"
 for _ in $(seq 100); do curl -sf http://127.0.0.1:8080/lmoxide/v1/login-key >/dev/null && break; sleep 0.2; done
 
 # The client must carry the server's login key (and chat filter URL).

@@ -2,8 +2,8 @@
 import sys, struct, json, pickle
 sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 from pblib import parse, demo_events
-R='/home/dgmastertemple/Dropbox/Development/projects/lego-minifigures-online/lmoxide-server/'
-CL='/home/dgmastertemple/Dropbox/Development/projects/lego-minifigures-online/client/LEGO Minifigures Online/Data/default_windowsx86.demo'
+R=__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '../../../')
+CL=__import__('os').environ.get('LMO_DEMO', R+'../clients/windows/LEGO Minifigures Online/Data/default_windowsx86.demo')
 rm=json.load(open(R+'data/rpc_methods.json'))
 def jh(s):
     h=0

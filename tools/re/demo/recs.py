@@ -1,6 +1,6 @@
 # split every PassBlob (both directions) into IIR records by scanning for known type ids
 import sys, struct, json, pickle
-R='/home/dgmastertemple/Dropbox/Development/projects/lego-minifigures-online/lmoxide-server/'
+R=__import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '../../../')
 iir={int(e['type_id'],16):e['name'] for e in json.load(open(R+'data/iir_types.json'))}
 # also UpdateMessage etc. may be missing; add by java hash
 def jh(s):
