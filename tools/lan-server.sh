@@ -18,9 +18,12 @@ export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../lmo-data")}
 # GM level 1 as in dev-run.sh: free-text chat between players needs it.
 export LMO_GM_LEVEL=${LMO_GM_LEVEL:-1}
 CLIENT=${LMO_CLIENT_DIR:-$(realpath -m "$ROOT/../client/LEGO Minifigures Online")}
+# the client kit, served at http://<ip>:8080/client-kit.tar.gz for other PCs (tools/linux-client/README.md)
+export LMO_CLIENT_KIT=$("$ROOT/tools/linux-client/make-kit.sh" | cut -d' ' -f1)
 pkill -x lmo-server || true
 cargo build --manifest-path "$ROOT/Cargo.toml" -q $([[ $PROFILE == release ]] && echo --release)
-echo "LAN server ($PROFILE build) on $IP; other PCs: tools/linux-client/play.sh <client-dir> $IP <username>"
+echo "LAN server ($PROFILE build) on $IP. Install or update the client on another PC:"
+echo "  d=\$(mktemp -d) && curl -fsSL http://$IP:8080/client-kit.tar.gz | tar xz -C \$d && \$d/*/install.sh --server $IP"
 mkdir -p "$ROOT/logs"
 echo "log: $ROOT/logs/lan-server.log"
 RUST_LOG=${RUST_LOG:-info} "$ROOT/target/$PROFILE/lmo-server" \

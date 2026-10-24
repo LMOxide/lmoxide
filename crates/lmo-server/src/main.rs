@@ -76,6 +76,10 @@ pub struct Config {
     /// Where saved characters are kept.
     #[arg(long, env = "LMO_DATA_DIR", default_value = "lmo-data")]
     pub data_dir: PathBuf,
+    /// Client kit tarball (tools/linux-client/make-kit.sh) served at `/client-kit.tar.gz`, so
+    /// other PCs can install or update the native Linux client from this server.
+    #[arg(long, env = "LMO_CLIENT_KIT")]
+    pub client_kit: Option<PathBuf>,
 }
 
 impl Config {

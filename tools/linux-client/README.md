@@ -14,7 +14,15 @@ tools/linux-client/install.sh --server 192.168.5.69      # the server PC's LAN a
 ~/Games/LMO/lmo <username>
 ```
 
-On another PC, with the kit tarball (`tools/linux-client/make-kit.sh` builds
+On another PC, from a running server (`tools/lan-server.sh` builds the kit and the server serves
+it at `/client-kit.tar.gz`; the same command updates an install later):
+
+```sh
+d=$(mktemp -d) && curl -fsSL http://192.168.5.69:8080/client-kit.tar.gz | tar xz -C $d && $d/*/install.sh --server 192.168.5.69
+~/Games/LMO/lmo <username>
+```
+
+Or with the kit tarball (`tools/linux-client/make-kit.sh` builds
 `dist/lmo-client-kit-v<N>.tar.gz`, about 12 KB; no repo or compiler needed there):
 
 ```sh

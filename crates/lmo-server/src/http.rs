@@ -181,6 +181,7 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
         .route("/track", get(track))
         .route("/rest/chat_filter", get(chat_filter))
         .route("/auth/", get(login_page))
+        .route("/client-kit.tar.gz", get(client_kit))
         .fallback(fallback)
         .with_state(state);
     let listener = tokio::net::TcpListener::bind(addr).await?;
@@ -365,6 +366,14 @@ async fn track(RawQuery(q): RawQuery) -> &'static str {
 async fn fallback(uri: Uri) -> StatusCode {
     warn!(%uri, "unhandled http request");
     StatusCode::NOT_FOUND
+}
+
+/// The native Linux client kit (`--client-kit`), for `curl … | tar xz` on other PCs.
+async fn client_kit(State(s): State<Arc<HttpState>>) -> Response {
+    match &s.cfg.client_kit {
+        Some(p) => send_file(p.clone()).await,
+        None => StatusCode::NOT_FOUND.into_response(),
+    }
 }
 
 async fn send_file(p: PathBuf) -> Response {
