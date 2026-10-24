@@ -26,6 +26,12 @@ pub struct Dash {
     path_mod: Option<f32>,
     arrival_mod: Option<f32>,
     arrival_radius: Option<f32>,
+    /// What the enemies hit along the path / around the end show: (nano, EffectPackage,
+    /// TimeExist cs: a buff) as the original server sent them (For Rome!: its hit 465746).
+    #[serde(default)]
+    path_visuals: Vec<(u32, u32, Option<u32>)>,
+    #[serde(default)]
+    arrival_visuals: Vec<(u32, u32, Option<u32>)>,
 }
 
 static DASHES: LazyLock<HashMap<String, Dash>> =
@@ -49,7 +55,17 @@ impl Dash {
     /// A ColumnDash from a spell's action list (actions.rs): `distance` along the facing with the
     /// effect package `effect`, no hits.
     pub fn column(distance: f32, effect: u32) -> Self {
-        Dash { distance, radius: 1.0, backwards: false, effect, path_mod: None, arrival_mod: None, arrival_radius: None }
+        Dash {
+            distance,
+            radius: 1.0,
+            backwards: false,
+            effect,
+            path_mod: None,
+            arrival_mod: None,
+            arrival_radius: None,
+            path_visuals: Vec::new(),
+            arrival_visuals: Vec::new(),
+        }
     }
 }
 
@@ -92,7 +108,7 @@ pub fn start(
     }
     world::send_playfield(caster, true, world::Out::Records(records));
     if let Some(m) = dash.path_mod {
-        crate::npc::hit_column(caster, playfield, start, end, dash.radius, spell, damage(m));
+        crate::npc::hit_column_with(caster, playfield, start, end, dash.radius, spell, damage(m), |t| show_hit(caster, t, &dash.path_visuals));
     }
     tokio::spawn(async move {
         tokio::time::sleep(Duration::from_secs_f32(t + SETTLE)).await;
@@ -104,9 +120,23 @@ pub fn start(
         records.push(stop_record(caster, end, dir));
         world::send_playfield(caster, true, world::Out::Records(records));
         if let (Some(m), Some(r)) = (dash.arrival_mod, dash.arrival_radius) {
-            crate::npc::hit_area(caster, playfield, end, r, spell, damage(m));
+            crate::npc::hit_area_with(caster, playfield, end, r, spell, damage(m), |t| show_hit(caster, t, &dash.arrival_visuals));
         }
     });
+}
+
+/// What an enemy hit by a dash shows: its nanos' buffs and effect packages (see `Dash`).
+fn show_hit(caster: Id32, target: Id32, visuals: &[(u32, u32, Option<u32>)]) {
+    let mut records = Vec::new();
+    for &(nano, package, time_exist) in visuals {
+        match time_exist {
+            Some(cs) => records.extend(effects::show_buff(target, nano, caster, Some(Duration::from_millis(10 * cs as u64)))),
+            None => records.push(effects::effect_package(target, package)),
+        }
+    }
+    if !records.is_empty() {
+        world::send_playfield(target, true, world::Out::Records(records));
+    }
 }
 
 /// `MoveTaskIIR_c`: u8 0, start; ListMoveTask (4): u8 wait flags 1, u8 current 0, u8 count 2;

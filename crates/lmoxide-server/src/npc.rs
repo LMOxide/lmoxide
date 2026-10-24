@@ -615,23 +615,38 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
 
 /// Hits every live NPC on `playfield` within `radius` of `center`.
 pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
-    hit_where(attacker, playfield, spell, damage, |p| distance(p, center) <= radius)
+    hit_area_with(attacker, playfield, center, radius, spell, damage, |_| ())
+}
+
+/// `hit_area`, calling `on_hit` with each NPC hit.
+pub fn hit_area_with(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, spell: u32, damage: u32, on_hit: impl Fn(Id32)) -> u32 {
+    hit_where(attacker, playfield, spell, damage, |p| distance(p, center) <= radius, on_hit)
 }
 
 /// Hits every live NPC on `playfield` within `radius` of the line from `from` to `to` (a column,
-/// e.g. a dash's path).
-pub fn hit_column(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
+/// e.g. a dash's path), calling `on_hit` with each NPC hit.
+#[allow(clippy::too_many_arguments)]
+pub fn hit_column_with(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32; 3], radius: f32, spell: u32, damage: u32, on_hit: impl Fn(Id32)) -> u32 {
     let (dx, dz) = (to[0] - from[0], to[2] - from[2]);
     let len2 = (dx * dx + dz * dz).max(0.0001);
-    hit_where(attacker, playfield, spell, damage, |p| {
+    let inside = |p: [f32; 3]| {
         let t = (((p[0] - from[0]) * dx + (p[2] - from[2]) * dz) / len2).clamp(0.0, 1.0);
         distance(p, [from[0] + dx * t, p[1], from[2] + dz * t]) <= radius
-    })
+    };
+    hit_where(attacker, playfield, spell, damage, inside, on_hit)
 }
 
-fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool) -> u32 {
+/// Hits the NPCs `inside`; returns how many died.
+fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool, on_hit: impl Fn(Id32)) -> u32 {
     let targets = targets_where(playfield, inside);
-    targets.into_iter().filter(|(t, _)| hit(attacker, *t, spell, damage) == Some(true)).count() as u32
+    let mut died = 0;
+    for (t, _) in targets {
+        if let Some(dead) = hit(attacker, t, spell, damage) {
+            on_hit(t);
+            died += u32::from(dead);
+        }
+    }
+    died
 }
 
 /// The live enemies and smashables on `playfield` whose position is `inside`, with their positions.
