@@ -54,6 +54,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut last_save = std::time::Instant::now();
     let mut potions_spent: u64 = 0;
     let mut shown_portal: Option<u32> = None;
+    // direction of the player's last movement (aims projectiles cast without a target)
+    let mut heading = [0.0f32, 1.0];
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -145,6 +147,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
                         if let Some(p) = reported_position(kind, rest) {
+                            let before = *pos.lock().unwrap();
+                            let (dx, dz) = (p[0] - before[0], p[2] - before[2]);
+                            let moved = (dx * dx + dz * dz).sqrt();
+                            if moved > 0.2 {
+                                heading = [dx / moved, dz / moved];
+                            }
                             *pos.lock().unwrap() = p;
                             // Hub portals: the client sends nothing, so offer the destination's
                             // teleport window when the player steps into one (once per visit), or
@@ -220,7 +228,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let f = |i: usize| f32::from_be_bytes(data[i..i + 4].try_into().unwrap());
                                         [f(9), f(13), f(17)]
                                     }).filter(|_| data.len() >= 21);
-                                    match target.map(|(kind, instance)| Id32::new(kind, instance)) {
+                                    let target_id = target.map(|(kind, instance)| Id32::new(kind, instance));
+                                    if crate::projectile::params(spell).is_some() {
+                                        // a projectile: aim at the target, the clicked point or
+                                        // where the player last moved; its hits deal the damage
+                                        let here = *pos.lock().unwrap();
+                                        let npc_target = target_id.filter(|t| *t != h.identity && crate::npc::is_npc(*t));
+                                        let towards = npc_target
+                                            .and_then(crate::npc::position)
+                                            .or(ground)
+                                            .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
+                                        crate::projectile::launch(h.identity, me.playfield, spell, here, towards, npc_target, damage);
+                                    } else {
+                                    match target_id {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
                                             crate::npc::hit(h.identity, t, spell, damage);
                                         }
@@ -228,6 +248,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             let center = ground.unwrap_or_else(|| *pos.lock().unwrap());
                                             crate::npc::hit_area(h.identity, me.playfield, center, AREA_RADIUS, spell, damage);
                                         }
+                                    }
                                     }
                                 }
                             }
@@ -267,6 +288,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let blob = iir::pass_blob(&records);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
+                    Some("CoreProjectileIIR") => crate::projectile::report(h.identity, blob, rest),
                     Some("MoveInventoryItemIIR_t") => {
                         // Reordering the team (101 -> 101). The client already moved it locally;
                         // echoing would move it back.

@@ -135,6 +135,11 @@ struct Npc {
 
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
+/// Where a live NPC is.
+pub fn position(id: Id32) -> Option<[f32; 3]> {
+    NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())
+}
+
 pub fn is_npc(id: Id32) -> bool {
     NPCS.lock().unwrap().contains_key(&id)
 }

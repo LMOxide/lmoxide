@@ -5,6 +5,7 @@ mod game;
 mod http;
 mod loot;
 mod npc;
+mod projectile;
 mod sessions;
 mod store;
 mod teleport;
