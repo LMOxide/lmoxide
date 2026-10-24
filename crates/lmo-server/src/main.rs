@@ -7,6 +7,7 @@ mod loot;
 mod npc;
 mod sessions;
 mod store;
+mod teleport;
 mod territory;
 mod universe;
 mod world;

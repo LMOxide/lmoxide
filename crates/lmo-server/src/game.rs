@@ -94,22 +94,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                let mut records = vec![playfield_full_update(me.playfield)];
-                records.extend(spawn_records(id, &me.spec()));
-                records.insert(3, full_player_character(id, &me, &collection));
-                if cfg.gm_level != 0 {
-                    records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
-                }
-                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
-                    .await?;
-                // UpdateTokenAmount(uint32 tokenID, uint64 gained, uint64 spent): health potions
-                // (token 150) shown on the potion button.
-                for (token, gained) in [(TOKEN_HEALTH_POTIONS, START_POTIONS), (TOKEN_STARS, me.stars)] {
-                    let args = Writer::new().u32(token).u64(gained).u64(0).finish();
-                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
-                        .await?;
-                }
+                send_world(&mut conn, &cfg, character, &me, &collection, potions_spent).await?;
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
                 // The client's own IIRs (u32 length + records). Only headers are decoded; the
@@ -159,6 +144,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
                         if let Some(p) = reported_position(kind, rest) {
                             *pos.lock().unwrap() = p;
+                            // Hub portals: the client sends nothing, so the server notices the
+                            // player stepping into one. (The teleport window, ScryShowTeleportMessageBox,
+                            // would gate Enter on story-quest requirements we don't model yet, so
+                            // portals teleport directly.)
+                            if let Some(to) = crate::teleport::portal_at(me.playfield, p) {
+                                info!(to, "portal");
+                                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, to, potions_spent)
+                                    .await?;
+                            }
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
                                 me.pos = p;
@@ -286,6 +280,38 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                     }
                     _ => info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR"),
+                }
+            }
+            (Some(Endpoint::GameCharAgent), game_char_agent::TELEPORT_ME) => {
+                // TeleportMe(uint32 playfieldID, uint32 spawnPointID): the world map
+                let playfield = r.u32()?;
+                let spawn = r.u32()?;
+                info!(playfield, spawn, "TeleportMe");
+                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, potions_spent)
+                    .await?;
+            }
+            (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
+                // The teleport window builds its buttons only once this is answered:
+                // ReplyToClientRequestDestinationPlayfieldStatus(bool isReady, bool dungeonCompleted,
+                // bool playfieldEmpty)
+                let args = Writer::new().bool(true).bool(false).bool(true).finish();
+                conn.send_as(
+                    Some(character),
+                    Endpoint::GameCharInterface,
+                    game_char_interface::REPLY_TO_CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS,
+                    args,
+                )
+                .await?;
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::TELEPORT_MESSAGE_BOX_ANSWER) => {
+                // TeleportMessageBoxAnswer(int answer, int ctx): the playfield (high bit: "enter
+                // existing"), or -1 for cancel
+                let answer = r.i32()?;
+                info!(answer, "teleport window answer");
+                if answer > 0 || answer < -1 {
+                    let playfield = (answer as u32) & 0x7fff_ffff;
+                    teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, potions_spent)
+                        .await?;
                 }
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::ACTIVATE_MINIFIGURE_UPGRADE) => {
@@ -441,6 +467,9 @@ pub fn spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
         // collision capsule radius = CharRadius x MonsterScale / 10000 (SimpleChar_t::SetStat)
         int32_stat(id, STAT_CHAR_RADIUS, 50),
         int32_stat(id, STAT_COMMAND_QUEUE_SIZE, 3),
+        // unlocked team slots: below 3 the client refuses moves into slots 8/20
+        // (ItemHolder::IsLegalItemPlacement)
+        int32_stat(id, STAT_MAX_EQUIPPED_WEAPONS, 3),
     ]
 }
 
@@ -449,6 +478,72 @@ pub fn remote_spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
     let mut records = spawn_records(id, c);
     records.push(iir::record("CharInPlayIIR_t", id, false, |w| w));
     records
+}
+
+/// The player's playfield and character, as at login: PlayfieldFIIR_t, the character's
+/// GameObject and dynel, FullPlayerCharacterIIR, stats; then the token counts
+/// (UpdateTokenAmount(uint32 token, uint64 gained, uint64 spent): potions 150, stars 100).
+async fn send_world(
+    conn: &mut Conn,
+    cfg: &Config,
+    character: u32,
+    me: &Character,
+    collection: &Collection,
+    potions_spent: u64,
+) -> anyhow::Result<()> {
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+    let mut records = vec![playfield_full_update(me.playfield)];
+    records.extend(spawn_records(id, &me.spec()));
+    records.insert(3, full_player_character(id, me, collection));
+    if cfg.gm_level != 0 {
+        records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
+    }
+    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+    for (token, gained, spent) in [(TOKEN_HEALTH_POTIONS, START_POTIONS, potions_spent), (TOKEN_STARS, me.stars, 0)] {
+        let args = Writer::new().u32(token).u64(gained).u64(spent).finish();
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args).await?;
+    }
+    Ok(())
+}
+
+/// Moves the player to `playfield` (arriving at its destination point, see teleport.rs):
+/// IntendedTeleportIIR_c + n3TeleportIIR_t, leave the old playfield's world, then the new
+/// playfield as at login. The client answers with CharInPlayIIR_t, which joins the new world.
+#[allow(clippy::too_many_arguments)]
+async fn teleport(
+    conn: &mut Conn,
+    cfg: &Config,
+    store: &Store,
+    character: u32,
+    me: &mut Character,
+    collection: &Collection,
+    presence: &mut Option<world::Presence>,
+    pos: &world::Position,
+    playfield: u32,
+    potions_spent: u64,
+) -> anyhow::Result<()> {
+    let Some(dest) = crate::teleport::destination(playfield) else {
+        warn!(playfield, "no destination data for playfield");
+        return Ok(());
+    };
+    info!(from = me.playfield, to = playfield, name = %dest.name, "teleport");
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+    let records = [
+        crate::teleport::intended_teleport_record(id, playfield),
+        crate::teleport::teleport_record(id, playfield, dest.pos, dest.rot),
+    ];
+    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+    // leaving: despawns the character for everyone in the old playfield
+    *presence = None;
+    me.playfield = playfield;
+    me.pos = dest.pos;
+    *pos.lock().unwrap() = dest.pos;
+    if let Err(e) = store.save(character, me) {
+        warn!(character, "saving character failed: {e:#}");
+    }
+    // let the client tear down the old playfield first
+    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+    send_world(conn, cfg, character, me, collection, potions_spent).await
 }
 
 /// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
@@ -712,6 +807,8 @@ const COMMAND_CYCLE_WEAPON: u32 = 0x30;
 const COMMAND_EQUIP_ITEM: u32 = 9;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
 const STAT_COMMAND_QUEUE_SIZE: u32 = 1360;
+/// Number of unlocked team slots (client name e_MaxEquippedWeapons).
+const STAT_MAX_EQUIPPED_WEAPONS: u32 = 2_000_446;
 
 /// Near the portals in playfield 1200 (from the client's RDBTeleportLocations).
 const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
