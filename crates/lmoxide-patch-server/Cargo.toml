@@ -1,0 +1,36 @@
+[package]
+name = "lmoxide-patch-server"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "LMOxide patch server: the stock client's HTTP endpoints and the LMOxide patcher protocol"
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+axum-server = { version = "0.8", features = ["tls-rustls-no-provider"] }
+bytes.workspace = true
+clap.workspace = true
+ed25519-dalek = "2.2"
+flate2.workspace = true
+globset = "0.4"
+hex = "0.4"
+lmoxide-net.workspace = true
+lmoxide-patch = { path = "../lmoxide-patch", default-features = false }
+md-5.workspace = true
+mime = "0.3"
+reqwest.workspace = true
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-util = { workspace = true, features = ["io"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { workspace = true, features = ["limit"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+lmoxide-patch = { path = "../lmoxide-patch" }
+tempfile = "3.27.0"
