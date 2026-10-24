@@ -49,6 +49,20 @@ pub struct Params {
     pub offset_z: f32,
     pub ricochets: u32,
     pub range: f32,
+    /// Charge spells: the projectile item per charge level (hold longer, bigger shot).
+    #[serde(default)]
+    pub charge_items: Vec<u32>,
+    /// Seconds per charge level.
+    #[serde(default)]
+    pub channel_interval: f32,
+}
+
+impl Params {
+    /// The item for a charge held for `held` seconds.
+    pub fn charged_item(&self, held: f32) -> u32 {
+        let level = (held / self.channel_interval.max(0.05)) as usize;
+        self.charge_items.get(level.min(self.charge_items.len().saturating_sub(1))).copied().unwrap_or(self.item)
+    }
 }
 
 static PARAMS: LazyLock<HashMap<String, Params>> =
@@ -73,8 +87,19 @@ pub fn params(spell: u32) -> Option<&'static Params> {
 /// `caster` shoots `spell` from `from` towards `towards` (a target position, or a point ahead).
 /// The projectile is shown to everyone on the caster's playfield; hits come back as
 /// `CoreProjectileIIR` and deal `damage`.
-pub fn launch(caster: Id32, playfield: u32, spell: u32, from: [f32; 3], towards: [f32; 3], target: Option<Id32>, damage: u32) {
-    let Some(p) = params(spell) else { return };
+#[allow(clippy::too_many_arguments)]
+pub fn launch(
+    caster: Id32,
+    playfield: u32,
+    spell: u32,
+    item: Option<u32>,
+    from: [f32; 3],
+    towards: [f32; 3],
+    target: Option<Id32>,
+    damage: u32,
+) {
+    let Some(base) = params(spell) else { return };
+    let p = &Params { item: item.unwrap_or(base.item), ..base.clone() };
     let id = Id32::new(PROJECTILE_TYPE, NEXT.fetch_add(1, Ordering::Relaxed));
     let range = if p.range > 0.0 { p.range } else { DEFAULT_RANGE };
     // aim at full range along the direction

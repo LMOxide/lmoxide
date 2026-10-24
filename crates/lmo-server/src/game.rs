@@ -56,6 +56,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut shown_portal: Option<u32> = None;
     // direction of the player's last movement (aims projectiles cast without a target)
     let mut heading = [0.0f32, 1.0];
+    // held charge abilities by command client id, fired on release
+    let mut charges: HashMap<u32, Charge> = HashMap::new();
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -193,6 +195,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
                         }
                     }
+                    Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_FINISH_CHANNEL) => {
+                        // Release of a held (channelled/charged) ability: same command, action 20.
+                        // Fire the charged shot; the record is meant for the other players too.
+                        if let Some(p) = &presence {
+                            world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
+                        }
+                        if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
+                            fire_charge(&c, &me, h.identity, *pos.lock().unwrap(), heading);
+                        }
+                    }
                     Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_QUEUE_COMMAND) => {
                         // A queued command (minifigure swap, ability, ...). It completes only
                         // when the server answers with the same record as action 4 (success).
@@ -238,7 +250,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .and_then(crate::npc::position)
                                             .or(ground)
                                             .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
-                                        crate::projectile::launch(h.identity, me.playfield, spell, here, towards, npc_target, damage);
+                                        let charge = crate::projectile::params(spell).is_some_and(|p| !p.charge_items.is_empty());
+                                        if charge {
+                                            // hold to charge: fired on release (BCC action 20)
+                                            fire_stale_charges(&mut charges, &me, h.identity);
+                                            if let Some(client_id) = msg.commandqueue_client_id {
+                                                charges.insert(client_id, Charge {
+                                                    spell,
+                                                    started: std::time::Instant::now(),
+                                                    ground,
+                                                    target: npc_target,
+                                                    damage,
+                                                });
+                                            }
+                                        } else {
+                                            crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
+                                        }
                                     } else {
                                     match target_id {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
@@ -588,6 +615,40 @@ async fn teleport(
     send_world(conn, cfg, character, me, collection, potions_spent).await
 }
 
+/// A charge ability being held (see projectile.rs `charge_items`).
+struct Charge {
+    spell: u32,
+    started: std::time::Instant,
+    ground: Option<[f32; 3]>,
+    target: Option<Id32>,
+    damage: u32,
+}
+
+/// Fires a released charge: the projectile for the charge level reached.
+fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading: [f32; 2]) {
+    let Some(p) = crate::projectile::params(c.spell) else { return };
+    let held = c.started.elapsed().as_secs_f32();
+    let item = p.charged_item(held);
+    let towards = c
+        .target
+        .and_then(crate::npc::position)
+        .or(c.ground)
+        .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
+    info!(spell = c.spell, held, item, "charge released");
+    crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, c.damage);
+}
+
+/// Fires charges whose release never arrived.
+fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster: Id32) {
+    let stale: Vec<u32> = charges.iter().filter(|(_, c)| c.started.elapsed() > CHARGE_TIMEOUT).map(|(k, _)| *k).collect();
+    for k in stale {
+        if let Some(c) = charges.remove(&k) {
+            let here = me.pos;
+            fire_charge(&c, me, caster, here, [0.0, 1.0]);
+        }
+    }
+}
+
 /// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
 /// shown to everyone else) and its own health.
 fn active_minifigure_records(id: Id32, template: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
@@ -835,6 +896,10 @@ const POTION_HEAL: u32 = 50;
 const BCC_QUEUE_COMMAND: u8 = 3;
 const BCC_COMMAND_SUCCEEDED: u8 = 4;
 const BCC_COMMAND_FAILED: u8 = 5;
+/// Client -> server: a held ability was released (MagicCommand_c::FinishChannel).
+const BCC_FINISH_CHANNEL: u8 = 20;
+/// A charge nobody released (lost focus...) fires after this long.
+const CHARGE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(6);
 const BCC_CAN_EXECUTE: u8 = 10;
 pub const COMMAND_MAGIC: u32 = 4;
 /// Damage of a minifigure's normal (left-click) and special (right-click) ability until spell

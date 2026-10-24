@@ -37,6 +37,13 @@
 },
 "1571": {
 "attractor": 0,
+"channel_interval": 0.33,
+"charge_items": [
+202301,
+636391,
+636392,
+636393
+],
 "item": 202301,
 "offset_z": 0.0,
 "range": 0.0,
@@ -46,6 +53,11 @@
 },
 "1572": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+50547,
+50547
+],
 "item": 50547,
 "offset_z": 0.0,
 "range": 0.0,
@@ -55,6 +67,15 @@
 },
 "16066": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+212520,
+212520,
+212520,
+212520,
+212520,
+212520
+],
 "item": 212520,
 "offset_z": 0.0,
 "range": 0.0,
@@ -73,6 +94,11 @@
 },
 "195930": {
 "attractor": 0,
+"channel_interval": 1.0,
+"charge_items": [
+234947,
+234947
+],
 "item": 234947,
 "offset_z": 0.0,
 "range": 0.0,
@@ -145,6 +171,13 @@
 },
 "31414": {
 "attractor": 40,
+"channel_interval": 0.5,
+"charge_items": [
+38698,
+38699,
+38700,
+586145
+],
 "item": 38698,
 "offset_z": 0.0,
 "range": 0.0,
@@ -190,6 +223,12 @@
 },
 "317732": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+318450,
+318450,
+448009
+],
 "item": 318450,
 "offset_z": 0.0,
 "range": 0.0,
@@ -199,6 +238,13 @@
 },
 "317733": {
 "attractor": 0,
+"channel_interval": 0.25,
+"charge_items": [
+318455,
+318457,
+318461,
+656808
+],
 "item": 318455,
 "offset_z": 0.0,
 "range": 0.0,
@@ -235,6 +281,15 @@
 },
 "33017": {
 "attractor": 1,
+"channel_interval": 0.5,
+"charge_items": [
+38943,
+38943,
+38943,
+38943,
+38943,
+38943
+],
 "item": 38943,
 "offset_z": 0.0,
 "range": 0.0,
@@ -244,6 +299,12 @@
 },
 "33022": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+293211,
+462796,
+464673
+],
 "item": 293211,
 "offset_z": 0.0,
 "range": 0.0,
@@ -253,6 +314,13 @@
 },
 "33667": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+40499,
+204252,
+40499,
+204252
+],
 "item": 40499,
 "offset_z": 0.0,
 "range": 0.0,
@@ -262,6 +330,11 @@
 },
 "34532": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+38981,
+38981
+],
 "item": 38981,
 "offset_z": 0.0,
 "range": 0.0,
@@ -298,6 +371,11 @@
 },
 "357872": {
 "attractor": 1,
+"channel_interval": 0.5,
+"charge_items": [
+360320,
+360320
+],
 "item": 360320,
 "offset_z": 0.0,
 "range": 0.0,
@@ -316,6 +394,12 @@
 },
 "357879": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+360406,
+360406,
+360406
+],
 "item": 360406,
 "offset_z": 0.0,
 "range": 0.0,
@@ -379,6 +463,18 @@
 },
 "36526": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+344478,
+344478,
+344478,
+344478,
+344478,
+344478,
+344478,
+344478,
+344478
+],
 "item": 344478,
 "offset_z": -0.5,
 "range": 0.0,
@@ -397,6 +493,18 @@
 },
 "41897": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+42070,
+42070,
+42070,
+42070,
+42070,
+42070,
+42070,
+42070,
+42070
+],
 "item": 42070,
 "offset_z": -3.0,
 "range": 0.0,
@@ -550,6 +658,11 @@
 },
 "550766": {
 "attractor": 0,
+"channel_interval": 0.2,
+"charge_items": [
+550768,
+550768
+],
 "item": 550768,
 "offset_z": 0.0,
 "range": 0.0,
@@ -640,6 +753,12 @@
 },
 "595634": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+595635,
+595635,
+595635
+],
 "item": 595635,
 "offset_z": 0.0,
 "range": 0.0,
@@ -649,6 +768,14 @@
 },
 "596792": {
 "attractor": 0,
+"channel_interval": 0.25,
+"charge_items": [
+596791,
+596801,
+596801,
+596802,
+596791
+],
 "item": 596791,
 "offset_z": 0.0,
 "range": 0.0,
@@ -658,6 +785,13 @@
 },
 "596851": {
 "attractor": 0,
+"channel_interval": 0.18,
+"charge_items": [
+596889,
+596893,
+596894,
+596889
+],
 "item": 596889,
 "offset_z": 0.0,
 "range": 0.0,
@@ -721,6 +855,12 @@
 },
 "663939": {
 "attractor": 0,
+"channel_interval": 0.5,
+"charge_items": [
+667130,
+667130,
+667130
+],
 "item": 667130,
 "offset_z": 0.0,
 "range": 12.5,
