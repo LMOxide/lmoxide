@@ -26,7 +26,8 @@ Sources (all local; nothing is downloaded):
   points (XML), 1000087 teleportdata (XML: portals of every playfield).
 * RDB 1010514 monsterdata names, 1000620 item templates (MonsterData stat 359 of destructibles).
 
-* RDB 1000051 playfield path data (navmesh, tools/re/navmesh.py): walkable boxes with their
+* RDB 1000051 playfield path data (navmesh, tools/re/navmesh.py; small unconnected islands such as
+  ledges and roofs are left out): walkable boxes with their
   ground height.  RDB 1000053 bounded areas (XML; only in the native Linux client, read from
   $LMO_LINUX_CLIENT or ../clients/linux): the designers' named regions (ClearHate_*, Res_*,
   ambush, boss encounter and champion areas), also from a world's quest layers (pf + 1, pf + 2).
@@ -592,6 +593,41 @@ def ground(cells, x, z, near_y=None):
     return min(ys, key=lambda y: abs(y - near_y)) if near_y is not None else max(ys)
 
 
+def reachable(cells, start):
+    """The cells without the small navmesh islands (ledges, roofs, ...): connected components
+    (through neighbours) of less than ISLAND_SHARE of the walkable area and less than
+    ISLAND_AREA m^2 are dropped, unless they hold `start`. Regions joined only by jump pads are
+    separate components too, so big ones stay."""
+    by_id = {c["id"]: c for c in cells}
+
+    def size(c):
+        return (c["max"][0] - c["min"][0]) * (c["max"][2] - c["min"][2])
+
+    total = sum(size(c) for c in cells)
+    keep, seen = set(), set()
+    for c in cells:
+        if c["id"] in seen:
+            continue
+        comp, todo = [c["id"]], [c["id"]]
+        seen.add(c["id"])
+        while todo:
+            for nb in by_id[todo.pop()]["neighbours"]:
+                if nb in by_id and nb not in seen:
+                    seen.add(nb)
+                    comp.append(nb)
+                    todo.append(nb)
+        area = sum(size(by_id[i]) for i in comp)
+        holds_start = any(by_id[i]["min"][0] <= start[0] <= by_id[i]["max"][0] and by_id[i]["min"][2] <= start[2] <= by_id[i]["max"][2]
+                          and by_id[i]["min"][1] - 3 <= start[1] <= by_id[i]["max"][1] + 3 for i in comp)
+        if holds_start or area >= ISLAND_AREA or area >= ISLAND_SHARE * total:
+            keep.update(comp)
+    return [c for c in cells if c["id"] in keep]
+
+
+ISLAND_AREA = 600
+ISLAND_SHARE = 0.05
+
+
 def spread(cands, n, spacing, avoid):
     """Farthest-point sampling: up to n candidates at least `spacing` from each other and from
     `avoid` [(pos, radius)], preferring candidates whose first element (priority) is lower."""
@@ -653,6 +689,8 @@ def proposals(pf, dest, res, points, portals_here, parents, dungeon):
     if not theme or not cells or arrival is None:
         return out
     level, mds, smash = theme
+    # no small navmesh islands (ledges, roofs): enemies there can't be reached
+    cells = reachable(cells, arrival)
     areas = [a for k in (0, 1, 2) if k == 0 or pf + k not in DESTINATIONS for a in bounded_areas(pf + k)]
     combat = [a for a in areas if COMBAT_AREA.search(a["name"]) and not NOT_COMBAT_AREA.search(a["name"])]
     area = sum((c["max"][0] - c["min"][0]) * (c["max"][2] - c["min"][2]) for c in cells)
