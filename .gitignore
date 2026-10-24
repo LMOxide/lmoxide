@@ -6,3 +6,4 @@ rdb-cache/
 lmo-data/
 dist/
 .claude/
+lmoxide-patch-data/
