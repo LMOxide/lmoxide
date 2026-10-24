@@ -3,11 +3,17 @@
   "scenarios": [
     {
       "label": "smash",
-      "about": "smashables next to you (smash animation timing, loot bags)",
-      "goto": {
-        "kind": "smashable",
-        "n": 1
-      }
+      "about": "3 Crates and 3 Barrels around you where you stand (smash animation timing, loot bags)",
+      "spawn": [
+        {
+          "name": "Crate",
+          "count": 3
+        },
+        {
+          "name": "Barrel",
+          "count": 3
+        }
+      ]
     },
     {
       "label": "chase",

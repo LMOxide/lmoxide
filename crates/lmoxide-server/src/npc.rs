@@ -400,26 +400,30 @@ struct PetProjectile {
 static SUMMONS: LazyLock<HashMap<String, serde_json::Value>> =
     LazyLock::new(|| serde_json::from_str(include_str!("../../../data/summons.json")).expect("summons.json"));
 
-/// Test scenarios (devcmd `!test`): `count` copies of the enemy named `name` (any spawn of it
-/// gives the look, level, health and attack) in a ring around `center` on `playfield`, for
-/// `lifetime`. They fight like the others but don't respawn. Returns how many appeared.
+/// Test scenarios (devcmd `!test`): `count` copies of the enemy or smashable named `name` (any
+/// spawn of it gives the look, level, health and attack) in a ring around `center` on
+/// `playfield`, for `lifetime`. They fight (or break) like the others but don't respawn.
+/// Returns how many appeared.
 pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 3], lifetime: Duration) -> u32 {
     let wanted = name.to_ascii_lowercase();
     let Some(def) = NPCS
         .lock()
         .unwrap()
         .values()
-        .find(|n| n.def.kind == Kind::Enemy && n.owner.is_none() && n.def.name.to_ascii_lowercase() == wanted)
+        .find(|n| matches!(n.def.kind, Kind::Enemy | Kind::Smashable) && n.owner.is_none() && n.def.name.to_ascii_lowercase() == wanted)
         .map(|n| n.def.clone())
     else {
         return 0;
     };
     let until = std::time::Instant::now() + lifetime;
     let mut ids = Vec::new();
+    // (turned a bit per call, so several groups don't stand on each other)
+    let turn = (NEXT_INSTANCE.load(std::sync::atomic::Ordering::Relaxed) % 7) as f32 * 0.45;
     for i in 0..count {
-        let angle = i as f32 / count.max(1) as f32 * std::f32::consts::TAU;
+        let angle = turn + i as f32 / count.max(1) as f32 * std::f32::consts::TAU;
         let pos = [center[0] + TEST_SPAWN_RING * angle.cos(), center[1], center[2] + TEST_SPAWN_RING * angle.sin()];
-        let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+        let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
+        let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
         let def = SpawnDef { pos, ..def.clone() };
         let npc = Npc {
             health: def.health,
