@@ -43,7 +43,7 @@ case ${LMO_RUNNER:-wine} in
   # Valve's Proton outside the Steam client (own prefix in ~/.local/share/lmo-proton).
   proton) (cd "$CLIENT" && "$ROOT/tools/proton-run.sh" "$CLIENT/LMO.exe" -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &) ;;
   # Native Linux build: <client-dir> is the extracted Linux client.
-  linux) (cd "$CLIENT" && SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. ./LMO -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &) ;;
+  linux) (cd "$CLIENT" && SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. LD_PRELOAD=$([[ -f liblmofixes.so ]] && echo liblmofixes.so) ./LMO -verified ${LMO_CLIENT_ARGS:-} >"$LOGS/wine.log" 2>&1 &) ;;
   *) echo "unknown LMO_RUNNER=$LMO_RUNNER (wine|proton|linux)" >&2; exit 1 ;;
 esac
 echo "server log: $LOGS/server.log, client log: $CLIENT/ClientLog.txt"

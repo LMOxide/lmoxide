@@ -205,7 +205,18 @@ fn group_records(st: &State, team: u32, joined: bool, members: &[u32]) {
         } else {
             iir::record("RemoveFromGroupIIR_c", char_id(m), false, |w| Id32::new(TEAM_TYPE, team).write(w))
         };
-        world::send_playfield(char_id(m), true, world::Out::Records(vec![rec]));
+        PENDING.lock().unwrap().push((char_id(m), rec));
+    }
+}
+
+/// Group records waiting for STATE to be released: sending takes the world lock, and the
+/// world calls `team_ids` (STATE) while holding it.
+static PENDING: Mutex<Vec<(Id32, Bytes)>> = Mutex::new(Vec::new());
+
+fn flush() {
+    let pending = std::mem::take(&mut *PENDING.lock().unwrap());
+    for (member, rec) in pending {
+        world::send_playfield(member, true, world::Out::Records(vec![rec]));
     }
 }
 
@@ -317,6 +328,11 @@ impl Drop for Guard {
 /// After every playfield entry (the client's CharInPlayIIR_t): live sent YouAreNotInTeam when
 /// not in a team; in a team the full team (YouJoinedTeam, no feedback text) and the group IIR.
 pub fn entered_playfield(character: u32, playfield: u32) {
+    entered_playfield_locked(character, playfield);
+    flush();
+}
+
+fn entered_playfield_locked(character: u32, playfield: u32) {
     let mut st = STATE.lock().unwrap();
     if let Some(o) = st.online.get_mut(&character) {
         o.playfield = playfield;
@@ -347,6 +363,12 @@ pub fn entered_playfield(character: u32, playfield: u32) {
 
 /// `CSPlayerAgent` requests. Returns false for methods not handled here.
 pub fn handle_cs(character: u32, method: u32, r: &mut Reader) -> anyhow::Result<bool> {
+    let handled = handle_cs_locked(character, method, r);
+    flush();
+    handled
+}
+
+fn handle_cs_locked(character: u32, method: u32, r: &mut Reader) -> anyhow::Result<bool> {
     match method {
         cs_player_agent::TEAM_INVITE => {
             let target = Id32::read(r)?.instance;
@@ -548,12 +570,22 @@ fn set_leader(st: &State, team: u32, leader: u32) {
 
 /// `GameCharAgent` LeaveTeam.
 pub fn leave(character: u32) {
+    leave_locked(character);
+    flush();
+}
+
+fn leave_locked(character: u32) {
     let mut st = STATE.lock().unwrap();
     remove_member(&mut st, character);
 }
 
 /// `GameCharAgent` KickFromTeam(ID32): leader only.
 pub fn kick(character: u32, target: u32) {
+    kick_locked(character, target);
+    flush();
+}
+
+fn kick_locked(character: u32, target: u32) {
     let mut st = STATE.lock().unwrap();
     let Some(&team) = st.team_of.get(&character) else { return };
     if st.teams[&team].leader != character || target == character || st.team_of.get(&target) != Some(&team) {

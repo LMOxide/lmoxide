@@ -1352,10 +1352,13 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
         // players, among them MovementChargeSpeed (1400), the speed of dashes
         let speeds: &[(u32, f32)] = if c.npc.is_none() { PLAYER_SPEEDS } else { &[] };
         let w = speeds.iter().fold(w.u32(speeds.len() as u32), |w, &(stat, v)| w.u32(stat).f32(v));
-        // Vehicle_t::ReadState stream: u32 state, then (for vehicles that keep one, i.e. NPCs) u8
-        // has-move-task + the move task. The recorded session sent 2 (+ 0 for NPCs); an empty
-        // stream made the client read a move task out of stray memory (garbage types, crashes).
-        let vehicle = if c.npc.is_some() { Writer::new().u32(2).u8(0).finish() } else { Writer::new().u32(2).finish() };
+        // Vehicle_t::ReadState stream: u32 state, then (for vehicles that keep one) u8
+        // has-move-task + the move task. The recorded session sent 2 + 0 for NPCs and 2 for the
+        // player's own character; an empty stream made the client read a move task out of stray
+        // memory (garbage types, crashes). Everyone gets the NPC form: it is its own
+        // length-prefixed stream, so a vehicle that doesn't read the flag ignores it, and other
+        // players' characters may well read it.
+        let vehicle = Writer::new().u32(2).u8(0).finish();
         let w = w
             // CoreCharacterFullUpdateIIR
             .u8(b'B')

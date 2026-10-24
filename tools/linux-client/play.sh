@@ -15,4 +15,7 @@ curl -sf --max-time 5 "http://$HOST:8080/control/lmo_live/LocalConfig.xml" >Loca
 mv LocalConfig.xml.new LocalConfig.xml
 # SDL_VIDEODRIVER=x11: the 2016 build needs GLX; sdl2-compat would otherwise pick Wayland/EGL
 # and the renderer crashes in gl3wInit.
-SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. exec ./LMO -verified -username "$USER_NAME" -password "$PASS"
+# liblmofixes.so (setup-linux-client.sh): client bug fixes, see lmo-fixes.c. By bare name (found
+# through LD_LIBRARY_PATH): LD_PRELOAD splits on spaces, and the client folder has some.
+PRELOAD=; [[ -f liblmofixes.so ]] && PRELOAD=liblmofixes.so
+SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. LD_PRELOAD=$PRELOAD exec ./LMO -verified -username "$USER_NAME" -password "$PASS"

@@ -15,5 +15,7 @@ CLIENT=${LMO_CLIENT_DIR:-$(realpath -m "$ROOT/../client/LEGO Minifigures Online"
 pkill -x lmo-server || true
 cargo build --manifest-path "$ROOT/Cargo.toml" -q
 echo "LAN server on $IP; other PCs: tools/linux-client/play.sh <client-dir> $IP <username>"
-RUST_LOG=${RUST_LOG:-info} exec "$ROOT/target/debug/lmo-server" \
-  --bind 0.0.0.0 --public-host "$IP" --client-dir "$CLIENT" ${LMO_SERVER_ARGS:-}
+mkdir -p "$ROOT/logs"
+echo "log: $ROOT/logs/lan-server.log"
+RUST_LOG=${RUST_LOG:-info} "$ROOT/target/debug/lmo-server" \
+  --bind 0.0.0.0 --public-host "$IP" --client-dir "$CLIENT" ${LMO_SERVER_ARGS:-} 2>&1 | tee "$ROOT/logs/lan-server.log"
