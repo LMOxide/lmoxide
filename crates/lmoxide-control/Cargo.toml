@@ -1,0 +1,11 @@
+[package]
+name = "lmoxide-control"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "The game server's internal control interface (used by lmoxide-api): types and client"
+
+[dependencies]
+reqwest = { workspace = true, features = ["json"] }
+serde.workspace = true
+thiserror.workspace = true
