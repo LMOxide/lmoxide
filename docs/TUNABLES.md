@@ -114,6 +114,16 @@ playfield resources) aren't listed; neither are protocol constants.
 | Rewards | `achievements.rs` `grant` | AchievementRewardValue stars when the reward icon is the stars icon | Other rewards (the gold minifigure icons 550092/550093) have no data. |
 | Granted at login | `achievements.rs` `login` | whatever already holds (with every minifigure owned at level 10: all "Upgrade 3/7" and the series ones), without pop-ups | Consequence of the unlocked collection. |
 
+## Tutorial
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Trigger radius | `tutorial.rs` | 6 m; Video Game Guy's door 3.5 m | Live's trigger volumes aren't in the client data. |
+| Escort | `tutorial.rs`, `npc::escort` | Video Game Guy follows the player and fights like a pet, one per player | Live: escort script 597462 ("Escortee=50000:1896"); its behaviour is server script. |
+| Scripted Scallywags | `tutorial::script` | the recorded spawns, at least 75 health, gone after 15 min, per trigger | The recording caught some mid-fight (health 1). |
+| Who plays it | `game.rs` | anyone in 1300 without tag 4121 | Live ran it for new characters. |
+| Not done | | the MinimumHealthCap buff 236432, quest records 279/78, SpawnCompass, boss arena doors | |
+
 ## Jump pads
 
 | Value | Where | Now | Source / reasoning |

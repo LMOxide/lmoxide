@@ -493,6 +493,36 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
     `resolvegoal`; 228 by text 126. The NPC hashes and district areas aren't in the client
     data, so those triggers can't be matched without guessing.
 
+## Character creation and tutorial (tutorial.rs)
+
+The recorded session is a new character being created and playing the whole tutorial (notes:
+`research/lmoxide-notes/tutorial.md`, `story_1300.txt`).
+
+- Creation screen: the launcher offers "Create character" only when UpdateClientPlayerData's
+  character map is empty. CharacterSelection.swf (hero carousel, three name wheels) stores the
+  pick in the native `ASCharacterCreation`; `CreateCharacterWithData` carries an empty map (live
+  too). Without `--progression` the server creates the character at GetStartupData, so the screen
+  never shows.
+- Live sent the new character to the creation playfield 4000 (GUI hidden, no minifigure),
+  `SetIsFirstLogin(1)`, and after CharInPlay a `GameActionListIIR_t` (u32 1, u32 0xcfed
+  StartClientSideScryScript, u32 seq, u32 4, u32 0, u32 n + n (key, value): (725,1) (726,0)
+  (754,1) (761, script 156092 "Login_SetupChar_Client"), u32 0, u32 0, u32 0, u8 0). The script
+  sets `character_selection`, and the client sends GameCharAgentProject 7
+  `SetCharacterCreationData(nick, first, last, u32 set)`. The answer: AddItem of the set's
+  minifigure (RDB 1010700/1: 0 Bumblebee Girl 195928, 1 Roman Commander 317609, 2 Plumber 50715)
+  into team slot 6, `SetNameIIR_t` (u32 3, u8 1, u8 1, string nick),
+  `SignalCreatePlayerCharacterResult(0)` (non-zero: failed), `TeleportStarted`, a teleport to
+  1300 (67.1, 47.6, 217.9).
+- Tutorial: six invisible trigger NPCs ("Cinematic Start ...") start Video Game Guy's dialogues
+  as the player walks past; dialogue tags call server script 599417 with `String1=<step>`
+  (DreadlegSpawnPirate, SpawnAmbush, SpawnAmbush2 spawn the Scallywags at AI_Combat1, 2-4, 8-10).
+  Boss music: `ScryScriptIIR_c` (u32 len + protobuf {1:5, 2:2, 3:0, 4:"CombatMusic_Boss",
+  5:"Default", 6:{1:0, 2:0}}; "CombatMusic_Stop" with 5 empty). After Captain Dreadleg: music
+  stop, teleport inside 1300 to Cine_Player1, the last dialogue ends `addtagtoplayer 4121`, and
+  the client's world map tutorial follows; clicking Pirate World sends
+  `TeleportWindowBypass(74, 4600)`.
+- `TutorialShown(tag)`: the client saving a tutorial tip; live answered `AddTag(tag, 0)`.
+
 ## Hit reports
 
 The recorded server never sent `CombatLogIIR`; it reported every hit with `AttackResultIIR`

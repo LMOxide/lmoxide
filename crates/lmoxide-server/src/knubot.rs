@@ -9,8 +9,9 @@
 //!
 //! Which NPC says what, and when, was server-side: only the recorded session's dialogues are
 //! known (Video Game Guy in the tutorial and Pirate World, two cinematics). `addtagtoplayer`
-//! gives the tag (achievements), `teleportplayer` teleports; quest tags (`spawn`,
-//! `resolvegoal`) and server scripts (`gameactiononnpc`) are logged, not run.
+//! gives the tag (achievements), `teleportplayer` teleports, the tutorial's script steps
+//! (`gameactiononnpc` 599417) go to tutorial.rs; quest tags (`spawn`, `resolvegoal`) and other
+//! server scripts are logged, not run.
 
 use std::{
     collections::HashMap,
@@ -71,6 +72,11 @@ static PROGRESS: LazyLock<Mutex<HashMap<(Id32, String, u32), usize>>> = LazyLock
 /// The recorded dialogues (for `!dialog`).
 pub fn dialogues() -> &'static [Dialogue] {
     &DATA.dialogues
+}
+
+/// The recorded dialogue that starts with text `first`.
+pub fn starting_with(first: u32) -> Option<Dialogue> {
+    DATA.dialogues.iter().find(|d| d.texts.first() == Some(&first)).cloned()
 }
 
 /// The dialogues `npc` (by name) has on `playfield`, in order.
@@ -235,6 +241,10 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
                 Some((playfield, at, rot)) => world::send_to(s.player, world::Out::Teleport(playfield, at, rot)),
                 None => warn!(%cmd, ?args, "dialogue teleport not understood"),
             },
+            // the tutorial's server script (599417) with its step name
+            ["gameactiononnpc", _, "gameaction_value", "599417", "gameaction_string0", step, ..] if step.starts_with("String1=") => {
+                crate::tutorial::script(s.player, &step["String1=".len()..]);
+            }
             _ => info!(?s.player, %tag, "dialogue tag not run"),
         }
         records.push(append(s, id, n as u32 + 1));

@@ -98,7 +98,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 |---|---|
 | `!where` | current playfield and position |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `trigger`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them); `!aura <0-4>` sets the active minifigure's aura tier |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |

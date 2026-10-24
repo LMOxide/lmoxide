@@ -27,6 +27,7 @@ mod sessions;
 mod state;
 mod store;
 mod teleport;
+mod tutorial;
 mod territory;
 mod universe;
 mod world;

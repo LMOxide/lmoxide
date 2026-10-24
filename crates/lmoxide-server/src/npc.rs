@@ -338,6 +338,10 @@ pub fn start() {
     for (playfield, defs) in table {
         let Ok(playfield) = playfield.parse::<u32>() else { continue };
         for def in defs {
+            // the tutorial's scripted NPCs appear per player (tutorial.rs)
+            if crate::tutorial::scripted(playfield, &def.name) {
+                continue;
+            }
             let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
             let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
             let pos = Arc::new(Mutex::new(def.pos));
@@ -466,6 +470,61 @@ pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 
         drop(gone); // despawns them
     });
     count
+}
+
+/// Spawns `def` on `playfield` for a scripted event: it fights like the others but doesn't
+/// respawn, and is gone after `lifetime` (or when `despawn`ed).
+pub fn spawn_temporary(def: SpawnDef, playfield: u32, lifetime: Duration) -> Id32 {
+    let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
+    let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+    let until = std::time::Instant::now() + lifetime;
+    let npc = Npc {
+        health: def.health,
+        pos: Arc::new(Mutex::new(def.pos)),
+        def,
+        playfield,
+        presence: None,
+        last_attack: None,
+        owner: None,
+        summon: None,
+        walk: None,
+        temporary: Some(until),
+    };
+    NPCS.lock().unwrap().insert(id, npc);
+    appear(id);
+    tokio::spawn(async move {
+        tokio::time::sleep(lifetime).await;
+        despawn(id);
+    });
+    id
+}
+
+/// A friendly NPC (`def`) that follows `owner` and fights the enemies near it, like a pet, for
+/// `lifetime` (an escort: Video Game Guy in the tutorial).
+pub fn escort(owner: Id32, playfield: u32, def: SpawnDef, lifetime: Duration) -> Id32 {
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+    let def = SpawnDef { kind: Kind::Pet, cars_group: Some(0), ..def };
+    let npc = Npc {
+        health: def.health,
+        pos: Arc::new(Mutex::new(def.pos)),
+        def,
+        playfield,
+        presence: None,
+        last_attack: None,
+        owner: Some((owner, std::time::Instant::now() + lifetime)),
+        summon: None,
+        walk: None,
+        temporary: None,
+    };
+    NPCS.lock().unwrap().insert(id, npc);
+    appear(id);
+    id
+}
+
+/// Removes an NPC (it disappears for everyone).
+pub fn despawn(id: Id32) {
+    let npc = NPCS.lock().unwrap().remove(&id);
+    drop(npc); // drops the presence: despawns it
 }
 
 /// How far from the player test enemies appear.

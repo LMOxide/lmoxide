@@ -146,6 +146,7 @@ const KINDS: &[(&str, &str)] = &[
     ("mirror", "Medusa mirrors (scenery)"),
     ("collectible", "collectibles (achievements)"),
     ("boombox", "boomboxes (achievements)"),
+    ("trigger", "tutorial triggers (1300; listed 6 m off, so !goto and the tour land inside)"),
     ("boss", "dungeon bosses"),
     ("champion", "champions"),
     ("enemy", "all enemies"),
@@ -172,6 +173,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "mirror" => crate::scenery::points("mirror"),
         "collectible" => crate::discovery::points(true),
         "boombox" => crate::discovery::points(false),
+        "trigger" => crate::tutorial::points(),
         "boss" | "champion" | "enemy" | "npc" | "smashable" => crate::npc::points(kind),
         _ => return None,
     })

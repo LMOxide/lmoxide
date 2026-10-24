@@ -66,7 +66,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut gm_level = 0;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
-    let mut tutorial_intro_done = false;
+    // the tutorial, while in it
+    let mut tutorial: Option<crate::tutorial::Run> = None;
     // clearing the playfield in this visit: its own enemies, and those defeated so far
     let mut residents: std::collections::HashSet<Id32> = Default::default();
     let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
@@ -108,6 +109,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             {
                                 // the last of the playfield's enemies: cleared
                                 let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Cleared { playfield: *playfield }));
+                            }
+                            if let crate::achievements::Event::Defeated { name, playfield, .. } = &event
+                                && name == crate::tutorial::BOSS
+                                && *playfield == crate::tutorial::PLAYFIELD
+                                && let Some(run) = tutorial.as_mut()
+                            {
+                                // the tutorial's boss: the music stops, the player watches Dreadleg
+                                // escape and hears the last dialogue (recorded)
+                                let stop = crate::tutorial::music_record(Id32::new(crate::territory::CHARACTER_TYPE, character), "CombatMusic_Stop");
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[stop])).await?;
+                                run.boss_defeated();
+                                let _ = outbox.send(world::Out::Teleport(None, crate::tutorial::AFTER_BOSS, 0.0));
                             }
                             if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
                                 && crate::progression::enabled()
@@ -290,20 +303,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if let Some(&(_, template)) = me.team.first() {
                                 crate::auras::apply(id, template, &me.tags, true);
                             }
-                            // the tutorial starts with Video Game Guy waking the player up (the
-                            // recorded session: a few seconds after arriving), once a session
-                            if me.playfield == TUTORIAL_PLAYFIELD && !tutorial_intro_done {
-                                tutorial_intro_done = true;
-                                let name = me.name.clone();
-                                tokio::spawn(async move {
-                                    tokio::time::sleep(std::time::Duration::from_millis(5500)).await;
-                                    // still there (not teleported away meanwhile)
-                                    if world::whereabouts(id).is_some_and(|(pf, _)| pf == TUTORIAL_PLAYFIELD)
-                                        && let Some(npc) = crate::npc::find(TUTORIAL_GUIDE, TUTORIAL_PLAYFIELD)
-                                    {
-                                        crate::knubot::talk(id, &name, npc, TUTORIAL_GUIDE, TUTORIAL_PLAYFIELD);
-                                    }
-                                });
+                            // the tutorial runs until its last dialogue gave its tag
+                            // (a teleport within it, after the boss, keeps the run)
+                            if me.playfield != crate::tutorial::PLAYFIELD || me.tags.contains_key(&crate::tutorial::DONE_TAG) {
+                                tutorial = None;
+                            } else if tutorial.is_none() {
+                                tutorial = Some(crate::tutorial::Run::start(id, &me.name));
+                            }
+                            if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(here)) {
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                            }
+                            if me.playfield == crate::tutorial::CREATION_PLAYFIELD {
+                                // a new character: the client's creation script sends the name and
+                                // minifigure set picked in the launcher (SetCharacterCreationData)
+                                let args = Writer::new().bool(true).finish();
+                                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_IS_FIRST_LOGIN, args).await?;
+                                let record = crate::tutorial::creation_script_record(id);
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }
                         }
                     }
@@ -331,6 +347,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
                             crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
                             report_finds(&me, p, &outbox);
+                            if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                            }
                             // Hub portals: the client sends nothing, so offer the destination's
                             // teleport window when the player steps into one (once per visit), or
                             // teleport directly if it has none.
@@ -930,6 +949,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let line = format!("visited {} playfields; found {}: {}", me.visits.len(), finds.len(), finds.join(", "));
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
                         }
+                        crate::devcmd::Action::Progress(event @ crate::achievements::Event::Defeated { .. }, 1) => {
+                            // one defeat (!defeat): as a real one (XP, tutorial boss, clears)
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("defeated: {event:?}"));
+                            let _ = outbox.send(world::Out::Progress(event));
+                        }
                         crate::devcmd::Action::Progress(event, n) => {
                             let before = me.tags.len();
                             let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
@@ -1098,6 +1122,41 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let args = item_shop_currencies(me.stars);
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_CURRENCIES, args)
                     .await?;
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::SET_CHARACTER_CREATION_DATA) => {
+                // SetCharacterCreationData(CreatePlayerCharacter: nick, first, last name, u32 set):
+                // what the player picked in the launcher, sent by the creation script
+                let (nick, first, last) = (r.string()?, r.string()?, r.string()?);
+                let set = r.u32()?;
+                let names_ok = [&nick, &first, &last].iter().all(|n| n.chars().count() <= 32) && !nick.trim().is_empty();
+                let starter = crate::tutorial::starter(set).filter(|_| names_ok && me.playfield == crate::tutorial::CREATION_PLAYFIELD);
+                info!(character, %nick, %first, %last, set, ok = starter.is_some(), "SetCharacterCreationData");
+                let result = if starter.is_some() { 0 } else { 1 };
+                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                if let Some(template) = starter {
+                    me.name = [nick.trim(), first.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+                    set_team(&mut me, &mut collection, &[template]);
+                    team_changed = true;
+                    // the minifigure into the team, as live: AddItem(ID32 inventory, i32 pos, entry,
+                    // u8 split), which also gives the HUD its portrait
+                    team_salt += 1 << 33;
+                    let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::max_life(t, me.upgrade(t), me.level()), team_salt);
+                    for e in &team.items {
+                        let args = Id32::new(crate::collection::TEAM_INVENTORY, character).write(Writer::new()).i32(e.pos as i32).proto(&e.item).u8(0).finish();
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
+                    }
+                    let record = crate::tutorial::set_name_record(id, nick.trim());
+                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                }
+                let args = Writer::new().i32(result).finish();
+                conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_CREATE_PLAYER_CHARACTER_RESULT, args)
+                    .await?;
+                if starter.is_some() {
+                    // on to the tutorial (the teleport sends the character again, with its team)
+                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::tutorial::PLAYFIELD, None, Some((crate::tutorial::START, 0.0)), potions_spent)
+                        .await?;
+                }
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::TUTORIAL_SHOWN) => {
                 // TutorialShown(uint32 tag): a tutorial tip seen (or skipped outside the
@@ -1575,9 +1634,6 @@ const GENERIC_LOOK: u32 = 2212;
 /// After the spawn records, so the first build of the character is done (assumed).
 const COSTUME_REFRESH_DELAY: std::time::Duration = std::time::Duration::from_millis(1500);
 
-/// The tutorial and the NPC whose first dialogue starts it.
-const TUTORIAL_PLAYFIELD: u32 = 1300;
-const TUTORIAL_GUIDE: &str = "Video Game Guy";
 
 /// How long `!test` enemies stay.
 const TEST_ENEMY_LIFETIME: std::time::Duration = std::time::Duration::from_secs(15 * 60);

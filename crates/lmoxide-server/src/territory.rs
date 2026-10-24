@@ -78,7 +78,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // here (named after the account), so the client lists it instead of offering
                 // character creation.
                 if !crate::progression::enabled() && crate::store::Store.load(account).is_none() {
-                    create_character(&cfg, account);
+                    create_character(account, cfg.start_playfield);
                 }
                 let me = Some(account);
                 conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
@@ -104,8 +104,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let igr = r.string()?;
                 let (user_type, service_type) = (r.u32()?, r.u32()?);
                 info!(account, dim, ?data, region, age, gender, %igr, user_type, service_type, "CreateCharacterWithData");
-                // The account's one character (created at its first game login, named after the
-                // account; the choices made here aren't used): straight to a game server.
+                // The account's one character. With progression it starts in the creation
+                // playfield, where the client sends the name and minifigure picked on the creation
+                // screen (tutorial.rs); without, it's made at GetStartupData (or at its first game
+                // login).
+                if crate::progression::enabled() && crate::store::Store.load(account).is_none() {
+                    create_character(account, crate::tutorial::CREATION_PLAYFIELD);
+                }
                 connect_character(&mut conn, &cfg, account, cookie).await?;
             }
             (Some(Endpoint::PlayerAgent), agent::LOGIN_CHARACTER) => {
@@ -125,11 +130,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Saves a new character for `account`, named after it, in the start playfield.
-fn create_character(cfg: &Config, account: u32) {
+/// Saves a new character for `account`, named after it, in `playfield`.
+fn create_character(account: u32, playfield: u32) {
     let name = crate::state::or_log(crate::state::db().account(account), "account", None).map(|a| a.username);
     let Some(name) = name else { return };
-    let c = crate::game::new_character(name, cfg.start_playfield);
+    let mut c = crate::game::new_character(name, playfield);
+    if playfield == crate::tutorial::CREATION_PLAYFIELD {
+        // as live: no minifigure until the player's pick arrives
+        c.team.clear();
+    }
     match crate::store::Store.save(account, &c) {
         Ok(()) => info!(account, name = %c.name, playfield = c.playfield, "character created"),
         Err(e) => warn!(account, "creating the character failed: {e:#}"),
@@ -193,12 +202,17 @@ const TERRITORY_ID: u32 = 1;
 /// u64 last login (Unix time), u32, u32, string language, u32, u32, string, u32 level, u32.
 /// Values as in the recorded session (its 2, 11 and 41757 unknown fields are left 0).
 fn characters(account: u32) -> Vec<u8> {
-    let Some(c) = crate::store::Store.load(account) else {
+    // a character still being created isn't listed: the client offers creation again (it keeps
+    // the picked name only until it quits)
+    let Some(c) = crate::store::Store.load(account).filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD) else {
         return Writer::new().container_len(0).finish().to_vec();
     };
     let level = c.level.max(1);
     let w = Writer::new().container_len(1).u32(account);
-    let w = w.u32(account).u32(account).string(&c.name).string("").string("");
+    // first, middle and last name (creation picks three)
+    let mut names = c.name.splitn(3, ' ');
+    let w = w.u32(account).u32(account);
+    let w = (0..3).fold(w, |w, _| w.string(names.next().unwrap_or("")));
     let w = w.u32(1).u32(0).string("").u32(0).u32(c.playfield).u32(level).u32(0).u32(0).u64(0);
     let w = w.u32(0).u32(0).string("en").u32(0).u32(0).string("").u32(level).u32(0);
     w.finish().to_vec()
