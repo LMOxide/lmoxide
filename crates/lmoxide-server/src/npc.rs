@@ -40,8 +40,10 @@ const LEASH_RANGE: f32 = 25.0;
 const MELEE_RANGE: f32 = 1.8;
 const RESPAWN: Duration = Duration::from_secs(20);
 const DESTRUCTIBLE_TYPE: u32 = 51321;
-/// CarsGroup of breakable objects (target group "Destructibles").
-const CARS_DESTRUCTIBLES: u32 = 4;
+/// CarsGroup of breakable objects: 3, as every recorded smashable had (the same group as
+/// enemies). With 4 the client took a left-click on one for an object interaction (walked up
+/// and did nothing) instead of an attack.
+const CARS_DESTRUCTIBLES: u32 = 3;
 const TICK: Duration = Duration::from_millis(250);
 /// A walking NPC gets a new path when its goal moved this far from the current path's end.
 const REPATH: f32 = 1.5;
