@@ -51,7 +51,6 @@ playfield resources) aren't listed; neither are protocol constants.
 | Potions | `game.rs` `START_POTIONS` | 5 per session, restocked at login | Assumed. |
 | Stars dropped | `npc.rs` `ENEMY_STARS` / `SMASHABLE_STARS` | 10 / 3 | Assumed. |
 | Health orb drop chance | `npc.rs` `hit` | 35% per enemy | Assumed. |
-| Loot bag pull | `loot.rs` `PULL_RADIUS` | bags of objects killed from farther than 4 m drop 4 m from the killer | Assumed. Live dropped bags where the object died (recorded session), and the client only collects within 7 m (`AutolootDistance`, client data) of the bag and the item, which lands 2 m from the bag. |
 | Loot bag lifetime | `loot.rs` `BAG_LIFETIME` | 60 s | Assumed. |
 
 ## World and character
