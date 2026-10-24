@@ -58,6 +58,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut heading = [0.0f32, 1.0];
     // held charge abilities by command client id, fired on release
     let mut charges: HashMap<u32, Charge> = HashMap::new();
+    let mut last_summon: Option<(u32, std::time::Instant)> = None;
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -242,8 +243,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     }).filter(|_| data.len() >= 21);
                                     let target_id = target.map(|(kind, instance)| Id32::new(kind, instance));
                                     if crate::npc::is_summon(spell) {
-                                        let at = ground.unwrap_or_else(|| *pos.lock().unwrap());
-                                        crate::npc::summon(h.identity, me.playfield, spell, at);
+                                        // The client re-sends the cast while the button is held;
+                                        // the original server's recharge stopped that. Refuse
+                                        // repeats for a moment.
+                                        if last_summon.is_some_and(|(s, t): (u32, std::time::Instant)| s == spell && t.elapsed() < SUMMON_RECHARGE) {
+                                            refused = true;
+                                        } else {
+                                            last_summon = Some((spell, std::time::Instant::now()));
+                                            let at = ground.unwrap_or_else(|| *pos.lock().unwrap());
+                                            crate::npc::summon(h.identity, me.playfield, spell, at);
+                                        }
                                     } else if crate::projectile::params(spell).is_some() {
                                         // a projectile: aim at the target, the clicked point or
                                         // where the player last moved; its hits deal the damage
@@ -902,6 +911,7 @@ const BCC_COMMAND_FAILED: u8 = 5;
 /// Client -> server: a held ability was released (MagicCommand_c::FinishChannel).
 const BCC_FINISH_CHANNEL: u8 = 20;
 /// A charge nobody released (lost focus...) fires after this long.
+const SUMMON_RECHARGE: std::time::Duration = std::time::Duration::from_secs(2);
 const CHARGE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(6);
 const BCC_CAN_EXECUTE: u8 = 10;
 pub const COMMAND_MAGIC: u32 = 4;
