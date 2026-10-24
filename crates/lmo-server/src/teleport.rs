@@ -6,9 +6,9 @@
 //! `ClientRequestDestinationPlayfieldStatus(PlayfieldProxy)`, needs
 //! `ReplyToClientRequestDestinationPlayfieldStatus(ready, completed, empty)` before it shows its
 //! buttons, and answers `GameCharAgentProject::TeleportMessageBoxAnswer(playfield or -1, ctx)`.
-//! Hub portals send nothing: the server notices the player standing in one and teleports
-//! directly (the teleport window would gate Enter on story-quest requirements we don't model;
-//! window ids are kept in data/destinations.json).
+//! Hub portals send nothing: the server notices the player standing in one and opens that
+//! destination's teleport window. The windows (and World Map markers) require completed story
+//! quests, which `journal_record` provides.
 //!
 //! The move: `IntendedTeleportIIR_c` + `n3TeleportIIR_t` (the client stops the old playfield and
 //! goes to FlowControl DeepTeleport), then the new playfield's records as at login; the client
@@ -33,6 +33,8 @@ pub struct Destination {
     pub pos: [f32; 3],
     /// Facing (radians around the vertical axis).
     pub rot: f32,
+    /// Teleport window id (RDB 1000644/1); 0 if none.
+    pub window: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -89,4 +91,31 @@ pub fn teleport_record(character: Id32, playfield: u32, pos: [f32; 3], rot: f32)
         let w = w.f32(pos[0]).f32(pos[1]).f32(pos[2]).f32(0.0).f32(s).f32(0.0).f32(c);
         Id32::default().write(w.proto(&proxy(playfield))).u32(0).u8(0)
     })
+}
+
+/// `JournalUpdateIIR` (header protobuf JournalUpdateIIRProto) with every story line completed
+/// (data/story_quests.json): the teleport windows and the World Map check
+/// CoreJournalHolder::HasEverCompletedQuest for their required quests.
+pub fn journal_record(character: Id32) -> Bytes {
+    use lmo_net::proto::{
+        JournalUpdateIirProto,
+        journal_update_iir_proto::{AddedMainQuestType, AddedQuestType},
+    };
+    let table: HashMap<String, serde_json::Value> =
+        serde_json::from_str(include_str!("../../../data/story_quests.json")).expect("story_quests.json");
+    let added_main_quest = table
+        .iter()
+        .filter_map(|(main, quests)| {
+            let main: u32 = main.parse().ok()?;
+            let quest = quests
+                .as_array()?
+                .iter()
+                .filter_map(|q| q.as_u64())
+                .map(|q| AddedQuestType { quest_id: Some(q as u32), failed: Some(false), ..Default::default() })
+                .collect();
+            Some(AddedMainQuestType { main_quest_id: Some(main), quest, ..Default::default() })
+        })
+        .collect();
+    let msg = JournalUpdateIirProto { added_main_quest, ..Default::default() };
+    iir::record("JournalUpdateIIR", character, false, |w| w.proto(&msg))
 }

@@ -53,6 +53,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
     let mut potions_spent: u64 = 0;
+    let mut shown_portal: Option<u32> = None;
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -112,6 +113,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // item effects, including its abilities (shortcut slots 104/105); sent with
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
+                        records.push(crate::teleport::journal_record(h.identity));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         if let Some(&(slot, template)) = me.team.first() {
@@ -144,14 +146,32 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
                         if let Some(p) = reported_position(kind, rest) {
                             *pos.lock().unwrap() = p;
-                            // Hub portals: the client sends nothing, so the server notices the
-                            // player stepping into one. (The teleport window, ScryShowTeleportMessageBox,
-                            // would gate Enter on story-quest requirements we don't model yet, so
-                            // portals teleport directly.)
-                            if let Some(to) = crate::teleport::portal_at(me.playfield, p) {
-                                info!(to, "portal");
-                                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, to, potions_spent)
-                                    .await?;
+                            // Hub portals: the client sends nothing, so offer the destination's
+                            // teleport window when the player steps into one (once per visit), or
+                            // teleport directly if it has none.
+                            match crate::teleport::portal_at(me.playfield, p) {
+                                Some(to) if shown_portal != Some(to) => {
+                                    shown_portal = Some(to);
+                                    info!(to, "portal");
+                                    match crate::teleport::destination(to).map(|d| d.window).filter(|&w| w != 0) {
+                                        Some(window) => {
+                                            let args = Writer::new().u32(window).i32(0).finish();
+                                            conn.send_as(
+                                                Some(character),
+                                                Endpoint::GameCharInterfaceProject,
+                                                game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
+                                                args,
+                                            )
+                                            .await?;
+                                        }
+                                        None => {
+                                            teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, to, potions_spent)
+                                                .await?;
+                                        }
+                                    }
+                                }
+                                Some(_) => {}
+                                None => shown_portal = None,
                             }
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
