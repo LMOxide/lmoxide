@@ -170,8 +170,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             heading = yaw;
                             *facing.lock().unwrap() = yaw;
                         }
+                        // what the other players get: keyboard movement (CharDCMoveIIR_t) only moves
+                        // another client's character while its vehicle is in direct-control mode
+                        // (CharDCMoveIIR_t::Activate), which Vehicle_t::UpdateControlMode can leave,
+                        // so it goes out as a path move like click-to-move (MoveTaskIIR_c), which
+                        // always works
+                        let mut relay = Bytes::copy_from_slice(blob);
                         if let Some(p) = reported_position(kind, rest) {
                             let before = *pos.lock().unwrap();
+                            if kind == "CharDCMoveIIR_t" {
+                                relay = move_task_record(h.identity, before, p);
+                            }
                             let (dx, dz) = (p[0] - before[0], p[2] - before[2]);
                             let moved = (dx * dx + dz * dz).sqrt();
                             if kind == "MoveTaskIIR_c" && moved > 0.2 {
@@ -222,7 +231,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                         }
                         if let Some(p) = &presence {
-                            world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
+                            world::broadcast(p.id(), vec![relay]);
                         }
                     }
                     Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_FINISH_CHANNEL) => {
