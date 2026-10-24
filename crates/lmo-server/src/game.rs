@@ -262,6 +262,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // when the server answers with the same record as action 4 (success).
                         let command_type = rest.get(1..5).map_or(0, |b| u32::from_be_bytes(b.try_into().unwrap()));
                         let mut refused = false;
+                        let mut stop_after_success = false;
                         let mut extra = Vec::new();
                         match parse_command(rest) {
                             Some((msg, data)) => {
@@ -271,7 +272,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
                                     .flatten();
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
-                                if spell == Some(POTION_SPELL) {
+                                if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION {
+                                    // building a buildie; a repeat (already building or built) is
+                                    // answered with success and then failure, as live did
+                                    stop_after_success = crate::buildie::interact(h.identity, data) == Some(false);
+                                } else if spell == Some(POTION_SPELL) {
                                     // Potion of Health: spends a potion (token 150) and heals.
                                     if potions_spent >= START_POTIONS {
                                         refused = true;
@@ -400,6 +405,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let mut reply = blob.to_vec();
                         reply[action_at] = if refused { BCC_COMMAND_FAILED } else { BCC_COMMAND_SUCCEEDED };
                         let mut records = vec![Bytes::from(reply.clone())];
+                        if stop_after_success {
+                            let mut failed = reply.clone();
+                            failed[action_at] = BCC_COMMAND_FAILED;
+                            records.push(Bytes::from(failed));
+                        }
                         records.extend(extra);
                         if command_type == COMMAND_MAGIC && !refused {
                             // A MagicCommand only executes (and later finishes, freeing the queue

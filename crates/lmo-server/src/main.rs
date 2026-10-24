@@ -1,3 +1,4 @@
+mod buildie;
 mod chat;
 mod collection;
 mod combat;
@@ -118,6 +119,7 @@ async fn main() -> anyhow::Result<()> {
     tokio::spawn(chat::listen(cfg.addr(cfg.chat_port)));
     community::init(cfg.data_dir.clone());
     npc::start();
+    buildie::start();
     jumppad::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);

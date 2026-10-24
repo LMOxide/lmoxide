@@ -9,3 +9,4 @@ The client ships the original server's traffic from 2015 in
   `ms` is only the microsecond part of the event time.
 - `recs.py` → `recs.pkl`: every IIR record inside PassBlobs (dicts: i, dir, name, id, body).
 - `pblib.py`: protobuf/demo event helpers.
+- `buildies.py <dir>` → `data/buildies.json`: the recorded buildies (spawn record fields, built visual).

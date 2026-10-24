@@ -248,7 +248,7 @@ team 57001 (raid 57016).
   chest model at the bag + Loot_Offset; clicking sends TryLootItem; the server drops the chest's
   contents as a new bag. The LootTable contents were server-side.
 
-## Buildies (recorded session, not implemented yet)
+## Buildies (buildie.rs)
 
 Buildies are `DestructibleFullUpdateIIR_c` dynels of type 51321 with CARS group 1 (the pirate
 tutorial's ramp, wind propeller, mortar and cannons; recs 6909-29358 of the recorded session).
@@ -267,6 +267,9 @@ Building, as live did it:
    After a stop (player left), restarting reset 2999047 and stat 27 to 0 first.
 
 The tick interval isn't recoverable (the recording keeps only the microsecond part of times).
+A full update of a built buildie (sent to newcomers) has SimpleDynel field 1 = the built visual,
+CARS group 5, no particles, Health = max and the Destructible's 4th field = 1. The jump pad
+under a buildie (a separate `Jumper` dynel) is in CARS group 5 until it is built, then 3.
 
 ## Missing game data
 

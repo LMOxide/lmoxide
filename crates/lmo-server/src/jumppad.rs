@@ -36,6 +36,7 @@ const PAD_TYPE: u32 = 51320;
 const PAD_TEMPLATE: u32 = 86651;
 const PAD_CLIENT_SCRIPT: u32 = 601600;
 const CARS_GROUP: u32 = 3;
+const CARS_INACTIVE: u32 = 5;
 const STAT_CARS_GROUP: u32 = 1050;
 /// How close (horizontally) the player must come to a pad's centre (assumed; the original
 /// server launched within ~0.5 m, see docs/TUNABLES.md).
@@ -157,14 +158,31 @@ fn spawn_records(pad: &Pad, playfield: u32) -> Vec<Bytes> {
         let w = w.proto(&dynel).proto(&simple).u32(pad.visual[1]).u32(pad.visual[0]).u32(0);
         pad.bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
     });
-    vec![create_game_object(id, playfield, pad.pos), record, int32_stat(id, STAT_CARS_GROUP, CARS_GROUP)]
+    vec![create_game_object(id, playfield, pad.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group(pad, playfield))]
 }
 
+/// Pads under an unbuilt buildie are inactive (CARS group 5, as recorded) until it is built.
+fn cars_group(pad: &Pad, playfield: u32) -> u32 {
+    if crate::buildie::unbuilt_at(playfield, pad.pos) { CARS_INACTIVE } else { CARS_GROUP }
+}
+
+/// A working pad at `at`.
 fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
-    PADS.get(&playfield)?.iter().find(|p| {
-        let (dx, dz) = (p.pos[0] - at[0], p.pos[2] - at[2]);
-        (dx * dx + dz * dz).sqrt() <= TRIGGER_RADIUS && (p.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT
-    })
+    PADS.get(&playfield)?
+        .iter()
+        .find(|p| {
+            let (dx, dz) = (p.pos[0] - at[0], p.pos[2] - at[2]);
+            (dx * dx + dz * dz).sqrt() <= TRIGGER_RADIUS && (p.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT
+        })
+        .filter(|p| !crate::buildie::unbuilt_at(playfield, p.pos))
+}
+
+/// The buildie at `at` was built: the pad there starts working.
+pub fn activate(playfield: u32, at: [f32; 3]) {
+    let Some(pads) = PADS.get(&playfield) else { return };
+    for pad in pads.iter().filter(|p| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
+        world::send_playfield(pad.id(), false, world::Out::Records(vec![int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)]));
+    }
 }
 
 /// The player reported being at `at` (`from`: where a click-to-move path started, `at` being
