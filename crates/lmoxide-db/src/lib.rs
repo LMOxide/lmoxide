@@ -42,7 +42,11 @@ pub enum Error {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-const MIGRATIONS: &[&str] = &[include_str!("../migrations/0001_initial.sql"), include_str!("../migrations/0002_progression.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("../migrations/0001_initial.sql"),
+    include_str!("../migrations/0002_progression.sql"),
+    include_str!("../migrations/0003_audit_target.sql"),
+];
 
 pub struct Db {
     conn: Mutex<Connection>,
@@ -123,11 +127,21 @@ impl Db {
         Ok(())
     }
 
+    /// [`Db::audit`] for an action on an account: the target is its username, and its id is
+    /// kept too (`target_account`).
+    pub fn audit_account(&self, actor: &str, action: &str, account: &Account, details: Option<&str>) -> Result<()> {
+        self.conn().execute(
+            "INSERT INTO audit_log (at, actor, action, target, target_account, details) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![now(), actor, action, account.username, account.id, details],
+        )?;
+        Ok(())
+    }
+
     /// The newest audit entries, before entry id `before` if given.
     pub fn audit_log(&self, limit: u32, before: Option<i64>) -> Result<Vec<AuditEntry>> {
         let conn = self.conn();
         let mut stmt = conn.prepare(
-            "SELECT id, at, actor, action, target, details FROM audit_log
+            "SELECT id, at, actor, action, target, target_account, details FROM audit_log
              WHERE id < ?1 ORDER BY id DESC LIMIT ?2",
         )?;
         let rows = stmt.query_map(params![before.unwrap_or(i64::MAX), limit], |r| {
@@ -137,7 +151,8 @@ impl Db {
                 actor: r.get(2)?,
                 action: r.get(3)?,
                 target: r.get(4)?,
-                details: r.get(5)?,
+                target_account: r.get(5)?,
+                details: r.get(6)?,
             })
         })?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
@@ -151,11 +166,51 @@ pub struct AuditEntry {
     pub at: i64,
     pub actor: String,
     pub action: String,
+    /// For actions on an account: its username (at the time).
     pub target: Option<String>,
+    /// For actions on an account: its id.
+    pub target_account: Option<u32>,
     pub details: Option<String>,
 }
 
 /// Current unix time in seconds.
 pub fn now() -> i64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn audit_targets() {
+        let db = Db::open_in_memory().unwrap();
+        let a = db.create_account("Target", None, 0).unwrap();
+        db.audit_account("cli", "account-ban", &a, Some("spam")).unwrap();
+        let e = &db.audit_log(10, None).unwrap()[0];
+        assert_eq!((e.target.as_deref(), e.target_account), (Some("Target"), Some(a.id)));
+    }
+
+    /// Migration 0003 gives old entries the account id and the username as target.
+    #[test]
+    fn audit_target_migration() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        for (i, sql) in MIGRATIONS[..2].iter().enumerate() {
+            conn.execute_batch(sql).unwrap();
+            conn.pragma_update(None, "user_version", (i + 1) as i64).unwrap();
+        }
+        let tx = conn.transaction().unwrap();
+        tx.execute("INSERT INTO accounts (id, username, created_at) VALUES (7, 'Seven', 0)", []).unwrap();
+        for (action, target) in [("account-ban", "7"), ("account-create", "seven"), ("account-delete", "gone"), ("kick", "99")] {
+            tx.execute("INSERT INTO audit_log (at, actor, action, target) VALUES (0, 'api', ?1, ?2)", [action, target]).unwrap();
+        }
+        tx.commit().unwrap();
+        let db = Db::init(conn).unwrap();
+        let got: Vec<_> =
+            db.audit_log(10, None).unwrap().into_iter().rev().map(|e| (e.target.unwrap(), e.target_account)).collect();
+        assert_eq!(
+            got,
+            [("Seven".into(), Some(7)), ("seven".into(), Some(7)), ("gone".into(), None), ("99".into(), Some(99))]
+        );
+    }
 }

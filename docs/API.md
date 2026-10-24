@@ -41,7 +41,10 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 |---|---|---|---|
 | GET | `/v1/status` | public* | game server up, version, players online, maintenance |
 | GET | `/v1/online` | public* | characters in play (in-game name, playfield) |
+| GET | `/v1/config` | public | `registration_open`, `private_status`, `moderator_gm_level`, `admin_gm_level` |
 | GET | `/v1/playfields` | public | playfield ids with names (for the ids in other answers) |
+| GET | `/v1/minifigures` | public | minifigure template ids with name, series, attack names, upgrade names by bit, parts (tokens) |
+| GET | `/v1/tokens` | public | token ids (minifigure parts, as in a character's `tokens`) with name and minifigure |
 | POST | `/v1/auth/login` | - | `{username, password}` → `{token, expires_at, scope, account}` |
 | POST | `/v1/auth/logout` | any | ends the session |
 | POST | `/v1/auth/register` | - | `{username, password}`, only with `--open-registration` |
@@ -51,7 +54,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
 | POST | `/v1/broadcast` | moderate | `{message}`: a chat line from "Server" to everyone |
 | POST | `/v1/maintenance` | admin | `{enabled, message?}`: only GMs may log in |
-| GET | `/v1/accounts?search=&offset=&limit=` | read | |
+| GET | `/v1/accounts?search=&offset=&limit=` | read | by username; header `X-Total-Count`: matches in all |
 | POST | `/v1/accounts` | admin | `{username, password?, gm_level?}` |
 | GET | `/v1/accounts/{id}` | read | with characters; `last_login_ip` for admins only |
 | PATCH | `/v1/accounts/{id}` | admin | `{username?, gm_level?}` |
@@ -62,9 +65,14 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/characters/{id}` | read | team, stars, upgrades, tokens, level and XP, minifigure ranks, earned achievements (id, name, points, time), achievement counters |
 | GET/POST | `/v1/api-keys` | admin | list / `{name, scope}` → secret once |
 | DELETE | `/v1/api-keys/{id}` | admin | revoke |
-| GET | `/v1/audit?limit=&before=` | admin | administrative actions, newest first |
+| GET | `/v1/audit?limit=&before=` | admin | administrative actions, newest first; for actions on an account `target` is its username and `target_account_id` its id |
 
 \* public unless `--private-status`, then `read`.
+
+The game data routes (`/v1/playfields`, `/v1/minifigures`, `/v1/tokens`) send
+`Cache-Control: public, max-age=3600`; everything else is `no-store`. The OpenAPI document gives
+the username and password rules (`pattern`, `minLength`, `maxLength`); password lengths are
+counted in bytes by the server.
 
 Example (a Discord bot's status command):
 

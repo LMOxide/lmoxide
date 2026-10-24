@@ -66,10 +66,14 @@ Moderators get 403 when they kick or ban staff (accounts with a GM level); only 
 
 - Times are unix seconds (UTC). Ids are u32 (API key ids i64).
 - Playfields are numeric ids; `GET /v1/playfields` maps them to names (public, cache it).
+- `GET /v1/config` (always public): whether registration is open, and the GM levels from which
+  sessions get the moderate and admin scopes.
 - `ban` on an account is the ban in force (`until: null` = permanent), absent otherwise.
 - `last_login_ip` is only filled in for admins.
-- Character `team` is minifigure item template ids; there's no name/image catalogue in the API
-  yet (the data is in `data/minifigure_*.json` here; ask for a route if the UI needs it).
+- Character `team`, `upgrades` and `minifigure_ranks` use minifigure item template ids:
+  `GET /v1/minifigures` has their names, attack names and upgrade names by bit; `GET /v1/tokens`
+  names the token ids of `tokens`. No images yet.
+- `GET /v1/accounts` sends the number of matches in `X-Total-Count`.
 - Errors are always `{"error": {"code", "message"}}`; codes: `unauthorized`, `bad_credentials`,
   `forbidden`, `not_found`, `invalid`, `conflict`, `rate_limited`, `registration_closed`,
   `game_server_unavailable` (502, game server down: show the status as offline), `no_control`

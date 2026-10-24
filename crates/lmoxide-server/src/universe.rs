@@ -125,13 +125,13 @@ fn authenticate(cfg: &Config, conn: &Conn, username: &str, challenge: &str, answ
         // accounts created without a password: the first login sets it
         Some(a) if cfg.auto_register => {
             db.set_password(a.id, Some(&password)).map_err(|e| fail(&e.to_string()))?;
-            db.audit("login", "set-first-password", Some(&a.username), None).map_err(internal)?;
+            db.audit_account("login", "set-first-password", &a, None).map_err(internal)?;
             a
         }
         Some(_) => return Err(fail("the account has no password yet (lmoxide-server account passwd)")),
         None if cfg.auto_register => {
             let a = db.create_account(username, Some(&password), 0).map_err(|e| fail(&e.to_string()))?;
-            db.audit("login", "auto-register", Some(&a.username), None).map_err(internal)?;
+            db.audit_account("login", "auto-register", &a, None).map_err(internal)?;
             info!(%username, account = a.id, "account registered on first login");
             a
         }

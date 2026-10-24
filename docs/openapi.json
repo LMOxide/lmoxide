@@ -15,7 +15,7 @@
         "tags": [
           "accounts"
         ],
-        "summary": "List accounts. Scope: read.",
+        "summary": "List accounts, by username. Scope: read.",
         "operationId": "list_accounts",
         "parameters": [
           {
@@ -57,6 +57,16 @@
         ],
         "responses": {
           "200": {
+            "headers": {
+              "X-Total-Count": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64",
+                  "minimum": 0
+                },
+                "description": "How many accounts match the search in all"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -648,6 +658,29 @@
         }
       }
     },
+    "/v1/config": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "How this API is set up: registration, GM level thresholds.",
+        "operationId": "config",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
+        ]
+      }
+    },
     "/v1/maintenance": {
       "post": {
         "tags": [
@@ -736,6 +769,32 @@
             }
           }
         }
+      }
+    },
+    "/v1/minifigures": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Every minifigure: name, attacks, upgrade names by bit, parts.",
+        "operationId": "minifigures",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Minifigure"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
+        ]
       }
     },
     "/v1/online": {
@@ -903,6 +962,32 @@
           }
         ]
       }
+    },
+    "/v1/tokens": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Token ids (minifigure parts, as in `Character.tokens`) with their names.",
+        "operationId": "tokens",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Token"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
+        ]
+      }
     }
   },
   "components": {
@@ -987,7 +1072,10 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_.-]+$"
           }
         }
       },
@@ -1069,7 +1157,17 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "What the action was about; for accounts, the username at the time."
+          },
+          "target_account_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "For actions on an account: its id (the account may since have been deleted).",
+            "minimum": 0
           }
         }
       },
@@ -1120,7 +1218,9 @@
         "properties": {
           "message": {
             "type": "string",
-            "description": "1-500 characters, shown in every player's chat from \"Server\"."
+            "description": "1-500 characters, shown in every player's chat from \"Server\".",
+            "maxLength": 500,
+            "minLength": 1
           }
         }
       },
@@ -1135,7 +1235,9 @@
             "type": "string"
           },
           "new_password": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8
           }
         }
       },
@@ -1333,10 +1435,15 @@
         ],
         "properties": {
           "password": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8
           },
           "username": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_.-]+$"
           }
         }
       },
@@ -1442,6 +1549,102 @@
           }
         }
       },
+      "Minifigure": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "series",
+          "upgrades",
+          "parts"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Item template id (as in `Character.team` and `Character.upgrades`).",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
+          },
+          "normal_attack": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Name of the normal (left-click) attack."
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MinifigurePart"
+            },
+            "description": "The minifigure's parts (tokens in `Character.tokens`)."
+          },
+          "series": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Collectible series.",
+            "minimum": 0
+          },
+          "special_attack": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Name of the special (right-click) attack."
+          },
+          "upgrades": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MinifigureUpgrade"
+            },
+            "description": "Upgrades by bit of `Character.upgrades`."
+          }
+        }
+      },
+      "MinifigurePart": {
+        "type": "object",
+        "required": [
+          "token",
+          "location",
+          "name"
+        ],
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "Head, Torso or Legs."
+          },
+          "name": {
+            "type": "string"
+          },
+          "token": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Token id.",
+            "minimum": 0
+          }
+        }
+      },
+      "MinifigureUpgrade": {
+        "type": "object",
+        "required": [
+          "bit",
+          "name"
+        ],
+        "properties": {
+          "bit": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "description": "e.g. \"Fast\", \"Lionhearted\"."
+          }
+        }
+      },
       "NewAccount": {
         "type": "object",
         "required": [
@@ -1458,10 +1661,15 @@
               "string",
               "null"
             ],
-            "description": "Without one the account can't log in until a password is set."
+            "description": "Without one the account can't log in until a password is set.",
+            "maxLength": 128,
+            "minLength": 8
           },
           "username": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_.-]+$"
           }
         }
       },
@@ -1565,6 +1773,38 @@
           }
         }
       },
+      "ServerConfig": {
+        "type": "object",
+        "description": "How this API is set up, for clients that adapt to it (always public).",
+        "required": [
+          "registration_open",
+          "private_status",
+          "moderator_gm_level",
+          "admin_gm_level"
+        ],
+        "properties": {
+          "admin_gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "description": "GM level from which an account's login session has the admin scope.",
+            "minimum": 0
+          },
+          "moderator_gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "description": "GM level from which an account's login session has the moderate scope.",
+            "minimum": 0
+          },
+          "private_status": {
+            "type": "boolean",
+            "description": "Whether `/v1/status` and `/v1/online` need a read-scope credential (`--private-status`)."
+          },
+          "registration_open": {
+            "type": "boolean",
+            "description": "Whether `POST /v1/auth/register` accepts new accounts (`--open-registration`)."
+          }
+        }
+      },
       "Session": {
         "type": "object",
         "required": [
@@ -1606,7 +1846,9 @@
               "string",
               "null"
             ],
-            "description": "`null` removes the password (the account can't log in)."
+            "description": "`null` removes the password (the account can't log in).",
+            "maxLength": 128,
+            "minLength": 8
           }
         }
       },
@@ -1653,6 +1895,35 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "Token": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "minifigure",
+          "location"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "location": {
+            "type": "string",
+            "description": "Head, Torso or Legs."
+          },
+          "minifigure": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The minifigure this is a part of.",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
           }
         }
       },

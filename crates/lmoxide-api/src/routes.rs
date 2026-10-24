@@ -6,7 +6,7 @@ use std::{collections::BTreeMap, net::SocketAddr, sync::Arc};
 use axum::{
     Json,
     extract::{ConnectInfo, Path, Query, State},
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
 };
 use lmoxide_db::{Ban, Scope};
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,10 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::new()
         .routes(routes!(status))
         .routes(routes!(online_players))
+        .routes(routes!(config))
         .routes(routes!(playfields))
+        .routes(routes!(minifigures))
+        .routes(routes!(tokens))
         .routes(routes!(login))
         .routes(routes!(logout))
         .routes(routes!(register))
@@ -188,7 +191,9 @@ pub struct TokenCount {
 
 #[derive(Deserialize, ToSchema)]
 pub struct Credentials {
+    #[schema(min_length = 3, max_length = 32, pattern = "^[A-Za-z0-9_.-]+$")]
     pub username: String,
+    #[schema(min_length = 8, max_length = 128)]
     pub password: String,
 }
 
@@ -206,13 +211,16 @@ pub struct Session {
 #[derive(Deserialize, ToSchema)]
 pub struct ChangePassword {
     pub current_password: String,
+    #[schema(min_length = 8, max_length = 128)]
     pub new_password: String,
 }
 
 #[derive(Deserialize, ToSchema)]
 pub struct NewAccount {
+    #[schema(min_length = 3, max_length = 32, pattern = "^[A-Za-z0-9_.-]+$")]
     pub username: String,
     /// Without one the account can't log in until a password is set.
+    #[schema(min_length = 8, max_length = 128)]
     pub password: Option<String>,
     #[serde(default)]
     pub gm_level: u32,
@@ -220,6 +228,7 @@ pub struct NewAccount {
 
 #[derive(Deserialize, ToSchema)]
 pub struct AccountChanges {
+    #[schema(min_length = 3, max_length = 32, pattern = "^[A-Za-z0-9_.-]+$")]
     pub username: Option<String>,
     pub gm_level: Option<u32>,
 }
@@ -227,6 +236,7 @@ pub struct AccountChanges {
 #[derive(Deserialize, ToSchema)]
 pub struct SetPassword {
     /// `null` removes the password (the account can't log in).
+    #[schema(min_length = 8, max_length = 128)]
     pub password: Option<String>,
 }
 
@@ -246,6 +256,7 @@ pub struct KickRequest {
 #[derive(Deserialize, ToSchema)]
 pub struct BroadcastRequest {
     /// 1-500 characters, shown in every player's chat from "Server".
+    #[schema(min_length = 1, max_length = 500)]
     pub message: String,
 }
 
@@ -290,7 +301,10 @@ pub struct AuditEntry {
     pub at: i64,
     pub actor: String,
     pub action: String,
+    /// What the action was about; for accounts, the username at the time.
     pub target: Option<String>,
+    /// For actions on an account: its id (the account may since have been deleted).
+    pub target_account_id: Option<u32>,
     pub details: Option<String>,
 }
 
@@ -350,6 +364,22 @@ async fn audit(state: &Arc<AppState>, auth: &Auth, action: &'static str, target:
     }
 }
 
+/// [`audit`] for an action on account `id` (by username and id; just the id if it doesn't exist).
+async fn audit_account(state: &Arc<AppState>, auth: &Auth, action: &'static str, id: u32, details: Option<String>) {
+    let actor = auth.actor.clone();
+    let r = blocking(state, move |db| {
+        match db.account(id)? {
+            Some(a) => db.audit_account(&actor, action, &a, details.as_deref())?,
+            None => db.audit(&actor, action, Some(&id.to_string()), details.as_deref())?,
+        }
+        Ok(())
+    })
+    .await;
+    if let Err(e) = r {
+        tracing::error!("audit log: {}", e.message);
+    }
+}
+
 // ------------------------------------------------------------------ public
 
 /// Server status.
@@ -389,6 +419,35 @@ async fn online_players(State(state): State<Arc<AppState>>, MaybeAuth(auth): May
     Ok(Json(players.into_iter().map(|p| PublicPlayer { character_name: p.character_name, playfield: p.playfield }).collect()))
 }
 
+/// How this API is set up, for clients that adapt to it (always public).
+#[derive(Serialize, ToSchema)]
+pub struct ServerConfig {
+    /// Whether `POST /v1/auth/register` accepts new accounts (`--open-registration`).
+    pub registration_open: bool,
+    /// Whether `/v1/status` and `/v1/online` need a read-scope credential (`--private-status`).
+    pub private_status: bool,
+    /// GM level from which an account's login session has the moderate scope.
+    pub moderator_gm_level: u32,
+    /// GM level from which an account's login session has the admin scope.
+    pub admin_gm_level: u32,
+}
+
+/// How this API is set up: registration, GM level thresholds.
+#[utoipa::path(get, path = "/v1/config", tag = "public",
+    responses((status = OK, body = ServerConfig)), security(()))]
+async fn config(State(state): State<Arc<AppState>>) -> Json<ServerConfig> {
+    let cfg = &state.cfg;
+    Json(ServerConfig {
+        registration_open: cfg.open_registration,
+        private_status: cfg.private_status,
+        moderator_gm_level: cfg.moderator_gm_level,
+        admin_gm_level: cfg.admin_gm_level,
+    })
+}
+
+/// `Cache-Control` for answers built from the game data, which only change with a new build.
+const STATIC_DATA: [(header::HeaderName, &str); 1] = [(header::CACHE_CONTROL, "public, max-age=3600")];
+
 #[derive(Serialize, ToSchema)]
 pub struct Playfield {
     pub id: u32,
@@ -398,7 +457,7 @@ pub struct Playfield {
 /// Playfield ids in the other answers, with their names (worlds, dungeons, the LEGO Center).
 #[utoipa::path(get, path = "/v1/playfields", tag = "public",
     responses((status = OK, body = [Playfield])), security(()))]
-async fn playfields() -> Json<Vec<Playfield>> {
+async fn playfields() -> impl axum::response::IntoResponse {
     #[derive(Deserialize)]
     struct File {
         destinations: BTreeMap<u32, Dest>,
@@ -409,9 +468,198 @@ async fn playfields() -> Json<Vec<Playfield>> {
     }
     static LIST: std::sync::LazyLock<Vec<(u32, String)>> = std::sync::LazyLock::new(|| {
         let f: File = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
-        f.destinations.into_iter().map(|(id, d)| (id, d.name)).collect()
+        f.destinations.into_iter().map(|(id, d)| (id, decode_entities(&d.name))).collect()
     });
-    Json(LIST.iter().map(|(id, name)| Playfield { id: *id, name: name.clone() }).collect())
+    (STATIC_DATA, Json(LIST.iter().map(|(id, name)| Playfield { id: *id, name: name.clone() }).collect::<Vec<_>>()))
+}
+
+/// Decodes the XML character entities the game data keeps in names (`Natives&apos; Hollow`).
+fn decode_entities(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(i) = rest.find('&') {
+        out.push_str(&rest[..i]);
+        rest = &rest[i..];
+        let decoded = rest.find(';').filter(|&end| end <= 10).and_then(|end| {
+            let c = match &rest[1..end] {
+                "amp" => '&',
+                "apos" => '\'',
+                "quot" => '"',
+                "lt" => '<',
+                "gt" => '>',
+                e => match e.strip_prefix("#x").or_else(|| e.strip_prefix("#X")) {
+                    Some(hex) => char::from_u32(u32::from_str_radix(hex, 16).ok()?)?,
+                    None => char::from_u32(e.strip_prefix('#')?.parse().ok()?)?,
+                },
+            };
+            Some((c, end))
+        });
+        match decoded {
+            Some((c, end)) => {
+                out.push(c);
+                rest = &rest[end + 1..];
+            }
+            None => {
+                out.push('&');
+                rest = &rest[1..];
+            }
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Minifigure {
+    /// Item template id (as in `Character.team` and `Character.upgrades`).
+    pub id: u32,
+    pub name: String,
+    /// Collectible series.
+    pub series: u32,
+    /// Name of the normal (left-click) attack.
+    pub normal_attack: Option<String>,
+    /// Name of the special (right-click) attack.
+    pub special_attack: Option<String>,
+    /// Upgrades by bit of `Character.upgrades`.
+    pub upgrades: Vec<MinifigureUpgrade>,
+    /// The minifigure's parts (tokens in `Character.tokens`).
+    pub parts: Vec<MinifigurePart>,
+}
+
+#[derive(Serialize, ToSchema, Clone)]
+pub struct MinifigureUpgrade {
+    pub bit: u32,
+    /// e.g. "Fast", "Lionhearted".
+    pub name: String,
+}
+
+#[derive(Serialize, ToSchema, Clone)]
+pub struct MinifigurePart {
+    /// Token id.
+    pub token: u32,
+    /// Head, Torso or Legs.
+    pub location: String,
+    pub name: String,
+}
+
+#[derive(Serialize, ToSchema, Clone)]
+pub struct Token {
+    pub id: u32,
+    pub name: String,
+    /// The minifigure this is a part of.
+    pub minifigure: u32,
+    /// Head, Torso or Legs.
+    pub location: String,
+}
+
+/// The game's minifigures (from data/minifig_parts.json and data/minifigure_stats.json).
+fn minifigure_list() -> &'static [Minifigure] {
+    #[derive(Deserialize)]
+    struct Parts {
+        minifigures: Vec<PartsEntry>,
+    }
+    #[derive(Deserialize)]
+    struct PartsEntry {
+        minifigure_template_id: u32,
+        name: Option<String>,
+        series: u32,
+        parts: Vec<Part>,
+    }
+    #[derive(Deserialize)]
+    struct Part {
+        location: String,
+        part_token_id: u32,
+        part_name: String,
+    }
+    #[derive(Deserialize)]
+    struct Stats {
+        minifigures: BTreeMap<u32, StatsEntry>,
+    }
+    #[derive(Deserialize)]
+    struct StatsEntry {
+        normal: Option<Attack>,
+        special: Option<Attack>,
+        #[serde(default)]
+        upgrades: Vec<Upgrade>,
+    }
+    #[derive(Deserialize)]
+    struct Attack {
+        name: Option<String>,
+    }
+    #[derive(Deserialize)]
+    struct Upgrade {
+        bit: u32,
+        name: String,
+    }
+    static LIST: std::sync::LazyLock<Vec<Minifigure>> = std::sync::LazyLock::new(|| {
+        let parts: Parts = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
+        let mut stats: Stats =
+            serde_json::from_str(include_str!("../../../data/minifigure_stats.json")).expect("minifigure_stats.json");
+        let mut list: Vec<Minifigure> = parts
+            .minifigures
+            .into_iter()
+            .map(|m| {
+                let st = stats.minifigures.remove(&m.minifigure_template_id);
+                let attack = |a: Option<Attack>| a.and_then(|a| a.name).map(|n| decode_entities(&n));
+                let (normal, special, upgrades) = match st {
+                    Some(s) => (s.normal, s.special, s.upgrades),
+                    None => (None, None, Vec::new()),
+                };
+                // the client data has no name for the DJ (1922); its parts are "DJ Head" etc.
+                let name = m.name.or_else(|| {
+                    let head = m.parts.iter().find(|p| p.location == "Head")?;
+                    Some(head.part_name.strip_suffix(" Head")?.to_string())
+                });
+                Minifigure {
+                    id: m.minifigure_template_id,
+                    name: decode_entities(&name.unwrap_or_default()),
+                    series: m.series,
+                    normal_attack: attack(normal),
+                    special_attack: attack(special),
+                    upgrades: upgrades
+                        .into_iter()
+                        .filter(|u| u.name != "No upgrade available")
+                        .map(|u| MinifigureUpgrade {
+                            bit: u.bit,
+                            name: decode_entities(u.name.strip_prefix("Upgrade: ").unwrap_or(&u.name)),
+                        })
+                        .collect(),
+                    parts: m
+                        .parts
+                        .into_iter()
+                        .map(|p| MinifigurePart { token: p.part_token_id, location: p.location, name: decode_entities(&p.part_name) })
+                        .collect(),
+                }
+            })
+            .collect();
+        list.sort_by_key(|m| m.id);
+        list
+    });
+    &LIST
+}
+
+/// Every minifigure: name, attacks, upgrade names by bit, parts.
+#[utoipa::path(get, path = "/v1/minifigures", tag = "public",
+    responses((status = OK, body = [Minifigure])), security(()))]
+async fn minifigures() -> impl axum::response::IntoResponse {
+    (STATIC_DATA, Json(minifigure_list()))
+}
+
+/// Token ids (minifigure parts, as in `Character.tokens`) with their names.
+#[utoipa::path(get, path = "/v1/tokens", tag = "public",
+    responses((status = OK, body = [Token])), security(()))]
+async fn tokens() -> impl axum::response::IntoResponse {
+    static LIST: std::sync::LazyLock<Vec<Token>> = std::sync::LazyLock::new(|| {
+        let mut list: Vec<Token> = minifigure_list()
+            .iter()
+            .flat_map(|m| {
+                m.parts.iter().map(|p| Token { id: p.token, name: p.name.clone(), minifigure: m.id, location: p.location.clone() })
+            })
+            .collect();
+        list.sort_by_key(|t| t.id);
+        list
+    });
+    (STATIC_DATA, Json(LIST.as_slice()))
 }
 
 // ------------------------------------------------------------------ sessions
@@ -488,7 +736,7 @@ async fn register(
     state.lockout.failed(&ip_key);
     let account = blocking(&state, move |db| {
         let a = db.create_account(&c.username, Some(&c.password), 0)?;
-        db.audit("api", "register", Some(&a.username), None)?;
+        db.audit_account("api", "register", &a, None)?;
         Ok(account_dto(db, a, false)?)
     })
     .await?;
@@ -558,7 +806,7 @@ async fn kick(State(state): State<Arc<AppState>>, auth: Auth, Path(account_id): 
         .kick(account_id, &lmoxide_control::Kick { reason: k.reason.clone() })
         .await
         .map_err(ApiError::game_server)?;
-    audit(&state, &auth, "kick", Some(account_id.to_string()), k.reason).await;
+    audit_account(&state, &auth, "kick", account_id, k.reason).await;
     Ok(Json(Done { affected: done.affected }))
 }
 
@@ -598,18 +846,28 @@ async fn maintenance(State(state): State<Arc<AppState>>, auth: Auth, Json(m): Js
 
 // ------------------------------------------------------------------ accounts
 
-/// List accounts. Scope: read.
+/// List accounts, by username. Scope: read.
 #[utoipa::path(get, path = "/v1/accounts", tag = "accounts", params(AccountQuery),
-    responses((status = OK, body = [Account])))]
-async fn list_accounts(State(state): State<Arc<AppState>>, auth: Auth, Query(q): Query<AccountQuery>) -> ApiResult<Json<Vec<Account>>> {
+    responses((status = OK, body = [Account],
+        headers(("X-Total-Count" = u64, description = "How many accounts match the search in all")))))]
+async fn list_accounts(
+    State(state): State<Arc<AppState>>,
+    auth: Auth,
+    Query(q): Query<AccountQuery>,
+) -> ApiResult<([(&'static str, HeaderValue); 1], Json<Vec<Account>>)> {
     auth.require(Scope::Read)?;
     let show_ip = auth.require(Scope::Admin).is_ok();
     blocking(&state, move |db| {
         let list = db.list_accounts(q.search.as_deref(), q.offset, q.limit.unwrap_or(50).min(200))?;
-        Ok(Json(list.into_iter().map(|a| account_dto(db, a, show_ip)).collect::<Result<_, _>>()?))
+        let total = db.count_accounts_matching(q.search.as_deref())?;
+        let list = list.into_iter().map(|a| account_dto(db, a, show_ip)).collect::<Result<_, _>>()?;
+        Ok(([(TOTAL_COUNT, HeaderValue::from(total))], Json(list)))
     })
     .await
 }
+
+/// Response header with the size of a paged list.
+pub const TOTAL_COUNT: &str = "x-total-count";
 
 /// Create an account. Scope: admin.
 #[utoipa::path(post, path = "/v1/accounts", tag = "accounts", request_body = NewAccount,
@@ -618,7 +876,7 @@ async fn create_account(State(state): State<Arc<AppState>>, auth: Auth, Json(n):
     auth.require(Scope::Admin)?;
     let account = blocking(&state, move |db| {
         let a = db.create_account(&n.username, n.password.as_deref(), n.gm_level)?;
-        db.audit(&auth.actor, "account-create", Some(&a.username), None)?;
+        db.audit_account(&auth.actor, "account-create", &a, None)?;
         Ok(account_dto(db, a, true)?)
     })
     .await?;
@@ -644,13 +902,15 @@ async fn get_account(State(state): State<Arc<AppState>>, auth: Auth, Path(id): P
 async fn update_account(State(state): State<Arc<AppState>>, auth: Auth, Path(id): Path<u32>, Json(c): Json<AccountChanges>) -> ApiResult<Json<Account>> {
     auth.require(Scope::Admin)?;
     blocking(&state, move |db| {
+        let before = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
         if let Some(name) = &c.username {
             db.rename_account(id, name)?;
-            db.audit(&auth.actor, "account-rename", Some(&id.to_string()), Some(name))?;
+            db.audit_account(&auth.actor, "account-rename", &before, Some(name))?;
         }
+        let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
         if let Some(level) = c.gm_level {
             db.set_gm_level(id, level)?;
-            db.audit(&auth.actor, "account-gm", Some(&id.to_string()), Some(&level.to_string()))?;
+            db.audit_account(&auth.actor, "account-gm", &a, Some(&level.to_string()))?;
         }
         let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
         Ok(Json(account_dto(db, a, true)?))
@@ -667,7 +927,7 @@ async fn delete_account(State(state): State<Arc<AppState>>, auth: Auth, Path(id)
     blocking(&state, move |db| {
         let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
         db.delete_account(id)?;
-        db.audit(&auth.actor, "account-delete", Some(&a.username), None)?;
+        db.audit_account(&auth.actor, "account-delete", &a, None)?;
         Ok(StatusCode::NO_CONTENT)
     })
     .await
@@ -679,9 +939,10 @@ async fn delete_account(State(state): State<Arc<AppState>>, auth: Auth, Path(id)
 async fn set_password(State(state): State<Arc<AppState>>, auth: Auth, Path(id): Path<u32>, Json(p): Json<SetPassword>) -> ApiResult<StatusCode> {
     auth.require(Scope::Admin)?;
     blocking(&state, move |db| {
+        let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
         db.set_password(id, p.password.as_deref())?;
         db.end_game_sessions(id)?;
-        db.audit(&auth.actor, "account-passwd", Some(&id.to_string()), None)?;
+        db.audit_account(&auth.actor, "account-passwd", &a, None)?;
         Ok(StatusCode::NO_CONTENT)
     })
     .await
@@ -698,8 +959,8 @@ async fn ban(State(state): State<Arc<AppState>>, auth: Auth, Path(id): Path<u32>
         let until = b.days.map(|d| lmoxide_db::now() + i64::from(d) * 86400);
         db.ban(id, &Ban { until, reason: b.reason.clone() })?;
         db.end_game_sessions(id)?;
-        db.audit(&auth.actor, "account-ban", Some(&id.to_string()), b.reason.as_deref())?;
         let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
+        db.audit_account(&auth.actor, "account-ban", &a, b.reason.as_deref())?;
         Ok(account_dto(db, a, false)?)
     })
     .await?;
@@ -718,8 +979,8 @@ async fn unban(State(state): State<Arc<AppState>>, auth: Auth, Path(id): Path<u3
     auth.require(Scope::Moderate)?;
     blocking(&state, move |db| {
         db.unban(id)?;
-        db.audit(&auth.actor, "account-unban", Some(&id.to_string()), None)?;
         let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
+        db.audit_account(&auth.actor, "account-unban", &a, None)?;
         Ok(Json(account_dto(db, a, false)?))
     })
     .await
@@ -842,9 +1103,40 @@ async fn audit_log(State(state): State<Arc<AppState>>, auth: Auth, Query(q): Que
         Ok(Json(
             entries
                 .into_iter()
-                .map(|e| AuditEntry { id: e.id, at: e.at, actor: e.actor, action: e.action, target: e.target, details: e.details })
+                .map(|e| AuditEntry {
+                    id: e.id,
+                    at: e.at,
+                    actor: e.actor,
+                    action: e.action,
+                    target: e.target,
+                    target_account_id: e.target_account,
+                    details: e.details,
+                })
                 .collect(),
         ))
     })
     .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn entities() {
+        assert_eq!(decode_entities("Natives&apos; Hollow"), "Natives' Hollow");
+        assert_eq!(decode_entities("a &amp; b &#65;&#x42; &bogus; & c &"), "a & b AB &bogus; & c &");
+    }
+
+    #[test]
+    fn game_data() {
+        let figs = minifigure_list();
+        assert_eq!(figs.len(), 133);
+        let dj = figs.iter().find(|m| m.id == 1922).unwrap();
+        assert_eq!(dj.name, "DJ");
+        assert_eq!(dj.normal_attack.as_deref(), Some("Throw Record"));
+        assert_eq!(dj.upgrades[0].name, "Fast");
+        assert_eq!(dj.parts.len(), 3);
+        assert!(figs.iter().all(|m| !m.name.is_empty()));
+    }
 }

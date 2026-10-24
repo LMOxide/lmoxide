@@ -240,6 +240,7 @@ async fn serve(cfg: Config, db: Arc<Db>) -> anyhow::Result<()> {
             .allow_origin(AllowOrigin::list(origins))
             .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
             .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE])
+            .expose_headers([header::HeaderName::from_static(routes::TOTAL_COUNT)])
             .max_age(Duration::from_secs(3600))
     });
     let (bind, tls) = (cfg.bind, cfg.tls_cert.clone().zip(cfg.tls_key.clone()));
@@ -253,7 +254,8 @@ async fn serve(cfg: Config, db: Arc<Db>) -> anyhow::Result<()> {
         .with_state(state)
         .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
         .layer(TimeoutLayer::with_status_code(axum::http::StatusCode::REQUEST_TIMEOUT, Duration::from_secs(30)))
-        .layer(SetResponseHeaderLayer::overriding(header::CACHE_CONTROL, HeaderValue::from_static("no-store")))
+        // static game data sets its own
+        .layer(SetResponseHeaderLayer::if_not_present(header::CACHE_CONTROL, HeaderValue::from_static("no-store")))
         .layer(SetResponseHeaderLayer::overriding(header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff")))
         .layer(TraceLayer::new_for_http());
     if let Some(cors) = cors {

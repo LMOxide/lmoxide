@@ -127,7 +127,16 @@ impl Db {
     }
 
     pub fn count_accounts(&self) -> Result<u64> {
-        Ok(self.conn().query_row("SELECT count(*) FROM accounts", [], |r| r.get::<_, i64>(0))? as u64)
+        self.count_accounts_matching(None)
+    }
+
+    /// How many accounts [`Db::list_accounts`] with this `search` finds in all.
+    pub fn count_accounts_matching(&self, search: Option<&str>) -> Result<u64> {
+        Ok(self.conn().query_row(
+            "SELECT count(*) FROM accounts WHERE instr(lower(username), lower(?1)) > 0",
+            [search.unwrap_or("")],
+            |r| r.get::<_, i64>(0),
+        )? as u64)
     }
 
     /// Checks a password against the stored hash. False when the account has none.
@@ -218,6 +227,9 @@ mod tests {
         assert!(db.account(a.id).unwrap().unwrap().ban.is_none());
 
         assert_eq!(db.list_accounts(Some("TEMP"), 0, 10).unwrap().len(), 1);
+        db.create_account("other", None, 0).unwrap();
+        assert_eq!(db.count_accounts_matching(Some("TEMP")).unwrap(), 1);
+        assert_eq!(db.count_accounts().unwrap(), 2);
         db.delete_account(a.id).unwrap();
         assert!(db.account(a.id).unwrap().is_none());
     }

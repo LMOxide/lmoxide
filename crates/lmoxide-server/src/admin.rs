@@ -76,7 +76,7 @@ fn account(db: &Db, cmd: AccountCmd) -> anyhow::Result<()> {
         AccountCmd::Create { username, gm_level } => {
             let password = read_password()?;
             let a = db.create_account(&username, Some(&password), gm_level)?;
-            db.audit("cli", "account-create", Some(&a.username), None)?;
+            db.audit_account("cli", "account-create", &a, None)?;
             println!("created {} (id {})", a.username, a.id);
         }
         AccountCmd::Passwd { username } => {
@@ -84,13 +84,13 @@ fn account(db: &Db, cmd: AccountCmd) -> anyhow::Result<()> {
             let password = read_password()?;
             db.set_password(a.id, Some(&password))?;
             db.end_game_sessions(a.id)?;
-            db.audit("cli", "account-passwd", Some(&a.username), None)?;
+            db.audit_account("cli", "account-passwd", &a, None)?;
             println!("password of {} set", a.username);
         }
         AccountCmd::Gm { username, level } => {
             let a = find(&username)?;
             db.set_gm_level(a.id, level)?;
-            db.audit("cli", "account-gm", Some(&a.username), Some(&level.to_string()))?;
+            db.audit_account("cli", "account-gm", &a, Some(&level.to_string()))?;
             println!("{} now has GM level {level} (from their next login)", a.username);
         }
         AccountCmd::Ban { username, days, reason } => {
@@ -98,14 +98,14 @@ fn account(db: &Db, cmd: AccountCmd) -> anyhow::Result<()> {
             let until = days.map(|d| lmoxide_db::now() + i64::from(d) * 86400);
             db.ban(a.id, &Ban { until, reason: reason.clone() })?;
             db.end_game_sessions(a.id)?;
-            db.audit("cli", "account-ban", Some(&a.username), reason.as_deref())?;
+            db.audit_account("cli", "account-ban", &a, reason.as_deref())?;
             println!("{} banned {}", a.username, days.map_or("permanently".into(), |d| format!("for {d} days")));
             println!("(a running server keeps an online player connected until kicked through lmoxide-api)");
         }
         AccountCmd::Unban { username } => {
             let a = find(&username)?;
             db.unban(a.id)?;
-            db.audit("cli", "account-unban", Some(&a.username), None)?;
+            db.audit_account("cli", "account-unban", &a, None)?;
             println!("{} unbanned", a.username);
         }
         AccountCmd::List { search } => {
@@ -132,7 +132,7 @@ fn account(db: &Db, cmd: AccountCmd) -> anyhow::Result<()> {
                 }
             }
             db.delete_account(a.id)?;
-            db.audit("cli", "account-delete", Some(&a.username), None)?;
+            db.audit_account("cli", "account-delete", &a, None)?;
             println!("deleted {}", a.username);
         }
     }
