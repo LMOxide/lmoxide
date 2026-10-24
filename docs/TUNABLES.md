@@ -36,6 +36,7 @@ playfield resources) aren't listed; neither are protocol constants.
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
 | Charge hold before auto-fire | `game.rs` `CHARGE_HOLD` | 3 s after full charge | Assumed. |
+| Re-cast after an automatic fire | `game.rs` `CHARGE_RECAST_GAP` | re-sends refused until the client stops for 0.5 s | Assumed. A still-held button re-sends the cast after the server ends the channel. |
 | Unreleased charge fallback | `game.rs` `CHARGE_TIMEOUT` | 6 s | Safety net if the release never arrives. |
 | Summon recast block | `game.rs` `SUMMON_RECHARGE` | 2 s | The spell's real recharge wasn't enforced client-side; assumed. |
 | Summon lifetime / looks / damage | `data/summons.json`, `npc.rs` `PET_DAMAGE` / `PET_FOLLOW` / `PET_SHOOT_RANGE` | 15 s, chosen models, 60 damage, 2 m, 8 m | The spawned monster templates are server-side; looks chosen by name. |

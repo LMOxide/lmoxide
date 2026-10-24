@@ -7,13 +7,14 @@ use bytes::Bytes;
 use lmo_net::{iir, types::Id32};
 
 /// `MagicBuffIIR_c` mode 0 (add): u32 buff, u8 mode, ID32 caster, u32 counter, u32 counter
-/// type, i32 duration (centiseconds), u8, u8, GameActionExecutorData (6 × u32), u32 casting
-/// level, u64 end time. The client plays the buff's EffectPackage (stat 1109) on every add.
+/// type, i32 duration (centiseconds), u8, u8, GameActionExecutorData (7 × u32, operator>>
+/// 0x1b343ac), u32 casting level, u64 end time (67 bytes in the recorded session). The client
+/// plays the buff's EffectPackage (stat 1109) on every add.
 pub fn buff_add(target: Id32, buff: u32, caster: Id32, duration_cs: i32) -> Bytes {
     iir::record("MagicBuffIIR_c", target, false, |w| {
         let w = caster.write(w.u32(buff).u8(0)).u32(0).u32(0).i32(duration_cs).u8(0).u8(1);
-        let w = [1, 0, buff, 1, 0, 0].iter().fold(w, |w, v| w.u32(*v));
-        w.u32(0).u64(0)
+        let w = [1, 0, buff, 1, 0, 0, 0].iter().fold(w, |w, v| w.u32(*v));
+        w.u32(1).u64(0)
     })
 }
 

@@ -61,6 +61,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     // held charge abilities by command client id, fired on release
     let mut charges: HashMap<u32, Charge> = HashMap::new();
     let mut last_summon: Option<(u32, std::time::Instant)> = None;
+    // the last charge fired automatically, and when the client last re-sent it since (see
+    // CHARGE_RECAST_GAP)
+    let auto_fired: Arc<Mutex<Option<(u32, std::time::Instant)>>> = Arc::new(Mutex::new(None));
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -224,6 +227,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             fire_charge(&c, &me, h.identity, *pos.lock().unwrap(), heading);
                         }
                     }
+                    Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_CLIENT_ABORT) => {
+                        // The client aborts a command (e.g. a jump during a charge) and waits for
+                        // the server to confirm: same record, action 7 (abort one). A charge
+                        // ends without firing.
+                        if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
+                            c.active.store(false, std::sync::atomic::Ordering::Relaxed);
+                            info!(spell = c.spell, "charge aborted");
+                        }
+                        let mut reply = blob.to_vec();
+                        reply[blob.len() - rest.len()] = BCC_ABORT_ONE;
+                        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[Bytes::from(reply)]))
+                            .await?;
+                    }
                     Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_QUEUE_COMMAND) => {
                         // A queued command (minifigure swap, ability, ...). It completes only
                         // when the server answers with the same record as action 4 (success).
@@ -288,7 +304,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .or(ground)
                                             .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
                                         let charge = crate::projectile::params(spell).is_some_and(|p| !p.charge_items.is_empty());
-                                        if charge {
+                                        let mut recast = auto_fired.lock().unwrap();
+                                        let held_on = charge
+                                            && recast.is_some_and(|(s, t): (u32, std::time::Instant)| s == spell && t.elapsed() < CHARGE_RECAST_GAP);
+                                        if held_on {
+                                            // the button is still held after an automatic fire:
+                                            // the client re-sends the cast; refuse until it stops
+                                            *recast = Some((spell, std::time::Instant::now()));
+                                            refused = true;
+                                        }
+                                        drop(recast);
+                                        if held_on {
+                                            // refused above
+                                        } else if charge {
                                             // hold to charge: fired on release (BCC action 20)
                                             fire_stale_charges(&mut charges, &me, h.identity);
                                             if let Some(client_id) = msg.commandqueue_client_id {
@@ -308,6 +336,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                     npc_target,
                                                     full_damage,
                                                     Bytes::from(end),
+                                                    auto_fired.clone(),
                                                 );
                                                 charges.insert(client_id, Charge {
                                                     spell,
@@ -755,6 +784,7 @@ fn run_charge(
     target: Option<Id32>,
     full_damage: u32,
     end_record: Bytes,
+    auto_fired: Arc<Mutex<Option<(u32, std::time::Instant)>>>,
 ) {
     let Some(p) = crate::projectile::params(spell) else { return };
     let full = std::time::Duration::from_secs_f32(p.channel_interval * p.charge_items.len().saturating_sub(1) as f32);
@@ -777,6 +807,7 @@ fn run_charge(
             let towards = target.and_then(crate::npc::position).unwrap_or([here[0] + f[0], here[1], here[2] + f[1]]);
             info!(spell, "charge fired automatically");
             crate::projectile::launch(caster, playfield, spell, full_item, here, towards, target, full_damage);
+            *auto_fired.lock().unwrap() = Some((spell, std::time::Instant::now()));
             world::send_to(caster, world::Out::Records(vec![end_record]));
         }
         if let Some(buff) = buff {
@@ -1076,6 +1107,13 @@ const CHARGE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(6);
 /// docs/TUNABLES.md).
 const CHARGE_HOLD: std::time::Duration = std::time::Duration::from_secs(3);
 const BCC_CAN_EXECUTE: u8 = 10;
+/// Client -> server: the client aborted a command (AbortOneCommand) and waits for the server's
+/// confirmation, BCC_ABORT_ONE.
+const BCC_CLIENT_ABORT: u8 = 2;
+const BCC_ABORT_ONE: u8 = 7;
+/// After a charge fired by itself, a still-held button makes the client re-send the cast, which
+/// would start a new charge; such re-sends are refused until none came for this long (assumed).
+const CHARGE_RECAST_GAP: std::time::Duration = std::time::Duration::from_millis(500);
 pub const COMMAND_MAGIC: u32 = 4;
 /// Reach of untargeted (melee/area) attacks: a circle of AREA_RADIUS centred MELEE_REACH in
 /// front of the character.
