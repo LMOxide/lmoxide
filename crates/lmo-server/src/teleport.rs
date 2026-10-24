@@ -28,7 +28,6 @@ use crate::game::PLAYFIELD_TYPE;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Destination {
-    pub name: String,
     /// Arrival point (a resurrection point; its Guid is in the data file).
     pub pos: [f32; 3],
     /// Facing (radians around the vertical axis).

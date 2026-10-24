@@ -167,6 +167,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 heading = [dx / moved, dz / moved];
                             }
                             *pos.lock().unwrap() = p;
+                            // jump pads (click-to-move reports the path's end and its start)
+                            let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
+                            crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
                             // Hub portals: the client sends nothing, so offer the destination's
                             // teleport window when the player steps into one (once per visit), or
                             // teleport directly if it has none.
@@ -557,6 +560,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     }
     if character != 0 {
         crate::npc::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
+        crate::jumppad::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         me.pos = *pos.lock().unwrap();
         match store.save(character, &me) {
             Ok(()) => info!(character, pos = ?me.pos, "character saved"),

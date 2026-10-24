@@ -65,3 +65,17 @@ playfield resources) aren't listed; neither are protocol constants.
 | Collection | `collection.rs` | all 133 minifigures, level 10, every upgrade purchased | Chosen (requested). |
 | Default upgrade selection | `collection.rs` `DEFAULT_ACTIVE` | one of each choice pair | Chosen. |
 | Save interval | `game.rs` `SAVE_INTERVAL` | 10 s while moving | Implementation choice. |
+| Teleport spots | `teleport.rs` `spots` | every resurrection point shown and unlocked | Chosen (requested). Live, players discovered them. |
+
+## Jump pads
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Trigger radius | `jumppad.rs` `TRIGGER_RADIUS` / `TRIGGER_HEIGHT` | 1 m horizontally, 2 m vertically | The original server launched within ~0.5 m of the pad (recorded session); widened for safety. |
+| Click-to-move walk speed | `jumppad.rs` `WALK_SPEED` | 6 m/s | Assumed. Click-to-move only reports the path's end, so a pad there fires after this estimated walk. |
+| Arc height | `jumppad.rs` `DEFAULT_APEX` | 4 m above the higher end | Recorded jumps used 4–6 m (`apex` in world_content.json where known). |
+| Landing points | `data/world_content.json` `target` (`target_by`) | — | Exact only for the Tutorial (1300) and the pirate prison (4600) ("demo"); elsewhere paired by name or nearest landing marker. |
+| Launch effect | `jumppad.rs` `Pad::effect` | mortar effect, fan effect for wind fans | Only mortar and fan pads were recorded; planes, catapults and lilies use the mortar's. |
+| Pads always active | `jumppad.rs` | every pad works, no building needed | Chosen. Live, many pads were buildies that had to be built first. |
+| Re-trigger | `jumppad.rs` `State::on` | a pad fires again only after stepping off | Assumed. |
+

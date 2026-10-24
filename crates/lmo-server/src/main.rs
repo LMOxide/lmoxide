@@ -5,6 +5,7 @@ mod conn;
 mod effects;
 mod game;
 mod http;
+mod jumppad;
 mod loot;
 mod npc;
 mod projectile;
@@ -110,6 +111,7 @@ async fn main() -> anyhow::Result<()> {
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
     tokio::spawn(chat::listen(cfg.addr(cfg.chat_port)));
     npc::start();
+    jumppad::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(cfg.start_playfield));
