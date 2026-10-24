@@ -32,6 +32,8 @@ const CARS_FRIENDS: u32 = 2;
 static NEXT_INSTANCE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(900_000);
 const PET_FOLLOW: f32 = 2.0;
 const PET_DAMAGE: u32 = 12;
+/// Pets that shoot keep this distance from their target.
+const PET_SHOOT_RANGE: f32 = 8.0;
 const AGGRO_RANGE: f32 = 8.0;
 const LEASH_RANGE: f32 = 25.0;
 /// How close an enemy walks up to its target.
@@ -152,8 +154,10 @@ fn default_spell() -> u32 {
 
 struct Npc {
     def: SpawnDef,
-    /// Pets: the summoning player and when the pet vanishes.
+    /// Pets: the summoning player, when the pet vanishes, the summon spell and what its attack
+    /// shoots.
     owner: Option<(Id32, std::time::Instant)>,
+    summon: Option<(u32, Option<PetProjectile>)>,
     playfield: u32,
     health: u32,
     pos: world::Position,
@@ -191,7 +195,7 @@ pub fn start() {
             let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
             let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
             let pos = Arc::new(Mutex::new(def.pos));
-            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None });
+            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None, summon: None });
             appear(id);
         }
     }
@@ -250,6 +254,16 @@ struct SummonDef {
     name: String,
     monster_data: u32,
     lifetime: u64,
+    #[serde(default = "default_spell")]
+    spell: u32,
+    #[serde(default)]
+    projectile: Option<PetProjectile>,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+struct PetProjectile {
+    item: u32,
+    speed: f32,
 }
 
 static SUMMONS: LazyLock<HashMap<String, serde_json::Value>> =
@@ -274,16 +288,38 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
         level: 1,
         health: 100,
         pos: [pos[0] + 1.0, pos[1], pos[2] + 1.0],
-        spell: default_spell(),
+        spell: def.spell,
         cars_group: Some(0),
         npc_template: None,
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
+    // one pet per summon ability: a new cast replaces the previous one
+    let previous: Vec<Id32> = NPCS
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.owner.is_some_and(|(o, _)| o == owner) && n.summon.is_some_and(|(s, _)| s == spell))
+        .map(|(id, _)| *id)
+        .collect();
+    for old in previous {
+        if let Some(npc) = NPCS.lock().unwrap().remove(&old) {
+            drop(npc.presence);
+        }
+    }
     let pos = Arc::new(Mutex::new(spawn.pos));
     NPCS.lock().unwrap().insert(
         id,
-        Npc { health: spawn.health, def: spawn, playfield, pos, presence: None, last_attack: None, owner: Some((owner, until)) },
+        Npc {
+            health: spawn.health,
+            def: spawn,
+            playfield,
+            pos,
+            presence: None,
+            last_attack: None,
+            owner: Some((owner, until)),
+            summon: Some((spell, def.projectile)),
+        },
     );
     appear(id);
 }
@@ -374,13 +410,17 @@ async fn regenerate() {
 /// Pets: vanish when their time is up, otherwise attack an enemy near them or follow the owner.
 fn pets_tick() {
     let now = std::time::Instant::now();
-    let pets: Vec<(Id32, Id32, std::time::Instant, u32, world::Position)> = NPCS
+    type Pet = (Id32, Id32, std::time::Instant, u32, world::Position, u32, Option<PetProjectile>);
+    let pets: Vec<Pet> = NPCS
         .lock()
         .unwrap()
         .iter()
-        .filter_map(|(id, n)| n.owner.map(|(o, until)| (*id, o, until, n.playfield, n.pos.clone())))
+        .filter_map(|(id, n)| {
+            let (o, until) = n.owner?;
+            Some((*id, o, until, n.playfield, n.pos.clone(), n.def.spell, n.summon.and_then(|(_, p)| p)))
+        })
         .collect();
-    for (id, owner, until, playfield, pos) in pets {
+    for (id, owner, until, playfield, pos, spell, projectile) in pets {
         if now >= until {
             if let Some(npc) = NPCS.lock().unwrap().remove(&id) {
                 drop(npc.presence); // despawns it
@@ -398,7 +438,8 @@ fn pets_tick() {
             .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
         let goal = match enemy {
             Some((eid, p)) => {
-                if distance(p, here) <= MELEE_RANGE + 1.0 {
+                let reach = if projectile.is_some() { PET_SHOOT_RANGE } else { MELEE_RANGE + 1.0 };
+                if distance(p, here) <= reach {
                     let ready = NPCS.lock().unwrap().get_mut(&id).is_some_and(|n| {
                         let ready = n.last_attack.is_none_or(|t| t.elapsed() >= ATTACK_INTERVAL);
                         if ready {
@@ -407,12 +448,19 @@ fn pets_tick() {
                         ready
                     });
                     if ready {
-                        let cast: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, eid, default_spell(), a)).collect();
+                        let cast: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, eid, spell, a)).collect();
                         world::send_playfield(id, false, world::Out::Records(cast));
-                        hit(owner, eid, default_spell(), PET_DAMAGE);
+                        if let Some(pp) = projectile {
+                            crate::projectile::launch_visual(id, playfield, pp.item, pp.speed, here, p);
+                        }
+                        hit(owner, eid, spell, PET_DAMAGE);
                     }
                 }
-                approach(here, p, MELEE_RANGE)
+                if projectile.is_some() && distance(p, here) <= PET_SHOOT_RANGE {
+                    here
+                } else {
+                    approach(here, p, MELEE_RANGE)
+                }
             }
             None => match world::position_of(owner) {
                 Some(o) => approach(here, o, PET_FOLLOW),

@@ -119,6 +119,32 @@ pub fn launch(
     });
 }
 
+/// A purely visual projectile (e.g. a pet's shot; the damage is dealt separately): flies from
+/// `from` to `to` and is removed when it arrives.
+pub fn launch_visual(caster: Id32, playfield: u32, item: u32, speed: f32, from: [f32; 3], to: [f32; 3]) {
+    let p = Params {
+        item,
+        move_type: 1,
+        speed,
+        attractor: 0,
+        offset_z: 0.0,
+        ricochets: 0,
+        range: 0.0,
+        charge_items: vec![],
+        channel_interval: 0.0,
+    };
+    let id = Id32::new(PROJECTILE_TYPE, NEXT.fetch_add(1, Ordering::Relaxed));
+    let start = [from[0], from[1] + 1.0, from[2]];
+    let records = vec![create_game_object(id, playfield, start), full_update(id, &p, caster, None, 0, start, to, playfield)];
+    world::send_playfield(caster, true, world::Out::Records(records));
+    let (dx, dz) = (to[0] - from[0], to[2] - from[2]);
+    let flight = Duration::from_secs_f32((dx * dx + dz * dz).sqrt() / speed.max(0.1) + 0.5);
+    tokio::spawn(async move {
+        tokio::time::sleep(flight).await;
+        world::send_playfield(caster, true, world::Out::Records(vec![despawn_record(id)]));
+    });
+}
+
 /// `CoreProjectileFullUpdateIIR` (ReadSubClass 0x1244a60): header ProtoGameCodeDynelIIR, then
 /// u32 item, u32 move type (1 straight, 2 ballistic, 3 orbiting), ID32 caster, ID32 target,
 /// start, target position, f32 (5.0), f32 speed (m/s), u32 spell, start angle, local offset
