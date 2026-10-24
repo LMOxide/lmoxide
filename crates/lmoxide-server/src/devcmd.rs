@@ -12,6 +12,7 @@
 //!   !defeat <boss name>       count a boss defeat (boss achievements, the active minifigure's)
 //!   !xp [n]                   gain n XP (with --progression), show level and XP
 //!   !stars <n>                gain n stars (minifigure XP for ranking up)
+//!   !test [n|label]           list the manual test setups, or set one up (data/test_scenarios.json)
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -30,6 +31,101 @@ pub enum Action {
     Xp(u64),
     /// gain stars
     Stars(u64),
+    /// set up a manual test (`!test`)
+    Test(TestSetup),
+}
+
+/// A resolved test scenario (data/test_scenarios.json).
+pub struct TestSetup {
+    pub label: String,
+    /// where to go (playfield, position, facing); `None` = stay
+    pub destination: Option<(u32, [f32; 3], f32)>,
+    /// the new team's minifigure templates, the first active; empty = keep the team
+    pub team: Vec<u32>,
+    /// enemies to spawn around the player: (name, count)
+    pub spawn: Vec<(String, u32)>,
+}
+
+#[derive(serde::Deserialize)]
+struct Scenarios {
+    scenarios: Vec<Scenario>,
+}
+
+#[derive(serde::Deserialize)]
+struct Scenario {
+    label: String,
+    about: String,
+    #[serde(default)]
+    goto: Option<Goto>,
+    #[serde(default)]
+    team: Vec<String>,
+    #[serde(default)]
+    spawn: Vec<Spawn>,
+}
+
+#[derive(serde::Deserialize)]
+struct Goto {
+    kind: Option<String>,
+    name: Option<String>,
+    n: Option<usize>,
+    playfield: Option<u32>,
+    pos: Option<[f32; 3]>,
+}
+
+#[derive(serde::Deserialize)]
+struct Spawn {
+    name: String,
+    count: u32,
+}
+
+static SCENARIOS: std::sync::LazyLock<Scenarios> = std::sync::LazyLock::new(|| {
+    serde_json::from_str(include_str!("../../../data/test_scenarios.json")).expect("test_scenarios.json")
+});
+
+/// `!test` without an argument lists the scenarios; with a number or label, resolves it.
+fn test(arg: Option<&str>) -> Action {
+    let list = &SCENARIOS.scenarios;
+    let Some(arg) = arg else {
+        let mut lines = vec!["!test <n|label>:".to_string()];
+        lines.extend(list.iter().enumerate().map(|(i, s)| format!("{} {}: {}", i + 1, s.label, s.about)));
+        return Action::Reply(lines);
+    };
+    let found = arg.parse::<usize>().ok().and_then(|n| list.get(n.wrapping_sub(1))).or_else(|| {
+        let a = arg.to_ascii_lowercase();
+        list.iter().find(|s| s.label.to_ascii_lowercase() == a)
+    });
+    let Some(s) = found else {
+        return Action::Reply(vec![format!("no test \"{arg}\" (!test lists them)")]);
+    };
+    let destination = match &s.goto {
+        None => None,
+        Some(Goto { playfield: Some(pf), pos, .. }) => match (pos, teleport::destination(*pf)) {
+            (Some(p), _) => Some((*pf, *p, 0.0)),
+            (None, Some(d)) => Some((*pf, d.pos, d.rot)),
+            (None, None) => return Action::Reply(vec![format!("test {}: playfield {pf} has no arrival point", s.label)]),
+        },
+        Some(Goto { kind: Some(kind), name, n, .. }) => {
+            let mut t = targets(kind).unwrap_or_default();
+            if let Some(name) = name {
+                let name = name.to_ascii_lowercase();
+                t.retain(|(label, _, _)| label.to_ascii_lowercase().starts_with(&name));
+            }
+            match t.get(n.unwrap_or(1).saturating_sub(1)) {
+                Some((_, pf, p)) => Some((*pf, [p[0] + ARRIVE_OFFSET, p[1], p[2]], (-ARRIVE_OFFSET).atan2(0.0))),
+                None => return Action::Reply(vec![format!("test {}: no such {kind} target", s.label)]),
+            }
+        }
+        Some(_) => return Action::Reply(vec![format!("test {}: goto needs kind or playfield", s.label)]),
+    };
+    let mut team = Vec::new();
+    for name in &s.team {
+        match crate::collection::template_by_name(name) {
+            Some(t) => team.push(t),
+            None => return Action::Reply(vec![format!("test {}: no minifigure named \"{name}\"", s.label)]),
+        }
+    }
+    let spawn = s.spawn.iter().map(|sp| (sp.name.clone(), sp.count.min(30))).collect();
+    Action::Test(TestSetup { label: s.label.clone(), destination, team, spawn })
 }
 
 /// A command's target kinds (for `!list` / `!goto`) and what they are.
@@ -131,6 +227,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
                 None => reply(vec![format!("{kind} {n} doesn't exist ({} known)", t.len())]),
             }
         }
+        "test" => test(args.first().copied()),
         "ach" | "achievements" => Action::Achievements,
         "xp" => Action::Xp(args.first().and_then(|n| n.parse().ok()).unwrap_or(0).min(10_000_000)),
         "stars" => match args.first().and_then(|n| n.parse::<u64>().ok()) {
@@ -152,7 +249,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(crate::achievements::Event::Defeated { name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }
@@ -165,6 +262,22 @@ fn kinds_help() -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_scenarios_resolve() {
+        assert!(matches!(run("!test", 1200, [0.0; 3]), Action::Reply(l) if l.len() == SCENARIOS.scenarios.len() + 1));
+        for (i, s) in SCENARIOS.scenarios.iter().enumerate() {
+            // every scenario's minifigures and playfields exist (target kinds need the NPCs)
+            if s.goto.as_ref().is_some_and(|g| g.kind.is_some()) {
+                continue;
+            }
+            match run(&format!("!test {}", i + 1), 1200, [0.0; 3]) {
+                Action::Test(setup) => assert_eq!(setup.label, s.label),
+                Action::Reply(l) => panic!("{}: {l:?}", s.label),
+                _ => panic!("{}", s.label),
+            }
+        }
+    }
 
     #[test]
     fn tp_by_name_and_number() {

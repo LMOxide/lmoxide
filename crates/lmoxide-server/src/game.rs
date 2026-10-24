@@ -79,6 +79,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut gm_level = 0;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
+    // a test setup changed the team (sent again at the next CharInPlay), and the item id salt
+    let mut team_changed = false;
+    let mut team_salt = 0u64;
     loop {
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
@@ -198,6 +201,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         records.push(crate::teleport::journal_record(h.identity));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::max_life(t, me.upgrade(t), me.level()));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
+                        if std::mem::take(&mut team_changed) {
+                            // a test setup changed the team: the HUD shows it after this
+                            team_salt += 1 << 33;
+                            let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::max_life(t, me.upgrade(t), me.level()), team_salt);
+                            records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&team)));
+                        }
                         if let Some(&(slot, template)) = me.team.first() {
                             // ParentStatChanged only reacts to a different slot, and the client
                             // may already assume this one: clear it first.
@@ -224,6 +233,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             .await?;
                         if community.is_none() {
                             community = Some(crate::community::login(character, &me.name, me.playfield, outbox.clone()));
+                        }
+                        // development: LMOXIDE_DEV_COMMANDS="!test 4;!xp 10" runs test commands 5 s
+                        // after the first entry into the world (as if typed into the chat)
+                        if let Ok(commands) = std::env::var("LMOXIDE_DEV_COMMANDS")
+                            && !tour_started
+                        {
+                            tour_started = true;
+                            let outbox = outbox.clone();
+                            tokio::spawn(async move {
+                                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                                for command in commands.split(';').map(str::trim).filter(|c| !c.is_empty()) {
+                                    let _ = outbox.send(world::Out::Command(command.to_string()));
+                                }
+                            });
                         }
                         // development: LMOXIDE_DEV_TOUR=<kind> teleports through a test command
                         // kind's targets (for screenshots), one every LMOXIDE_DEV_TOUR_SECS
@@ -810,6 +833,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
                                 .await?;
                         }
+                        crate::devcmd::Action::Test(setup) => {
+                            if !setup.team.is_empty() {
+                                set_team(&mut me, &mut collection, &setup.team);
+                                team_changed = true;
+                            }
+                            // the teleport sends the character again (with the new team), also
+                            // when the test stays here
+                            let here_rot = heading[0].atan2(heading[1]);
+                            let (playfield, at, rot) = setup.destination.unwrap_or((me.playfield, *pos.lock().unwrap(), here_rot));
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("test {}", setup.label));
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                                .await?;
+                            for (name, count) in &setup.spawn {
+                                let n = crate::npc::spawn_test_enemies(name, *count, playfield, at, TEST_ENEMY_LIFETIME);
+                                let line = if n == 0 { format!("no enemy named {name}") } else { format!("{n} x {name} for 15 minutes") };
+                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            }
+                        }
                     }
                 } else if let Some(p) = &presence {
                     for other in world::neighbours(p.id()) {
@@ -1341,6 +1382,35 @@ fn refresh_costumes(joined: Id32) {
 const GENERIC_LOOK: u32 = 2212;
 /// After the spawn records, so the first build of the character is done (assumed).
 const COSTUME_REFRESH_DELAY: std::time::Duration = std::time::Duration::from_millis(1500);
+
+/// How long `!test` enemies stay.
+const TEST_ENEMY_LIFETIME: std::time::Duration = std::time::Duration::from_secs(15 * 60);
+
+/// Makes `templates` the team (the first active), in the team's slots: minifigures leave and
+/// join the collection as an equip would move them. The client gets it with the character's
+/// next full update (a teleport).
+fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) {
+    let mut slots: Vec<u32> = me.team.iter().map(|&(s, _)| s).collect();
+    for &(s, _) in START_TEAM.iter() {
+        if !slots.contains(&s) {
+            slots.push(s);
+        }
+    }
+    let mut freed = Vec::new();
+    for &t in templates {
+        if let Some(p) = collection.position_of(t) {
+            collection.take(p);
+            freed.push(p);
+        }
+    }
+    for &(_, old) in &me.team {
+        if !templates.contains(&old) {
+            let p = if freed.is_empty() { collection.slots.len() as u32 } else { freed.remove(0) };
+            collection.put(p, old);
+        }
+    }
+    me.team = slots.into_iter().zip(templates.iter().copied()).collect();
+}
 
 /// Sends LearnSpell for everything the team's minifigures can cast.
 async fn learn_team_spells(conn: &mut Conn, character: u32, me: &Character) -> anyhow::Result<()> {

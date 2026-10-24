@@ -1,0 +1,41 @@
+{
+  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn; optional).",
+  "scenarios": [
+    {
+      "label": "smash",
+      "about": "smashables next to you (smash animation timing, loot bags)",
+      "goto": { "kind": "smashable", "n": 1 }
+    },
+    {
+      "label": "chase",
+      "about": "a Musketeer camp in Pirate World that chases you (enemy movement)",
+      "goto": { "kind": "enemy", "name": "Musketeer" }
+    },
+    {
+      "label": "boss",
+      "about": "Captain Dreadleg in the tutorial",
+      "goto": { "kind": "enemy", "name": "Captain Dreadleg" }
+    },
+    {
+      "label": "crowd",
+      "about": "8 Pirate Corsairs around you where you stand (procs, buffs, area attacks)",
+      "spawn": [{ "name": "Pirate Corsair", "count": 8 }]
+    },
+    {
+      "label": "team",
+      "about": "Astronaut, Alien Trooper and Ballerina in the hub (animations, minifigure switching, health)",
+      "goto": { "playfield": 1200 },
+      "team": ["Astronaut", "Alien Trooper", "Ballerina"]
+    },
+    {
+      "label": "kraken",
+      "about": "Crikey the Kraken's cave (boss that doesn't render)",
+      "goto": { "kind": "enemy", "name": "Crikey the Kraken" }
+    },
+    {
+      "label": "darkside",
+      "about": "Planet's Dark Side, where the client hung while loading",
+      "goto": { "playfield": 3210 }
+    }
+  ]
+}

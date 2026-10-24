@@ -79,6 +79,25 @@ pub fn activate(active: u32, position: u32) -> u32 {
     active
 }
 
+/// A minifigure's item template by its name (case-insensitive, data/minifig_parts.json).
+pub fn template_by_name(name: &str) -> Option<u32> {
+    #[derive(serde::Deserialize)]
+    struct Parts {
+        minifigures: Vec<Entry>,
+    }
+    #[derive(serde::Deserialize)]
+    struct Entry {
+        minifigure_template_id: u32,
+        name: Option<String>,
+    }
+    static NAMES: LazyLock<Vec<(String, u32)>> = LazyLock::new(|| {
+        let parts: Parts = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
+        parts.minifigures.into_iter().filter_map(|m| Some((m.name?.to_ascii_lowercase(), m.minifigure_template_id))).collect()
+    });
+    let wanted = name.to_ascii_lowercase();
+    NAMES.iter().find(|(n, _)| *n == wanted).map(|&(_, t)| t)
+}
+
 /// The owned minifigures outside the team (inventory 110001), by position. Positions change as
 /// minifigures move in and out of the team during a session.
 pub struct Collection {
@@ -163,6 +182,24 @@ pub fn inventories(
         inventory(119, 24, vec![]),
         inventory(crate::game::MINIFIGURE_BAG_INVENTORY, 200, vec![]),
     ]
+}
+
+/// The team again, like `collection_refresh` (new item ids so the client replaces every entry):
+/// after a test setup changed the team (`!test`), the HUD keeps the old one otherwise.
+pub fn team_refresh(
+    character: u32,
+    team: &[(u32, u32)],
+    upgrades: &impl Fn(u32) -> u32,
+    ranks: &impl Fn(u32) -> u32,
+    lives: &impl Fn(u32) -> u32,
+    salt: u64,
+) -> ProtoInventoryGame {
+    ProtoInventoryGame {
+        inventory_id: ProtoId32 { r#type: Some(TEAM_INVENTORY), instance: Some(character) },
+        max_size: Some(64),
+        disabled_slots_count: None,
+        items: team.iter().map(|&(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), ranks(t), lives(t), salt) }).collect(),
+    }
 }
 
 /// The collection again, for an `UpdateInventoryIIR_t` after the character is in play. The

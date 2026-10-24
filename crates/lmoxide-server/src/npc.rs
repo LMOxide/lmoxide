@@ -212,6 +212,8 @@ struct Npc {
     last_attack: Option<std::time::Instant>,
     /// The path the clients are moving it along.
     walk: Option<Walk>,
+    /// Spawned by a test scenario: doesn't respawn, and is gone at that time.
+    temporary: Option<std::time::Instant>,
 }
 
 /// A straight path an NPC was sent along at `speed`: the server follows it there, so the next
@@ -312,7 +314,7 @@ pub fn start() {
             let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
             let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
             let pos = Arc::new(Mutex::new(def.pos));
-            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None, summon: None, walk: None });
+            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None, summon: None, walk: None, temporary: None });
             appear(id);
         }
     }
@@ -388,6 +390,56 @@ struct PetProjectile {
 static SUMMONS: LazyLock<HashMap<String, serde_json::Value>> =
     LazyLock::new(|| serde_json::from_str(include_str!("../../../data/summons.json")).expect("summons.json"));
 
+/// Test scenarios (devcmd `!test`): `count` copies of the enemy named `name` (any spawn of it
+/// gives the look, level, health and attack) in a ring around `center` on `playfield`, for
+/// `lifetime`. They fight like the others but don't respawn. Returns how many appeared.
+pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 3], lifetime: Duration) -> u32 {
+    let wanted = name.to_ascii_lowercase();
+    let Some(def) = NPCS
+        .lock()
+        .unwrap()
+        .values()
+        .find(|n| n.def.kind == Kind::Enemy && n.owner.is_none() && n.def.name.to_ascii_lowercase() == wanted)
+        .map(|n| n.def.clone())
+    else {
+        return 0;
+    };
+    let until = std::time::Instant::now() + lifetime;
+    let mut ids = Vec::new();
+    for i in 0..count {
+        let angle = i as f32 / count.max(1) as f32 * std::f32::consts::TAU;
+        let pos = [center[0] + TEST_SPAWN_RING * angle.cos(), center[1], center[2] + TEST_SPAWN_RING * angle.sin()];
+        let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+        let def = SpawnDef { pos, ..def.clone() };
+        let npc = Npc {
+            health: def.health,
+            def,
+            playfield,
+            pos: Arc::new(Mutex::new(pos)),
+            presence: None,
+            last_attack: None,
+            owner: None,
+            summon: None,
+            walk: None,
+            temporary: Some(until),
+        };
+        NPCS.lock().unwrap().insert(id, npc);
+        appear(id);
+        ids.push(id);
+    }
+    tokio::spawn(async move {
+        tokio::time::sleep(lifetime).await;
+        let mut npcs = NPCS.lock().unwrap();
+        let gone: Vec<_> = ids.iter().filter_map(|id| npcs.remove(id)).collect();
+        drop(npcs);
+        drop(gone); // despawns them
+    });
+    count
+}
+
+/// How far from the player test enemies appear.
+const TEST_SPAWN_RING: f32 = 7.0;
+
 /// Whether `spell` summons a pet (data/summons.json).
 pub fn is_summon(spell: u32) -> bool {
     SUMMONS.contains_key(&spell.to_string())
@@ -439,6 +491,7 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
             owner: Some((owner, until)),
             summon: Some((spell, def.projectile)),
             walk: None,
+            temporary: None,
         },
     );
     appear(id);
@@ -525,8 +578,15 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         );
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
+        let temporary = npc.temporary.is_some();
         drop(npcs);
         tokio::spawn(async move {
+            if temporary {
+                tokio::time::sleep(Duration::from_secs(3)).await;
+                drop(presence);
+                NPCS.lock().unwrap().remove(&target);
+                return;
+            }
             if kind == Kind::Smashable {
                 // the debris stays until it respawns
                 tokio::time::sleep(RESPAWN).await;
