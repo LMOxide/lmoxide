@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# LEGO Minifigures Online launcher (installed into the client folder by the lmo client kit).
+#   lmo <username> [server-ip]
+# Any username works (a new one gets a new character); there is no password.
+# The server defaults to the one the kit was applied with (lmo-kit.conf).
+set -euo pipefail
+cd "$(dirname "$(readlink -f "$0")")"
+source ./lmo-kit.conf
+USER_NAME=${1:?usage: lmo <username> [server-ip]}
+SERVER=${2:-$LMO_SERVER}
+if [[ $SERVER != "$LMO_SERVER" ]]; then
+  echo "note: chat is set up for $LMO_SERVER; for $SERVER re-run apply.sh with --server $SERVER" >&2
+fi
+# What Funcom's launcher used to fetch: the server's addresses for every service.
+curl -sf --max-time 5 "http://$SERVER:8080/control/lmo_live/LocalConfig.xml" >LocalConfig.xml.new \
+  || { echo "can't reach lmo-server at http://$SERVER:8080 (running? firewall?)" >&2; rm -f LocalConfig.xml.new; exit 1; }
+mv LocalConfig.xml.new LocalConfig.xml
+# SDL_VIDEODRIVER=x11: the 2016 build needs GLX; sdl2-compat would pick Wayland/EGL and the
+# renderer crashes in gl3wInit. liblmofixes.so by bare name (found through LD_LIBRARY_PATH):
+# LD_PRELOAD splits on spaces.
+SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. LD_PRELOAD=liblmofixes.so exec ./LMO -verified -username "$USER_NAME" -password x

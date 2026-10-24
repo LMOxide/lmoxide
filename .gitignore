@@ -4,3 +4,4 @@ __pycache__/
 logs/
 rdb-cache/
 lmo-data/
+dist/

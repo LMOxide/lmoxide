@@ -1,21 +1,8 @@
 #!/usr/bin/env bash
-# Start the native Linux client against an lmo-server (this PC or another on the LAN).
-#   tools/linux-client/play.sh <client-dir> <server-host> <username> [password]
-# Any username works (a new one gets a new character); the password is not checked.
-# Run setup-linux-client.sh <client-dir> <server-host>:8080 once first.
+# Start a kit-installed client (apply.sh / install.sh) against a server: the client's own
+# launcher, for clients outside the default install dir.
+#   tools/linux-client/play.sh <client-dir> <server-ip> <username>
 set -euo pipefail
-CLIENT=${1:?usage: play.sh <client-dir> <server-host> <username> [password]}
-HOST=${2:?server host}
-USER_NAME=${3:?username}
-PASS=${4:-x}
-cd "$CLIENT"
-# What the launcher normally fetches: the server's addresses for every service.
-curl -sf --max-time 5 "http://$HOST:8080/control/lmo_live/LocalConfig.xml" >LocalConfig.xml.new \
-  || { echo "can't reach lmo-server at http://$HOST:8080 (running? firewall?)" >&2; rm -f LocalConfig.xml.new; exit 1; }
-mv LocalConfig.xml.new LocalConfig.xml
-# SDL_VIDEODRIVER=x11: the 2016 build needs GLX; sdl2-compat would otherwise pick Wayland/EGL
-# and the renderer crashes in gl3wInit.
-# liblmofixes.so (setup-linux-client.sh): client bug fixes, see lmo-fixes.c. By bare name (found
-# through LD_LIBRARY_PATH): LD_PRELOAD splits on spaces, and the client folder has some.
-PRELOAD=; [[ -f liblmofixes.so ]] && PRELOAD=liblmofixes.so
-SDL_VIDEODRIVER=x11 LD_LIBRARY_PATH=. LD_PRELOAD=$PRELOAD exec ./LMO -verified -username "$USER_NAME" -password "$PASS"
+CLIENT=${1:?usage: play.sh <client-dir> <server-ip> <username>}
+[[ -x $CLIENT/lmo ]] || { echo "no launcher in $CLIENT: run $(dirname "$0")/apply.sh \"$CLIENT\" first" >&2; exit 1; }
+exec "$CLIENT/lmo" "${3:?username}" "${2:?server}"
