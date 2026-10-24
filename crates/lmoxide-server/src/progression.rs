@@ -83,6 +83,36 @@ pub fn level_cap(playfield: u32) -> u32 {
     }
 }
 
+/// The highest level a character fights at on `playfield` (damage, health, the level shown):
+/// the world's cap; for a playfield without one (side dungeons, the hub) the smallest world cap
+/// at or above its enemies' level, or none when it has no enemies. Live showed "You have
+/// reached the maximum level for this area" there (docs/TUNABLES.md).
+pub fn combat_cap(playfield: u32) -> u32 {
+    static ENEMY_LEVELS: std::sync::LazyLock<std::collections::HashMap<u32, u32>> = std::sync::LazyLock::new(|| {
+        let mut m = std::collections::HashMap::new();
+        let world: std::collections::HashMap<String, serde_json::Value> =
+            serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        let spawns: std::collections::HashMap<String, serde_json::Value> =
+            serde_json::from_str(include_str!("../../../data/spawns.json")).expect("spawns.json");
+        for (pf, v) in world.iter().map(|(k, v)| (k, &v["enemies"])).chain(spawns.iter().map(|(k, v)| (k, v))) {
+            let Ok(pf) = pf.parse::<u32>() else { continue };
+            for e in v.as_array().into_iter().flatten() {
+                let level = e["level"].as_u64().unwrap_or(0) as u32;
+                let top = m.entry(pf).or_insert(0);
+                *top = (*top).max(level);
+            }
+        }
+        m
+    });
+    match level_cap(playfield) {
+        0 => match ENEMY_LEVELS.get(&playfield).copied().unwrap_or(0) {
+            0 => MAX_PLAYER_LEVEL,
+            top => [11, 15, 19, 21].into_iter().find(|&cap| cap >= top).unwrap_or(MAX_PLAYER_LEVEL),
+        },
+        cap => cap.min(MAX_PLAYER_LEVEL),
+    }
+}
+
 /// The cap that applies on `playfield` (0 there = the game's maximum).
 pub fn effective_cap(playfield: u32) -> u32 {
     match level_cap(playfield) {

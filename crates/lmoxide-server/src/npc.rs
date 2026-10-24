@@ -362,6 +362,12 @@ pub fn position(id: Id32) -> Option<[f32; 3]> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())
 }
 
+/// Whether a world member is a player's character (not an NPC, nor scenery, jump pads, doors
+/// or collectibles, which are world members too).
+pub fn is_player(id: Id32) -> bool {
+    id.kind == crate::territory::CHARACTER_TYPE && !is_npc(id)
+}
+
 pub fn is_npc(id: Id32) -> bool {
     NPCS.lock().unwrap().contains_key(&id)
 }
@@ -724,6 +730,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
         let temporary = npc.temporary.is_some();
+        let home = npc.playfield;
         drop(npcs);
         tokio::spawn(async move {
             if temporary {
@@ -741,6 +748,11 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
                 tokio::time::sleep(Duration::from_secs(3)).await;
                 drop(presence);
                 tokio::time::sleep(RESPAWN).await;
+            }
+            // a pocket world (a dungeon) stays cleared while anyone is in it: live gave each
+            // visit its own instance
+            while crate::encounter::pocket(home) && world::positions(home).iter().any(|(id, _)| is_player(*id)) {
+                tokio::time::sleep(Duration::from_secs(5)).await;
             }
             appear(target);
         });
@@ -1110,7 +1122,7 @@ async fn ai() {
         for (_, playfield, _, _) in &live {
             players
                 .entry(*playfield)
-                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| !is_npc(*other)).collect());
+                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other)).collect());
         }
         for (id, playfield, home, reach) in live {
             let Some(here) = current(id) else { continue };

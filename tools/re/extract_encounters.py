@@ -10,6 +10,7 @@ there (research notes: research/lmoxide-notes/world-events.md):
              [_X], in data/world_content.json) close behind the player
   ambushes   "*Ambush*" (not counters): entering spawns a wave
   champion   "BA_SpawnChampion" in the side dungeons: where the champion appears
+  explore    "Achievement_*" / "BA_Explore_*": places the exploration achievements send players to
 
 Per playfield: {"arenas": [{name, polygon, heights, doors: {open, closed, exit}}], "ambushes":
 [{name, polygon, heights}], "champion": [x, z] or absent}. Polygons are [x, z] lists, heights
@@ -54,7 +55,7 @@ def main():
         if not pf_s.isdigit():
             continue
         pf = int(pf_s)
-        seen, arenas, ambushes, champion = set(), [], [], None
+        seen, arenas, ambushes, explore, champion = set(), [], [], [], None
         # the playfield's area layers (RDB ids pf, pf + 1, pf + 2)
         found = [a for layer in (pf, pf + 1, pf + 2) if str(layer) == pf_s or str(layer) not in world for a in areas(idx, layer)]
         names = {a["name"] for a in found}
@@ -69,6 +70,8 @@ def main():
                 arenas.append({"name": a["name"], "suffix": suffix or "", "polygon": a["polygon"], "heights": a["heights"]})
             elif AMBUSH.search(a["name"]) and "counter" not in a["name"].lower():
                 ambushes.append({"name": a["name"], "polygon": a["polygon"], "heights": a["heights"]})
+            elif a["name"].startswith(("Achievement_", "BA_Explore_")):
+                explore.append({"name": a["name"], "polygon": a["polygon"], "heights": a["heights"]})
             elif a["name"] == "BA_SpawnChampion":
                 champion = [round(v, 2) for v in centre(a["polygon"])]
         for arena in arenas:
@@ -90,6 +93,8 @@ def main():
             entry["ambushes"] = ambushes
         if champion:
             entry["champion"] = champion
+        if explore:
+            entry["explore"] = explore
         if entry:
             out[pf_s] = entry
     doc = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), **out}

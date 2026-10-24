@@ -21,7 +21,8 @@ minifigure it belongs to (MinifigureTemplateID) and, for counters, the stat coun
   clear     "..._Combat_PA_[Clear the ]<area>": every enemy of the dungeon <area> defeated in
             one visit
   find      "..._Collectibles_<x>" / "[<world>] Boombox": the world object `find` (in
-            `playfield`, when given) found: collectibles are clicked, boomboxes walked up to
+            `playfield`, when given) found: collectibles are clicked, boomboxes walked up to;
+            exploration ("..._Exploration_<x>", EXPLORE): the bounded area `find` walked into
   manual    no rule (exploration, events, Lost Creations, ...)
 
 Usage: tools/re/py extract_achievements.py"""
@@ -59,6 +60,38 @@ BOOMBOX_WORLDS = {
     "Planet's Dark Side": 3210,
     "Mythology Mountains": 2210,
     "Dino World": 6200,
+}
+
+
+# exploration achievements -> the bounded area (RDB 1000053) the player walks into, by playfield.
+# Matched by name; "Lost Pirates"/"Beauty Salon" (Dino) are guesses between the swamp and tar pit.
+EXPLORE = {
+    "Pirate_Exploration_The Sirens": (4200, "Achievement_Mermaid"),
+    "Pirate_Story_Escape Jacket Fort": (4200, "Achievement_EscapeFort"),
+    "Pirate_Exploration_Find the Hidden Pirate Town": (4200, "Achievement_PirateTown"),
+    "Pirate_Exploration_Cross the Lava River": (4210, "Achievement_LavaRiver"),
+    "Pirate_Exploration_Find Blackbird's Ship": (4200, "Achievement_Ship"),
+    "Pirate_Exploration_Find the Sunken Ship": (4200, "Achievement_SunkenShip"),
+    "Pirate_Exploration_Find Gunslinger Joe": (4200, "Achievement_Gunslinger"),
+    "Pirate_Exploration_Discover the Cursed Treasure": (4210, "Achievement_CursedTreasure"),
+    "Pirate_Exploration_Climb the Volcano": (4210, "Achievement_Volcano"),
+    "Medieval_Exploration_Center of Attention": (5200, "Achievement_CenterofAttention"),
+    "Medieval_Exploration_Watcher on the Wall": (5200, "Achievement_Wall"),
+    "Medieval_Exploration_Overlook the Medieval World": (5200, "Achievement_Overlook"),
+    "Medieval_Exploration_Take the Web Shortcut": (5210, "Achievement_Shortcut"),
+    "Medieval_Exploration_Find the Ominous Cauldron": (5210, "Achievement_Cauldron"),
+    "Space_Exploration_Find the Tree of Life": (3200, "Achievement_Tree of Life"),
+    "Space_Exploration_Space Vanguard": (3200, "Achievement_Colony Vanguard"),
+    "Space_Exploration_Escort Ship": (3200, "Achievement_Escort Ship"),
+    "Space_Exploration_Research Station": (3210, "Achievement_Research"),
+    "Space_Exploration_Altar of Genius": (3210, "Achievement_Genius"),
+    "Mythology_Exploration_Zeus' Party Invite": (2210, "Achievement_PartyInvite"),
+    "Mythology_Exploration_Ice Cream": (2210, "Achievement_IceCream"),
+    "Mythology_Exploration_Hidden Roof": (2320, "BA_Explore_Roof"),
+    "Mythology_Story_Find Lightningblast's Arboratory": (2500, "BA_Explore_Forge"),
+    "Dino_Exploration_Lava Pier": (6200, "Achievement_Volcano"),
+    "Dino_Exploration_Lost Pirates": (6200, "Achievement_Swamp"),
+    "Dino_Exploration_Beauty Salon": (6200, "Achievement_Tarpit"),
 }
 
 
@@ -165,6 +198,8 @@ def main():
         elif children:
             a["kind"] = "all"
             a["children"] = children
+        elif name in EXPLORE:
+            a["kind"], a["playfield"], a["find"] = "find", *EXPLORE[name]
         elif m := re.search(r"_Combat_Champion_(.+)$", name):
             a["kind"], a["target"] = "defeat", m.group(1).strip()
         elif m := re.search(r"_Combat_PA_(?:Clear the )?(.+)$", name):

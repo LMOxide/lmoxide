@@ -36542,6 +36542,328 @@
     "spell": 380316,
     "anchor": "Quest_SpaceTown",
     "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     188.0,
+     132.61,
+     265.5
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     243.0,
+     139.19,
+     230.5
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     245.2,
+     138.91,
+     231.7
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     241.2,
+     139.17,
+     232.1
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     221.0,
+     138.72,
+     257.0
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     219.2,
+     138.72,
+     258.6
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     224.0,
+     138.65,
+     237.5
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     226.2,
+     138.63,
+     238.7
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     222.2,
+     138.65,
+     239.1
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     207.0,
+     138.65,
+     269.5
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     209.2,
+     138.65,
+     270.7
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     205.5,
+     139.26,
+     250.0
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     207.7,
+     139.26,
+     251.2
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     203.7,
+     139.26,
+     251.6
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     233.0,
+     138.7,
+     249.0
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     231.2,
+     138.9,
+     250.6
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     243.5,
+     138.64,
+     242.0
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     191.0,
+     136.9,
+     254.5
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     193.2,
+     138.01,
+     255.7
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     189.2,
+     134.97,
+     256.1
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Boom Shroom",
+    "monster_data": 387626,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     213.5,
+     138.94,
+     242.0
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Spore Shroom",
+    "monster_data": 387627,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     215.7,
+     139.02,
+     243.2
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
+   },
+   {
+    "name": "Hophop Shroom",
+    "monster_data": 387628,
+    "level": 13,
+    "health": 255,
+    "pos": [
+     211.7,
+     139.02,
+     243.6
+    ],
+    "spell": 2029,
+    "anchor": "Res_Canyon",
+    "source": "proposed"
    }
   ],
   "npcs": [

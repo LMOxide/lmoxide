@@ -38,7 +38,7 @@ areas first; dungeons take their parent world's theme (through the portals) one 
 boss at their encounter area and champions where the caves spawned one; friendly NPCs at the
 cinematic actor points whose names identify the actor.  Numbers: docs/TUNABLES.md.
 """
-import json, os, re, struct, sys
+import json, math, os, re, struct, sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
@@ -529,6 +529,14 @@ NOT_ACTOR = re.compile(r"GoTo|Goto|Go\d|Go$|Move|Camera|Player|Escape|After|Entr
 ENEMY_POINT = re.compile(r"AI_Combat|SpawnGuard|SpawnMerc|MercBoss|PirateSpawn|Spawn_|Dreadleg\d*$|Captain\d*$")
 
 
+# places with their own enemies (bounded-area name pattern, (monsterdata, name), camps within
+# RADIUS of the area's centre: the named areas are only the respawn zones): Shroom Canyon
+# (resurrection point "Res_Canyon", TDB 270/375841) is the space mushrooms' home: Boom, Spore
+# and Hophop Shroom (TDB 51000, monsterdata space_mushroom_explode/_poison/_runner)
+AREA_ENEMIES = {
+    3200: [(r"Canyon", [(387626, "Boom Shroom"), (387627, "Spore Shroom"), (387628, "Hophop Shroom")], 10)],
+}
+AREA_ENEMY_RADIUS = 60
 NO_COMBAT = {1200, 4620, 30041}  # the hub, the tavern, a developer test map
 BOSSES = {  # playfield: [(monsterdata, name, bounded area pattern placing it, else the farthest walkable spot)]
     2300: [(23373, "Medusa", r"Medusa|Res_Boss")],
@@ -752,6 +760,20 @@ def proposals(pf, dest, res, points, portals_here, parents, dungeon):
             out["enemies"].append(enemy(kinds[placed % 2], level, [round(x, 2), round(y, 2), round(z, 2)],
                                         anchor=area_name(centre) or "navmesh"))
             placed += 1
+    # areas with their own enemies
+    for pat, kinds, n in AREA_ENEMIES.get(pf, []):
+        for a in (a for a in areas if re.search(pat, a["name"])):
+            cx, cz = sum(v[0] for v in a["poly"]) / len(a["poly"]), sum(v[1] for v in a["poly"]) / len(a["poly"])
+            inner = [(0, spot(c)) for c in cells if math.dist((spot(c)[0], spot(c)[2]), (cx, cz)) <= AREA_ENEMY_RADIUS]
+            for i, centre in enumerate(spread(inner, n, 8, [(q["pos"], 10) for q in portals_here])):
+                for k, (dx, dz) in enumerate(CAMP[:3]):
+                    x, z = centre[0] + dx, centre[2] + dz
+                    y = ground(cells, x, z, centre[1])
+                    if y is None or abs(y - centre[1]) > 2:
+                        continue
+                    md, name = kinds[(i + k) % len(kinds)]
+                    out["enemies"].append(enemy(md, level, [round(x, 2), round(y, 2), round(z, 2)], 1, name, a["name"]))
+            break
     # smashable clusters, away from the camps
     n_smash = max(2, min(8, int(area / 250))) if dungeon else min(30, int(area / 900))
     tpls = SMASH[smash]

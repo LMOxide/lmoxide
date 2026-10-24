@@ -103,11 +103,20 @@ playfield resources) aren't listed; neither are protocol constants.
 | Minifigure ranks | `progression.rs`, `data/progression.json` | rank 0..8, start at 0; a rank costs the stars up to the next MinifigureXPTables threshold (50, 60, 140, ...) and needs player level 3, 6, ... 24 (ranks 0..7) | Tables and level requirements are client data (RDB 1000525, lore tags 466-474); that a rank is bought with stars (the "minifigure XP" token 100) through LevelUpMinifigure follows the Collection GUI. |
 | Upgrade tiers | `progression.rs` `unlocked_upgrades` | rank r unlocks tiers 1..r | The Collection's tier panel (one tier per rank purchase). |
 
+## Combat level
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Level a character fights at | `CharacterExt::combat_level`, `progression::combat_cap` | its level, at most the area's cap: the world caps (Pirate 11, Medieval 15, Space 19, Mythology 21, Dino 30), a side dungeon the smallest of those at or above its enemies' level, the hub none | The recording's level-1 hits (52-60 on 139-health Scallywags) match our damage formula at matching levels; without a cap level-30 characters one-shot level-5 enemies. Live showed "You have reached the maximum level for this area". |
+| Item health stats | `combat::item_life` | MinifigureLife = max health - level x HealthPerLevel; MinifigureHealth = max health | The client adds level x HealthPerLevel to MinifigureLife (CalculateLife); sending the full value showed the bar half full. |
+| Enemy targets | `npc::is_player` | player characters only | Scenery, jump pads, doors and collectibles are world members too; enemies were chasing them. |
+
 ## Achievements
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
 | What earns an achievement | `data/achievements.json` `kind` (`extract_achievements.py`), `achievements.rs` | counters (kills, smashes, buildies, by name for the "Smash 50 Witches" kind), "Complete Any N", parents when all visible children are done, "Upgrade N" = minifigure level ≥ N, series = every minifigure of the series owned, "Defeat X" and the minifigure ones = boss named X (or the boss of dungeon X) defeated with that minifigure active, "Combat_Champion_X" = champion (or boss) named X defeated, "Combat_PA_Clear the X" = every resident enemy of dungeon X defeated in one visit, collectibles and "[World] Boombox" = that world object found | The criteria were server Lua; inferred from the names. Most exploration, seasonal events and Lost Creations have no rule (388 of 2144). No spawn has a champion's name yet, so the champion ones can't be earned until world events spawn them. |
+| Exploration | `extract_achievements.py` `EXPLORE`, `encounter::explored` | 26 "Explore" achievements = walking into their `Achievement_*` / `BA_Explore_*` bounded area (matched by name; Dino "Lost Pirates"/"Beauty Salon" guessed); 13 have no area | The areas are the designers'; the binding was server script. |
 | What counts as found | `discovery.rs` | collectible: used (ObjectInteraction; spawned with CARS group 1) or within 4 m; boombox: within 6 m of the "boombox 1" marker | Assumed; live's trigger was server script. |
 | Journal | `achievements.rs` `on_event`, DB `character_defeats` / `character_visits` / `character_finds` | every defeat by name (count, first/last time), every playfield entered, every find | Server bookkeeping for the achievements and the API; the client shows none of it. |
 | Who gets the credit | `npc.rs` `hit` | the player who dealt the killing blow | Assumed (group credit unknown). |
@@ -128,6 +137,7 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Arena reset | `RESET_AFTER` | 20 s after no engaged player is near: boss healed, adds gone, doors open | |
 | Ambushes | `AMBUSH_WAVE`, `AMBUSH_REST` | 2 waves of 3 (the area's nearest enemy kinds, around the player), then 5 min rest | The tutorial's recorded ambush (3 + 3). |
 | Champions | `CHAMPION_HEALTH`, `CHAMPION_REST` | one per side dungeon ("Defeat the champion" area quests), named after an unbeaten champion of its world, 5x health, at BA_SpawnChampion or the farthest regular; a new one 10 min after | Champion names only exist as achievements. |
+| Pocket worlds | `encounter::pocket`, `npc.rs` respawn | every playfield but the open worlds (hub, 4200, 4210, 4600, 5200, 5210, 3200, 3210, 2210, 6200, tutorial): encounters run once and defeated enemies stay down while anyone is inside; when it empties, all of it resets (a new instance) | Live instanced dungeons per group. Open worlds: encounters come back after their rest, enemies after RESPAWN. |
 | Not done | | boss buildies (Kraken 194851, Medusa mirrors, ...), boss phases/immunities, area quests, the Kraken's own script | |
 
 ## Tutorial

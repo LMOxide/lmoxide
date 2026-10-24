@@ -14,6 +14,12 @@
 //!   after one of its world's champions (their achievements), at "BA_SpawnChampion" or deep
 //!   in the dungeon; one at a time, a new one a while after the last fell.
 //!
+//! Pocket worlds (dungeons; live gave each group its own instance) run each encounter once: a
+//! won arena, a spent ambush and a fallen champion stay so until nobody is left there (a new
+//! instance). In the open worlds they come back after their rest.
+//!
+//! Exploration: the "Achievement_*" / "BA_Explore_*" areas the exploration achievements name.
+//!
 //! Locking: STATE is never held while calling into npc.rs or world.rs.
 
 use std::{
@@ -114,6 +120,8 @@ struct PlayfieldDef {
     ambushes: Vec<Area>,
     #[serde(default)]
     champion: Option<[f32; 2]>,
+    #[serde(default)]
+    explore: Vec<Area>,
 }
 
 static DATA: LazyLock<HashMap<u32, PlayfieldDef>> = LazyLock::new(|| {
@@ -137,6 +145,8 @@ enum Ambush {
     Idle,
     Wave { n: usize, ids: Vec<Id32>, around: [f32; 3] },
     Resting(Instant),
+    /// pocket worlds: spent until the playfield empties
+    Spent,
 }
 
 #[derive(Default)]
@@ -163,6 +173,20 @@ pub fn start() {
             tick();
         }
     });
+}
+
+/// The open worlds (and the hub); every other playfield is a pocket world.
+const OPEN_WORLDS: [u32; 11] = [1200, 4200, 4210, 4600, 5200, 5210, 3200, 3210, 2210, 6200, 1300];
+
+/// Whether `playfield` is a pocket world (instanced on live).
+pub fn pocket(playfield: u32) -> bool {
+    !OPEN_WORLDS.contains(&playfield)
+}
+
+/// The exploration areas the player at `pos` is in.
+pub fn explored(playfield: u32, pos: [f32; 3]) -> Vec<&'static str> {
+    let Some(def) = DATA.get(&playfield) else { return vec![] };
+    def.explore.iter().filter(|a| a.contains(pos)).map(|a| a.name.as_str()).collect()
 }
 
 /// A player moved to `pos` on `playfield`.
@@ -249,12 +273,16 @@ static DOORS: LazyLock<HashMap<u32, (u32, usize, Door)>> = LazyLock::new(|| {
     m
 });
 
-/// Test command targets: arena starts and ambushes (centre, at the height of the nearest
-/// enemy).
-pub fn points(arenas: bool) -> Vec<(String, u32, [f32; 3])> {
+/// Test command targets: arena starts, ambushes or exploration areas (centre, at the height of
+/// the nearest enemy, else the area's floor).
+pub fn points(kind: &str) -> Vec<(String, u32, [f32; 3])> {
     let mut v = Vec::new();
     for (&pf, def) in DATA.iter() {
-        let areas: Vec<&Area> = if arenas { def.arenas.iter().map(|a| &a.area).collect() } else { def.ambushes.iter().collect() };
+        let areas: Vec<&Area> = match kind {
+            "arena" => def.arenas.iter().map(|a| &a.area).collect(),
+            "ambush" => def.ambushes.iter().collect(),
+            _ => def.explore.iter().collect(),
+        };
         for a in areas {
             let c = a.centre();
             let y = crate::npc::regulars_near(pf, c, f32::MAX, 1).first().map_or(a.heights[0], |d| d.pos[1]);
@@ -307,7 +335,11 @@ fn enter_ambush(playfield: u32, i: usize, area: &Area, at: [f32; 3]) {
     }
     let ids = spawn_wave(playfield, area.centre(), at, AMBUSH_WAVE);
     info!(playfield, ambush = %area.name, spawned = ids.len(), "ambush");
-    let next = if ids.is_empty() { Ambush::Resting(Instant::now() + AMBUSH_REST) } else { Ambush::Wave { n: 1, ids, around: at } };
+    let next = match (ids.is_empty(), pocket(playfield)) {
+        (true, true) => Ambush::Spent,
+        (true, false) => Ambush::Resting(Instant::now() + AMBUSH_REST),
+        _ => Ambush::Wave { n: 1, ids, around: at },
+    };
     STATE.lock().unwrap().ambushes.insert((playfield, i), next);
 }
 
@@ -367,7 +399,7 @@ fn tick() {
                 }
             },
             // the boss is back: the arena is ready again
-            Arena::Won { boss } if crate::npc::health_of(boss).is_some() => Some(Arena::Idle),
+            Arena::Won { boss } if !pocket(playfield) && crate::npc::health_of(boss).is_some() => Some(Arena::Idle),
             _ => None,
         };
         if let Some(next) = next {
@@ -389,6 +421,7 @@ fn tick() {
                         let ids = spawn_wave(playfield, area.centre(), around, AMBUSH_WAVE);
                         Some(Ambush::Wave { n: 2, ids, around })
                     }
+                    _ if pocket(playfield) => Some(Ambush::Spent),
                     _ => Some(Ambush::Resting(Instant::now() + AMBUSH_REST)),
                 }
             }
@@ -403,7 +436,33 @@ fn tick() {
     let champions: Vec<(u32, Id32)> = STATE.lock().unwrap().champions.iter().filter_map(|(pf, (id, _))| Some((*pf, (*id)?))).collect();
     for (playfield, id) in champions {
         if crate::npc::health_of(id).is_none() {
-            STATE.lock().unwrap().champions.insert(playfield, (None, Instant::now() + CHAMPION_REST));
+            // pocket worlds: not again in this instance (until it empties)
+            let rest = if pocket(playfield) { Duration::from_secs(365 * 24 * 3600) } else { CHAMPION_REST };
+            STATE.lock().unwrap().champions.insert(playfield, (None, Instant::now() + rest));
+        }
+    }
+
+    // pocket worlds nobody is in any more: a new instance next time
+    let pockets: HashSet<u32> = {
+        let st = STATE.lock().unwrap();
+        st.arenas.keys().map(|k| k.0).chain(st.ambushes.keys().map(|k| k.0)).chain(st.champions.keys().copied()).filter(|pf| pocket(*pf)).collect()
+    };
+    for playfield in pockets {
+        if world::positions(playfield).iter().any(|(id, _)| crate::npc::is_player(*id)) {
+            continue;
+        }
+        let won: Vec<usize> = {
+            let mut st = STATE.lock().unwrap();
+            st.ambushes.retain(|k, a| k.0 != playfield || matches!(a, Ambush::Wave { .. }));
+            st.champions.retain(|pf, (id, _)| *pf != playfield || id.is_some());
+            let won = st.arenas.iter().filter(|(k, a)| k.0 == playfield && matches!(a, Arena::Won { .. })).map(|(k, _)| k.1).collect();
+            st.arenas.retain(|k, a| k.0 != playfield || !matches!(a, Arena::Won { .. }));
+            won
+        };
+        for i in won {
+            if let Some(def) = DATA.get(&playfield).and_then(|d| d.arenas.get(i)) {
+                set_doors(def);
+            }
         }
     }
 }
@@ -442,5 +501,10 @@ mod tests {
         assert_eq!(door_hidden(medusa.doors.closed[0]), Some(true));
         assert_eq!(door_hidden(medusa.doors.open[0]), Some(false));
         assert!(DATA.values().map(|d| d.ambushes.len()).sum::<usize>() > 50);
+        // Pirate Town (exploration) and which playfields are pocket worlds
+        let town = DATA[&4200].explore.iter().find(|a| a.name == "Achievement_PirateTown").unwrap();
+        let c = town.centre();
+        assert_eq!(explored(4200, [c[0], town.heights[0] + 1.0, c[1]]), vec!["Achievement_PirateTown"]);
+        assert!(pocket(2300) && pocket(1640) && !pocket(4200) && !pocket(1200));
     }
 }

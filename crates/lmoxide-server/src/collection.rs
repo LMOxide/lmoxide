@@ -134,9 +134,10 @@ impl Collection {
     }
 }
 
-/// A minifigure item of `rank` (its tiers purchased) with `active` upgrades selected, at full
-/// health `life`.
-fn entry(template: u32, active: u32, rank: u32, life: u32, id_salt: u64) -> ProtoInventoryGameEntry {
+/// A minifigure item of `rank` (its tiers purchased) with `active` upgrades selected: `life` =
+/// (its own life, its full health). The client adds level x HealthPerLevel to its own life
+/// (SimpleChar_t::CalculateLife), so the full health counted it already.
+fn entry(template: u32, active: u32, rank: u32, life: (u32, u32), id_salt: u64) -> ProtoInventoryGameEntry {
     let stat = |stat, value| StatValue { stat: Some(stat), value: Some(value) };
     let level = if crate::progression::enabled() { rank } else { MAX_LEVEL };
     ProtoInventoryGameEntry {
@@ -150,8 +151,8 @@ fn entry(template: u32, active: u32, rank: u32, life: u32, id_salt: u64) -> Prot
             // the client takes a minifigure's health from these when it switches to it (also
             // on its own after a minifigure is smashed): unset, they read 0, so each switch
             // flashed low health and a smashed minifigure's teammates were smashed in turn
-            stat(STAT_MINIFIGURE_LIFE, life),
-            stat(STAT_MINIFIGURE_HEALTH, life),
+            stat(STAT_MINIFIGURE_LIFE, life.0),
+            stat(STAT_MINIFIGURE_HEALTH, life.1),
         ],
         ..Default::default()
     }
@@ -167,7 +168,7 @@ pub fn inventories(
     collection: &Collection,
     upgrades: &impl Fn(u32) -> u32,
     ranks: &impl Fn(u32) -> u32,
-    lives: &impl Fn(u32) -> u32,
+    lives: &impl Fn(u32) -> (u32, u32),
 ) -> Vec<ProtoInventoryGame> {
     let inventory = |kind, max_size, items: Vec<(u32, u32)>| ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(kind), instance: Some(character) },
@@ -198,7 +199,7 @@ pub fn team_refresh(
     team: &[(u32, u32)],
     upgrades: &impl Fn(u32) -> u32,
     ranks: &impl Fn(u32) -> u32,
-    lives: &impl Fn(u32) -> u32,
+    lives: &impl Fn(u32) -> (u32, u32),
     salt: u64,
 ) -> ProtoInventoryGame {
     ProtoInventoryGame {
@@ -218,7 +219,7 @@ pub fn collection_refresh(
     collection: &Collection,
     upgrades: &impl Fn(u32) -> u32,
     ranks: &impl Fn(u32) -> u32,
-    lives: &impl Fn(u32) -> u32,
+    lives: &impl Fn(u32) -> (u32, u32),
 ) -> ProtoInventoryGame {
     ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(COLLECTION_INVENTORY), instance: Some(character) },

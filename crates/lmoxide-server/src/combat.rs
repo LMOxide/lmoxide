@@ -121,6 +121,13 @@ pub fn max_life(template: u32, active: u32, level: u32) -> u32 {
     (life + 0.5).max(1.0) as u32
 }
 
+/// A minifigure item's health stats: (MinifigureLife, the client adds level x HealthPerLevel to
+/// it; MinifigureHealth, the full health).
+pub fn item_life(template: u32, active: u32, level: u32) -> (u32, u32) {
+    let max = max_life(template, active, level);
+    (max.saturating_sub(level * HEALTH_PER_LEVEL as u32), max)
+}
+
 /// Damage of one hit of `spell` cast by `template` (before the target's mitigation) for a
 /// character of `level`. `charge` picks the hit of a charge ability's level.
 pub fn damage(template: u32, active: u32, spell: u32, charge: Option<usize>, level: u32) -> u32 {

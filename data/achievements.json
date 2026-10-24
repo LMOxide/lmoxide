@@ -6,7 +6,9 @@
 "parent": 1046,
 "name": "Pirate_Exploration_The Sirens",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4200,
+"find": "Achievement_Mermaid"
 },
 {
 "id": 281,
@@ -37,7 +39,9 @@
 "parent": 835,
 "name": "Pirate_Story_Escape Jacket Fort",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4200,
+"find": "Achievement_EscapeFort"
 },
 {
 "id": 723,
@@ -53,14 +57,18 @@
 "parent": 1046,
 "name": "Pirate_Exploration_Find the Hidden Pirate Town",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4200,
+"find": "Achievement_PirateTown"
 },
 {
 "id": 725,
 "parent": 1046,
 "name": "Pirate_Exploration_Cross the Lava River",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4210,
+"find": "Achievement_LavaRiver"
 },
 {
 "id": 742,
@@ -97,21 +105,27 @@
 "parent": 1046,
 "name": "Pirate_Exploration_Find Blackbird's Ship",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4200,
+"find": "Achievement_Ship"
 },
 {
 "id": 749,
 "parent": 1046,
 "name": "Pirate_Exploration_Find the Sunken Ship",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4200,
+"find": "Achievement_SunkenShip"
 },
 {
 "id": 750,
 "parent": 1046,
 "name": "Pirate_Exploration_Find Gunslinger Joe",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4200,
+"find": "Achievement_Gunslinger"
 },
 {
 "id": 752,
@@ -125,35 +139,45 @@
 "parent": 1046,
 "name": "Pirate_Exploration_Discover the Cursed Treasure",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4210,
+"find": "Achievement_CursedTreasure"
 },
 {
 "id": 754,
 "parent": 1046,
 "name": "Pirate_Exploration_Climb the Volcano",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 4210,
+"find": "Achievement_Volcano"
 },
 {
 "id": 756,
 "parent": 1047,
 "name": "Medieval_Exploration_Center of Attention",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 5200,
+"find": "Achievement_CenterofAttention"
 },
 {
 "id": 757,
 "parent": 1047,
 "name": "Medieval_Exploration_Watcher on the Wall",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 5200,
+"find": "Achievement_Wall"
 },
 {
 "id": 758,
 "parent": 1047,
 "name": "Medieval_Exploration_Overlook the Medieval World",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 5200,
+"find": "Achievement_Overlook"
 },
 {
 "id": 759,
@@ -167,49 +191,63 @@
 "parent": 1047,
 "name": "Medieval_Exploration_Take the Web Shortcut",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 5210,
+"find": "Achievement_Shortcut"
 },
 {
 "id": 761,
 "parent": 1047,
 "name": "Medieval_Exploration_Find the Ominous Cauldron",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 5210,
+"find": "Achievement_Cauldron"
 },
 {
 "id": 762,
 "parent": 1048,
 "name": "Space_Exploration_Find the Tree of Life",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 3200,
+"find": "Achievement_Tree of Life"
 },
 {
 "id": 763,
 "parent": 1048,
 "name": "Space_Exploration_Space Vanguard",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 3200,
+"find": "Achievement_Colony Vanguard"
 },
 {
 "id": 764,
 "parent": 1048,
 "name": "Space_Exploration_Escort Ship",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 3200,
+"find": "Achievement_Escort Ship"
 },
 {
 "id": 765,
 "parent": 1048,
 "name": "Space_Exploration_Research Station",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 3210,
+"find": "Achievement_Research"
 },
 {
 "id": 766,
 "parent": 1048,
 "name": "Space_Exploration_Altar of Genius",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 3210,
+"find": "Achievement_Genius"
 },
 {
 "id": 769,
@@ -796,14 +834,18 @@
 "parent": 1049,
 "name": "Mythology_Exploration_Zeus' Party Invite",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 2210,
+"find": "Achievement_PartyInvite"
 },
 {
 "id": 858,
 "parent": 1049,
 "name": "Mythology_Exploration_Ice Cream",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 2210,
+"find": "Achievement_IceCream"
 },
 {
 "id": 860,
@@ -980,7 +1022,9 @@
 "parent": 1049,
 "name": "Mythology_Exploration_Hidden Roof",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 2320,
+"find": "BA_Explore_Roof"
 },
 {
 "id": 941,
@@ -1246,21 +1290,27 @@
 "parent": 1539,
 "name": "Dino_Exploration_Lost Pirates",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 6200,
+"find": "Achievement_Swamp"
 },
 {
 "id": 1612,
 "parent": 1539,
 "name": "Dino_Exploration_Beauty Salon",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 6200,
+"find": "Achievement_Tarpit"
 },
 {
 "id": 1613,
 "parent": 1539,
 "name": "Dino_Exploration_Lava Pier",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"playfield": 6200,
+"find": "Achievement_Volcano"
 },
 {
 "id": 1903,
@@ -13853,7 +13903,9 @@
 "name": "Mythology_Story_Find Lightningblast's Arboratory",
 "points": 100,
 "stars": 500,
-"kind": "manual"
+"kind": "find",
+"playfield": 2500,
+"find": "BA_Explore_Forge"
 },
 {
 "id": 3741,

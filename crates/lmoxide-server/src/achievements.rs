@@ -490,6 +490,8 @@ mod tests {
         // a collectible and a boombox (the boombox only in its own world)
         on_event(&mut c, &ctx, &Event::Found { playfield: 4210, name: "collectible_dreadlegs_treasure".into() }, 1);
         assert!(c.tags.contains_key(&2420), "Pirate_Collectibles_Dreadleg's Treasure");
+        on_event(&mut c, &ctx, &Event::Found { playfield: 4200, name: "Achievement_PirateTown".into() }, 1);
+        assert!(c.tags.contains_key(&724), "Pirate_Exploration_Find the Hidden Pirate Town");
         on_event(&mut c, &ctx, &Event::Found { playfield: 4200, name: "boombox 1".into() }, 1);
         assert!(c.tags.contains_key(&943), "[Isle of Yarr] Boombox");
         assert!(!c.tags.contains_key(&281), "[Volcano Island] Boombox");

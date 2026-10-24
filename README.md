@@ -98,7 +98,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 |---|---|
 | `!where` | current playfield and position |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `trigger`, `arena`, `ambush`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them); `!aura <0-4>` sets the active minifigure's aura tier |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
@@ -127,6 +127,7 @@ New features add their targets to `devcmd.rs` `targets`.
 | `patches/linux-client/make-kit.sh` | pack the kit (prebuilt libraries) as `dist/lmo-client-kit-v<N>.tar.gz` for another PC |
 | `patches/linux-client/play.sh <dir> <server-ip> <username>` | start a kit-installed client from another folder |
 | `tools/lan-server.sh [--release] [lan-ip]` | game server + patch server (Windows and, from `clients/downloads/LMO_Linux_v1.5.557666.zip`, Linux installs) + REST API on :8090 for LAN play (binds 0.0.0.0, advertises the LAN IP; `--auto-register`, GM level 1); logs in `logs/lan-*.log` |
+| `tools/lan-party.sh [--reset] [lan-ip]` | `lan-server.sh --release` with open registration + the web UI (`../lmoxide-webui` built, served on :4173); accounts `host`, `player1`..`player8` with password `password` and GM level 2 (admin); `--reset` deletes every character but host's |
 | `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
 | `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |
 | `tools/re/py d.py <va> [bytes]` | disassemble with string annotations |
