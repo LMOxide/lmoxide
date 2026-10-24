@@ -58,6 +58,7 @@ playfield resources) aren't listed; neither are protocol constants.
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
 | Portal trigger radius | `teleport.rs` `PORTAL_RADIUS` | 3 m | Portal positions are client data; the radius is assumed. |
+| Portal → teleport window | `data/destinations.json` portals `window` (`tools/re/extract_portal_windows.py`) | the window whose arrival point names the source, else the destination's plain window | Which portal opened which window was server script data. Every portal opens its window (live behaviour inferred from the client: only server scripts open it). |
 | A world's portal to itself leads to the hub | `teleport.rs` `portal_at` | — | Inference (the Medieval Kingdom's only nearby portal is listed as leading to itself). |
 | Collision radius stat | `game.rs` `STAT_CHAR_RADIUS` | 50 (0.5 m) | Assumed; needed for keyboard movement. |
 | Command queue size | `game.rs` `STAT_COMMAND_QUEUE_SIZE` | 3 | Assumed. |

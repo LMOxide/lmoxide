@@ -173,29 +173,34 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // Hub portals: the client sends nothing, so offer the destination's
                             // teleport window when the player steps into one (once per visit), or
                             // teleport directly if it has none.
+                            // Portals: the client sends nothing, so open the portal's teleport
+                            // window when the player steps in (once per visit), and close it when
+                            // they step out again (live, server scripts did this)
                             match crate::teleport::portal_at(me.playfield, p) {
-                                Some(to) if shown_portal != Some(to) => {
+                                Some((to, window)) if shown_portal != Some(to) => {
                                     shown_portal = Some(to);
-                                    info!(to, "portal");
-                                    match crate::teleport::destination(to).map(|d| d.window).filter(|&w| w != 0) {
-                                        Some(window) => {
-                                            let args = Writer::new().u32(window).i32(0).finish();
-                                            conn.send_as(
-                                                Some(character),
-                                                Endpoint::GameCharInterfaceProject,
-                                                game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
-                                                args,
-                                            )
-                                            .await?;
-                                        }
-                                        None => {
-                                            teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, to, None, potions_spent)
-                                                .await?;
-                                        }
-                                    }
+                                    info!(to, window, "portal");
+                                    let args = Writer::new().u32(window).i32(0).finish();
+                                    conn.send_as(
+                                        Some(character),
+                                        Endpoint::GameCharInterfaceProject,
+                                        game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
+                                        args,
+                                    )
+                                    .await?;
                                 }
                                 Some(_) => {}
-                                None => shown_portal = None,
+                                None if shown_portal.is_some() => {
+                                    shown_portal = None;
+                                    conn.send_as(
+                                        Some(character),
+                                        Endpoint::GameCharInterfaceProject,
+                                        game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
+                                        Bytes::new(),
+                                    )
+                                    .await?;
+                                }
+                                None => {}
                             }
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
@@ -441,6 +446,27 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, potions_spent)
                         .await?;
                 }
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::TELEPORT_WINDOW_BYPASS) => {
+                // TeleportWindowBypass(uint32 windowsId, uint32 playfieldId): the Tutorial's map
+                // sends this for Pirate World instead of opening the window
+                let window = r.u32()?;
+                let playfield = r.u32()?;
+                info!(window, playfield, "teleport window bypass");
+                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, potions_spent)
+                    .await?;
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CLIENT_ATTEMPT_CLOSING_PLAYER_DESTINATION_PLAYFIELD) => {
+                // the teleport window's Reset (dungeon instances): instances aren't kept, so it
+                // always succeeds; SignalReplyToClientClosingPlayfield(bool) reloads the window
+                let args = Writer::new().bool(true).finish();
+                conn.send_as(
+                    Some(character),
+                    Endpoint::GameCharInterfaceProject,
+                    game_char_interface_project::SIGNAL_REPLY_TO_CLIENT_CLOSING_PLAYFIELD,
+                    args,
+                )
+                .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::ACTIVATE_MINIFIGURE_UPGRADE) => {
                 // ActivateMinifigureUpgrade(int minifigureID, int position)

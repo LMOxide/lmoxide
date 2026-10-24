@@ -32,14 +32,14 @@ pub struct Destination {
     pub pos: [f32; 3],
     /// Facing (radians around the vertical axis).
     pub rot: f32,
-    /// Teleport window id (RDB 1000644/1); 0 if none.
-    pub window: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 struct Portal {
     to: u32,
     pos: [f32; 3],
+    /// Teleport window the portal opens (tools/re/extract_portal_windows.py).
+    window: u32,
 }
 
 #[derive(Deserialize)]
@@ -62,10 +62,11 @@ pub fn destination(playfield: u32) -> Option<&'static Destination> {
 /// the Medieval Kingdom's only nearby portal is listed as leading to the Kingdom itself).
 const HUB: u32 = 1200;
 
-/// The portal (destination playfield) the player is standing in, if any.
-pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<u32> {
+/// The portal the player is standing in, if any: (destination playfield, teleport window).
+/// The client has no portal trigger of its own; live, server scripts opened the window.
+pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<(u32, u32)> {
     let portal = DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
-    Some(if portal.to == playfield { HUB } else { portal.to })
+    Some((if portal.to == playfield { HUB } else { portal.to }, portal.window))
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
