@@ -35,11 +35,13 @@ struct Member {
     playfield: u32,
     pos: Position,
     /// Records that make this character appear for a newcomer (see `game::spawn_records`).
-    spawn: Box<dyn Fn() -> Vec<Bytes> + Send>,
+    spawn: Spawn,
     outbox: Outbox,
 }
 
 static MEMBERS: LazyLock<Mutex<HashMap<Id32, Member>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+type Spawn = Arc<dyn Fn() -> Vec<Bytes> + Send + Sync>;
 
 /// Adds a character to `playfield`: it receives everyone else's spawn records and everyone
 /// else receives its own. Dropping the returned guard removes it again (see [`Presence`]).
@@ -47,20 +49,27 @@ pub fn join(
     id: Id32,
     playfield: u32,
     pos: Position,
-    spawn: impl Fn() -> Vec<Bytes> + Send + 'static,
+    spawn: impl Fn() -> Vec<Bytes> + Send + Sync + 'static,
     outbox: Outbox,
 ) -> Presence {
-    let mut members = MEMBERS.lock().unwrap();
+    let spawn: Spawn = Arc::new(spawn);
     let mine = spawn();
+    // The spawn closures run outside the MEMBERS lock: NPCs' lock NPCS, and code holding NPCS
+    // sends through MEMBERS (npc::hit), so calling them under MEMBERS could deadlock.
+    let others: Vec<(Spawn, Outbox)> = {
+        let mut members = MEMBERS.lock().unwrap();
+        let others = members.values().filter(|m| m.playfield == playfield).map(|m| (m.spawn.clone(), m.outbox.clone())).collect();
+        members.insert(id, Member { playfield, pos, spawn: spawn.clone(), outbox: outbox.clone() });
+        others
+    };
     let mut theirs = Vec::new();
-    for other in members.values().filter(|m| m.playfield == playfield) {
-        theirs.extend((other.spawn)());
-        let _ = other.outbox.send(Out::Records(mine.clone()));
+    for (their_spawn, their_outbox) in others {
+        theirs.extend(their_spawn());
+        let _ = their_outbox.send(Out::Records(mine.clone()));
     }
     if !theirs.is_empty() {
         let _ = outbox.send(Out::Records(theirs));
     }
-    members.insert(id, Member { playfield, pos, spawn: Box::new(spawn), outbox });
     Presence { id }
 }
 
