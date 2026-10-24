@@ -48,6 +48,8 @@ const ATTACK_INTERVAL: Duration = Duration::from_millis(2500);
 /// session: ~20% for normal enemies, ~40% for bosses).
 const ENEMY_MITIGATION: f32 = 0.2;
 const BOSS_MITIGATION: f32 = 0.4;
+/// Cap on a player's total damage mitigation (upgrades plus buffs).
+const MAX_MITIGATION: f32 = 0.9;
 /// Enemies with more health than this count as bosses.
 const BOSS_HEALTH: u32 = 500;
 
@@ -58,6 +60,8 @@ struct PlayerCombat {
     /// The active minifigure's maximum health and damage mitigation (combat.rs).
     max: u32,
     mitigation: f32,
+    /// Mitigation from buffs active on the player (e.g. a stance's MitigationOverrideFlat), by buff.
+    buff_mitigation: HashMap<u32, f32>,
     health: HashMap<u32, u32>,
     last_damaged: Option<std::time::Instant>,
 }
@@ -87,6 +91,16 @@ pub fn player_left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
 }
 
+/// Sets (or with `None` clears) the damage mitigation buff `buff` gives the player.
+pub fn set_buff_mitigation(player: Id32, buff: u32, mitigation: Option<f32>) {
+    let mut players = PLAYERS.lock().unwrap();
+    let Some(p) = players.get_mut(&player) else { return };
+    match mitigation {
+        Some(m) => p.buff_mitigation.insert(buff, m),
+        None => p.buff_mitigation.remove(&buff),
+    };
+}
+
 /// Heals the player's active minifigure (up to full); returns its new health.
 pub fn heal_player(player: Id32, amount: u32) -> u32 {
     let mut players = PLAYERS.lock().unwrap();
@@ -102,7 +116,7 @@ fn damage_player(player: Id32, damage: u32) -> Option<u32> {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.get_mut(&player)?;
     p.last_damaged = Some(std::time::Instant::now());
-    let (max, mitigation) = (p.max, p.mitigation);
+    let (max, mitigation) = (p.max, (p.mitigation + p.buff_mitigation.values().sum::<f32>()).min(MAX_MITIGATION));
     let h = p.health.entry(p.active).or_insert(max);
     let dealt = ((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32;
     *h = h.saturating_sub(dealt);
@@ -428,16 +442,20 @@ pub fn hit_column(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32; 3], 
 }
 
 fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool) -> u32 {
-    let targets: Vec<Id32> = NPCS
-        .lock()
+    let targets = targets_where(playfield, inside);
+    targets.into_iter().filter(|(t, _)| hit(attacker, *t, spell, damage) == Some(true)).count() as u32
+}
+
+/// The live enemies and smashables on `playfield` whose position is `inside`, with their positions.
+pub fn targets_where(playfield: u32, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
+    NPCS.lock()
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
         .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable))
-        .filter(|(_, n)| inside(*n.pos.lock().unwrap()))
-        .map(|(id, _)| *id)
-        .collect();
-    targets.into_iter().filter(|t| hit(attacker, *t, spell, damage) == Some(true)).count() as u32
+        .map(|(id, n)| (*id, *n.pos.lock().unwrap()))
+        .filter(|(_, p)| inside(*p))
+        .collect()
 }
 
 /// Heals players' active minifigures that haven't been hurt for a while (a defeated, 0-health
@@ -618,6 +636,7 @@ fn attack(id: Id32, player: Id32) {
     records.push(combat_log_record(id, player, spell, damage));
     records.push(int32_stat(player, STAT_HEALTH, health));
     world::send_playfield(id, false, world::Out::Records(records));
+    crate::actions::caster_hit(player);
 }
 
 /// BCC action that queues a server-created command on the destination character.

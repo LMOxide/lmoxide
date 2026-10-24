@@ -50,6 +50,13 @@ pub fn effect_package_hook(target: Id32, package: u32, hook: &str, stop: &str, v
     })
 }
 
+/// An effect package played at a ground position (`target` owns it): see `effect_package`.
+pub fn effect_package_at(target: Id32, package: u32, at: [f32; 3]) -> Bytes {
+    iir::record("EffectPackageIIR", target, false, |w| {
+        target.write(w).u32(package).string("").string("").f32(0.0).u8(0).u32(new_instance()).f32(at[0]).f32(at[1]).f32(at[2]).u32(0)
+    })
+}
+
 /// A fresh effect package instance id.
 pub fn new_instance() -> u32 {
     static NEXT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);

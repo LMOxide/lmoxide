@@ -59,6 +59,9 @@ fn one() -> f32 {
 #[derive(Deserialize)]
 struct Upgrade {
     bit: u32,
+    /// The upgrade's ability (spell) id; spells check for it in their action criteria.
+    #[serde(default)]
+    ability: u32,
     #[serde(default)]
     name: String,
     #[serde(default)]
@@ -127,6 +130,12 @@ fn scaled(m: &Minifigure, active: u32, is_normal: bool, ability_mod: f32) -> u32
     }
     let roll = 1.0 + VARIANCE * (2.0 * random_unit() - 1.0);
     (rating * ability_mod * multiplier * roll).round().max(1.0) as u32
+}
+
+/// Whether `template` with the upgrades `active` has upgrade ability `ability` (e.g. the Samurai
+/// Warrior's Lotus Dash).
+pub fn has_ability(template: u32, active: u32, ability: u32) -> bool {
+    minifigure(template).is_some_and(|m| active_upgrades(m, active).any(|u| u.ability == ability))
 }
 
 /// Share of incoming damage a minifigure's upgrades absorb ("Tough": MitigationOverrideFlat).

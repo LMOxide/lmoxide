@@ -5,7 +5,12 @@ key, u8 kind 0=int/1=float/2=string, value). Types: data/gameaction_types.txt (t
 GameActionFactory registry; instantiator 0x0 = server-only action). Stat names:
 data/stats.json + data/stats_linux.json.
 
-  tools/re/py gameactions.py SPELL...     print a spell's game actions
+A record (spells) is u32 version 5, u32 0xc76b, u32 number of lists, then per list u32 event
+(GameData::GameActionList_e: 0 OnUse, 1 OnRechargeDelay, 33 OnChanneling (each channel tick),
+35 channel start, 36 OnChannelingEnd, 39 PreUse; names from the DEV TECH test spells), u32,
+u32 count and the actions; `lists` parses that, `actions` scans for actions anywhere.
+
+  tools/re/py gameactions.py SPELL...     print a spell's game actions, by list
 """
 import json, os, re, struct, sys
 
@@ -64,7 +69,42 @@ def actions(rid, typ=1000621, idx=None):
     return out
 
 
+def lists(rid, typ=1000621, idx=None):
+    """-> {event: [action]} (each action also has "criteria": [(a, b, kind)]), or None if the
+    record doesn't parse as action lists."""
+    b = rdb.body(typ, rid, idx)
+    if len(b) < 12:
+        return None
+    version, _t, n = struct.unpack_from("<3I", b, 0)
+    if version != 5 or n > 64:
+        return None
+    o, out = 12, {}
+    for _ in range(n):
+        if o + 12 > len(b):
+            return None
+        event, _x, count = struct.unpack_from("<3I", b, o)
+        o += 12
+        acts = []
+        for _ in range(count):
+            r = _try(b, o)
+            if not r:
+                return None
+            ncrit = struct.unpack_from("<I", b, o + 12)[0]
+            r[0]["criteria"] = [struct.unpack_from("<3I", b, o + 16 + 12 * i) for i in range(ncrit)]
+            acts.append(r[0])
+            o = r[1]
+        out[event] = acts
+    return out
+
+
 if __name__ == "__main__":
     for s in sys.argv[1:]:
-        for a in actions(int(s)):
-            print(a)
+        ls = lists(int(s))
+        if ls is None:
+            for a in actions(int(s)):
+                print(a)
+            continue
+        for event, acts in ls.items():
+            print("list", event)
+            for a in acts:
+                print("  ", a)

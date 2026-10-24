@@ -264,6 +264,24 @@ team 57001 (raid 57016).
   chest model at the bag + Loot_Offset; clicking sends TryLootItem; the server drops the chest's
   contents as a new bag. The LootTable contents were server-side.
 
+## Spell action lists and channels (actions.rs)
+
+A spell record (RDB 1000621) is u32 5, u32 0xc76b, u32 number of lists, then per list u32 event
+(`GameData::GameActionList_e`), u32, u32 count and the GameActionData entries (see
+`tools/re/gameactions.py`). Events: 0 OnUse, 1 OnRechargeDelay, 33 OnChanneling (every channel
+tick), 35 channel start, 36 OnChannelingEnd, 39 PreUse (names from Funcom's "DEV TECH Channeling
+… Echo" test nanos). Action criteria (u32, u32, kind): 91 = the caster has upgrade ability b,
+166 = buff a's counter equals b, 19 = always (an operator).
+
+The client runs the client-side actions (non-null GameActionFactory instantiator) of its own
+spells: `MagicCommand_c::DoSystemsImpact` casts the use list and `MagicCommand_c::OnRun` the tick
+list (0x21) every ChannelingInterval, ChannelingTicks times (it logs "Channeling tick, %d left").
+Server-only actions (CastNano, area/column formulas, WeaponHit, AddBuffCounter, ColumnDash,
+ground effects) are the server's. A channel ends with BCC action 20 (`FinishChannel`): sent by
+the client when the button is released (`ActionModeDefault_c::CancelSpellOnRelease`), or by the
+server to the client (`MagicHolder::FinishChanneling`). While channelling, the client reports
+where it aims: `GameCharAgentProject::UpdateSpellTargetPosition(u32 command, Vector3)`.
+
 ## Buildies (buildie.rs)
 
 Buildies are `DestructibleFullUpdateIIR_c` dynels of type 51321 with CARS group 1 (the pirate

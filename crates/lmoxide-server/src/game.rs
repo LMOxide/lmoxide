@@ -217,6 +217,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let moved = (dx * dx + dz * dz).sqrt();
                             if kind == "MoveTaskIIR_c" && moved > 0.2 {
                                 heading = [dx / moved, dz / moved];
+                                *facing.lock().unwrap() = heading;
                             }
                             *pos.lock().unwrap() = p;
                             // jump pads (click-to-move reports the path's end and its start)
@@ -274,6 +275,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
                             fire_charge(&c, &me, h.identity, *pos.lock().unwrap(), heading);
+                        } else {
+                            crate::actions::release(h.identity, false);
                         }
                     }
                     Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_CLIENT_ABORT) => {
@@ -283,6 +286,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
                             c.active.store(false, std::sync::atomic::Ordering::Relaxed);
                             info!(spell = c.spell, "charge aborted");
+                        } else {
+                            crate::actions::release(h.identity, false);
                         }
                         let mut reply = blob.to_vec();
                         reply[blob.len() - rest.len()] = BCC_ABORT_ONE;
@@ -357,7 +362,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .filter(|t| *t != h.identity)
                                             .and_then(crate::npc::position)
                                             .or(ground);
-                                        crate::dash::start(h.identity, me.playfield, spell, dash, pos.clone(), point, heading, move |m| {
+                                        crate::dash::start(h.identity, me.playfield, spell, dash.clone(), pos.clone(), point, heading, move |m| {
                                             template.map_or(50, |t| crate::combat::damage_with_mod(t, active, spell, m))
                                         });
                                     } else if crate::projectile::params(spell).is_some() {
@@ -415,6 +420,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         } else {
                                             crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
                                         }
+                                    } else if crate::actions::is_channel(spell) {
+                                        // a channelled ability: the server runs its action lists
+                                        // until the release (BCC action 20) or the last tick
+                                        let (template, upgrades) = me.team.first().map_or((0, 0), |&(_, t)| (t, me.upgrade(t)));
+                                        let mut end = blob.to_vec();
+                                        end[blob.len() - rest.len()] = BCC_FINISH_CHANNEL;
+                                        let caster = crate::actions::Caster {
+                                            id: h.identity,
+                                            playfield: me.playfield,
+                                            pos: pos.clone(),
+                                            facing: facing.clone(),
+                                            template,
+                                            upgrades,
+                                            target: target_id,
+                                            ground,
+                                        };
+                                        crate::actions::start(caster, spell, Bytes::from(end));
                                     } else {
                                     match target_id {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
@@ -535,6 +557,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     args,
                 )
                 .await?;
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::UPDATE_SPELL_TARGET_POSITION) => {
+                // UpdateSpellTargetPosition(uint32 commandID, Vector3 position): where a channel
+                // aims now
+                let _command = r.u32()?;
+                let at = [r.f32()?, r.f32()?, r.f32()?];
+                if let Some(p) = &presence {
+                    crate::actions::aim(p.id(), at);
+                }
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::TELEPORT_MESSAGE_BOX_ANSWER) => {
                 // TeleportMessageBoxAnswer(int answer, int ctx): the playfield (high bit: "enter

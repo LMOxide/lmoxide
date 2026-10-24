@@ -122,6 +122,8 @@ New features add their targets to `devcmd.rs` `targets`.
 | `tools/ghidra/xrefs.sh <va...>` | references to each address (code and data, one level through vtables) |
 | `tools/ghidra/symbols.sh <regex> [n]` | symbols matching a regex; for vtables, the first n slots |
 | `tools/re/py extract_iir.py <out.json>` | regenerate `data/iir_types.json` (IIR names, type ids, classes, protobufs) |
+| `tools/re/py extract_spell_actions.py` | regenerate `data/spell_actions.json` (action lists of the channelled abilities and the nanos they cast) |
+| `tools/re/py gameactions.py SPELL...` | a spell's game action lists |
 | `tools/re/py extract_return_points.py` | regenerate `data/return_points.json` (arrival next to the portal back to where the player came from) |
 
 Setup for the Python tools: `python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf`.

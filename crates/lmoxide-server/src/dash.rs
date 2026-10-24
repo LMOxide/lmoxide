@@ -45,6 +45,14 @@ pub fn params(spell: u32) -> Option<&'static Dash> {
     DASHES.get(&spell.to_string())
 }
 
+impl Dash {
+    /// A ColumnDash from a spell's action list (actions.rs): `distance` along the facing with the
+    /// effect package `effect`, no hits.
+    pub fn column(distance: f32, effect: u32) -> Self {
+        Dash { distance, radius: 1.0, backwards: false, effect, path_mod: None, arrival_mod: None, arrival_radius: None }
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 /// `caster` dashes with `spell` towards `point` (the clicked point; `None` or on the caster:
 /// along `facing`). `damage(ability_mod)` gives a hit's damage.
@@ -52,7 +60,7 @@ pub fn start(
     caster: Id32,
     playfield: u32,
     spell: u32,
-    dash: &'static Dash,
+    dash: Dash,
     pos: world::Position,
     point: Option<[f32; 3]>,
     facing: [f32; 2],
