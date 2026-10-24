@@ -304,6 +304,59 @@ pub fn resident_enemies(playfield: u32) -> std::collections::HashSet<Id32> {
         .collect()
 }
 
+/// How a resident enemy ranks by its health over a regular enemy's of its level (proposed
+/// content: champions 4x, bosses 8x and more).
+fn rank_of(def: &SpawnDef) -> u32 {
+    def.health / (60 + 15 * def.level)
+}
+
+/// The strongest of the playfield's own bosses within `radius` of `at` (x, z).
+pub fn boss_near(playfield: u32, at: [f32; 2], radius: f32) -> Option<Id32> {
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && n.owner.is_none())
+        .filter(|(_, n)| rank_of(&n.def) >= 8 && (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[1]) <= radius)
+        .max_by_key(|(_, n)| n.def.health)
+        .map(|(id, _)| *id)
+}
+
+/// A live NPC's health and maximum (`None` while it's dead or gone).
+pub fn health_of(id: Id32) -> Option<(u32, u32)> {
+    NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some() && n.health > 0).map(|n| (n.health, n.def.health))
+}
+
+/// Heals a live NPC to full (an encounter reset).
+pub fn restore(id: Id32) {
+    let health = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(n) = npcs.get_mut(&id).filter(|n| n.presence.is_some() && n.health > 0) else { return };
+        n.health = n.def.health;
+        n.health
+    };
+    world::send_playfield(id, true, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, health)]));
+}
+
+/// Up to `n` different regular enemies of the playfield, nearest to `at` (x, z) first, within
+/// `radius`: what an ambush or a boss's adds are made of.
+pub fn regulars_near(playfield: u32, at: [f32; 2], radius: f32, n: usize) -> Vec<SpawnDef> {
+    let npcs = NPCS.lock().unwrap();
+    let mut v: Vec<&SpawnDef> = npcs
+        .values()
+        .filter(|x| x.playfield == playfield && x.def.kind == Kind::Enemy && x.temporary.is_none() && x.owner.is_none())
+        .map(|x| &x.def)
+        .filter(|d| rank_of(d) < 4 && (d.pos[0] - at[0]).hypot(d.pos[2] - at[1]) <= radius)
+        .collect();
+    v.sort_by(|a, b| (a.pos[0] - at[0]).hypot(a.pos[2] - at[1]).total_cmp(&(b.pos[0] - at[0]).hypot(b.pos[2] - at[1])));
+    let mut out: Vec<SpawnDef> = Vec::new();
+    for d in v {
+        if out.len() < n && !out.iter().any(|o| o.name == d.name) {
+            out.push(d.clone());
+        }
+    }
+    out
+}
+
 /// Where a live NPC is.
 pub fn position(id: Id32) -> Option<[f32; 3]> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())

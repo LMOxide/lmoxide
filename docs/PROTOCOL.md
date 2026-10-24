@@ -523,6 +523,13 @@ The recorded session is a new character being created and playing the whole tuto
   `TeleportWindowBypass(74, 4600)`.
 - `TutorialShown(tag)`: the client saving a tutorial tip; live answered `AddTag(tag, 0)`.
 
+## Encounters (encounter.rs)
+
+Arena doors: `UpdateSimpleDynelIIR_c` u32 0, u8 hidden, u8 1, u8 0, u8 1 (recorded: VisualOpen
+hidden and VisualClosed shown when the tutorial boss fight starts, VisualClosed hidden after).
+Boss music: the `ScryScriptIIR_c` messages under "Character creation and tutorial". Areas,
+doors and what is inferred: docs/TUNABLES.md "Encounters", research/lmoxide-notes/world-events.md.
+
 ## Hit reports
 
 The recorded server never sent `CombatLogIIR`; it reported every hit with `AttackResultIIR`

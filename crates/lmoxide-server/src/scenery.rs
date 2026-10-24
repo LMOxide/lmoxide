@@ -3,7 +3,8 @@
 //! pressure plates"). What they did (which lever opened which gate, the plate puzzles) was
 //! server script data that didn't survive, so they are scenery only: not usable (CARS group 5),
 //! gates open, and nothing has collision (kdtree 0), so none of them can block a path.
-//! The collectibles (discovery.rs) are spawned here too, usable (CARS group 1, as the buildies).
+//! The collectibles (discovery.rs) are spawned here too, usable (CARS group 1, as the buildies),
+//! and the boss arenas' door visuals, shown or hidden as their encounter has them (encounter.rs).
 
 use std::sync::{Arc, Mutex};
 
@@ -76,7 +77,7 @@ pub fn start() {
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };
         let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };
-        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name)) {
+        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name) || crate::encounter::is_door(p.guid)) {
             let (outbox, mut inbox) = mpsc::unbounded_channel();
             tokio::spawn(async move { while inbox.recv().await.is_some() {} });
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
@@ -114,5 +115,9 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         let w = w.proto(&dynel).proto(&simple).u32(p.visual[1]).u32(p.visual[0]).u32(0);
         bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
     });
-    vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)]
+    let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
+    if crate::encounter::door_hidden(p.guid) == Some(true) {
+        records.push(crate::encounter::door_record(id, true));
+    }
+    records
 }

@@ -401,6 +401,22 @@ fn series_complete(series: Option<u32>, ctx: &Ctx) -> bool {
     !in_series.is_empty() && in_series.iter().all(|&t| (ctx.owned)(t))
 }
 
+/// The champions of the world a side dungeon (a "Combat_PA_Clear the X" target) belongs to,
+/// by their achievements ("Pirate_Combat_Champion_<name>"); empty for other playfields.
+pub fn champions_for(playfield: u32) -> Vec<String> {
+    let Some(area) = TREE.playfields.get(&playfield) else { return vec![] };
+    let Some(world) = TREE
+        .all
+        .iter()
+        .find(|a| a.kind == "clear" && a.target.as_ref().is_some_and(|t| same_name(t, area)))
+        .and_then(|a| a.name.split('_').next())
+    else {
+        return vec![];
+    };
+    let prefix = format!("{world}_Combat_Champion_");
+    TREE.all.iter().filter(|a| a.name.starts_with(&prefix)).filter_map(|a| a.target.clone()).collect()
+}
+
 /// Earned achievement points and count (for the test command).
 pub fn summary(c: &Character) -> (usize, usize) {
     let earned = c.tags.keys().filter(|t| TREE.by_id.contains_key(t)).count();
@@ -486,5 +502,8 @@ mod tests {
         on_event(&mut c, &ctx, &champion, 1);
         assert!(c.tags.contains_key(&2377), "Pirate_Combat_Champion_Chunk the Tiger");
         assert_eq!(c.defeats["Chunk the Tiger"].kind, "champion");
+        // Natives' Hollow is a pirate dungeon
+        assert!(champions_for(1640).contains(&"Chunk the Tiger".to_string()));
+        assert!(champions_for(4200).is_empty());
     }
 }

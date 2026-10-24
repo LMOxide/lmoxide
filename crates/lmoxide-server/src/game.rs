@@ -298,6 +298,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             residents = crate::npc::resident_enemies(me.playfield);
                             defeated_here.clear();
                             report_finds(&me, here, &outbox);
+                            // encounters: a side dungeon's champion, an area the player arrived in
+                            crate::encounter::entered(me.playfield, here, &|n| me.defeats.contains_key(n));
+                            crate::encounter::moved(id, me.playfield, here);
                             set_costume(id, monster_data_for(me.team.first().map_or(0, |&(_, t)| t)));
                             refresh_costumes(id);
                             if let Some(&(_, template)) = me.team.first() {
@@ -347,6 +350,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
                             crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
                             report_finds(&me, p, &outbox);
+                            crate::encounter::moved(h.identity, me.playfield, p);
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }

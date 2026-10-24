@@ -98,7 +98,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 |---|---|
 | `!where` | current playfield and position |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `trigger`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `trigger`, `arena`, `ambush`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them); `!aura <0-4>` sets the active minifigure's aura tier |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
@@ -139,6 +139,7 @@ New features add their targets to `devcmd.rs` `targets`.
 | `tools/re/py extract_iir.py <out.json>` | regenerate `data/iir_types.json` (IIR names, type ids, classes, protobufs) |
 | `tools/re/py extract_progression.py` | regenerate `data/progression.json` (minifigure rank costs, rank level requirements) |
 | `tools/re/py extract_achievements.py` | regenerate `data/achievements.json` (the lore tree's achievements, with inferred rules) |
+| `tools/re/py extract_encounters.py` | regenerate `data/encounters.json` (boss arenas, ambushes, champion spots from the bounded areas, RDB 1000053 of the Linux client) |
 | `tools/re/py extract_spell_actions.py` | regenerate `data/spell_actions.json` (action lists of the channelled abilities and the nanos they cast) |
 | `tools/re/py gameactions.py SPELL...` | a spell's game action lists |
 | `tools/re/py extract_return_points.py` | regenerate `data/return_points.json` (arrival next to the portal back to where the player came from) |

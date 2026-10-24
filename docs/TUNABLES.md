@@ -114,6 +114,22 @@ playfield resources) aren't listed; neither are protocol constants.
 | Rewards | `achievements.rs` `grant` | AchievementRewardValue stars when the reward icon is the stars icon | Other rewards (the gold minifigure icons 550092/550093) have no data. |
 | Granted at login | `achievements.rs` `login` | whatever already holds (with every minifigure owned at level 10: all "Upgrade 3/7" and the series ones), without pop-ups | Consequence of the unlocked collection. |
 
+## Encounters (`encounter.rs`, data/encounters.json)
+
+The original server ran these as Scry scripts on bounded areas; only the areas (RDB 1000053),
+the arena doors and the tutorial's recording survive, so everything below is inferred.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| What engages an arena | `encounter::moved` | a player within 3 m of a `*Encounter_Start*` / `X_Start` area | Start areas are often thin strips across the entrance. |
+| The arena's boss | `npc::boss_near` | the strongest proposed boss (8x health) within the area's radius + 60 m | No area-to-NPC binding in the data. |
+| Doors | `encounter::door_hidden` | VisualOpen hidden and VisualClosed shown while engaged, exits hidden once won; visuals only (no collision) | Records as in the tutorial recording; shields (collision) aren't spawned. |
+| Boss adds | `ADD_THRESHOLDS`, `ADDS` | 3 regular enemies of the area around the boss at 2/3 and 1/3 health | Live used SpawnMonster by health bands (e.g. the Kraken 59-60 %, 80-81 %); counts unknown. |
+| Arena reset | `RESET_AFTER` | 20 s after no engaged player is near: boss healed, adds gone, doors open | |
+| Ambushes | `AMBUSH_WAVE`, `AMBUSH_REST` | 2 waves of 3 (the area's nearest enemy kinds, around the player), then 5 min rest | The tutorial's recorded ambush (3 + 3). |
+| Champions | `CHAMPION_HEALTH`, `CHAMPION_REST` | one per side dungeon ("Defeat the champion" area quests), named after an unbeaten champion of its world, 5x health, at BA_SpawnChampion or the farthest regular; a new one 10 min after | Champion names only exist as achievements. |
+| Not done | | boss buildies (Kraken 194851, Medusa mirrors, ...), boss phases/immunities, area quests, the Kraken's own script | |
+
 ## Tutorial
 
 | Value | Where | Now | Source / reasoning |

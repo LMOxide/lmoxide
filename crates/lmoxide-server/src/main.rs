@@ -13,6 +13,7 @@ mod devcmd;
 mod dash;
 mod discovery;
 mod effects;
+mod encounter;
 mod game;
 mod jumppad;
 mod knubot;
@@ -202,6 +203,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     buildie::start();
     jumppad::start();
     scenery::start();
+    encounter::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(cfg.start_playfield));
