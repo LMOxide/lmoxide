@@ -19,7 +19,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use lmo_net::{
+use lmoxide_net::{
     iir,
     proto::{
         ProtoGameCodeDynelIir, ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry, ProtoLootBagIir, ProtoQuat,

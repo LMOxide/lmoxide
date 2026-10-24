@@ -1,4 +1,4 @@
-# lmo-server
+# lmoxide-server
 
 A server emulator, in Rust, for the LEGO Minifigures Online client (Funcom, shut down 2016).
 
@@ -12,8 +12,8 @@ server, loads the starting playfield and **enters the game world** (FlowControl 
 
 ## Layout
 
-- `crates/lmo-net`: wire protocol (framing, RPC header, BinaryStream, protobufs, method tables)
-- `crates/lmo-server`: the server binary (HTTP control/patch/track, universe, territory)
+- `crates/lmoxide-net`: wire protocol (framing, RPC header, BinaryStream, protobufs, method tables)
+- `crates/lmoxide-server`: the server binary (HTTP control/patch/track, universe, territory)
 - `proto/`: protobuf schemas extracted from `LMO.exe`
 - `data/rpc_methods.json`: every RPC method ID and C++ signature, extracted from `LMO.exe`
 - `tools/re/`: reverse-engineering scripts; `tools/dev-run.sh`: run server and client together
@@ -27,7 +27,7 @@ scripts assume it sits next to this repo at `../clients/windows/LEGO Minifigures
 mkdir -p ../clients/windows && (cd ../clients/windows && unzip -q "../LEGO Minifigures Online.zip" && chmod -R u+w .)
 
 # server only
-cargo run -p lmo-server -- --client-dir "../clients/windows/LEGO Minifigures Online"
+cargo run -p lmoxide-server -- --client-dir "../clients/windows/LEGO Minifigures Online"
 
 # server and client (separate Wine prefix in ~/.local/share/lmo-wine), auto-login:
 LMO_CLIENT_ARGS="-username tester -password test" tools/dev-run.sh "$PWD/../clients/windows/LEGO Minifigures Online" /tmp
@@ -42,7 +42,7 @@ Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101
 
 Typed into the normal chat in game (free text needs a GM level; `tools/lan-server.sh` sets 1).
 A line starting with `!` (or `/`, if the client lets it through) goes to the server, not to other
-players; answers come back as chat lines from "Server" (`crates/lmo-server/src/devcmd.rs`).
+players; answers come back as chat lines from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 
 | Command | Does |
 |---|---|
@@ -60,10 +60,10 @@ New features add their targets to `devcmd.rs` `targets`.
 | `tools/test-run.sh [secs]` | restart server + client (auto-login), wait, print a summary of RPCs, warnings and client progress, screenshot the game window to `logs/screen.png`; `LMO_AUTOPLAY=1` also presses "start" via Lua |
 | `tools/dev-run.sh <client-dir> <log-dir>` | restart server + client and leave them running; `LMO_RUNNER=wine\|proton\|linux` picks how the client runs (`linux` = native build, `<client-dir>` is then the Linux client) |
 | `tools/proton-run.sh /abs/LMO.exe [args]` | run the Windows client under Steam's Proton without Steam (prefix `~/.local/share/lmo-proton`) |
-| `tools/linux-client/install.sh [--server ip] [--dir d]` | install the native Linux client (download, verify, extract, apply the kit); `~/Games/LMO/lmo <username>` starts it. See `tools/linux-client/README.md` |
-| `tools/linux-client/apply.sh <dir> [--server ip]` | the client patch kit: apply (again) to an extracted client |
-| `tools/linux-client/make-kit.sh` | pack the kit (prebuilt libraries) as `dist/lmo-client-kit-v<N>.tar.gz` for another PC |
-| `tools/linux-client/play.sh <dir> <server-ip> <username>` | start a kit-installed client from another folder |
+| `patches/linux-client/install.sh [--server ip] [--dir d]` | install the native Linux client (download, verify, extract, apply the kit); `~/Games/LMO/lmo <username>` starts it. See `patches/linux-client/README.md` |
+| `patches/linux-client/apply.sh <dir> [--server ip]` | the client patch kit: apply (again) to an extracted client |
+| `patches/linux-client/make-kit.sh` | pack the kit (prebuilt libraries) as `dist/lmo-client-kit-v<N>.tar.gz` for another PC |
+| `patches/linux-client/play.sh <dir> <server-ip> <username>` | start a kit-installed client from another folder |
 | `tools/lan-server.sh [lan-ip]` | run the server for LAN play (binds 0.0.0.0, advertises the LAN IP) |
 | `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
 | `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |

@@ -1,5 +1,5 @@
 [package]
-name = "lmo-server"
+name = "lmoxide-server"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
@@ -16,7 +16,7 @@ prost.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-lmo-net.workspace = true
+lmoxide-net.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true
 tower-http.workspace = true

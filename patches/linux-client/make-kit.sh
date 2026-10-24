@@ -11,7 +11,7 @@ NAME=lmo-client-kit-v$VERSION
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 mkdir -p "$stage/$NAME/prebuilt" "$ROOT/dist"
-cp "$KIT"/{install.sh,apply.sh,lmo,KIT_VERSION,README.md,gconf-stub.c,lmo-fixes.c} "$ROOT/tools/patch-client.py" "$stage/$NAME/"
+cp "$KIT"/{install.sh,apply.sh,lmo,KIT_VERSION,README.md,gconf-stub.c,lmo-fixes.c} "$ROOT/patches/patch-client.py" "$stage/$NAME/"
 cc -shared -fPIC -O2 -o "$stage/$NAME/prebuilt/libgconf-2.so.4" "$KIT/gconf-stub.c"
 cc -shared -fPIC -O2 -o "$stage/$NAME/prebuilt/liblmofixes.so" "$KIT/lmo-fixes.c" -lpthread
 tar czf "$ROOT/dist/$NAME.tar.gz" -C "$stage" "$NAME"

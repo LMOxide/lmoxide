@@ -13,7 +13,7 @@ use std::{
     time::Duration,
 };
 
-use lmo_net::{proto::proto_core_character_iir::NpcStats, types::Id32};
+use lmoxide_net::{proto::proto_core_character_iir::NpcStats, types::Id32};
 use serde::Deserialize;
 use tokio::sync::mpsc;
 use tracing::{info, warn};
@@ -540,7 +540,7 @@ fn pets_tick() {
 /// n × 5 u32 particles, 6 × f32 bounds, f32 scale, u32, u8); CoreDestructible (u32 health,
 /// u32, f32, u32 side, ID32 locked to); Destructible (u32, f32, f32, u32, f32). Then Life/Health.
 fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> Vec<bytes::Bytes> {
-    use lmo_net::proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3};
+    use lmoxide_net::proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3};
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
@@ -553,7 +553,7 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
         cars_group: Some(def.cars_group.unwrap_or(CARS_DESTRUCTIBLES)),
         ..Default::default()
     };
-    let record = lmo_net::iir::record("DestructibleFullUpdateIIR_c", id, false, |w| {
+    let record = lmoxide_net::iir::record("DestructibleFullUpdateIIR_c", id, false, |w| {
         let w = w.proto(&dynel).proto(&simple).u32(def.monster_data).u32(MONSTER_DATA_RDB_TYPE).u32(0);
         let w = [-0.6, 0.0, -0.6, 0.6, 1.2, 0.6].iter().fold(w, |w, v| w.f32(*v));
         // scale (n3VisualDynel asserts scale != 0), u32, u8
@@ -581,7 +581,7 @@ const SMASHED_VISUAL_STATE: u32 = 4;
 
 /// `SimpleDynelVisualChangeIIR_c`: u32 state, u32 visual (0: keep), as in the recorded session.
 fn visual_change_record(id: Id32, state: u32, visual: u32) -> bytes::Bytes {
-    lmo_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(state).u32(visual))
+    lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(state).u32(visual))
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
@@ -633,15 +633,15 @@ fn cast_record(caster: Id32, target: Id32, spell: u32, action: u8) -> bytes::Byt
     } else {
         NEXT_SERVER_COMMAND.load(Ordering::Relaxed) - 1
     };
-    let msg = lmo_net::proto::CommandMessage {
+    let msg = lmoxide_net::proto::CommandMessage {
         bcc_action_id: Some(605),
         commandqueue_server_id: Some(server_id),
         flags: Some(0),
         execution_status: Some(0),
-        target: Some(lmo_net::proto::ProtoId32 { r#type: Some(target.kind), instance: Some(target.instance) }),
+        target: Some(lmoxide_net::proto::ProtoId32 { r#type: Some(target.kind), instance: Some(target.instance) }),
         ..Default::default()
     };
-    lmo_net::iir::record("BehaviorControlCenterIIR_c", caster, false, |w| {
+    lmoxide_net::iir::record("BehaviorControlCenterIIR_c", caster, false, |w| {
         // MagicCommand_c::ReadSubClass: u64 spell, u8 posFlag (1: no position), u32, u32,
         // u32 activation, u8 canExecute, 3 x u8, ID32, u32, u32 flag
         let w = w.u8(action).u32(COMMAND_MAGIC).proto(&msg).u32(0).u32(spell).u8(1);

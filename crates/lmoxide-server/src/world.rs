@@ -2,7 +2,7 @@
 //!
 //! Each game connection registers its character here once it is in play and receives the
 //! other characters' IIRs (spawn, movement, despawn) through a channel. Records are complete
-//! IIRs (see `lmo_net::iir::record`); receivers wrap them in a `PassBlob`.
+//! IIRs (see `lmoxide_net::iir::record`); receivers wrap them in a `PassBlob`.
 
 use std::{
     collections::HashMap,
@@ -10,7 +10,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use lmo_net::types::Id32;
+use lmoxide_net::types::Id32;
 use tokio::sync::mpsc;
 
 /// What a member's connection is asked to send to its client.
@@ -20,7 +20,7 @@ pub enum Out {
     Records(Vec<Bytes>),
     /// One RPC (endpoint, method id, args), e.g. community messages from another player's
     /// connection.
-    Rpc(lmo_net::Endpoint, u32, Bytes),
+    Rpc(lmoxide_net::Endpoint, u32, Bytes),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;

@@ -17,7 +17,7 @@
 use std::{collections::HashMap, sync::LazyLock};
 
 use bytes::Bytes;
-use lmo_net::{
+use lmoxide_net::{
     iir,
     proto::{PlayfieldProxyData, ProtoId32},
     types::Id32,
@@ -120,7 +120,7 @@ pub fn teleport_record(character: Id32, playfield: u32, pos: [f32; 3], rot: f32)
 /// (data/story_quests.json): the teleport windows and the World Map check
 /// CoreJournalHolder::HasEverCompletedQuest for their required quests.
 pub fn journal_record(character: Id32) -> Bytes {
-    use lmo_net::proto::{
+    use lmoxide_net::proto::{
         JournalUpdateIirProto,
         journal_update_iir_proto::{AddedMainQuestType, AddedQuestType},
     };
@@ -167,7 +167,7 @@ pub fn spot(playfield: u32, guid: u32) -> Option<&'static Spot> {
 /// (SaveDataEntry_t, reader 0x135c4ed) position, ID32 {51100, playfield}, u32 0, u32 0, u32 guid,
 /// u32 restoration level, u8 shady, u8 discoverable, u8 unlocked. The map shows a spot as usable
 /// when it isn't discoverable or is unlocked.
-fn spots(w: lmo_net::Writer, playfield: u32) -> lmo_net::Writer {
+fn spots(w: lmoxide_net::Writer, playfield: u32) -> lmoxide_net::Writer {
     let list = SPOTS.get(&playfield.to_string()).map(Vec::as_slice).unwrap_or(&[]);
     list.iter().fold(w.u32((list.len() as u32 + 1) * 1009), |w, s| {
         let w = w.f32(s.pos[0]).f32(s.pos[1]).f32(s.pos[2]);
@@ -178,7 +178,7 @@ fn spots(w: lmo_net::Writer, playfield: u32) -> lmo_net::Writer {
 /// `GameCharInterface::ValidResurrectionSpots(Vector3Member position, SaveDataVec_t)`: the spots
 /// of the player's current playfield (the World Map's own-world markers).
 pub fn valid_spots_args(playfield: u32, pos: [f32; 3]) -> Bytes {
-    spots(lmo_net::Writer::new().f32(pos[0]).f32(pos[1]).f32(pos[2]), playfield).finish()
+    spots(lmoxide_net::Writer::new().f32(pos[0]).f32(pos[1]).f32(pos[2]), playfield).finish()
 }
 
 /// `GameserverToClientRPC::SignalResurrectionSpotsReceived(InstanceId playfield, Vector3Member
@@ -189,7 +189,7 @@ pub fn signal_spots_args(playfield: u32) -> Bytes {
         .map(|d| d.pos)
         .or_else(|| SPOTS.get(&playfield.to_string()).and_then(|l| l.first()).map(|s| s.pos))
         .unwrap_or_default();
-    spots(lmo_net::Writer::new().u32(playfield).f32(centre[0]).f32(centre[1]).f32(centre[2]), playfield).finish()
+    spots(lmoxide_net::Writer::new().u32(playfield).f32(centre[0]).f32(centre[1]).f32(centre[2]), playfield).finish()
 }
 
 #[cfg(test)]

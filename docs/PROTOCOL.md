@@ -61,7 +61,7 @@ are a Java-style hash (`h = h*31 + c`) of the endpoint name (e.g. `UniverseInter
 ## Method IDs
 
 Extracted for every interface by `tools/re/extract_rpc.py` → `data/rpc_methods.json` → generated
-constants `lmo_net::methods::<interface>::<METHOD>`. Most interfaces use 32-bit hashes; some use
+constants `lmoxide_net::methods::<interface>::<METHOD>`. Most interfaces use 32-bit hashes; some use
 declaration-order indices (`UniverseAgent`, `ClientToGameserverRPC`, `GameserverToClientRPC`).
 Receivers (server→client) come from each `*Receiver::DispatchMethod` switch; senders
 (client→server) from the index passed to `rpc::Proxy_t::SendMethodInvocation`.
@@ -111,8 +111,8 @@ bool  isToBePassedOn
 ```
 
 The engine calls `PollStatus` (vtable +4): 1 → `Activate` (+8), 2 → queue and retry each frame,
-3 → drop (`0x7d56e0`). Builders live in `lmo_net::iir`; layouts are documented next to each
-builder in `crates/lmo-server/src/game.rs`.
+3 → drop (`0x7d56e0`). Builders live in `lmoxide_net::iir`; layouts are documented next to each
+builder in `crates/lmoxide-server/src/game.rs`.
 
 Pitfalls found:
 - Reading from an empty `BinaryStream` yields an uninitialised value. Every blob/list the
@@ -180,7 +180,7 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
   `USER ...`; server: `001`, and `JOIN #ChatGroup_General_D1_1` (the window's default "Global"
   tab needs a joined `#<group>_D<dim>_<n>` channel). Before sending, the client asks a
   hard-coded filter URL (`http://chatfilter.funcom.com/rest/chat_filter?...`; patched to our
-  `/rest/chat_filter` by tools/patch-client.py) and sends only if it answers
+  `/rest/chat_filter` by patches/patch-client.py) and sends only if it answers
   `{"result":"0","filtered":"..."}`. Channel lines then arrive as `FILTEREDPRIVMSG <target>
   [<hash>] :<text>` and are relayed as `PRIVMSG`; "Say" goes to the game server
   (`GameCharAgent::VicinityChatMessage`) and is shown to others via IRC `VICINITYCHAT`.

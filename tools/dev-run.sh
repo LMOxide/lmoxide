@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restart lmo-server and the client (under Wine) for a test run.
+# Restart lmoxide-server and the client (under Wine) for a test run.
 #   tools/dev-run.sh <client-dir> [log-dir]
 # <client-dir> is an extracted "LEGO Minifigures Online" folder (with RDB/).
 set -euo pipefail
@@ -17,15 +17,15 @@ export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../var/data")}
 
 pkill -x LMO.exe || true
 pkill -x LMO || true
-pkill -x lmo-server || true
+pkill -x lmoxide-server || true
 wineserver -k 2>/dev/null || true
 WINEPREFIX=${LMO_PROTON_PREFIX:-$HOME/.local/share/lmo-proton}/pfx \
   "${PROTON:-$HOME/.local/share/Steam/steamapps/common/Proton - Experimental}/files/bin/wineserver" -k 2>/dev/null || true
 sleep 1
 
 cargo build --manifest-path "$ROOT/Cargo.toml" -q
-RUST_LOG=${RUST_LOG:-info,lmo_server=debug} \
-  "$ROOT/target/debug/lmo-server" --client-dir "$CLIENT" ${LMO_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
+RUST_LOG=${RUST_LOG:-info,lmoxide_server=debug} \
+  "$ROOT/target/debug/lmoxide-server" --client-dir "$CLIENT" ${LMO_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
 for _ in $(seq 50); do curl -sf http://127.0.0.1:8080/track >/dev/null && break; sleep 0.2; done
 
 # The launcher normally fetches this; point the client at our control server.

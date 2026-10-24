@@ -13,7 +13,7 @@ if [[ $SERVER != "$LMO_SERVER" ]]; then
 fi
 # What Funcom's launcher used to fetch: the server's addresses for every service.
 curl -sf --max-time 5 "http://$SERVER:8080/control/lmo_live/LocalConfig.xml" >LocalConfig.xml.new \
-  || { echo "can't reach lmo-server at http://$SERVER:8080 (running? firewall?)" >&2; rm -f LocalConfig.xml.new; exit 1; }
+  || { echo "can't reach lmoxide-server at http://$SERVER:8080 (running? firewall?)" >&2; rm -f LocalConfig.xml.new; exit 1; }
 mv LocalConfig.xml.new LocalConfig.xml
 # SDL_VIDEODRIVER=x11: the 2016 build needs GLX; sdl2-compat would pick Wayland/EGL and the
 # renderer crashes in gl3wInit. liblmofixes.so by bare name (found through LD_LIBRARY_PATH):

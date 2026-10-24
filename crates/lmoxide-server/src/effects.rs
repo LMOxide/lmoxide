@@ -4,7 +4,7 @@
 //! protobuf header; the identity is the dynel the effect plays on.
 
 use bytes::Bytes;
-use lmo_net::{iir, types::Id32};
+use lmoxide_net::{iir, types::Id32};
 
 /// `MagicBuffIIR_c` mode 0 (add): u32 buff, u8 mode, ID32 caster, u32 counter, u32 counter
 /// type, i32 duration (centiseconds), u8, u8, GameActionExecutorData (7 × u32, operator>>

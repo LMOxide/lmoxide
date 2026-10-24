@@ -4,7 +4,7 @@ use std::{future::Future, net::SocketAddr, sync::Arc};
 
 use bytes::Bytes;
 use futures::{SinkExt, StreamExt};
-use lmo_net::{Endpoint, Frame, FrameCodec, Rpc, proto::ProtoEndpoint};
+use lmoxide_net::{Endpoint, Frame, FrameCodec, Rpc, proto::ProtoEndpoint};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_util::codec::Framed;
 use tracing::{Instrument, debug, info, info_span, warn};

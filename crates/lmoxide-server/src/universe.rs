@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 // `UniverseAgent` methods are numbered by declaration order rather than hashed.
-use lmo_net::{
+use lmoxide_net::{
     Endpoint, Reader, Writer,
     methods::{universe_agent as agent, universe_interface as interface},
     types::Id32,
@@ -68,7 +68,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
 
 /// Stable per-username account instance until we have an account database.
 pub fn account_instance(username: &str) -> u32 {
-    lmo_net::rpc::endpoint_hash(username) & 0x7fff_ffff
+    lmoxide_net::rpc::endpoint_hash(username) & 0x7fff_ffff
 }
 
 /// Login cookie handed to the territory manager. Not secret yet: derived from the account.

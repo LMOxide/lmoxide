@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The client patch kit: makes an extracted stock native Linux client
-# (LMO_Linux_v1.5.557666.zip from lmo.files.aronwk.com) run today and play on an lmo-server.
+# (LMO_Linux_v1.5.557666.zip from lmo.files.aronwk.com) run today and play on an lmoxide-server.
 # Idempotent: every run starts again from the verified stock files.
 #   apply.sh <client-dir> [--server <ip>]     (default server: the one applied before, else 127.0.0.1)
 #

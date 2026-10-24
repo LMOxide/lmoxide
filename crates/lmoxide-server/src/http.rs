@@ -133,7 +133,7 @@ pub async fn serve(cfg: Arc<Config>, addr: SocketAddr) -> anyhow::Result<()> {
         None => PATCH_INFO_CLIENT.to_string(),
     };
     let mut full = HashMap::new();
-    // Client files (LMO.exe etc.) as they are locally, so a patched LMO.exe (tools/patch-client.py)
+    // Client files (LMO.exe etc.) as they are locally, so a patched LMO.exe (patches/patch-client.py)
     // isn't "repaired" by the patcher.
     let mut patch_version = PATCH_VERSION.to_string();
     let mut patch_info = patch_info;
@@ -347,7 +347,7 @@ async fn login_page(RawQuery(q): RawQuery) -> Response {
 }
 
 /// The chat filter the client asks before sending a line (`ProjectChatServerInterface::SendMessage`;
-/// the URL is patched into LMO.exe by tools/patch-client.py). The reply is flat JSON read by
+/// the URL is patched into LMO.exe by patches/patch-client.py). The reply is flat JSON read by
 /// `ParseChatFilterReply`, which doesn't decode escapes: result 0 = send `filtered`, 1/2 =
 /// rejected. Nothing is filtered here.
 async fn chat_filter(Query(q): Query<HashMap<String, String>>) -> Response {

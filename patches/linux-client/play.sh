@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Start a kit-installed client (apply.sh / install.sh) against a server: the client's own
 # launcher, for clients outside the default install dir.
-#   tools/linux-client/play.sh <client-dir> <server-ip> <username>
+#   patches/linux-client/play.sh <client-dir> <server-ip> <username>
 set -euo pipefail
 CLIENT=${1:?usage: play.sh <client-dir> <server-ip> <username>}
 [[ -x $CLIENT/lmo ]] || { echo "no launcher in $CLIENT: run $(dirname "$0")/apply.sh \"$CLIENT\" first" >&2; exit 1; }

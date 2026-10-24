@@ -9,7 +9,7 @@
 
 use std::{collections::HashMap, sync::LazyLock};
 
-use lmo_net::proto::{
+use lmoxide_net::proto::{
     ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry,
     proto_inventory_game::InventoryListEntry,
     proto_inventory_game_entry::StatValue,

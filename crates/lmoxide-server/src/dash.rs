@@ -11,7 +11,7 @@
 use std::{collections::HashMap, sync::LazyLock, time::Duration};
 
 use bytes::Bytes;
-use lmo_net::{iir, types::Id32};
+use lmoxide_net::{iir, types::Id32};
 use serde::Deserialize;
 use tracing::info;
 

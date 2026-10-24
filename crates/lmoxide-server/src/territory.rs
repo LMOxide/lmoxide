@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use lmo_net::{
+use lmoxide_net::{
     Endpoint, Reader, Writer,
     methods::{player_agent as agent, player_interface as interface},
     proto::{FidData, PlayfieldProxyData, ProtoId32},

@@ -79,7 +79,7 @@ pub struct Config {
     /// Where saved characters are kept.
     #[arg(long, env = "LMO_DATA_DIR", default_value = "lmo-data")]
     pub data_dir: PathBuf,
-    /// Client kit tarball (tools/linux-client/make-kit.sh) served at `/client-kit.tar.gz`, so
+    /// Client kit tarball (patches/linux-client/make-kit.sh) served at `/client-kit.tar.gz`, so
     /// other PCs can install or update the native Linux client from this server.
     #[arg(long, env = "LMO_CLIENT_KIT")]
     pub client_kit: Option<PathBuf>,
@@ -98,7 +98,7 @@ impl Config {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,lmo_server=debug".into()),
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,lmoxide_server=debug".into()),
         )
         .init();
     let cfg = Arc::new(Config::parse());

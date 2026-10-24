@@ -13,7 +13,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use lmo_net::{
+use lmoxide_net::{
     Endpoint, Reader, Writer, iir,
     methods::{cs_player_agent, cs_player_interface as cs, game_char_interface, game_char_interface_project},
     proto::{FriendsData, GroupElementData, ProtoId32, friends_data::Friend},

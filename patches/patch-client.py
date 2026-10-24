@@ -6,8 +6,8 @@ Before sending a chat line the client asks http://chatfilter.funcom.com/rest/cha
 is a format string in LMO.exe ("http://chatfilter.funcom.com/rest/%s", 36 chars); this
 overwrites it in place with "http://<host>/rest/%s". A backup is kept as LMO.exe.orig.
 
-  tools/patch-client.py [--host 127.0.0.1:8080] [--exe PATH]
-  tools/patch-client.py --revert
+  patches/patch-client.py [--host 127.0.0.1:8080] [--exe PATH]
+  patches/patch-client.py --revert
 """
 import argparse, os, shutil, sys
 

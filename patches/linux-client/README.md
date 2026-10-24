@@ -1,7 +1,7 @@
 # LMO native Linux client kit
 
 Installs and patches the native Linux LEGO Minifigures Online client (1.5.557666, the last live
-build) to play on an lmo-server. The kit never ships the client itself: it downloads the stock
+build) to play on an lmoxide-server. The kit never ships the client itself: it downloads the stock
 archive from lmo.files.aronwk.com, checks it against a known checksum, and applies its changes
 to that, so every install is the same and can be re-done at any time.
 
@@ -10,7 +10,7 @@ to that, so every install is the same and can be re-done at any time.
 On a PC with the repo:
 
 ```sh
-tools/linux-client/install.sh --server 192.168.5.69      # the server PC's LAN address
+patches/linux-client/install.sh --server 192.168.5.69      # the server PC's LAN address
 ~/Games/LMO/lmo <username>
 ```
 
@@ -22,7 +22,7 @@ d=$(mktemp -d) && curl -fsSL http://192.168.5.69:8080/client-kit.tar.gz | tar xz
 ~/Games/LMO/lmo <username>
 ```
 
-Or with the kit tarball (`tools/linux-client/make-kit.sh` builds
+Or with the kit tarball (`patches/linux-client/make-kit.sh` builds
 `dist/lmo-client-kit-v<N>.tar.gz`, about 12 KB; no repo or compiler needed there):
 
 ```sh

@@ -7,7 +7,7 @@
 use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
-use lmo_net::{
+use lmoxide_net::{
     iir,
     proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3},
     types::Id32,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the native Linux LEGO Minifigures Online client for an lmo-server: download the stock
+# Install the native Linux LEGO Minifigures Online client for an lmoxide-server: download the stock
 # client (once; cached), verify it, extract it, check system libraries, apply the client kit.
 # Re-running updates an existing install (only the kit is applied again).
 #   install.sh [--server <ip>] [--dir <install-dir>] [--zip <LMO_Linux_v1.5.557666.zip>]

@@ -8,7 +8,7 @@ use std::{
 
 use bytes::Bytes;
 
-use lmo_net::{
+use lmoxide_net::{
     Endpoint, Reader, Writer, iir,
     methods::{
         client_to_gameserver_rpc as agent, cs_player_agent, game_char_agent, game_char_agent_project, game_char_interface,
@@ -446,7 +446,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // echoing would move it back.
                         let mut pr = Reader::new(rest);
                         let len = pr.u32()? as usize;
-                        let mv = <lmo_net::proto::ProtoMoveInventoryItemIir as prost::Message>::decode(pr.bytes(len, "move")?)?;
+                        let mv = <lmoxide_net::proto::ProtoMoveInventoryItemIir as prost::Message>::decode(pr.bytes(len, "move")?)?;
                         let (from, to) = (mv.source_item_pos, mv.destination_item_pos);
                         info!(?mv, "move inventory item");
                         let active_slot = me.team.first().map(|&(s, _)| s);
@@ -1071,10 +1071,10 @@ fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option
 
 /// A queued command from a BehaviorControlCenterIIR_c body: u8 action, u32 CommandType,
 /// u32 length + CommandMessage protobuf, then the command's own data.
-fn parse_command(rest: &[u8]) -> Option<(lmo_net::proto::CommandMessage, &[u8])> {
+fn parse_command(rest: &[u8]) -> Option<(lmoxide_net::proto::CommandMessage, &[u8])> {
     use prost::Message;
     let len = u32::from_be_bytes(rest.get(5..9)?.try_into().ok()?) as usize;
-    let msg = lmo_net::proto::CommandMessage::decode(rest.get(9..9 + len)?).ok()?;
+    let msg = lmoxide_net::proto::CommandMessage::decode(rest.get(9..9 + len)?).ok()?;
     Some((msg, &rest[9 + len..]))
 }
 
