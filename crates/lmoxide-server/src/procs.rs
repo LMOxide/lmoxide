@@ -175,19 +175,47 @@ pub fn set_active(player: Id32, template: u32, upgrades: u32, level: u32) {
 
 pub fn left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
+    SHOWN.lock().unwrap().retain(|(p, _), _| *p != player);
 }
 
 fn show(player: Id32, records: Vec<Bytes>) {
     world::send_playfield(player, true, world::Out::Records(records));
 }
 
-fn buff(player: Id32, nano: u32, for_: Option<Duration>) -> Bytes {
-    // buffs without an end last until removed (`unbuff`)
+/// The proc buffs shown on players, with the generation of their latest add.
+static SHOWN: LazyLock<Mutex<HashMap<(Id32, u32), u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+static GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Shows buff `nano` on the player, as the original server did: a buff still shown is removed
+/// first (adding it again stacked another copy of its effect above the head), and a timed one
+/// is removed when its time is up (the client doesn't end it by itself). Buffs without an end
+/// last until `unbuff`.
+fn buff(player: Id32, nano: u32, for_: Option<Duration>) -> Vec<Bytes> {
+    let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let mut records = Vec::new();
+    if SHOWN.lock().unwrap().insert((player, nano), generation).is_some() {
+        records.push(effects::buff_remove(player, nano, player));
+    }
     let cs = for_.map_or(60_000, |d| (d.as_millis() / 10) as i32);
-    effects::buff_add(player, nano, player, cs)
+    records.push(effects::buff_add(player, nano, player, cs));
+    if let Some(d) = for_
+        && let Ok(rt) = tokio::runtime::Handle::try_current()
+    {
+        rt.spawn(async move {
+            tokio::time::sleep(d).await;
+            let mut shown = SHOWN.lock().unwrap();
+            if shown.get(&(player, nano)) == Some(&generation) {
+                shown.remove(&(player, nano));
+                drop(shown);
+                show(player, vec![effects::buff_remove(player, nano, player)]);
+            }
+        });
+    }
+    records
 }
 
 fn unbuff(player: Id32, nano: u32) -> Bytes {
+    SHOWN.lock().unwrap().remove(&(player, nano));
     effects::buff_remove(player, nano, player)
 }
 
@@ -211,21 +239,21 @@ pub fn cast(player: Id32, spell: u32) {
         if s.abilities.contains(&BERSERKER) && s.attacks % BERSERKER_EVERY == 0 {
             // this attack's hits
             s.damage.push((BERSERKER_BUFF.1, Some(now + THIS_ATTACK), BERSERKER_BUFF.0));
-            records.push(buff(player, BERSERKER_BUFF.0, Some(THIS_ATTACK)));
+            records.extend(buff(player, BERSERKER_BUFF.0, Some(THIS_ATTACK)));
         }
         if s.abilities.contains(&POWERED_BARRIER) && s.attacks % POWERED_BARRIER_EVERY == 0 {
             s.defense.push((POWERED_BARRIER_BUFF.1, 0.0, None, POWERED_BARRIER_BUFF.0));
-            records.push(buff(player, POWERED_BARRIER_BUFF.0, None));
+            records.extend(buff(player, POWERED_BARRIER_BUFF.0, None));
         }
         if normal && s.abilities.contains(&LEFT_HOOK) && s.normal_attacks % LEFT_HOOK_EVERY == 0 {
             let (nano, bonus, d) = LEFT_HOOK_BUFF;
             s.damage.push((bonus, Some(now + d), nano));
-            records.push(buff(player, nano, Some(d)));
+            records.extend(buff(player, nano, Some(d)));
         }
         if normal && s.abilities.contains(&HARDEN_UP) && s.normal_attacks % HARDEN_UP_EVERY == 0 {
             let (nano, bonus, d) = HARDEN_UP_BUFF;
             s.defense.push((bonus, 0.0, Some(now + d), nano));
-            records.push(buff(player, nano, Some(d)));
+            records.extend(buff(player, nano, Some(d)));
         }
         if normal && s.abilities.contains(&KNOCKBACK) && s.normal_attacks % KNOCKBACK_EVERY == 0 {
             s.knockback_until = Some(now + THIS_ATTACK);
@@ -239,7 +267,7 @@ pub fn cast(player: Id32, spell: u32) {
             }
             s.charges = (s.charges + 1).min(CHARGE_UP_STACKS.len() as u32);
             s.charges_until = Some(now + CHARGE_UP_FOR);
-            records.push(buff(player, CHARGE_UP_STACKS[s.charges as usize - 1], Some(CHARGE_UP_FOR)));
+            records.extend(buff(player, CHARGE_UP_STACKS[s.charges as usize - 1], Some(CHARGE_UP_FOR)));
         }
         if !normal && s.abilities.contains(&CHARGE_UP) && s.charges > 0 {
             let n = s.charges as usize;
@@ -253,15 +281,15 @@ pub fn cast(player: Id32, spell: u32) {
             if s.abilities.contains(&LIONHEARTED) {
                 let (nano, bonus, d) = LIONHEARTED_BUFF;
                 s.damage.push((bonus, Some(now + d), nano));
-                records.push(buff(player, nano, Some(d)));
+                records.extend(buff(player, nano, Some(d)));
             }
             if s.abilities.contains(&BLOCK) {
                 let (nano, mitigation, d) = BLOCK_BUFF;
                 s.defense.push((0.0, mitigation, Some(now + d), nano));
-                records.push(buff(player, nano, Some(d)));
+                records.extend(buff(player, nano, Some(d)));
             }
             if s.abilities.contains(&SMASH_AND_DASH) {
-                records.push(buff(player, SPRINT_BUFF.0, Some(SPRINT_BUFF.1)));
+                records.extend(buff(player, SPRINT_BUFF.0, Some(SPRINT_BUFF.1)));
             }
         }
     }
@@ -294,7 +322,7 @@ pub fn outgoing(attacker: Id32, spell: u32, damage: u32) -> u32 {
         let Some(s) = players.get_mut(&attacker) else { return damage };
         let now = Instant::now();
         if spell == s.normal && s.abilities.contains(&SKIRMISHER) {
-            records.push(buff(attacker, SKIRMISHER_BUFF.0, Some(SKIRMISHER_BUFF.1)));
+            records.extend(buff(attacker, SKIRMISHER_BUFF.0, Some(SKIRMISHER_BUFF.1)));
         }
         if s.abilities.contains(&SPONGE) {
             heal += SPONGE_HEAL;
@@ -334,15 +362,15 @@ pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: u32, at: [f32
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&attacker) else { return };
         if s.abilities.contains(&HUNTER) {
-            records.push(buff(attacker, HUNTER_BUFF.0, Some(HUNTER_BUFF.1)));
+            records.extend(buff(attacker, HUNTER_BUFF.0, Some(HUNTER_BUFF.1)));
         }
         if s.abilities.contains(&BRUTE_FORCE) {
             s.damage.push((BRUTE_FORCE_BUFF.1, None, BRUTE_FORCE_BUFF.0));
-            records.push(buff(attacker, BRUTE_FORCE_BUFF.0, None));
+            records.extend(buff(attacker, BRUTE_FORCE_BUFF.0, None));
         }
         if s.abilities.contains(&BOOST_SHIELD) {
             s.defense.push((BOOST_SHIELD_BUFF.1, 0.0, None, BOOST_SHIELD_BUFF.0));
-            records.push(buff(attacker, BOOST_SHIELD_BUFF.0, None));
+            records.extend(buff(attacker, BOOST_SHIELD_BUFF.0, None));
         }
         if s.abilities.contains(&RECONSTRUCT) {
             heal += RECONSTRUCT_HEAL;
@@ -378,7 +406,7 @@ pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: u32, at: [f32
         }
         if personal_space {
             // a damaging field where the enemy was smashed
-            show(attacker, vec![buff(attacker, PERSONAL_SPACE_BUFF, Some(PERSONAL_SPACE_FOR))]);
+            show(attacker, buff(attacker, PERSONAL_SPACE_BUFF, Some(PERSONAL_SPACE_FOR)));
             tokio::spawn(async move {
                 let until = Instant::now() + PERSONAL_SPACE_FOR;
                 while Instant::now() < until {
@@ -409,7 +437,7 @@ pub fn incoming(player: Id32, damage: u32, channelling: bool) -> u32 {
             if stacked < SHIELDS_UP_MAX {
                 s.defense.push((SHIELDS_UP_STEP, 0.0, Some(now + Duration::from_millis(1500)), 446_818));
             }
-            records.push(buff(player, 446_818, Some(Duration::from_millis(1500))));
+            records.extend(buff(player, 446_818, Some(Duration::from_millis(1500))));
         }
         s.defense.retain(|&(_, _, until, _)| until.is_none_or(|u| u > now));
         let mut defense: f32 = s.defense.iter().map(|d| d.0).sum();
@@ -456,10 +484,10 @@ pub fn after_damage(player: Id32, health: u32, max: u32) {
         if ready(TRUE_GRIT, TRUE_GRIT_LOCKOUT, s) {
             let (nano, mitigation, d) = TRUE_GRIT_BUFF;
             s.defense.push((0.0, mitigation, Some(now + d), nano));
-            records.push(buff(player, nano, Some(d)));
+            records.extend(buff(player, nano, Some(d)));
         }
         if ready(ESCAPE_ARTIST, ESCAPE_ARTIST_LOCKOUT, s) {
-            records.push(buff(player, ESCAPE_ARTIST_BUFF.0, Some(ESCAPE_ARTIST_BUFF.1)));
+            records.extend(buff(player, ESCAPE_ARTIST_BUFF.0, Some(ESCAPE_ARTIST_BUFF.1)));
         }
     }
     if heal > 0.0 {

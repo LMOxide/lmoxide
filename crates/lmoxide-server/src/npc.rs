@@ -250,20 +250,23 @@ fn run_speed(def: &SpawnDef) -> f32 {
 
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-/// Enemies of a rank for test commands: "boss" (≥ 8 × a regular enemy's health of their
-/// level), "champion" (≥ 4 ×) or "enemy" (all): (label, playfield, home position), by playfield.
+/// NPCs for test commands: enemies of a rank, "boss" (≥ 8 × a regular enemy's health of their
+/// level), "champion" (≥ 4 ×) or "enemy" (all), or "npc" (friendly NPCs) or "smashable":
+/// (label, playfield, home position), by playfield.
 pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
     let mut v: Vec<_> = NPCS
         .lock()
         .unwrap()
         .values()
-        .filter(|n| n.def.kind == Kind::Enemy && n.owner.is_none())
+        .filter(|n| n.owner.is_none())
         .filter(|n| {
             let regular = 60 + 15 * n.def.level;
             match rank {
-                "boss" => n.def.health >= regular * 8,
-                "champion" => n.def.health >= regular * 4 && n.def.health < regular * 8,
-                _ => true,
+                "boss" => n.def.kind == Kind::Enemy && n.def.health >= regular * 8,
+                "champion" => n.def.kind == Kind::Enemy && n.def.health >= regular * 4 && n.def.health < regular * 8,
+                "npc" => n.def.kind == Kind::Npc,
+                "smashable" => n.def.kind == Kind::Smashable,
+                _ => n.def.kind == Kind::Enemy,
             }
         })
         .map(|n| (format!("{} (level {}, {} health)", n.def.name, n.def.level, n.def.health), n.playfield, n.def.pos))

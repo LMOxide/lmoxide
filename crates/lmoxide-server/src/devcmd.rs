@@ -42,6 +42,9 @@ const KINDS: &[(&str, &str)] = &[
     ("mirror", "Medusa mirrors (scenery)"),
     ("boss", "dungeon bosses"),
     ("champion", "champions"),
+    ("enemy", "all enemies"),
+    ("npc", "friendly NPCs"),
+    ("smashable", "smashables"),
 ];
 
 /// How far from a target to arrive (so as not to stand inside it or on a pad).
@@ -61,7 +64,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "plate" => crate::scenery::points("pressureplate"),
         "gate" => [crate::scenery::points("gate"), crate::scenery::points("portcullis")].concat(),
         "mirror" => crate::scenery::points("mirror"),
-        "boss" | "champion" => crate::npc::points(kind),
+        "boss" | "champion" | "enemy" | "npc" | "smashable" => crate::npc::points(kind),
         _ => return None,
     })
 }
@@ -71,8 +74,14 @@ fn playfield_name(playfield: u32) -> String {
 }
 
 /// The targets of a kind, for the development tour (`LMOXIDE_DEV_TOUR`).
+/// With LMOXIDE_DEV_TOUR_PER_PLAYFIELD=1, only the first target of each playfield.
 pub fn tour_targets(kind: &str) -> Vec<(String, u32, [f32; 3])> {
-    targets(kind).unwrap_or_default()
+    let mut targets = targets(kind).unwrap_or_default();
+    if std::env::var("LMOXIDE_DEV_TOUR_PER_PLAYFIELD").is_ok_and(|v| v == "1") {
+        let mut seen = std::collections::HashSet::new();
+        targets.retain(|t| seen.insert(t.1));
+    }
+    targets
 }
 
 /// Runs a command typed by a player standing at `pos` on `playfield`.

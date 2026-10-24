@@ -14,7 +14,9 @@ export LMO_CLIENT_ARGS=${LMO_CLIENT_ARGS--username tester -password tester-passw
 export LMO_AUTOPLAY=1 LMOXIDE_DEV_TOUR=$KIND LMOXIDE_DEV_TOUR_SECS=$SECS
 mkdir -p "$OUT" && rm -f "$OUT"/*.png "$OUT/labels.txt"
 "$ROOT/tools/dev-run.sh" "$CLIENT" "$ROOT/logs" >/dev/null || exit 1
-window() { hyprctl clients -j | python3 -c 'import json,sys; print(next((c["stableId"] for c in json.load(sys.stdin) if c["class"].lower() in ("lmo.exe","lmo")), ""))'; }
+# the test client's window only (a native "LMO" window may be the user's own game)
+CLASS=$([[ ${LMO_RUNNER:-wine} == linux ]] && echo lmo || echo lmo.exe)
+window() { hyprctl clients -j | CLASS=$CLASS python3 -c 'import json,os,sys; print(next((c["stableId"] for c in json.load(sys.stdin) if c["class"].lower() == os.environ["CLASS"]), ""))'; }
 seen=0; idle=0
 # up to 4 minutes for the login, then until no target came for 3 rounds
 while (( seen == 0 ? idle < 240 : idle < SECS * 3 )); do

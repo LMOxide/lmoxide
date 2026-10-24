@@ -98,7 +98,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 |---|---|
 | `!where` | current playfield and position |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `boss`, `champion` |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!ach` | achievements earned, kill and smash counters |
 | `!count <kills\|smashes\|builds> [n] [name]` | count n defeats, smashes or builds for achievements (e.g. `!count kills 1000`, `!count kills 50 Witch`) |
