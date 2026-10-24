@@ -2,7 +2,7 @@
 //!
 //! The client's Collection screen needs two inventories (`asc::ASMinifigureList`): the team,
 //! inventory 101 (positions 6, 8 and 20 are the three team slots), and the collection,
-//! inventory 109999 (storage). Each minifigure item carries its level (item stat 3000058, max 10),
+//! inventory 110001 (storage). Each minifigure item carries its level (item stat 3000058, max 10),
 //! XP (52) and upgrade bitmasks (3000098 active, 3000106 purchased). Bit `n` is the minifigure's
 //! upgrade ability at `ability_list` position `n` (data/minifigure_abilities.json); bits 0..11
 //! form 8 tiers, four of them choose-one pairs (1,2), (4,5), (7,8), (10,11).
@@ -18,7 +18,7 @@ use lmo_net::proto::{
 use crate::game::acg_item;
 
 pub const TEAM_INVENTORY: u32 = 101;
-pub const COLLECTION_INVENTORY: u32 = 109_999;
+pub const COLLECTION_INVENTORY: u32 = 110_001;
 const COLLECTION_SIZE: u32 = 256;
 
 const STAT_MINIFIGURE_LEVEL: u32 = 3_000_058;
@@ -76,7 +76,7 @@ pub fn activate(active: u32, position: u32) -> u32 {
     active
 }
 
-/// The owned minifigures outside the team (inventory 109999), by position. Positions change as
+/// The owned minifigures outside the team (inventory 110001), by position. Positions change as
 /// minifigures move in and out of the team during a session.
 pub struct Collection {
     pub slots: Vec<Option<u32>>,
@@ -121,7 +121,7 @@ fn entry(template: u32, active: u32, id_salt: u64) -> ProtoInventoryGameEntry {
     }
 }
 
-/// The collection (109999) and team (101) inventories for FullPlayerCharacterIIR, in that order:
+/// The collection (110001) and team (101) inventories for FullPlayerCharacterIIR, in that order:
 /// the client builds and caches its minifigure list (ASMinifigureList::GetMinifigureList) as soon
 /// as the team is equipped, so the collection must already be filled or every other minifigure
 /// stays locked.
