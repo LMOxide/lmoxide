@@ -1,4 +1,5 @@
 mod chat;
+mod collection;
 mod conn;
 mod game;
 mod http;

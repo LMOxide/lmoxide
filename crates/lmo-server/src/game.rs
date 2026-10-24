@@ -11,13 +11,14 @@ use bytes::Bytes;
 use lmo_net::{
     Endpoint, Reader, Writer, iir,
     methods::{
-        client_to_gameserver_rpc as agent, game_char_agent, game_char_interface,
+        client_to_gameserver_rpc as agent, game_char_agent, game_char_agent_project, game_char_interface,
+        game_char_interface_project,
         gameserver_to_client_rpc as client,
     },
     proto::{
         PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir,
-        ProtoGameCodeDynelIir, ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry, ProtoQuat,
-        ProtoVec3, proto_core_character_iir, proto_inventory_game::InventoryListEntry,
+        ProtoGameCodeDynelIir, ProtoId32, ProtoQuat,
+        ProtoVec3, proto_core_character_iir,
     },
     types::Id32,
 };
@@ -26,6 +27,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     Config,
+    collection::Collection,
     conn::Conn,
     store::{Character, Store},
     world,
@@ -45,9 +47,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         pos: START_POS,
         team: START_TEAM.to_vec(),
         stars: 0,
+        upgrades: Default::default(),
     };
+    let mut collection = Collection::new(&me.team);
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
+    let mut potions_spent: u64 = 0;
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
     loop {
@@ -78,6 +83,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     ..me.clone()
                 });
                 *pos.lock().unwrap() = me.pos;
+                collection = Collection::new(&me.team);
                 info!(character, cookie, %version, valid, name = %me.name, playfield = me.playfield, pos = ?me.pos, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
@@ -91,7 +97,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 let mut records = vec![playfield_full_update(me.playfield)];
                 records.extend(spawn_records(id, &me.spec()));
-                records.insert(3, full_player_character(id, &me));
+                records.insert(3, full_player_character(id, &me, &collection));
+                // The inventories again as UpdateInventoryIIR_t (header protobuf ProtoInventoryGame):
+                // FullPlayerCharacterIIR alone doesn't create the collection (109999).
+                for inventory in crate::collection::inventories(character, &me.team, &collection, &|t| me.upgrade(t)) {
+                    records.insert(4, iir::record("UpdateInventoryIIR_t", id, false, |w| w.proto(&inventory)));
+                }
                 if cfg.gm_level != 0 {
                     records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
                 }
@@ -131,11 +142,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let echo = iir::pass_blob(&records);
                         // The HUD shows the active minifigure's left/right-click spells, but they
                         // can't be cast until learned: LearnSpell(int spell) for the whole team.
-                        for spell in me.team.iter().flat_map(|&(_, t)| minifigure_spells(t)) {
-                            let args = Writer::new().i32(spell as i32).finish();
-                            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LEARN_SPELL, args)
-                                .await?;
-                        }
+                        learn_team_spells(&mut conn, character, &me).await?;
+                        // the potion: learned, and put in shortcut slot 100 (the HUD's potion button)
+                        // with AddServerShortcut(int type = 2 spell, int position, uint32 template)
+                        let args = Writer::new().i32(POTION_SPELL as i32).finish();
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LEARN_SPELL, args).await?;
+                        let args = Writer::new().i32(2).i32(100).u32(POTION_SPELL).finish();
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_SERVER_SHORTCUT, args)
+                            .await?;
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
                         if presence.is_none() {
@@ -164,6 +178,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // A queued command (minifigure swap, ability, ...). It completes only
                         // when the server answers with the same record as action 4 (success).
                         let command_type = rest.get(1..5).map_or(0, |b| u32::from_be_bytes(b.try_into().unwrap()));
+                        let mut refused = false;
+                        let mut extra = Vec::new();
                         match parse_command(rest) {
                             Some((msg, data)) => {
                                 let target = msg.target.as_ref().map(|t| (t.r#type.unwrap_or(0), t.instance.unwrap_or(0)));
@@ -172,8 +188,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
                                     .flatten();
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
-                                if let Some(spell) = spell {
-                                    let special = me.team.first().is_some_and(|&(_, t)| minifigure_spells(t).get(1) == Some(&spell));
+                                if spell == Some(POTION_SPELL) {
+                                    // Potion of Health: spends a potion (token 150) and heals.
+                                    if potions_spent >= START_POTIONS {
+                                        refused = true;
+                                    } else {
+                                        potions_spent += 1;
+                                        let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(START_POTIONS).u64(potions_spent).finish();
+                                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
+                                            .await?;
+                                        let health = crate::npc::heal_player(h.identity, POTION_HEAL);
+                                        extra.push(int32_stat(h.identity, STAT_HEALTH, health));
+                                    }
+                                } else if let Some(spell) = spell {
+                                    let special = me.team.first().is_some_and(|&(_, t)| crate::collection::spells(t).get(1) == Some(&spell));
                                     let damage = if special { SPECIAL_DAMAGE } else { NORMAL_DAMAGE };
                                     // MagicCommand data: u32, u32 spell, u8 0 + ground position, or u8 1.
                                     // Melee attacks target the caster itself and hit what's around it.
@@ -196,9 +224,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         let action_at = blob.len() - rest.len();
                         let mut reply = blob.to_vec();
-                        reply[action_at] = BCC_COMMAND_SUCCEEDED;
+                        reply[action_at] = if refused { BCC_COMMAND_FAILED } else { BCC_COMMAND_SUCCEEDED };
                         let mut records = vec![Bytes::from(reply.clone())];
-                        if command_type == COMMAND_MAGIC {
+                        records.extend(extra);
+                        if command_type == COMMAND_MAGIC && !refused {
                             // A MagicCommand only executes (and later finishes, freeing the queue
                             // for the next cast) once the server allows it: action 10 sets
                             // m_bCanExecute (MagicCommand_c::CanExecute, RunCommand 0x136d280).
@@ -210,22 +239,100 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let slot = u32::from_be_bytes(rest[rest.len() - 4..].try_into().unwrap());
                             if let Some(i) = me.team.iter().position(|&(s, _)| s == slot) {
                                 me.team[..=i].rotate_right(1);
-                                let costume = int32_stat(h.identity, STAT_MONSTER_DATA, monster_data_for(me.team[0].1));
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
-                                records.push(costume.clone());
-                                // health is per minifigure: send the newly active one's
-                                records.extend(health_records(h.identity, me.team[0].1));
-                                if let Some(p) = &presence {
-                                    world::broadcast(p.id(), vec![costume]);
-                                }
-                                info!(slot, template = me.team[0].1, "active minifigure");
+                                records.extend(active_minifigure_records(h.identity, me.team[0].1, &presence));
                             }
+                        }
+                        if command_type == COMMAND_EQUIP_ITEM
+                            && let Some((_, data)) = parse_command(rest)
+                            && let Some(new_active) = equip(&mut me, &mut collection, data)
+                        {
+                            // EquipItemCommand: the client moves the item itself on success
+                            records.extend(active_minifigure_records(h.identity, new_active, &presence));
+                        }
+                        if command_type == COMMAND_EQUIP_ITEM {
+                            learn_team_spells(&mut conn, character, &me).await?;
                         }
                         let blob = iir::pass_blob(&records);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
+                    Some("MoveInventoryItemIIR_t") => {
+                        // Reordering the team (101 -> 101). The client already moved it locally;
+                        // echoing would move it back.
+                        let mut pr = Reader::new(rest);
+                        let len = pr.u32()? as usize;
+                        let mv = <lmo_net::proto::ProtoMoveInventoryItemIir as prost::Message>::decode(pr.bytes(len, "move")?)?;
+                        let (from, to) = (mv.source_item_pos, mv.destination_item_pos);
+                        info!(?mv, "move inventory item");
+                        let active_slot = me.team.first().map(|&(s, _)| s);
+                        let a = me.team.iter().position(|&(s, _)| s == from);
+                        let b = me.team.iter().position(|&(s, _)| s == to);
+                        match (a, b) {
+                            (Some(a), Some(b)) => {
+                                let (ta, tb) = (me.team[a].1, me.team[b].1);
+                                me.team[a].1 = tb;
+                                me.team[b].1 = ta;
+                            }
+                            (Some(a), None) => me.team[a].0 = to,
+                            _ => {}
+                        }
+                        // keep the active slot first
+                        if let Some(i) = me.team.iter().position(|&(s, _)| Some(s) == active_slot) {
+                            me.team[..=i].rotate_right(1);
+                        }
+                        if active_slot.is_some_and(|s| s == from || s == to)
+                            && let Some(&(_, template)) = me.team.first()
+                        {
+                            let records = active_minifigure_records(h.identity, template, &presence);
+                            conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
+                                .await?;
+                        }
+                    }
                     _ => info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR"),
                 }
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::ACTIVATE_MINIFIGURE_UPGRADE) => {
+                // ActivateMinifigureUpgrade(int minifigureID, int position)
+                let template = r.i32()? as u32;
+                let position = r.i32()? as u32;
+                let old = me.upgrade(template);
+                let active = crate::collection::activate(old, position);
+                me.upgrades.insert(template, active);
+                info!(template, position, active, "activate upgrade");
+                let (inv, pos) = match me.team.iter().find(|&&(_, t)| t == template) {
+                    Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
+                    None => (crate::collection::COLLECTION_INVENTORY, collection.position_of(template).unwrap_or(0)),
+                };
+                // SetItemStat(const ID32& inventory, int pos, int stat, int value)
+                let args = Id32::new(inv, character)
+                    .write(Writer::new())
+                    .i32(pos as i32)
+                    .i32(crate::collection::STAT_ACTIVE_UPGRADES as i32)
+                    .i32(active as i32)
+                    .finish();
+                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
+                if inv == crate::collection::TEAM_INVENTORY {
+                    // ApplyMinifigureUpgradesOnClient(uint32 minifigure, int gameActionLists, int
+                    // activatedUpgrades): remove the old upgrades' effects (3), apply the new (1)
+                    for (lists, mask) in [(3, old), (1, active)] {
+                        let args = Writer::new().u32(template).i32(lists).i32(mask as i32).finish();
+                        conn.send_as(
+                            Some(character),
+                            Endpoint::GameCharInterfaceProject,
+                            game_char_interface_project::APPLY_MINIFIGURE_UPGRADES_ON_CLIENT,
+                            args,
+                        )
+                        .await?;
+                    }
+                }
+                let args = Writer::new().u32(template).i32(0).finish();
+                conn.send_as(
+                    Some(character),
+                    Endpoint::GameCharInterfaceProject,
+                    game_char_interface_project::SIGNAL_MINIFIGURE_UPGRADE_RESPONSE,
+                    args,
+                )
+                .await?;
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::PING) => {
                 let seq = r.u32()?;
@@ -347,6 +454,53 @@ pub fn remote_spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
     records
 }
 
+/// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
+/// shown to everyone else) and its own health.
+fn active_minifigure_records(id: Id32, template: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
+    let costume = int32_stat(id, STAT_MONSTER_DATA, monster_data_for(template));
+    if let Some(p) = presence {
+        world::broadcast(p.id(), vec![costume.clone()]);
+    }
+    info!(template, "active minifigure");
+    let mut records = vec![costume];
+    records.extend(health_records(id, template));
+    records
+}
+
+/// Sends LearnSpell for everything the team's minifigures can cast.
+async fn learn_team_spells(conn: &mut Conn, character: u32, me: &Character) -> anyhow::Result<()> {
+    for spell in me.team.iter().flat_map(|&(_, t)| crate::collection::spells_to_learn(t)) {
+        let args = Writer::new().i32(spell as i32).finish();
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LEARN_SPELL, args).await?;
+    }
+    Ok(())
+}
+
+/// EquipItemCommand data: ID32 source inventory, u32 source position, ID32 destination
+/// inventory, u32 destination slot, ID32 swap inventory, u32 swap position (where the
+/// displaced item goes), ... Applies a collection → team move to our model; returns the new
+/// active minifigure if the active slot changed.
+fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option<u32> {
+    let u = |i: usize| data.get(i..i + 4).map(|b| u32::from_be_bytes(b.try_into().unwrap()));
+    let (src_inv, src_pos, dst_inv, dst_slot, swap_inv, swap_pos) = (u(0)?, u(8)?, u(12)?, u(20)?, u(24)?, u(32)?);
+    info!(src_inv, src_pos, dst_inv, dst_slot, swap_inv, swap_pos, "equip");
+    if src_inv != crate::collection::COLLECTION_INVENTORY || dst_inv != crate::collection::TEAM_INVENTORY {
+        return None;
+    }
+    let template = collection.take(src_pos)?;
+    let displaced = match me.team.iter_mut().find(|(s, _)| *s == dst_slot) {
+        Some(entry) => Some(std::mem::replace(&mut entry.1, template)),
+        None => {
+            me.team.push((dst_slot, template));
+            None
+        }
+    };
+    if let Some(old) = displaced {
+        collection.put(if swap_inv == crate::collection::COLLECTION_INVENTORY { swap_pos } else { src_pos }, old);
+    }
+    (me.team.first().map(|&(s, _)| s) == Some(dst_slot)).then_some(template)
+}
+
 /// A queued command from a BehaviorControlCenterIIR_c body: u8 action, u32 CommandType,
 /// u32 length + CommandMessage protobuf, then the command's own data.
 fn parse_command(rest: &[u8]) -> Option<(lmo_net::proto::CommandMessage, &[u8])> {
@@ -410,7 +564,7 @@ pub async fn run_bot(playfield: u32) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec(), stars: 0 };
+    let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec(), stars: 0, upgrades: Default::default() };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
@@ -480,9 +634,9 @@ const EMPTY: u32 = 0x3f1;
 /// u32 n,   n x (u32, u32)
 /// cont<u32 -> element>                    0xe43450
 /// ```
-fn full_player_character(id: Id32, c: &Character) -> bytes::Bytes {
+fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
-        inventory: vec![minifigure_inventory(id.instance, &c.team)],
+        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t)),
         ..Default::default()
     };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {
@@ -507,14 +661,6 @@ fn full_player_character(id: Id32, c: &Character) -> bytes::Bytes {
 }
 
 const START_HEALTH: u32 = 100;
-/// Left- and right-click (normal and special) spells of a minifigure item template, from the
-/// client's MinifigureUpgradeData (RDB 1000643; tools/re/extract_minifig_spells.py).
-fn minifigure_spells(template: u32) -> Vec<u32> {
-    static TABLE: std::sync::LazyLock<HashMap<String, Vec<u32>>> = std::sync::LazyLock::new(|| {
-        serde_json::from_str(include_str!("../../../data/minifigure_spells.json")).expect("minifigure_spells.json")
-    });
-    TABLE.get(&template.to_string()).cloned().unwrap_or_default()
-}
 
 /// MonsterData (body and costume, RDB 1010514) for a minifigure item template, from
 /// data/minifigure_monster_data.json (tools/re/extract_minifig_monster_data.py: each template's
@@ -544,12 +690,17 @@ const TOKEN_HEALTH_POTIONS: u32 = 150;
 /// Minifigure XP, shown as the star counter (top left).
 const TOKEN_STARS: u32 = 100;
 const HEALTH_ORB_HEAL: u32 = 25;
+/// Potions per session (restocked at login).
 const START_POTIONS: u64 = 5;
+/// "Potion of Health" (in shortcut slot 100); its heal amount was server-side, so pick one.
+const POTION_SPELL: u32 = 104_554;
+const POTION_HEAL: u32 = 50;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
 /// CommandMessage protobuf, command data. The client queues a command with action 3 and the
 /// server answers 4 (OnSuccess), 5 (OnFailure), 7/8/9 (abort one/queued/all).
 const BCC_QUEUE_COMMAND: u8 = 3;
 const BCC_COMMAND_SUCCEEDED: u8 = 4;
+const BCC_COMMAND_FAILED: u8 = 5;
 const BCC_CAN_EXECUTE: u8 = 10;
 pub const COMMAND_MAGIC: u32 = 4;
 /// Damage of a minifigure's normal (left-click) and special (right-click) ability until spell
@@ -560,6 +711,8 @@ const SPECIAL_DAMAGE: u32 = 30;
 const AREA_RADIUS: f32 = 3.0;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
+/// EquipItemCommand: a minifigure moved from the collection into a team slot.
+const COMMAND_EQUIP_ITEM: u32 = 9;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).
 const STAT_COMMAND_QUEUE_SIZE: u32 = 1360;
 
@@ -597,6 +750,11 @@ pub struct CharSpec<'a> {
 }
 
 impl Character {
+    /// Active upgrade bitmask of a minifigure.
+    pub fn upgrade(&self, template: u32) -> u32 {
+        self.upgrades.get(&template).copied().unwrap_or(crate::collection::DEFAULT_ACTIVE)
+    }
+
     pub fn spec(&self) -> CharSpec<'_> {
         CharSpec {
             name: &self.name,
@@ -604,7 +762,7 @@ impl Character {
             pos: self.pos,
             // the active (first) team slot's minifigure
             monster_data: self.team.first().map_or(2212, |&(_, t)| monster_data_for(t)),
-            level: 1,
+            level: CHARACTER_LEVEL,
             health: START_HEALTH,
             max_health: START_HEALTH,
             cars_group: 0,
@@ -713,12 +871,12 @@ mod tests {
     }
 }
 
-/// Inventory 101 holds the minifigures; positions 6, 8 and 20 are the three active team slots
-/// (the client's Lua `player:GetInventoryItem(101, 6/8/20)`, and CreateMinifigureItem asks for
-/// exactly those positions).
-const MINIFIGURE_INVENTORY: u32 = 101;
+/// Starting team in inventory 101 (positions 6, 8 and 20 are the three team slots).
 /// Minifigure item templates 663917..=663932 (listed in a client Lua table of minifigures).
 const START_TEAM: [(u32, u32); 3] = [(6, 663929), (8, 663921), (20, 663932)];
+/// Character level (stat 54). The Collection's upgrade panel is gated on it (locked below 3,
+/// tiers need higher levels), so characters start high.
+const CHARACTER_LEVEL: u32 = 50;
 
 pub fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
     ProtoAcgItem {
@@ -730,21 +888,3 @@ pub fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
     }
 }
 
-fn minifigure_inventory(character: u32, team: &[(u32, u32)]) -> ProtoInventoryGame {
-    ProtoInventoryGame {
-        inventory_id: ProtoId32 { r#type: Some(MINIFIGURE_INVENTORY), instance: Some(character) },
-        max_size: Some(64),
-        disabled_slots_count: None,
-        items: team
-            .iter()
-            .map(|&(pos, template)| InventoryListEntry {
-                pos,
-                item: ProtoInventoryGameEntry {
-                    item_id: Some(u64::from(template)),
-                    item_data: Some(acg_item(template, 1)),
-                    ..Default::default()
-                },
-            })
-            .collect(),
-    }
-}

@@ -15,6 +15,9 @@ pub struct Character {
     /// Minifigure XP (the star counter).
     #[serde(default)]
     pub stars: u64,
+    /// Active upgrade bitmask per minifigure template (unset: collection::DEFAULT_ACTIVE).
+    #[serde(default)]
+    pub upgrades: std::collections::BTreeMap<u32, u32>,
 }
 
 pub struct Store {
