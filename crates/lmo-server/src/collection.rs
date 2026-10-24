@@ -19,6 +19,8 @@ use crate::game::acg_item;
 
 pub const TEAM_INVENTORY: u32 = 101;
 pub const COLLECTION_INVENTORY: u32 = 110_001;
+/// The backpack: the default inventory for items (ItemHolder+0x50, InventoryGame_c 104).
+pub const BACKPACK_INVENTORY: u32 = 104;
 const COLLECTION_SIZE: u32 = 256;
 
 const STAT_MINIFIGURE_LEVEL: u32 = 3_000_058;
@@ -121,7 +123,7 @@ fn entry(template: u32, active: u32, id_salt: u64) -> ProtoInventoryGameEntry {
     }
 }
 
-/// The collection (110001) and team (101) inventories for FullPlayerCharacterIIR, in that order:
+/// The character's inventories for FullPlayerCharacterIIR, collection (110001) and team (101) first:
 /// the client builds and caches its minifigure list (ASMinifigureList::GetMinifigureList) as soon
 /// as the team is equipped, so the collection must already be filled or every other minifigure
 /// stays locked.
@@ -138,10 +140,17 @@ pub fn inventories(
         items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), 0) }).collect(),
     };
     let stored = collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (p as u32, t))).collect();
-    // the minifigure bag inventory (max 200 as on live): without room the client refuses to loot bags
+    // The rest as live sent them (empty, live sizes). The client refuses to loot an item when
+    // the inventory it would go to (ItemHolder::GetItemTypeInventory) has no free slot:
+    // minifigure bags go to 110002, minifigure parts and other items to the backpack 104.
     vec![
         inventory(COLLECTION_INVENTORY, COLLECTION_SIZE, stored),
         inventory(TEAM_INVENTORY, 64, team.to_vec()),
+        inventory(BACKPACK_INVENTORY, 50, vec![]),
+        inventory(112, 48, vec![]),
+        inventory(113, 48, vec![]),
+        inventory(120, 20, vec![]),
+        inventory(119, 24, vec![]),
         inventory(crate::game::MINIFIGURE_BAG_INVENTORY, 200, vec![]),
     ]
 }

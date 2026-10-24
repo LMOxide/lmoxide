@@ -229,6 +229,11 @@ team 57001 (raid 57016).
 - **Minifigure parts** (RDB 1000645 id 1 `MinifigurePartsData`, data/minifig_parts.json): three
   per minifigure, owned as **tokens** (UpdateTokenAmount gained/spent; token 1SSNN head, 2SSNN
   torso, 3SSNN legs). The part item (dynel type 34002) is clicked, not auto-looted.
+- **Room check**: ClientLootBag::CanLoot refuses an item ("InventoryFull", no TryLootItem) when
+  the inventory it would go to (`ItemHolder::GetItemTypeInventory`) has no free slot: 34001 bags
+  -> 110002, static-template items (stars) -> none, everything else incl. parts -> backpack 104
+  (`ItemHolder+0x50`, created empty by CoreItemHolder::Initialize). Live's FullPlayerCharacterIIR
+  carried 101 (32), 104 (50), 112 (48), 113 (48), 120 (20), 119 (24), 110001 (160), 110002 (200).
   `GameCharAgentProject` 0x15 ConvertMinifigureParts() → 0x22 response (1 = done); 0x16
   BuildminifigureFromParts(u32 template) → 0x23 response (0 = built).
 - **Minifigure bags** (dynel type 34001, one per minifigure, data/loot_items.json; inventory
