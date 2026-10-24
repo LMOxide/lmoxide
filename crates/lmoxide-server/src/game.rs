@@ -129,6 +129,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             break;
                         }
                         world::Out::Command(_) => unreachable!(),
+                    world::Out::Teleport(playfield, at, rot) => {
+                        let playfield = playfield.unwrap_or(me.playfield);
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                            .await?;
+                    }
                     }
                     continue;
                 }

@@ -436,3 +436,30 @@ workspaces); `tools/ghidra/decompile.sh` / `xrefs.sh` against the analyzed proje
   the exe.
 - Receiver dispatch functions log `X::DispatchY() not possible, stream bad after '<arg>'`, which
   gives the argument names and read order; sender functions log their full C++ signature.
+
+## NPC dialogues (Knubot) and quests
+
+Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot.rs`.
+
+- **Texts**: the client's TDB (RDB 1030002 TDC2 blobs, per-language maps in 1030001; English 21):
+  50002 dialogue texts, 50001 answers, 50300–50304 quest name/task/description/solved/goal,
+  51000 NPC names (`tools/re/tdc.py`). A 50002 text is the server's script: `{tag}`s
+  (changeguivisibility, movecameratoactor, movecameratopos, setactiveactor, moveactortopos,
+  startfxpackageonactor, addcinematicactor, clearcinematic, delay, spawn <quest>, resolvegoal
+  <goal>, addtagtoplayer, teleportplayer[nosplash] `x z y <height> [r <deg>] [playfield]`,
+  gameactiononnpc …) and `[Speaker]` lines.
+- **Records** (header = the player; Knubot base = u16 1, ID32 npc): OpenChatWindow (u8 flags);
+  AppendText (u32 1, remoteformat XML, u8 1, u32 0, i32 -1, f32 4, f32 20); AnswerList (u32 n,
+  n × remoteformat); C>S Answer (u32 index); CloseChatWindow (u32 1, remoteformat 100/0);
+  KnubotActorIIR / SpawnClientNPCIIR (record flag 1; u32 length + protobuf, proto/).
+- **Running a text**: words before the first tag → AppendText antitag 0; then per tag: do it,
+  AppendText antitag = tags done. `delay` is a real wait. Before Open: KnubotActor type 6 for
+  `playerActor` and `knubotOwnerActor`. After a text: AnswerList [next text's line (the 50001
+  answer with the same wording), Goodbye (50001/0)]; an answerless next text is the epilogue
+  on goodbye; ClearCinematicState before Close.
+- **remoteformat** `key` attributes: the client shows texts without them.
+- A dialogue sent while the client still loads a playfield is lost.
+- **Quests** (not implemented): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
+  event 2 completed / 4 removed, quest, 0), JournalUpdateIIR / QuestRewardUpdateIIR (proto),
+  MainQuestUpdateIIR_c, QuestFullUpdateIIR (quests::operator>> 0x1b76e41, not decoded);
+  definitions in RDB 1000104 (QuestGiverList; `spawn`/`resolvegoal` hashes).

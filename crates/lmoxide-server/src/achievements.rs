@@ -105,6 +105,8 @@ pub enum Event {
     Defeated { name: String, smashable: bool, boss: bool, champion: bool, level: u32, playfield: u32 },
     /// Finished building a buildie.
     Built { name: String },
+    /// A server script gave the player tag `id` (NPC dialogues' `addtagtoplayer`).
+    Tag(u32),
 }
 
 /// What the session must send after an update.
@@ -161,10 +163,22 @@ pub fn check(c: &mut Character, ctx: &Ctx) -> Output {
 /// Counts `event` (`times` times) and grants what it completes.
 pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Output {
     let mut out = Output::default();
+    if let Event::Tag(id) = event {
+        if TREE.by_id.contains_key(id) {
+            grant(c, ctx, &mut out, *id);
+        } else if !c.tags.contains_key(id) {
+            // a plain tag (story progress), not an achievement
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64);
+            c.tags.insert(*id, now);
+            out.rpcs.push(add_tag(*id));
+        }
+        return out;
+    }
     let (name, kind) = match event {
         Event::Defeated { name, smashable: false, .. } => (name, "kills"),
         Event::Defeated { name, smashable: true, .. } => (name, "smashes"),
         Event::Built { name } => (name, "builds"),
+        Event::Tag(_) => unreachable!(),
     };
     match kind {
         "kills" => bump(c, ctx, &mut out, STAT_PLAYER_KILLS, 0, times),

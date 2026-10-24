@@ -8,8 +8,9 @@
 //! "Goodbye"; a following text without a line of its own is the epilogue run on goodbye.
 //!
 //! Which NPC says what, and when, was server-side: only the recorded session's dialogues are
-//! known (Video Game Guy in the tutorial and Pirate World, two cinematics). Quest tags
-//! (`spawn`, `resolvegoal`) and the other server-only tags are logged, not run.
+//! known (Video Game Guy in the tutorial and Pirate World, two cinematics). `addtagtoplayer`
+//! gives the tag (achievements), `teleportplayer` teleports; quest tags (`spawn`,
+//! `resolvegoal`) and server scripts (`gameactiononnpc`) are logged, not run.
 
 use std::{
     collections::HashMap,
@@ -225,12 +226,40 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
             }
             ["addcinematicactor", alias, template, point, ..] => records.push(spawn_client_npc(s.player, alias, template.parse().unwrap_or(0), point)),
             ["delay", secs, ..] => tokio::time::sleep(Duration::from_secs_f32(secs.parse().unwrap_or(1.0))).await,
+            ["addtagtoplayer", tag, ..] => {
+                if let Ok(tag) = tag.parse() {
+                    world::send_to(s.player, world::Out::Progress(crate::achievements::Event::Tag(tag)));
+                }
+            }
+            [cmd @ ("teleportplayer" | "teleportplayernosplash"), args @ ..] => match teleport_args(args) {
+                Some((playfield, at, rot)) => world::send_to(s.player, world::Out::Teleport(playfield, at, rot)),
+                None => warn!(%cmd, ?args, "dialogue teleport not understood"),
+            },
             _ => info!(?s.player, %tag, "dialogue tag not run"),
         }
         records.push(append(s, id, n as u32 + 1));
         send(records);
     }
     cleared
+}
+
+/// `teleportplayer[nosplash] x z y <height> [r <degrees>] [playfield]` (checked against the
+/// Medieval Kingdom's arrival point: `88.3 256.0 y 24.5 r 250` there is (87.9, 24.5, 256.1)).
+fn teleport_args(args: &[&str]) -> Option<(Option<u32>, [f32; 3], f32)> {
+    let x: f32 = args.first()?.parse().ok()?;
+    let z: f32 = args.get(1)?.parse().ok()?;
+    let mut height = 0.0;
+    let mut rot = 0.0;
+    let mut playfield = None;
+    let mut rest = args[2..].iter();
+    while let Some(word) = rest.next() {
+        match *word {
+            "y" => height = rest.next()?.parse().ok()?,
+            "r" => rot = rest.next()?.parse::<f32>().ok()?.to_radians(),
+            n => playfield = n.parse().ok(),
+        }
+    }
+    Some((playfield, [x, height, z], rot))
 }
 
 /// The `{...}` tags of a text, in order.
@@ -362,6 +391,13 @@ mod tests {
         assert_eq!(DATA.dialogues.len(), 8);
         assert_eq!(tags(&DATA.texts["742"]), ["changeguivisibility 0", "delay 1", "spawn S1M7 10 m", "clearcinematic"]);
         assert_eq!(DATA.answers.get("743"), Some(&510));
+    }
+
+    #[test]
+    fn teleport_tags() {
+        assert_eq!(teleport_args(&["220.531", "255.793", "y", "16", "4610"]), Some((Some(4610), [220.531, 16.0, 255.793], 0.0)));
+        let (pf, at, _) = teleport_args(&["88.3", "256.0", "y", "24.5", "r", "250"]).unwrap();
+        assert_eq!((pf, at), (None, [88.3, 24.5, 256.0]));
     }
 
     #[test]

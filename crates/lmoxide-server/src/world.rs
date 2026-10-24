@@ -30,6 +30,9 @@ pub enum Out {
     DevTeleport(u32, [f32; 3], String),
     /// A test command (devcmd.rs) typed into a chat-server channel (e.g. the Global tab).
     Command(String),
+    /// Teleport the player (a server script, e.g. an NPC dialogue): playfield (`None`: the
+    /// current one), position, facing.
+    Teleport(Option<u32>, [f32; 3], f32),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;
