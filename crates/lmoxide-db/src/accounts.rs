@@ -82,7 +82,9 @@ impl Db {
         let hash = password.map(|p| validate_password(p).and_then(|_| hash_password(p))).transpose()?;
         let conn = self.conn();
         loop {
-            let id = rand::random_range(1..0x7fff_ffffu32);
+            // above 16,000,000: the account's character has this id, and the client takes
+            // lower character instances for NPCs (n3Dynel::IsNPC)
+            let id = rand::random_range(16_000_001..0x7fff_ffffu32);
             let res = conn.execute(
                 "INSERT INTO accounts (id, username, password_hash, gm_level, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
                 params![id, username, hash, gm_level, now()],

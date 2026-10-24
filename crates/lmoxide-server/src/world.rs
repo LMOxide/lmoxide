@@ -134,16 +134,13 @@ impl Presence {
 
 impl Drop for Presence {
     fn drop(&mut self) {
-        MEMBERS.lock().unwrap().remove(&self.id);
-        broadcast_all(self.id, vec![crate::game::despawn_record(self.id)]);
-    }
-}
-
-fn broadcast_all(about: Id32, records: Vec<Bytes>) {
-    let members = MEMBERS.lock().unwrap();
-    for (id, m) in members.iter() {
-        if *id != about {
-            let _ = m.outbox.send(Out::Records(records.clone()));
+        let Some(me) = MEMBERS.lock().unwrap().remove(&self.id) else { return };
+        // only to the playfield it leaves: a client told to remove a character it doesn't have
+        // ignores that character's spawn later (a player teleporting to someone stayed
+        // invisible to them)
+        let members = MEMBERS.lock().unwrap();
+        for m in members.values().filter(|m| m.playfield == me.playfield) {
+            let _ = m.outbox.send(Out::Records(vec![crate::game::despawn_record(self.id)]));
         }
     }
 }

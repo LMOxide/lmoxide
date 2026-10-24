@@ -46,6 +46,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0001_initial.sql"),
     include_str!("../migrations/0002_progression.sql"),
     include_str!("../migrations/0003_audit_target.sql"),
+    include_str!("../migrations/0004_player_ids.sql"),
 ];
 
 pub struct Db {
@@ -183,6 +184,37 @@ mod tests {
     use super::*;
 
     #[test]
+    fn player_ids_leave_the_npc_range() {
+        // a schema-3 database with an account in the client's NPC range and a friendship whose
+        // order flips when it moves
+        let mut conn = Connection::open_in_memory().unwrap();
+        conn.pragma_update(None, "foreign_keys", "ON").unwrap();
+        for sql in &MIGRATIONS[..3] {
+            conn.execute_batch(sql).unwrap();
+        }
+        conn.pragma_update(None, "user_version", 3).unwrap();
+        let tx = conn.transaction().unwrap();
+        for (id, name) in [(5_000_000, "low"), (20_000_000, "high")] {
+            tx.execute("INSERT INTO accounts (id, username, gm_level, created_at) VALUES (?1, ?2, 0, 0)", params![id, name]).unwrap();
+            tx.execute(
+                "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, created_at, saved_at) VALUES (?1, ?1, ?2, 1200, 0, 0, 0, 0, 0)",
+                params![id, name],
+            )
+            .unwrap();
+        }
+        tx.execute("INSERT INTO character_team (character_id, slot, position, template) VALUES (5000000, 6, 0, 663929)", []).unwrap();
+        tx.execute("INSERT INTO friendships (low, high, created_at) VALUES (5000000, 20000000, 0)", []).unwrap();
+        tx.commit().unwrap();
+        let db = Db::init(conn).unwrap();
+        let low = db.account_by_name("low").unwrap().unwrap();
+        assert_eq!(low.id, 1_005_000_000);
+        let conn = db.conn();
+        let team: u32 = conn.query_row("SELECT count(*) FROM character_team WHERE character_id = 1005000000", [], |r| r.get(0)).unwrap();
+        let friends: (u32, u32) = conn.query_row("SELECT low, high FROM friendships", [], |r| Ok((r.get(0)?, r.get(1)?))).unwrap();
+        assert_eq!((team, friends), (1, (20_000_000, 1_005_000_000)));
+    }
+
+    #[test]
     fn audit_targets() {
         let db = Db::open_in_memory().unwrap();
         let a = db.create_account("Target", None, 0).unwrap();
@@ -210,7 +242,8 @@ mod tests {
             db.audit_log(10, None).unwrap().into_iter().rev().map(|e| (e.target.unwrap(), e.target_account)).collect();
         assert_eq!(
             got,
-            [("Seven".into(), Some(7)), ("seven".into(), Some(7)), ("gone".into(), None), ("99".into(), Some(99))]
+            // (0004 then moves account 7 out of the client's NPC range)
+            [("Seven".into(), Some(1_000_000_007)), ("seven".into(), Some(1_000_000_007)), ("gone".into(), None), ("99".into(), Some(99))]
         );
     }
 }
