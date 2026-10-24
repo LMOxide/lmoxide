@@ -7,6 +7,7 @@
 # server), 7100 (universe), 7101 (territory), 7102 (game), 7200 (chat).
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
 # an account without one) and GM level 1 for everyone (free-text chat and the test commands need it).
+# Progression is on (--progression: XP, levels and minifigure ranks, as live).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PROFILE=debug
@@ -37,5 +38,5 @@ export RUST_LOG=${RUST_LOG:-info}
 PATCH=$!
 trap 'kill $PATCH 2>/dev/null' EXIT
 "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" \
-  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
+  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" --progression ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"
