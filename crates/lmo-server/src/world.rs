@@ -78,6 +78,13 @@ pub fn neighbours(from: Id32) -> Vec<Id32> {
     members.iter().filter(|(id, m)| **id != from && m.playfield == playfield).map(|(id, _)| *id).collect()
 }
 
+/// Sends `out` to one member (no-op if it isn't in the world).
+pub fn send_to(id: Id32, out: Out) {
+    if let Some(m) = MEMBERS.lock().unwrap().get(&id) {
+        let _ = m.outbox.send(out);
+    }
+}
+
 /// Sends records to every other character on the sender's playfield.
 pub fn broadcast(from: Id32, records: Vec<Bytes>) {
     send_playfield(from, false, Out::Records(records));

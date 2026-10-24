@@ -2,6 +2,7 @@ mod chat;
 mod conn;
 mod game;
 mod http;
+mod loot;
 mod npc;
 mod sessions;
 mod store;

@@ -181,21 +181,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let f = |i: usize| f32::from_be_bytes(data[i..i + 4].try_into().unwrap());
                                         [f(9), f(13), f(17)]
                                     }).filter(|_| data.len() >= 21);
-                                    let kills = match target.map(|(kind, instance)| Id32::new(kind, instance)) {
+                                    match target.map(|(kind, instance)| Id32::new(kind, instance)) {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
-                                            u32::from(crate::npc::hit(h.identity, t, spell, damage) == Some(true))
+                                            crate::npc::hit(h.identity, t, spell, damage);
                                         }
                                         _ => {
                                             let center = ground.unwrap_or_else(|| *pos.lock().unwrap());
-                                            crate::npc::hit_area(h.identity, me.playfield, center, AREA_RADIUS, spell, damage)
+                                            crate::npc::hit_area(h.identity, me.playfield, center, AREA_RADIUS, spell, damage);
                                         }
-                                    };
-                                    if kills > 0 {
-                                        // stars (token 100) for each defeated enemy; totals, not deltas
-                                        me.stars += u64::from(kills) * STARS_PER_KILL;
-                                        let args = Writer::new().u32(TOKEN_STARS).u64(me.stars).u64(0).finish();
-                                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
-                                            .await?;
                                     }
                                 }
                             }
@@ -265,6 +258,28 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the test bot answers, so incoming chat can be seen with one client
                         crate::chat::vicinity(character, BOT_INSTANCE, "Bot", 0, &format!("you said: {message}"));
                     }
+                }
+            }
+            (Some(Endpoint::GameCharAgent), game_char_agent::TRY_LOOT_ITEM) => {
+                // TryLootItem(const ID32& bag, uint32 itemPos, const ID32& char, uint32 desiredPos):
+                // the client auto-collected a dropped star or orb.
+                let bag = Id32::read(&mut r)?;
+                let item_pos = r.u32()?;
+                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                match crate::loot::take(id, bag, item_pos) {
+                    Some(crate::loot::STAR_ITEM) => {
+                        // stars (token 100): cumulative totals, not deltas
+                        me.stars += 1;
+                        let args = Writer::new().u32(TOKEN_STARS).u64(me.stars).u64(0).finish();
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
+                            .await?;
+                    }
+                    Some(crate::loot::HEALTH_ORB_ITEM) => {
+                        let health = crate::npc::heal_player(id, HEALTH_ORB_HEAL);
+                        let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);
+                        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+                    }
+                    _ => {}
                 }
             }
             // Client-side bookkeeping that needs no answer (to be persisted later).
@@ -514,7 +529,7 @@ fn monster_data_for(template: u32) -> u32 {
 }
 
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).
-const STAT_LIFE: u32 = 1;
+pub const STAT_LIFE: u32 = 1;
 pub const STAT_HEALTH: u32 = 27;
 /// BCCState; 29 is Limbo (dead: death effect, "CombatChat_CharacterKilled").
 pub const STAT_BCC_STATE: u32 = 20;
@@ -528,7 +543,7 @@ const STAT_ACTIVE_WEAPON: u32 = 2000405;
 const TOKEN_HEALTH_POTIONS: u32 = 150;
 /// Minifigure XP, shown as the star counter (top left).
 const TOKEN_STARS: u32 = 100;
-const STARS_PER_KILL: u64 = 10;
+const HEALTH_ORB_HEAL: u32 = 25;
 const START_POTIONS: u64 = 5;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
 /// CommandMessage protobuf, command data. The client queues a command with action 3 and the
@@ -676,7 +691,7 @@ fn reflect(fields: &[(u32, &[u8])]) -> Vec<u8> {
     out
 }
 
-fn create_game_object(id: Id32, playfield: u32, pos: [f32; 3]) -> bytes::Bytes {
+pub fn create_game_object(id: Id32, playfield: u32, pos: [f32; 3]) -> bytes::Bytes {
     // Only Id: Position is a reflected struct (Vector3Member) and the dynel IIR carries the
     // position anyway. ID32 is itself a reflected struct {type @0, instance @4} (0x6f3e80),
     // so it nests as its own length + fields; u32 fields are plain little-endian values.
@@ -705,7 +720,7 @@ const MINIFIGURE_INVENTORY: u32 = 101;
 /// Minifigure item templates 663917..=663932 (listed in a client Lua table of minifigures).
 const START_TEAM: [(u32, u32); 3] = [(6, 663929), (8, 663921), (20, 663932)];
 
-fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
+pub fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
     ProtoAcgItem {
         template1: Some(template),
         template2: Some(template),
