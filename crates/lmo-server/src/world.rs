@@ -65,6 +65,11 @@ pub fn someone_else(me: Id32, playfield: u32) -> Option<[f32; 3]> {
         .map(|(_, m)| *m.pos.lock().unwrap())
 }
 
+/// Where a member is.
+pub fn position_of(id: Id32) -> Option<[f32; 3]> {
+    MEMBERS.lock().unwrap().get(&id).map(|m| *m.pos.lock().unwrap())
+}
+
 /// Every character on `playfield` with its position.
 pub fn positions(playfield: u32) -> Vec<(Id32, [f32; 3])> {
     let members = MEMBERS.lock().unwrap();

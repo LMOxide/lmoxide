@@ -1,0 +1,11 @@
+{
+  "_comment": "Summon abilities (SpawnMonster game actions, server-only). The spawned monster templates aren't in the client data, so the looks (RDB 1010514 monsterdata) are chosen by name. lifetime in seconds.",
+  "196059": { "name": "Balloon Buddy", "monster_data": 186269, "lifetime": 15 },
+  "196062": { "name": "Ship's Mate", "monster_data": 192828, "lifetime": 15 },
+  "500460": { "name": "Harlequin", "monster_data": 350305, "lifetime": 15 },
+  "550774": { "name": "Saucer", "monster_data": 553713, "lifetime": 15 },
+  "595264": { "name": "Shadow Ninja", "monster_data": 590574, "lifetime": 15 },
+  "641633": { "name": "Zombie Player", "monster_data": 642805, "lifetime": 15 },
+  "641620": { "name": "Monster", "monster_data": 82324, "lifetime": 15 },
+  "663959": { "name": "Royal Guard", "monster_data": 352446, "lifetime": 15 }
+}

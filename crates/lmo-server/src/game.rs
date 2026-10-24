@@ -241,7 +241,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         [f(9), f(13), f(17)]
                                     }).filter(|_| data.len() >= 21);
                                     let target_id = target.map(|(kind, instance)| Id32::new(kind, instance));
-                                    if crate::projectile::params(spell).is_some() {
+                                    if crate::npc::is_summon(spell) {
+                                        let at = ground.unwrap_or_else(|| *pos.lock().unwrap());
+                                        crate::npc::summon(h.identity, me.playfield, spell, at);
+                                    } else if crate::projectile::params(spell).is_some() {
                                         // a projectile: aim at the target, the clicked point or
                                         // where the player last moved; its hits deal the damage
                                         let here = *pos.lock().unwrap();

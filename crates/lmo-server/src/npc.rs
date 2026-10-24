@@ -29,7 +29,9 @@ const CARS_ENEMIES: u32 = 3;
 /// CarsGroup of friendly NPCs players can use (talk to).
 const CARS_FRIENDS: u32 = 2;
 /// NPC dynel instances start here (players are accounts, so keep clear of small numbers).
-const FIRST_NPC_INSTANCE: u32 = 900_000;
+static NEXT_INSTANCE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(900_000);
+const PET_FOLLOW: f32 = 2.0;
+const PET_DAMAGE: u32 = 12;
 const AGGRO_RANGE: f32 = 8.0;
 const LEASH_RANGE: f32 = 25.0;
 /// How close an enemy walks up to its target.
@@ -103,6 +105,8 @@ pub enum Kind {
     Smashable,
     /// A friendly character: not attackable, stays put.
     Npc,
+    /// A player's summon: follows its owner and attacks enemies near it, then vanishes.
+    Pet,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -148,6 +152,8 @@ fn default_spell() -> u32 {
 
 struct Npc {
     def: SpawnDef,
+    /// Pets: the summoning player and when the pet vanishes.
+    owner: Option<(Id32, std::time::Instant)>,
     playfield: u32,
     health: u32,
     pos: world::Position,
@@ -179,15 +185,13 @@ pub fn start() {
         defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..d }));
         defs.extend(content.smashables.into_iter().map(|d| SpawnDef { kind: Kind::Smashable, ..d }));
     }
-    let mut instance = FIRST_NPC_INSTANCE;
     for (playfield, defs) in table {
         let Ok(playfield) = playfield.parse::<u32>() else { continue };
         for def in defs {
             let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
-            let id = Id32::new(kind, instance);
-            instance += 1;
+            let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
             let pos = Arc::new(Mutex::new(def.pos));
-            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None });
+            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None });
             appear(id);
         }
     }
@@ -223,6 +227,7 @@ fn appear(id: Id32) {
         let pos = *spawn_pos.lock().unwrap();
         match def.kind {
             Kind::Enemy => remote_spawn_records(id, &spec(&def, playfield, pos, health)),
+            Kind::Pet => remote_spawn_records(id, &CharSpec { cars_group: 0, ..spec(&def, playfield, pos, health) }),
             Kind::Npc => remote_spawn_records(
                 id,
                 &CharSpec { cars_group: def.cars_group.unwrap_or(CARS_FRIENDS), ..spec(&def, playfield, pos, health) },
@@ -240,12 +245,55 @@ fn appear(id: Id32) {
     }
 }
 
+#[derive(Deserialize)]
+struct SummonDef {
+    name: String,
+    monster_data: u32,
+    lifetime: u64,
+}
+
+static SUMMONS: LazyLock<HashMap<String, serde_json::Value>> =
+    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/summons.json")).expect("summons.json"));
+
+/// Whether `spell` summons a pet (data/summons.json).
+pub fn is_summon(spell: u32) -> bool {
+    SUMMONS.contains_key(&spell.to_string())
+}
+
+/// `owner` casts summon `spell` at `pos`: a pet that follows them and fights for a while.
+pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
+    let Some(def) = SUMMONS.get(&spell.to_string()).and_then(|v| serde_json::from_value::<SummonDef>(v.clone()).ok()) else {
+        return;
+    };
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+    let spawn = SpawnDef {
+        kind: Kind::Pet,
+        template: 0,
+        name: def.name,
+        monster_data: def.monster_data,
+        level: 1,
+        health: 100,
+        pos: [pos[0] + 1.0, pos[1], pos[2] + 1.0],
+        spell: default_spell(),
+        cars_group: Some(0),
+        npc_template: None,
+    };
+    let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
+    info!(?owner, spell, pet = %spawn.name, "summon");
+    let pos = Arc::new(Mutex::new(spawn.pos));
+    NPCS.lock().unwrap().insert(
+        id,
+        Npc { health: spawn.health, def: spawn, playfield, pos, presence: None, last_attack: None, owner: Some((owner, until)) },
+    );
+    appear(id);
+}
+
 /// `attacker` hits NPC `target` with `spell` for `damage`. Returns whether it died, or `None`
 /// if `target` isn't a live NPC. A defeated NPC drops loot for the attacker.
 pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
     let mut npcs = NPCS.lock().unwrap();
     let npc = npcs.get_mut(&target)?;
-    if npc.presence.is_none() || npc.health == 0 || npc.def.kind == Kind::Npc {
+    if npc.presence.is_none() || npc.health == 0 || matches!(npc.def.kind, Kind::Npc | Kind::Pet) {
         return None;
     }
     let dealt = damage.min(npc.health);
@@ -290,7 +338,8 @@ pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, s
         .lock()
         .unwrap()
         .iter()
-        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0 && n.def.kind != Kind::Npc)
+        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
+        .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable))
         .filter(|(_, n)| distance(*n.pos.lock().unwrap(), center) <= radius)
         .map(|(id, _)| *id)
         .collect();
@@ -318,6 +367,61 @@ async fn regenerate() {
             .collect();
         for (id, health) in healed {
             world::send_to(id, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, health)]));
+        }
+    }
+}
+
+/// Pets: vanish when their time is up, otherwise attack an enemy near them or follow the owner.
+fn pets_tick() {
+    let now = std::time::Instant::now();
+    let pets: Vec<(Id32, Id32, std::time::Instant, u32, world::Position)> = NPCS
+        .lock()
+        .unwrap()
+        .iter()
+        .filter_map(|(id, n)| n.owner.map(|(o, until)| (*id, o, until, n.playfield, n.pos.clone())))
+        .collect();
+    for (id, owner, until, playfield, pos) in pets {
+        if now >= until {
+            if let Some(npc) = NPCS.lock().unwrap().remove(&id) {
+                drop(npc.presence); // despawns it
+            }
+            continue;
+        }
+        let here = *pos.lock().unwrap();
+        let enemy = NPCS
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
+            .map(|(eid, n)| (*eid, *n.pos.lock().unwrap()))
+            .filter(|(_, p)| distance(*p, here) < AGGRO_RANGE)
+            .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
+        let goal = match enemy {
+            Some((eid, p)) => {
+                if distance(p, here) <= MELEE_RANGE + 1.0 {
+                    let ready = NPCS.lock().unwrap().get_mut(&id).is_some_and(|n| {
+                        let ready = n.last_attack.is_none_or(|t| t.elapsed() >= ATTACK_INTERVAL);
+                        if ready {
+                            n.last_attack = Some(now);
+                        }
+                        ready
+                    });
+                    if ready {
+                        let cast: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, eid, default_spell(), a)).collect();
+                        world::send_playfield(id, false, world::Out::Records(cast));
+                        hit(owner, eid, default_spell(), PET_DAMAGE);
+                    }
+                }
+                approach(here, p, MELEE_RANGE)
+            }
+            None => match world::position_of(owner) {
+                Some(o) => approach(here, o, PET_FOLLOW),
+                None => here,
+            },
+        };
+        if distance(goal, here) > 0.3 {
+            *pos.lock().unwrap() = goal;
+            world::broadcast(id, vec![move_task_record(id, here, goal)]);
         }
     }
 }
@@ -445,6 +549,7 @@ async fn ai() {
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
             .map(|(id, n)| (*id, n.playfield, n.def.pos, n.pos.clone()))
             .collect();
+        pets_tick();
         for (id, playfield, home, pos) in live {
             let here = *pos.lock().unwrap();
             let target = world::positions(playfield)
