@@ -18,6 +18,10 @@ pub struct Character {
     /// Active upgrade bitmask per minifigure template (unset: collection::DEFAULT_ACTIVE).
     #[serde(default)]
     pub upgrades: std::collections::BTreeMap<u32, u32>,
+    /// Other token counters (minifigure parts): token -> (gained, spent), as UpdateTokenAmount
+    /// sends them.
+    #[serde(default)]
+    pub tokens: std::collections::BTreeMap<u32, (u64, u64)>,
 }
 
 pub struct Store {

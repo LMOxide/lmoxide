@@ -74,7 +74,7 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
 }
 
 /// PlayfieldProxy as embedded in a BinaryStream (u32 length + PlayfieldProxyData).
-fn proxy(playfield: u32) -> PlayfieldProxyData {
+pub(crate) fn proxy(playfield: u32) -> PlayfieldProxyData {
     PlayfieldProxyData {
         dimension_id: Some(1),
         model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield) }),

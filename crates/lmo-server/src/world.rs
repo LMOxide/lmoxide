@@ -18,6 +18,9 @@ use tokio::sync::mpsc;
 pub enum Out {
     /// IIR records, sent as one `PassBlob`.
     Records(Vec<Bytes>),
+    /// One RPC (endpoint, method id, args), e.g. community messages from another player's
+    /// connection.
+    Rpc(lmo_net::Endpoint, u32, Bytes),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;
@@ -68,6 +71,11 @@ pub fn someone_else(me: Id32, playfield: u32) -> Option<[f32; 3]> {
 /// Where a member is.
 pub fn position_of(id: Id32) -> Option<[f32; 3]> {
     MEMBERS.lock().unwrap().get(&id).map(|m| *m.pos.lock().unwrap())
+}
+
+/// Playfield and position of a character in play.
+pub fn whereabouts(id: Id32) -> Option<(u32, [f32; 3])> {
+    MEMBERS.lock().unwrap().get(&id).map(|m| (m.playfield, *m.pos.lock().unwrap()))
 }
 
 /// Every character on `playfield` with its position.

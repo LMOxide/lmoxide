@@ -1,6 +1,7 @@
 mod chat;
 mod collection;
 mod combat;
+mod community;
 mod conn;
 mod dash;
 mod effects;
@@ -111,6 +112,7 @@ async fn main() -> anyhow::Result<()> {
 
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
     tokio::spawn(chat::listen(cfg.addr(cfg.chat_port)));
+    community::init(cfg.data_dir.clone());
     npc::start();
     jumppad::start();
     if cfg.bot {

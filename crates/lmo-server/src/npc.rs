@@ -42,9 +42,6 @@ const RESPAWN: Duration = Duration::from_secs(20);
 const DESTRUCTIBLE_TYPE: u32 = 51321;
 /// CarsGroup of breakable objects (target group "Destructibles").
 const CARS_DESTRUCTIBLES: u32 = 4;
-/// Stars dropped by a defeated enemy and a smashed object.
-const ENEMY_STARS: usize = 10;
-const SMASHABLE_STARS: usize = 3;
 const TICK: Duration = Duration::from_millis(750);
 const ATTACK_INTERVAL: Duration = Duration::from_millis(2500);
 /// Share of player damage enemies absorb (the original server's, measured in the recorded
@@ -384,12 +381,16 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     }
     world::send_playfield(target, true, world::Out::Records(records));
     if health == 0 {
-        let stars = if kind == Kind::Enemy { ENEMY_STARS } else { SMASHABLE_STARS };
-        let mut items = vec![crate::loot::STAR_ITEM; stars];
-        if kind == Kind::Enemy && rand_percent() < 35 {
-            items.push(crate::loot::HEALTH_ORB_ITEM);
-        }
-        crate::loot::drop_items(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, items);
+        // champions and bosses by their health over a regular enemy's of that level (proposed
+        // content: 4x and 10x; recorded bosses have more)
+        let regular = 60 + 15 * npc.def.level;
+        let source = match kind {
+            Kind::Smashable => crate::loot::Source::Smashable,
+            _ if npc.def.health >= regular * 8 => crate::loot::Source::Boss,
+            _ if npc.def.health >= regular * 4 => crate::loot::Source::Champion,
+            _ => crate::loot::Source::Enemy,
+        };
+        crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
         drop(npcs);
@@ -531,12 +532,6 @@ fn pets_tick() {
             world::broadcast(id, vec![move_task_record(id, here, goal)]);
         }
     }
-}
-
-/// A cheap pseudo-random number in 0..100 (loot rolls).
-fn rand_percent() -> u32 {
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.subsec_nanos());
-    nanos.wrapping_mul(2_654_435_761) % 100
 }
 
 /// `DestructibleFullUpdateIIR_c` after the GameObject: ProtoGameCodeDynelIIR; the SimpleDynel

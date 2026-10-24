@@ -187,6 +187,58 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
 - **Client file patches** survive the patcher because the HTTP server rebuilds FileList.bin
   (RootHash) and PatchVersion from the local files (see http.rs `rebuild_file_list`).
 
+## Friends and teams (community.rs)
+
+The community server's RPCs travel on the game connection (`CSPlayerAgent` →, `CSPlayerInterface`
+←, endpoint instance = character). Addresses are the Linux build's. Character ID32 type 50000,
+team 57001 (raid 57016).
+
+- `GroupElement_c` = u32 length + `GroupElementData` (proto). The client uses
+  character_instance, name, dimension, playfield and member_slot_index (0..3: list / map marker
+  colour). `TeamInfo_c` (0x197c236) = ID32 team, ID32 leader, vector<GroupElement_c>, u32 loot
+  mode, u8 need/greed, u8, ID32 master looter, u32 loot threshold. `Friends` = u32 length +
+  `FriendsData`. `RemoteFormat` = one String.
+- **Friend codes** (Social window): `GameCharAgentProject` 27 RequestMyFriendKey →
+  `GameCharInterfaceProject` 0x13 RequestMyFriendKeyReply(String "XXX-XXX-XXX-XXX") (recorded
+  live); 28 RequestAddFriendWithKey(String) → 0x14 RequestAddFriendWithKeyReply(u32: the
+  friend's character instance, 0 = not found), after which the client sends CSPA 105
+  SignalAddFriendByID. Our codes encode the instance (community.rs `friend_code`).
+- **Friends list**: the client never asks; 0xc3 SignalFriendsListUpdate is an upsert per friend
+  (online status, playfield proxy); 0xc4 SignalFriendsRemoved (entries with only the instance).
+  0xbe FriendInviteFrom(GroupElement) → Yes/No → CSPA 102/103. Remove: CSPA 108.
+- **Teams**: CSPA 3 TeamInvite(ID32, string, bool) → invitee 0x01 TeamInvite(GroupElement,
+  string) (Yes/No dialog), inviter 0x0c YouInvitedToTeam; CSPA 8/9 Accept/DeclineTeamInvite(ID32
+  inviter). **0x10 YouJoinedTeam(TeamInfo with every member, bool feedback)** is what puts a
+  client in a team; others get 0x16 TeamJoin(team, GroupElement, bool). Leave and kick are
+  `GameCharAgent` 9 LeaveTeam() / 10 KickFromTeam(ID32) → 0x15 TeamLeave(team, GroupElement,
+  bool) to everyone (0x25 YouGotKickedFromTeam only shows text), 0x18 TeamDisband(team) when one
+  member remains (the client also leaves by itself then). Leader: CSPA 14 → 0x19
+  SetNewTeamLeader(team, GroupElement, bool). 0xbd TeamMemberLinkDeadUpdate(ID32, bool **online**).
+  Live sent 0x02 YouAreNotInTeam at every playfield entry.
+- On the game server: `AddToGroupIIR_c` (ID32 group, ID32 leader) / `RemoveFromGroupIIR_c`
+  (ID32 group) on a character, or ProtoCoreCharacterIIR team_id / team_leader_id in its full
+  update, set the team the client compares in `SimpleChar_t::SameTeamAsClient`. Map markers:
+  GCA 125 RequestTeamMemberPosList(vector<u32>) → GameCharInterface 0x7c
+  UpdateTeamMemberPosList(vector<{u32 instance, i32 x, y, z}>).
+
+## Loot (loot.rs)
+
+- Only the bag's **owner** sees its items (`ProjectLootBag::OnEnteringPlayfield`), so team loot
+  is one bag per member. After each bag live sent `NewAllowedLooterIIR_c` (ID32). CanLoot
+  (0x122bb2a): allowed looter 0 = anyone, a team id = its members, a character = that one.
+- **Minifigure parts** (RDB 1000645 id 1 `MinifigurePartsData`, data/minifig_parts.json): three
+  per minifigure, owned as **tokens** (UpdateTokenAmount gained/spent; token 1SSNN head, 2SSNN
+  torso, 3SSNN legs). The part item (dynel type 34002) is clicked, not auto-looted.
+  `GameCharAgentProject` 0x15 ConvertMinifigureParts() → 0x22 response (1 = done); 0x16
+  BuildminifigureFromParts(u32 template) → 0x23 response (0 = built).
+- **Minifigure bags** (dynel type 34001, one per minifigure, data/loot_items.json; inventory
+  110002, sent in FullPlayerCharacterIIR, max 200): on pickup `GameCharInterface` 0x24
+  AddItem(ID32 (110002, char), i32 pos -1, entry, u8 0) starts the reveal (pos -1 isn't stored);
+  then AddItem into 110001 for a new minifigure, or stars for a duplicate.
+- **Chests** are items in a bag with stat LootType 1 (free) / 2 (member): the client shows the
+  chest model at the bag + Loot_Offset; clicking sends TryLootItem; the server drops the chest's
+  contents as a new bag. The LootTable contents were server-side.
+
 ## Missing game data
 
 The archive lacks the RDB packs (playfield data type 1000049, many 1000141, …). Funcom's patch

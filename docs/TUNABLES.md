@@ -60,7 +60,12 @@ playfield resources) aren't listed; neither are protocol constants.
 | Potion heal | `game.rs` `POTION_HEAL_SHARE` | 50% of max | The heal amount was a server script. |
 | Health orb heal | `game.rs` `HEALTH_ORB_HEAL_SHARE` | 25% of max | Assumed. |
 | Potions | `game.rs` `START_POTIONS` | 5 per session, restocked at login | Assumed. |
-| Stars dropped | `npc.rs` `ENEMY_STARS` / `SMASHABLE_STARS` | 10 / 3 | Assumed. |
+| Stars dropped | `loot.rs` `roll` | enemies 3, smashables 1–2 | From the recorded session (every regular enemy bag held 3 stars, smashables 1–2). |
+| Other drops | `loot.rs` `roll` | enemies: health orb 35%, part 6%; smashables: part 4%; champions (≥ 4 × regular health): 6 stars, orb, part, minifigure bag 15%; bosses (≥ 8 ×): 10 stars, orb, 2 parts, minifigure bag 40%, a chest; chest: 5 + 25 stars, 2 parts, minifigure bag 25% | The drop tables (LootTable ids) were server-side; proposals. Parts and bags are any minifigure's (which world dropped which is only a text id). |
+| Team loot | `loot.rs` `SHARE_RANGE` | own bag for each teammate in play within 60 m, rolled separately | Only a bag's owner sees its items (client), so live must have given each member a bag; range assumed. |
+| Duplicate minifigure bag | `game.rs` `DUPLICATE_BAG_STARS` | 50 stars | "Duplicates will be rewarded with stars"; amount unknown. Every minifigure is unlocked here, so every bag is a duplicate. |
+| Parts → stars | `game.rs` `STARS_PER_PART` | 5 stars per spare part | ConvertMinifigureParts rate is not in the client. |
+| Member chests | `loot.rs` `Tables.chests` | never dropped | Only members could open them (server check); only the free Super Chests drop. |
 | Health orb drop chance | `npc.rs` `hit` | 35% per enemy | Assumed. |
 | Loot bag lifetime | `loot.rs` `BAG_LIFETIME` | 60 s | Assumed. |
 

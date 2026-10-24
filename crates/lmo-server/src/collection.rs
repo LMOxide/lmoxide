@@ -138,7 +138,12 @@ pub fn inventories(
         items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), 0) }).collect(),
     };
     let stored = collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (p as u32, t))).collect();
-    vec![inventory(COLLECTION_INVENTORY, COLLECTION_SIZE, stored), inventory(TEAM_INVENTORY, 64, team.to_vec())]
+    // the minifigure bag inventory (max 200 as on live): without room the client refuses to loot bags
+    vec![
+        inventory(COLLECTION_INVENTORY, COLLECTION_SIZE, stored),
+        inventory(TEAM_INVENTORY, 64, team.to_vec()),
+        inventory(crate::game::MINIFIGURE_BAG_INVENTORY, 200, vec![]),
+    ]
 }
 
 /// The collection again, for an `UpdateInventoryIIR_t` after the character is in play. The

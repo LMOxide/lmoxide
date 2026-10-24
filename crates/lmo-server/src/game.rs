@@ -16,7 +16,7 @@ use lmo_net::{
         gameserver_to_client_rpc as client,
     },
     proto::{
-        PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir,
+        PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir, ProtoInventoryGameEntry,
         ProtoGameCodeDynelIir, ProtoId32, ProtoQuat,
         ProtoVec3, proto_core_character_iir,
     },
@@ -48,6 +48,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         team: START_TEAM.to_vec(),
         stars: 0,
         upgrades: Default::default(),
+        tokens: Default::default(),
     };
     let mut collection = Collection::new(&me.team);
     let pos = Arc::new(Mutex::new(START_POS));
@@ -66,6 +67,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let auto_fired: Arc<Mutex<Option<(u32, std::time::Instant)>>> = Arc::new(Mutex::new(None));
     let (outbox, mut inbox) = mpsc::unbounded_channel::<world::Out>();
     let mut presence: Option<world::Presence> = None;
+    // online for friends and teams while the character is in play
+    let mut community: Option<crate::community::Guard> = None;
     loop {
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
@@ -78,6 +81,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let blob = iir::pass_blob(&records);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
+                    world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
                 }
                 continue;
             }
@@ -150,6 +154,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let args = crate::teleport::valid_spots_args(me.playfield, *pos.lock().unwrap());
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::VALID_RESURRECTION_SPOTS, args)
                             .await?;
+                        if community.is_none() {
+                            community = Some(crate::community::login(character, &me.name, me.playfield, outbox.clone()));
+                        }
+                        crate::community::entered_playfield(character, me.playfield);
                         if presence.is_none() {
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
@@ -591,28 +599,98 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                 }
             }
+            (Some(Endpoint::CSPlayerAgent), method) if crate::community::handle_cs(character, method, &mut r)? => {}
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::REQUEST_MY_FRIEND_KEY) => {
+                crate::community::my_friend_code(character);
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::REQUEST_ADD_FRIEND_WITH_KEY) => {
+                crate::community::add_friend_with_code(character, &r.string()?);
+            }
+            (Some(Endpoint::GameCharAgent), game_char_agent::LEAVE_TEAM) => crate::community::leave(character),
+            (Some(Endpoint::GameCharAgent), game_char_agent::KICK_FROM_TEAM) => {
+                crate::community::kick(character, Id32::read(&mut r)?.instance);
+            }
+            (Some(Endpoint::GameCharAgent), game_char_agent::REQUEST_TEAM_MEMBER_POS_LIST) => {
+                crate::community::member_positions(character, &mut r)?;
+            }
             (Some(Endpoint::GameCharAgent), game_char_agent::TRY_LOOT_ITEM) => {
                 // TryLootItem(const ID32& bag, uint32 itemPos, const ID32& char, uint32 desiredPos):
-                // the client auto-collected a dropped star or orb.
+                // the client auto-collected a star or orb, or the player clicked a part, minifigure
+                // bag or chest.
                 let bag = Id32::read(&mut r)?;
                 let item_pos = r.u32()?;
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                match crate::loot::take(id, bag, item_pos) {
-                    Some(crate::loot::STAR_ITEM) => {
-                        // stars (token 100): cumulative totals, not deltas
-                        me.stars += 1;
-                        let args = Writer::new().u32(TOKEN_STARS).u64(me.stars).u64(0).finish();
-                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
-                            .await?;
+                let Some(taken) = crate::loot::take(id, bag, item_pos) else { continue };
+                match crate::loot::reward(taken.template) {
+                    crate::loot::Reward::Stars(n) => {
+                        me.stars += n;
+                        send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
                     }
-                    Some(crate::loot::HEALTH_ORB_ITEM) => {
+                    crate::loot::Reward::HealthOrb => {
                         let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t)));
                         let health = crate::npc::heal_player(id, (max as f32 * HEALTH_ORB_HEAL_SHARE) as u32);
                         let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
-                    _ => {}
+                    crate::loot::Reward::Part(token) => {
+                        let (gained, spent) = me.tokens.entry(token).or_default();
+                        *gained += 1;
+                        let (gained, spent) = (*gained, *spent);
+                        send_token(&mut conn, character, token, gained, spent).await?;
+                    }
+                    crate::loot::Reward::MinifigureBag(minifigure) => {
+                        // The bag reveal (BagOpenEvent.swf): AddItem(ID32 inventory 110002, i32 pos -1,
+                        // entry, u8 split) only signals the bag (pos -1 isn't stored); then the
+                        // minifigure is added to the collection, or, as every minifigure is already
+                        // unlocked here, the duplicate pays out stars.
+                        let entry = ProtoInventoryGameEntry { item_id: Some(u64::from(taken.template)), item_data: Some(acg_item(taken.template, 1)), ..Default::default() };
+                        let args = Id32::new(MINIFIGURE_BAG_INVENTORY, character).write(Writer::new()).i32(-1).proto(&entry).u8(0).finish();
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
+                        me.stars += DUPLICATE_BAG_STARS;
+                        send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
+                        info!(character, minifigure, "minifigure bag (duplicate)");
+                    }
+                    crate::loot::Reward::Chest => crate::loot::open_chest(id, taken.playfield, taken.pos, bag),
+                    crate::loot::Reward::Nothing => {}
                 }
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CONVERT_MINIFIGURE_PARTS) => {
+                // "Use duplicate parts to convert to stars": every minifigure is owned here, so all
+                // parts are spare (MinifigureHolder::CalculateSpareParts). Answer 1 = done.
+                let mut converted = 0;
+                for token in crate::loot::all_part_tokens() {
+                    if let Some((gained, spent)) = me.tokens.get_mut(&token)
+                        && *gained > *spent
+                    {
+                        converted += *gained - *spent;
+                        *spent = *gained;
+                        let (g, s) = (*gained, *spent);
+                        send_token(&mut conn, character, token, g, s).await?;
+                    }
+                }
+                me.stars += converted * STARS_PER_PART;
+                send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
+                info!(character, converted, "parts converted to stars");
+                let args = Writer::new().u32(1).finish();
+                conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_CONVERT_MINIFIGURE_PARTS_RESPONSE, args)
+                    .await?;
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::BUILDMINIFIGURE_FROM_PARTS) => {
+                // one of each part; 0 = built (the minifigure is in the collection already here)
+                let template = r.u32()?;
+                let tokens = crate::loot::minifigure_part_tokens(template);
+                let complete = !tokens.is_empty() && tokens.iter().all(|t| me.tokens.get(t).is_some_and(|(g, s)| g > s));
+                if complete {
+                    for t in tokens {
+                        let (gained, spent) = me.tokens.get_mut(t).unwrap();
+                        *spent += 1;
+                        let (g, s) = (*gained, *spent);
+                        send_token(&mut conn, character, *t, g, s).await?;
+                    }
+                }
+                let args = Writer::new().u32(if complete { 0 } else { 1 }).finish();
+                conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_BUILDMINIFIGURE_FROM_PARTS_RESPONSE, args)
+                    .await?;
             }
             // Client-side bookkeeping that needs no answer (to be persisted later).
             (
@@ -625,6 +703,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
             _ => warn!(args = %crate::conn::hex(&rpc.args), "unhandled"),
         }
     }
+    drop(community);
     if character != 0 {
         crate::npc::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         crate::jumppad::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
@@ -717,9 +796,9 @@ async fn send_world(
         records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
     }
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
-    for (token, gained, spent) in [(TOKEN_HEALTH_POTIONS, START_POTIONS, potions_spent), (TOKEN_STARS, me.stars, 0)] {
-        let args = Writer::new().u32(token).u64(gained).u64(spent).finish();
-        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args).await?;
+    let saved = me.tokens.iter().map(|(&t, &(g, s))| (t, g, s));
+    for (token, gained, spent) in [(TOKEN_HEALTH_POTIONS, START_POTIONS, potions_spent), (TOKEN_STARS, me.stars, 0)].into_iter().chain(saved) {
+        send_token(conn, character, token, gained, spent).await?;
     }
     Ok(())
 }
@@ -978,7 +1057,15 @@ pub async fn run_bot(playfield: u32) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let bot = Character { name: "Bot".into(), playfield, pos: START_POS, team: START_TEAM.to_vec(), stars: 0, upgrades: Default::default() };
+    let bot = Character {
+        name: "Bot".into(),
+        playfield,
+        pos: START_POS,
+        team: START_TEAM.to_vec(),
+        stars: 0,
+        upgrades: Default::default(),
+        tokens: Default::default(),
+    };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
@@ -1103,6 +1190,19 @@ const STAT_ACTIVE_WEAPON: u32 = 2000405;
 const TOKEN_HEALTH_POTIONS: u32 = 150;
 /// Minifigure XP, shown as the star counter (top left).
 const TOKEN_STARS: u32 = 100;
+/// Inventory of minifigure bags (dynel type 34001 items; ItemHolder::GetItemTypeInventory).
+pub const MINIFIGURE_BAG_INVENTORY: u32 = 110002;
+/// Stars for a minifigure bag of an already unlocked minifigure ("Duplicates will be rewarded
+/// with stars"; the amount is a guess).
+const DUPLICATE_BAG_STARS: u64 = 50;
+/// Stars per spare minifigure part converted (rate not in the client; a guess).
+const STARS_PER_PART: u64 = 5;
+
+/// UpdateTokenAmount(u32 token, u64 gained, u64 spent): cumulative totals, not deltas.
+async fn send_token(conn: &mut Conn, character: u32, token: u32, gained: u64, spent: u64) -> anyhow::Result<()> {
+    let args = Writer::new().u32(token).u64(gained).u64(spent).finish();
+    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args).await
+}
 const HEALTH_ORB_HEAL_SHARE: f32 = 0.25;
 /// Potions per session (restocked at login).
 const START_POTIONS: u64 = 5;
@@ -1217,6 +1317,8 @@ const PLAYER_SPEEDS: &[(u32, f32)] =
 
 fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
     let (playfield, name, pos) = (c.playfield, c.name, c.pos);
+    // players' team (the client's SameTeamAsClient); NPCs have none
+    let team = if c.npc.is_none() { crate::community::team_ids(id.instance) } else { None };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
@@ -1235,6 +1337,8 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
             ..Default::default()
         }),
         npc_stats: c.npc.clone(),
+        team_id: team.as_ref().map(|t| t.0.clone()),
+        team_leader_id: team.map(|t| t.1),
         generic_stats: vec![0],
         dimension_id: Some(1),
         ..Default::default()
