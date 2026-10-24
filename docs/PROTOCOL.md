@@ -282,6 +282,24 @@ the client when the button is released (`ActionModeDefault_c::CancelSpellOnRelea
 server to the client (`MagicHolder::FinishChanneling`). While channelling, the client reports
 where it aims: `GameCharAgentProject::UpdateSpellTargetPosition(u32 command, Vector3)`.
 
+## Levels, XP and minifigure ranks (progression.rs)
+
+- Player: stats XP 52, Level 54, LastXP 57, NextXP 350 (the XP bar, XpBar.swf: progress =
+  (XP − LastXP) / (NextXP − LastXP), "+N XP" from the XP stat's change). Recorded level 1: XP 0,
+  LastXP 0, NextXP 200; per kill `StatIIR_t` XP. The client computes Life = Level ×
+  HealthPerLevel + the minifigure's health.
+- Area level cap: the 5th of the 6 u32 after `PlayfieldFIIR_t`'s blobs (stored at +0xe8;
+  `SimpleChar_t::GetMaxLevelCap` = min(it, TWK_MaxPlayerLevel), 0 = none). Recorded 11 in
+  Pirate World, 0 in the tutorial. At the cap the XP bar shows "You have reached the maximum
+  level for this area".
+- Minifigure items: MinifigureLevel 3000058 (rank 0..8, fresh minifigures 0), MinifigureXP
+  3000057, MinifigureActiveUpgrades 3000098, MinifigurePurchasedUpgrades 3000106, MinifigureHealth
+  3000092, InventoryItemGeneric1/2 3000112/3000113 (achievement counters). Rank-up:
+  `GameCharAgentProject::LevelUpMinifigure(uint32 template)` (0x12); the GUI allows it when the
+  player level reaches lore tag 466 + rank's Level stat and the rank is below 8
+  (CarouselView.CanUpgrade). The server answers with SetItemStat for the item and
+  `SignalMinifigureUpgradeResponse(uint32 template, int32 result)` (0 = done).
+
 ## Achievements (achievements.rs)
 
 Achievements are tags of the client's lore tree (RDB 1000108, protobuf `LoreTreeBuf`: node 1

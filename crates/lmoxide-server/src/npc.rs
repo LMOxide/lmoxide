@@ -411,7 +411,9 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             world::Out::Progress(crate::achievements::Event::Defeated {
                 name: npc.def.name.clone(),
                 smashable: kind == Kind::Smashable,
-                boss: matches!(source, crate::loot::Source::Boss | crate::loot::Source::Champion),
+                boss: source == crate::loot::Source::Boss,
+                champion: source == crate::loot::Source::Champion,
+                level: npc.def.level,
                 playfield: npc.playfield,
             }),
         );

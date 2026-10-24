@@ -135,6 +135,8 @@ pub struct Caster {
     /// The active minifigure and its upgrades (damage, upgrade criteria).
     pub template: u32,
     pub upgrades: u32,
+    /// Player level (damage).
+    pub level: u32,
     /// The command's target (an enemy) or clicked ground point.
     pub target: Option<Id32>,
     pub ground: Option<[f32; 3]>,
@@ -318,7 +320,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
         }
         "WeaponHit" => {
             if let Some(id) = who.id.filter(|id| *id != caster) {
-                let damage = crate::combat::damage_with_mod(run.caster.template, run.caster.upgrades, run.spell, a.f("AbilityMod").unwrap_or(1.0));
+                let damage = crate::combat::damage_with_mod(run.caster.template, run.caster.upgrades, run.spell, a.f("AbilityMod").unwrap_or(1.0), run.caster.level);
                 crate::npc::hit(caster, id, spell, damage);
             }
         }

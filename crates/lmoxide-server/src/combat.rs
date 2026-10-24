@@ -94,17 +94,17 @@ fn upgrade_sum(m: &Minifigure, active: u32, stat: &str) -> f32 {
         .sum::<f64>() as f32
 }
 
-/// Maximum health of a minifigure with the given active upgrades.
-pub fn max_life(template: u32, active: u32) -> u32 {
-    let Some(m) = minifigure(template) else { return LEVEL * HEALTH_PER_LEVEL as u32 + 250 };
+/// Maximum health of a minifigure with the given active upgrades, for a character of `level`.
+pub fn max_life(template: u32, active: u32, level: u32) -> u32 {
+    let Some(m) = minifigure(template) else { return level * HEALTH_PER_LEVEL as u32 + 250 };
     let percent = upgrade_sum(m, active, "Life");
-    let life = (LEVEL as f32 * HEALTH_PER_LEVEL + m.life as f32) * (1.0 + percent / 100.0);
+    let life = (level as f32 * HEALTH_PER_LEVEL + m.life as f32) * (1.0 + percent / 100.0);
     (life + 0.5).max(1.0) as u32
 }
 
-/// Damage of one hit of `spell` cast by `template` (before the target's mitigation). `charge`
-/// picks the hit of a charge ability's level.
-pub fn damage(template: u32, active: u32, spell: u32, charge: Option<usize>) -> u32 {
+/// Damage of one hit of `spell` cast by `template` (before the target's mitigation) for a
+/// character of `level`. `charge` picks the hit of a charge ability's level.
+pub fn damage(template: u32, active: u32, spell: u32, charge: Option<usize>, level: u32) -> u32 {
     let Some(m) = minifigure(template) else { return 50 };
     let is_normal = m.normal.as_ref().is_some_and(|a| a.spell == spell);
     let attack = [m.normal.as_ref(), m.special.as_ref()].into_iter().flatten().find(|a| a.spell == spell);
@@ -114,19 +114,19 @@ pub fn damage(template: u32, active: u32, spell: u32, charge: Option<usize>) -> 
             _ => a.hits.first(),
         })
         .map_or(1.0, |h| h.ability_mod);
-    scaled(m, active, is_normal, ability_mod)
+    scaled(m, active, is_normal, ability_mod, level)
 }
 
 /// Damage of a hit of `template`'s `spell` with an explicit AbilityMod (hits whose WeaponHit
 /// isn't the spell's own, e.g. a dash's path and arrival hits).
-pub fn damage_with_mod(template: u32, active: u32, spell: u32, ability_mod: f32) -> u32 {
+pub fn damage_with_mod(template: u32, active: u32, spell: u32, ability_mod: f32, level: u32) -> u32 {
     let Some(m) = minifigure(template) else { return 50 };
     let is_normal = m.normal.as_ref().is_some_and(|a| a.spell == spell);
-    scaled(m, active, is_normal, ability_mod)
+    scaled(m, active, is_normal, ability_mod, level)
 }
 
-fn scaled(m: &Minifigure, active: u32, is_normal: bool, ability_mod: f32) -> u32 {
-    let rating = (m.power as f32 * LEVEL as f32 * STAR_FACTOR).floor() + POWER_RATING_ALL;
+fn scaled(m: &Minifigure, active: u32, is_normal: bool, ability_mod: f32, level: u32) -> u32 {
+    let rating = (m.power as f32 * level as f32 * STAR_FACTOR).floor() + POWER_RATING_ALL;
     let mut multiplier = 1.0 + upgrade_sum(m, active, "FinalDamageMultiplier");
     if is_normal && active_upgrades(m, active).any(|u| u.name.contains("Empowered Normals")) {
         multiplier *= EMPOWERED_NORMALS;

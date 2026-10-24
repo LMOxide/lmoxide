@@ -10,6 +10,8 @@
 //!   !ach                      achievements earned, kill and smash counters
 //!   !count <kills|smashes|builds> [n] [name]   count n (default 1) defeats/builds for achievements
 //!   !defeat <boss name>       count a boss defeat (boss achievements, the active minifigure's)
+//!   !xp [n]                   gain n XP (with --progression), show level and XP
+//!   !stars <n>                gain n stars (minifigure XP for ranking up)
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -24,6 +26,10 @@ pub enum Action {
     Achievements,
     /// feed achievement events (n times)
     Progress(crate::achievements::Event, u32),
+    /// gain XP
+    Xp(u64),
+    /// gain stars
+    Stars(u64),
 }
 
 /// A command's target kinds (for `!list` / `!goto`) and what they are.
@@ -109,22 +115,27 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             }
         }
         "ach" | "achievements" => Action::Achievements,
+        "xp" => Action::Xp(args.first().and_then(|n| n.parse().ok()).unwrap_or(0).min(10_000_000)),
+        "stars" => match args.first().and_then(|n| n.parse::<u64>().ok()) {
+            Some(n) => Action::Stars(n.min(10_000_000)),
+            None => reply(vec!["usage: !stars <n>".into()]),
+        },
         "count" => {
             let n = args.get(1).and_then(|n| n.parse::<u32>().ok()).unwrap_or(1).min(100_000);
             let name = args.get(2..).map(|w| w.join(" ")).filter(|n| !n.is_empty()).unwrap_or_else(|| "Test Dummy".into());
             let event = match args.first().copied() {
-                Some("kills") => crate::achievements::Event::Defeated { name, smashable: false, boss: false, playfield },
-                Some("smashes") => crate::achievements::Event::Defeated { name, smashable: true, boss: false, playfield },
+                Some("kills") => crate::achievements::Event::Defeated { name, smashable: false, boss: false, champion: false, level: 1, playfield },
+                Some("smashes") => crate::achievements::Event::Defeated { name, smashable: true, boss: false, champion: false, level: 1, playfield },
                 Some("builds") => crate::achievements::Event::Built { name },
                 _ => return reply(vec!["usage: !count <kills|smashes|builds> [n] [name]".into()]),
             };
             Action::Progress(event, n)
         }
         "defeat" if !args.is_empty() => {
-            Action::Progress(crate::achievements::Event::Defeated { name: args.join(" "), smashable: false, boss: true, playfield }, 1)
+            Action::Progress(crate::achievements::Event::Defeated { name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }

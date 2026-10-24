@@ -92,7 +92,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                     world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
                     world::Out::Progress(event) => {
-                        let out = progress(&mut me, &collection, character, Some((&event, 1)));
+                        if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
+                            && crate::progression::enabled()
+                        {
+                            let records = gain_xp(&mut me, character, crate::progression::kill_xp(*level, *boss, *champion));
+                            conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                        }
+                        let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
                         send_progress(&mut conn, character, &me, out).await?;
                     }
                     world::Out::Kick(reason) => {
@@ -174,14 +180,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
                         records.push(crate::teleport::journal_record(h.identity));
-                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t));
+                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| me.rank(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         if let Some(&(slot, template)) = me.team.first() {
                             // ParentStatChanged only reacts to a different slot, and the client
                             // may already assume this one: clear it first.
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
-                            records.extend(health_records(h.identity, template, me.upgrade(template)));
+                            records.extend(health_records(h.identity, template, me.upgrade(template), me.level()));
                         }
                         let echo = iir::pass_blob(&records);
                         // The HUD shows the active minifigure's left/right-click spells, but they
@@ -336,7 +342,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(START_POTIONS).u64(potions_spent).finish();
                                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
                                             .await?;
-                                        let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t)));
+                                        let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t), me.level()));
                                         let health = crate::npc::heal_player(h.identity, (max as f32 * POTION_HEAL_SHARE) as u32);
                                         extra.push(int32_stat(h.identity, STAT_HEALTH, health));
                                         // the heal visual (hearts), shown to everyone
@@ -348,7 +354,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     let damage = me
                                         .team
                                         .first()
-                                        .map_or(50, |&(_, t)| crate::combat::damage(t, me.upgrade(t), spell, None));
+                                        .map_or(50, |&(_, t)| crate::combat::damage(t, me.upgrade(t), spell, None, me.level()));
                                     // MagicCommand data: u32, u32 spell, u8 0 + ground position, or u8 1.
                                     // Melee attacks target the caster itself and hit what's around it.
                                     let ground = (data.get(8) == Some(&0)).then(|| {
@@ -372,12 +378,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         // clicked point, or along the facing) and deals the hits
                                         let template = me.team.first().map(|&(_, t)| t);
                                         let active = template.map_or(0, |t| me.upgrade(t));
+                                        let level = me.level();
                                         let point = target_id
                                             .filter(|t| *t != h.identity)
                                             .and_then(crate::npc::position)
                                             .or(ground);
                                         crate::dash::start(h.identity, me.playfield, spell, dash.clone(), pos.clone(), point, heading, move |m| {
-                                            template.map_or(50, |t| crate::combat::damage_with_mod(t, active, spell, m))
+                                            template.map_or(50, |t| crate::combat::damage_with_mod(t, active, spell, m, level))
                                         });
                                     } else if crate::projectile::params(spell).is_some() {
                                         // a projectile: aim at the target, the clicked point or
@@ -407,7 +414,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             if let Some(client_id) = msg.commandqueue_client_id {
                                                 let active = Arc::new(std::sync::atomic::AtomicBool::new(true));
                                                 let full_damage = me.team.first().map_or(damage, |&(_, t)| {
-                                                    crate::combat::damage(t, me.upgrade(t), spell, Some(usize::MAX))
+                                                    crate::combat::damage(t, me.upgrade(t), spell, Some(usize::MAX), me.level())
                                                 });
                                                 let mut end = blob.to_vec();
                                                 end[blob.len() - rest.len()] = BCC_FINISH_CHANNEL;
@@ -447,6 +454,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             facing: facing.clone(),
                                             template,
                                             upgrades,
+                                            level: me.level(),
                                             target: target_id,
                                             ground,
                                         };
@@ -492,7 +500,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if let Some(i) = me.team.iter().position(|&(s, _)| s == slot) {
                                 me.team[..=i].rotate_right(1);
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
-                                records.extend(active_minifigure_records(h.identity, me.team[0].1, me.upgrade(me.team[0].1), &presence));
+                                records.extend(active_minifigure_records(h.identity, me.team[0].1, me.upgrade(me.team[0].1), me.level(), &presence));
                             }
                         }
                         if command_type == COMMAND_EQUIP_ITEM
@@ -500,7 +508,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             && let Some(new_active) = equip(&mut me, &mut collection, data)
                         {
                             // EquipItemCommand: the client moves the item itself on success
-                            records.extend(active_minifigure_records(h.identity, new_active, me.upgrade(new_active), &presence));
+                            records.extend(active_minifigure_records(h.identity, new_active, me.upgrade(new_active), me.level(), &presence));
                         }
                         if command_type == COMMAND_EQUIP_ITEM {
                             learn_team_spells(&mut conn, character, &me).await?;
@@ -536,7 +544,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if active_slot.is_some_and(|s| s == from || s == to)
                             && let Some(&(_, template)) = me.team.first()
                         {
-                            let records = active_minifigure_records(h.identity, template, me.upgrade(template), &presence);
+                            let records = active_minifigure_records(h.identity, template, me.upgrade(template), me.level(), &presence);
                             conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                                 .await?;
                         }
@@ -613,12 +621,52 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 )
                 .await?;
             }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::LEVEL_UP_MINIFIGURE) => {
+                // LevelUpMinifigure(uint32 minifigure): buy the next rank (upgrade tier) with stars
+                let template = r.u32()?;
+                let rank = me.rank(template);
+                let cost = crate::progression::rank_cost(rank);
+                let ok = crate::progression::enabled()
+                    && cost.is_some_and(|c| me.stars >= c)
+                    && me.level() >= crate::progression::rank_player_level(rank);
+                info!(template, rank, ?cost, stars = me.stars, ok, "level up minifigure");
+                if ok {
+                    me.stars -= cost.unwrap_or(0);
+                    me.minifigure_levels.insert(template, rank + 1);
+                    send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
+                    let (inv, pos) = match me.team.iter().find(|&&(_, t)| t == template) {
+                        Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
+                        None => (crate::collection::COLLECTION_INVENTORY, collection.position_of(template).unwrap_or(0)),
+                    };
+                    let stats = [
+                        (crate::collection::STAT_MINIFIGURE_LEVEL, rank + 1),
+                        (crate::collection::STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank + 1).unwrap_or(0) as u32),
+                        (crate::collection::STAT_PURCHASED_UPGRADES, crate::progression::unlocked_upgrades(rank + 1)),
+                    ];
+                    for (stat, value) in stats {
+                        // SetItemStat(const ID32& inventory, int pos, int stat, int value)
+                        let args = Id32::new(inv, character).write(Writer::new()).i32(pos as i32).i32(stat as i32).i32(value as i32).finish();
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
+                    }
+                    let out = progress(&mut me, &collection, character, Some((None, 0)));
+                    send_progress(&mut conn, character, &me, out).await?;
+                }
+                let args = Writer::new().u32(template).i32(if ok { 0 } else { 1 }).finish();
+                conn.send_as(
+                    Some(character),
+                    Endpoint::GameCharInterfaceProject,
+                    game_char_interface_project::SIGNAL_MINIFIGURE_UPGRADE_RESPONSE,
+                    args,
+                )
+                .await?;
+            }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::ACTIVATE_MINIFIGURE_UPGRADE) => {
                 // ActivateMinifigureUpgrade(int minifigureID, int position)
                 let template = r.i32()? as u32;
                 let position = r.i32()? as u32;
                 let old = me.upgrade(template);
-                let active = crate::collection::activate(old, position);
+                // only the tiers the minifigure's rank unlocked (all without progression)
+                let active = crate::collection::activate(old, position) & crate::progression::unlocked_upgrades(me.rank(template));
                 me.upgrades.insert(template, active);
                 info!(template, position, active, "activate upgrade");
                 let (inv, pos) = match me.team.iter().find(|&&(_, t)| t == template) {
@@ -658,7 +706,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // upgrades change maximum health ("Fit") and mitigation ("Tough")
                 if me.team.first().is_some_and(|&(_, t)| t == template) {
                     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                    let blob = iir::pass_blob(&health_records(id, template, active));
+                    let blob = iir::pass_blob(&health_records(id, template, active, me.level()));
                     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                 }
             }
@@ -696,6 +744,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
                             }
                         }
+                        crate::devcmd::Action::Xp(xp) => {
+                            if crate::progression::enabled() {
+                                let records = gain_xp(&mut me, character, xp);
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                            }
+                            let line = format!("level {}, XP {} (next level at {})", me.level(), me.xp, crate::progression::next_xp(me.level()));
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                        }
+                        crate::devcmd::Action::Stars(stars) => {
+                            me.stars += stars;
+                            send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("{} stars", me.stars));
+                        }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);
                             let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);
@@ -704,7 +765,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Progress(event, n) => {
                             let before = me.tags.len();
-                            let out = progress(&mut me, &collection, character, Some((&event, n as u64)));
+                            let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
                             send_progress(&mut conn, character, &me, out).await?;
                             let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
@@ -753,7 +814,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
                     }
                     crate::loot::Reward::HealthOrb => {
-                        let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t)));
+                        let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t), me.level()));
                         let health = crate::npc::heal_player(id, (max as f32 * HEALTH_ORB_HEAL_SHARE) as u32);
                         let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
@@ -934,6 +995,7 @@ async fn send_world(
     if gm_level != 0 {
         records.push(int32_stat(id, STAT_GM_LEVEL, gm_level));
     }
+    records.extend(xp_records(id, me));
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     let saved = me.tokens.iter().map(|(&t, &(g, s))| (t, g, s));
     for (token, gained, spent) in [(TOKEN_HEALTH_POTIONS, START_POTIONS, potions_spent), (TOKEN_STARS, me.stars, 0)].into_iter().chain(saved) {
@@ -992,10 +1054,55 @@ async fn teleport(
     send_world(conn, character, me, collection, potions_spent).await
 }
 
+/// The XP bar's stats: XP, LastXP and NextXP of the level (XP 0 without progression).
+fn xp_records(id: Id32, me: &Character) -> Vec<Bytes> {
+    let level = me.level();
+    let (last, next) = if crate::progression::enabled() {
+        (crate::progression::last_xp(level), crate::progression::next_xp(level))
+    } else {
+        (0, 0)
+    };
+    [(STAT_XP, me.xp), (STAT_LAST_XP, last), (STAT_NEXT_XP, next)]
+        .into_iter()
+        .map(|(stat, v)| int32_stat(id, stat, v.min(i32::MAX as u64) as u32))
+        .collect()
+}
+
+/// Adds XP from a defeated enemy (progression), levelling up as far as the area's cap allows.
+fn gain_xp(me: &mut Character, character: u32, xp: u64) -> Vec<Bytes> {
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+    let before = me.level();
+    me.xp += xp;
+    let level = crate::progression::level_for(me.xp, crate::progression::effective_cap(me.playfield)).max(before);
+    let mut records = Vec::new();
+    if level != before {
+        me.level = level;
+        info!(character, level, xp = me.xp, "level up");
+        records.push(int32_stat(id, STAT_LEVEL, level));
+        // the client recomputes Life from the level; send it and the health with it
+        if let Some(&(_, t)) = me.team.first() {
+            records.extend(health_records(id, t, me.upgrade(t), level));
+        }
+    }
+    records.push(stat_record(id, STAT_XP, me.xp.min(i32::MAX as u64) as u32));
+    if level != before {
+        records.extend(xp_records(id, me).into_iter().skip(1));
+    }
+    records
+}
+
 /// Runs the achievement rules for `event` (or the login when `None`) on the character.
-fn progress(me: &mut Character, collection: &Collection, character: u32, event: Option<(&crate::achievements::Event, u64)>) -> crate::achievements::Output {
+/// `None`: the login (tags and counters again); `Some((None, _))`: a re-check.
+fn progress(
+    me: &mut Character,
+    collection: &Collection,
+    character: u32,
+    event: Option<(Option<&crate::achievements::Event>, u64)>,
+) -> crate::achievements::Output {
     let team = me.team.clone();
     let slots = collection.slots.clone();
+    let ranks: HashMap<u32, u32> = crate::collection::all_minifigures().into_iter().map(|t| (t, me.rank(t))).collect();
+    let rank_of = move |t: u32| ranks.get(&t).copied().unwrap_or(0);
     let locate = move |t: u32| match team.iter().find(|&&(_, x)| x == t) {
         Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
         None => (crate::collection::COLLECTION_INVENTORY, slots.iter().position(|s| *s == Some(t)).unwrap_or(0) as u32),
@@ -1005,11 +1112,12 @@ fn progress(me: &mut Character, collection: &Collection, character: u32, event: 
         character,
         active: me.team.first().map(|&(_, t)| t),
         locate: &locate,
-        level: &crate::collection::level,
+        level: &|t| rank_of(t),
         owned: &|_| true,
     };
     match event {
-        Some((e, times)) => crate::achievements::on_event(me, &ctx, e, times),
+        Some((Some(e), times)) => crate::achievements::on_event(me, &ctx, e, times),
+        Some((None, _)) => crate::achievements::check(me, &ctx),
         None => crate::achievements::login(me, &ctx),
     }
 }
@@ -1128,7 +1236,7 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     let item = p.charged_item(held);
     // the charge level picks the hit's AbilityMod (Big Blast: 0.9 .. 2.5)
     let level = (held / p.channel_interval.max(0.05)) as usize;
-    let damage = me.team.first().map_or(c.damage, |&(_, t)| crate::combat::damage(t, me.upgrade(t), c.spell, Some(level)));
+    let damage = me.team.first().map_or(c.damage, |&(_, t)| crate::combat::damage(t, me.upgrade(t), c.spell, Some(level), me.level()));
     // The release resends the press-time command, so its point is where the player aimed when
     // they started charging; aim with the facing they have now instead (the client keeps
     // reporting it while they turn). A targeted cast still goes to its target.
@@ -1150,14 +1258,14 @@ fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster
 
 /// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
 /// shown to everyone else) and its own health.
-fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
+fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, level: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
     let costume = int32_stat(id, STAT_MONSTER_DATA, monster_data_for(template));
     if let Some(p) = presence {
         world::broadcast(p.id(), vec![costume.clone()]);
     }
     info!(template, "active minifigure");
     let mut records = vec![costume];
-    records.extend(health_records(id, template, upgrades));
+    records.extend(health_records(id, template, upgrades, level));
     records
 }
 
@@ -1206,8 +1314,8 @@ fn parse_command(rest: &[u8]) -> Option<(lmoxide_net::proto::CommandMessage, &[u
 
 /// Makes `template` the active minifigure and sends its health (each minifigure has its own;
 /// Life is the maximum).
-fn health_records(id: Id32, template: u32, upgrades: u32) -> Vec<Bytes> {
-    let max = crate::combat::max_life(template, upgrades);
+fn health_records(id: Id32, template: u32, upgrades: u32, level: u32) -> Vec<Bytes> {
+    let max = crate::combat::max_life(template, upgrades, level);
     let health = crate::npc::set_active_minifigure(id, template, max, crate::combat::mitigation(template, upgrades));
     vec![int32_stat(id, STAT_LIFE, max), int32_stat(id, STAT_HEALTH, health)]
 }
@@ -1313,7 +1421,10 @@ fn playfield_full_update(playfield: u32) -> bytes::Bytes {
     iir::record("PlayfieldFIIR_t", id, false, |w| {
         let empty_list = 0u32.to_be_bytes();
         let w = w.u32(0).u32(0).u32(0).proto(&proxy).u32(0).blob(&empty_list).blob(&empty_list);
-        (0..6).fold(w, |w, _| w.u32(0))
+        // 6 u32 (PlayfieldFIIR_t::ReadSubClass, +0xd8..0xec); the 5th is the area's level cap
+        // (recorded: 11 in Pirate World, 0 = none in the tutorial)
+        let cap = if crate::progression::enabled() { crate::progression::level_cap(playfield) } else { 0 };
+        w.u32(0).u32(0).u32(0).u32(0).u32(cap).u32(0)
     })
 }
 
@@ -1346,7 +1457,7 @@ const EMPTY: u32 = 0x3f1;
 /// ```
 fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
-        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t)),
+        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t), &|t| c.rank(t)),
         ..Default::default()
     };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {
@@ -1391,6 +1502,9 @@ pub const STAT_HEALTH: u32 = 27;
 pub const STAT_BCC_STATE: u32 = 20;
 pub const BCC_STATE_LIMBO: u32 = 29;
 const STAT_LEVEL: u32 = 54;
+const STAT_XP: u32 = 52;
+const STAT_LAST_XP: u32 = 57;
+const STAT_NEXT_XP: u32 = 350;
 const STAT_GM_LEVEL: u32 = 215;
 const STAT_CHAR_RADIUS: u32 = 421;
 const STAT_MONSTER_DATA: u32 = 359;
@@ -1513,13 +1627,31 @@ pub struct CharSpec<'a> {
 /// Game rules on a saved character (the type lives in lmoxide-db).
 pub trait CharacterExt {
     /// Active upgrade bitmask of a minifigure.
+    /// The active upgrade bits of a minifigure (only of the tiers its rank unlocked).
     fn upgrade(&self, template: u32) -> u32;
+    /// Player level (stat 54).
+    fn level(&self) -> u32;
+    /// Minifigure rank (item stat MinifigureLevel).
+    fn rank(&self, template: u32) -> u32;
     fn spec(&self) -> CharSpec<'_>;
 }
 
 impl CharacterExt for Character {
     fn upgrade(&self, template: u32) -> u32 {
-        self.upgrades.get(&template).copied().unwrap_or(crate::collection::DEFAULT_ACTIVE)
+        let active = self.upgrades.get(&template).copied().unwrap_or(crate::collection::DEFAULT_ACTIVE);
+        active & crate::progression::unlocked_upgrades(self.rank(template))
+    }
+
+    fn level(&self) -> u32 {
+        if crate::progression::enabled() { self.level.max(1) } else { CHARACTER_LEVEL }
+    }
+
+    fn rank(&self, template: u32) -> u32 {
+        if crate::progression::enabled() {
+            self.minifigure_levels.get(&template).copied().unwrap_or(0)
+        } else {
+            crate::progression::MAX_RANK
+        }
     }
 
     fn spec(&self) -> CharSpec<'_> {
@@ -1529,9 +1661,9 @@ impl CharacterExt for Character {
             pos: self.pos,
             // the active (first) team slot's minifigure
             monster_data: self.team.first().map_or(2212, |&(_, t)| monster_data_for(t)),
-            level: CHARACTER_LEVEL,
-            health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t))),
-            max_health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t))),
+            level: self.level(),
+            health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t), self.level())),
+            max_health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t), self.level())),
             cars_group: 0,
             npc: None,
         }

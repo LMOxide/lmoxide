@@ -1,0 +1,26 @@
+{
+ "_comment": "Progression tables from the client -> data/progression.json:",
+ "minifigure_xp": {
+  "1": 50,
+  "2": 110,
+  "3": 250,
+  "4": 400,
+  "5": 650,
+  "6": 1000,
+  "7": 1400,
+  "8": 2100,
+  "9": 3000,
+  "10": 99999
+ },
+ "rank_player_level": [
+  3,
+  6,
+  9,
+  12,
+  15,
+  18,
+  21,
+  24,
+  27
+ ]
+}

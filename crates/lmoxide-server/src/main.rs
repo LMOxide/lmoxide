@@ -15,6 +15,7 @@ mod game;
 mod jumppad;
 mod loot;
 mod npc;
+mod progression;
 mod projectile;
 mod scenery;
 mod security;
@@ -105,6 +106,11 @@ pub struct Config {
     /// GM level needed for the test commands typed into chat (`!tp`, `!goto`, ...).
     #[arg(long, env = "LMOXIDE_DEVCMD_GM_LEVEL", default_value_t = 1)]
     pub devcmd_gm_level: u32,
+    /// Character progression: characters start at level 1 and level up from defeated enemies
+    /// (capped per world), minifigures start at rank 0 and are ranked up with stars. Off: every
+    /// character is at the level cap with every minifigure fully ranked.
+    #[arg(long, env = "LMOXIDE_PROGRESSION")]
+    pub progression: bool,
     /// Most simultaneous connections from one IP address (per listener).
     #[arg(long, env = "LMOXIDE_MAX_CONNECTIONS_PER_IP", default_value_t = 8)]
     pub max_connections_per_ip: u32,
@@ -162,6 +168,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         warn!("--auto-register: anyone who can reach the server can create an account by logging in");
     }
     state::init(db, key);
+    progression::set_enabled(cfg.progression);
     let cfg = Arc::new(cfg);
 
     let control_token = match (&cfg.control_token, &cfg.control_token_file) {

@@ -1,4 +1,5 @@
-//! The minifigure collection: every minifigure is owned and fully upgraded.
+//! The minifigure collection: every minifigure is owned; fully ranked and upgraded unless
+//! `--progression` (progression.rs) is on.
 //!
 //! The client's Collection screen needs two inventories (`asc::ASMinifigureList`): the team,
 //! inventory 101 (positions 6, 8 and 20 are the three team slots), and the collection,
@@ -23,15 +24,13 @@ pub const COLLECTION_INVENTORY: u32 = 110_001;
 pub const BACKPACK_INVENTORY: u32 = 104;
 const COLLECTION_SIZE: u32 = 256;
 
-const STAT_MINIFIGURE_LEVEL: u32 = 3_000_058;
-const STAT_XP: u32 = 52;
+pub const STAT_MINIFIGURE_LEVEL: u32 = 3_000_058;
+/// MinifigureXP: the stars put into the minifigure (cumulative MinifigureXPTables thresholds).
+pub const STAT_MINIFIGURE_XP: u32 = 3_000_057;
 pub const STAT_ACTIVE_UPGRADES: u32 = 3_000_098;
-const STAT_PURCHASED_UPGRADES: u32 = 3_000_106;
-/// The client levels minifigures up to 10 (CanLevelUpMinifigure); XP for level 10.
+pub const STAT_PURCHASED_UPGRADES: u32 = 3_000_106;
+/// Item level sent without progression (ACGItem level; the Collection shows 8 ranks).
 const MAX_LEVEL: u32 = 10;
-const MAX_XP: u32 = 3000;
-/// Every upgrade purchased.
-const ALL_PURCHASED: u32 = 0x1fff;
 /// One of each choose-one pair active: bits 0, 1, 3, 4, 6, 7, 9, 10.
 pub const DEFAULT_ACTIVE: u32 = 0x6db;
 /// Upgrade bits that exclude each other.
@@ -63,11 +62,6 @@ pub fn spells_to_learn(template: u32) -> Vec<u32> {
         all.extend(list.iter().map(|&(_, ability, _)| ability));
     }
     all
-}
-
-/// A minifigure's level (every minifigure is at the maximum).
-pub fn level(_template: u32) -> u32 {
-    MAX_LEVEL
 }
 
 /// Activates upgrade `position` in `active`, deactivating its pair partner.
@@ -112,17 +106,18 @@ impl Collection {
     }
 }
 
-/// A minifigure item at max level with all upgrades purchased and `active` selected.
-fn entry(template: u32, active: u32, id_salt: u64) -> ProtoInventoryGameEntry {
+/// A minifigure item of `rank` (its tiers purchased) with `active` upgrades selected.
+fn entry(template: u32, active: u32, rank: u32, id_salt: u64) -> ProtoInventoryGameEntry {
     let stat = |stat, value| StatValue { stat: Some(stat), value: Some(value) };
+    let level = if crate::progression::enabled() { rank } else { MAX_LEVEL };
     ProtoInventoryGameEntry {
         item_id: Some(u64::from(template) | id_salt),
-        item_data: Some(acg_item(template, MAX_LEVEL)),
+        item_data: Some(acg_item(template, level.max(1))),
         stat_list: vec![
-            stat(STAT_MINIFIGURE_LEVEL, MAX_LEVEL),
-            stat(STAT_XP, MAX_XP),
+            stat(STAT_MINIFIGURE_LEVEL, level),
+            stat(STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank).unwrap_or(0) as u32),
             stat(STAT_ACTIVE_UPGRADES, active),
-            stat(STAT_PURCHASED_UPGRADES, ALL_PURCHASED),
+            stat(STAT_PURCHASED_UPGRADES, crate::progression::unlocked_upgrades(rank)),
         ],
         ..Default::default()
     }
@@ -137,12 +132,13 @@ pub fn inventories(
     team: &[(u32, u32)],
     collection: &Collection,
     upgrades: &impl Fn(u32) -> u32,
+    ranks: &impl Fn(u32) -> u32,
 ) -> Vec<ProtoInventoryGame> {
     let inventory = |kind, max_size, items: Vec<(u32, u32)>| ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(kind), instance: Some(character) },
         max_size: Some(max_size),
         disabled_slots_count: None,
-        items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), 0) }).collect(),
+        items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), ranks(t), 0) }).collect(),
     };
     let stored = collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (p as u32, t))).collect();
     // The rest as live sent them (empty, live sizes). The client refuses to loot an item when
@@ -164,7 +160,12 @@ pub fn inventories(
 /// item ids differ from the first copy, so the client replaces every entry and signals each
 /// as added, which unlocks it in an already built minifigure list (an identical copy is
 /// skipped).
-pub fn collection_refresh(character: u32, collection: &Collection, upgrades: &impl Fn(u32) -> u32) -> ProtoInventoryGame {
+pub fn collection_refresh(
+    character: u32,
+    collection: &Collection,
+    upgrades: &impl Fn(u32) -> u32,
+    ranks: &impl Fn(u32) -> u32,
+) -> ProtoInventoryGame {
     ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(COLLECTION_INVENTORY), instance: Some(character) },
         max_size: Some(COLLECTION_SIZE),
@@ -173,7 +174,7 @@ pub fn collection_refresh(character: u32, collection: &Collection, upgrades: &im
             .slots
             .iter()
             .enumerate()
-            .filter_map(|(p, t)| t.map(|t| InventoryListEntry { pos: p as u32, item: entry(t, upgrades(t), 1 << 32) }))
+            .filter_map(|(p, t)| t.map(|t| InventoryListEntry { pos: p as u32, item: entry(t, upgrades(t), ranks(t), 1 << 32) }))
             .collect(),
     }
 }

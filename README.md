@@ -80,6 +80,10 @@ tools/lan-server.sh --release            # LAN play: game server + patch server 
 LMO_AUTOPLAY=1 tools/test-run.sh 60      # development: server + Wine client, summary, screenshot
 ```
 
+Progression is off by default (every character at level 30 with every minifigure fully
+ranked). `--progression` (or `LMOXIDE_PROGRESSION=1`) starts characters at level 1, gives XP
+for defeated enemies and lets players rank minifigures up with stars; see docs/TUNABLES.md.
+
 Ports (all configurable, `--help`): patch server 8080, universe 7100, territory 7101, game 7102,
 chat 7200, control 7300 (private), API 8090.
 
@@ -97,6 +101,8 @@ players; answers come back as chat lines from "Server" (`crates/lmoxide-server/s
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!ach` | achievements earned, kill and smash counters |
 | `!count <kills\|smashes\|builds> [n] [name]` | count n defeats, smashes or builds for achievements (e.g. `!count kills 1000`, `!count kills 50 Witch`) |
+| `!xp [n]` | gain n XP (with `--progression`) and show level and XP |
+| `!stars <n>` | gain n stars (to rank minifigures up with `--progression`) |
 | `!defeat <boss name>` | count a boss defeat (`!defeat Hades`) for the boss and the active minifigure's achievements |
 
 New features add their targets to `devcmd.rs` `targets`.
@@ -125,6 +131,7 @@ New features add their targets to `devcmd.rs` `targets`.
 | `tools/ghidra/xrefs.sh <va...>` | references to each address (code and data, one level through vtables) |
 | `tools/ghidra/symbols.sh <regex> [n]` | symbols matching a regex; for vtables, the first n slots |
 | `tools/re/py extract_iir.py <out.json>` | regenerate `data/iir_types.json` (IIR names, type ids, classes, protobufs) |
+| `tools/re/py extract_progression.py` | regenerate `data/progression.json` (minifigure rank costs, rank level requirements) |
 | `tools/re/py extract_achievements.py` | regenerate `data/achievements.json` (the lore tree's achievements, with inferred rules) |
 | `tools/re/py extract_spell_actions.py` | regenerate `data/spell_actions.json` (action lists of the channelled abilities and the nanos they cast) |
 | `tools/re/py gameactions.py SPELL...` | a spell's game action lists |

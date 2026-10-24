@@ -100,8 +100,9 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
 /// Something a player did that achievements count.
 #[derive(Debug, Clone)]
 pub enum Event {
-    /// Defeated an enemy (`boss`: a boss or champion) or smashed a smashable.
-    Defeated { name: String, smashable: bool, boss: bool, playfield: u32 },
+    /// Defeated an enemy of `level` (`boss`: a boss, `champion`: a champion) or smashed a
+    /// smashable.
+    Defeated { name: String, smashable: bool, boss: bool, champion: bool, level: u32, playfield: u32 },
     /// Finished building a buildie.
     Built { name: String },
 }
@@ -150,6 +151,13 @@ pub fn login(c: &mut Character, ctx: &Ctx) -> Output {
     out
 }
 
+/// Grants what holds now (after a minifigure rank-up, ...).
+pub fn check(c: &mut Character, ctx: &Ctx) -> Output {
+    let mut out = Output::default();
+    evaluate(c, ctx, &mut out);
+    out
+}
+
 /// Counts `event` (`times` times) and grants what it completes.
 pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Output {
     let mut out = Output::default();
@@ -176,7 +184,9 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
             }
         }
     }
-    if let Event::Defeated { name, boss: true, playfield, .. } = event {
+    if let Event::Defeated { name, boss, champion, playfield, .. } = event
+        && (*boss || *champion)
+    {
         let name = name.to_lowercase();
         let dungeon = TREE.playfields.get(playfield).cloned().unwrap_or_default();
         let hits: Vec<u32> = TREE
@@ -348,7 +358,7 @@ mod tests {
         let cyclops = 41_757;
         let ctx = Ctx { character: 1, active: Some(cyclops), locate: &|_| (101, 6), level: &|_| 1, owned: &|t| t == cyclops };
         let mut c = character();
-        let ev = Event::Defeated { name: "Skeleton".into(), smashable: false, boss: false, playfield: 1200 };
+        let ev = Event::Defeated { name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
         for _ in 0..999 {
             on_event(&mut c, &ctx, &ev, 1);
         }
@@ -359,7 +369,7 @@ mod tests {
         assert_eq!(counter(&c.counters, STAT_MINIFIGURE_COUNTER1, cyclops), 1000);
         assert!(c.tags.contains_key(&2163), "Global_Smash 1000 Monsters");
         assert!(c.tags.contains_key(&2660), "Cyclops_Smash 1000 Monsters");
-        let boss = Event::Defeated { name: "Hades".into(), smashable: false, boss: true, playfield: 0 };
+        let boss = Event::Defeated { name: "Hades".into(), smashable: false, boss: true, champion: false, level: 20, playfield: 0 };
         let out = on_event(&mut c, &ctx, &boss, 1);
         assert!(c.tags.contains_key(&847), "Mythology_Story_Defeat Hades");
         assert!(out.stars >= 500);
