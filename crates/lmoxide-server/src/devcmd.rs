@@ -40,6 +40,8 @@ const KINDS: &[(&str, &str)] = &[
     ("plate", "pressure plates (scenery)"),
     ("gate", "gates and portcullis (scenery)"),
     ("mirror", "Medusa mirrors (scenery)"),
+    ("boss", "dungeon bosses"),
+    ("champion", "champions"),
 ];
 
 /// How far from a target to arrive (so as not to stand inside it or on a pad).
@@ -59,12 +61,18 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "plate" => crate::scenery::points("pressureplate"),
         "gate" => [crate::scenery::points("gate"), crate::scenery::points("portcullis")].concat(),
         "mirror" => crate::scenery::points("mirror"),
+        "boss" | "champion" => crate::npc::points(kind),
         _ => return None,
     })
 }
 
 fn playfield_name(playfield: u32) -> String {
     teleport::destination(playfield).map_or_else(|| playfield.to_string(), |d| format!("{} ({playfield})", d.name))
+}
+
+/// The targets of a kind, for the development tour (`LMOXIDE_DEV_TOUR`).
+pub fn tour_targets(kind: &str) -> Vec<(String, u32, [f32; 3])> {
+    targets(kind).unwrap_or_default()
 }
 
 /// Runs a command typed by a player standing at `pos` on `playfield`.

@@ -199,6 +199,28 @@ struct Npc {
 
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
+/// Enemies of a rank for test commands: "boss" (≥ 8 × a regular enemy's health of their
+/// level), "champion" (≥ 4 ×) or "enemy" (all): (label, playfield, home position), by playfield.
+pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
+    let mut v: Vec<_> = NPCS
+        .lock()
+        .unwrap()
+        .values()
+        .filter(|n| n.def.kind == Kind::Enemy && n.owner.is_none())
+        .filter(|n| {
+            let regular = 60 + 15 * n.def.level;
+            match rank {
+                "boss" => n.def.health >= regular * 8,
+                "champion" => n.def.health >= regular * 4 && n.def.health < regular * 8,
+                _ => true,
+            }
+        })
+        .map(|n| (format!("{} (level {}, {} health)", n.def.name, n.def.level, n.def.health), n.playfield, n.def.pos))
+        .collect();
+    v.sort_by(|a, b| (a.1, &a.0).cmp(&(b.1, &b.0)));
+    v
+}
+
 /// Where a live NPC is.
 pub fn position(id: Id32) -> Option<[f32; 3]> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())

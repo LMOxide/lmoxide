@@ -78,6 +78,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     // the account's effective GM level and its entry in the online list (control interface)
     let mut gm_level = 0;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
+    let mut tour_started = false;
     loop {
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
@@ -91,6 +92,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
                     world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
+                    world::Out::DevTeleport(playfield, at, label) => {
+                        info!(character, playfield, ?at, %label, "dev tour");
+                        crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &label);
+                        let at = [at[0] + 6.0, at[1], at[2]];
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)), potions_spent)
+                            .await?;
+                    }
                     world::Out::Progress(event) => {
                         if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
                             && crate::progression::enabled()
@@ -208,6 +216,25 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             .await?;
                         if community.is_none() {
                             community = Some(crate::community::login(character, &me.name, me.playfield, outbox.clone()));
+                        }
+                        // development: LMOXIDE_DEV_TOUR=<kind> teleports through a test command
+                        // kind's targets (for screenshots), one every LMOXIDE_DEV_TOUR_SECS
+                        if let Ok(kind) = std::env::var("LMOXIDE_DEV_TOUR")
+                            && !tour_started
+                        {
+                            tour_started = true;
+                            let secs = std::env::var("LMOXIDE_DEV_TOUR_SECS").ok().and_then(|s| s.parse().ok()).unwrap_or(20);
+                            let outbox = outbox.clone();
+                            tokio::spawn(async move {
+                                let targets = crate::devcmd::tour_targets(&kind);
+                                for (i, (label, playfield, at)) in targets.into_iter().enumerate() {
+                                    tokio::time::sleep(std::time::Duration::from_secs(secs)).await;
+                                    let label = format!("tour {}: {label} in {playfield}", i + 1);
+                                    if outbox.send(world::Out::DevTeleport(playfield, at, label)).is_err() {
+                                        break;
+                                    }
+                                }
+                            });
                         }
                         crate::community::entered_playfield(character, me.playfield);
                         if presence.is_none() {

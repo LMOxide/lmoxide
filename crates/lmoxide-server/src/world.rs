@@ -26,6 +26,8 @@ pub enum Out {
     Kick(Option<String>),
     /// Something the player did that achievements (and XP) count.
     Progress(crate::achievements::Event),
+    /// Development tour: teleport next to (playfield, position), announcing `label`.
+    DevTeleport(u32, [f32; 3], String),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;
