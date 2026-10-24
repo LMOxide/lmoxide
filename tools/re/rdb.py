@@ -20,8 +20,8 @@ CACHE = os.environ.get("LMO_RDB_CACHE") or os.path.join(HERE, "../../../rdb-cach
 REC = 47
 
 
-def index():
-    d = open(os.path.join(CLIENT, "RDB/RDBHashIndex.bin"), "rb").read()
+def index(client=None):
+    d = open(os.path.join(client or CLIENT, "RDB/RDBHashIndex.bin"), "rb").read()
     assert d[:4] == b"RDHI", d[:4]
     ntypes = struct.unpack_from("<I", d, 12)[0]
     out = {}
@@ -43,10 +43,10 @@ def unwrap(b):
     return b
 
 
-def body(t, rid, idx=None):
-    idx = idx or index()
+def body(t, rid, idx=None, client=None):
+    idx = idx or index(client)
     size, h = idx[(t, rid)]
-    p = os.path.join(CLIENT, f"RDB/{t}/{h}.rdbres")
+    p = os.path.join(client or CLIENT, f"RDB/{t}/{h}.rdbres")
     if os.path.exists(p):
         b = open(p, "rb").read()
         # most .rdbres files start with (type, id|flags, 1); some are the bare body

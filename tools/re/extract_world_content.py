@@ -26,21 +26,33 @@ Sources (all local; nothing is downloaded):
   points (XML), 1000087 teleportdata (XML: portals of every playfield).
 * RDB 1010514 monsterdata names, 1000620 item templates (MonsterData stat 359 of destructibles).
 
-Playfields without demo data get "proposed" enemies/smashables/NPCs: themed monsterdata placed
-around resurrection points and static AI points (walkable spots), and friendly NPCs at the
-cinematic actor points whose names identify the actor.
+* RDB 1000051 playfield path data (navmesh, tools/re/navmesh.py): walkable boxes with their
+  ground height.  RDB 1000053 bounded areas (XML; only in the native Linux client, read from
+  $LMO_LINUX_CLIENT or ../client-linux): the designers' named regions (ClearHate_*, Res_*,
+  ambush, boss encounter and champion areas), also from a world's quest layers (pf + 1, pf + 2).
+
+Playfields without demo data (every world and dungeon in data/destinations.json) get "proposed"
+enemies/smashables: themed enemy camps and smashable clusters spread over the navmesh, combat
+areas first; dungeons take their parent world's theme (through the portals) one level up, with a
+boss at their encounter area and champions where the caves spawned one; friendly NPCs at the
+cinematic actor points whose names identify the actor.  Numbers: docs/TUNABLES.md.
 """
 import json, os, re, struct, sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
+import navmesh
 from rdb import CLIENT, body, index
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
+# The native Linux client (lmo.files.aronwk.com LMO_Linux_v1.5.557666.zip) also ships RDB 1000053.
+LINUX_CLIENT = os.environ.get("LMO_LINUX_CLIENT") or os.path.join(ROOT, "../client-linux/LEGO Minifigures Online")
 DEMO = os.path.join(CLIENT, "Data/default_windowsx86.demo")
 MAIN = [1200, 1300, 4200, 4210, 5200, 5210, 3200, 3210, 2210, 6200, 4600]
 
 idx = index()
+LINUX_IDX = index(LINUX_CLIENT) if os.path.isdir(LINUX_CLIENT) else None
+DESTINATIONS = {int(k) for k in json.load(open(os.path.join(ROOT, "data/destinations.json")))["destinations"]}
 
 
 def get(t, i):
@@ -516,56 +528,204 @@ NOT_ACTOR = re.compile(r"GoTo|Goto|Go\d|Go$|Move|Camera|Player|Escape|After|Entr
 ENEMY_POINT = re.compile(r"AI_Combat|SpawnGuard|SpawnMerc|MercBoss|PirateSpawn|Spawn_|Dreadleg\d*$|Captain\d*$")
 
 
-def proposals(pf, dest, res, points, sd):
-    """Themed enemies around walkable points away from the arrival point, smashables near the
-    resurrection points, friendly NPCs at cinematic actor points."""
-    out = dict(enemies=[], smashables=[], npcs=[])
-    arrival = dest["pos"] if dest else (res[0]["pos"] if res else None)
-    if arrival is None:
-        return out
-    pts = points or []
+NO_COMBAT = {1200, 4620, 30041}  # the hub, the tavern, a developer test map
+BOSSES = {  # playfield: [(monsterdata, name, bounded area pattern placing it, else the farthest walkable spot)]
+    2300: [(23373, "Medusa", r"Medusa|Res_Boss")],
+    2320: [(486592, "Hades", r"BossArea|Res_hades"), (157071, "Charon", r"Res_boatman|ClearHate_Boatman$"),
+           (485836, "Deino", r"Res_witches|ClearHate_Witches")],
+    2500: [(2254, "Cyclops", r"^Res_Boss$"), (82601, "Harpy Queen", r"Res_HarpyBoss")],
+    3300: [(267321, "Evil Mech", r"BossEncounter_Start_Mech|Res_Boss")],
+    3310: [(369478, "Alien Queen", r"BossEncounter_Start_AlienQueen|Res_Boss")],
+    3500: [(387585, "Alien Saucer", r"BossEncounter_Start_Saucer|^BossEncounter_Start")],
+    4300: [(192820, "Captain Pete", r"Res_Boss")],
+    4310: [(190679, "Captain Blackheart", r"BossEncounter_Start_Blackheart|res_boss")],
+    4500: [(191640, "Crikey the Kraken", r"BossEncounter_Start_CrikeyTheKraken|res_boss")],
+    5300: [(327846, "Troll Warlord", r"Res_Boss")],
+    5310: [(344513, "Evil Sorcerer", r"Boss")],
+    5500: [(316892, "Dragon", r"^BossEncounter_Start")],
+    1633: [(416520, "Drake", r"DrakeSpawn")],
+    1675: [(636593, "Minotaur", r"Boss")],
+    1690: [(57036, "Ogre", r"BA_LastBoss")],
+}
+# bounded areas (RDB 1000053) where the designers put fights; camps go there first
+COMBAT_AREA = re.compile(r"^(ClearHate_|Res_|res_|Harpy_Area|Quest_)|Ambush|Combat|Spawn|Swamp\d|Skeleton|Undead|Ritual|Maze", re.I)
+NOT_COMBAT_AREA = re.compile(r"Entrance|_Start$|Teleport|NoLogin|Story|Cine|Head_|Occlusion|FallThrough|Collision|Achievement|Micro", re.I)
+CAMP = [(0, 0), (2.2, 1.2), (-1.8, 1.6), (0.6, -2.2), (-2.4, -1.0), (2.6, -1.4)]
+
+
+def bounded_areas(pf):
+    """Named (x, z) polygons with a height band, from the Linux client's RDB 1000053 (the
+    Windows client ships only the binary 1000055 form)."""
+    if not os.path.isdir(LINUX_CLIENT):
+        return []
+    try:
+        b = body(1000053, pf, LINUX_IDX, LINUX_CLIENT)
+    except (KeyError, FileNotFoundError):
+        return []
+    out = []
+    for m in re.finditer(rb"<boundedarea .*?</boundedarea>", b, re.S):
+        s = m.group(0).decode("latin1")
+        name = re.search(r"<name>\s*(.*?)\s*</name>", s, re.S).group(1)
+        h = [float(v) for v in re.search(r"<heights>\s*(.*?)\s*</heights>", s, re.S).group(1).split()]
+        poly = [tuple(float(v) for v in vx.split()) for vx in re.findall(r"<vertex>\s*(.*?)\s*</vertex>", s, re.S)]
+        if len(poly) >= 3:
+            out.append(dict(name=name, heights=h, poly=poly))
+    return out
+
+
+def inside(poly, x, z):
+    hit, j = False, len(poly) - 1
+    for i in range(len(poly)):
+        (xi, zi), (xj, zj) = poly[i], poly[j]
+        if (zi > z) != (zj > z) and x < (xj - xi) * (z - zi) / (zj - zi) + xi:
+            hit = not hit
+        j = i
+    return hit
+
+
+def ground(cells, x, z, near_y=None):
+    """Height of the walkable cell under (x, z) (the one nearest near_y if several overlap)."""
+    hits = [c for c in cells if c["min"][0] <= x <= c["max"][0] and c["min"][2] <= z <= c["max"][2]]
+    if not hits:
+        return None
+    ys = [c["min"][1] + 0.6 * (c["max"][1] - c["min"][1]) for c in hits]
+    return min(ys, key=lambda y: abs(y - near_y)) if near_y is not None else max(ys)
+
+
+def spread(cands, n, spacing, avoid):
+    """Farthest-point sampling: up to n candidates at least `spacing` from each other and from
+    `avoid` [(pos, radius)], preferring candidates whose first element (priority) is lower."""
+    chosen = []
+    for prio in sorted({c[0] for c in cands}):
+        pool = [c[1] for c in cands if c[0] == prio]
+        while len(chosen) < n and pool:
+            def gap(p):
+                d = min((dist(p, q) for q in chosen), default=1e9)
+                return min([d] + [dist(p, a) - r + spacing for a, r in avoid])
+            best = max(pool, key=gap)
+            if gap(best) < spacing:
+                break
+            chosen.append(best)
+            pool.remove(best)
+    return chosen
+
+
+def theme_of(pf, parents, seen=()):
+    """(level, enemy monsterdata, smashable theme) of a world, or of the world a dungeon is entered from (+1 level)."""
     if pf in THEMES:
-        level, mds, theme = THEMES[pf]
-        anchors = [p for p in res if dist(p["pos"], arrival) > 25] + sorted(
-            (p for p in pts if dist(p["pos"], arrival) > 25), key=lambda p: not ENEMY_POINT.search(p["name"]))
-        chosen = []
-        for p in anchors:
-            if all(dist(p["pos"], c["pos"]) > 20 for c in chosen):
-                chosen.append(p)
-            if len(chosen) == 6:
-                break
-        n = 0
-        for a in chosen:
-            for dx, dz in ((3, 2), (-3, 1.5), (0.5, -3)):
-                md = mds[n % len(mds)]
-                n += 1
-                out["enemies"].append(dict(name=MD.get(md, str(md)).replace("_", " ").title(), monster_data=md, level=level,
-                                           health=60 + 15 * level, pos=[round(a["pos"][0] + dx, 2), a["pos"][1], round(a["pos"][2] + dz, 2)],
-                                           spell=spell_for(md), anchor=a["name"], source="proposed"))
-        tpls = SMASH[theme]
-        n = 0
-        for a in sorted(res, key=lambda p: dist(p["pos"], arrival))[:6]:
-            for dx, dz in ((5, 0), (5.8, 1.2), (4.6, 1.6)):
-                t = tpls[n % len(tpls)]
-                n += 1
-                out["smashables"].append(dict(name=item_name(t) or "Crate", template=t, monster_data=item_monster_data(t), level=1,
-                                              health=20, pos=[round(a["pos"][0] + dx, 2), a["pos"][1], round(a["pos"][2] + dz, 2)],
-                                              anchor=a["name"], source="proposed"))
-    if pf == 4210:  # Dreadleg (the pirate boss of Volcano Island) at his cinematic point
-        for p in pts:
-            if p["name"].startswith("Cine_Dreadleg"):
-                out["enemies"].append(dict(name="Captain Dreadleg", monster_data=634824, level=8, health=1282, pos=p["pos"],
-                                           spell=232073, anchor=p["name"], source="proposed"))
-                break
+        return THEMES[pf]
+    for p in sorted(parents.get(pf, ())):
+        if p - p % 10 in THEMES:  # a world's quest layer (4212 -> 4210)
+            p -= p % 10
+        if p not in seen and p != 1200:  # never through the hub, which links to every world
+            t = theme_of(p, parents, seen + (pf,))
+            if t:
+                return t if p in NO_COMBAT else (t[0] + 1, t[1], t[2])
+    return None
+
+
+def enemy(md, level, pos, health_scale=1, name=None, anchor=None):
+    return dict(name=name or MD.get(md, str(md)).replace("_", " ").title(), monster_data=md, level=level,
+                health=(60 + 15 * level) * health_scale, pos=pos, spell=spell_for(md), anchor=anchor, source="proposed")
+
+
+def proposals(pf, dest, res, points, portals_here, parents, dungeon):
+    """Themed enemy camps and smashable clusters spread over the playfield's walkable cells
+    (RDB 1000051), preferring the designers' combat areas (RDB 1000053), away from the arrival
+    point, resurrection points and portals; bosses at their encounter areas; friendly NPCs at the
+    cinematic actor points whose names identify the actor."""
+    out = dict(enemies=[], smashables=[], npcs=[])
     seen = set()
-    for p in pts:
+    for p in points or []:
         nm = p["name"]
         if not nm.startswith("Cine_") or NOT_ACTOR.search(nm[5:].replace("StartPos", "")):
             continue
         for k, md, label in NPC_ACTORS:
             if k in nm and label not in seen:
                 seen.add(label)
-                out["npcs"].append(dict(name=label, monster_data=md, pos=p["pos"], rot=p.get("rot", 0.0), point=nm, source="cine_point"))
+                # level/health/group like the recorded story NPCs (Video Game Guy: L1-3, 93-171 health, CARS 5)
+                out["npcs"].append(dict(name=label, monster_data=md, level=1, health=100, cars_group=5, pos=p["pos"], rot=p.get("rot", 0.0),
+                                        point=nm, source="cine_point"))
+                break
+    theme = None if pf in NO_COMBAT else theme_of(pf, parents)
+    cells = navmesh.cells(pf, idx)
+    arrival = dest["pos"] if dest else (res[0]["pos"] if res else None)
+    if not theme or not cells or arrival is None:
+        return out
+    level, mds, smash = theme
+    areas = [a for k in (0, 1, 2) if k == 0 or pf + k not in DESTINATIONS for a in bounded_areas(pf + k)]
+    combat = [a for a in areas if COMBAT_AREA.search(a["name"]) and not NOT_COMBAT_AREA.search(a["name"])]
+    area = sum((c["max"][0] - c["min"][0]) * (c["max"][2] - c["min"][2]) for c in cells)
+    big = [c for c in cells if c["max"][0] - c["min"][0] >= 3 and c["max"][2] - c["min"][2] >= 3]
+
+    def spot(c):
+        x, z = (c["min"][0] + c["max"][0]) / 2, (c["min"][2] + c["max"][2]) / 2
+        return [round(x, 2), round(c["min"][1] + 0.6 * (c["max"][1] - c["min"][1]), 2), round(z, 2)]
+
+    def area_name(p):
+        a = next((a for a in combat if inside(a["poly"], p[0], p[2])), None)
+        return a["name"] if a else None
+
+    avoid = [(arrival, 25)] + [(r["pos"], 12) for r in res] + [(q["pos"], 10) for q in portals_here] + [(n["pos"], 8) for n in out["npcs"]]
+    # bosses: at their encounter area (its centre, on the ground) or the walkable spot farthest from the entrance
+    for md, name, pat in BOSSES.get(pf, []):
+        a = next((a for a in areas if re.search(pat, a["name"])), None)
+        pos = None
+        if a:
+            x, z = sum(v[0] for v in a["poly"]) / len(a["poly"]), sum(v[1] for v in a["poly"]) / len(a["poly"])
+            y = ground(cells, x, z, a["heights"][0] + 1)
+            pos = [round(x, 2), round(y, 2), round(z, 2)] if y is not None else None
+        if pos is None:
+            pos = spot(max(big or cells, key=lambda c: dist(spot(c), arrival)))
+        out["enemies"].append(enemy(md, level + 2, pos, 10, name, a["name"] if a else "farthest"))
+        avoid.append((pos, 12))
+    # champions where the caves spawned one
+    for a in areas:
+        if a["name"] == "BA_SpawnChampion":
+            x, z = sum(v[0] for v in a["poly"]) / len(a["poly"]), sum(v[1] for v in a["poly"]) / len(a["poly"])
+            y = ground(cells, x, z, a["heights"][0] + 1)
+            pos = [round(x, 2), round(y, 2), round(z, 2)] if y is not None else spot(min(big or cells, key=lambda c: dist(spot(c), [x, 0, z])))
+            out["enemies"].append(enemy(mds[0], level + 1, pos, 4, anchor=a["name"]))
+            avoid.append((pos, 10))
+    # enemy camps
+    n_camps = max(3, min(14, int(area / 250))) if dungeon else min(40, int(area / 800))
+    spacing = 14 if dungeon else 26
+    cands = [(0 if area_name(spot(c)) else 1, spot(c)) for c in big]
+    camps = spread(cands, n_camps, spacing, avoid)
+    for i, centre in enumerate(camps):
+        size = (2 + i % 2) if dungeon else 3
+        kinds = (mds[i % len(mds)], mds[(i + 1) % len(mds)])
+        placed = 0
+        for dx, dz in CAMP:
+            if placed == size:
+                break
+            x, z = centre[0] + dx, centre[2] + dz
+            y = ground(cells, x, z, centre[1])
+            if y is None or abs(y - centre[1]) > 2:
+                continue
+            out["enemies"].append(enemy(kinds[placed % 2], level, [round(x, 2), round(y, 2), round(z, 2)],
+                                        anchor=area_name(centre) or "navmesh"))
+            placed += 1
+    # smashable clusters, away from the camps
+    n_smash = max(2, min(8, int(area / 250))) if dungeon else min(30, int(area / 900))
+    tpls = SMASH[smash]
+    spots = spread([(0, spot(c)) for c in big], n_smash, 12 if dungeon else 22, avoid + [(c, 6) for c in camps])
+    n = 0
+    for centre in spots:
+        for dx, dz in ((0, 0), (0.8, 1.2), (-0.6, 1.4)):
+            y = ground(cells, centre[0] + dx, centre[2] + dz, centre[1])
+            if y is None or abs(y - centre[1]) > 1.5:
+                continue
+            t = tpls[n % len(tpls)]
+            n += 1
+            out["smashables"].append(dict(name=item_name(t) or "Crate", template=t, monster_data=item_monster_data(t), level=1, health=20,
+                                          pos=[round(centre[0] + dx, 2), round(y, 2), round(centre[2] + dz, 2)],
+                                          anchor=area_name(centre) or "navmesh", source="proposed"))
+    if pf == 4210:  # Dreadleg (the pirate boss of Volcano Island) at his cinematic point
+        for p in points or []:
+            if p["name"].startswith("Cine_Dreadleg"):
+                out["enemies"].append(dict(name="Captain Dreadleg", monster_data=634824, level=8, health=1282, pos=p["pos"],
+                                           spell=232073, anchor=p["name"], source="proposed"))
                 break
     return out
 
@@ -579,13 +739,18 @@ def main():
     port = portals()
     demo = demo_records()
     world = {}
-    pfs = sorted(set(MAIN) | {p for p in demo if p and p != 4000} | set(port))
+    pfs = sorted(set(MAIN) | {p for p in demo if p and p != 4000} | set(port) | DESTINATIONS)
+    parents = defaultdict(set)  # playfield -> playfields with a portal into it
+    for src, ps in port.items():
+        for p in ps:
+            if p["to"] != src:
+                parents[p["to"]].add(src)
     for pf in pfs:
         w = dict(name=dest.get(str(pf), {}).get("name"), smashables=[], enemies=[], npcs=[], portals=port.get(pf, []))
         sd, dr = simple_dynels(pf), doors(pf)
         res = xml_points(1000090, pf, "resurrectionpoint")
         pts = xml_points(1000103, pf, "NamedPoint")
-        if pf not in MAIN and pf not in demo:
+        if pf not in MAIN and pf not in demo and pf not in DESTINATIONS:
             if w["portals"]:
                 world[str(pf)] = dict(portals=w["portals"])
             continue
@@ -634,8 +799,8 @@ def main():
                                                  pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"],
                                                  flags=rec["flags"], is_hidden=rec["is_hidden"], interaction_radius=rec["interaction_radius"]))
         else:
-            w["source"] = "proposed" if pf in THEMES else "rdb"
-            p = proposals(pf, dest.get(str(pf)), res or [], pts, items)
+            p = proposals(pf, dest.get(str(pf)), res or [], pts, w["portals"], parents, pf not in MAIN)
+            w["source"] = "proposed" if p["enemies"] else "rdb"
             for k in ("enemies", "smashables", "npcs"):
                 w[k] += p[k]
         # smashables placed in the RDB simple-dynel list (rare: chests)

@@ -16,7 +16,7 @@ use std::{
 use lmo_net::{proto::proto_core_character_iir::NpcStats, types::Id32};
 use serde::Deserialize;
 use tokio::sync::mpsc;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{
     game::{
@@ -198,7 +198,16 @@ pub fn start() {
     let worlds: HashMap<String, serde_json::Value> =
         serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
     for (playfield, world) in worlds {
-        let Ok(content) = serde_json::from_value::<WorldContent>(world) else { continue };
+        if !world.is_object() {
+            continue; // "_comment"
+        }
+        let content = match serde_json::from_value::<WorldContent>(world) {
+            Ok(c) => c,
+            Err(e) => {
+                warn!(%playfield, "world_content.json: playfield skipped: {e}");
+                continue;
+            }
+        };
         let defs = table.entry(playfield).or_default();
         defs.extend(content.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..d }));
         defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..d }));
@@ -659,11 +668,19 @@ async fn ai() {
             .map(|(id, n)| (*id, n.playfield, n.def.pos, n.pos.clone()))
             .collect();
         pets_tick();
+        // players per playfield, collected once per tick (most playfields have none)
+        let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
+        for (_, playfield, _, _) in &live {
+            players
+                .entry(*playfield)
+                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| !is_npc(*other)).collect());
+        }
         for (id, playfield, home, pos) in live {
             let here = *pos.lock().unwrap();
-            let target = world::positions(playfield)
-                .into_iter()
-                .filter(|(other, p)| !is_npc(*other) && distance(*p, home) < LEASH_RANGE)
+            let target = players[&playfield]
+                .iter()
+                .copied()
+                .filter(|(_, p)| distance(*p, home) < LEASH_RANGE)
                 .filter(|(_, p)| distance(*p, here) < AGGRO_RANGE)
                 .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
             let goal = match target {
