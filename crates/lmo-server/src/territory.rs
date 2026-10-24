@@ -48,6 +48,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::AUTHENTICATE_ACK, args)
                     .await?;
             }
+            (Some(Endpoint::PlayerAgent), agent::LOGIN_FROM_CRASH) => {
+                // A client that lost its servers (e.g. a server restart) reconnects with this
+                // instead of Authenticate; AuthenticateAck(1) puts it back on the normal path
+                // (GameClientConnectivity::AuthenticateAck -> GetStartupData).
+                account = r.u32()?;
+                let cookie = r.u32()?;
+                let character = r.u32()?;
+                let valid = cookie == crate::universe::cookie_for(account);
+                info!(account, cookie, character, valid, "LoginFromCrash");
+                _session = Some(crate::sessions::territory_opened(account));
+                let args = Writer::new().i32(status).finish();
+                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::AUTHENTICATE_ACK, args)
+                    .await?;
+            }
             (Some(Endpoint::PlayerAgent), agent::GET_STARTUP_DATA) => {
                 let md5 = r.string()?;
                 info!(account, %md5, "GetStartupData");

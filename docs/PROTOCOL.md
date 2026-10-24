@@ -234,6 +234,10 @@ team 57001 (raid 57016).
   -> 110002, static-template items (stars) -> none, everything else incl. parts -> backpack 104
   (`ItemHolder+0x50`, created empty by CoreItemHolder::Initialize). Live's FullPlayerCharacterIIR
   carried 101 (32), 104 (50), 112 (48), 113 (48), 120 (20), 119 (24), 110001 (160), 110002 (200).
+- **Open question:** parts are picked up with the interact key (E). A mouse click on a part
+  casts the basic attack instead: `SimpleDynel::CanOpen` needs `CanBeOpened` (+0x33a; set by
+  SetCanBeOpened, UpdateSimpleDynelIIR_c::Activate, the CoreLootBag ctor) and not IsClosed.
+  Whether live allowed clicking is unknown; revisit if it turns out it did.
   `GameCharAgentProject` 0x15 ConvertMinifigureParts() → 0x22 response (1 = done); 0x16
   BuildminifigureFromParts(u32 template) → 0x23 response (0 = built).
 - **Minifigure bags** (dynel type 34001, one per minifigure, data/loot_items.json; inventory

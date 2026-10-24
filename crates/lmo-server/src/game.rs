@@ -11,7 +11,7 @@ use bytes::Bytes;
 use lmo_net::{
     Endpoint, Reader, Writer, iir,
     methods::{
-        client_to_gameserver_rpc as agent, game_char_agent, game_char_agent_project, game_char_interface,
+        client_to_gameserver_rpc as agent, cs_player_agent, game_char_agent, game_char_agent_project, game_char_interface,
         game_char_interface_project,
         gameserver_to_client_rpc as client,
     },
@@ -701,6 +701,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_BUILDMINIFIGURE_FROM_PARTS_RESPONSE, args)
                     .await?;
             }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::REQUEST_ITEM_SHOP_DATA) => {
+                // Live answered every login with only the currencies (no items or banners).
+                let args = item_shop_currencies(me.stars);
+                conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_CURRENCIES, args)
+                    .await?;
+            }
             // Client-side bookkeeping that needs no answer (to be persisted later).
             (
                 Some(Endpoint::GameCharAgent),
@@ -709,6 +715,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 | game_char_agent::REMOVE_SHORTCUT
                 | game_char_agent::SET_PLAYER_GUI_LAYOUT_MODE,
             ) => {}
+            // Sent at every login; the recorded session shows no answer to any of them (the
+            // character had no guild).
+            (
+                Some(Endpoint::GameCharAgent),
+                game_char_agent::COMMAND_QUEUE_SIZE_CHANGED | game_char_agent::SET_HIDE_INSPECT_OPTION | game_char_agent::REQUEST_GEAR_BUILD_LOAD,
+            )
+            | (Some(Endpoint::CSPlayerAgent), cs_player_agent::CLIENT_REQUEST_GUILD_INFO | cs_player_agent::GUILD_REQUEST_MEMBER_LIST) => {}
             _ => warn!(args = %crate::conn::hex(&rpc.args), "unhandled"),
         }
     }
@@ -1207,6 +1220,19 @@ const DUPLICATE_BAG_STARS: u64 = 50;
 /// Stars per spare minifigure part converted (rate not in the client; a guess).
 const STARS_PER_PART: u64 = 5;
 
+/// ItemShopCurrencies(i32 methodId, vector<ItemShopCurrency>) as live sent it: methodId 2, then
+/// u32 id, u32 amount, string name per currency (the ids of the last four varied per login; these
+/// are the first recorded ones). STARS carries the star count.
+fn item_shop_currencies(stars: u64) -> Bytes {
+    const CURRENCIES: [(u32, &str); 6] =
+        [(1, "VOUCHERS"), (2, "STARS"), (0x39, "GAME_VOUCHER"), (0x3a, "PAID_DIAMONDS"), (0x3b, "BONUS_DIAMONDS"), (0x3c, "GAME_DIAMONDS")];
+    let w = Writer::new().i32(2).container_len(CURRENCIES.len());
+    CURRENCIES
+        .iter()
+        .fold(w, |w, &(id, name)| w.u32(id).u32(if id == 2 { stars.min(u64::from(u32::MAX)) as u32 } else { 0 }).string(name))
+        .finish()
+}
+
 /// UpdateTokenAmount(u32 token, u64 gained, u64 spent): cumulative totals, not deltas.
 async fn send_token(conn: &mut Conn, character: u32, token: u32, gained: u64, spent: u64) -> anyhow::Result<()> {
     let args = Writer::new().u32(token).u64(gained).u64(spent).finish();
@@ -1435,6 +1461,13 @@ mod tests {
         // classic PJW/ELF hash values
         assert_eq!(elf_hash(""), 0);
         assert_eq!(elf_hash("Id"), (b'I' as u32) * 16 + b'd' as u32);
+    }
+
+    #[test]
+    fn item_shop_currencies_match_recording() {
+        // the first ItemShopCurrencies of the recorded session (0 stars)
+        let recorded = "0000000200001b9700000001000000000008564f5543484552530000000200000000000553544152530000003900000000000c47414d455f564f55434845520000003a00000000000d504149445f4449414d4f4e44530000003b00000000000e424f4e55535f4449414d4f4e44530000003c00000000000d47414d455f4449414d4f4e4453";
+        assert_eq!(crate::conn::hex(&item_shop_currencies(0)), recorded);
     }
 }
 
