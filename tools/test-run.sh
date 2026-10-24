@@ -2,13 +2,13 @@
 # One test cycle: restart server + client, wait, print a condensed summary.
 #   tools/test-run.sh [seconds=50]
 # Env: LMO_AUTOPLAY=1 (scripted EnterGame via tools/client/startup.lua), LMO_CLIENT_DIR (default ../clients/windows/LEGO Minifigures Online),
-#      LMO_CLIENT_ARGS (default auto-login as tester), LMO_SERVER_ARGS, KEEP=1 (leave running).
-# Full logs: logs/server.log, logs/client.log (copied from the client's ClientLog.txt).
+#      LMO_CLIENT_ARGS (default auto-login as tester), LMOXIDE_SERVER_ARGS, LMOXIDE_PATCH_ARGS, KEEP=1 (leave running).
+# Full logs: logs/server.log, logs/patch-server.log, logs/client.log (copied from the client's ClientLog.txt).
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 WAIT=${1:-50}
 CLIENT=${LMO_CLIENT_DIR:-$(cd "$ROOT/../clients/windows/LEGO Minifigures Online" && pwd)}
-export LMO_CLIENT_ARGS=${LMO_CLIENT_ARGS--username tester -password test}
+export LMO_CLIENT_ARGS=${LMO_CLIENT_ARGS--username tester -password tester-password}
 LOGS=$ROOT/logs
 mkdir -p "$LOGS"
 
@@ -38,7 +38,7 @@ if command -v hyprctl >/dev/null && command -v grim >/dev/null; then
 fi
 
 if [[ -z ${KEEP:-} ]]; then
-  pkill -x LMO.exe; pkill -x LMO; pkill -x lmoxide-server
+  pkill -x LMO.exe; pkill -x LMO; pkill -x lmoxide-server; pkill -x lmoxide-patch-s
   WINEPREFIX=${WINEPREFIX:-$HOME/.local/share/lmo-wine} wineserver -k 2>/dev/null
 fi
 true

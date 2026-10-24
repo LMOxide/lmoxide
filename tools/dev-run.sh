@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restart lmoxide-server and the client (under Wine) for a test run.
+# Restart lmoxide-server, lmoxide-patch-server and the client (under Wine) for a test run.
 #   tools/dev-run.sh <client-dir> [log-dir]
 # <client-dir> is an extracted "LEGO Minifigures Online" folder (with RDB/).
 set -euo pipefail
@@ -7,26 +7,38 @@ CLIENT=${1:?usage: dev-run.sh <client-dir> [log-dir]}
 LOGS=${2:-/tmp}
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 export WINEPREFIX=${WINEPREFIX:-$HOME/.local/share/lmo-wine}
-# Fetch files the archived client lacks from Funcom's patch server (set LMO_UPSTREAM= to disable).
-export LMO_UPSTREAM=${LMO_UPSTREAM-http://update.lego.funcom.com/legoupm}
-export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../var/rdb-cache")}
-# Development characters are GMs: free-text chat and GM chat commands need it.
-export LMO_GM_LEVEL=${LMO_GM_LEVEL:-1}
-# Saved characters (outside the repo).
-export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../var/data")}
+VAR=$(realpath -m "$ROOT/../var")
+# Fetch files the archived client lacks from Funcom's patch server (set LMOXIDE_UPSTREAM= to disable).
+UPSTREAM=${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}
+# The database with accounts and characters (outside the repo).
+DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
 
 pkill -x LMO.exe || true
 pkill -x LMO || true
 pkill -x lmoxide-server || true
+pkill -x lmoxide-patch-s || true   # process names are cut to 15 characters
 wineserver -k 2>/dev/null || true
 WINEPREFIX=${LMO_PROTON_PREFIX:-$HOME/.local/share/lmo-proton}/pfx \
   "${PROTON:-$HOME/.local/share/Steam/steamapps/common/Proton - Experimental}/files/bin/wineserver" -k 2>/dev/null || true
 sleep 1
 
-cargo build --manifest-path "$ROOT/Cargo.toml" -q
+cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server
+# Development accounts: created by their first login, and GMs (free-text chat, test commands).
 RUST_LOG=${RUST_LOG:-info,lmoxide_server=debug} \
-  "$ROOT/target/debug/lmoxide-server" --client-dir "$CLIENT" ${LMO_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
-for _ in $(seq 50); do curl -sf http://127.0.0.1:8080/track >/dev/null && break; sleep 0.2; done
+  "$ROOT/target/debug/lmoxide-server" --data-dir "$DATA" --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" \
+  ${LMOXIDE_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
+# the Windows client tree, even when running the Linux client (its LocalConfig.xml is the same)
+PATCH_CLIENT=${LMOXIDE_PATCH_CLIENT_DIR:-$([[ ${LMO_RUNNER:-wine} == linux ]] && realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online" || echo "$CLIENT")}
+RUST_LOG=${RUST_LOG:-info} "$ROOT/target/debug/lmoxide-patch-server" --client-dir "$PATCH_CLIENT" \
+  --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
+  --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" ${LMOXIDE_PATCH_ARGS:-} >"$LOGS/patch-server.log" 2>&1 &
+for _ in $(seq 100); do curl -sf http://127.0.0.1:8080/lmoxide/v1/login-key >/dev/null && break; sleep 0.2; done
+
+# The client must carry the server's login key (and chat filter URL).
+EXE=LMO.exe
+[[ ${LMO_RUNNER:-wine} == linux ]] && EXE=LMO
+python3 "$ROOT/patches/patch-client.py" --exe "$CLIENT/$EXE" --host 127.0.0.1:8080 \
+  --login-key-url http://127.0.0.1:8080/lmoxide/v1/login-key >/dev/null
 
 # The launcher normally fetches this; point the client at our control server.
 curl -sf http://127.0.0.1:8080/control/lmo_live/LocalConfig.xml >"$CLIENT/LocalConfig.xml"

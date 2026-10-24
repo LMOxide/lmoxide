@@ -41,7 +41,7 @@ The web UI and the Discord bot live in their own repositories and talk to `lmoxi
 
 ```
  game client ──TCP 7100-7102, 7200──▶ lmoxide-server ◀──control 7300 (private)── lmoxide-api ◀── web UI, bots
-      │                                     │  SQLite (data/lmoxide.db)  ───────────┘   HTTPS 8090
+      │                                     │  SQLite (lmoxide.db)    ───────────┘   HTTPS 8090
       └──HTTP 8080──▶ lmoxide-patch-server ◀┘  login-public-key.txt
  LMOxide patcher ──────────┘ (signed manifests)
 ```
@@ -100,14 +100,16 @@ New features add their targets to `devcmd.rs` `targets`.
 
 | Command | What it does |
 |---|---|
-| `tools/test-run.sh [secs]` | restart server + client (auto-login), wait, print a summary of RPCs, warnings and client progress, screenshot the game window to `logs/screen.png`; `LMO_AUTOPLAY=1` also presses "start" via Lua |
-| `tools/dev-run.sh <client-dir> <log-dir>` | restart server + client and leave them running; `LMO_RUNNER=wine\|proton\|linux` picks how the client runs (`linux` = native build, `<client-dir>` is then the Linux client) |
+| `tools/test-run.sh [secs]` | restart the servers + client (auto-login as `tester` / `tester-password`), wait, print a summary of RPCs, warnings and client progress, screenshot the game window to `logs/screen.png`; `LMO_AUTOPLAY=1` also presses "start" via Lua |
+| `tools/dev-run.sh <client-dir> <log-dir>` | restart game server, patch server and client (patched with the login key by `patches/patch-client.py`) and leave them running; `LMO_RUNNER=wine\|proton\|linux` picks how the client runs (`linux` = native build, `<client-dir>` is then the Linux client) |
 | `tools/proton-run.sh /abs/LMO.exe [args]` | run the Windows client under Steam's Proton without Steam (prefix `~/.local/share/lmo-proton`) |
+| `lmoxide-patcher install --server http://host:8080 --dir d` | install or update a client from a patch server (signed manifests; `verify`, `info`): docs/PATCHING.md |
+| `examples/login_probe` (`cargo run -p lmoxide-net --example login_probe -- host:7100 user pass key`) | log in like the client, without starting the game |
 | `patches/linux-client/install.sh [--server ip] [--dir d]` | install the native Linux client (download, verify, extract, apply the kit); `~/Games/LMO/lmo <username>` starts it. See `patches/linux-client/README.md` |
 | `patches/linux-client/apply.sh <dir> [--server ip]` | the client patch kit: apply (again) to an extracted client |
 | `patches/linux-client/make-kit.sh` | pack the kit (prebuilt libraries) as `dist/lmo-client-kit-v<N>.tar.gz` for another PC |
 | `patches/linux-client/play.sh <dir> <server-ip> <username>` | start a kit-installed client from another folder |
-| `tools/lan-server.sh [lan-ip]` | run the server for LAN play (binds 0.0.0.0, advertises the LAN IP) |
+| `tools/lan-server.sh [--release] [lan-ip]` | game server + patch server for LAN play (binds 0.0.0.0, advertises the LAN IP; `--auto-register`, GM level 1); logs in `logs/lan-*.log` |
 | `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
 | `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |
 | `tools/re/py d.py <va> [bytes]` | disassemble with string annotations |

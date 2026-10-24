@@ -47,7 +47,7 @@ struct Cli {
 #[derive(clap::Args, Debug)]
 struct Storage {
     /// Directory of the game server's database.
-    #[arg(long, env = "LMOXIDE_DATA_DIR", default_value = "data", global = true)]
+    #[arg(long, env = "LMOXIDE_DATA_DIR", default_value = "lmoxide-data", global = true)]
     data_dir: PathBuf,
     /// SQLite database file (default <data-dir>/lmoxide.db), shared with lmoxide-server.
     #[arg(long, env = "LMOXIDE_DATABASE", global = true)]

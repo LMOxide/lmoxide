@@ -49,7 +49,7 @@ struct Cli {
 #[derive(clap::Args, Debug, Clone)]
 pub struct Storage {
     /// Directory for the database and the login public key file.
-    #[arg(long, env = "LMOXIDE_DATA_DIR", default_value = "data", global = true)]
+    #[arg(long, env = "LMOXIDE_DATA_DIR", default_value = "lmoxide-data", global = true)]
     pub data_dir: PathBuf,
     /// SQLite database file (default <data-dir>/lmoxide.db), shared with lmoxide-api.
     #[arg(long, env = "LMOXIDE_DATABASE", global = true)]

@@ -3,7 +3,9 @@ __pycache__/
 .venv/
 logs/
 rdb-cache/
-lmo-data/
+lmoxide-data/
 dist/
 .claude/
 lmoxide-patch-data/
+secrets/
+.env

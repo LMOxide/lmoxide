@@ -1,0 +1,88 @@
+# LMOxide: game server, REST API and patch server from one image (see README "Running with Docker").
+#   cp docker/.env.example .env && mkdir -p secrets && openssl rand -hex 32 > secrets/control_token
+#   docker compose up -d --build
+
+x-image: &image
+  image: lmoxide:latest
+  build: .
+  restart: unless-stopped
+  environment: &env
+    RUST_LOG: ${RUST_LOG:-info}
+
+services:
+  server:
+    <<: *image
+    command:
+      - lmoxide-server
+      - --bind=0.0.0.0
+      - --public-host=${LMOXIDE_PUBLIC_HOST:?set LMOXIDE_PUBLIC_HOST in .env}
+      - --control-bind=0.0.0.0:7300
+      - --control-token-file=/run/secrets/control_token
+    environment:
+      <<: *env
+      LMOXIDE_DATA_DIR: /data
+      LMOXIDE_AUTO_REGISTER: ${LMOXIDE_AUTO_REGISTER:-false}
+      LMOXIDE_DEFAULT_GM_LEVEL: ${LMOXIDE_DEFAULT_GM_LEVEL:-0}
+    volumes:
+      - data:/data
+    secrets: [control_token]
+    ports:
+      - "7100:7100"
+      - "7101:7101"
+      - "7102:7102"
+      - "7200:7200"
+    # 7300 (control) stays on the compose network
+    stop_grace_period: 15s
+
+  api:
+    <<: *image
+    command:
+      - lmoxide-api
+      - --bind=0.0.0.0:8090
+      - --control-url=http://server:7300
+      - --control-token-file=/run/secrets/control_token
+    environment:
+      <<: *env
+      LMOXIDE_DATA_DIR: /data
+      LMOXIDE_API_CORS_ORIGINS: ${LMOXIDE_API_CORS_ORIGINS:-}
+      LMOXIDE_API_OPEN_REGISTRATION: ${LMOXIDE_API_OPEN_REGISTRATION:-false}
+      LMOXIDE_API_TRUST_FORWARDED_FOR: ${LMOXIDE_API_TRUST_FORWARDED_FOR:-false}
+    volumes:
+      - data:/data
+    secrets: [control_token]
+    depends_on: [server]
+    # Put a TLS reverse proxy in front, or pass --tls-cert/--tls-key. Bound to localhost here.
+    ports:
+      - "127.0.0.1:8090:8090"
+
+  patch:
+    <<: *image
+    command:
+      - lmoxide-patch-server
+      - --bind=0.0.0.0
+      - --public-host=${LMOXIDE_PUBLIC_HOST}
+      - --client-dir=/clients/windows
+      - --linux-client-dir=/clients/linux
+      - --linux-overlay-dir=/usr/local/share/lmoxide/linux-overlay
+      - --login-public-key-file=/data/login-public-key.txt
+    environment:
+      <<: *env
+      LMOXIDE_DATA_DIR: /patch-data
+      LMOXIDE_SERVER_NAME: ${LMOXIDE_SERVER_NAME:-LMOxide}
+      LMOXIDE_UPSTREAM: ${LMOXIDE_UPSTREAM:-}
+    volumes:
+      - data:/data:ro
+      - patch-data:/patch-data
+      - ${LMOXIDE_WINDOWS_CLIENT:?set LMOXIDE_WINDOWS_CLIENT in .env}:/clients/windows:ro
+      - ${LMOXIDE_LINUX_CLIENT:?set LMOXIDE_LINUX_CLIENT in .env}:/clients/linux:ro
+    depends_on: [server]
+    ports:
+      - "8080:8080"
+
+volumes:
+  data:
+  patch-data:
+
+secrets:
+  control_token:
+    file: ./secrets/control_token

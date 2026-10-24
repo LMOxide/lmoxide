@@ -6,7 +6,7 @@ document at `GET /v1/openapi.json` (or `lmoxide-api openapi`); generate clients 
 ## Running
 
 ```sh
-lmoxide-api --data-dir data --bind 127.0.0.1:8090 \
+lmoxide-api --data-dir lmoxide-data --bind 127.0.0.1:8090 \
   --control-url http://127.0.0.1:7300 --control-token-file secrets/control_token
 ```
 
