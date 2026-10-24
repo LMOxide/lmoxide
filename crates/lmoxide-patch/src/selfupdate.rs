@@ -49,6 +49,7 @@ fn sibling(exe: &Path, suffix: &str) -> PathBuf {
 
 /// Downloads `release` and puts it in place of `exe` (normally [`std::env::current_exe`]).
 /// The running process keeps running the old build; start `exe` again to use the new one.
+/// Remember `exe` beforehand: on Linux `current_exe` names the replaced (deleted) file afterwards.
 pub async fn install(client: &Client, release: &Release, exe: &Path, progress: &ProgressFn) -> Result<()> {
     let new = sibling(exe, ".new");
     let resp = client.file(&release.sha256, 0).await?;

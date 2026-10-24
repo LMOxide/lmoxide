@@ -329,15 +329,21 @@ fn publish_releases(app: &App, dir: &Path, catalog: &mut Catalog) -> anyhow::Res
         }
     }
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    let cache_path = app.cfg.data_dir.join("patcher-hash-cache.json");
+    let mut cache = HashCache::load(&cache_path);
+    cache.retain(|k| newest.values().any(|(_, p)| p.to_string_lossy() == k));
     let mut lists: BTreeMap<Platform, Vec<release::SignedRelease>> = BTreeMap::new();
     for ((name, platform), (version, path)) in newest {
-        let sha256 = lmoxide_patch::hashcache::sha256_file(&path)?;
+        let sha256 = cache.hash(&path.to_string_lossy(), &path)?;
         let size = fs::metadata(&path)?.len();
         info!(%name, %version, %platform, "patcher release");
         let r = release::Release { format: release::RELEASE_FORMAT, name: name.clone(), version: version.clone(), platform, size, sha256: sha256.clone(), generated_at: now };
         lists.entry(platform).or_default().push(release::SignedRelease::sign(&r, &app.signing)?);
         catalog.patchers.entry(name).or_default().insert(platform, version);
         catalog.files.insert(sha256, path);
+    }
+    if let Err(e) = cache.save(&cache_path) {
+        warn!("saving {}: {e}", cache_path.display());
     }
     for (platform, list) in lists {
         catalog.releases.insert(platform, Bytes::from(serde_json::to_vec(&list)?));
