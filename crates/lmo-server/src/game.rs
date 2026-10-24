@@ -280,7 +280,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                     spell,
                                                     started: std::time::Instant::now(),
                                                     active,
-                                                    ground,
                                                     target: npc_target,
                                                     damage,
                                                 });
@@ -658,7 +657,6 @@ struct Charge {
     started: std::time::Instant,
     /// Cleared on release: stops re-applying the channel buff.
     active: Arc<std::sync::atomic::AtomicBool>,
-    ground: Option<[f32; 3]>,
     target: Option<Id32>,
     damage: u32,
 }
@@ -686,11 +684,10 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     let Some(p) = crate::projectile::params(c.spell) else { return };
     let held = c.started.elapsed().as_secs_f32();
     let item = p.charged_item(held);
-    let towards = c
-        .target
-        .and_then(crate::npc::position)
-        .or(c.ground)
-        .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
+    // The release resends the press-time command, so its point is where the player aimed when
+    // they started charging; aim with the facing they have now instead (the client keeps
+    // reporting it while they turn). A targeted cast still goes to its target.
+    let towards = c.target.and_then(crate::npc::position).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
     info!(spell = c.spell, held, item, "charge released");
     crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, c.damage);
 }
