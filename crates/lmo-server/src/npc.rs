@@ -50,7 +50,13 @@ pub const PLAYER_HEALTH: u32 = 100;
 struct PlayerCombat {
     active: u32,
     health: HashMap<u32, u32>,
+    last_damaged: Option<std::time::Instant>,
 }
+
+/// Out of combat (no damage for this long) health regenerates.
+const REGEN_DELAY: Duration = Duration::from_secs(5);
+const REGEN_TICK: Duration = Duration::from_secs(1);
+const REGEN_PER_TICK: u32 = 5;
 
 static PLAYERS: LazyLock<Mutex<HashMap<Id32, PlayerCombat>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -79,6 +85,7 @@ pub fn heal_player(player: Id32, amount: u32) -> u32 {
 fn damage_player(player: Id32, damage: u32) -> Option<u32> {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.get_mut(&player)?;
+    p.last_damaged = Some(std::time::Instant::now());
     let h = p.health.entry(p.active).or_insert(PLAYER_HEALTH);
     *h = h.saturating_sub(damage);
     Some(*h)
@@ -148,6 +155,7 @@ pub fn start() {
     }
     info!(count = NPCS.lock().unwrap().len(), "NPCs spawned");
     tokio::spawn(ai());
+    tokio::spawn(regenerate());
 }
 
 fn spec(def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> CharSpec<'_> {
@@ -245,6 +253,31 @@ pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, s
         .map(|(id, _)| *id)
         .collect();
     targets.into_iter().filter(|t| hit(attacker, *t, spell, damage) == Some(true)).count() as u32
+}
+
+/// Heals players' active minifigures that haven't been hurt for a while (a defeated, 0-health
+/// minifigure stays down until healed otherwise).
+async fn regenerate() {
+    let mut tick = tokio::time::interval(REGEN_TICK);
+    loop {
+        tick.tick().await;
+        let healed: Vec<(Id32, u32)> = PLAYERS
+            .lock()
+            .unwrap()
+            .iter_mut()
+            .filter(|(_, p)| p.last_damaged.is_none_or(|t| t.elapsed() >= REGEN_DELAY))
+            .filter_map(|(id, p)| {
+                let h = p.health.entry(p.active).or_insert(PLAYER_HEALTH);
+                (*h > 0 && *h < PLAYER_HEALTH).then(|| {
+                    *h = (*h + REGEN_PER_TICK).min(PLAYER_HEALTH);
+                    (*id, *h)
+                })
+            })
+            .collect();
+        for (id, health) in healed {
+            world::send_to(id, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, health)]));
+        }
+    }
 }
 
 /// A cheap pseudo-random number in 0..100 (loot rolls).
