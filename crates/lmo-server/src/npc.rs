@@ -26,6 +26,8 @@ use crate::{
 
 /// CarsGroup of hostile NPCs (target group "Enemies" in the client's CARS rules).
 const CARS_ENEMIES: u32 = 3;
+/// CarsGroup of friendly NPCs players can use (talk to).
+const CARS_FRIENDS: u32 = 2;
 /// NPC dynel instances start here (players are accounts, so keep clear of small numbers).
 const FIRST_NPC_INSTANCE: u32 = 900_000;
 const AGGRO_RANGE: f32 = 8.0;
@@ -118,6 +120,26 @@ pub struct SpawnDef {
     /// Attack spell (RDB 1000621); defaults to "XX_Axe Chop".
     #[serde(default = "default_spell")]
     pub spell: u32,
+    /// CARS group (3 enemies/smashables, 2 friendly NPCs players can use, 5 story NPCs);
+    /// defaults by kind.
+    #[serde(default)]
+    pub cars_group: Option<u32>,
+    /// NPC template id (npc_stats.template_id); defaults to the monsterdata.
+    #[serde(default)]
+    pub npc_template: Option<u32>,
+}
+
+/// data/world_content.json (tools/re/extract_world_content.py): per playfield, the enemies,
+/// NPCs and smashables the original server spawned (from the recorded demo session in the client
+/// folder for 1300/4600/4610) or proposed ones at the world's AI and resurrection points.
+#[derive(Deserialize)]
+struct WorldContent {
+    #[serde(default)]
+    enemies: Vec<SpawnDef>,
+    #[serde(default)]
+    npcs: Vec<SpawnDef>,
+    #[serde(default)]
+    smashables: Vec<SpawnDef>,
 }
 
 fn default_spell() -> u32 {
@@ -146,8 +168,17 @@ pub fn is_npc(id: Id32) -> bool {
 
 /// Spawns every NPC in data/spawns.json and starts their AI.
 pub fn start() {
-    let table: HashMap<String, Vec<SpawnDef>> =
+    let mut table: HashMap<String, Vec<SpawnDef>> =
         serde_json::from_str(include_str!("../../../data/spawns.json")).expect("spawns.json");
+    let worlds: HashMap<String, serde_json::Value> =
+        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+    for (playfield, world) in worlds {
+        let Ok(content) = serde_json::from_value::<WorldContent>(world) else { continue };
+        let defs = table.entry(playfield).or_default();
+        defs.extend(content.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..d }));
+        defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..d }));
+        defs.extend(content.smashables.into_iter().map(|d| SpawnDef { kind: Kind::Smashable, ..d }));
+    }
     let mut instance = FIRST_NPC_INSTANCE;
     for (playfield, defs) in table {
         let Ok(playfield) = playfield.parse::<u32>() else { continue };
@@ -174,8 +205,8 @@ fn spec(def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> CharSpec<
         level: def.level,
         health,
         max_health: def.health,
-        cars_group: CARS_ENEMIES,
-        npc: Some(NpcStats { template_id: Some(def.monster_data), ..Default::default() }),
+        cars_group: def.cars_group.unwrap_or(CARS_ENEMIES),
+        npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), ..Default::default() }),
     }
 }
 
@@ -192,7 +223,10 @@ fn appear(id: Id32) {
         let pos = *spawn_pos.lock().unwrap();
         match def.kind {
             Kind::Enemy => remote_spawn_records(id, &spec(&def, playfield, pos, health)),
-            Kind::Npc => remote_spawn_records(id, &CharSpec { cars_group: 0, ..spec(&def, playfield, pos, health) }),
+            Kind::Npc => remote_spawn_records(
+                id,
+                &CharSpec { cars_group: def.cars_group.unwrap_or(CARS_FRIENDS), ..spec(&def, playfield, pos, health) },
+            ),
             Kind::Smashable => smashable_records(id, &def, playfield, pos, health),
         }
     };
@@ -310,7 +344,7 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
     let simple = ProtoSimpleDynelIir {
         name: Some(def.name.clone()),
         template_item_id: Some(def.template),
-        cars_group: Some(CARS_DESTRUCTIBLES),
+        cars_group: Some(def.cars_group.unwrap_or(CARS_DESTRUCTIBLES)),
         ..Default::default()
     };
     let record = lmo_net::iir::record("DestructibleFullUpdateIIR_c", id, false, |w| {
@@ -327,7 +361,7 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
         record,
         int32_stat(id, STAT_LIFE, def.health),
         int32_stat(id, STAT_HEALTH, health),
-        int32_stat(id, STAT_CARS_GROUP, CARS_DESTRUCTIBLES),
+        int32_stat(id, STAT_CARS_GROUP, def.cars_group.unwrap_or(CARS_DESTRUCTIBLES)),
     ]
 }
 
