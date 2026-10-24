@@ -143,6 +143,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             .await?;
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
+                        // the World Map's teleport spots for this world, all unlocked
+                        let args = crate::teleport::valid_spots_args(me.playfield, *pos.lock().unwrap());
+                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::VALID_RESURRECTION_SPOTS, args)
+                            .await?;
                         if presence.is_none() {
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
@@ -182,7 +186,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .await?;
                                         }
                                         None => {
-                                            teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, to, potions_spent)
+                                            teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, to, None, potions_spent)
                                                 .await?;
                                         }
                                     }
@@ -396,12 +400,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     _ => info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR"),
                 }
             }
+            (Some(Endpoint::ClientToGameserverRPC), agent::REQUEST_RESURRECTION_SPOTS) => {
+                // RequestResurrectionSpots(InstanceId playfield): the World Map shows another world
+                let playfield = r.u32()?;
+                let args = crate::teleport::signal_spots_args(playfield);
+                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::SIGNAL_RESURRECTION_SPOTS_RECEIVED, args)
+                    .await?;
+            }
             (Some(Endpoint::GameCharAgent), game_char_agent::TELEPORT_ME) => {
                 // TeleportMe(uint32 playfieldID, uint32 spawnPointID): the world map
                 let playfield = r.u32()?;
                 let spawn = r.u32()?;
                 info!(playfield, spawn, "TeleportMe");
-                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, potions_spent)
+                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), potions_spent)
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
@@ -424,7 +435,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(answer, "teleport window answer");
                 if answer > 0 || answer < -1 {
                     let playfield = (answer as u32) & 0x7fff_ffff;
-                    teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, potions_spent)
+                    teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, potions_spent)
                         .await?;
                 }
             }
@@ -656,24 +667,30 @@ async fn teleport(
     presence: &mut Option<world::Presence>,
     pos: &world::Position,
     playfield: u32,
+    spot: Option<u32>,
     potions_spent: u64,
 ) -> anyhow::Result<()> {
-    let Some(dest) = crate::teleport::destination(playfield) else {
+    // arrive at the chosen teleport spot, or the playfield's arrival point
+    let arrival = spot
+        .and_then(|g| crate::teleport::spot(playfield, g))
+        .map(|s| (s.pos, s.rot))
+        .or_else(|| crate::teleport::destination(playfield).map(|d| (d.pos, d.rot)));
+    let Some((arrive_pos, arrive_rot)) = arrival else {
         warn!(playfield, "no destination data for playfield");
         return Ok(());
     };
-    info!(from = me.playfield, to = playfield, name = %dest.name, "teleport");
+    info!(from = me.playfield, to = playfield, ?spot, "teleport");
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
     let records = [
         crate::teleport::intended_teleport_record(id, playfield),
-        crate::teleport::teleport_record(id, playfield, dest.pos, dest.rot),
+        crate::teleport::teleport_record(id, playfield, arrive_pos, arrive_rot),
     ];
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     // leaving: despawns the character for everyone in the old playfield
     *presence = None;
     me.playfield = playfield;
-    me.pos = dest.pos;
-    *pos.lock().unwrap() = dest.pos;
+    me.pos = arrive_pos;
+    *pos.lock().unwrap() = arrive_pos;
     if let Err(e) = store.save(character, me) {
         warn!(character, "saving character failed: {e:#}");
     }

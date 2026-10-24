@@ -124,3 +124,52 @@ pub fn journal_record(character: Id32) -> Bytes {
     let msg = JournalUpdateIirProto { added_main_quest, ..Default::default() };
     iir::record("JournalUpdateIIR", character, false, |w| w.proto(&msg))
 }
+
+/// A resurrection point (World Map teleport spot), data/resurrection_points.json
+/// (tools/re/extract_resurrection_points.py, from RDB 1000090).
+#[derive(Debug, Clone, Deserialize)]
+pub struct Spot {
+    pub guid: u32,
+    pub pos: [f32; 3],
+    pub rot: f32,
+    pub restoration: u32,
+    pub shady: bool,
+}
+
+static SPOTS: LazyLock<HashMap<String, Vec<Spot>>> = LazyLock::new(|| {
+    serde_json::from_str(include_str!("../../../data/resurrection_points.json")).expect("resurrection_points.json")
+});
+
+/// The teleport spot `guid` of `playfield`.
+pub fn spot(playfield: u32, guid: u32) -> Option<&'static Spot> {
+    SPOTS.get(&playfield.to_string())?.iter().find(|s| s.guid == guid)
+}
+
+/// SaveDataVec_t of a playfield's spots, all unlocked: u32 (n+1)·1009, then per spot
+/// (SaveDataEntry_t, reader 0x135c4ed) position, ID32 {51100, playfield}, u32 0, u32 0, u32 guid,
+/// u32 restoration level, u8 shady, u8 discoverable, u8 unlocked. The map shows a spot as usable
+/// when it isn't discoverable or is unlocked.
+fn spots(w: lmo_net::Writer, playfield: u32) -> lmo_net::Writer {
+    let list = SPOTS.get(&playfield.to_string()).map(Vec::as_slice).unwrap_or(&[]);
+    list.iter().fold(w.u32((list.len() as u32 + 1) * 1009), |w, s| {
+        let w = w.f32(s.pos[0]).f32(s.pos[1]).f32(s.pos[2]);
+        Id32::new(PLAYFIELD_TYPE, playfield).write(w).u32(0).u32(0).u32(s.guid).u32(s.restoration).u8(s.shady as u8).u8(0).u8(1)
+    })
+}
+
+/// `GameCharInterface::ValidResurrectionSpots(Vector3Member position, SaveDataVec_t)`: the spots
+/// of the player's current playfield (the World Map's own-world markers).
+pub fn valid_spots_args(playfield: u32, pos: [f32; 3]) -> Bytes {
+    spots(lmo_net::Writer::new().f32(pos[0]).f32(pos[1]).f32(pos[2]), playfield).finish()
+}
+
+/// `GameserverToClientRPC::SignalResurrectionSpotsReceived(InstanceId playfield, Vector3Member
+/// centre, SaveDataVec_t)`: the answer to `RequestResurrectionSpots` when the map shows another
+/// world.
+pub fn signal_spots_args(playfield: u32) -> Bytes {
+    let centre = destination(playfield)
+        .map(|d| d.pos)
+        .or_else(|| SPOTS.get(&playfield.to_string()).and_then(|l| l.first()).map(|s| s.pos))
+        .unwrap_or_default();
+    spots(lmo_net::Writer::new().u32(playfield).f32(centre[0]).f32(centre[1]).f32(centre[2]), playfield).finish()
+}
