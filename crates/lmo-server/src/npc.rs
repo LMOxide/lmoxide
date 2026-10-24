@@ -99,6 +99,8 @@ pub enum Kind {
     Enemy,
     /// A breakable object (destructible dynel, type 51321).
     Smashable,
+    /// A friendly character: not attackable, stays put.
+    Npc,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -185,6 +187,7 @@ fn appear(id: Id32) {
         let pos = *spawn_pos.lock().unwrap();
         match def.kind {
             Kind::Enemy => remote_spawn_records(id, &spec(&def, playfield, pos, health)),
+            Kind::Npc => remote_spawn_records(id, &CharSpec { cars_group: 0, ..spec(&def, playfield, pos, health) }),
             Kind::Smashable => smashable_records(id, &def, playfield, pos, health),
         }
     };
@@ -203,7 +206,7 @@ fn appear(id: Id32) {
 pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
     let mut npcs = NPCS.lock().unwrap();
     let npc = npcs.get_mut(&target)?;
-    if npc.presence.is_none() || npc.health == 0 {
+    if npc.presence.is_none() || npc.health == 0 || npc.def.kind == Kind::Npc {
         return None;
     }
     let dealt = damage.min(npc.health);
@@ -248,7 +251,7 @@ pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, s
         .lock()
         .unwrap()
         .iter()
-        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
+        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0 && n.def.kind != Kind::Npc)
         .filter(|(_, n)| distance(*n.pos.lock().unwrap(), center) <= radius)
         .map(|(id, _)| *id)
         .collect();
