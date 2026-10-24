@@ -12,6 +12,7 @@ mod jumppad;
 mod loot;
 mod npc;
 mod projectile;
+mod scenery;
 mod sessions;
 mod store;
 mod teleport;
@@ -121,6 +122,7 @@ async fn main() -> anyhow::Result<()> {
     npc::start();
     buildie::start();
     jumppad::start();
+    scenery::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(cfg.start_playfield));

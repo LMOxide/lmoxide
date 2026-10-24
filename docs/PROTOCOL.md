@@ -271,7 +271,7 @@ A full update of a built buildie (sent to newcomers) has SimpleDynel field 1 = t
 CARS group 5, no particles, Health = max and the Destructible's 4th field = 1. The jump pad
 under a buildie (a separate `Jumper` dynel) is in CARS group 5 until it is built, then 3.
 
-## Levers, gates, pressure plates (not implemented)
+## Levers, gates, pressure plates (scenery.rs: shown, not functional)
 
 - They are playfield simple dynels (RDB 1000057): `lego_lever_a_interactable` (Space Colony 3200 ×5,
   Gauntlet 6300 ×2), `module_wall_4x4_gate_lego_myth_interactable` (6300, Medusa's Lair 2300, 4610),

@@ -1,0 +1,103 @@
+//! Levers, gates, Medusa mirrors and pressure plates: playfield simple dynels (RDB 1000057) the
+//! original server sent as dynels, as it did the jump pads (docs/PROTOCOL.md "Levers, gates,
+//! pressure plates"). What they did (which lever opened which gate, the plate puzzles) was
+//! server script data that didn't survive, so they are scenery only: not usable (CARS group 5),
+//! gates open, and nothing has collision (kdtree 0), so none of them can block a path.
+
+use std::sync::{Arc, Mutex};
+
+use bytes::Bytes;
+use lmo_net::{
+    iir,
+    proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3},
+    types::Id32,
+};
+use serde::Deserialize;
+use tokio::sync::mpsc;
+use tracing::info;
+
+use crate::{
+    game::{create_game_object, int32_stat},
+    world,
+};
+
+const SIMPLE_DYNEL_TYPE: u32 = 51320;
+const STAT_CARS_GROUP: u32 = 1050;
+/// Nobody can target or use them.
+const CARS_INACTIVE: u32 = 5;
+/// Bounds for pieces whose RDB box is empty (assumed size, docs/TUNABLES.md).
+const FALLBACK_BOUNDS: [f32; 6] = [-4.0, 0.0, -4.0, 4.0, 6.0, 4.0];
+
+#[derive(Debug, Clone, Deserialize)]
+struct Piece {
+    name: String,
+    pos: [f32; 3],
+    rot: [f32; 4],
+    /// [resource type, visual id]
+    visual: [u32; 2],
+    bounds: [f32; 6],
+    guid: u32,
+}
+
+impl Piece {
+    fn is_gate(&self) -> bool {
+        ["gate", "portcullis"].iter().any(|k| self.name.contains(k))
+    }
+}
+
+/// Which 1000057 entries are spawned.
+fn wanted(name: &str) -> bool {
+    name.starts_with("pressureplate_")
+        || name.starts_with("lego_lever")
+        || name.starts_with("mirror_medusa")
+        || (name.ends_with("_interactable") && (name.contains("gate") || name.contains("portcullis")))
+}
+
+static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+
+/// Puts every piece into its world.
+pub fn start() {
+    let worlds: std::collections::HashMap<String, serde_json::Value> =
+        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+    let mut presences = PRESENCES.lock().unwrap();
+    for (pf, w) in worlds {
+        let Ok(playfield) = pf.parse::<u32>() else { continue };
+        let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };
+        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name)) {
+            let (outbox, mut inbox) = mpsc::unbounded_channel();
+            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+            let id = Id32::new(SIMPLE_DYNEL_TYPE, piece.guid);
+            let pos = Arc::new(Mutex::new(piece.pos));
+            presences.push(world::join(id, playfield, pos, move || spawn_records(&piece, playfield), outbox));
+        }
+    }
+    info!(count = presences.len(), "scenery spawned");
+}
+
+/// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (as for jump pads: ProtoGameCodeDynelIIR,
+/// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
+fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
+    let id = Id32::new(SIMPLE_DYNEL_TYPE, p.guid);
+    let dynel = ProtoGameCodeDynelIir {
+        position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
+        rotation: Some(ProtoQuat { x: Some(p.rot[0]), y: Some(p.rot[1]), z: Some(p.rot[2]), w: Some(p.rot[3]) }),
+        playfield_instance: Some(playfield),
+        running_effects: vec![],
+    };
+    let simple = ProtoSimpleDynelIir {
+        // no collision (n3VisualDynel::EnableCollision(0))
+        kdtree: Some(0),
+        name: Some(p.name.clone()),
+        cars_group: Some(CARS_INACTIVE),
+        is_closed: Some(!p.is_gate()),
+        ..Default::default()
+    };
+    // the RDB gives the animated pieces an empty box (min +3.4e38, max -3.4e38); send a generous
+    // one instead, which at worst affects culling
+    let bounds = if p.bounds[0] > p.bounds[3] { FALLBACK_BOUNDS } else { p.bounds };
+    let record = iir::record("SimpleDynelFullUpdateIIR_c", id, false, |w| {
+        let w = w.proto(&dynel).proto(&simple).u32(p.visual[1]).u32(p.visual[0]).u32(0);
+        bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
+    });
+    vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, CARS_INACTIVE)]
+}
