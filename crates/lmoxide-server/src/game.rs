@@ -168,6 +168,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     name: crate::sessions::name(character).unwrap_or_else(|| account.username.clone()),
                     ..me.clone()
                 });
+                active_at_first_position(&mut me.team);
                 _online = Some(crate::sessions::online(character, &account.username, &me.name, gm_level, outbox.clone()));
                 *pos.lock().unwrap() = me.pos;
                 collection = Collection::new(&me.team);
@@ -1546,6 +1547,20 @@ fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) 
     me.team = slots.into_iter().zip(templates.iter().copied()).collect();
 }
 
+/// Moves the active minifigure (`team[0]`) to the team's first inventory position, swapping
+/// with the one there. Live logged in with ActiveWeapon 6 every time; with the active one
+/// elsewhere the client used its spells but its HUD showed the minifigure at position 6 as
+/// the active portrait.
+fn active_at_first_position(team: &mut [(u32, u32)]) {
+    let Some(first) = team.iter().map(|&(p, _)| p).min() else { return };
+    if let Some(j) = team.iter().position(|&(p, _)| p == first)
+        && j != 0
+    {
+        team[j].0 = team[0].0;
+        team[0].0 = first;
+    }
+}
+
 /// Sends LearnSpell for everything the team's minifigures can cast.
 async fn learn_team_spells(conn: &mut Conn, character: u32, me: &Character) -> anyhow::Result<()> {
     for spell in me.team.iter().flat_map(|&(_, t)| crate::collection::spells_to_learn(t)) {
@@ -2073,6 +2088,16 @@ pub fn create_game_object(id: Id32, playfield: u32, pos: [f32; 3]) -> bytes::Byt
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn active_minifigure_moves_to_first_position() {
+        let mut team = vec![(20, 41_894), (6, 498_522), (8, 550_251)];
+        active_at_first_position(&mut team);
+        assert_eq!(team, vec![(6, 41_894), (20, 498_522), (8, 550_251)]);
+        let mut team = vec![(6, 1), (8, 2), (20, 3)];
+        active_at_first_position(&mut team);
+        assert_eq!(team, vec![(6, 1), (8, 2), (20, 3)]);
+    }
 
     #[test]
     fn elf_hash_matches_client() {
