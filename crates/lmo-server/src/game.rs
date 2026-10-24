@@ -56,6 +56,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut shown_portal: Option<u32> = None;
     // direction of the player's last movement (aims projectiles cast without a target)
     let mut heading = [0.0f32, 1.0];
+    // the same, shared with tasks that fire later (held charges)
+    let facing = Arc::new(Mutex::new(heading));
     // held charge abilities by command client id, fired on release
     let mut charges: HashMap<u32, Charge> = HashMap::new();
     let mut last_summon: Option<(u32, std::time::Instant)> = None;
@@ -151,6 +153,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
                         if let Some(yaw) = (kind == "CharDCMoveIIR_t").then(|| reported_facing(rest)).flatten() {
                             heading = yaw;
+                            *facing.lock().unwrap() = yaw;
                         }
                         if let Some(p) = reported_position(kind, rest) {
                             let before = *pos.lock().unwrap();
@@ -278,7 +281,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             fire_stale_charges(&mut charges, &me, h.identity);
                                             if let Some(client_id) = msg.commandqueue_client_id {
                                                 let active = Arc::new(std::sync::atomic::AtomicBool::new(true));
-                                                show_channel(h.identity, spell, active.clone());
+                                                let full_damage = me.team.first().map_or(damage, |&(_, t)| {
+                                                    crate::combat::damage(t, me.upgrade(t), spell, Some(usize::MAX))
+                                                });
+                                                let mut end = blob.to_vec();
+                                                end[blob.len() - rest.len()] = BCC_FINISH_CHANNEL;
+                                                run_charge(
+                                                    h.identity,
+                                                    me.playfield,
+                                                    spell,
+                                                    active.clone(),
+                                                    pos.clone(),
+                                                    facing.clone(),
+                                                    npc_target,
+                                                    full_damage,
+                                                    Bytes::from(end),
+                                                );
                                                 charges.insert(client_id, Charge {
                                                     spell,
                                                     started: std::time::Instant::now(),
@@ -674,26 +692,58 @@ struct Charge {
     damage: u32,
 }
 
-/// While a charge is held, shows its channel buff (the growing orb) on the caster, re-applied
-/// every channel interval (MagicBuffIIR_c; the buff lasts 0.75 s).
-fn show_channel(caster: Id32, spell: u32, active: Arc<std::sync::atomic::AtomicBool>) {
+/// A held charge, from press to release: shows its channel buff (the growing orb) on the caster
+/// once, lasting the whole charge and hold (re-applying it would restart the effect), and if
+/// the player keeps holding past full charge plus CHARGE_HOLD, fires at full charge and ends
+/// the client's channel itself (BCC action 20 back to the caster). Released earlier, the buff
+/// is removed and `fire_charge` fires.
+#[allow(clippy::too_many_arguments)]
+fn run_charge(
+    caster: Id32,
+    playfield: u32,
+    spell: u32,
+    active: Arc<std::sync::atomic::AtomicBool>,
+    pos: world::Position,
+    facing: Arc<Mutex<[f32; 2]>>,
+    target: Option<Id32>,
+    full_damage: u32,
+    end_record: Bytes,
+) {
     let Some(p) = crate::projectile::params(spell) else { return };
-    let Some(buff) = p.channel_buff else { return };
-    let interval = std::time::Duration::from_secs_f32(p.channel_interval.max(0.1));
+    let full = std::time::Duration::from_secs_f32(p.channel_interval * p.charge_items.len().saturating_sub(1) as f32);
+    let until = full + CHARGE_HOLD;
+    let buff = p.channel_buff;
+    let full_item = p.charge_items.last().copied();
     tokio::spawn(async move {
-        while active.load(std::sync::atomic::Ordering::Relaxed) {
-            let add = crate::effects::buff_add(caster, buff, caster, 75);
+        if let Some(buff) = buff {
+            let add = crate::effects::buff_add(caster, buff, caster, (until.as_secs_f32() * 100.0) as i32);
             world::send_playfield(caster, true, world::Out::Records(vec![add]));
-            tokio::time::sleep(interval).await;
         }
-        let remove = crate::effects::buff_remove(caster, buff, caster);
-        world::send_playfield(caster, true, world::Out::Records(vec![remove]));
+        let started = std::time::Instant::now();
+        while active.load(std::sync::atomic::Ordering::Relaxed) && started.elapsed() < until {
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
+        if active.swap(false, std::sync::atomic::Ordering::Relaxed) {
+            // held too long: fire at full charge, in the direction faced now
+            let here = *pos.lock().unwrap();
+            let f = *facing.lock().unwrap();
+            let towards = target.and_then(crate::npc::position).unwrap_or([here[0] + f[0], here[1], here[2] + f[1]]);
+            info!(spell, "charge fired automatically");
+            crate::projectile::launch(caster, playfield, spell, full_item, here, towards, target, full_damage);
+            world::send_to(caster, world::Out::Records(vec![end_record]));
+        }
+        if let Some(buff) = buff {
+            let remove = crate::effects::buff_remove(caster, buff, caster);
+            world::send_playfield(caster, true, world::Out::Records(vec![remove]));
+        }
     });
 }
 
 /// Fires a released charge: the projectile for the charge level reached.
 fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading: [f32; 2]) {
-    c.active.store(false, std::sync::atomic::Ordering::Relaxed);
+    if !c.active.swap(false, std::sync::atomic::Ordering::Relaxed) {
+        return; // already fired automatically after holding too long
+    }
     let Some(p) = crate::projectile::params(c.spell) else { return };
     let held = c.started.elapsed().as_secs_f32();
     let item = p.charged_item(held);
@@ -975,6 +1025,9 @@ const BCC_FINISH_CHANNEL: u8 = 20;
 /// A charge nobody released (lost focus...) fires after this long.
 const SUMMON_RECHARGE: std::time::Duration = std::time::Duration::from_secs(2);
 const CHARGE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(6);
+/// How long a fully charged ability is held before it fires by itself (assumed; see
+/// docs/TUNABLES.md).
+const CHARGE_HOLD: std::time::Duration = std::time::Duration::from_secs(3);
 const BCC_CAN_EXECUTE: u8 = 10;
 pub const COMMAND_MAGIC: u32 = 4;
 /// Reach of untargeted (melee/area) attacks: a circle of AREA_RADIUS centred MELEE_REACH in

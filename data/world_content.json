@@ -1834,7 +1834,9 @@
      44.03,
      253.49
     ],
-    "target_by": "name"
+    "target_by": "demo",
+    "apex": 5.0,
+    "duration": 2.332
    },
    {
     "name": "jump_target_1st",
@@ -1904,7 +1906,9 @@
      44.0,
      256.97
     ],
-    "target_by": "name"
+    "target_by": "demo",
+    "apex": 4.0,
+    "duration": 1.81
    },
    {
     "name": "invisible_monsterdata",
@@ -1971,10 +1975,12 @@
     "look": "jump_pad_mortar_a_buildie",
     "target": [
      181.71,
-     29.25,
+     28.83,
      253.16
     ],
-    "target_by": "name"
+    "target_by": "demo",
+    "apex": 4.0,
+    "duration": 2.882
    },
    {
     "name": "jump_target_2nd",
@@ -2044,7 +2050,9 @@
      44.0,
      255.87
     ],
-    "target_by": "name"
+    "target_by": "demo",
+    "apex": 4.0,
+    "duration": 2.882
    },
    {
     "name": "jump_target_3rd",
@@ -2143,10 +2151,12 @@
     "look": "jump_pad_wind_fan_a_idle",
     "target": [
      237.74,
-     43.99,
+     44.0,
      253.53
     ],
-    "target_by": "name"
+    "target_by": "demo",
+    "apex": 4.0,
+    "duration": 1.807
    },
    {
     "name": "jump_target_6th",
@@ -2212,11 +2222,13 @@
     "kind": "jump_pad",
     "look": "jump_pad_mortar_a_buildie",
     "target": [
-     237.74,
-     43.99,
-     253.53
+     254.02,
+     28.83,
+     253.09
     ],
-    "target_by": "name"
+    "target_by": "demo",
+    "apex": 4.0,
+    "duration": 2.882
    },
    {
     "name": "jump_target_6th",
@@ -26943,7 +26955,9 @@
      76.0,
      55.74
     ],
-    "target_by": "adjacent"
+    "target_by": "demo",
+    "apex": 6.0,
+    "duration": 2.682
    },
    {
     "name": "invisible_monsterdata",

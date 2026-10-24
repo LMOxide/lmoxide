@@ -386,8 +386,8 @@ def demo_jump(b, o):
     if len(b) < o + 75 or b[o + 13] != 12 or b[o + 14] != 0:
         return None
     v = struct.unpack_from(">B3fBB2ff3f3f3fBBffBB", b, o)
-    dur, start, end, vy = v[6], v[9:12], v[12:15], v[22]
-    if not (0.3 < dur < 10) or abs(v[21] * dur - dist(start, end)) > 0.5:
+    dur, start, end, vy = v[6], v[9:12], v[12:15], v[21]
+    if not (0.3 < dur < 10) or abs(v[20] * dur - dist(start, end)) > 0.5:
         return None
     apex = vy * vy / (2 * GRAVITY) - max(0.0, end[1] - start[1])
     return dict(start=rnd(start), end=rnd(end), duration=round(dur, 3), apex=round(apex, 2))
