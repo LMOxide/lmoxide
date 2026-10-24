@@ -28,7 +28,7 @@ Sources (all local; nothing is downloaded):
 
 * RDB 1000051 playfield path data (navmesh, tools/re/navmesh.py): walkable boxes with their
   ground height.  RDB 1000053 bounded areas (XML; only in the native Linux client, read from
-  $LMO_LINUX_CLIENT or ../client-linux): the designers' named regions (ClearHate_*, Res_*,
+  $LMO_LINUX_CLIENT or ../clients/linux): the designers' named regions (ClearHate_*, Res_*,
   ambush, boss encounter and champion areas), also from a world's quest layers (pf + 1, pf + 2).
 
 Playfields without demo data (every world and dungeon in data/destinations.json) get "proposed"
@@ -46,7 +46,7 @@ from rdb import CLIENT, body, index
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 # The native Linux client (lmo.files.aronwk.com LMO_Linux_v1.5.557666.zip) also ships RDB 1000053.
-LINUX_CLIENT = os.environ.get("LMO_LINUX_CLIENT") or os.path.join(ROOT, "../client-linux/LEGO Minifigures Online")
+LINUX_CLIENT = os.environ.get("LMO_LINUX_CLIENT") or os.path.join(ROOT, "../clients/linux/LEGO Minifigures Online")
 DEMO = os.path.join(CLIENT, "Data/default_windowsx86.demo")
 MAIN = [1200, 1300, 4200, 4210, 5200, 5210, 3200, 3210, 2210, 6200, 4600]
 

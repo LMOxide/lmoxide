@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # One test cycle: restart server + client, wait, print a condensed summary.
 #   tools/test-run.sh [seconds=50]
-# Env: LMO_AUTOPLAY=1 (scripted EnterGame via tools/client/startup.lua), LMO_CLIENT_DIR (default ../client/LEGO Minifigures Online),
+# Env: LMO_AUTOPLAY=1 (scripted EnterGame via tools/client/startup.lua), LMO_CLIENT_DIR (default ../clients/windows/LEGO Minifigures Online),
 #      LMO_CLIENT_ARGS (default auto-login as tester), LMO_SERVER_ARGS, KEEP=1 (leave running).
 # Full logs: logs/server.log, logs/client.log (copied from the client's ClientLog.txt).
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 WAIT=${1:-50}
-CLIENT=${LMO_CLIENT_DIR:-$(cd "$ROOT/../client/LEGO Minifigures Online" && pwd)}
+CLIENT=${LMO_CLIENT_DIR:-$(cd "$ROOT/../clients/windows/LEGO Minifigures Online" && pwd)}
 export LMO_CLIENT_ARGS=${LMO_CLIENT_ARGS--username tester -password test}
 LOGS=$ROOT/logs
 mkdir -p "$LOGS"

@@ -4,7 +4,7 @@ Caveat: classes with virtual bases have extra header words; slot offsets are fro
 (vtable symbol + 0x10 for simple classes), so check neighbours if a name looks wrong."""
 import struct, subprocess, sys, os, re
 ROOT = os.path.dirname(os.path.abspath(__file__))
-BIN = os.environ.get('LMO_LINUX_BIN', os.path.join(ROOT, '../../../downloads/linux_557666/LMO'))
+BIN = os.environ.get('LMO_LINUX_BIN', os.path.join(ROOT, '../../../clients/downloads/linux_557666/LMO'))
 SYMS = os.path.join(ROOT, '../../logs/linux_syms_sized.txt')
 names = {}
 for line in open(SYMS):

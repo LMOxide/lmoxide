@@ -15,8 +15,8 @@ import os, struct, sys, zlib
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CLIENT = os.environ.get("LMO_CLIENT") or os.path.join(HERE, "../../../client/LEGO Minifigures Online")
-CACHE = os.environ.get("LMO_RDB_CACHE") or os.path.join(HERE, "../../../rdb-cache")
+CLIENT = os.environ.get("LMO_CLIENT") or os.path.join(HERE, "../../../clients/windows/LEGO Minifigures Online")
+CACHE = os.environ.get("LMO_RDB_CACHE") or os.path.join(HERE, "../../../var/rdb-cache")
 REC = 47
 
 

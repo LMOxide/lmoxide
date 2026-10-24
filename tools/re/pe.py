@@ -2,7 +2,7 @@ import pefile, capstone, struct, sys, re, functools
 import os
 # LMO.exe: $LMO_EXE, else the extracted client next to this repo (../client/...)
 EXE = os.environ.get("LMO_EXE") or os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    "../../../client/LEGO Minifigures Online/LMO.exe")
+    "../../../clients/windows/LEGO Minifigures Online/LMO.exe")
 pe = pefile.PE(EXE, fast_load=True)
 BASE = pe.OPTIONAL_HEADER.ImageBase
 img = pe.get_memory_mapped_image()

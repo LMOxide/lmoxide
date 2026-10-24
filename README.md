@@ -21,16 +21,16 @@ server, loads the starting playfield and **enters the game world** (FlowControl 
 ## Running
 
 You need an extracted client (`LEGO Minifigures Online/` including `RDB/`) and Wine. The
-scripts assume it sits next to this repo at `../client/LEGO Minifigures Online`:
+scripts assume it sits next to this repo at `../clients/windows/LEGO Minifigures Online`:
 
 ```sh
-mkdir -p ../client && (cd ../client && unzip -q "../LEGO Minifigures Online.zip" && chmod -R u+w .)
+mkdir -p ../clients/windows && (cd ../clients/windows && unzip -q "../LEGO Minifigures Online.zip" && chmod -R u+w .)
 
 # server only
-cargo run -p lmo-server -- --client-dir "../client/LEGO Minifigures Online"
+cargo run -p lmo-server -- --client-dir "../clients/windows/LEGO Minifigures Online"
 
 # server and client (separate Wine prefix in ~/.local/share/lmo-wine), auto-login:
-LMO_CLIENT_ARGS="-username tester -password test" tools/dev-run.sh "$PWD/../client/LEGO Minifigures Online" /tmp
+LMO_CLIENT_ARGS="-username tester -password test" tools/dev-run.sh "$PWD/../clients/windows/LEGO Minifigures Online" /tmp
 ```
 
 `dev-run.sh` writes the client's `LocalConfig.xml` from the server
@@ -70,7 +70,7 @@ New features add their targets to `devcmd.rs` `targets`.
 | `tools/re/py d.py <va> [bytes]` | disassemble with string annotations |
 | `tools/re/py extract_rpc.py <out.json>` | regenerate `data/rpc_methods.json` |
 | `tools/re/py extract_protos.py <exe> <dir>` | regenerate `proto/` |
-| `tools/ghidra/analyze.sh` | one-time Ghidra import + analysis into `../ghidra/` |
+| `tools/ghidra/analyze.sh` | one-time Ghidra import + analysis into `../research/ghidra/` |
 | `tools/ghidra/decompile.sh <va...>` | decompiled C of the functions containing each address |
 | `tools/ghidra/xrefs.sh <va...>` | references to each address (code and data, one level through vtables) |
 | `tools/ghidra/symbols.sh <regex> [n]` | symbols matching a regex; for vtables, the first n slots |
@@ -78,5 +78,5 @@ New features add their targets to `devcmd.rs` `targets`.
 | `tools/re/py extract_return_points.py` | regenerate `data/return_points.json` (arrival next to the portal back to where the player came from) |
 
 Setup for the Python tools: `python3 -m venv .venv && .venv/bin/pip install pefile capstone protobuf`.
-They read `../client/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`. Ghidra comes
+They read `../clients/windows/LEGO Minifigures Online/LMO.exe` by default, or `$LMO_EXE`. Ghidra comes
 from `/opt/ghidra` (Arch `ghidra` package) or `$GHIDRA_HOME`.

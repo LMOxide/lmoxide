@@ -13,11 +13,11 @@ if [[ ${1:-} == --release ]]; then
 fi
 IP=${1:-$(ip -4 route get 1.1.1.1 | sed -nE 's/.* src ([0-9.]+).*/\1/p')}
 export LMO_UPSTREAM=${LMO_UPSTREAM-http://update.lego.funcom.com/legoupm}
-export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../rdb-cache")}
-export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../lmo-data")}
+export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../var/rdb-cache")}
+export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../var/data")}
 # GM level 1 as in dev-run.sh: free-text chat between players needs it.
 export LMO_GM_LEVEL=${LMO_GM_LEVEL:-1}
-CLIENT=${LMO_CLIENT_DIR:-$(realpath -m "$ROOT/../client/LEGO Minifigures Online")}
+CLIENT=${LMO_CLIENT_DIR:-$(realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online")}
 # the client kit, served at http://<ip>:8080/client-kit.tar.gz for other PCs (tools/linux-client/README.md)
 export LMO_CLIENT_KIT=$("$ROOT/tools/linux-client/make-kit.sh" | cut -d' ' -f1)
 pkill -x lmo-server || true

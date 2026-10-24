@@ -9,11 +9,11 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 export WINEPREFIX=${WINEPREFIX:-$HOME/.local/share/lmo-wine}
 # Fetch files the archived client lacks from Funcom's patch server (set LMO_UPSTREAM= to disable).
 export LMO_UPSTREAM=${LMO_UPSTREAM-http://update.lego.funcom.com/legoupm}
-export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../rdb-cache")}
+export LMO_CACHE_DIR=${LMO_CACHE_DIR:-$(realpath -m "$ROOT/../var/rdb-cache")}
 # Development characters are GMs: free-text chat and GM chat commands need it.
 export LMO_GM_LEVEL=${LMO_GM_LEVEL:-1}
 # Saved characters (outside the repo).
-export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../lmo-data")}
+export LMO_DATA_DIR=${LMO_DATA_DIR:-$(realpath -m "$ROOT/../var/data")}
 
 pkill -x LMO.exe || true
 pkill -x LMO || true

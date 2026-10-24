@@ -6,7 +6,7 @@
 # Calls are annotated with demangled target names by objdump.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-BIN=${LMO_LINUX_BIN:-$ROOT/../downloads/linux_557666/LMO}
+BIN=${LMO_LINUX_BIN:-$ROOT/../clients/downloads/linux_557666/LMO}
 SYMS=$ROOT/logs/linux_syms_sized.txt
 [[ -s $SYMS ]] || nm -DC -S --defined-only "$BIN" | awk 'NF>=4' > "$SYMS"
 list=0; [[ ${1:-} == -l ]] && { list=1; shift; }

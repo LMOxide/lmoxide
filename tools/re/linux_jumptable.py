@@ -3,7 +3,7 @@
 Used for *Receiver::DispatchMethod (`jmp [reg*8+TABLE]`) to verify method ids."""
 import re, struct, subprocess, sys, os
 ROOT = os.path.dirname(os.path.abspath(__file__))
-BIN = os.environ.get('LMO_LINUX_BIN', os.path.join(ROOT, '../../../downloads/linux_557666/LMO'))
+BIN = os.environ.get('LMO_LINUX_BIN', os.path.join(ROOT, '../../../clients/downloads/linux_557666/LMO'))
 table, n = int(sys.argv[1], 0), int(sys.argv[2], 0)
 # map VA -> file offset via program headers
 data = open(BIN, 'rb').read()

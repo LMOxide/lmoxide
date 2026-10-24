@@ -12,7 +12,7 @@ overwrites it in place with "http://<host>/rest/%s". A backup is kept as LMO.exe
 import argparse, os, shutil, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_EXE = os.path.join(HERE, "../../client/LEGO Minifigures Online/LMO.exe")
+DEFAULT_EXE = os.path.join(HERE, "../../clients/windows/LEGO Minifigures Online/LMO.exe")
 ORIGINAL = b"http://chatfilter.funcom.com/rest/%s"
 
 
