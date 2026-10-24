@@ -21,11 +21,13 @@ use std::{
     sync::{LazyLock, Mutex},
 };
 
+use futures::StreamExt;
 use tokio::{
-    io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
+    io::AsyncWriteExt,
     net::{TcpListener, TcpStream},
     sync::mpsc,
 };
+use tokio_util::codec::{FramedRead, LinesCodec};
 use tracing::{Instrument, debug, info, info_span, warn};
 
 /// account -> lines to send on its chat connection
@@ -39,16 +41,33 @@ static CHANNELS: LazyLock<Mutex<HashMap<String, HashSet<u32>>>> = LazyLock::new(
 /// a single client.
 pub static BOT_ECHO: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
+/// Longest line accepted from a client.
+const MAX_LINE: usize = 8 * 1024;
+/// How long a connection may take to log in (`PASS`).
+const LOGIN_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
 /// Channels every character is put in.
 const DEFAULT_CHANNELS: &[&str] = &["#ChatGroup_General_D1_1"];
 
-pub async fn listen(addr: SocketAddr) -> anyhow::Result<()> {
+pub async fn listen(addr: SocketAddr, max_per_ip: u32) -> anyhow::Result<()> {
     let listener = TcpListener::bind(addr).await?;
     info!("chat listening on {addr}");
     loop {
-        let (sock, peer) = listener.accept().await?;
+        let (sock, peer) = match listener.accept().await {
+            Ok(a) => a,
+            Err(e) => {
+                warn!("chat: accept failed: {e}");
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                continue;
+            }
+        };
+        let Some(guard) = crate::security::connection(peer.ip(), max_per_ip) else {
+            warn!(%peer, "chat: too many connections from this address, refused");
+            continue;
+        };
         tokio::spawn(
             async move {
+                let _guard = guard;
                 match handle(sock).await {
                     Ok(()) => info!("disconnected"),
                     Err(e) => warn!("chat connection error: {e:#}"),
@@ -61,24 +80,30 @@ pub async fn listen(addr: SocketAddr) -> anyhow::Result<()> {
 
 async fn handle(sock: TcpStream) -> anyhow::Result<()> {
     let (rd, mut wr) = sock.into_split();
-    let mut lines = BufReader::new(rd).lines();
+    let mut lines = FramedRead::new(rd, LinesCodec::new_with_max_length(MAX_LINE));
+    let login_deadline = tokio::time::Instant::now() + LOGIN_TIMEOUT;
     let (tx, mut rx) = mpsc::unbounded_channel::<String>();
     let mut account = None;
     let mut nick = String::new();
     loop {
         tokio::select! {
-            line = lines.next_line() => {
-                let Some(line) = line? else { break };
+            _ = tokio::time::sleep_until(login_deadline), if account.is_none() => {
+                anyhow::bail!("no PASS within {LOGIN_TIMEOUT:?}");
+            }
+            line = lines.next() => {
+                let Some(line) = line.transpose()? else { break };
                 debug!(%line, "<-");
                 let (cmd, rest) = line.split_once(' ').unwrap_or((line.as_str(), ""));
                 match cmd.to_ascii_uppercase().as_str() {
                     "PASS" => {
                         let cookie: u32 = rest.trim_start_matches(':').trim().parse().unwrap_or(0);
-                        account = crate::universe::account_for_cookie(cookie);
-                        info!(cookie, ?account, "chat login");
-                        if let Some(a) = account {
-                            CLIENTS.lock().unwrap().insert(a, tx.clone());
-                        }
+                        account = crate::state::or_log(crate::state::db().game_session(cookie), "session", None);
+                        info!(?account, "chat login");
+                        let Some(a) = account else {
+                            warn!("chat login with an invalid cookie");
+                            break;
+                        };
+                        CLIENTS.lock().unwrap().insert(a, tx.clone());
                     }
                     "NICK" => nick = rest.trim().to_string(),
                     "USER" => {
@@ -179,4 +204,14 @@ pub fn vicinity(account: u32, sender: u32, sender_name: &str, mood: i32, text: &
     if let Some(tx) = CLIENTS.lock().unwrap().get(&account) {
         let _ = tx.send(line);
     }
+}
+
+/// Sends a line from "Server" to everyone connected to chat (control interface broadcasts);
+/// the number of players reached.
+pub fn broadcast(sender: u32, text: &str) -> u32 {
+    let accounts: Vec<u32> = CLIENTS.lock().unwrap().keys().copied().collect();
+    for &a in &accounts {
+        vicinity(a, sender, "Server", 0, text);
+    }
+    accounts.len() as u32
 }

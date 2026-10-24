@@ -11,8 +11,18 @@ use tracing::{Instrument, debug, info, info_span, warn};
 
 use crate::Config;
 
+/// Largest frame accepted from a client (the length prefix makes the codec reserve it).
+const MAX_CLIENT_FRAME: usize = 1024 * 1024;
+
+/// How long a connection may stay unauthenticated between two frames.
+const AUTH_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
 pub struct Conn {
     framed: Framed<TcpStream, FrameCodec>,
+    pub peer: SocketAddr,
+    /// Set by the handler once the client proved who it is; until then frames must arrive
+    /// within [`AUTH_TIMEOUT`].
+    pub authenticated: bool,
     /// Our endpoint, used as the caller in outgoing RPCs.
     pub local: Endpoint,
     /// The client's endpoint as it identified itself (caller of its last RPC).
@@ -23,7 +33,14 @@ impl Conn {
     /// Next RPC from the client, or `None` on disconnect.
     pub async fn recv(&mut self) -> anyhow::Result<Option<Rpc>> {
         let body = loop {
-            match self.framed.next().await.transpose()? {
+            let next = if self.authenticated {
+                self.framed.next().await
+            } else {
+                tokio::time::timeout(AUTH_TIMEOUT, self.framed.next())
+                    .await
+                    .map_err(|_| anyhow::anyhow!("no authentication within {AUTH_TIMEOUT:?}"))?
+            };
+            match next.transpose()? {
                 None => return Ok(None),
                 Some(Frame::Rpc(body)) => break body,
                 Some(Frame::Flagged(raw)) => {
@@ -84,15 +101,30 @@ where
     let listener = TcpListener::bind(addr).await?;
     info!("{name} listening on {addr}");
     loop {
-        let (sock, peer) = listener.accept().await?;
+        let (sock, peer) = match listener.accept().await {
+            Ok(a) => a,
+            Err(e) => {
+                // e.g. out of file descriptors: keep listening
+                warn!("{name}: accept failed: {e}");
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                continue;
+            }
+        };
+        let Some(guard) = crate::security::connection(peer.ip(), cfg.max_connections_per_ip) else {
+            warn!(%peer, "{name}: too many connections from this address, refused");
+            continue;
+        };
         let cfg = cfg.clone();
         let span = info_span!("conn", %name, %peer);
         tokio::spawn(
             async move {
+                let _guard = guard;
                 info!("connected");
                 sock.set_nodelay(true).ok();
                 let conn = Conn {
-                    framed: Framed::new(sock, FrameCodec),
+                    framed: Framed::new(sock, FrameCodec::new(MAX_CLIENT_FRAME)),
+                    peer,
+                    authenticated: false,
                     local: Endpoint::UniverseAgent,
                     remote: None,
                 };

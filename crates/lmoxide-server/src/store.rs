@@ -1,62 +1,18 @@
-//! Saved characters: one JSON file per account in `--data-dir`.
+//! Saved characters, kept in the database (`lmoxide_db`). Characters are keyed by account
+//! instance for now: one character per account, with the account's id.
 
-use std::path::{Path, PathBuf};
+pub use lmoxide_db::Character;
 
-use serde::{Deserialize, Serialize};
-use tracing::warn;
+use crate::state;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Character {
-    pub name: String,
-    pub playfield: u32,
-    pub pos: [f32; 3],
-    /// Minifigure team: (inventory 101 position, item template). The first entry is active.
-    pub team: Vec<(u32, u32)>,
-    /// Minifigure XP (the star counter).
-    #[serde(default)]
-    pub stars: u64,
-    /// Active upgrade bitmask per minifigure template (unset: collection::DEFAULT_ACTIVE).
-    #[serde(default)]
-    pub upgrades: std::collections::BTreeMap<u32, u32>,
-    /// Other token counters (minifigure parts): token -> (gained, spent), as UpdateTokenAmount
-    /// sends them.
-    #[serde(default)]
-    pub tokens: std::collections::BTreeMap<u32, (u64, u64)>,
-}
-
-pub struct Store {
-    dir: PathBuf,
-}
+pub struct Store;
 
 impl Store {
-    pub fn new(dir: impl Into<PathBuf>) -> Self {
-        Self { dir: dir.into() }
+    pub fn load(&self, character: u32) -> Option<Character> {
+        state::or_log(state::db().load_character(character), "load character", None)
     }
 
-    fn path(&self, account: u32) -> PathBuf {
-        self.dir.join(format!("characters/{account}.json"))
+    pub fn save(&self, character: u32, c: &Character) -> anyhow::Result<()> {
+        Ok(state::db().save_character(character, character, c)?)
     }
-
-    pub fn load(&self, account: u32) -> Option<Character> {
-        let path = self.path(account);
-        let text = std::fs::read_to_string(&path).ok()?;
-        serde_json::from_str(&text)
-            .inspect_err(|e| warn!(path = %path.display(), "unreadable character file: {e}"))
-            .ok()
-    }
-
-    pub fn save(&self, account: u32, character: &Character) -> anyhow::Result<()> {
-        let path = self.path(account);
-        write_atomic(&path, serde_json::to_string_pretty(character)?.as_bytes())
-    }
-}
-
-fn write_atomic(path: &Path, data: &[u8]) -> anyhow::Result<()> {
-    if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir)?;
-    }
-    let tmp = path.with_extension("tmp");
-    std::fs::write(&tmp, data)?;
-    std::fs::rename(&tmp, path)?;
-    Ok(())
 }

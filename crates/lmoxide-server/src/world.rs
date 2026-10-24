@@ -21,6 +21,9 @@ pub enum Out {
     /// One RPC (endpoint, method id, args), e.g. community messages from another player's
     /// connection.
     Rpc(lmoxide_net::Endpoint, u32, Bytes),
+    /// Disconnect the player (kicked by an admin, or logged in again elsewhere), telling them
+    /// why in chat first.
+    Kick(Option<String>),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;

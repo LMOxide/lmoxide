@@ -29,6 +29,7 @@ use crate::{
     Config,
     collection::Collection,
     conn::Conn,
+    state,
     store::{Character, Store},
     world,
 };
@@ -39,7 +40,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(1);
-    let store = Store::new(&cfg.data_dir);
+    let store = Store;
     let mut character = 0;
     let mut me = Character {
         name: String::new(),
@@ -69,6 +70,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut presence: Option<world::Presence> = None;
     // online for friends and teams while the character is in play
     let mut community: Option<crate::community::Guard> = None;
+    // the account's effective GM level and its entry in the online list (control interface)
+    let mut gm_level = 0;
+    let mut _online: Option<crate::sessions::OnlineGuard> = None;
     loop {
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
@@ -82,6 +86,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
                     world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
+                    world::Out::Kick(reason) => {
+                        info!(character, ?reason, "kicked");
+                        if let Some(reason) = reason {
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &reason);
+                            // let the chat line arrive before the connection drops
+                            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                        }
+                        break;
+                    }
                 }
                 continue;
             }
@@ -89,28 +102,47 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         let mut r = Reader::new(&rpc.args);
         match (rpc.target(), rpc.method()) {
             (Some(Endpoint::ClientToGameserverRPC), agent::AUTHENTICATE2) => {
-                character = r.u32()?;
+                if conn.authenticated {
+                    anyhow::bail!("second Authenticate2");
+                }
+                let claimed = r.u32()?;
                 let cookie = r.u32()?;
                 let version = r.string()?;
-                let valid = cookie == crate::universe::cookie_for(character);
+                // Characters are keyed by account instance for now (see territory.rs).
+                let ip_key = format!("ip:{}", conn.peer.ip());
+                let account = (crate::security::allowed(&ip_key)
+                    && state::or_log(state::db().game_session(cookie), "session", None) == Some(claimed))
+                .then(|| state::or_log(state::db().account(claimed), "account", None))
+                .flatten();
+                let Some(account) = account.filter(|a| a.active_ban().is_none()) else {
+                    warn!(character = claimed, %version, "Authenticate2 refused: invalid cookie or banned");
+                    crate::security::failed(&ip_key);
+                    let args = Writer::new().i32(0).finish();
+                    conn.send_as(Some(claimed), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args).await?;
+                    return Ok(());
+                };
+                character = claimed;
+                conn.authenticated = true;
+                gm_level = account.gm_level.max(cfg.default_gm_level);
                 me = store.load(character).unwrap_or_else(|| Character {
-                    name: crate::sessions::name(character).unwrap_or_else(|| "Player".into()),
+                    name: crate::sessions::name(character).unwrap_or_else(|| account.username.clone()),
                     ..me.clone()
                 });
+                _online = Some(crate::sessions::online(character, &account.username, &me.name, gm_level, outbox.clone()));
                 *pos.lock().unwrap() = me.pos;
                 collection = Collection::new(&me.team);
-                info!(character, cookie, %version, valid, name = %me.name, playfield = me.playfield, pos = ?me.pos, "Authenticate2");
+                info!(character, %version, name = %me.name, playfield = me.playfield, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
-                // Characters are keyed by account instance for now (see territory.rs).
                 if !crate::sessions::territory_closed(character, std::time::Duration::from_secs(10)).await {
                     warn!(character, "territory connection still open; sending the world anyway");
                 }
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                send_world(&mut conn, &cfg, character, &me, &collection, potions_spent).await?;
+                send_world(&mut conn, character, &me, &collection, potions_spent).await?;
             }
+            _ if !conn.authenticated => anyhow::bail!("{} before Authenticate2", rpc.describe()),
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
                 // The client's own IIRs (u32 length + records). Only headers are decoded; the
                 // client sends one record per blob.
@@ -488,7 +520,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let playfield = r.u32()?;
                 let spawn = r.u32()?;
                 info!(playfield, spawn, "TeleportMe");
-                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), None, potions_spent)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), None, potions_spent)
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
@@ -511,7 +543,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(answer, "teleport window answer");
                 if answer > 0 || answer < -1 {
                     let playfield = (answer as u32) & 0x7fff_ffff;
-                    teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
                         .await?;
                 }
             }
@@ -521,7 +553,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let window = r.u32()?;
                 let playfield = r.u32()?;
                 info!(window, playfield, "teleport window bypass");
-                teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CLIENT_ATTEMPT_CLOSING_PLAYER_DESTINATION_PLAYFIELD) => {
@@ -608,7 +640,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let message = r.string()?;
                 let mood = r.i32()?;
                 info!(name = %me.name, %message, mood, "chat");
-                if crate::devcmd::is_command(&message) {
+                if crate::devcmd::is_command(&message) && gm_level < cfg.devcmd_gm_level {
+                    crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, "Test commands need a GM level.");
+                } else if crate::devcmd::is_command(&message) {
                     // a test command (devcmd.rs), not relayed
                     let here = *pos.lock().unwrap();
                     match crate::devcmd::run(&message, me.playfield, here) {
@@ -619,7 +653,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
-                            teleport(&mut conn, &cfg, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
                                 .await?;
                         }
                     }
@@ -829,7 +863,6 @@ pub fn remote_spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
 /// (UpdateTokenAmount(uint32 token, uint64 gained, uint64 spent): potions 150, stars 100).
 async fn send_world(
     conn: &mut Conn,
-    cfg: &Config,
     character: u32,
     me: &Character,
     collection: &Collection,
@@ -839,8 +872,9 @@ async fn send_world(
     let mut records = vec![playfield_full_update(me.playfield)];
     records.extend(spawn_records(id, &me.spec()));
     records.insert(3, full_player_character(id, me, collection));
-    if cfg.gm_level != 0 {
-        records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
+    let gm_level = crate::sessions::gm_level(character);
+    if gm_level != 0 {
+        records.push(int32_stat(id, STAT_GM_LEVEL, gm_level));
     }
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     let saved = me.tokens.iter().map(|(&t, &(g, s))| (t, g, s));
@@ -856,7 +890,6 @@ async fn send_world(
 #[allow(clippy::too_many_arguments)]
 async fn teleport(
     conn: &mut Conn,
-    cfg: &Config,
     store: &Store,
     character: u32,
     me: &mut Character,
@@ -898,7 +931,7 @@ async fn teleport(
     }
     // let the client tear down the old playfield first
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-    send_world(conn, cfg, character, me, collection, potions_spent).await
+    send_world(conn, character, me, collection, potions_spent).await
 }
 
 /// A charge ability being held (see projectile.rs `charge_items`).
@@ -1126,7 +1159,7 @@ pub fn move_task_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> Bytes {
 
 const BOT_INSTANCE: u32 = 0x0b07;
 /// Sender instance of the test commands' chat answers.
-const SERVER_INSTANCE: u32 = 0x5e7e;
+pub const SERVER_INSTANCE: u32 = 0x5e7e;
 
 /// A server-side character that circles whoever else is on the playfield, standing in for a
 /// second player (`--bot`).
@@ -1379,13 +1412,19 @@ pub struct CharSpec<'a> {
     pub npc: Option<proto_core_character_iir::NpcStats>,
 }
 
-impl Character {
+/// Game rules on a saved character (the type lives in lmoxide-db).
+pub trait CharacterExt {
     /// Active upgrade bitmask of a minifigure.
-    pub fn upgrade(&self, template: u32) -> u32 {
+    fn upgrade(&self, template: u32) -> u32;
+    fn spec(&self) -> CharSpec<'_>;
+}
+
+impl CharacterExt for Character {
+    fn upgrade(&self, template: u32) -> u32 {
         self.upgrades.get(&template).copied().unwrap_or(crate::collection::DEFAULT_ACTIVE)
     }
 
-    pub fn spec(&self) -> CharSpec<'_> {
+    fn spec(&self) -> CharSpec<'_> {
         CharSpec {
             name: &self.name,
             playfield: self.playfield,

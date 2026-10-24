@@ -28,8 +28,25 @@ pub enum CodecError {
     Crc { header: u32, computed: u32 },
 }
 
-#[derive(Debug, Default)]
-pub struct FrameCodec;
+/// Frames up to a maximum length (both directions; [`FrameCodec::default`] allows 16 MiB). A
+/// server facing untrusted clients should use a smaller limit: a length prefix makes it
+/// reserve that much memory before the body arrives.
+#[derive(Debug, Clone, Copy)]
+pub struct FrameCodec {
+    max: usize,
+}
+
+impl FrameCodec {
+    pub const fn new(max_frame: usize) -> Self {
+        Self { max: max_frame }
+    }
+}
+
+impl Default for FrameCodec {
+    fn default() -> Self {
+        Self::new(MAX_FRAME)
+    }
+}
 
 impl Decoder for FrameCodec {
     type Item = Frame;
@@ -42,7 +59,7 @@ impl Decoder for FrameCodec {
         let raw = u32::from_be_bytes(src[..4].try_into().unwrap()) as usize;
         let flagged = raw & FLAG != 0;
         let len = raw & !FLAG;
-        if !(4..=MAX_FRAME).contains(&len) {
+        if !(4..=self.max).contains(&len) {
             return Err(CodecError::BadLength(len));
         }
         if src.len() < 4 + len {
@@ -83,9 +100,9 @@ mod tests {
     #[test]
     fn roundtrip() {
         let mut buf = BytesMut::new();
-        FrameCodec.encode(Frame::Rpc(Bytes::from_static(b"hello")), &mut buf).unwrap();
+        FrameCodec::default().encode(Frame::Rpc(Bytes::from_static(b"hello")), &mut buf).unwrap();
         assert_eq!(&buf[..4], &9u32.to_be_bytes());
-        let f = FrameCodec.decode(&mut buf).unwrap().unwrap();
+        let f = FrameCodec::default().decode(&mut buf).unwrap().unwrap();
         assert_eq!(f, Frame::Rpc(Bytes::from_static(b"hello")));
         assert!(buf.is_empty());
     }
@@ -94,7 +111,7 @@ mod tests {
     fn flagged() {
         // Captured from the client after game-server authentication.
         let mut buf = BytesMut::from(&[0x80, 0, 0, 5, 0xa5, 0x05, 0xdf, 0x1b, 0x01, 0xff][..]);
-        let f = FrameCodec.decode(&mut buf).unwrap().unwrap();
+        let f = FrameCodec::default().decode(&mut buf).unwrap().unwrap();
         assert_eq!(f, Frame::Flagged(Bytes::from_static(&[0x01])));
         assert_eq!(&buf[..], &[0xff]);
     }
@@ -102,8 +119,14 @@ mod tests {
     #[test]
     fn partial() {
         let mut full = BytesMut::new();
-        FrameCodec.encode(Frame::Rpc(Bytes::from_static(b"abc")), &mut full).unwrap();
+        FrameCodec::default().encode(Frame::Rpc(Bytes::from_static(b"abc")), &mut full).unwrap();
         let mut part = BytesMut::from(&full[..6]);
-        assert!(FrameCodec.decode(&mut part).unwrap().is_none());
+        assert!(FrameCodec::default().decode(&mut part).unwrap().is_none());
+    }
+
+    #[test]
+    fn rejects_oversized() {
+        let mut buf = BytesMut::from(&[0, 0, 0x10, 0, 0, 0, 0, 0][..]);
+        assert!(matches!(FrameCodec::new(1024).decode(&mut buf), Err(CodecError::BadLength(4096))));
     }
 }

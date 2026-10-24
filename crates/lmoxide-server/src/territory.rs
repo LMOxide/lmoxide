@@ -20,6 +20,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .and_then(|v| v.parse().ok())
         .unwrap_or(1);
     let mut account = 0;
+    let mut cookie = 0;
     let mut _session = None;
     let mut keepalive = tokio::time::interval(KEEPALIVE);
     keepalive.tick().await;
@@ -37,31 +38,35 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         };
         let mut r = Reader::new(&rpc.args);
         match (rpc.target(), rpc.method()) {
-            (Some(Endpoint::PlayerAgent), agent::AUTHENTICATE) => {
-                account = r.u32()?;
-                let cookie = r.u32()?;
-                let version = r.u32()?;
-                let valid = cookie == crate::universe::cookie_for(account);
-                info!(account, cookie, version, valid, "Authenticate");
-                _session = Some(crate::sessions::territory_opened(account));
-                let args = Writer::new().i32(status).finish();
-                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::AUTHENTICATE_ACK, args)
-                    .await?;
-            }
-            (Some(Endpoint::PlayerAgent), agent::LOGIN_FROM_CRASH) => {
-                // A client that lost its servers (e.g. a server restart) reconnects with this
-                // instead of Authenticate; AuthenticateAck(1) puts it back on the normal path
+            (Some(Endpoint::PlayerAgent), method @ (agent::AUTHENTICATE | agent::LOGIN_FROM_CRASH)) => {
+                // Authenticate(account, cookie, territoryVersion). A client that lost its
+                // servers (e.g. a server restart) reconnects with LoginFromCrash(account, cookie,
+                // character) instead; AuthenticateAck(1) puts it back on the normal path
                 // (GameClientConnectivity::AuthenticateAck -> GetStartupData).
-                account = r.u32()?;
-                let cookie = r.u32()?;
-                let character = r.u32()?;
-                let valid = cookie == crate::universe::cookie_for(account);
-                info!(account, cookie, character, valid, "LoginFromCrash");
+                let claimed = r.u32()?;
+                let their_cookie = r.u32()?;
+                let extra = r.u32()?;
+                let ip_key = format!("ip:{}", conn.peer.ip());
+                let valid = crate::security::allowed(&ip_key)
+                    && crate::state::or_log(crate::state::db().game_session(their_cookie), "session", None) == Some(claimed);
+                let crash = method == agent::LOGIN_FROM_CRASH;
+                info!(account = claimed, valid, crash, extra, "Authenticate");
+                if !valid {
+                    warn!(account = claimed, "invalid login cookie");
+                    crate::security::failed(&ip_key);
+                    let args = Writer::new().i32(0).finish();
+                    conn.send_as(Some(claimed), Endpoint::PlayerInterface, interface::AUTHENTICATE_ACK, args).await?;
+                    break;
+                }
+                account = claimed;
+                cookie = their_cookie;
+                conn.authenticated = true;
                 _session = Some(crate::sessions::territory_opened(account));
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::AUTHENTICATE_ACK, args)
                     .await?;
             }
+            _ if !conn.authenticated => anyhow::bail!("{} before Authenticate", rpc.describe()),
             (Some(Endpoint::PlayerAgent), agent::GET_STARTUP_DATA) => {
                 let md5 = r.string()?;
                 info!(account, %md5, "GetStartupData");
@@ -95,12 +100,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .write(
                         Writer::new()
                             .string(&cfg.public_addr(cfg.chat_port))
-                            .u32(crate::universe::cookie_for(account)),
+                            .u32(cookie),
                     )
                     .finish();
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::CHAT_SERVER_CONNECT_READY, chat)
                     .await?;
-                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::LOGIN_CONNECT_READY, login_connect_ready(&cfg, character))
+                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::LOGIN_CONNECT_READY, login_connect_ready(&cfg, character, cookie))
                     .await?;
             }
             (Some(Endpoint::PlayerAgent), agent::GET_DIMENSION_LIST) => {
@@ -158,8 +163,8 @@ pub const CHARACTER_TYPE: u32 = 50000;
 /// `LoginConnectReady(gameServerAddress, nCookie, cClientCharacterID, PlayfieldProxy)`
 /// (decoder 0x7bf400): string, u32, ID32, embedded `PlayfieldProxyData` protobuf.
 /// The playfield is the character's saved one (new characters: `--start-playfield`).
-fn login_connect_ready(cfg: &Config, character: Id32) -> bytes::Bytes {
-    let playfield = crate::store::Store::new(&cfg.data_dir)
+fn login_connect_ready(cfg: &Config, character: Id32, cookie: u32) -> bytes::Bytes {
+    let playfield = crate::store::Store
         .load(character.instance)
         .map_or(cfg.start_playfield, |c| c.playfield);
     let pf = PlayfieldProxyData {
@@ -172,7 +177,7 @@ fn login_connect_ready(cfg: &Config, character: Id32) -> bytes::Bytes {
         .write(
             Writer::new()
                 .string(&cfg.public_addr(cfg.game_port))
-                .u32(crate::universe::cookie_for(character.instance)),
+                .u32(cookie),
         )
         .proto(&pf)
         .finish()

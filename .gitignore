@@ -5,3 +5,4 @@ logs/
 rdb-cache/
 lmo-data/
 dist/
+.claude/

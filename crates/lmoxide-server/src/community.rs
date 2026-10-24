@@ -2,13 +2,12 @@
 //! (`CSPlayerAgent` / `CSPlayerInterface`, friend codes on `GameCharAgentProject`, leave/kick
 //! on `GameCharAgent`). Formats and the client's handling: docs/PROTOCOL.md "Friends and teams".
 //!
-//! Friendships are kept in `<data-dir>/friends.json` (both characters may be offline, and a
-//! character file is rewritten by its own session). Teams live in memory: a member who
-//! disconnects stays in the team (shown offline) until everyone has left.
+//! Friendships are kept in the database (`friendships`; both characters may be offline). Teams
+//! live in memory: a member who disconnects stays in the team (shown offline) until everyone
+//! has left.
 
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
-    path::PathBuf,
+    collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
 };
 
@@ -19,10 +18,9 @@ use lmoxide_net::{
     proto::{FriendsData, GroupElementData, ProtoId32, friends_data::Friend},
     types::Id32,
 };
-use serde::{Deserialize, Serialize};
-use tracing::{info, warn};
+use tracing::info;
 
-use crate::{store::Store, territory::CHARACTER_TYPE, world};
+use crate::{state, territory::CHARACTER_TYPE, world};
 
 /// ID32 type of teams (57016 would be a raid), from `AddToGroupIIR_c::Activate`.
 const TEAM_TYPE: u32 = 57001;
@@ -57,50 +55,8 @@ struct State {
 
 static STATE: LazyLock<Mutex<State>> = LazyLock::new(|| Mutex::new(State { next_team: 1, ..Default::default() }));
 
-#[derive(Default, Serialize, Deserialize)]
-struct FriendsFile {
-    /// (lower instance, higher instance)
-    pairs: BTreeSet<(u32, u32)>,
-    /// last known names (for offline friends)
-    names: BTreeMap<u32, String>,
-}
-
-static DATA_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
-static FRIENDS: LazyLock<Mutex<FriendsFile>> = LazyLock::new(|| {
-    let file = friends_path()
-        .and_then(|p| std::fs::read_to_string(p).ok())
-        .and_then(|t| serde_json::from_str(&t).inspect_err(|e| warn!("friends.json unreadable: {e}")).ok());
-    Mutex::new(file.unwrap_or_default())
-});
-
-pub fn init(data_dir: PathBuf) {
-    *DATA_DIR.lock().unwrap() = Some(data_dir);
-}
-
-fn friends_path() -> Option<PathBuf> {
-    DATA_DIR.lock().unwrap().as_ref().map(|d| d.join("friends.json"))
-}
-
-fn save_friends(f: &FriendsFile) {
-    let Some(path) = friends_path() else { return };
-    let tmp = path.with_extension("tmp");
-    let res = serde_json::to_vec_pretty(f).map_err(anyhow::Error::from).and_then(|data| {
-        std::fs::write(&tmp, data)?;
-        std::fs::rename(&tmp, &path)?;
-        Ok(())
-    });
-    if let Err(e) = res {
-        warn!("saving friends.json failed: {e:#}");
-    }
-}
-
 fn friends_of(character: u32) -> Vec<u32> {
-    let f = FRIENDS.lock().unwrap();
-    f.pairs.iter().filter_map(|&(a, b)| (a == character).then_some(b).or((b == character).then_some(a))).collect()
-}
-
-fn pair(a: u32, b: u32) -> (u32, u32) {
-    (a.min(b), a.max(b))
+    state::or_log(state::db().friends_of(character), "friends", Vec::new())
 }
 
 fn char_id(instance: u32) -> Id32 {
@@ -111,19 +67,12 @@ fn name_of(st: &State, instance: u32) -> String {
     if let Some(o) = st.online.get(&instance) {
         return o.name.clone();
     }
-    if let Some(n) = FRIENDS.lock().unwrap().names.get(&instance) {
-        return n.clone();
-    }
-    DATA_DIR
-        .lock()
-        .unwrap()
-        .as_ref()
-        .and_then(|d| Store::new(d).load(instance))
-        .map_or_else(|| format!("Player {instance}"), |c| c.name)
+    state::or_log(state::db().character_name(instance), "character name", None)
+        .unwrap_or_else(|| format!("Player {instance}"))
 }
 
 fn exists(instance: u32) -> bool {
-    DATA_DIR.lock().unwrap().as_ref().is_some_and(|d| Store::new(d).load(instance).is_some())
+    state::or_log(state::db().character_exists(instance), "character lookup", false)
 }
 
 fn send(st: &State, to: u32, endpoint: Endpoint, method: u32, args: Bytes) {
@@ -277,7 +226,6 @@ pub fn decode_friend_code(code: &str) -> Option<u32> {
 pub fn login(character: u32, name: &str, playfield: u32, outbox: world::Outbox) -> Guard {
     let mut st = STATE.lock().unwrap();
     st.online.insert(character, Online { name: name.to_string(), playfield, outbox });
-    FRIENDS.lock().unwrap().names.insert(character, name.to_string());
     let friends = friends_of(character);
     friends_update(&st, character, &friends);
     for &f in &friends {
@@ -418,14 +366,7 @@ fn handle_cs_locked(character: u32, method: u32, r: &mut Reader) -> anyhow::Resu
         }
         cs_player_agent::SIGNAL_REMOVE_FRIEND_BY_ID => {
             let other = Id32::read(r)?.instance;
-            let removed = {
-                let mut f = FRIENDS.lock().unwrap();
-                let removed = f.pairs.remove(&pair(character, other));
-                if removed {
-                    save_friends(&f);
-                }
-                removed
-            };
+            let removed = state::or_log(state::db().remove_friendship(character, other), "remove friend", false);
             if removed {
                 let st = STATE.lock().unwrap();
                 friends_removed(&st, character, other);
@@ -476,12 +417,8 @@ fn add_friend(character: u32, target: u32) {
 }
 
 fn befriend(a: u32, b: u32) {
-    {
-        let mut f = FRIENDS.lock().unwrap();
-        if !f.pairs.insert(pair(a, b)) {
-            return;
-        }
-        save_friends(&f);
+    if !state::or_log(state::db().add_friendship(a, b), "add friend", false) {
+        return;
     }
     let st = STATE.lock().unwrap();
     friends_update(&st, a, &[b]);
@@ -667,6 +604,7 @@ mod tests {
 
     #[test]
     fn team_invite_accept_leave() {
+        crate::state::init_for_tests();
         let (a, b) = (900_001, 900_002);
         let (ta, mut ra) = tokio::sync::mpsc::unbounded_channel();
         let (tb, mut rb) = tokio::sync::mpsc::unbounded_channel();

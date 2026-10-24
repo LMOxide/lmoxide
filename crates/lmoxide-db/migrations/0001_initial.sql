@@ -96,3 +96,13 @@ CREATE TABLE settings (
     key    TEXT PRIMARY KEY,
     value  TEXT NOT NULL
 );
+
+-- Login cookies handed out by the universe agent after a password check; the territory, game
+-- and chat servers accept a client only with its account's live cookie.
+CREATE TABLE game_sessions (
+    cookie      INTEGER PRIMARY KEY,
+    account_id  INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    created_at  INTEGER NOT NULL,
+    expires_at  INTEGER NOT NULL
+);
+CREATE INDEX game_sessions_account ON game_sessions(account_id);

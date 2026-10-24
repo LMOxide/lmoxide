@@ -9,16 +9,16 @@ anyhow.workspace = true
 axum.workspace = true
 bytes.workspace = true
 clap.workspace = true
-flate2.workspace = true
 futures.workspace = true
-md-5.workspace = true
 prost.workspace = true
-reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 lmoxide-net.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true
-tower-http.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+lmoxide-db = { version = "0.1.0", path = "../lmoxide-db" }
+lmoxide-control = { version = "0.1.0", path = "../lmoxide-control" }
+rand = "0.9"
+rpassword = "7.5.4"

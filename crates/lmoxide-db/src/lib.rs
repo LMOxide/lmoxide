@@ -7,6 +7,7 @@
 mod accounts;
 mod api;
 mod characters;
+mod game_sessions;
 pub mod legacy;
 
 use std::{
