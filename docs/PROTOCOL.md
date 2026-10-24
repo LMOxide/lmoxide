@@ -198,6 +198,12 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
   echoed it unchanged. On another client it moves the character only in direct-control mode
   (`Vehicle_t::UpdateControlMode`: a player character's vehicle without a move task), placing
   it (SetSyncPos) and keeping it moving at the velocity until the next update.
+- **Movement animations of player characters**: a character built from its spawn records
+  (full update with its MonsterData) shows the look but slides in one pose until its
+  MonsterData changes (`SimpleChar_t::SetStat` 359 -> `SetAnimatedMesh`, which ignores an
+  unchanged mesh), as a minifigure switch does. The server flips the look to the generic body
+  (2212) and back 1.5 s after a player enters a playfield (`game.rs` `refresh_costumes`), for
+  them on every client and for the others on their client.
 - **NPC movement** (recorded session): `MoveTaskIIR_c` with a ListMoveTask of PathMoveTasks
   along navmesh waypoints, sent when the NPC's plan changes (a path in progress was re-sent
   with its current start); `StopIIR_c` (pos, rotation, u8 jump, u8 wait) when it stops;

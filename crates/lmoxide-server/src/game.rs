@@ -242,6 +242,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let pos = pos.clone();
                             let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() }.spec());
                             presence = Some(world::join(id, me.playfield, pos_handle, spawn, outbox.clone()));
+                            set_costume(id, monster_data_for(me.team.first().map_or(0, |&(_, t)| t)));
+                            refresh_costumes(id);
                         }
                     }
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
@@ -1284,6 +1286,7 @@ fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster
 /// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
 /// shown to everyone else) and its own health.
 fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, level: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
+    set_costume(id, monster_data_for(template));
     let costume = int32_stat(id, STAT_MONSTER_DATA, monster_data_for(template));
     if let Some(p) = presence {
         world::broadcast(p.id(), vec![costume.clone()]);
@@ -1293,6 +1296,43 @@ fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, level: u32,
     records.extend(health_records(id, template, upgrades, level));
     records
 }
+
+/// Players' current look (MonsterData), for `refresh_costumes`.
+static COSTUMES: std::sync::LazyLock<Mutex<HashMap<Id32, u32>>> = std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
+
+fn set_costume(id: Id32, monster_data: u32) {
+    COSTUMES.lock().unwrap().insert(id, monster_data);
+}
+
+/// A player character built from its spawn records (full update with its look) shows the look
+/// but doesn't play its movement animations (it slides in one pose) until the look changes, as
+/// a minifigure switch does (SimpleChar_t::SetStat MonsterData -> SetAnimatedMesh, which
+/// ignores an unchanged mesh). So, a moment after `joined` entered a playfield, its look and
+/// the other players' looks there change to the generic body and back: for `joined` on every
+/// client, and for the others on `joined`'s client.
+fn refresh_costumes(joined: Id32) {
+    tokio::spawn(async move {
+        tokio::time::sleep(COSTUME_REFRESH_DELAY).await;
+        let flip = |id: Id32, look: u32| vec![int32_stat(id, STAT_MONSTER_DATA, GENERIC_LOOK), int32_stat(id, STAT_MONSTER_DATA, look)];
+        let costumes = COSTUMES.lock().unwrap().clone();
+        if let Some(&look) = costumes.get(&joined) {
+            world::send_playfield(joined, true, world::Out::Records(flip(joined, look)));
+        }
+        let others: Vec<Bytes> = world::neighbours(joined)
+            .into_iter()
+            .filter_map(|other| costumes.get(&other).map(|&look| flip(other, look)))
+            .flatten()
+            .collect();
+        if !others.is_empty() {
+            world::send_to(joined, world::Out::Records(others));
+        }
+    });
+}
+
+/// The generic body ("Aztec_Warrior", the minifigure templates' own MonsterData stat).
+const GENERIC_LOOK: u32 = 2212;
+/// After the spawn records, so the first build of the character is done (assumed).
+const COSTUME_REFRESH_DELAY: std::time::Duration = std::time::Duration::from_millis(1500);
 
 /// Sends LearnSpell for everything the team's minifigures can cast.
 async fn learn_team_spells(conn: &mut Conn, character: u32, me: &Character) -> anyhow::Result<()> {
@@ -1414,6 +1454,7 @@ pub async fn run_bot(playfield: u32) {
     };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
+    set_costume(id, monster_data_for(START_TEAM[0].1));
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     // runs around them like a player with the keyboard: a CharDCMoveIIR_t with the velocity
     // every 0.2 s (the client's own update rate while steering)
