@@ -43,10 +43,21 @@ pub struct Catalog {
     /// The login key patched into the executables of the current build.
     pub login_key: Option<String>,
     pub warnings: Vec<String>,
-    /// Signed manifest JSON per platform; missing while still being built.
-    pub manifests: HashMap<Platform, Bytes>,
+    /// Signed manifest per platform; missing while still being built.
+    pub manifests: HashMap<Platform, Published>,
     /// sha256 -> file, for every file of every manifest.
     pub files: HashMap<String, PathBuf>,
+}
+
+/// A platform's signed manifest as served.
+#[derive(Clone)]
+pub struct Published {
+    /// The [`SignedManifest`] JSON.
+    pub json: Bytes,
+    /// [`lmoxide_patch::Manifest::revision`].
+    pub revision: String,
+    /// Size of the complete install.
+    pub install_bytes: u64,
 }
 
 /// Output of [`prepare`], input of [`publish`].
@@ -282,7 +293,8 @@ fn publish_blocking(app: &App, mut prepared: Prepared) -> anyhow::Result<Catalog
         let bytes: u64 = m.files.iter().map(|f| f.size).sum();
         info!(%platform, files = m.files.len(), mb = bytes >> 20, version = %m.version, "manifest");
         let signed = SignedManifest::sign(&m, &app.signing)?;
-        catalog.manifests.insert(*platform, Bytes::from(serde_json::to_vec(&signed)?));
+        let json = Bytes::from(serde_json::to_vec(&signed)?);
+        catalog.manifests.insert(*platform, Published { json, revision: m.revision(), install_bytes: bytes });
         for src in tree.files.values() {
             catalog.files.insert(src.sha256.clone().unwrap(), src.path.clone());
         }

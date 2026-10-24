@@ -42,8 +42,21 @@ impl Client {
         format!("{}/lmoxide/v1/{rel}", self.base)
     }
 
+    /// [`Error::Unreachable`] for connection failures and timeouts, else [`Error::Http`].
+    fn send_error(&self, e: reqwest::Error) -> Error {
+        if e.is_connect() || e.is_timeout() {
+            Error::Unreachable { url: self.base.clone(), source: e }
+        } else {
+            Error::Http(e)
+        }
+    }
+
     async fn get(&self, url: &str) -> Result<reqwest::Response> {
-        let resp = self.http.get(url).send().await?;
+        self.check(url, self.http.get(url).send().await.map_err(|e| self.send_error(e))?)
+    }
+
+    /// Turns error statuses into errors.
+    fn check(&self, url: &str, resp: reqwest::Response) -> Result<reqwest::Response> {
         match resp.status() {
             s if s.is_success() => Ok(resp),
             StatusCode::SERVICE_UNAVAILABLE => {
@@ -69,6 +82,23 @@ impl Client {
         Ok(self.get(&self.url(&format!("manifest/{platform}"))).await?.json().await?)
     }
 
+    /// [`Client::signed_manifest`] unless its [`Manifest::revision`] is still `revision` (the
+    /// installed one): then `None`, without downloading it (`If-None-Match`).
+    pub async fn signed_manifest_if_changed(&self, platform: Platform, revision: &str) -> Result<Option<SignedManifest>> {
+        let url = self.url(&format!("manifest/{platform}"));
+        let resp = self
+            .http
+            .get(&url)
+            .header(header::IF_NONE_MATCH, format!("\"{revision}\""))
+            .send()
+            .await
+            .map_err(|e| self.send_error(e))?;
+        if resp.status() == StatusCode::NOT_MODIFIED {
+            return Ok(None);
+        }
+        Ok(Some(self.check(&url, resp)?.json().await?))
+    }
+
     /// Requests a file body, from byte `offset` on (HTTP Range). The response status tells
     /// whether the range was honoured (206) or the whole body follows (200).
     pub(crate) async fn file(&self, sha256: &str, offset: u64) -> Result<reqwest::Response> {
@@ -77,7 +107,7 @@ impl Client {
         if offset > 0 {
             req = req.header(header::RANGE, format!("bytes={offset}-"));
         }
-        let resp = req.send().await?;
+        let resp = req.send().await.map_err(|e| self.send_error(e))?;
         if resp.status().is_success() {
             Ok(resp)
         } else {

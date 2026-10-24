@@ -16,14 +16,18 @@ use std::{
     fs,
     io,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
 };
 
 use futures::{StreamExt, TryStreamExt};
 use tokio::io::AsyncWriteExt;
 
 use crate::{
-    Error, FileEntry, Manifest, Result, STATE_DIR, SignedManifest, check_path, client::Client,
+    Error, FileEntry, Manifest, Result, STATE_DIR, SignedManifest, check_path,
+    client::{Client, stored_key},
     hashcache::{HashCache, sha256_file},
 };
 
@@ -60,11 +64,24 @@ pub struct Options {
     pub full_check: bool,
     /// Attempts per file before giving up (network errors resume where they stopped).
     pub attempts: u32,
+    /// Set it to stop [`plan`] and [`apply`] soon, with [`Error::Cancelled`] (between files
+    /// while hashing, between chunks while downloading; partial downloads resume later).
+    pub cancel: Option<Arc<AtomicBool>>,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { jobs: 4, full_check: false, attempts: 4 }
+        Self { jobs: 4, full_check: false, attempts: 4, cancel: None }
+    }
+}
+
+impl Options {
+    fn cancelled(&self) -> bool {
+        self.cancel.as_ref().is_some_and(|c| c.load(Ordering::Relaxed))
+    }
+
+    fn check_cancel(&self) -> Result<()> {
+        if self.cancelled() { Err(Error::Cancelled) } else { Ok(()) }
     }
 }
 
@@ -138,15 +155,32 @@ pub fn safe_join(dir: &Path, rel: &str) -> Result<PathBuf> {
     Ok(cur)
 }
 
+fn manifest_path(dir: &Path) -> PathBuf {
+    state_dir(dir).join("manifest.json")
+}
+
 /// Saves the verified manifest envelope as `.lmoxide/manifest.json` (for launchers and as a
 /// record of what was installed).
 pub fn save_manifest(dir: &Path, signed: &SignedManifest) -> Result<()> {
-    let path = state_dir(dir).join("manifest.json");
+    let path = manifest_path(dir);
     fs::create_dir_all(state_dir(dir))?;
     let tmp = path.with_extension("tmp");
     fs::write(&tmp, serde_json::to_vec_pretty(signed)?)?;
     fs::rename(tmp, path)?;
     Ok(())
+}
+
+/// The manifest [`save_manifest`] saved, verified with the install's trusted key
+/// ([`stored_key`]). `None` if there is no saved manifest or no trusted key.
+pub fn load_manifest(dir: &Path) -> Result<Option<Manifest>> {
+    let data = match fs::read(manifest_path(dir)) {
+        Ok(d) => d,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(e.into()),
+    };
+    let Some(key) = stored_key(dir)? else { return Ok(None) };
+    let signed: SignedManifest = serde_json::from_slice(&data)?;
+    signed.verify(&key).map(Some)
 }
 
 #[cfg(unix)]
@@ -190,6 +224,7 @@ fn plan_blocking(dir: &Path, manifest: &Manifest, opts: &Options, progress: &Pro
     // Files whose content must be compared: (entry, path, metadata).
     let mut to_hash = Vec::new();
     for entry in &manifest.files {
+        opts.check_cancel()?;
         let path = safe_join(dir, &entry.path)?;
         match fs::symlink_metadata(&path) {
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
@@ -215,8 +250,8 @@ fn plan_blocking(dir: &Path, manifest: &Manifest, opts: &Options, progress: &Pro
     std::thread::scope(|s| {
         for _ in 0..opts.jobs.clamp(1, 16).min(to_hash.len().max(1)) {
             s.spawn(|| {
-                loop {
-                    let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                while !opts.cancelled() {
+                    let i = next.fetch_add(1, Ordering::Relaxed);
                     let Some((_, path, _)) = to_hash.get(i) else { break };
                     let r = sha256_file(path);
                     let mut results = results.lock().unwrap();
@@ -227,6 +262,16 @@ fn plan_blocking(dir: &Path, manifest: &Manifest, opts: &Options, progress: &Pro
         }
     });
     let mut results = results.into_inner().unwrap();
+    if opts.cancelled() {
+        // keep what was hashed for next time
+        for (i, r) in results {
+            if let Ok(h) = r {
+                cache.insert(&to_hash[i].0.path, &to_hash[i].2, h);
+            }
+        }
+        let _ = cache.save(&cache_path(dir));
+        return Err(Error::Cancelled);
+    }
     results.sort_by_key(|(i, _)| *i);
     for (i, r) in results {
         let (entry, _, meta) = &to_hash[i];
@@ -283,6 +328,7 @@ pub async fn apply(client: &Client, dir: &Path, plan: &Plan, opts: &Options, pro
         .try_for_each_concurrent(opts.jobs.max(1), |entries| {
             let (partial_dir, cache) = (partial_dir.clone(), cache.clone());
             async move {
+                opts.check_cancel()?;
                 download_group(client, dir, &partial_dir, &entries, opts, progress).await?;
                 let mut cache = cache.lock().unwrap();
                 for e in entries {
@@ -347,8 +393,9 @@ async fn download_group(
     let mut attempt = 0;
     loop {
         attempt += 1;
-        match download_once(client, &partial, first, progress).await {
+        match download_once(client, &partial, first, opts, progress).await {
             Ok(()) => break,
+            Err(Error::Cancelled) => return Err(Error::Cancelled),
             Err(e @ Error::HashMismatch { .. }) | Err(e @ Error::Status { .. }) if attempt >= 2 => return Err(e),
             Err(Error::HashMismatch { .. }) => {
                 // Corrupt partial (or changed server file): start over.
@@ -397,7 +444,13 @@ async fn download_group(
 }
 
 /// One attempt: resume from what `partial` has, then check size and hash.
-async fn download_once(client: &Client, partial: &Path, entry: &FileEntry, progress: &ProgressFn) -> Result<()> {
+async fn download_once(
+    client: &Client,
+    partial: &Path,
+    entry: &FileEntry,
+    opts: &Options,
+    progress: &ProgressFn,
+) -> Result<()> {
     let mut have = match tokio::fs::metadata(partial).await {
         Ok(m) if m.len() <= entry.size => m.len(),
         Ok(_) => {
@@ -421,6 +474,10 @@ async fn download_once(client: &Client, partial: &Path, entry: &FileEntry, progr
         let mut stream = resp.bytes_stream();
         let mut got = have;
         while let Some(chunk) = stream.next().await {
+            if opts.cancelled() {
+                file.flush().await?;
+                return Err(Error::Cancelled);
+            }
             let chunk = match chunk {
                 Ok(c) => c,
                 Err(e) => {
@@ -508,6 +565,33 @@ mod tests {
         // the hash cache now remembers "same" and "diff"
         let cache = HashCache::load(&cache_path(d));
         assert_eq!(cache.get("same", &fs::metadata(d.join("same")).unwrap()), Some(crate::sha256_hex(b"same").as_str()));
+    }
+
+    #[test]
+    fn cancelled_plan() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::write(dir.path().join("a"), b"a").unwrap();
+        let m = manifest(&[("a", b"a", false)], &[]);
+        let opts = Options { cancel: Some(Arc::new(AtomicBool::new(true))), ..Default::default() };
+        assert!(matches!(plan_blocking(dir.path(), &m, &opts, &no_progress()), Err(Error::Cancelled)));
+    }
+
+    #[test]
+    fn saved_manifest_round_trip() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(load_manifest(dir.path()).unwrap().is_none());
+        let key = crate::manifest::generate_signing_key();
+        let m = manifest(&[("a", b"a", false)], &[]);
+        let signed = SignedManifest::sign(&m, &key).unwrap();
+        save_manifest(dir.path(), &signed).unwrap();
+        // no trusted key yet
+        assert!(load_manifest(dir.path()).unwrap().is_none());
+        crate::client::Trust::FirstUse.verify(dir.path(), &signed, m.platform).unwrap();
+        assert_eq!(load_manifest(dir.path()).unwrap(), Some(m));
+        // signed by another key than the trusted one
+        let other = SignedManifest::sign(&manifest(&[], &[]), &crate::manifest::generate_signing_key()).unwrap();
+        save_manifest(dir.path(), &other).unwrap();
+        assert!(load_manifest(dir.path()).is_err());
     }
 
     #[cfg(unix)]

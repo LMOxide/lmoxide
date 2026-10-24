@@ -94,6 +94,13 @@ pub struct Config {
     /// Display name in /lmoxide/v1/info and manifests.
     #[arg(long, env = "LMOXIDE_SERVER_NAME", default_value = "LMOxide")]
     pub server_name: String,
+    /// Public base URL of the server's lmoxide-api, announced in /lmoxide/v1/info so patchers
+    /// can show the game server's status (e.g. https://lmo.example.org/api).
+    #[arg(long, env = "LMOXIDE_PUBLIC_API_URL")]
+    pub api_url: Option<String>,
+    /// The server's website, announced in /lmoxide/v1/info (news, account registration).
+    #[arg(long, env = "LMOXIDE_WEBSITE")]
+    pub website: Option<String>,
     /// Windows client ("LEGO Minifigures Online" folder, with RDB/): served to the stock
     /// patcher and as the `windows` manifest.
     #[arg(long, env = "LMOXIDE_CLIENT_DIR")]

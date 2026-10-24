@@ -59,6 +59,17 @@ pub enum Error {
     #[cfg(feature = "client")]
     #[error("http: {0}")]
     Http(#[from] reqwest::Error),
+    /// Connecting failed or timed out (`url` is the server's base URL).
+    #[cfg(feature = "client")]
+    #[error("can't reach {url}: the server is down or the address is wrong")]
+    Unreachable {
+        url: String,
+        #[source]
+        source: reqwest::Error,
+    },
+    /// Stopped through [`sync::Options::cancel`].
+    #[error("cancelled")]
+    Cancelled,
     #[error("server answered {status} for {url}")]
     Status { status: u16, url: String },
     #[error("the server is still indexing its client files; try again in {retry_after} s")]
@@ -126,6 +137,13 @@ pub fn check_path(path: &str) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Where patchers install by default: `~/Games/LMO` (under `%USERPROFILE%` on Windows).
+/// `None` without a home directory.
+pub fn default_install_dir() -> Option<std::path::PathBuf> {
+    let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE"))?;
+    Some(std::path::PathBuf::from(home).join("Games").join("LMO"))
 }
 
 /// Lower-case hex sha256 of `data`.

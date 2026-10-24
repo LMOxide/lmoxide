@@ -46,6 +46,21 @@ pub struct Info {
     /// Human-readable warnings for the host (e.g. missing login key).
     #[serde(default)]
     pub warnings: Vec<String>,
+    /// [`Manifest::revision`] of each ready platform's manifest: compare it with the installed
+    /// manifest's to see whether there's an update without downloading the manifest (a hint;
+    /// only the signed manifest counts).
+    #[serde(default)]
+    pub revisions: BTreeMap<Platform, String>,
+    /// Size of each ready platform's complete install in bytes (a hint, as `revisions`).
+    #[serde(default)]
+    pub install_bytes: BTreeMap<Platform, u64>,
+    /// Public base URL of the server's REST API (lmoxide-api), whose `GET /v1/status` says
+    /// whether the game server is up and `GET /v1/config` whether registration is open.
+    #[serde(default)]
+    pub api_url: Option<String>,
+    /// The server's website (news, account registration).
+    #[serde(default)]
+    pub website: Option<String>,
 }
 
 /// One platform's complete install.
@@ -100,6 +115,39 @@ pub struct Launch {
     pub env: BTreeMap<String, String>,
 }
 
+impl Launch {
+    /// The command that starts the client installed in `dir`: the executable (checked to be
+    /// inside `dir` and present) with `args`, then `login_args` with `{username}` and
+    /// `{password}` substituted when `login` is given, the `env` variables, and `dir` as the
+    /// working directory (where relative paths in `env` are resolved). `wrapper` is a program
+    /// and arguments to run the executable with (e.g. `["wine"]` for the Windows client
+    /// elsewhere); empty runs it directly. Stdio is inherited.
+    #[cfg(feature = "client")]
+    pub fn command(&self, dir: &std::path::Path, login: Option<(&str, &str)>, wrapper: &[&str]) -> Result<std::process::Command> {
+        if self.executable.is_empty() {
+            return Err(Error::Other("the server's manifest doesn't say how to start the client".into()));
+        }
+        let exe = crate::sync::safe_join(dir, &self.executable)?;
+        if !exe.is_file() {
+            return Err(Error::Other(format!("{} is missing; update the install", self.executable)));
+        }
+        let mut cmd = match wrapper.split_first() {
+            Some((prog, args)) => {
+                let mut c = std::process::Command::new(prog);
+                c.args(args).arg(&exe);
+                c
+            }
+            None => std::process::Command::new(&exe),
+        };
+        cmd.args(&self.args);
+        if let Some((username, password)) = login {
+            cmd.args(self.login_args.iter().map(|a| a.replace("{username}", username).replace("{password}", password)));
+        }
+        cmd.envs(&self.env).current_dir(dir);
+        Ok(cmd)
+    }
+}
+
 impl Manifest {
     /// The [`Manifest::version`] of a file list.
     pub fn version_of(files: &[FileEntry]) -> String {
@@ -109,6 +157,14 @@ impl Manifest {
             h.update(format!("{}\0{}\0{}\0{}\n", f.path, f.sha256, f.size, f.executable as u8));
         }
         hex::encode(h.finalize())
+    }
+
+    /// Identifies the manifest's content apart from when it was built: sha256 of its JSON with
+    /// `generated_at` zeroed. Servers send it in [`Info::revisions`] and as the manifest's
+    /// `ETag`, so a patcher can compare it with the installed manifest's.
+    pub fn revision(&self) -> String {
+        let m = Manifest { generated_at: 0, ..self.clone() };
+        crate::sha256_hex(&serde_json::to_vec(&m).expect("manifests serialize"))
     }
 
     /// Checks paths and hashes; run on every manifest from the network.
@@ -320,6 +376,57 @@ mod tests {
         m.validate().unwrap();
         m.files.push(m.files[0].clone());
         assert!(m.validate().is_err());
+    }
+
+    #[test]
+    fn revision_ignores_build_time() {
+        let mut m = sample();
+        let r = m.revision();
+        m.generated_at = 99;
+        assert_eq!(m.revision(), r);
+        m.launch.args.clear();
+        assert_ne!(m.revision(), r);
+    }
+
+    #[test]
+    fn info_without_new_fields() {
+        let info: Info = serde_json::from_str(
+            r#"{"protocol":1,"name":"t","universe_addr":"h:1","http_addr":"h:2","platforms":["linux"],
+                "manifest_key":"00","login_public_key":null}"#,
+        )
+        .unwrap();
+        assert!(info.revisions.is_empty() && info.api_url.is_none());
+        let mut info = info;
+        info.revisions.insert(Platform::Linux, "abc".into());
+        assert!(serde_json::to_string(&info).unwrap().contains(r#""revisions":{"linux":"abc"}"#));
+    }
+
+    #[cfg(all(unix, feature = "client"))]
+    #[test]
+    fn launch_command() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let d = dir.path().canonicalize().unwrap();
+        std::fs::write(d.join("LMO"), "#!/bin/sh\necho \"$PWD|$GREETING|$*\"\n").unwrap();
+        std::fs::set_permissions(d.join("LMO"), std::fs::Permissions::from_mode(0o755)).unwrap();
+        let mut l = Launch {
+            executable: "LMO".into(),
+            args: vec!["-verified".into()],
+            login_args: ["-username", "{username}", "-password", "{password}"].map(String::from).to_vec(),
+            env: BTreeMap::from([("GREETING".into(), "hi".into())]),
+        };
+        let run = |l: &Launch, login, wrapper: &[&str]| {
+            let out = l.command(&d, login, wrapper).unwrap().output().unwrap();
+            String::from_utf8(out.stdout).unwrap()
+        };
+        let pwd = d.display();
+        assert_eq!(run(&l, Some(("blake", "p w")), &[]), format!("{pwd}|hi|-verified -username blake -password p w\n"));
+        assert_eq!(run(&l, None, &[]), format!("{pwd}|hi|-verified\n"));
+        assert_eq!(run(&l, None, &["sh"]), format!("{pwd}|hi|-verified\n"));
+        l.executable = "../LMO".into();
+        assert!(l.command(&d, None, &[]).is_err());
+        l.executable = "Missing".into();
+        assert!(l.command(&d, None, &[]).is_err());
     }
 
     #[test]

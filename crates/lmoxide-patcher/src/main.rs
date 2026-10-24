@@ -78,13 +78,10 @@ struct SyncArgs {
 
 impl SyncArgs {
     fn dir(&self) -> anyhow::Result<PathBuf> {
-        if let Some(d) = &self.dir {
-            return Ok(d.clone());
+        match &self.dir {
+            Some(d) => Ok(d.clone()),
+            None => lmoxide_patch::default_install_dir().context("no home directory; pass --dir"),
         }
-        let home = std::env::var_os("HOME")
-            .or_else(|| std::env::var_os("USERPROFILE"))
-            .context("no home directory; pass --dir")?;
-        Ok(PathBuf::from(home).join("Games").join("LMO"))
     }
 
     fn trust(&self) -> anyhow::Result<Trust> {
@@ -126,6 +123,16 @@ async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
             match &info.login_public_key {
                 Some(k) => println!("login key:    {}…{}", &k[..16], &k[k.len() - 16..]),
                 None => println!("login key:    none (binaries unpatched)"),
+            }
+            for (p, r) in &info.revisions {
+                let size = info.install_bytes.get(p).map(|b| format!(" ({})", indicatif::HumanBytes(*b))).unwrap_or_default();
+                println!("{:<13} {}{size}", format!("{p}:"), &r[..r.len().min(16)]);
+            }
+            if let Some(api) = &info.api_url {
+                println!("api:          {api}");
+            }
+            if let Some(site) = &info.website {
+                println!("website:      {site}");
             }
             for w in &info.warnings {
                 println!("warning:      {w}");
@@ -241,13 +248,9 @@ fn print_plan(plan: &Plan) {
 }
 
 fn print_launch(dir: &Path, m: &Manifest) {
-    let l = &m.launch;
-    if l.executable.is_empty() {
-        return;
+    if let Ok(cmd) = m.launch.command(dir, None, &[]) {
+        println!("start: {cmd:?}");
     }
-    let env: String = l.env.iter().map(|(k, v)| format!("{k}={v} ")).collect();
-    let args: Vec<&str> = l.args.iter().chain(&l.login_args).map(String::as_str).collect();
-    println!("start: cd {:?} && {env}./{} {}", dir, l.executable, args.join(" "));
 }
 
 /// indicatif bars driven by the sync engine's progress events.

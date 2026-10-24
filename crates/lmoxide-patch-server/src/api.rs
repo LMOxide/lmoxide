@@ -5,7 +5,7 @@ use std::sync::Arc;
 use axum::{
     body::Body,
     extract::{Path, Request, State},
-    http::{HeaderValue, StatusCode, header},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Json, Response},
 };
 use lmoxide_patch::{Info, PROTOCOL_VERSION, Platform, is_sha256_hex, manifest::public_key_hex};
@@ -30,6 +30,10 @@ pub async fn info(State(app): State<Arc<App>>) -> Json<Info> {
         manifest_key: public_key_hex(&app.signing.verifying_key()),
         login_public_key: catalog.login_key.clone(),
         warnings: catalog.warnings.clone(),
+        revisions: catalog.manifests.iter().map(|(p, m)| (*p, m.revision.clone())).collect(),
+        install_bytes: catalog.manifests.iter().map(|(p, m)| (*p, m.install_bytes)).collect(),
+        api_url: app.cfg.api_url.clone(),
+        website: app.cfg.website.clone(),
     })
 }
 
@@ -50,17 +54,27 @@ pub async fn login_key(State(app): State<Arc<App>>) -> Response {
     }
 }
 
-pub async fn manifest(State(app): State<Arc<App>>, Path(platform): Path<String>) -> Response {
+/// The signed manifest. Its `ETag` is the manifest's revision, so a patcher sending the
+/// installed one in `If-None-Match` gets `304 Not Modified` while nothing changed.
+pub async fn manifest(State(app): State<Arc<App>>, Path(platform): Path<String>, headers: HeaderMap) -> Response {
     let Ok(platform) = platform.parse::<Platform>() else { return StatusCode::NOT_FOUND.into_response() };
     if !app.platforms().contains(&platform) {
         return (StatusCode::NOT_FOUND, "platform not offered by this server").into_response();
     }
     match app.catalog().manifests.get(&platform) {
-        Some(json) => (
-            [(header::CONTENT_TYPE, "application/json"), (header::CACHE_CONTROL, "no-cache")],
-            Body::from(json.clone()),
-        )
-            .into_response(),
+        Some(m) => {
+            let etag = format!("\"{}\"", m.revision);
+            let cache = [(header::ETAG, etag.clone()), (header::CACHE_CONTROL, "no-cache".into())];
+            let unchanged = headers
+                .get(header::IF_NONE_MATCH)
+                .and_then(|v| v.to_str().ok())
+                .is_some_and(|v| v.split(',').any(|t| t.trim() == etag || t.trim() == "*"));
+            if unchanged {
+                (StatusCode::NOT_MODIFIED, cache).into_response()
+            } else {
+                (cache, [(header::CONTENT_TYPE, "application/json")], Body::from(m.json.clone())).into_response()
+            }
+        }
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             [(header::RETRY_AFTER, "5")],

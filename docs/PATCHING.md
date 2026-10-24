@@ -70,8 +70,8 @@ After changing a client or overlay dir, send the server `SIGHUP` (or restart it)
 
 | Route | Answer |
 |---|---|
-| `GET /lmoxide/v1/info` | JSON `Info`: `protocol` (1), `name`, `universe_addr`, `http_addr`, `https_addr`, `platforms`, `ready` (platforms whose manifest is built), `manifest_key` (ed25519, hex), `login_public_key` (hex or null), `warnings` |
-| `GET /lmoxide/v1/manifest/{windows\|linux}` | JSON `SignedManifest` (below); `404` if the platform isn't configured, `503` + `Retry-After` while indexing |
+| `GET /lmoxide/v1/info` | JSON `Info`: `protocol` (1), `name`, `universe_addr`, `http_addr`, `https_addr`, `platforms`, `ready` (platforms whose manifest is built), `manifest_key` (ed25519, hex), `login_public_key` (hex or null), `warnings`, `revisions` (platform → manifest revision, see below), `install_bytes` (platform → size of a complete install), `api_url` (the public lmoxide-api base URL, or null), `website` (or null). The newer fields may be missing from older servers. |
+| `GET /lmoxide/v1/manifest/{windows\|linux}` | JSON `SignedManifest` (below), with `ETag: "<revision>"`; `If-None-Match` with the installed manifest's revision answers `304` while nothing changed; `404` if the platform isn't configured, `503` + `Retry-After` while indexing |
 | `GET /lmoxide/v1/files/{sha256}` | file body by lower-case sha256, streamed from disk; supports `Range` (`206`), `Cache-Control: immutable`; `404` for anything not in a current manifest |
 | `GET /lmoxide/v1/login-key` | the game server's login public key, `text/plain`, 512 hex characters + newline (read from the key file on each request; for hand-patched clients: `patch-client.py --login-key-url`); `404` without `--login-public-key-file`, `503` while the file is missing or invalid |
 
@@ -106,6 +106,12 @@ After changing a client or overlay dir, send the server `SIGHUP` (or restart it)
   Windows manifests never contain two paths differing only in case.
 - `version` = sha256 of the concatenated lines `path \0 sha256 \0 size \0 executable(0|1) \n`.
 - Files not in the manifest are left alone by patchers (logs, settings), except `remove`.
+
+A manifest's **revision** (`Manifest::revision`) is the sha256 of its JSON with `generated_at`
+set to 0: it changes with any file, the launch info or the address, but not when the server
+merely rebuilds the same manifest. Patchers check for updates cheaply by comparing `revisions`
+in `info` (or by `If-None-Match`) with the revision of their saved manifest, and only then fetch
+and verify the signed manifest, which stays authoritative.
 
 ### Signature
 
@@ -151,6 +157,8 @@ Every flag has an `LMOXIDE_…` environment variable (`--help` shows them):
 | `--public-https-port` | `LMOXIDE_PUBLIC_HTTPS_PORT` | `--https-port` |
 | `--tls-cert`, `--tls-key` | `LMOXIDE_TLS_CERT`, `LMOXIDE_TLS_KEY` | PEM files |
 | `--server-name` | `LMOXIDE_SERVER_NAME` | `LMOxide` |
+| `--api-url` | `LMOXIDE_PUBLIC_API_URL` | none (announced in `info` for patchers' status line) |
+| `--website` | `LMOXIDE_WEBSITE` | none (announced in `info`) |
 | `--client-dir` | `LMOXIDE_CLIENT_DIR` | (Windows client) |
 | `--linux-client-dir` | `LMOXIDE_LINUX_CLIENT_DIR` | |
 | `--windows-overlay-dir`, `--linux-overlay-dir` | `LMOXIDE_WINDOWS_OVERLAY_DIR`, `LMOXIDE_LINUX_OVERLAY_DIR` | |
@@ -194,3 +202,10 @@ manifest, with launch info) and `partial/` (interrupted downloads, resumed with 
 are downloaded there, checked against the signed sha256 and then renamed into place, so an
 interrupted update never leaves a half-written file, and nothing outside the install dir is
 written (symlinked directories inside it are refused).
+
+Other patchers (such as a GUI) use the same library, `lmoxide-patch`: `client::Client` (HTTP,
+`signed_manifest_if_changed`), `client::Trust`, `sync::{plan, apply, sync}` with
+`sync::Options::cancel` (an `AtomicBool` that stops hashing and downloads with
+`Error::Cancelled`), `sync::load_manifest` (the saved manifest, verified with the stored key),
+`Launch::command` (the client's start command, optionally wrapped, e.g. by `wine`),
+`default_install_dir()`, and `Error::Unreachable` for servers that can't be reached.
