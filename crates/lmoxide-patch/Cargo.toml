@@ -1,0 +1,27 @@
+[package]
+name = "lmoxide-patch"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "The LMOxide patcher protocol: manifest types, ed25519 signing, and the client side (plan, download, verify)"
+
+[features]
+default = ["client"]
+# The HTTP client and the sync engine. The patch server only needs the types, signing and the
+# hash cache, so it turns this off.
+client = ["dep:reqwest", "dep:tokio", "dep:futures"]
+
+[dependencies]
+ed25519-dalek = "2.2"
+futures = { workspace = true, optional = true }
+hex = "0.4"
+rand = "0.9"
+reqwest = { workspace = true, features = ["json", "stream"], optional = true }
+serde.workspace = true
+serde_json.workspace = true
+sha2 = "0.10"
+thiserror.workspace = true
+tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile = "3.27.0"
