@@ -18,6 +18,8 @@
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
+use lmoxide_net::types::Id32;
+
 use crate::teleport;
 
 /// What the game connection should do for a command.
@@ -142,6 +144,8 @@ const KINDS: &[(&str, &str)] = &[
     ("plate", "pressure plates (scenery)"),
     ("gate", "gates and portcullis (scenery)"),
     ("mirror", "Medusa mirrors (scenery)"),
+    ("collectible", "collectibles (achievements)"),
+    ("boombox", "boomboxes (achievements)"),
     ("boss", "dungeon bosses"),
     ("champion", "champions"),
     ("enemy", "all enemies"),
@@ -166,6 +170,8 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "plate" => crate::scenery::points("pressureplate"),
         "gate" => [crate::scenery::points("gate"), crate::scenery::points("portcullis")].concat(),
         "mirror" => crate::scenery::points("mirror"),
+        "collectible" => crate::discovery::points(true),
+        "boombox" => crate::discovery::points(false),
         "boss" | "champion" | "enemy" | "npc" | "smashable" => crate::npc::points(kind),
         _ => return None,
     })
@@ -249,15 +255,15 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             let n = args.get(1).and_then(|n| n.parse::<u32>().ok()).unwrap_or(1).min(100_000);
             let name = args.get(2..).map(|w| w.join(" ")).filter(|n| !n.is_empty()).unwrap_or_else(|| "Test Dummy".into());
             let event = match args.first().copied() {
-                Some("kills") => crate::achievements::Event::Defeated { name, smashable: false, boss: false, champion: false, level: 1, playfield },
-                Some("smashes") => crate::achievements::Event::Defeated { name, smashable: true, boss: false, champion: false, level: 1, playfield },
+                Some("kills") => crate::achievements::Event::Defeated { id: Id32::new(0, 0), name, smashable: false, boss: false, champion: false, level: 1, playfield },
+                Some("smashes") => crate::achievements::Event::Defeated { id: Id32::new(0, 0), name, smashable: true, boss: false, champion: false, level: 1, playfield },
                 Some("builds") => crate::achievements::Event::Built { name },
                 _ => return reply(vec!["usage: !count <kills|smashes|builds> [n] [name]".into()]),
             };
             Action::Progress(event, n)
         }
         "defeat" if !args.is_empty() => {
-            Action::Progress(crate::achievements::Event::Defeated { name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
+            Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
             "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),

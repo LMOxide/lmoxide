@@ -1256,7 +1256,10 @@
           "level",
           "minifigure_ranks",
           "achievements",
-          "counters"
+          "counters",
+          "defeats",
+          "visits",
+          "finds"
         ],
         "properties": {
           "achievements": {
@@ -1286,6 +1289,27 @@
               "type": "integer",
               "format": "int32",
               "minimum": 0
+            }
+          },
+          "defeats": {
+            "type": "object",
+            "description": "What the character defeated, by name (enemies, champions, bosses, smashables).",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DefeatCount"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "finds": {
+            "type": "object",
+            "description": "Collectibles and places found (\"<playfield>:<world object name>\") -> unix time.",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "propertyNames": {
+              "type": "string"
             }
           },
           "id": {
@@ -1361,6 +1385,18 @@
               "type": "integer",
               "format": "int32",
               "minimum": 0
+            },
+            "propertyNames": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          "visits": {
+            "type": "object",
+            "description": "Playfields entered, by playfield id.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/VisitCount"
             },
             "propertyNames": {
               "type": "integer",
@@ -1444,6 +1480,35 @@
             "maxLength": 32,
             "minLength": 3,
             "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        }
+      },
+      "DefeatCount": {
+        "type": "object",
+        "required": [
+          "kind",
+          "count",
+          "first_at",
+          "last_at"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "first_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix times of the first and the last."
+          },
+          "kind": {
+            "type": "string",
+            "description": "enemy, champion, boss or smashable"
+          },
+          "last_at": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -1943,6 +2008,30 @@
             "type": "integer",
             "format": "int64",
             "minimum": 0
+          }
+        }
+      },
+      "VisitCount": {
+        "type": "object",
+        "required": [
+          "count",
+          "first_at",
+          "last_at"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "first_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix times of the first and the last."
+          },
+          "last_at": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       }

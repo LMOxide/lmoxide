@@ -38,6 +38,35 @@ pub struct Character {
     /// Achievement counters: stat -> (minifigure template, 0 for the player) -> value.
     #[serde(default)]
     pub counters: BTreeMap<u32, BTreeMap<u32, u64>>,
+    /// Defeated enemies, bosses, champions and smashables by name.
+    #[serde(default)]
+    pub defeats: BTreeMap<String, Defeat>,
+    /// Playfields entered.
+    #[serde(default)]
+    pub visits: BTreeMap<u32, Visit>,
+    /// Collectibles and places found ("<playfield>:<world object name>") -> unix time.
+    #[serde(default)]
+    pub finds: BTreeMap<String, i64>,
+}
+
+/// How often the character defeated something of one name.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Defeat {
+    /// enemy, champion, boss or smashable
+    pub kind: String,
+    pub count: u64,
+    /// Unix times of the first and the last.
+    pub first_at: i64,
+    pub last_at: i64,
+}
+
+/// How often the character entered a playfield.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Visit {
+    pub count: u64,
+    /// Unix times of the first and the last.
+    pub first_at: i64,
+    pub last_at: i64,
 }
 
 /// A character row without its collections, for listings.
@@ -73,6 +102,9 @@ impl Db {
                         minifigure_levels: BTreeMap::new(),
                         tags: BTreeMap::new(),
                         counters: BTreeMap::new(),
+                        defeats: BTreeMap::new(),
+                        visits: BTreeMap::new(),
+                        finds: BTreeMap::new(),
                     })
                 },
             )
@@ -97,6 +129,18 @@ impl Db {
             let (stat, template, value) = row?;
             c.counters.entry(stat).or_default().insert(template, value);
         }
+        let mut stmt = conn.prepare("SELECT name, kind, count, first_at, last_at FROM character_defeats WHERE character_id = ?1")?;
+        c.defeats = stmt
+            .query_map([id], |r| {
+                Ok((r.get(0)?, Defeat { kind: r.get(1)?, count: r.get::<_, i64>(2)? as u64, first_at: r.get(3)?, last_at: r.get(4)? }))
+            })?
+            .collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT playfield, count, first_at, last_at FROM character_visits WHERE character_id = ?1")?;
+        c.visits = stmt
+            .query_map([id], |r| Ok((r.get(0)?, Visit { count: r.get::<_, i64>(1)? as u64, first_at: r.get(2)?, last_at: r.get(3)? })))?
+            .collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT find, found_at FROM character_finds WHERE character_id = ?1")?;
+        c.finds = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
         Ok(Some(c))
     }
 
@@ -119,6 +163,9 @@ impl Db {
         tx.execute("DELETE FROM character_minifigures WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_tags WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_counters WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_defeats WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_visits WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_finds WHERE character_id = ?1", [id])?;
         {
             let mut team = tx.prepare("INSERT INTO character_team (character_id, slot, position, template) VALUES (?1, ?2, ?3, ?4)")?;
             for (slot, (position, template)) in c.team.iter().enumerate() {
@@ -147,6 +194,21 @@ impl Db {
                 for (template, value) in values {
                     counter.execute(params![id, stat, template, *value as i64])?;
                 }
+            }
+            let mut defeat = tx.prepare(
+                "INSERT INTO character_defeats (character_id, name, kind, count, first_at, last_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            )?;
+            for (name, d) in &c.defeats {
+                defeat.execute(params![id, name, d.kind, d.count as i64, d.first_at, d.last_at])?;
+            }
+            let mut visit =
+                tx.prepare("INSERT INTO character_visits (character_id, playfield, count, first_at, last_at) VALUES (?1, ?2, ?3, ?4, ?5)")?;
+            for (playfield, v) in &c.visits {
+                visit.execute(params![id, playfield, v.count as i64, v.first_at, v.last_at])?;
+            }
+            let mut find = tx.prepare("INSERT INTO character_finds (character_id, find, found_at) VALUES (?1, ?2, ?3)")?;
+            for (f, at) in &c.finds {
+                find.execute(params![id, f, at])?;
             }
         }
         tx.commit()?;
@@ -229,6 +291,9 @@ mod tests {
             minifigure_levels: [(100, 3)].into(),
             tags: [(385, 1_700_000_000)].into(),
             counters: [(3_000_116, [(0, 12)].into()), (3_000_112, [(100, 4), (200, 1)].into())].into(),
+            defeats: [("Skeleton".into(), Defeat { kind: "enemy".into(), count: 3, first_at: 1, last_at: 2 })].into(),
+            visits: [(4200, Visit { count: 2, first_at: 1, last_at: 2 })].into(),
+            finds: [("4210:collectible_dreadlegs_treasure".into(), 3)].into(),
         };
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();

@@ -3,6 +3,7 @@
 //! pressure plates"). What they did (which lever opened which gate, the plate puzzles) was
 //! server script data that didn't survive, so they are scenery only: not usable (CARS group 5),
 //! gates open, and nothing has collision (kdtree 0), so none of them can block a path.
+//! The collectibles (discovery.rs) are spawned here too, usable (CARS group 1, as the buildies).
 
 use std::sync::{Arc, Mutex};
 
@@ -21,10 +22,12 @@ use crate::{
     world,
 };
 
-const SIMPLE_DYNEL_TYPE: u32 = 51320;
+pub const SIMPLE_DYNEL_TYPE: u32 = 51320;
 const STAT_CARS_GROUP: u32 = 1050;
 /// Nobody can target or use them.
 const CARS_INACTIVE: u32 = 5;
+/// Usable (ObjectInteraction), as the buildies.
+const CARS_USABLE: u32 = 1;
 /// Bounds for pieces whose RDB box is empty (assumed size, docs/TUNABLES.md).
 const FALLBACK_BOUNDS: [f32; 6] = [-4.0, 0.0, -4.0, 4.0, 6.0, 4.0];
 
@@ -51,6 +54,7 @@ fn wanted(name: &str) -> bool {
         || name.starts_with("lego_lever")
         || name.starts_with("mirror_medusa")
         || (name.ends_with("_interactable") && (name.contains("gate") || name.contains("portcullis")))
+        || crate::discovery::is_collectible(name)
 }
 
 static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
@@ -88,6 +92,7 @@ pub fn start() {
 /// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
 fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let id = Id32::new(SIMPLE_DYNEL_TYPE, p.guid);
+    let cars_group = if crate::discovery::is_collectible(&p.name) { CARS_USABLE } else { CARS_INACTIVE };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(p.rot[0]), y: Some(p.rot[1]), z: Some(p.rot[2]), w: Some(p.rot[3]) }),
@@ -98,7 +103,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         // no collision (n3VisualDynel::EnableCollision(0))
         kdtree: Some(0),
         name: Some(p.name.clone()),
-        cars_group: Some(CARS_INACTIVE),
+        cars_group: Some(cars_group),
         is_closed: Some(!p.is_gate()),
         ..Default::default()
     };
@@ -109,5 +114,5 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         let w = w.proto(&dynel).proto(&simple).u32(p.visual[1]).u32(p.visual[0]).u32(0);
         bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
     });
-    vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, CARS_INACTIVE)]
+    vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)]
 }

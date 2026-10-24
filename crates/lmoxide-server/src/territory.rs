@@ -74,6 +74,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
             (Some(Endpoint::PlayerAgent), agent::GET_STARTUP_DATA) => {
                 let md5 = r.string()?;
                 info!(account, %md5, "GetStartupData");
+                // Without progression there is no tutorial: a new account's character is made
+                // here (named after the account), so the client lists it instead of offering
+                // character creation.
+                if !crate::progression::enabled() && crate::store::Store.load(account).is_none() {
+                    create_character(&cfg, account);
+                }
                 let me = Some(account);
                 conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
                     .await?;
@@ -117,6 +123,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+/// Saves a new character for `account`, named after it, in the start playfield.
+fn create_character(cfg: &Config, account: u32) {
+    let name = crate::state::or_log(crate::state::db().account(account), "account", None).map(|a| a.username);
+    let Some(name) = name else { return };
+    let c = crate::game::new_character(name, cfg.start_playfield);
+    match crate::store::Store.save(account, &c) {
+        Ok(()) => info!(account, name = %c.name, playfield = c.playfield, "character created"),
+        Err(e) => warn!(account, "creating the character failed: {e:#}"),
+    }
 }
 
 /// Sends the client on to the game server with the account's character.

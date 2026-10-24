@@ -42,20 +42,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .unwrap_or(1);
     let store = Store;
     let mut character = 0;
-    let mut me = Character {
-        name: String::new(),
-        playfield: cfg.start_playfield,
-        pos: START_POS,
-        team: START_TEAM.to_vec(),
-        stars: 0,
-        upgrades: Default::default(),
-        tokens: Default::default(),
-        xp: 0,
-        level: 0,
-        minifigure_levels: Default::default(),
-        tags: Default::default(),
-        counters: Default::default(),
-    };
+    let mut me = new_character(String::new(), cfg.start_playfield);
     let mut collection = Collection::new(&me.team);
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
@@ -80,6 +67,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
     let mut tutorial_intro_done = false;
+    // clearing the playfield in this visit: its own enemies, and those defeated so far
+    let mut residents: std::collections::HashSet<Id32> = Default::default();
+    let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
     // a test setup changed the team (sent again at the next CharInPlay), and the item id salt
     let mut team_changed = false;
     let mut team_salt = 0u64;
@@ -110,6 +100,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 .await?;
                         }
                         world::Out::Progress(event) => {
+                            if let crate::achievements::Event::Defeated { id, smashable: false, playfield, .. } = &event
+                                && *playfield == me.playfield
+                                && residents.contains(id)
+                                && defeated_here.insert(*id)
+                                && defeated_here.len() == residents.len()
+                            {
+                                // the last of the playfield's enemies: cleared
+                                let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Cleared { playfield: *playfield }));
+                            }
                             if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
                                 && crate::progression::enabled()
                             {
@@ -276,10 +275,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::community::entered_playfield(character, me.playfield);
                         if presence.is_none() {
+                            let here = *pos.lock().unwrap();
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
                             let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() }.spec());
                             presence = Some(world::join(id, me.playfield, pos_handle, spawn, outbox.clone()));
+                            // the journal: a visit; clearing starts over
+                            let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Visited { playfield: me.playfield }));
+                            residents = crate::npc::resident_enemies(me.playfield);
+                            defeated_here.clear();
+                            report_finds(&me, here, &outbox);
                             set_costume(id, monster_data_for(me.team.first().map_or(0, |&(_, t)| t)));
                             refresh_costumes(id);
                             if let Some(&(_, template)) = me.team.first() {
@@ -325,6 +330,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // jump pads (click-to-move reports the path's end and its start)
                             let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
                             crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
+                            report_finds(&me, p, &outbox);
                             // Hub portals: the client sends nothing, so offer the destination's
                             // teleport window when the player steps into one (once per visit), or
                             // teleport directly if it has none.
@@ -427,6 +433,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION && let Some((npc, name, playfield)) = talk_to {
                                     // talking to an NPC with dialogues
                                     crate::knubot::talk(h.identity, &me.name, npc, &name, playfield);
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
+                                    && let Some(f) = target.and_then(|(kind, instance)| (kind == crate::scenery::SIMPLE_DYNEL_TYPE).then(|| crate::discovery::collectible(instance)).flatten())
+                                {
+                                    // using a collectible finds it
+                                    let found = crate::achievements::Event::Found { playfield: f.playfield, name: f.name.clone() };
+                                    let _ = outbox.send(world::Out::Progress(found));
+                                    stop_after_success = true;
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION {
                                     // building a buildie; a repeat (already building or built) is
                                     // answered with success and then failure, as live did
@@ -907,6 +920,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);
                             let line = format!("{earned} of {total} achievements; {} kills, {} smashes", count(3_000_116), count(3_000_126));
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            // the journal: most defeated, places, finds
+                            let mut defeats: Vec<_> = me.defeats.iter().collect();
+                            defeats.sort_by(|a, b| b.1.count.cmp(&a.1.count));
+                            let top: Vec<String> = defeats.iter().take(8).map(|(n, d)| format!("{n} x{}", d.count)).collect();
+                            let line = format!("defeated {} kinds: {}", defeats.len(), top.join(", "));
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            let finds: Vec<&str> = me.finds.keys().map(|k| k.as_str()).collect();
+                            let line = format!("visited {} playfields; found {}: {}", me.visits.len(), finds.len(), finds.join(", "));
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
                         }
                         crate::devcmd::Action::Progress(event, n) => {
                             let before = me.tags.len();
@@ -1077,11 +1099,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_CURRENCIES, args)
                     .await?;
             }
+            (Some(Endpoint::GameCharAgent), game_char_agent::TUTORIAL_SHOWN) => {
+                // TutorialShown(uint32 tag): a tutorial tip seen (or skipped outside the
+                // tutorial). Live answered AddTag(tag, 0) and kept it, so it isn't shown again.
+                let tag = r.u32()?;
+                if !me.tags.contains_key(&tag) {
+                    let out = progress(&mut me, &collection, character, Some((Some(&crate::achievements::Event::Tag(tag)), 1)));
+                    send_progress(&mut conn, character, &me, out).await?;
+                }
+            }
             // Client-side bookkeeping that needs no answer (to be persisted later).
             (
                 Some(Endpoint::GameCharAgent),
-                game_char_agent::TUTORIAL_SHOWN
-                | game_char_agent::ADD_SHORTCUT
+                game_char_agent::ADD_SHORTCUT
                 | game_char_agent::REMOVE_SHORTCUT
                 | game_char_agent::SET_PLAYER_GUI_LAYOUT_MODE,
             ) => {}
@@ -1108,6 +1138,37 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+/// Collectibles and boomboxes next to the player at `at` that it hasn't found yet.
+fn report_finds(me: &Character, at: [f32; 3], outbox: &mpsc::UnboundedSender<world::Out>) {
+    for f in crate::discovery::near(me.playfield, at) {
+        if !me.finds.contains_key(&format!("{}:{}", f.playfield, f.name)) {
+            let found = crate::achievements::Event::Found { playfield: f.playfield, name: f.name.clone() };
+            let _ = outbox.send(world::Out::Progress(found));
+        }
+    }
+}
+
+/// A new character named `name`, starting in `playfield`.
+pub fn new_character(name: String, playfield: u32) -> Character {
+    Character {
+        name,
+        playfield,
+        pos: START_POS,
+        team: START_TEAM.to_vec(),
+        stars: 0,
+        upgrades: Default::default(),
+        tokens: Default::default(),
+        xp: 0,
+        level: 0,
+        minifigure_levels: Default::default(),
+        tags: Default::default(),
+        counters: Default::default(),
+        defeats: Default::default(),
+        visits: Default::default(),
+        finds: Default::default(),
+    }
 }
 
 /// Characters are saved on disconnect and, while moving, at most this often.
@@ -1678,6 +1739,9 @@ pub async fn run_bot(playfield: u32) {
         minifigure_levels: Default::default(),
         tags: Default::default(),
         counters: Default::default(),
+        defeats: Default::default(),
+        visits: Default::default(),
+        finds: Default::default(),
     };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);

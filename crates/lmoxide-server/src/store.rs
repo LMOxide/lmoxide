@@ -1,7 +1,7 @@
 //! Saved characters, kept in the database (`lmoxide_db`). Characters are keyed by account
 //! instance for now: one character per account, with the account's id.
 
-pub use lmoxide_db::Character;
+pub use lmoxide_db::{Character, Defeat, Visit};
 
 use crate::state;
 

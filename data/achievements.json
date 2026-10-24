@@ -13,7 +13,9 @@
 "parent": 1537,
 "name": "[Volcano Island] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 4210
 },
 {
 "id": 681,
@@ -239,105 +241,120 @@
 "parent": 769,
 "name": "Medieval_Combat_Champion_Skram Gatecrasher",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Skram Gatecrasher"
 },
 {
 "id": 771,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Ouch Ouch",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Ouch Ouch"
 },
 {
 "id": 772,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Uggluk Gatekeeper",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Uggluk Gatekeeper"
 },
 {
 "id": 773,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Umad Thundercrusher",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Umad Thundercrusher"
 },
 {
 "id": 774,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Big Bad Wolf",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Big Bad Wolf"
 },
 {
 "id": 775,
 "parent": 769,
 "name": "Medieval_Combat_Champion_The Bridge Troll",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "The Bridge Troll"
 },
 {
 "id": 776,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Warlock Zug Zug",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Warlock Zug Zug"
 },
 {
 "id": 777,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Beastmaster Wulfgar",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Beastmaster Wulfgar"
 },
 {
 "id": 778,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Warchief Grogrog",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Warchief Grogrog"
 },
 {
 "id": 779,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Maggut the Beast Tamer",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Maggut the Beast Tamer"
 },
 {
 "id": 780,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Chug",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Chug"
 },
 {
 "id": 781,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Black Widow",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Black Widow"
 },
 {
 "id": 782,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Chlora the Fungomancer",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Chlora the Fungomancer"
 },
 {
 "id": 783,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Grosh the Scout",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Grosh the Scout"
 },
 {
 "id": 784,
 "parent": 769,
 "name": "Medieval_Combat_Champion_Derp the Internet Troll",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Derp the Internet Troll"
 },
 {
 "id": 785,
@@ -362,56 +379,64 @@
 "parent": 785,
 "name": "Space_Combat_Champion_Bishop, Master Technician",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Bishop, Master Technician"
 },
 {
 "id": 787,
 "parent": 785,
 "name": "Space_Combat_Champion_John the Greedy",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "John the Greedy"
 },
 {
 "id": 788,
 "parent": 785,
 "name": "Space_Combat_Champion_Snirk",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Snirk"
 },
 {
 "id": 789,
 "parent": 785,
 "name": "Space_Combat_Champion_Mind Lord Taggoth",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Mind Lord Taggoth"
 },
 {
 "id": 790,
 "parent": 785,
 "name": "Space_Combat_Champion_Megamind",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Megamind"
 },
 {
 "id": 791,
 "parent": 785,
 "name": "Space_Combat_Champion_Kruun, Super Genius",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Kruun, Super Genius"
 },
 {
 "id": 792,
 "parent": 785,
 "name": "Space_Combat_Champion_Korard, Mercenary Captain",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Korard, Mercenary Captain"
 },
 {
 "id": 793,
 "parent": 785,
 "name": "Space_Combat_Champion_The Triffid",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "The Triffid"
 },
 {
 "id": 799,
@@ -437,91 +462,104 @@
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Dragoon Dwelling",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Dragoon Dwelling"
 },
 {
 "id": 803,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Jacket Cellar",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Jacket Cellar"
 },
 {
 "id": 804,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Natives' Hollow",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Natives' Hollow"
 },
 {
 "id": 805,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Scorched Ruins",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Scorched Ruins"
 },
 {
 "id": 806,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Wind Shrine",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Wind Shrine"
 },
 {
 "id": 807,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Monkey Cave",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Monkey Cave"
 },
 {
 "id": 808,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Pirate Storage",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Pirate Storage"
 },
 {
 "id": 809,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Bewitched Candy Forest",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Bewitched Candy Forest"
 },
 {
 "id": 810,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Dark Alcove",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Dark Alcove"
 },
 {
 "id": 811,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Mysterious Crystal Cave",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Mysterious Crystal Cave"
 },
 {
 "id": 812,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Forgotten Ruins",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Forgotten Ruins"
 },
 {
 "id": 815,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Swamp Tunnel",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Swamp Tunnel"
 },
 {
 "id": 816,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Siege Command Room",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Siege Command Room"
 },
 {
 "id": 817,
@@ -564,56 +602,64 @@
 "parent": 818,
 "name": "Space_Combat_PA_Clear the Alien Crystal Station",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Alien Crystal Station"
 },
 {
 "id": 820,
 "parent": 818,
 "name": "Space_Combat_PA_Clear the Ancient Space Ruins",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Ancient Space Ruins"
 },
 {
 "id": 821,
 "parent": 818,
 "name": "Space_Combat_PA_Clear the Underground Cave",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Underground Cave"
 },
 {
 "id": 822,
 "parent": 818,
 "name": "Space_Combat_PA_Clear the Unexplored Crystal Cave",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Unexplored Crystal Cave"
 },
 {
 "id": 823,
 "parent": 818,
 "name": "Space_Combat_PA_Clear the Mercenary Assault Cruiser",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Mercenary Assault Cruiser"
 },
 {
 "id": 824,
 "parent": 818,
 "name": "Space_Combat_PA_Mercenary Troop Transport",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Mercenary Troop Transport"
 },
 {
 "id": 825,
 "parent": 818,
 "name": "Space_Combat_PA_Mercenary Cave",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Mercenary Cave"
 },
 {
 "id": 826,
 "parent": 818,
 "name": "Space_Combat_PA_Cave of the Exiled",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Cave of the Exiled"
 },
 {
 "id": 833,
@@ -734,14 +780,16 @@
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Spider's Nest",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Spider's Nest"
 },
 {
 "id": 855,
 "parent": 817,
 "name": "Medieval_Combat_PA_Clear the Infested Keep",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Infested Keep"
 },
 {
 "id": 857,
@@ -814,63 +862,72 @@
 "parent": 867,
 "name": "Mythology_Combat_Champion_Nyx Blackfeather",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Nyx Blackfeather"
 },
 {
 "id": 870,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Janos the Unforgiving",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Janos the Unforgiving"
 },
 {
 "id": 871,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Lord Minos, the Lich",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Lord Minos, the Lich"
 },
 {
 "id": 872,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Ponos the Pitcher",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Ponos the Pitcher"
 },
 {
 "id": 873,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Morduk, the Underhanded",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Morduk, the Underhanded"
 },
 {
 "id": 874,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Crone of the Maze",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Crone of the Maze"
 },
 {
 "id": 875,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Hecate, the Winter Witch",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Hecate, the Winter Witch"
 },
 {
 "id": 876,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Roar, the Gladiator",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Roar, the Gladiator"
 },
 {
 "id": 877,
 "parent": 867,
 "name": "Mythology_Combat_Champion_Sir Hector",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Sir Hector"
 },
 {
 "id": 878,
@@ -891,28 +948,32 @@
 "parent": 878,
 "name": "Mythology_Combat_PA_Clear the Cliffside",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Cliffside"
 },
 {
 "id": 880,
 "parent": 878,
 "name": "Mythology_Combat_PA_Clear the Minotaur Refuge",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Minotaur Refuge"
 },
 {
 "id": 881,
 "parent": 878,
 "name": "Mythology_Combat_PA_Clear the Abandoned Temple",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Abandoned Temple"
 },
 {
 "id": 882,
 "parent": 878,
 "name": "Mythology_Combat_PA_Clear the Ancient Ruins",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Ancient Ruins"
 },
 {
 "id": 907,
@@ -949,42 +1010,54 @@
 "parent": 1537,
 "name": "[Isle of Yarr] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 4200
 },
 {
 "id": 944,
 "parent": 1537,
 "name": "[Kingdom] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 5200
 },
 {
 "id": 945,
 "parent": 1537,
 "name": "[Enchanted Forest] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 5210
 },
 {
 "id": 946,
 "parent": 1537,
 "name": "[Space Colony] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 3200
 },
 {
 "id": 947,
 "parent": 1537,
 "name": "[Planet's Dark Side] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 3210
 },
 {
 "id": 948,
 "parent": 1537,
 "name": "[Mythology Mountains] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 2210
 },
 {
 "id": 1046,
@@ -1132,7 +1205,9 @@
 "parent": 1537,
 "name": "[Dino World] Boombox",
 "points": 25,
-"kind": "manual"
+"kind": "find",
+"find": "boombox 1",
+"playfield": 6200
 },
 {
 "id": 1607,
@@ -1240,14 +1315,16 @@
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Beach Cave",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Beach Cave"
 },
 {
 "id": 2368,
 "parent": 799,
 "name": "Pirate_Combat_PA_Clear the Crimson Chamber",
 "points": 50,
-"kind": "manual"
+"kind": "clear",
+"target": "Crimson Chamber"
 },
 {
 "id": 2369,
@@ -1277,98 +1354,112 @@
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Karna Itta",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Karna Itta"
 },
 {
 "id": 2371,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Guardsman Bob",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Guardsman Bob"
 },
 {
 "id": 2372,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Bull the Armsmaster",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Bull the Armsmaster"
 },
 {
 "id": 2373,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Lieutenant Gruffy",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Lieutenant Gruffy"
 },
 {
 "id": 2374,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_The Weaver",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "The Weaver"
 },
 {
 "id": 2375,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Crazy Kotaki",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Crazy Kotaki"
 },
 {
 "id": 2376,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Two Eyed Willy",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Two Eyed Willy"
 },
 {
 "id": 2377,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Chunk the Tiger",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Chunk the Tiger"
 },
 {
 "id": 2378,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Village Outcast",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Village Outcast"
 },
 {
 "id": 2379,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Giant Spider",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Giant Spider"
 },
 {
 "id": 2380,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Quicksword Billy",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Quicksword Billy"
 },
 {
 "id": 2381,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Smuggy Totembound",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Smuggy Totembound"
 },
 {
 "id": 2382,
 "parent": 2369,
 "name": "Pirate_Combat_Champion_Temper",
 "points": 25,
-"kind": "manual"
+"kind": "defeat",
+"target": "Temper"
 },
 {
 "id": 2420,
 "parent": 2366,
 "name": "Pirate_Collectibles_Dreadleg's Treasure",
 "points": 50,
-"kind": "manual"
+"kind": "find",
+"find": "collectible_dreadlegs_treasure"
 },
 {
 "id": 2421,
@@ -1409,7 +1500,8 @@
 "parent": 1533,
 "name": "Dino_Collectibles_T-Rex Footprint",
 "points": 50,
-"kind": "manual"
+"kind": "find",
+"find": "collectible_trex_foot"
 },
 {
 "id": 2426,
@@ -1427,7 +1519,8 @@
 "parent": 2422,
 "name": "Medieval_Collectibles_Queen Flora's Crystal Pouch",
 "points": 50,
-"kind": "manual"
+"kind": "find",
+"find": "collectible_queens_crystal_pouch"
 },
 {
 "id": 2428,
@@ -1445,7 +1538,8 @@
 "parent": 2423,
 "name": "Space_Collectibles_Shadrack's Diary",
 "points": 50,
-"kind": "manual"
+"kind": "find",
+"find": "collectible_shadrack_secret_diary"
 },
 {
 "id": 2430,
@@ -1469,7 +1563,8 @@
 "parent": 2430,
 "name": "Mythology_Collectibles_All-seeing Eye",
 "points": 50,
-"kind": "manual"
+"kind": "find",
+"find": "collectible_all_seeing_eye"
 },
 {
 "id": 2461,

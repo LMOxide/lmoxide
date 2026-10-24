@@ -293,6 +293,17 @@ pub fn find(name: &str, playfield: u32) -> Option<Id32> {
     NPCS.lock().unwrap().iter().find(|(_, n)| n.playfield == playfield && n.def.name == name && n.presence.is_some()).map(|(id, _)| *id)
 }
 
+/// The playfield's own enemies (not test, event or summoned ones): defeating all of them in
+/// one visit clears it.
+pub fn resident_enemies(playfield: u32) -> std::collections::HashSet<Id32> {
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && n.owner.is_none())
+        .map(|(id, _)| *id)
+        .collect()
+}
+
 /// Where a live NPC is.
 pub fn position(id: Id32) -> Option<[f32; 3]> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())
@@ -589,6 +600,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         world::send_to(
             attacker,
             world::Out::Progress(crate::achievements::Event::Defeated {
+                id: target,
                 name: npc.def.name.clone(),
                 smashable: kind == Kind::Smashable,
                 boss: source == crate::loot::Source::Boss,

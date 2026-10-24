@@ -169,6 +169,30 @@ pub struct Character {
     /// Achievement counters: stat -> minifigure template (0 = the player) -> value (stat 3000116
     /// enemies defeated, 3000126 smashables smashed, 3000112/3000113 per-minifigure counters).
     pub counters: BTreeMap<u32, BTreeMap<u32, u64>>,
+    /// What the character defeated, by name (enemies, champions, bosses, smashables).
+    pub defeats: BTreeMap<String, DefeatCount>,
+    /// Playfields entered, by playfield id.
+    pub visits: BTreeMap<u32, VisitCount>,
+    /// Collectibles and places found ("<playfield>:<world object name>") -> unix time.
+    pub finds: BTreeMap<String, i64>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct DefeatCount {
+    /// enemy, champion, boss or smashable
+    pub kind: String,
+    pub count: u64,
+    /// Unix times of the first and the last.
+    pub first_at: i64,
+    pub last_at: i64,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct VisitCount {
+    pub count: u64,
+    /// Unix times of the first and the last.
+    pub first_at: i64,
+    pub last_at: i64,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -1034,6 +1058,17 @@ async fn get_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id):
                 })
                 .collect(),
             counters: c.counters,
+            defeats: c
+                .defeats
+                .into_iter()
+                .map(|(n, d)| (n, DefeatCount { kind: d.kind, count: d.count, first_at: d.first_at, last_at: d.last_at }))
+                .collect(),
+            visits: c
+                .visits
+                .into_iter()
+                .map(|(p, v)| (p, VisitCount { count: v.count, first_at: v.first_at, last_at: v.last_at }))
+                .collect(),
+            finds: c.finds,
         }))
     })
     .await

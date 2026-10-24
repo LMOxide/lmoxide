@@ -17,7 +17,12 @@ minifigure it belongs to (MinifigureTemplateID) and, for counters, the stat coun
   defeat    "..._Defeat <name>": a boss of that name defeated
   target    "<Minifigure>_<name>": with that minifigure active, defeat the boss <name> or the
             boss of the dungeon <name>
-  manual    no rule (exploration, collectibles, events, Lost Creations, ...)
+  defeat    also "..._Combat_Champion_<name>": a champion (or boss) of that name defeated
+  clear     "..._Combat_PA_[Clear the ]<area>": every enemy of the dungeon <area> defeated in
+            one visit
+  find      "..._Collectibles_<x>" / "[<world>] Boombox": the world object `find` (in
+            `playfield`, when given) found: collectibles are clicked, boomboxes walked up to
+  manual    no rule (exploration, events, Lost Creations, ...)
 
 Usage: tools/re/py extract_achievements.py"""
 import json, os, re, sys
@@ -34,6 +39,27 @@ STAT_ID = {v: int(k) for k, v in STATS.items()}
 ACHIEVEMENTS_ROOT = 2
 STARS_ICON = 530321
 GENERIC1, GENERIC2 = STAT_ID["InventoryItemGeneric1"], STAT_ID["InventoryItemGeneric2"]
+
+
+# "..._Collectibles_<x>" -> its world object (RDB 1000057 simple dynel, data/world_content.json)
+COLLECTIBLES = {
+    "Dreadleg's Treasure": "collectible_dreadlegs_treasure",
+    "T-Rex Footprint": "collectible_trex_foot",
+    "Queen Flora's Crystal Pouch": "collectible_queens_crystal_pouch",
+    "Shadrack's Diary": "collectible_shadrack_secret_diary",
+    "All-seeing Eye": "collectible_all_seeing_eye",
+}
+# "[<world>] Boombox" -> the playfield with that world's "boombox 1" marker
+BOOMBOX_WORLDS = {
+    "Isle of Yarr": 4200,
+    "Volcano Island": 4210,
+    "Kingdom": 5200,
+    "Enchanted Forest": 5210,
+    "Space Colony": 3200,
+    "Planet's Dark Side": 3210,
+    "Mythology Mountains": 2210,
+    "Dino World": 6200,
+}
 
 
 def signed(v):
@@ -139,6 +165,14 @@ def main():
         elif children:
             a["kind"] = "all"
             a["children"] = children
+        elif m := re.search(r"_Combat_Champion_(.+)$", name):
+            a["kind"], a["target"] = "defeat", m.group(1).strip()
+        elif m := re.search(r"_Combat_PA_(?:Clear the )?(.+)$", name):
+            a["kind"], a["target"] = "clear", m.group(1).strip()
+        elif (m := re.search(r"_Collectibles_(.+)$", name)) and m.group(1) in COLLECTIBLES:
+            a["kind"], a["find"] = "find", COLLECTIBLES[m.group(1)]
+        elif (m := re.match(r"\[(.+)\] Boombox$", name)) and m.group(1) in BOOMBOX_WORLDS:
+            a["kind"], a["find"], a["playfield"] = "find", "boombox 1", BOOMBOX_WORLDS[m.group(1)]
         elif m := re.search(r"Defeat (?!.*World Champions)(.+)$", name):
             a["kind"], a["target"] = "defeat", m.group(1).strip()
         elif "MinifigureTemplateID" in parent.get("stats", {}) and "_" in name and "Lost Creations" not in name:

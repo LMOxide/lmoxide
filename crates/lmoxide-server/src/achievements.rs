@@ -11,8 +11,11 @@
 //! StatIIR_t 3000116, then AddTag for what that completed.
 //!
 //! What earns the other achievements was server script; the rules here (`kind` in the data) are
-//! inferred from their names. Exploration, collectibles, seasonal events and Lost Creations have
-//! no rule. Rewards: AchievementRewardValue stars where the reward icon is the stars icon.
+//! inferred from their names. Most exploration, seasonal events and Lost Creations have no rule.
+//! Rewards: AchievementRewardValue stars where the reward icon is the stars icon.
+//!
+//! Every event also goes into the character's journal (`defeats`, `visits`, `finds`): what it
+//! defeated and how often, the playfields it entered, the collectibles and places it found.
 
 use std::{
     collections::{BTreeMap, HashMap},
@@ -24,7 +27,7 @@ use lmoxide_net::{Endpoint, Writer, methods::game_char_interface, types::Id32};
 use serde::Deserialize;
 use tracing::info;
 
-use crate::store::Character;
+use crate::store::{Character, Defeat, Visit};
 
 const STAT_PLAYER_KILLS: u32 = 3_000_116;
 const STAT_PLAYER_SMASHES: u32 = 3_000_126;
@@ -56,6 +59,11 @@ struct Achievement {
     series: Option<u32>,
     #[serde(default)]
     target: Option<String>,
+    /// find: the world object's name, and its playfield when the name isn't unique
+    #[serde(default)]
+    find: Option<String>,
+    #[serde(default)]
+    playfield: Option<u32>,
     #[serde(default)]
     children: Vec<u32>,
 }
@@ -92,7 +100,7 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
         serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
     let playfields = worlds
         .iter()
-        .filter_map(|(k, v)| Some((k.parse().ok()?, v.get("name")?.as_str()?.to_lowercase())))
+        .filter_map(|(k, v)| Some((k.parse().ok()?, v.get("name")?.as_str()?.replace("&apos;", "'").to_lowercase())))
         .collect();
     Tree { all: data.achievements, by_id, children, playfields }
 });
@@ -102,11 +110,17 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
 pub enum Event {
     /// Defeated an enemy of `level` (`boss`: a boss, `champion`: a champion) or smashed a
     /// smashable.
-    Defeated { name: String, smashable: bool, boss: bool, champion: bool, level: u32, playfield: u32 },
+    Defeated { id: Id32, name: String, smashable: bool, boss: bool, champion: bool, level: u32, playfield: u32 },
     /// Finished building a buildie.
     Built { name: String },
     /// A server script gave the player tag `id` (NPC dialogues' `addtagtoplayer`).
     Tag(u32),
+    /// Entered a playfield.
+    Visited { playfield: u32 },
+    /// Found a world object (a collectible, a boombox).
+    Found { playfield: u32, name: String },
+    /// Defeated every enemy of a dungeon in one visit.
+    Cleared { playfield: u32 },
 }
 
 /// What the session must send after an update.
@@ -163,12 +177,58 @@ pub fn check(c: &mut Character, ctx: &Ctx) -> Output {
 /// Counts `event` (`times` times) and grants what it completes.
 pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Output {
     let mut out = Output::default();
+    let now = unix_now();
+    match event {
+        Event::Defeated { name, smashable, boss, champion, .. } => {
+            let kind = match (smashable, boss, champion) {
+                (true, ..) => "smashable",
+                (_, true, _) => "boss",
+                (_, _, true) => "champion",
+                _ => "enemy",
+            };
+            let d = c.defeats.entry(name.clone()).or_insert_with(|| Defeat { kind: kind.into(), count: 0, first_at: now, last_at: now });
+            d.count += times;
+            d.last_at = now;
+        }
+        Event::Visited { playfield } => {
+            let v = c.visits.entry(*playfield).or_insert(Visit { count: 0, first_at: now, last_at: now });
+            v.count += 1;
+            v.last_at = now;
+            evaluate(c, ctx, &mut out);
+            return out;
+        }
+        Event::Found { playfield, name } => {
+            let key = format!("{playfield}:{name}");
+            if c.finds.contains_key(&key) {
+                return out;
+            }
+            info!(character = ctx.character, find = %key, "found");
+            c.finds.insert(key, now);
+            evaluate(c, ctx, &mut out);
+            return out;
+        }
+        Event::Cleared { playfield } => {
+            let area = TREE.playfields.get(playfield).cloned().unwrap_or_default();
+            info!(character = ctx.character, playfield, %area, "cleared");
+            let hits: Vec<u32> = TREE
+                .all
+                .iter()
+                .filter(|a| a.kind == "clear" && a.target.as_ref().is_some_and(|t| !area.is_empty() && same_name(t, &area)))
+                .map(|a| a.id)
+                .collect();
+            for id in hits {
+                grant(c, ctx, &mut out, id);
+            }
+            evaluate(c, ctx, &mut out);
+            return out;
+        }
+        Event::Built { .. } | Event::Tag(_) => {}
+    }
     if let Event::Tag(id) = event {
         if TREE.by_id.contains_key(id) {
             grant(c, ctx, &mut out, *id);
         } else if !c.tags.contains_key(id) {
             // a plain tag (story progress), not an achievement
-            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64);
             c.tags.insert(*id, now);
             out.rpcs.push(add_tag(*id));
         }
@@ -178,7 +238,7 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
         Event::Defeated { name, smashable: false, .. } => (name, "kills"),
         Event::Defeated { name, smashable: true, .. } => (name, "smashes"),
         Event::Built { name } => (name, "builds"),
-        Event::Tag(_) => unreachable!(),
+        _ => unreachable!(),
     };
     match kind {
         "kills" => bump(c, ctx, &mut out, STAT_PLAYER_KILLS, 0, times),
@@ -266,8 +326,7 @@ fn grant(c: &mut Character, _ctx: &Ctx, out: &mut Output, id: u32) {
     }
     let Some(&i) = TREE.by_id.get(&id) else { return };
     let a = &TREE.all[i];
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64);
-    c.tags.insert(id, now);
+    c.tags.insert(id, unix_now());
     out.rpcs.push(add_tag(id));
     if a.stars > 0 {
         c.stars += a.stars;
@@ -303,6 +362,11 @@ fn evaluate(c: &mut Character, ctx: &Ctx, out: &mut Output) {
                     siblings >= a.n as usize
                 }
                 "all" => !a.children.is_empty() && a.children.iter().all(|ch| c.tags.contains_key(ch)),
+                "find" => a.find.as_ref().is_some_and(|name| {
+                    c.finds.keys().any(|k| {
+                        k.split_once(':').is_some_and(|(pf, n)| n == name && a.playfield.is_none_or(|p| pf == p.to_string()))
+                    })
+                }),
                 _ => false,
             };
             if done {
@@ -316,6 +380,10 @@ fn evaluate(c: &mut Character, ctx: &Ctx, out: &mut Output) {
             grant(c, ctx, out, id);
         }
     }
+}
+
+fn unix_now() -> i64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64)
 }
 
 fn kind_of(id: u32) -> &'static str {
@@ -357,6 +425,9 @@ mod tests {
             minifigure_levels: Default::default(),
             tags: Default::default(),
             counters: Default::default(),
+            defeats: Default::default(),
+            visits: Default::default(),
+            finds: Default::default(),
         }
     }
 
@@ -372,7 +443,7 @@ mod tests {
         let cyclops = 41_757;
         let ctx = Ctx { character: 1, active: Some(cyclops), locate: &|_| (101, 6), level: &|_| 1, owned: &|t| t == cyclops };
         let mut c = character();
-        let ev = Event::Defeated { name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
+        let ev = Event::Defeated { id: Id32::new(0, 0), name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
         for _ in 0..999 {
             on_event(&mut c, &ctx, &ev, 1);
         }
@@ -383,9 +454,37 @@ mod tests {
         assert_eq!(counter(&c.counters, STAT_MINIFIGURE_COUNTER1, cyclops), 1000);
         assert!(c.tags.contains_key(&2163), "Global_Smash 1000 Monsters");
         assert!(c.tags.contains_key(&2660), "Cyclops_Smash 1000 Monsters");
-        let boss = Event::Defeated { name: "Hades".into(), smashable: false, boss: true, champion: false, level: 20, playfield: 0 };
+        let boss = Event::Defeated { id: Id32::new(0, 0), name: "Hades".into(), smashable: false, boss: true, champion: false, level: 20, playfield: 0 };
         let out = on_event(&mut c, &ctx, &boss, 1);
         assert!(c.tags.contains_key(&847), "Mythology_Story_Defeat Hades");
         assert!(out.stars >= 500);
+    }
+
+    #[test]
+    fn journal_finds_and_clears() {
+        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), level: &|_| 1, owned: &|_| false };
+        let mut c = character();
+        let skeleton = Event::Defeated { id: Id32::new(0, 0), name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
+        on_event(&mut c, &ctx, &skeleton, 2);
+        on_event(&mut c, &ctx, &skeleton, 1);
+        assert_eq!((c.defeats["Skeleton"].count, c.defeats["Skeleton"].kind.as_str()), (3, "enemy"));
+        on_event(&mut c, &ctx, &Event::Visited { playfield: 4200 }, 1);
+        on_event(&mut c, &ctx, &Event::Visited { playfield: 4200 }, 1);
+        assert_eq!(c.visits[&4200].count, 2);
+        // a collectible and a boombox (the boombox only in its own world)
+        on_event(&mut c, &ctx, &Event::Found { playfield: 4210, name: "collectible_dreadlegs_treasure".into() }, 1);
+        assert!(c.tags.contains_key(&2420), "Pirate_Collectibles_Dreadleg's Treasure");
+        on_event(&mut c, &ctx, &Event::Found { playfield: 4200, name: "boombox 1".into() }, 1);
+        assert!(c.tags.contains_key(&943), "[Isle of Yarr] Boombox");
+        assert!(!c.tags.contains_key(&281), "[Volcano Island] Boombox");
+        // dungeon names with an apostrophe (world_content.json has &apos;)
+        on_event(&mut c, &ctx, &Event::Cleared { playfield: 1640 }, 1);
+        assert!(c.tags.contains_key(&804), "Pirate_Combat_PA_Clear the Natives' Hollow");
+        on_event(&mut c, &ctx, &Event::Cleared { playfield: 1600 }, 1);
+        assert!(c.tags.contains_key(&825), "Space_Combat_PA_Mercenary Cave");
+        let champion = Event::Defeated { id: Id32::new(0, 0), name: "Chunk the Tiger".into(), smashable: false, boss: false, champion: true, level: 5, playfield: 4200 };
+        on_event(&mut c, &ctx, &champion, 1);
+        assert!(c.tags.contains_key(&2377), "Pirate_Combat_Champion_Chunk the Tiger");
+        assert_eq!(c.defeats["Chunk the Tiger"].kind, "champion");
     }
 }

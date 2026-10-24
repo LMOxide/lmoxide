@@ -11,6 +11,7 @@ mod conn;
 mod control;
 mod devcmd;
 mod dash;
+mod discovery;
 mod effects;
 mod game;
 mod jumppad;
