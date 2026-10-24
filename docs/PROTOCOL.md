@@ -471,8 +471,27 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
 - A dialogue sent while the client still loads a playfield is lost.
 - **Quests** (not implemented): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
   event 2 completed / 4 removed, quest, 0), JournalUpdateIIR / QuestRewardUpdateIIR (proto),
-  MainQuestUpdateIIR_c, QuestFullUpdateIIR (quests::operator>> 0x1b76e41, not decoded);
-  definitions in RDB 1000104 (QuestGiverList; `spawn`/`resolvegoal` hashes).
+  MainQuestUpdateIIR_c and QuestFullUpdateIIR (decoded by `tools/re/quest_record.py`, from the
+  client's writers). Definitions in RDB 1000104 (QuestGiverList: main quests, quests, goals
+  with their names and the hashes of `spawn <quest>` / `resolvegoal <goal>`).
+  - Recorded chain (main quest 45, the tutorial and Pirate World): 279 S1M7 → 78 WPZW → 186
+    JDIM → 79 B00R → 185 MJ0R; MainQuestUpdate lists all 22 quests of 45 with a u8 order
+    (descending: 279 = 21, 78 = 20, 186 = 19, 79 = 18, 185 = 17, ...). On a quest's last goal:
+    QuestGoalIIR, QuestIIR 2, JournalUpdateIIR, QuestIIR 4, then the next quest's
+    QuestFullUpdateIIR.
+  - Goal types (`quests::*QuestGoal::GetGoalType`): 2 escort, 5 create item, 7 target item,
+    8 find character, 9 locate district, 10 put item on item, 12 destroy character, 19 put item
+    on character, 20 give item to character, 21 talk to character, 22 external trigger, 23 get
+    item, 25 destroy destructible. Generic part: u32 1, type, owner, quest, goal, 1, 0, 1, 0,
+    3 ID32 (destroy character: the target as (70099, 4-char hash), e.g. "1TZO"), 6 u32 (locate
+    district: 51200 district name, playfield, then 4 f32 for the minimap arrow, the last ~ the
+    height), 3 u8, string (50304 goal text), string (51000 NPC / 51200 district name), u32
+    time left.
+  - What resolved the recorded goals: 330 (destroy character 1TZO) in the fight with
+    Dreadleg; 116 (locate district, "Travel to the Pirate World") 0.06 s after arriving in
+    4600; 229 (locate district) walking near the cannon; 117 and 229 also by text 211's
+    `resolvegoal`; 228 by text 126. The NPC hashes and district areas aren't in the client
+    data, so those triggers can't be matched without guessing.
 
 ## Hit reports
 
