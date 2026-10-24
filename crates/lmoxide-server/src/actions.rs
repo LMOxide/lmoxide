@@ -238,7 +238,9 @@ mod shortcuts {
     static GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
     /// Buff `buff` on `player` (active minifigure `template`) shows `new` instead of `old`.
-    pub fn set(player: Id32, buff: u32, template: u32, old: u32, new: u32, duration: Duration) {
+    /// `duration`: `None` until the buff is removed (switch time 0, assumed: only the combo
+    /// buffs' 100 was recorded).
+    pub fn set(player: Id32, buff: u32, template: u32, old: u32, new: u32, duration: Option<Duration>) {
         let Some(i) = crate::collection::spells(template).iter().position(|&s| s == old) else {
             tracing::debug!(buff, old, template, "shortcut override: not the minifigure's attack");
             return;
@@ -259,10 +261,10 @@ mod shortcuts {
         if let Some(p) = cleared {
             send_clear(player, p);
         }
-        let cs = (duration.as_millis() / 10) as i32;
+        let cs = duration.map_or(0, |d| (d.as_millis() / 10) as i32);
         let args = Writer::new().i32(SPELL_SHORTCUT).i32(position).u32(old).u32(new).i32(cs).finish();
         world::send_to(player, world::Out::Rpc(Endpoint::GameCharInterface, game_char_interface::OVERRIDE_SHORTCUT, args));
-        if let Ok(rt) = tokio::runtime::Handle::try_current() {
+        if let (Some(duration), Ok(rt)) = (duration, tokio::runtime::Handle::try_current()) {
             rt.spawn(async move {
                 tokio::time::sleep(duration).await;
                 let expired = {
@@ -655,7 +657,7 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
     {
         // a buff without TimeExist lasts until the channel's end list removes it, or on a plain
         // press (a combo buff) for the combo window
-        show(run, effects::show_buff(id, nano, caster, Some(buff_duration(run, n))));
+        show(run, effects::show_buff(id, nano, caster, buff_duration(run, n)));
         let mitigation: f32 = n
             .lists
             .get(ON_USE)
@@ -691,14 +693,23 @@ fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: 
     });
 }
 
-/// How long buff `n` is shown: a buff without TimeExist lasts until the channel's end list
-/// removes it, or on a plain press (a combo buff) for the combo window.
-fn buff_duration(run: &Run, n: &Spell) -> Duration {
+/// How long buff `n` is shown (`None`: until a RemoveBuff). A buff without TimeExist lasts
+/// until the channel's end list removes it; on a plain press, a state that swaps the special
+/// too (Mr. Good and Evil's "iamevil", ended by Good Potion; Big Bad Wolf) until removed, and
+/// anything else (a combo buff, which swaps only the normal attack) for the combo window.
+fn buff_duration(run: &Run, n: &Spell) -> Option<Duration> {
     match n.stats.time_exist {
-        Some(cs) => Duration::from_millis(10 * cs as u64),
-        None if run.length.is_zero() => COMBO_WINDOW,
-        None => Duration::from_millis(10 * (channel_left_cs(run) as u64 + 100)),
+        Some(cs) => Some(Duration::from_millis(10 * cs as u64)),
+        None if run.length.is_zero() && swaps_special(run.caster.template, n) => None,
+        None if run.length.is_zero() => Some(COMBO_WINDOW),
+        None => Some(Duration::from_millis(10 * (channel_left_cs(run) as u64 + 100))),
     }
+}
+
+/// Whether buff `n` puts something else on `template`'s special attack shortcut.
+fn swaps_special(template: u32, n: &Spell) -> bool {
+    let special = crate::collection::spells(template).get(1).copied();
+    n.lists.values().flatten().any(|a| a.kind == "OverrideShortcut" && a.u("TemplateID") == special && special.is_some())
 }
 
 /// Centiseconds until the channel's full length is over (buff durations).
@@ -754,6 +765,10 @@ mod tests {
         assert_eq!(override_targets(&[500_468]), vec![505_615, 505_955]);
         let learned = crate::collection::spells_to_learn(498_522);
         assert!(learned.contains(&505_615) && learned.contains(&505_955), "{learned:?}");
+        // "iamevil" (no TimeExist) swaps the special too: it lasts until Good Potion; the
+        // combo buff swaps only the normal attack: combo window
+        assert!(swaps_special(41_894, &SPELLS[&358_710]));
+        assert!(!swaps_special(317_609, &SPELLS[&317_746]));
     }
 
     #[test]

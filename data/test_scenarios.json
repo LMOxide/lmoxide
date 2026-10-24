@@ -97,6 +97,28 @@
       ]
     },
     {
+      "label": "evil",
+      "about": "Mr. Good and Evil with 4 Pirate Corsairs (Evil Potion swaps both attacks until Good Potion)",
+      "team": ["Mr. Good and Evil", "Hun Warrior", "Classic King"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "label": "king",
+      "about": "Classic King with 4 Pirate Corsairs (Royal Steed swaps both attacks for 5 s)",
+      "team": ["Classic King", "Hun Warrior", "Mr. Good and Evil"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
+    },
+    {
       "label": "sandstorm",
       "about": "Egyptian Warrior with 4 Pirate Corsairs (Sand Storm: ground ring, dust and slow on enemies)",
       "team": [
