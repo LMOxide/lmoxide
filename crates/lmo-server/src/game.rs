@@ -126,7 +126,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // may already assume this one: clear it first.
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
-                            records.extend(health_records(h.identity, template));
+                            records.extend(health_records(h.identity, template, me.upgrade(template)));
                         }
                         let echo = iir::pass_blob(&records);
                         // The HUD shows the active minifigure's left/right-click spells, but they
@@ -232,7 +232,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(START_POTIONS).u64(potions_spent).finish();
                                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
                                             .await?;
-                                        let health = crate::npc::heal_player(h.identity, POTION_HEAL);
+                                        let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t)));
+                                        let health = crate::npc::heal_player(h.identity, (max as f32 * POTION_HEAL_SHARE) as u32);
                                         extra.push(int32_stat(h.identity, STAT_HEALTH, health));
                                         // the heal visual (hearts), shown to everyone
                                         let effect = crate::effects::effect_package(h.identity, POTION_EFFECT);
@@ -240,8 +241,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         extra.push(effect);
                                     }
                                 } else if let Some(spell) = spell {
-                                    let special = me.team.first().is_some_and(|&(_, t)| crate::collection::spells(t).get(1) == Some(&spell));
-                                    let damage = if special { SPECIAL_DAMAGE } else { NORMAL_DAMAGE };
+                                    let damage = me
+                                        .team
+                                        .first()
+                                        .map_or(50, |&(_, t)| crate::combat::damage(t, me.upgrade(t), spell, None));
                                     // MagicCommand data: u32, u32 spell, u8 0 + ground position, or u8 1.
                                     // Melee attacks target the caster itself and hit what's around it.
                                     let ground = (data.get(8) == Some(&0)).then(|| {
@@ -323,7 +326,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if let Some(i) = me.team.iter().position(|&(s, _)| s == slot) {
                                 me.team[..=i].rotate_right(1);
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
-                                records.extend(active_minifigure_records(h.identity, me.team[0].1, &presence));
+                                records.extend(active_minifigure_records(h.identity, me.team[0].1, me.upgrade(me.team[0].1), &presence));
                             }
                         }
                         if command_type == COMMAND_EQUIP_ITEM
@@ -331,7 +334,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             && let Some(new_active) = equip(&mut me, &mut collection, data)
                         {
                             // EquipItemCommand: the client moves the item itself on success
-                            records.extend(active_minifigure_records(h.identity, new_active, &presence));
+                            records.extend(active_minifigure_records(h.identity, new_active, me.upgrade(new_active), &presence));
                         }
                         if command_type == COMMAND_EQUIP_ITEM {
                             learn_team_spells(&mut conn, character, &me).await?;
@@ -367,7 +370,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if active_slot.is_some_and(|s| s == from || s == to)
                             && let Some(&(_, template)) = me.team.first()
                         {
-                            let records = active_minifigure_records(h.identity, template, &presence);
+                            let records = active_minifigure_records(h.identity, template, me.upgrade(template), &presence);
                             conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                                 .await?;
                         }
@@ -449,6 +452,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     args,
                 )
                 .await?;
+                // upgrades change maximum health ("Fit") and mitigation ("Tough")
+                if me.team.first().is_some_and(|&(_, t)| t == template) {
+                    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                    let blob = iir::pass_blob(&health_records(id, template, active));
+                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+                }
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::PING) => {
                 let seq = r.u32()?;
@@ -498,7 +507,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             .await?;
                     }
                     Some(crate::loot::HEALTH_ORB_ITEM) => {
-                        let health = crate::npc::heal_player(id, HEALTH_ORB_HEAL);
+                        let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t)));
+                        let health = crate::npc::heal_player(id, (max as f32 * HEALTH_ORB_HEAL_SHARE) as u32);
                         let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
@@ -575,6 +585,9 @@ pub fn spawn_records(id: Id32, c: &CharSpec) -> Vec<Bytes> {
         // unlocked team slots: below 3 the client refuses moves into slots 8/20
         // (ItemHolder::IsLegalItemPlacement)
         int32_stat(id, STAT_MAX_EQUIPPED_WEAPONS, 3),
+        // the client computes Life itself: level × HealthPerLevel + the minifigure's life
+        // (SimpleChar_t::CalculateLife); the original server sent 100
+        int32_stat(id, STAT_HEALTH_PER_LEVEL, 100),
     ]
 }
 
@@ -684,12 +697,15 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     let Some(p) = crate::projectile::params(c.spell) else { return };
     let held = c.started.elapsed().as_secs_f32();
     let item = p.charged_item(held);
+    // the charge level picks the hit's AbilityMod (Big Blast: 0.9 .. 2.5)
+    let level = (held / p.channel_interval.max(0.05)) as usize;
+    let damage = me.team.first().map_or(c.damage, |&(_, t)| crate::combat::damage(t, me.upgrade(t), c.spell, Some(level)));
     // The release resends the press-time command, so its point is where the player aimed when
     // they started charging; aim with the facing they have now instead (the client keeps
     // reporting it while they turn). A targeted cast still goes to its target.
     let towards = c.target.and_then(crate::npc::position).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
     info!(spell = c.spell, held, item, "charge released");
-    crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, c.damage);
+    crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, damage);
 }
 
 /// Fires charges whose release never arrived.
@@ -705,14 +721,14 @@ fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster
 
 /// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
 /// shown to everyone else) and its own health.
-fn active_minifigure_records(id: Id32, template: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
+fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
     let costume = int32_stat(id, STAT_MONSTER_DATA, monster_data_for(template));
     if let Some(p) = presence {
         world::broadcast(p.id(), vec![costume.clone()]);
     }
     info!(template, "active minifigure");
     let mut records = vec![costume];
-    records.extend(health_records(id, template));
+    records.extend(health_records(id, template, upgrades));
     records
 }
 
@@ -761,9 +777,10 @@ fn parse_command(rest: &[u8]) -> Option<(lmo_net::proto::CommandMessage, &[u8])>
 
 /// Makes `template` the active minifigure and sends its health (each minifigure has its own;
 /// Life is the maximum).
-fn health_records(id: Id32, template: u32) -> Vec<Bytes> {
-    let health = crate::npc::set_active_minifigure(id, template);
-    vec![int32_stat(id, STAT_LIFE, crate::npc::PLAYER_HEALTH), int32_stat(id, STAT_HEALTH, health)]
+fn health_records(id: Id32, template: u32, upgrades: u32) -> Vec<Bytes> {
+    let max = crate::combat::max_life(template, upgrades);
+    let health = crate::npc::set_active_minifigure(id, template, max, crate::combat::mitigation(template, upgrades));
+    vec![int32_stat(id, STAT_LIFE, max), int32_stat(id, STAT_HEALTH, health)]
 }
 
 /// `CombatLogIIR` (AttackUtils_c::ActivateCombatLog 0x175bc26): the floating damage number.
@@ -938,12 +955,13 @@ const STAT_ACTIVE_WEAPON: u32 = 2000405;
 const TOKEN_HEALTH_POTIONS: u32 = 150;
 /// Minifigure XP, shown as the star counter (top left).
 const TOKEN_STARS: u32 = 100;
-const HEALTH_ORB_HEAL: u32 = 25;
+const HEALTH_ORB_HEAL_SHARE: f32 = 0.25;
 /// Potions per session (restocked at login).
 const START_POTIONS: u64 = 5;
-/// "Potion of Health" (in shortcut slot 100); its heal amount was server-side, so pick one.
+/// "Potion of Health" (in shortcut slot 100); its heal amount was server-side, so pick one
+/// (a share of the minifigure's maximum health).
 const POTION_SPELL: u32 = 104_554;
-const POTION_HEAL: u32 = 50;
+const POTION_HEAL_SHARE: f32 = 0.5;
 /// Effect package of the potion's heal (hearts on the character).
 const POTION_EFFECT: u32 = 4456;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
@@ -959,10 +977,6 @@ const SUMMON_RECHARGE: std::time::Duration = std::time::Duration::from_secs(2);
 const CHARGE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(6);
 const BCC_CAN_EXECUTE: u8 = 10;
 pub const COMMAND_MAGIC: u32 = 4;
-/// Damage of a minifigure's normal (left-click) and special (right-click) ability until spell
-/// data is modelled.
-const NORMAL_DAMAGE: u32 = 15;
-const SPECIAL_DAMAGE: u32 = 30;
 /// Reach of untargeted (melee/area) attacks: a circle of AREA_RADIUS centred MELEE_REACH in
 /// front of the character.
 const AREA_RADIUS: f32 = 2.5;
@@ -975,6 +989,7 @@ const COMMAND_EQUIP_ITEM: u32 = 9;
 const STAT_COMMAND_QUEUE_SIZE: u32 = 1360;
 /// Number of unlocked team slots (client name e_MaxEquippedWeapons).
 const STAT_MAX_EQUIPPED_WEAPONS: u32 = 2_000_446;
+const STAT_HEALTH_PER_LEVEL: u32 = 3_000_000;
 
 /// Near the portals in playfield 1200 (from the client's RDBTeleportLocations).
 const START_POS: [f32; 3] = [320.0, 56.0, 110.0];
@@ -1023,8 +1038,8 @@ impl Character {
             // the active (first) team slot's minifigure
             monster_data: self.team.first().map_or(2212, |&(_, t)| monster_data_for(t)),
             level: CHARACTER_LEVEL,
-            health: START_HEALTH,
-            max_health: START_HEALTH,
+            health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t))),
+            max_health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t))),
             cars_group: 0,
             npc: None,
         }
@@ -1136,7 +1151,7 @@ mod tests {
 const START_TEAM: [(u32, u32); 3] = [(6, 663929), (8, 663921), (20, 663932)];
 /// Character level (stat 54). The Collection's upgrade panel is gated on it (locked below 3,
 /// tiers need higher levels), so characters start high.
-const CHARACTER_LEVEL: u32 = 50;
+const CHARACTER_LEVEL: u32 = crate::combat::LEVEL;
 
 pub fn acg_item(template: u32, level: u32) -> ProtoAcgItem {
     ProtoAcgItem {

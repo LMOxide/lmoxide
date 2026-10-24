@@ -352,7 +352,7 @@ def java_hash(s):
 
 IIR = {name: java_hash(name) for name in (
     "PlayfieldFIIR_t", "SimpleCharFullUpdateIIR_t", "SimpleDynelFullUpdateIIR_c", "DestructibleFullUpdateIIR_c",
-    "DoorFullUpdateIIR_c", "SpawnClientNPCIIR")}
+    "DoorFullUpdateIIR_c", "SpawnClientNPCIIR", "MoveTaskIIR_c")}
 KIND = {v: k for k, v in IIR.items()}
 
 
@@ -372,6 +372,25 @@ def demo_blobs():
         n = struct.unpack_from(">I", p, 4 + hl)[0]
         out.append(p[8 + hl : 8 + hl + n])
     return out
+
+
+GRAVITY = 9.8  # what the original server used for its jump arcs (fits every recorded jump)
+DEMO_JUMPS = defaultdict(list)  # playfield -> jumps the original server sent (jump pads)
+
+
+def demo_jump(b, o):
+    """A jump-pad launch: MoveTaskIIR_c (u8 0, vec3 start) carrying a ParameterizedBallisticMoveTask
+    (type 12): WaitMoveTask part (u8 0, f32 duration, f32 duration), f32 0, vec3 start, vec3 end,
+    vec3 horizontal unit direction, u8 0; then u8 0, f32 horizontal speed, f32 initial vertical
+    speed, u8 1, u8 1 (75 bytes).  apex = height of the arc above the higher end point."""
+    if len(b) < o + 75 or b[o + 13] != 12 or b[o + 14] != 0:
+        return None
+    v = struct.unpack_from(">B3fBB2ff3f3f3fBBffBB", b, o)
+    dur, start, end, vy = v[6], v[9:12], v[12:15], v[22]
+    if not (0.3 < dur < 10) or abs(v[21] * dur - dist(start, end)) > 0.5:
+        return None
+    apex = vy * vy / (2 * GRAVITY) - max(0.0, end[1] - start[1])
+    return dict(start=rnd(start), end=rnd(end), duration=round(dur, 3), apex=round(apex, 2))
 
 
 def demo_records():
@@ -400,6 +419,11 @@ def demo_records():
                     j = blob.find(b"\x12\x07\x08\x9c\x8f\x03\x10", o, o + 64)
                     if j > 0:
                         pf = varint(blob, j + 7)[0]
+                    continue
+                if kind == "MoveTaskIIR_c":
+                    j = demo_jump(blob, o)
+                    if j and pf is not None:
+                        DEMO_JUMPS[pf].append(j)
                     continue
                 if (typ, inst) in per[pf] or pf is None:
                     continue
@@ -571,6 +595,11 @@ def main():
             e["look"] = look(e) or None
             items.append(e)
         pair_jumps(items)
+        for e in items:  # where the original server actually launched players from these pads
+            if e["kind"] == "jump_pad":
+                j = [j for j in DEMO_JUMPS.get(pf, []) if dist(j["start"], e["pos"]) < 1.5]
+                if j:
+                    e.update(target=j[0]["end"], target_by="demo", apex=j[0]["apex"], duration=j[0]["duration"])
         w["simple_dynels"] = items
         w["doors"] = [dict(d, look=MD.get(d["visual"][1])) for d in dr or []]
         w["resurrection_points"] = res or []

@@ -1,5 +1,6 @@
 mod chat;
 mod collection;
+mod combat;
 mod conn;
 mod effects;
 mod game;

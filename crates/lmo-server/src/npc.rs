@@ -31,7 +31,7 @@ const CARS_FRIENDS: u32 = 2;
 /// NPC dynel instances start here (players are accounts, so keep clear of small numbers).
 static NEXT_INSTANCE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(900_000);
 const PET_FOLLOW: f32 = 2.0;
-const PET_DAMAGE: u32 = 12;
+const PET_DAMAGE: u32 = 60;
 /// Pets that shoot keep this distance from their target.
 const PET_SHOOT_RANGE: f32 = 8.0;
 const AGGRO_RANGE: f32 = 8.0;
@@ -47,14 +47,20 @@ const ENEMY_STARS: usize = 10;
 const SMASHABLE_STARS: usize = 3;
 const TICK: Duration = Duration::from_millis(750);
 const ATTACK_INTERVAL: Duration = Duration::from_millis(2500);
-const NPC_DAMAGE: u32 = 8;
-/// Full health of a minifigure.
-pub const PLAYER_HEALTH: u32 = 100;
+/// Share of player damage enemies absorb (the original server's, measured in the recorded
+/// session: ~20% for normal enemies, ~40% for bosses).
+const ENEMY_MITIGATION: f32 = 0.2;
+const BOSS_MITIGATION: f32 = 0.4;
+/// Enemies with more health than this count as bosses.
+const BOSS_HEALTH: u32 = 500;
 
 /// Players' combat state: each minifigure has its own health.
 #[derive(Default)]
 struct PlayerCombat {
     active: u32,
+    /// The active minifigure's maximum health and damage mitigation (combat.rs).
+    max: u32,
+    mitigation: f32,
     health: HashMap<u32, u32>,
     last_damaged: Option<std::time::Instant>,
 }
@@ -62,16 +68,22 @@ struct PlayerCombat {
 /// Out of combat (no damage for this long) health regenerates.
 const REGEN_DELAY: Duration = Duration::from_secs(5);
 const REGEN_TICK: Duration = Duration::from_secs(1);
-const REGEN_PER_TICK: u32 = 5;
+const REGEN_SHARE: f32 = 0.05;
 
 static PLAYERS: LazyLock<Mutex<HashMap<Id32, PlayerCombat>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Makes `template` the player's active minifigure and returns its health.
-pub fn set_active_minifigure(player: Id32, template: u32) -> u32 {
+/// Makes `template` the player's active minifigure (with its maximum health and mitigation)
+/// and returns its health.
+pub fn set_active_minifigure(player: Id32, template: u32, max: u32, mitigation: f32) -> u32 {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.entry(player).or_default();
     p.active = template;
-    *p.health.entry(template).or_insert(PLAYER_HEALTH)
+    p.max = max;
+    p.mitigation = mitigation;
+    let h = p.health.entry(template).or_insert(max);
+    *h = (*h).min(max);
+    *h
 }
 
 pub fn player_left(player: Id32) {
@@ -82,8 +94,9 @@ pub fn player_left(player: Id32) {
 pub fn heal_player(player: Id32, amount: u32) -> u32 {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.entry(player).or_default();
-    let h = p.health.entry(p.active).or_insert(PLAYER_HEALTH);
-    *h = (*h + amount).min(PLAYER_HEALTH);
+    let max = p.max;
+    let h = p.health.entry(p.active).or_insert(max);
+    *h = (*h + amount).min(max);
     *h
 }
 
@@ -92,8 +105,10 @@ fn damage_player(player: Id32, damage: u32) -> Option<u32> {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.get_mut(&player)?;
     p.last_damaged = Some(std::time::Instant::now());
-    let h = p.health.entry(p.active).or_insert(PLAYER_HEALTH);
-    *h = h.saturating_sub(damage);
+    let (max, mitigation) = (p.max, p.mitigation);
+    let h = p.health.entry(p.active).or_insert(max);
+    let dealt = ((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32;
+    *h = h.saturating_sub(dealt);
     Some(*h)
 }
 
@@ -332,7 +347,12 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     if npc.presence.is_none() || npc.health == 0 || matches!(npc.def.kind, Kind::Npc | Kind::Pet) {
         return None;
     }
-    let dealt = damage.min(npc.health);
+    let mitigation = if npc.def.kind == Kind::Enemy {
+        if npc.def.health > BOSS_HEALTH { BOSS_MITIGATION } else { ENEMY_MITIGATION }
+    } else {
+        0.0
+    };
+    let dealt = (((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32).min(npc.health);
     npc.health -= dealt;
     let health = npc.health;
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
@@ -394,9 +414,11 @@ async fn regenerate() {
             .iter_mut()
             .filter(|(_, p)| p.last_damaged.is_none_or(|t| t.elapsed() >= REGEN_DELAY))
             .filter_map(|(id, p)| {
-                let h = p.health.entry(p.active).or_insert(PLAYER_HEALTH);
-                (*h > 0 && *h < PLAYER_HEALTH).then(|| {
-                    *h = (*h + REGEN_PER_TICK).min(PLAYER_HEALTH);
+                let max = p.max;
+                let h = p.health.entry(p.active).or_insert(max);
+                (*h > 0 && *h < max).then(|| {
+                    // out-of-combat regeneration: 5% of maximum health per second
+                    *h = (*h + (max as f32 * REGEN_SHARE).ceil() as u32).min(max);
                     (*id, *h)
                 })
             })
@@ -539,18 +561,20 @@ fn approach(from: [f32; 3], to: [f32; 3], keep: f32) -> [f32; 3] {
 /// NPC: BCC actions 16 queue, 4 success, 10 can-execute), the damage number and the player's
 /// new health. At 0 the client switches to the next minifigure itself.
 fn attack(id: Id32, player: Id32) {
-    let spell = {
+    let (spell, level) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return };
         if npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
             return;
         }
         npc.last_attack = Some(std::time::Instant::now());
-        npc.def.spell
+        (npc.def.spell, npc.def.level)
     };
-    let Some(health) = damage_player(player, NPC_DAMAGE) else { return };
+    // enemy power ~ 1.5 × level + 1.5 (fit to the recorded session's hits)
+    let damage = (1.5 * level as f32 + 1.5).round() as u32;
+    let Some(health) = damage_player(player, damage) else { return };
     let mut records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
-    records.push(combat_log_record(id, player, spell, NPC_DAMAGE));
+    records.push(combat_log_record(id, player, spell, damage));
     records.push(int32_stat(player, STAT_HEALTH, health));
     world::send_playfield(id, false, world::Out::Records(records));
 }
