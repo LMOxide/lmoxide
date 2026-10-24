@@ -1,5 +1,6 @@
 mod achievements;
 mod actions;
+mod auras;
 mod admin;
 mod buildie;
 mod chat;

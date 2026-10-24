@@ -60,6 +60,9 @@ struct Stats {
     recharge_delay: Option<u32>,
     #[serde(rename = "TargetingMode")]
     targeting_mode: Option<u32>,
+    /// Time from the press to the hit (the client's attack animation).
+    #[serde(rename = "ItemDelay")]
+    item_delay: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,6 +114,9 @@ const GROUND_DEFAULT_LIFETIME: Duration = Duration::from_secs(3);
 const GROUND_PULSE: Duration = Duration::from_secs(1);
 /// Nested nanos deeper than this aren't followed (the data has at most 3 levels).
 const MAX_DEPTH: u32 = 5;
+/// How long a combo buff without TimeExist stays (the original server removed them ~1 s after
+/// the press: recorded Gladius Slash).
+const COMBO_WINDOW: Duration = Duration::from_millis(1000);
 const POLL: Duration = Duration::from_millis(50);
 
 static SPELLS: LazyLock<HashMap<u32, Spell>> = LazyLock::new(|| {
@@ -120,6 +126,62 @@ static SPELLS: LazyLock<HashMap<u32, Spell>> = LazyLock::new(|| {
         .filter_map(|(k, v)| Some((k.parse().ok()?, serde_json::from_value(v).expect("spell_actions.json entry"))))
         .collect()
 });
+
+/// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
+/// plain press (`cast`): it has server-side PreUse or OnUse actions.
+/// Only those whose actions reach a WeaponHit: the others' damage came from actions the server
+/// doesn't run, so they keep the plain hit in game.rs.
+pub fn is_ability(spell: u32) -> bool {
+    SPELLS.get(&spell).is_some_and(|s| {
+        s.minifigure.is_some()
+            && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(|a| !a.client)))
+            && reaches_weapon_hit(spell, &mut Vec::new())
+    })
+}
+
+/// Whether `spell`'s server actions (and the nanos they cast) include a WeaponHit.
+fn reaches_weapon_hit(spell: u32, seen: &mut Vec<u32>) -> bool {
+    if seen.contains(&spell) {
+        return false;
+    }
+    seen.push(spell);
+    let Some(s) = SPELLS.get(&spell) else { return false };
+    s.lists.values().flatten().filter(|a| !a.client).any(|a| {
+        a.kind == "WeaponHit" || ["Value", "NanoTemplate"].iter().filter_map(|k| a.u(k)).any(|n| reaches_weapon_hit(n, seen))
+    })
+}
+
+/// The time from pressing `spell` to its hit (ItemDelay), when this module runs it.
+pub fn hit_delay(spell: u32) -> Option<Duration> {
+    SPELLS.get(&spell).and_then(|s| s.stats.item_delay).map(|cs| Duration::from_millis(10 * cs as u64))
+}
+
+/// A plain (not channelled) press of ability `spell` (see `is_ability`), as the original server
+/// ran it: PreUse (list 39: e.g. the combo buff that makes the client's next attack the next
+/// combo step) right away, OnUse (list 0: the area formulas and hits) after the spell's
+/// ItemDelay, when the attack animation strikes.
+pub fn cast(caster: Caster, spell: u32) {
+    let Some(s) = SPELLS.get(&spell) else { return };
+    let delay = hit_delay(spell).unwrap_or(Duration::ZERO);
+    let run = Arc::new(Run {
+        caster,
+        spell,
+        started: Instant::now(),
+        length: Duration::ZERO,
+        released: AtomicBool::new(true),
+        counters: Mutex::new(HashMap::new()),
+        mitigation_buffs: Mutex::new(Vec::new()),
+        ends_when_hit: false,
+        aim: Mutex::new(None),
+        end_record: Bytes::new(),
+    });
+    debug!(caster = ?run.caster.id, spell, name = %s.name, ?delay, "ability");
+    run_list(&run, spell, PRE_USE, root_target(&run), 0);
+    tokio::spawn(async move {
+        tokio::time::sleep(delay).await;
+        run_list(&run, spell, ON_USE, root_target(&run), 0);
+    });
+}
 
 /// Whether `spell` is a channelled ability this module runs.
 pub fn is_channel(spell: u32) -> bool {
@@ -332,6 +394,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
         "RemoveBuff" => {
             if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id) {
                 run.counters.lock().unwrap().remove(&buff);
+                effects::forget_buff(id, buff);
                 if id == caster {
                     crate::npc::set_buff_mitigation(caster, buff, None);
                 }
@@ -371,6 +434,9 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
                 hits.truncate(max as usize);
             }
             if let Some(nano) = a.u("NanoTemplate") {
+                // the client plays the nano's effect on every hit and at the centre
+                let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
+                show(run, vec![area_formula_record(caster, &ids, nano, center)]);
                 for (id, pos) in hits {
                     cast_nano(run, nano, Target { id: Some(id), pos }, depth + 1);
                 }
@@ -388,6 +454,9 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
                 (0.0..=length).contains(&along) && across <= width
             });
             if let Some(nano) = a.u("NanoTemplate") {
+                let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
+                let mid = [from[0] + dir[0] * length / 2.0, from[1], from[2] + dir[1] * length / 2.0];
+                show(run, vec![area_formula_record(caster, &ids, nano, mid)]);
                 for (id, pos) in hits {
                     cast_nano(run, nano, Target { id: Some(id), pos }, depth + 1);
                 }
@@ -442,9 +511,14 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32) {
     if let Some(id) = target.id
         && (n.stats.time_exist.is_some() || (on_caster && !server_actions))
     {
-        // a buff without TimeExist lasts until the channel's end list removes it
-        let duration = n.stats.time_exist.unwrap_or_else(|| channel_left_cs(run) + 100);
-        show(run, vec![effects::buff_add(id, nano, caster, duration as i32)]);
+        // a buff without TimeExist lasts until the channel's end list removes it, or on a plain
+        // press (a combo buff) for the combo window
+        let duration = match n.stats.time_exist {
+            Some(cs) => Duration::from_millis(10 * cs as u64),
+            None if run.length.is_zero() => COMBO_WINDOW,
+            None => Duration::from_millis(10 * (channel_left_cs(run) as u64 + 100)),
+        };
+        show(run, effects::show_buff(id, nano, caster, Some(duration)));
         let mitigation: f32 = n
             .lists
             .get(ON_USE)
@@ -529,4 +603,15 @@ mod tests {
         assert!(in_sector(c, north, [2.0, 0.0, 0.1], -45.0, 180.0));
         assert!(!in_sector(c, north, [0.0, 0.0, -2.0], -45.0, 90.0));
     }
+}
+
+/// `AreaFormulaIIR_t` (caster): u32 (n+1)·1009 + n targets, u32 formula nano, u32 (m+1)·1009 + m
+/// points (the original server sent the centre), u32 0. The client plays the nano's
+/// EffectPackage on every target and point (`CoreMagicHolder::DoAreaFormula`); sent also
+/// without targets.
+fn area_formula_record(caster: Id32, targets: &[Id32], nano: u32, center: [f32; 3]) -> Bytes {
+    lmoxide_net::iir::record("AreaFormulaIIR_t", caster, false, |w| {
+        let w = targets.iter().fold(w.container_len(targets.len()), |w, t| t.write(w));
+        w.u32(nano).container_len(1).f32(center[0]).f32(center[1]).f32(center[2]).u32(0)
+    })
 }

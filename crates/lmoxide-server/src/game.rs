@@ -275,6 +275,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             presence = Some(world::join(id, me.playfield, pos_handle, spawn, outbox.clone()));
                             set_costume(id, monster_data_for(me.team.first().map_or(0, |&(_, t)| t)));
                             refresh_costumes(id);
+                            if let Some(&(_, template)) = me.team.first() {
+                                crate::auras::apply(id, template, &me.tags, true);
+                            }
                         }
                     }
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
@@ -378,6 +381,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let mut refused = false;
                         let mut stop_after_success = false;
                         let mut extra = Vec::new();
+                        // the original server allowed an ability to execute (BCC action 10) only
+                        // at its ItemDelay, with the hits
+                        let mut can_execute_after: Option<std::time::Duration> = None;
+                        // the cast, for the other players
+                        let mut cast_spell = None;
+                        let mut cast_target = None;
                         match parse_command(rest) {
                             Some((msg, data)) => {
                                 let target = msg.target.as_ref().map(|t| (t.r#type.unwrap_or(0), t.instance.unwrap_or(0)));
@@ -385,6 +394,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let spell = (command_type == COMMAND_MAGIC)
                                     .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
                                     .flatten();
+                                cast_spell = spell;
+                                cast_target = target.map(|(kind, instance)| Id32::new(kind, instance)).filter(|t| t.instance != 0);
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
                                 if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION {
                                     // building a buildie; a repeat (already building or built) is
@@ -517,6 +528,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             ground,
                                         };
                                         crate::actions::start(caster, spell, Bytes::from(end));
+                                    } else if crate::actions::is_ability(spell) {
+                                        // an attack with server-side action lists (combo buffs,
+                                        // area formulas and their hit effects): run as live did,
+                                        // hits at the spell's ItemDelay
+                                        let (template, upgrades) = me.team.first().map_or((0, 0), |&(_, t)| (t, me.upgrade(t)));
+                                        let caster = crate::actions::Caster {
+                                            id: h.identity,
+                                            playfield: me.playfield,
+                                            pos: pos.clone(),
+                                            facing: facing.clone(),
+                                            template,
+                                            upgrades,
+                                            level: me.level(),
+                                            target: target_id,
+                                            ground,
+                                        };
+                                        crate::actions::cast(caster, spell);
+                                        can_execute_after = crate::actions::hit_delay(spell);
                                     } else {
                                     match target_id {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
@@ -545,12 +574,31 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.push(Bytes::from(failed));
                         }
                         records.extend(extra);
+                        if command_type == COMMAND_MAGIC
+                            && !refused
+                            && let Some(spell) = cast_spell
+                            && spell != POTION_SPELL
+                        {
+                            // the others see the cast (its animation) too
+                            let target = cast_target.unwrap_or(h.identity);
+                            world::send_playfield(h.identity, false, world::Out::Records(crate::npc::observed_cast(h.identity, target, spell).to_vec()));
+                        }
                         if command_type == COMMAND_MAGIC && !refused {
                             // A MagicCommand only executes (and later finishes, freeing the queue
                             // for the next cast) once the server allows it: action 10 sets
                             // m_bCanExecute (MagicCommand_c::CanExecute, RunCommand 0x136d280).
                             reply[action_at] = BCC_CAN_EXECUTE;
-                            records.push(Bytes::from(reply));
+                            match can_execute_after {
+                                Some(delay) => {
+                                    let outbox = outbox.clone();
+                                    let reply = Bytes::from(reply);
+                                    tokio::spawn(async move {
+                                        tokio::time::sleep(delay).await;
+                                        let _ = outbox.send(world::Out::Records(vec![reply]));
+                                    });
+                                }
+                                None => records.push(Bytes::from(reply)),
+                            }
                         }
                         if command_type == COMMAND_CYCLE_WEAPON && rest.len() >= 4 {
                             // CycleToNextWeaponCommand: subclass ends with the u32 team slot
@@ -559,6 +607,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 me.team[..=i].rotate_right(1);
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                                 records.extend(active_minifigure_records(h.identity, me.team[0].1, me.upgrade(me.team[0].1), me.level(), &presence));
+                                crate::auras::apply(h.identity, me.team[0].1, &me.tags, true);
                             }
                         }
                         if command_type == COMMAND_EQUIP_ITEM
@@ -567,6 +616,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         {
                             // EquipItemCommand: the client moves the item itself on success
                             records.extend(active_minifigure_records(h.identity, new_active, me.upgrade(new_active), me.level(), &presence));
+                            crate::auras::apply(h.identity, new_active, &me.tags, true);
                         }
                         if command_type == COMMAND_EQUIP_ITEM {
                             learn_team_spells(&mut conn, character, &me).await?;
@@ -603,6 +653,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             && let Some(&(_, template)) = me.team.first()
                         {
                             let records = active_minifigure_records(h.identity, template, me.upgrade(template), me.level(), &presence);
+                            crate::auras::apply(h.identity, template, &me.tags, true);
                             conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                                 .await?;
                         }
@@ -833,6 +884,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
                                 .await?;
                         }
+                        crate::devcmd::Action::Aura(n) => {
+                            if let Some(&(_, template)) = me.team.first() {
+                                let tags = crate::auras::tags(template);
+                                for (i, tag) in tags.iter().enumerate() {
+                                    if i < n as usize {
+                                        me.tags.entry(*tag).or_insert(0);
+                                    } else {
+                                        me.tags.remove(tag);
+                                    }
+                                }
+                                crate::auras::apply(Id32::new(crate::territory::CHARACTER_TYPE, character), template, &me.tags, false);
+                                let line = if tags.is_empty() { "this minifigure has no aura".to_string() } else { format!("aura tags {n} of 4 ({tags:?})") };
+                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            }
+                        }
                         crate::devcmd::Action::Test(setup) => {
                             if !setup.team.is_empty() {
                                 set_team(&mut me, &mut collection, &setup.team);
@@ -982,6 +1048,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     drop(community);
     if character != 0 {
         crate::npc::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
+        crate::auras::left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         crate::jumppad::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         me.pos = *pos.lock().unwrap();
         match store.save(character, &me) {
@@ -1208,6 +1275,10 @@ async fn send_progress(conn: &mut Conn, character: u32, me: &Character, out: cra
     if out.stars > 0 {
         send_token(conn, character, TOKEN_STARS, me.stars, 0).await?;
     }
+    // new achievements may change the aura (the reward scripts recast the aura applier)
+    if let Some(&(_, template)) = me.team.first() {
+        crate::auras::apply(Id32::new(crate::territory::CHARACTER_TYPE, character), template, &me.tags, false);
+    }
     Ok(())
 }
 
@@ -1374,6 +1445,15 @@ fn refresh_costumes(joined: Id32) {
             .collect();
         if !others.is_empty() {
             world::send_to(joined, world::Out::Records(others));
+        }
+        // the flips rebuilt the characters: show the auras on them again
+        let mine = crate::auras::records(joined);
+        if !mine.is_empty() {
+            world::send_playfield(joined, true, world::Out::Records(mine));
+        }
+        let theirs: Vec<Bytes> = world::neighbours(joined).into_iter().flat_map(crate::auras::records).collect();
+        if !theirs.is_empty() {
+            world::send_to(joined, world::Out::Records(theirs));
         }
     });
 }

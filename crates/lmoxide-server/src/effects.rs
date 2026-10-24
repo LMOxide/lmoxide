@@ -35,6 +35,50 @@ pub fn buff_remove(target: Id32, buff: u32, caster: Id32) -> Bytes {
     iir::record("MagicBuffIIR_c", target, false, |w| caster.write(w.u32(buff).u8(1)).u8(0))
 }
 
+/// Buffs shown with `show_buff`, with the generation of their latest add.
+static SHOWN: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<(Id32, u32), u64>>> =
+    std::sync::LazyLock::new(Default::default);
+static GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Shows `buff` on `target` as the original server did: a buff still shown is removed first
+/// (adding it again stacked another copy of its effect) and one with a duration is removed
+/// when it is up (`MagicBuffIIR_c` mode 1, sent to `target`'s playfield; the client doesn't end
+/// it by itself). `None` lasts until `forget_buff` + `buff_remove`. Returns the records to send
+/// now.
+pub fn show_buff(target: Id32, buff: u32, caster: Id32, duration: Option<std::time::Duration>) -> Vec<Bytes> {
+    let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let mut records = Vec::new();
+    if SHOWN.lock().unwrap().insert((target, buff), generation).is_some() {
+        records.push(buff_remove(target, buff, caster));
+    }
+    let cs = duration.map_or(60_000, |d| (d.as_millis() / 10) as i32);
+    records.push(buff_add(target, buff, caster, cs));
+    if let Some(d) = duration
+        && let Ok(rt) = tokio::runtime::Handle::try_current()
+    {
+        rt.spawn(async move {
+            tokio::time::sleep(d).await;
+            let mut shown = SHOWN.lock().unwrap();
+            if shown.get(&(target, buff)) == Some(&generation) {
+                shown.remove(&(target, buff));
+                drop(shown);
+                crate::world::send_playfield(target, true, crate::world::Out::Records(vec![buff_remove(target, buff, caster)]));
+            }
+        });
+    }
+    records
+}
+
+/// `buff` is no longer shown on `target` (removed by other means).
+pub fn forget_buff(target: Id32, buff: u32) {
+    SHOWN.lock().unwrap().remove(&(target, buff));
+}
+
+/// Forgets every buff shown on `target` (it left).
+pub fn forget_buffs(target: Id32) {
+    SHOWN.lock().unwrap().retain(|(t, _), _| *t != target);
+}
+
 /// `EffectPackageIIR`: ID32 named target, u32 package, string code hook, string stop trigger,
 /// f32 hook value, u8, u32 instance id (a running package with the same id isn't restarted),
 /// vec3 ground position (zero: on the identity dynel), u32 owner spell.

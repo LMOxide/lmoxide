@@ -893,6 +893,18 @@ fn cast_record(caster: Id32, target: Id32, spell: u32, action: u8) -> bytes::Byt
     } else {
         NEXT_SERVER_COMMAND.load(Ordering::Relaxed) - 1
     };
+    cast_record_with_id(caster, target, spell, action, server_id)
+}
+
+/// What the other players see of a player's cast of `spell` at `target`: the command queued,
+/// succeeded and allowed to execute (BCC actions 16, 4, 10), as the original server sent NPC
+/// casts to everyone; the caster's own client has its own command.
+pub fn observed_cast(caster: Id32, target: Id32, spell: u32) -> [bytes::Bytes; 3] {
+    let id = NEXT_SERVER_COMMAND.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    [BCC_QUEUE, 4, 10].map(|a| cast_record_with_id(caster, target, spell, a, id))
+}
+
+fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, server_id: u32) -> bytes::Bytes {
     let msg = lmoxide_net::proto::CommandMessage {
         bcc_action_id: Some(605),
         commandqueue_server_id: Some(server_id),

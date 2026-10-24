@@ -13,6 +13,7 @@
 //!   !xp [n]                   gain n XP (with --progression), show level and XP
 //!   !stars <n>                gain n stars (minifigure XP for ranking up)
 //!   !test [n|label]           list the manual test setups, or set one up (data/test_scenarios.json)
+//!   !aura <0-4>               the active minifigure's aura tier (gives/takes its aura tags)
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -33,6 +34,8 @@ pub enum Action {
     Stars(u64),
     /// set up a manual test (`!test`)
     Test(TestSetup),
+    /// give the active minifigure's first n aura tags (0-4), taking the others away
+    Aura(u32),
 }
 
 /// A resolved test scenario (data/test_scenarios.json).
@@ -228,6 +231,10 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             }
         }
         "test" => test(args.first().copied()),
+        "aura" => match args.first().and_then(|n| n.parse::<u32>().ok()).filter(|n| *n <= 4) {
+            Some(n) => Action::Aura(n),
+            None => reply(vec!["usage: !aura <0-4> (none, Disciple, Master, Grandmaster, Superachiever)".into()]),
+        },
         "ach" | "achievements" => Action::Achievements,
         "xp" => Action::Xp(args.first().and_then(|n| n.parse().ok()).unwrap_or(0).min(10_000_000)),
         "stars" => match args.first().and_then(|n| n.parse::<u64>().ok()) {
@@ -249,7 +256,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(crate::achievements::Event::Defeated { name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }

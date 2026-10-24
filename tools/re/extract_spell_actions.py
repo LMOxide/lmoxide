@@ -1,8 +1,9 @@
-"""Game action lists of the minifigures' channelled abilities and every nano they cast, for the
+"""Game action lists of the minifigures' abilities and every nano they cast, for the
 server's interpreter (crates/lmoxide-server/src/actions.rs). Writes data/spell_actions.json:
 
   spell -> {name, stats: {TimeExist, ChannelingInterval, ChannelingTicks, RechargeDelay,
-            TargetingMode, MaxBuffCounters, LuaScriptID} (centiseconds where timed),
+            TargetingMode, MaxBuffCounters, LuaScriptID, ItemDelay, EffectPackage}
+            (centiseconds where timed),
             lists: {event: [{type, client, args, criteria}]}}
 
 Events (GameData::GameActionList_e): 0 OnUse, 1 OnRechargeDelay, 33 OnChanneling (each channel
@@ -10,8 +11,9 @@ tick), 35 channel start, 36 OnChannelingEnd, 39 PreUse. `client` = the client ca
 itself (it runs those of its own spells); the rest are server-only. Criteria: (0, ability, 91)
 = the caster has that upgrade ability, (buff, n, 166) = the buff's counter is n.
 
-Spells covered: minifigure normal/special attacks that channel (ChannelingInterval) and aren't
-charge projectiles (data/projectiles.json), plus every spell they reach through CastNano,
+Spells covered: minifigure normal/special attacks and their combo steps (the hits' `via` in
+data/minifigure_stats.json) that aren't charge projectiles (data/projectiles.json), plus every
+spell they reach through CastNano,
 NanoTemplate or RemoveBuff/AddBuffCounter.  Usage: tools/re/py extract_spell_actions.py"""
 import json, os
 
@@ -23,7 +25,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 idx = rdb.index()
 minifigs = json.load(open(os.path.join(ROOT, "data/minifigure_stats.json")))["minifigures"]
 projectiles = json.load(open(os.path.join(ROOT, "data/projectiles.json")))
-KEEP = ("TimeExist", "ChannelingInterval", "ChannelingTicks", "RechargeDelay", "TargetingMode", "MaxBuffCounters", "LuaScriptID")
+KEEP = ("TimeExist", "ChannelingInterval", "ChannelingTicks", "RechargeDelay", "TargetingMode", "MaxBuffCounters", "LuaScriptID",
+        "ItemDelay", "EffectPackage")
 SHORT = {"GameAction_": "", "AbilityMod": "AbilityMod"}
 
 
@@ -62,9 +65,12 @@ for m in minifigs.values():
         a = m.get(kind)
         if not a or charge(a["spell"]):
             continue
-        r = record(a["spell"])
-        if r and "ChannelingInterval" in r["stats"]:
-            roots[a["spell"]] = f"{m['name']}: {a['name']}"
+        # the ability and its combo steps (the client casts the next step while the previous
+        # step's buff is on)
+        steps = [a["spell"]] + [v for h in a.get("hits", []) for v in h.get("via", [])]
+        for s in dict.fromkeys(steps):
+            if record(s) and not charge(s):
+                roots[s] = f"{m['name']}: {a['name']}"
 
 out = {}
 todo = list(roots)
@@ -92,6 +98,6 @@ while todo:
 out = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), **{k: out[k] for k in sorted(out, key=int)}}
 path = os.path.join(ROOT, "data/spell_actions.json")
 json.dump(out, open(path, "w"), indent=1)
-print(f"{len(roots)} channelled abilities, {len(out) - 1} spells -> {path}")
+print(f"{len(roots)} abilities and combo steps, {len(out) - 1} spells -> {path}")
 for s, who in sorted(roots.items(), key=lambda x: x[1]):
     print(f"  {s} {who}")

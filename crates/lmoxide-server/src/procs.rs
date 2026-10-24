@@ -175,47 +175,21 @@ pub fn set_active(player: Id32, template: u32, upgrades: u32, level: u32) {
 
 pub fn left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
-    SHOWN.lock().unwrap().retain(|(p, _), _| *p != player);
+    effects::forget_buffs(player);
 }
 
 fn show(player: Id32, records: Vec<Bytes>) {
     world::send_playfield(player, true, world::Out::Records(records));
 }
 
-/// The proc buffs shown on players, with the generation of their latest add.
-static SHOWN: LazyLock<Mutex<HashMap<(Id32, u32), u64>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-static GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-
-/// Shows buff `nano` on the player, as the original server did: a buff still shown is removed
-/// first (adding it again stacked another copy of its effect above the head), and a timed one
-/// is removed when its time is up (the client doesn't end it by itself). Buffs without an end
-/// last until `unbuff`.
+/// Shows buff `nano` on the player (`effects::show_buff`: replaced, not stacked; a timed one
+/// ends on time). Buffs without an end last until `unbuff`.
 fn buff(player: Id32, nano: u32, for_: Option<Duration>) -> Vec<Bytes> {
-    let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let mut records = Vec::new();
-    if SHOWN.lock().unwrap().insert((player, nano), generation).is_some() {
-        records.push(effects::buff_remove(player, nano, player));
-    }
-    let cs = for_.map_or(60_000, |d| (d.as_millis() / 10) as i32);
-    records.push(effects::buff_add(player, nano, player, cs));
-    if let Some(d) = for_
-        && let Ok(rt) = tokio::runtime::Handle::try_current()
-    {
-        rt.spawn(async move {
-            tokio::time::sleep(d).await;
-            let mut shown = SHOWN.lock().unwrap();
-            if shown.get(&(player, nano)) == Some(&generation) {
-                shown.remove(&(player, nano));
-                drop(shown);
-                show(player, vec![effects::buff_remove(player, nano, player)]);
-            }
-        });
-    }
-    records
+    effects::show_buff(player, nano, player, for_)
 }
 
 fn unbuff(player: Id32, nano: u32) -> Bytes {
-    SHOWN.lock().unwrap().remove(&(player, nano));
+    effects::forget_buff(player, nano);
     effects::buff_remove(player, nano, player)
 }
 

@@ -4,38 +4,78 @@
     {
       "label": "smash",
       "about": "smashables next to you (smash animation timing, loot bags)",
-      "goto": { "kind": "smashable", "n": 1 }
+      "goto": {
+        "kind": "smashable",
+        "n": 1
+      }
     },
     {
       "label": "chase",
       "about": "a Musketeer camp in Pirate World that chases you (enemy movement)",
-      "goto": { "kind": "enemy", "name": "Musketeer" }
+      "goto": {
+        "kind": "enemy",
+        "name": "Musketeer"
+      }
     },
     {
       "label": "boss",
       "about": "Captain Dreadleg in the tutorial",
-      "goto": { "kind": "enemy", "name": "Captain Dreadleg" }
+      "goto": {
+        "kind": "enemy",
+        "name": "Captain Dreadleg"
+      }
     },
     {
       "label": "crowd",
       "about": "8 Pirate Corsairs around you where you stand (procs, buffs, area attacks)",
-      "spawn": [{ "name": "Pirate Corsair", "count": 8 }]
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 8
+        }
+      ]
     },
     {
       "label": "team",
       "about": "Astronaut, Alien Trooper and Ballerina in the hub (animations, minifigure switching, health)",
-      "goto": { "playfield": 1200 },
-      "team": ["Astronaut", "Alien Trooper", "Ballerina"]
+      "goto": {
+        "playfield": 1200
+      },
+      "team": [
+        "Astronaut",
+        "Alien Trooper",
+        "Ballerina"
+      ]
     },
     {
       "label": "kraken",
       "about": "Crikey the Kraken's cave (boss that doesn't render)",
-      "goto": { "kind": "enemy", "name": "Crikey the Kraken" }
+      "goto": {
+        "kind": "enemy",
+        "name": "Crikey the Kraken"
+      }
     },
     {
       "label": "darkside",
       "about": "Planet's Dark Side, where the client hung while loading",
-      "goto": { "playfield": 3210 }
+      "goto": {
+        "playfield": 3210
+      }
+    },
+    {
+      "label": "combo",
+      "about": "Roman Commander with 4 Pirate Corsairs around you (Gladius Slash combo steps, hit sparks)",
+      "team": [
+        "Roman Commander",
+        "Astronaut",
+        "Ballerina"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
     }
   ]
 }
