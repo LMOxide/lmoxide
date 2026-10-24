@@ -23,7 +23,7 @@ playfield resources) aren't listed; neither are protocol constants.
 | Enemy aggro / leash / melee range | `npc.rs` `AGGRO_RANGE` / `LEASH_RANGE` / `MELEE_RANGE` | 8 m / 25 m / 1.8 m | Assumed. |
 | AI tick | `npc.rs` `TICK` | 0.75 s | Assumed (movement updates for enemies). |
 | Enemy respawn | `npc.rs` `RESPAWN` | 20 s | Assumed. |
-| Death → despawn delay | `npc.rs` `hit` | 3 s | Assumed (time for the death animation). |
+| Death → despawn delay | `npc.rs` `hit` | 3 s for enemies; smashed debris stays until the respawn | Assumed. In the recorded session the debris was still there minutes later; when the real server removed or rebuilt it is unknown. |
 | Proposed enemy level/health/spells | `data/world_content.json` (`source: "proposed"`) | levels 1–3, ~60–140 health | Only Tutorial, Pirate World and the pirate prison are from the recorded session; other worlds' enemies are proposals. |
 | Hub test enemies and smashables | `data/spawns.json` | 3 enemies, 4 smashables | For testing; the real hub had no enemies. |
 | Melee reach | `game.rs` `MELEE_REACH` / `AREA_RADIUS` | 2.5 m circle, 1.5 m ahead | Assumed. The client logs targeting "range 2.5, cone 180". |
