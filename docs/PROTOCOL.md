@@ -271,6 +271,26 @@ A full update of a built buildie (sent to newcomers) has SimpleDynel field 1 = t
 CARS group 5, no particles, Health = max and the Destructible's 4th field = 1. The jump pad
 under a buildie (a separate `Jumper` dynel) is in CARS group 5 until it is built, then 3.
 
+## Levers, gates, pressure plates (not implemented)
+
+- They are playfield simple dynels (RDB 1000057): `lego_lever_a_interactable` (Space Colony 3200 ×5,
+  Gauntlet 6300 ×2), `module_wall_4x4_gate_lego_myth_interactable` (6300, Medusa's Lair 2300, 4610),
+  `pressureplate_red/yellow/green` (Ruined Fort 5300, 9 each), Medusa mirrors (2310, 6300), grates,
+  portcullis, collapsing floor. Live sent nearly every 1000057 entry as a server dynel (recorded
+  playfields: 19 of 21 in 1300, 10 of 10 in 4600), with its own sequential instances; we only
+  send the jump pads, so these are missing in game.
+- No lever, gate or plate is used in the recorded session, and no client data links levers to
+  gates or describes the plate puzzles (Gauntlet has quest areas "Quest_PressurePlateRoom",
+  "…Complete", mirror/maze/dodge/buzz/shooting/tiki rooms in RDB 1000055): that was server script.
+- Client side: a usable SimpleDynel (CanUse: CARS check, not CanBeOpened) sends a
+  `UseDynelCommand` (StopUse queues one with 0x22). Levers and gates have EMotionFX motion sets
+  (1050004 520506 / 475033): `open`, `close`, `anim_0` (closed state), `anim_1` (open state).
+  `UpdateSimpleDynelIIR_c` mode 0 = u8 hidden, closed, can-be-opened, usable (+0x338..0x33b,
+  no animation); mode 1 = ID32. `SimpleDynelVisualChangeIIR_c` states: 0/1 particle effect
+  (looping/one shot), 2 stop particle, 3 visual data, 4 collision (KD-tree) id, 7 fade in,
+  8 fade out (u32), 9/10/11 visual data variants. `ScryScriptIIR_c` 0-2 start client script
+  groups, 3/4 delete them.
+
 ## Missing game data
 
 The archive lacks the RDB packs (playfield data type 1000049, many 1000141, …). Funcom's patch
