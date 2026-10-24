@@ -463,3 +463,16 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   event 2 completed / 4 removed, quest, 0), JournalUpdateIIR / QuestRewardUpdateIIR (proto),
   MainQuestUpdateIIR_c, QuestFullUpdateIIR (quests::operator>> 0x1b76e41, not decoded);
   definitions in RDB 1000104 (QuestGiverList; `spawn`/`resolvegoal` hashes).
+
+## Hit reports
+
+The recorded server never sent `CombatLogIIR`; it reported every hit with `AttackResultIIR`
+(u32 length + AttackResultIIRProto: entries {attacker, target, AttackResult {damage f32,
+damage_type 1000, result, levels, critical, killing_blow, attack_type}, template_id = hit nano},
+command_queue_id). With the caster's running MagicCommand's server id (BCC 4 reply proto field
+3) the record's identity is the caster and the result is queued on that command
+(`MagicCommand_c::QueueAttackResult`; `PlayAttackResult` applies it and fires the spell's
+"ontick" hook); with 0 the identity is the target and it applies at once. LMOxide still sends
+`CombatLogIIR` (known to show the damage numbers): a test switching to AttackResultIIR (id 0)
+showed no numbers in a crowd fight, though that screenshot test was inconclusive. Switching
+needs the server command id in the player's BCC 4 replies first.
