@@ -4,7 +4,8 @@
 #   tools/lan-server.sh [--release] [lan-ip]   (default ip: this PC's address on the default route)
 # --release: optimized build (target/release; faster, slower to compile). Logging is the same.
 # Listens on all interfaces and tells clients to connect to <lan-ip>. Ports: TCP 8080 (patch
-# server), 7100 (universe), 7101 (territory), 7102 (game), 7200 (chat).
+# server), 7100 (universe), 7101 (territory), 7102 (game), 7200 (chat), 8090 (REST API for the
+# web UI and bots; LMOXIDE_API_PORT=, empty, leaves it off).
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
 # an account without one) and GM level 1 for everyone (free-text chat and the test commands need it).
 # Progression is on (--progression: XP, levels and minifigure ranks, as live).
@@ -19,11 +20,36 @@ IP=${1:-$(ip -4 route get 1.1.1.1 | sed -nE 's/.* src ([0-9.]+).*/\1/p')}
 VAR=$(realpath -m "$ROOT/../var")
 DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
 CLIENT=${LMOXIDE_CLIENT_DIR:-$(realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online")}
+# The native Linux client for patchers (the `linux` manifest): the stock build, extracted once
+# from aronwk's zip, plus the client kit's prebuilt libraries and launcher as overlay. Both live
+# under clients/ (not synced by Dropbox). LMOXIDE_LINUX_CLIENT_DIR= turns Linux installs off.
+CLIENTS=$(realpath -m "$ROOT/../clients")
+LINUX_ZIP=$CLIENTS/downloads/LMO_Linux_v1.5.557666.zip
+LINUX_CLIENT=${LMOXIDE_LINUX_CLIENT_DIR-$CLIENTS/linux-stock/LMO_Linux_v1.5.557666}
+LINUX_ARGS=()
+if [[ -n $LINUX_CLIENT ]]; then
+  if [[ ! -x $LINUX_CLIENT/LMO && -f $LINUX_ZIP ]]; then
+    echo "extracting the Linux client to $LINUX_CLIENT (once, 2.3 GB)..."
+    mkdir -p "$(dirname "$LINUX_CLIENT")" && unzip -q -o "$LINUX_ZIP" -d "$(dirname "$LINUX_CLIENT")"
+  fi
+  if [[ -x $LINUX_CLIENT/LMO ]]; then
+    OVERLAY=$CLIENTS/linux-overlay
+    mkdir -p "$OVERLAY"
+    cc -shared -fPIC -O2 -o "$OVERLAY/libgconf-2.so.4" "$ROOT/patches/linux-client/gconf-stub.c"
+    cc -shared -fPIC -O2 -o "$OVERLAY/liblmofixes.so" "$ROOT/patches/linux-client/lmo-fixes.c" -lpthread
+    cp "$ROOT/patches/linux-client/lmo" "$OVERLAY/lmo"
+    LINUX_ARGS=(--linux-client-dir "$LINUX_CLIENT" --linux-overlay-dir "$OVERLAY")
+  else
+    echo "no Linux client (put LMO_Linux_v1.5.557666.zip in $CLIENTS/downloads/): patchers get Windows only"
+  fi
+fi
 # the client kit, served at http://<ip>:8080/client-kit.tar.gz for other PCs (patches/linux-client/README.md)
 KIT=$("$ROOT/patches/linux-client/make-kit.sh" | cut -d' ' -f1)
 pkill -x lmoxide-server || true
 pkill -x lmoxide-patch-s || true   # process names are cut to 15 characters
-cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server $([[ $PROFILE == release ]] && echo --release)
+API_PORT=${LMOXIDE_API_PORT-8090}
+[[ -n $API_PORT ]] && { pkill -x lmoxide-api || true; }
+cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server -p lmoxide-api $([[ $PROFILE == release ]] && echo --release)
 BIN=$ROOT/target/$PROFILE
 mkdir -p "$ROOT/logs"
 echo "LAN server ($PROFILE build) on $IP. Install or update the client on another PC:"
@@ -34,9 +60,25 @@ export RUST_LOG=${RUST_LOG:-info}
 "$BIN/lmoxide-patch-server" --bind 0.0.0.0 --public-host "$IP" --client-dir "$CLIENT" \
   --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}" --cache-dir "$VAR/rdb-cache" \
-  --client-kit "$KIT" ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/lan-patch-server.log" 2>&1 &
+  --client-kit "$KIT" "${LINUX_ARGS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/lan-patch-server.log" 2>&1 &
 PATCH=$!
-trap 'kill $PATCH 2>/dev/null' EXIT
-"$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" \
+# the API reaches the game server's control interface (127.0.0.1:7300) with a shared token
+CONTROL_ARGS=()
+if [[ -n $API_PORT ]]; then
+  mkdir -p "$DATA"
+  [[ -s $DATA/control_token ]] || { head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' >"$DATA/control_token"; chmod 600 "$DATA/control_token"; }
+  CONTROL_ARGS=(--control-token-file "$DATA/control_token")
+  # after the game server opened (and migrated) the database: at the same time it's locked
+  rm -f "$ROOT/logs/lan-server.log"
+  (
+    until grep -qs "control interface listening" "$ROOT/logs/lan-server.log"; do sleep 1; done
+    exec "$BIN/lmoxide-api" --data-dir "$DATA" --bind "0.0.0.0:$API_PORT" --control-url http://127.0.0.1:7300 \
+      --control-token-file "$DATA/control_token" ${LMOXIDE_API_ARGS:-}
+  ) >"$ROOT/logs/lan-api.log" 2>&1 &
+  API=$!
+  echo "REST API: http://$IP:$API_PORT (log logs/lan-api.log)"
+fi
+trap 'kill $PATCH ${API:-} 2>/dev/null' EXIT
+"$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
   --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" --progression ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"

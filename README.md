@@ -91,7 +91,8 @@ chat 7200, control 7300 (private), API 8090.
 
 Typed into the normal chat in game (free text needs a GM level; `tools/lan-server.sh` sets 1).
 A line starting with `!` (or `/`, if the client lets it through) goes to the server, not to other
-players; answers come back as chat lines from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
+players, in the local chat or any channel tab (e.g. Global); answers come back as local chat lines
+from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 
 | Command | Does |
 |---|---|
@@ -121,7 +122,7 @@ New features add their targets to `devcmd.rs` `targets`.
 | `patches/linux-client/apply.sh <dir> [--server ip]` | the client patch kit: apply (again) to an extracted client |
 | `patches/linux-client/make-kit.sh` | pack the kit (prebuilt libraries) as `dist/lmo-client-kit-v<N>.tar.gz` for another PC |
 | `patches/linux-client/play.sh <dir> <server-ip> <username>` | start a kit-installed client from another folder |
-| `tools/lan-server.sh [--release] [lan-ip]` | game server + patch server for LAN play (binds 0.0.0.0, advertises the LAN IP; `--auto-register`, GM level 1); logs in `logs/lan-*.log` |
+| `tools/lan-server.sh [--release] [lan-ip]` | game server + patch server (Windows and, from `clients/downloads/LMO_Linux_v1.5.557666.zip`, Linux installs) + REST API on :8090 for LAN play (binds 0.0.0.0, advertises the LAN IP; `--auto-register`, GM level 1); logs in `logs/lan-*.log` |
 | `tools/re/py method.py <name\|0xID\|Iface::>` | RPC lookup: ID, signature, client dispatch/sender function, argument read order |
 | `tools/re/py xref.py <regex>` | search exe strings, with referencing functions |
 | `tools/re/py d.py <va> [bytes]` | disassemble with string annotations |

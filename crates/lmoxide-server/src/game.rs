@@ -86,40 +86,48 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 None => break,
             },
             Some(out) = inbox.recv() => {
-                match out {
-                    world::Out::Records(records) => {
-                        let blob = iir::pass_blob(&records);
-                        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
-                    }
-                    world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
-                    world::Out::DevTeleport(playfield, at, label) => {
-                        info!(character, playfield, ?at, %label, "dev tour");
-                        crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &label);
-                        let at = [at[0] + 6.0, at[1], at[2]];
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)), potions_spent)
-                            .await?;
-                    }
-                    world::Out::Progress(event) => {
-                        if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
-                            && crate::progression::enabled()
-                        {
-                            let records = gain_xp(&mut me, character, crate::progression::kill_xp(*level, *boss, *champion));
-                            conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                if let world::Out::Command(text) = out {
+                    // handled like the same line typed into the local chat
+                    let args = Writer::new().string(&text).i32(0).finish();
+                    let agent = Endpoint::GameCharAgent.proto(None);
+                    lmoxide_net::rpc::Rpc::new(agent.clone(), agent, game_char_agent::VICINITY_CHAT_MESSAGE, args)
+                } else {
+                    match out {
+                        world::Out::Records(records) => {
+                            let blob = iir::pass_blob(&records);
+                            conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                         }
-                        let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
-                        send_progress(&mut conn, character, &me, out).await?;
-                    }
-                    world::Out::Kick(reason) => {
-                        info!(character, ?reason, "kicked");
-                        if let Some(reason) = reason {
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &reason);
-                            // let the chat line arrive before the connection drops
-                            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                        world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
+                        world::Out::DevTeleport(playfield, at, label) => {
+                            info!(character, playfield, ?at, %label, "dev tour");
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &label);
+                            let at = [at[0] + 6.0, at[1], at[2]];
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)), potions_spent)
+                                .await?;
                         }
-                        break;
+                        world::Out::Progress(event) => {
+                            if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
+                                && crate::progression::enabled()
+                            {
+                                let records = gain_xp(&mut me, character, crate::progression::kill_xp(*level, *boss, *champion));
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                            }
+                            let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
+                            send_progress(&mut conn, character, &me, out).await?;
+                        }
+                        world::Out::Kick(reason) => {
+                            info!(character, ?reason, "kicked");
+                            if let Some(reason) = reason {
+                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &reason);
+                                // let the chat line arrive before the connection drops
+                                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                            }
+                            break;
+                        }
+                        world::Out::Command(_) => unreachable!(),
                     }
+                    continue;
                 }
-                continue;
             }
         };
         let mut r = Reader::new(&rpc.args);
@@ -188,7 +196,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
                         records.push(crate::teleport::journal_record(h.identity));
-                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| me.rank(t));
+                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::max_life(t, me.upgrade(t), me.level()));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         if let Some(&(slot, template)) = me.team.first() {
                             // ParentStatChanged only reacts to a different slot, and the client
@@ -1535,7 +1543,7 @@ const EMPTY: u32 = 0x3f1;
 /// ```
 fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
-        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t), &|t| c.rank(t)),
+        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t), &|t| c.rank(t), &|t| crate::combat::max_life(t, c.upgrade(t), c.level())),
         ..Default::default()
     };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {

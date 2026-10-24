@@ -133,7 +133,14 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                         let (target, text) = rest.split_once(" :").unwrap_or((rest, ""));
                         let target = target.split_whitespace().next().unwrap_or("");
                         info!(%nick, %target, %text, "chat message");
-                        if let Some(a) = account {
+                        if let Some(a) = account
+                            && crate::devcmd::is_command(text)
+                        {
+                            // a test command typed into a channel tab: run it in the player's
+                            // game session (answers come as local chat lines), not relayed
+                            let id = lmoxide_net::types::Id32::new(crate::territory::CHARACTER_TYPE, a);
+                            crate::world::send_to(id, crate::world::Out::Command(text.to_string()));
+                        } else if let Some(a) = account {
                             let line = format!(":{nick}!u@{a}.0.0 PRIVMSG {target} :{text}");
                             relay(a, target, &line);
                             if BOT_ECHO.load(std::sync::atomic::Ordering::Relaxed) {

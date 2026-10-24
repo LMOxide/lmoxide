@@ -91,22 +91,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let igr = r.string()?;
                 let (user_type, service_type) = (r.u32()?, r.u32()?);
                 info!(account, dim, ?data, region, age, gender, %igr, user_type, service_type, "CreateCharacterWithData");
-                // Until characters are stored: send the client straight to a game server.
-                let character = Id32::new(CHARACTER_TYPE, account);
-                // ChatServerConnectReady(const String& address, uint cookie, const ID32& characterID):
-                // the client only stores the address ("host:port") and connects after the
-                // character's full update; it must come before LoginConnectReady.
-                let chat = character
-                    .write(
-                        Writer::new()
-                            .string(&cfg.public_addr(cfg.chat_port))
-                            .u32(cookie),
-                    )
-                    .finish();
-                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::CHAT_SERVER_CONNECT_READY, chat)
-                    .await?;
-                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::LOGIN_CONNECT_READY, login_connect_ready(&cfg, character, cookie))
-                    .await?;
+                // The account's one character (created at its first game login, named after the
+                // account; the choices made here aren't used): straight to a game server.
+                connect_character(&mut conn, &cfg, account, cookie).await?;
+            }
+            (Some(Endpoint::PlayerAgent), agent::LOGIN_CHARACTER) => {
+                // LoginCharacter(instance, dataMap, language, region, age, gender, igr, userType,
+                // serviceType): the saved character picked from the list
+                let instance = r.u32()?;
+                info!(account, instance, "LoginCharacter");
+                connect_character(&mut conn, &cfg, account, cookie).await?;
             }
             (Some(Endpoint::PlayerAgent), agent::GET_DIMENSION_LIST) => {
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::SET_DIMENSION_LIST, dimension_list())
@@ -118,13 +112,34 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Sends the client on to the game server with the account's character.
+async fn connect_character(conn: &mut Conn, cfg: &Config, account: u32, cookie: u32) -> anyhow::Result<()> {
+    let character = Id32::new(CHARACTER_TYPE, account);
+    // ChatServerConnectReady(const String& address, uint cookie, const ID32& characterID):
+    // the client only stores the address ("host:port") and connects after the
+    // character's full update; it must come before LoginConnectReady.
+    let chat = character
+        .write(
+            Writer::new()
+                .string(&cfg.public_addr(cfg.chat_port))
+                .u32(cookie),
+        )
+        .finish();
+    conn.send_as(Some(account), Endpoint::PlayerInterface, interface::CHAT_SERVER_CONNECT_READY, chat)
+        .await?;
+    conn.send_as(Some(account), Endpoint::PlayerInterface, interface::LOGIN_CONNECT_READY, login_connect_ready(cfg, character, cookie))
+        .await?;
+    Ok(())
+}
+
 /// The client drops an idle territory connection after 30 s; `VerifyClientStillConnected` is
 /// answered with `ClientReplyKeepCookie`.
 const KEEPALIVE: std::time::Duration = std::time::Duration::from_secs(10);
 
 /// `UpdateClientPlayerData(ClientPlayerData_t, FidData_c, territoryID)`, decoded by the client at
 /// 0x7c0000: ClientPlayerData_t = u32, map<u32, character> (entry reader 0xb49e80), map<u32, u32>;
-/// FidData_c = embedded `FidData` protobuf; then a u32 territory ID.
+/// FidData_c = embedded `FidData` protobuf; then a u32 territory ID. The account's saved
+/// character goes in the map, else the client offers character creation at every login.
 fn client_player_data(account: u32) -> bytes::Bytes {
     let fid = FidData {
         player_instance: account,
@@ -139,7 +154,7 @@ fn client_player_data(account: u32) -> bytes::Bytes {
     };
     Writer::new()
         .u32(account) // meaning unknown; first ClientPlayerData_t field
-        .container_len(0) // characters
+        .raw(&characters(account))
         .container_len(0) // u32 -> u32 map
         .proto(&fid)
         .u32(TERRITORY_ID)
@@ -147,6 +162,23 @@ fn client_player_data(account: u32) -> bytes::Bytes {
 }
 
 const TERRITORY_ID: u32 = 1;
+
+/// The character map: character instance -> PlayerCharacterData_t (operator>> 0x193b269 in the
+/// Linux build): u32 account, u32 character, 3 name strings (first, middle, last), u32
+/// dimension, u32, string creation date, u32 playtime (s), u32 playfield, u32 level, u32, u32,
+/// u64 last login (Unix time), u32, u32, string language, u32, u32, string, u32 level, u32.
+/// Values as in the recorded session (its 2, 11 and 41757 unknown fields are left 0).
+fn characters(account: u32) -> Vec<u8> {
+    let Some(c) = crate::store::Store.load(account) else {
+        return Writer::new().container_len(0).finish().to_vec();
+    };
+    let level = c.level.max(1);
+    let w = Writer::new().container_len(1).u32(account);
+    let w = w.u32(account).u32(account).string(&c.name).string("").string("");
+    let w = w.u32(1).u32(0).string("").u32(0).u32(c.playfield).u32(level).u32(0).u32(0).u64(0);
+    let w = w.u32(0).u32(0).string("en").u32(0).u32(0).string("").u32(level).u32(0);
+    w.finish().to_vec()
+}
 
 /// `SetDimensionList(DimensionDataVec_t)`: each entry is 8 u32s, bool, u32, bool (reader
 /// 0x12ea940). The UI exposes m_Id, m_Name, m_Language, m_Load, m_Rules; the field order is
