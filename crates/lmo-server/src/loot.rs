@@ -34,6 +34,11 @@ const LOOT_BAG_TYPE: u32 = 51322;
 pub const STAR_ITEM: u32 = 20634;
 /// "Health Orb": heals the active minifigure.
 pub const HEALTH_ORB_ITEM: u32 = 20908;
+/// The client auto-collects items within `AutolootDistance` (7 m, client tweak) of both the bag
+/// and the item, which lands 2 m from the bag. The original server dropped bags where the
+/// object died; a killer farther than this gets the bag pulled to this distance instead, so
+/// ranged kills don't leave stars out of reach (assumed, see docs/TUNABLES.md).
+const PULL_RADIUS: f32 = 4.0;
 /// Bags nobody empties disappear after this long.
 const BAG_LIFETIME: Duration = Duration::from_secs(60);
 
@@ -51,6 +56,18 @@ pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, ite
     if items.is_empty() {
         return;
     }
+    let pos = match world::position_of(owner) {
+        Some(at) => {
+            let d = ((pos[0] - at[0]).powi(2) + (pos[1] - at[1]).powi(2) + (pos[2] - at[2]).powi(2)).sqrt();
+            if d > PULL_RADIUS {
+                let k = PULL_RADIUS / d;
+                [at[0] + (pos[0] - at[0]) * k, at[1], at[2] + (pos[2] - at[2]) * k]
+            } else {
+                pos
+            }
+        }
+        None => pos,
+    };
     let id = Id32::new(LOOT_BAG_TYPE, NEXT_BAG.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let records = vec![create_game_object(id, playfield, pos), bag_record(id, playfield, pos, owner, dropper, &items)];
     BAGS.lock().unwrap().insert(id, Bag { owner, items: items.into_iter().map(Some).collect() });
