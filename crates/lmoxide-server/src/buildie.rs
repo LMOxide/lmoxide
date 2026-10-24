@@ -183,6 +183,7 @@ async fn build(id: Id32, player: Id32) {
         if done {
             b.state = State::Built;
             info!(?player, buildie = %b.def.name, "built");
+            world::send_to(player, world::Out::Progress(crate::achievements::Event::Built { name: b.def.name.clone() }));
             records.extend(built_records(id, &b.def));
         }
         let (playfield, pos) = (b.def.playfield, b.def.pos);

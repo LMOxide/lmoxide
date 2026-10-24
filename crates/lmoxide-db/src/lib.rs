@@ -42,7 +42,7 @@ pub enum Error {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-const MIGRATIONS: &[&str] = &[include_str!("../migrations/0001_initial.sql")];
+const MIGRATIONS: &[&str] = &[include_str!("../migrations/0001_initial.sql"), include_str!("../migrations/0002_progression.sql")];
 
 pub struct Db {
     conn: Mutex<Connection>,

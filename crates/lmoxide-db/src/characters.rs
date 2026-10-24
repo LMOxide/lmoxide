@@ -23,6 +23,21 @@ pub struct Character {
     /// sends them.
     #[serde(default)]
     pub tokens: BTreeMap<u32, (u64, u64)>,
+    /// Player XP (stat 52).
+    #[serde(default)]
+    pub xp: u64,
+    /// Player level (stat 54); 0 = never set.
+    #[serde(default)]
+    pub level: u32,
+    /// Minifigure levels by item template (unset: the server's default).
+    #[serde(default)]
+    pub minifigure_levels: BTreeMap<u32, u32>,
+    /// Earned achievement tags -> unix time.
+    #[serde(default)]
+    pub tags: BTreeMap<u32, i64>,
+    /// Achievement counters: stat -> (minifigure template, 0 for the player) -> value.
+    #[serde(default)]
+    pub counters: BTreeMap<u32, BTreeMap<u32, u64>>,
 }
 
 /// A character row without its collections, for listings.
@@ -42,7 +57,7 @@ impl Db {
         let conn = self.conn();
         let Some(mut c) = conn
             .query_row(
-                "SELECT name, playfield, pos_x, pos_y, pos_z, stars FROM characters WHERE id = ?1",
+                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level FROM characters WHERE id = ?1",
                 [id],
                 |r| {
                     Ok(Character {
@@ -53,6 +68,11 @@ impl Db {
                         stars: r.get::<_, i64>(5)? as u64,
                         upgrades: BTreeMap::new(),
                         tokens: BTreeMap::new(),
+                        xp: r.get::<_, i64>(6)? as u64,
+                        level: r.get(7)?,
+                        minifigure_levels: BTreeMap::new(),
+                        tags: BTreeMap::new(),
+                        counters: BTreeMap::new(),
                     })
                 },
             )
@@ -68,6 +88,15 @@ impl Db {
         c.tokens = stmt
             .query_map([id], |r| Ok((r.get(0)?, (r.get::<_, i64>(1)? as u64, r.get::<_, i64>(2)? as u64))))?
             .collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT template, level FROM character_minifigures WHERE character_id = ?1")?;
+        c.minifigure_levels = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT tag, achieved_at FROM character_tags WHERE character_id = ?1")?;
+        c.tags = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT stat, template, value FROM character_counters WHERE character_id = ?1")?;
+        for row in stmt.query_map([id], |r| Ok((r.get::<_, u32>(0)?, r.get::<_, u32>(1)?, r.get::<_, i64>(2)? as u64)))? {
+            let (stat, template, value) = row?;
+            c.counters.entry(stat).or_default().insert(template, value);
+        }
         Ok(Some(c))
     }
 
@@ -77,16 +106,19 @@ impl Db {
         let tx = conn.transaction()?;
         let t = now();
         tx.execute(
-            "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, created_at, saved_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)
+            "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, xp, level, created_at, saved_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11)
              ON CONFLICT (id) DO UPDATE SET name = excluded.name, playfield = excluded.playfield,
                pos_x = excluded.pos_x, pos_y = excluded.pos_y, pos_z = excluded.pos_z,
-               stars = excluded.stars, saved_at = excluded.saved_at",
-            params![id, account_id, c.name, c.playfield, c.pos[0], c.pos[1], c.pos[2], c.stars as i64, t],
+               stars = excluded.stars, xp = excluded.xp, level = excluded.level, saved_at = excluded.saved_at",
+            params![id, account_id, c.name, c.playfield, c.pos[0], c.pos[1], c.pos[2], c.stars as i64, c.xp as i64, c.level, t],
         )?;
         tx.execute("DELETE FROM character_team WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_upgrades WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_tokens WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_minifigures WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_tags WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_counters WHERE character_id = ?1", [id])?;
         {
             let mut team = tx.prepare("INSERT INTO character_team (character_id, slot, position, template) VALUES (?1, ?2, ?3, ?4)")?;
             for (slot, (position, template)) in c.team.iter().enumerate() {
@@ -100,6 +132,21 @@ impl Db {
                 tx.prepare("INSERT INTO character_tokens (character_id, token, gained, spent) VALUES (?1, ?2, ?3, ?4)")?;
             for (token, (gained, spent)) in &c.tokens {
                 tok.execute(params![id, token, *gained as i64, *spent as i64])?;
+            }
+            let mut fig = tx.prepare("INSERT INTO character_minifigures (character_id, template, level) VALUES (?1, ?2, ?3)")?;
+            for (template, level) in &c.minifigure_levels {
+                fig.execute(params![id, template, level])?;
+            }
+            let mut tag = tx.prepare("INSERT INTO character_tags (character_id, tag, achieved_at) VALUES (?1, ?2, ?3)")?;
+            for (t, at) in &c.tags {
+                tag.execute(params![id, t, at])?;
+            }
+            let mut counter =
+                tx.prepare("INSERT INTO character_counters (character_id, stat, template, value) VALUES (?1, ?2, ?3, ?4)")?;
+            for (stat, values) in &c.counters {
+                for (template, value) in values {
+                    counter.execute(params![id, stat, template, *value as i64])?;
+                }
             }
         }
         tx.commit()?;
@@ -177,6 +224,11 @@ mod tests {
             stars: 1234,
             upgrades: [(100, 7)].into(),
             tokens: [(5, (10, 3))].into(),
+            xp: 4321,
+            level: 7,
+            minifigure_levels: [(100, 3)].into(),
+            tags: [(385, 1_700_000_000)].into(),
+            counters: [(3_000_116, [(0, 12)].into()), (3_000_112, [(100, 4), (200, 1)].into())].into(),
         };
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();

@@ -282,6 +282,24 @@ the client when the button is released (`ActionModeDefault_c::CancelSpellOnRelea
 server to the client (`MagicHolder::FinishChanneling`). While channelling, the client reports
 where it aims: `GameCharAgentProject::UpdateSpellTargetPosition(u32 command, Vector3)`.
 
+## Achievements (achievements.rs)
+
+Achievements are tags of the client's lore tree (RDB 1000108, protobuf `LoreTreeBuf`: node 1
+Lore, 2 Achievements, 3 Titles; data/achievements.json from `tools/re/extract_achievements.py`).
+Node stats: AchievementPoints, AchievementRewardValue with RewardIcon (530321 = stars),
+MinifigureTemplateID, TagCounterStat + TagCounterValue (progress counters). The server grants
+one with `GameCharInterface::AddTag(uint32 tag, uint32 timestamp)` (0x1a; live sent timestamp 0)
+and the client shows the "achievement" pop-up. At login live re-sent AddTag for every earned
+tag right after `FullPlayerCharacterIIR`, before the client's CharInPlay (no pop-ups then), and
+nothing on playfield changes.
+
+Recorded per enemy kill: `SetItemStat(ID32 (101, character), team position, 3000112, n)` (the
+active minifigure's InventoryItemGeneric1), `StatIIR_t` 3000116 (TaCoPlayerNPCKills) on the
+player, then AddTag for what was completed (e.g. tutorial tag 385 "XPBar" after the first
+kill). Each minifigure's achievements say what its two item counters count ("Smash 1000
+Monsters", "Build 100 Buildies", "Smash 50 Witches"); player counters: 3000116 kills, 3000126
+smashables smashed, 3000119-3000123 collectibles, 3000140-3000142 seasonal.
+
 ## Buildies (buildie.rs)
 
 Buildies are `DestructibleFullUpdateIIR_c` dynels of type 51321 with CARS group 1 (the pirate

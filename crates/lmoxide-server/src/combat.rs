@@ -31,6 +31,9 @@ struct Data {
 struct Minifigure {
     #[serde(default)]
     life: u32,
+    /// LEGO Minifigures series (9..15 for most).
+    #[serde(default)]
+    series: Option<u32>,
     #[serde(default)]
     power: u32,
     normal: Option<Attack>,
@@ -130,6 +133,11 @@ fn scaled(m: &Minifigure, active: u32, is_normal: bool, ability_mod: f32) -> u32
     }
     let roll = 1.0 + VARIANCE * (2.0 * random_unit() - 1.0);
     (rating * ability_mod * multiplier * roll).round().max(1.0) as u32
+}
+
+/// The LEGO Minifigures series of minifigure `template`.
+pub fn series(template: u32) -> Option<u32> {
+    minifigure(template).and_then(|m| m.series)
 }
 
 /// Whether `template` with the upgrades `active` has upgrade ability `ability` (e.g. the Samurai

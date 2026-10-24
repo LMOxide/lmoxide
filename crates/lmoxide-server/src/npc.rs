@@ -405,6 +405,16 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             _ => crate::loot::Source::Enemy,
         };
         crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
+        // achievements (and XP) of the player who defeated it
+        world::send_to(
+            attacker,
+            world::Out::Progress(crate::achievements::Event::Defeated {
+                name: npc.def.name.clone(),
+                smashable: kind == Kind::Smashable,
+                boss: matches!(source, crate::loot::Source::Boss | crate::loot::Source::Champion),
+                playfield: npc.playfield,
+            }),
+        );
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
         drop(npcs);

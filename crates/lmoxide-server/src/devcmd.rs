@@ -7,6 +7,9 @@
 //!   !tp <playfield|name>      go to a playfield's arrival point (number or part of its name)
 //!   !list <kind>              numbered list of a kind of test target (see KINDS)
 //!   !goto <kind> [n]          go next to target n (default 1) of that kind
+//!   !ach                      achievements earned, kill and smash counters
+//!   !count <kills|smashes|builds> [n] [name]   count n (default 1) defeats/builds for achievements
+//!   !defeat <boss name>       count a boss defeat (boss achievements, the active minifigure's)
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -17,6 +20,10 @@ pub enum Action {
     Reply(Vec<String>),
     /// teleport to (playfield, position, facing), with a reply
     Teleport(u32, [f32; 3], f32, String),
+    /// show the achievement summary
+    Achievements,
+    /// feed achievement events (n times)
+    Progress(crate::achievements::Event, u32),
 }
 
 /// A command's target kinds (for `!list` / `!goto`) and what they are.
@@ -101,8 +108,23 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
                 None => reply(vec![format!("{kind} {n} doesn't exist ({} known)", t.len())]),
             }
         }
+        "ach" | "achievements" => Action::Achievements,
+        "count" => {
+            let n = args.get(1).and_then(|n| n.parse::<u32>().ok()).unwrap_or(1).min(100_000);
+            let name = args.get(2..).map(|w| w.join(" ")).filter(|n| !n.is_empty()).unwrap_or_else(|| "Test Dummy".into());
+            let event = match args.first().copied() {
+                Some("kills") => crate::achievements::Event::Defeated { name, smashable: false, boss: false, playfield },
+                Some("smashes") => crate::achievements::Event::Defeated { name, smashable: true, boss: false, playfield },
+                Some("builds") => crate::achievements::Event::Built { name },
+                _ => return reply(vec!["usage: !count <kills|smashes|builds> [n] [name]".into()]),
+            };
+            Action::Progress(event, n)
+        }
+        "defeat" if !args.is_empty() => {
+            Action::Progress(crate::achievements::Event::Defeated { name: args.join(" "), smashable: false, boss: true, playfield }, 1)
+        }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n]".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }

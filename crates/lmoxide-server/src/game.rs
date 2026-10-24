@@ -50,6 +50,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         stars: 0,
         upgrades: Default::default(),
         tokens: Default::default(),
+        xp: 0,
+        level: 0,
+        minifigure_levels: Default::default(),
+        tags: Default::default(),
+        counters: Default::default(),
     };
     let mut collection = Collection::new(&me.team);
     let pos = Arc::new(Mutex::new(START_POS));
@@ -86,6 +91,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
                     world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
+                    world::Out::Progress(event) => {
+                        let out = progress(&mut me, &collection, character, Some((&event, 1)));
+                        send_progress(&mut conn, character, &me, out).await?;
+                    }
                     world::Out::Kick(reason) => {
                         info!(character, ?reason, "kicked");
                         if let Some(reason) = reason {
@@ -141,6 +150,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                 send_world(&mut conn, character, &me, &collection, potions_spent).await?;
+                // achievements: the earned tags and counters again (live sent them after the full
+                // update, before the client is in play, and not on playfield changes), and what
+                // is due already
+                let out = progress(&mut me, &collection, character, None);
+                send_progress(&mut conn, character, &me, out).await?;
             }
             _ if !conn.authenticated => anyhow::bail!("{} before Authenticate2", rpc.describe()),
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
@@ -682,6 +696,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
                             }
                         }
+                        crate::devcmd::Action::Achievements => {
+                            let (earned, total) = crate::achievements::summary(&me);
+                            let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);
+                            let line = format!("{earned} of {total} achievements; {} kills, {} smashes", count(3_000_116), count(3_000_126));
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                        }
+                        crate::devcmd::Action::Progress(event, n) => {
+                            let before = me.tags.len();
+                            let out = progress(&mut me, &collection, character, Some((&event, n as u64)));
+                            send_progress(&mut conn, character, &me, out).await?;
+                            let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                        }
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
@@ -965,6 +992,41 @@ async fn teleport(
     send_world(conn, character, me, collection, potions_spent).await
 }
 
+/// Runs the achievement rules for `event` (or the login when `None`) on the character.
+fn progress(me: &mut Character, collection: &Collection, character: u32, event: Option<(&crate::achievements::Event, u64)>) -> crate::achievements::Output {
+    let team = me.team.clone();
+    let slots = collection.slots.clone();
+    let locate = move |t: u32| match team.iter().find(|&&(_, x)| x == t) {
+        Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
+        None => (crate::collection::COLLECTION_INVENTORY, slots.iter().position(|s| *s == Some(t)).unwrap_or(0) as u32),
+    };
+    // every minifigure is owned
+    let ctx = crate::achievements::Ctx {
+        character,
+        active: me.team.first().map(|&(_, t)| t),
+        locate: &locate,
+        level: &crate::collection::level,
+        owned: &|_| true,
+    };
+    match event {
+        Some((e, times)) => crate::achievements::on_event(me, &ctx, e, times),
+        None => crate::achievements::login(me, &ctx),
+    }
+}
+
+async fn send_progress(conn: &mut Conn, character: u32, me: &Character, out: crate::achievements::Output) -> anyhow::Result<()> {
+    if !out.records.is_empty() {
+        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&out.records)).await?;
+    }
+    for (endpoint, method, args) in out.rpcs {
+        conn.send_as(Some(character), endpoint, method, args).await?;
+    }
+    if out.stars > 0 {
+        send_token(conn, character, TOKEN_STARS, me.stars, 0).await?;
+    }
+    Ok(())
+}
+
 /// A charge ability being held (see projectile.rs `charge_items`).
 struct Charge {
     spell: u32,
@@ -1207,6 +1269,11 @@ pub async fn run_bot(playfield: u32) {
         stars: 0,
         upgrades: Default::default(),
         tokens: Default::default(),
+        xp: 0,
+        level: 0,
+        minifigure_levels: Default::default(),
+        tags: Default::default(),
+        counters: Default::default(),
     };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);

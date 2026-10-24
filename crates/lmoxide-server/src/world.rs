@@ -24,6 +24,8 @@ pub enum Out {
     /// Disconnect the player (kicked by an admin, or logged in again elsewhere), telling them
     /// why in chat first.
     Kick(Option<String>),
+    /// Something the player did that achievements (and XP) count.
+    Progress(crate::achievements::Event),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;

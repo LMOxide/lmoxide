@@ -1,3 +1,4 @@
+mod achievements;
 mod actions;
 mod admin;
 mod buildie;

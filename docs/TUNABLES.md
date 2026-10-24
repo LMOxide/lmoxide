@@ -89,6 +89,15 @@ playfield resources) aren't listed; neither are protocol constants.
 | Save interval | `game.rs` `SAVE_INTERVAL` | 10 s while moving | Implementation choice. |
 | Teleport spots | `teleport.rs` `spots` | every resurrection point shown and unlocked | Chosen (requested). Live, players discovered them. |
 
+## Achievements
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| What earns an achievement | `data/achievements.json` `kind` (`extract_achievements.py`), `achievements.rs` | counters (kills, smashes, buildies, by name for the "Smash 50 Witches" kind), "Complete Any N", parents when all visible children are done, "Upgrade N" = minifigure level ≥ N, series = every minifigure of the series owned, "Defeat X" and the minifigure ones = boss named X (or the boss of dungeon X) defeated with that minifigure active | The criteria were server Lua; inferred from the names. Exploration, collectibles, seasonal events, champion lists and Lost Creations have no rule (475 of 2144). |
+| Who gets the credit | `npc.rs` `hit` | the player who dealt the killing blow | Assumed (group credit unknown). |
+| Rewards | `achievements.rs` `grant` | AchievementRewardValue stars when the reward icon is the stars icon | Other rewards (the gold minifigure icons 550092/550093) have no data. |
+| Granted at login | `achievements.rs` `login` | whatever already holds (with every minifigure owned at level 10: all "Upgrade 3/7" and the series ones), without pop-ups | Consequence of the unlocked collection. |
+
 ## Jump pads
 
 | Value | Where | Now | Source / reasoning |

@@ -65,6 +65,11 @@ pub fn spells_to_learn(template: u32) -> Vec<u32> {
     all
 }
 
+/// A minifigure's level (every minifigure is at the maximum).
+pub fn level(_template: u32) -> u32 {
+    MAX_LEVEL
+}
+
 /// Activates upgrade `position` in `active`, deactivating its pair partner.
 pub fn activate(active: u32, position: u32) -> u32 {
     let mut active = active | (1 << position);
