@@ -2,6 +2,10 @@
 //! (both `lmox_...`). API keys carry a scope; a session's scope follows its account's GM level
 //! (`--moderator-gm-level`, `--admin-gm-level`), and accounts below both only reach `/v1/me`.
 //!
+//! An API key used by a bot on behalf of someone else (a Discord moderator) may say who in
+//! `X-On-Behalf-Of`; it is recorded in the audit log next to the key's name. It is the key
+//! holder's claim, not authentication.
+//!
 //! Also the request throttles: a token bucket per client address for every request, and a
 //! failure lockout for logins and registrations.
 
@@ -52,6 +56,12 @@ pub fn account_scope(state: &AppState, gm_level: u32) -> Option<Scope> {
     }
 }
 
+/// The `X-On-Behalf-Of` header, if usable: printable, at most 100 characters.
+fn on_behalf_of(parts: &Parts) -> Option<String> {
+    let v = parts.headers.get("x-on-behalf-of")?.to_str().ok()?.trim();
+    (!v.is_empty() && v.len() <= 100 && !v.chars().any(char::is_control)).then(|| v.to_string())
+}
+
 fn bearer(parts: &Parts) -> Option<&str> {
     parts.headers.get(header::AUTHORIZATION)?.to_str().ok()?.strip_prefix("Bearer ").map(str::trim)
 }
@@ -61,10 +71,15 @@ impl FromRequestParts<Arc<AppState>> for Auth {
 
     async fn from_request_parts(parts: &mut Parts, state: &Arc<AppState>) -> Result<Self, ApiError> {
         let token = bearer(parts).ok_or_else(ApiError::unauthorized)?.to_string();
+        let behalf = on_behalf_of(parts);
         let st = state.clone();
         crate::blocking(state, move |db| {
             if let Some(key) = db.authenticate_api_key(&token)? {
-                return Ok(Auth { actor: format!("api-key:{}", key.name), scope: Some(key.scope), account: None, token: None });
+                let actor = match behalf {
+                    Some(who) => format!("api-key:{} for {who}", key.name),
+                    None => format!("api-key:{}", key.name),
+                };
+                return Ok(Auth { actor, scope: Some(key.scope), account: None, token: None });
             }
             let Some((account_id, _)) = db.session_account(&token)? else {
                 return Err(ApiError::unauthorized());

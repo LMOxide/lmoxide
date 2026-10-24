@@ -55,7 +55,8 @@ token it doesn't start.
 - **Throttling**: a token bucket per address (10 requests/s, bursts of 60), and the same login
   lockout as the game. Registration (off by default) is limited per address.
 - **Hardening**: 64 KiB request bodies, 30 s timeouts, `Cache-Control: no-store`, CORS only for
-  `--cors-origins`. Every administrative action goes to the audit log (`GET /v1/audit`).
+  `--cors-origins`. Every administrative action goes to the audit log (`GET /v1/audit`), with the
+  `X-On-Behalf-Of` a bot sends for the person behind a command (the bot's claim).
 - `/v1/status` and `/v1/online` are public (in-game names only, no usernames or account ids)
   unless `--private-status`.
 

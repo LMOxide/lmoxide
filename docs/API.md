@@ -29,6 +29,9 @@ environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
   (web UI). Its scope follows the account's GM level; ordinary players get no scope and can only
   use `/v1/me` (their account, password change). Sessions last `--session-ttl-hours`.
 
+API keys used by a bot for someone else may send `X-On-Behalf-Of: <who>` (e.g.
+`discord:name (id)`); the audit log records it next to the key's name.
+
 Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `unauthorized`,
 `forbidden`, `not_found`, `invalid`, `conflict`, `rate_limited`, `game_server_unavailable`.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A local backend for developing the web UI (or a bot): lmoxide-server + lmoxide-api on
+# A local backend for developing the web UI or the Discord bot: lmoxide-server + lmoxide-api on
 # localhost with their own database, demo accounts, and CORS open to local dev servers.
 # No game client needed. Ctrl-C stops both.
 #   tools/web-dev-backend.sh [--reset]
@@ -10,7 +10,7 @@
 # Demo accounts (password = "<name>-password"):
 #   admin (GM 2, admin scope), moderator (GM 1, moderate scope), player (no scope),
 #   banned (banned for 7 days)
-# A read-scope API key for bots is created once and printed.
+# API keys for bots, created once and printed: demo-bot (read), demo-mod-bot (moderate).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DATA=${DATA:-$(realpath -m "$ROOT/../var/web-dev")}
@@ -35,6 +35,7 @@ if [[ ! -f $DATA/lmoxide.db ]]; then
   done
   "$SERVER" --data-dir "$DATA" account ban banned --days 7 --reason "demo ban" 2>/dev/null >/dev/null
   "$API" --data-dir "$DATA" key create demo-bot --scope read 2>/dev/null | tee "$DATA/demo-bot-key.txt"
+  "$API" --data-dir "$DATA" key create demo-mod-bot --scope moderate 2>/dev/null | tee "$DATA/demo-mod-bot-key.txt"
 fi
 
 export RUST_LOG=${RUST_LOG:-info}
@@ -45,7 +46,8 @@ trap 'kill $GAME 2>/dev/null' EXIT
 echo
 echo "API:      http://127.0.0.1:$API_PORT  (OpenAPI: /v1/openapi.json, also docs/openapi.json)"
 echo "Accounts: admin / moderator / player / banned, password <name>-password"
-echo "Bot key:  $(grep -o 'lmox_[0-9a-f]*' "$DATA/demo-bot-key.txt" 2>/dev/null || echo '(see '"$DATA"'/demo-bot-key.txt)')"
+echo "Bot keys: read $(grep -o 'lmox_[0-9a-f]*' "$DATA/demo-bot-key.txt" 2>/dev/null || echo "(see $DATA)")"
+echo "          moderate $(grep -o 'lmox_[0-9a-f]*' "$DATA/demo-mod-bot-key.txt" 2>/dev/null || echo "(see $DATA; --reset to create)")"
 echo "CORS:     $WEB_ORIGINS"
 echo "logs:     $DATA/server.log (game), API below"
 echo
