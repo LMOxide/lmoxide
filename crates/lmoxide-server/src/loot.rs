@@ -200,7 +200,7 @@ fn random() -> u64 {
     s.wrapping_mul(0x2545_f491_4f6c_dd1d)
 }
 
-fn chance(percent: u64) -> bool {
+pub fn chance(percent: u64) -> bool {
     random() % 100 < percent
 }
 
@@ -209,7 +209,8 @@ fn pick(items: &[u32]) -> Option<u32> {
 }
 
 /// One bag's contents. Stars as recorded (smashables 1-2, enemies 3); everything else proposed.
-pub fn roll(source: Source) -> Vec<u32> {
+/// `orb_bonus`: extra health orb chance in percent (the Resourceful upgrade).
+pub fn roll(source: Source, orb_bonus: u64) -> Vec<u32> {
     let t = &*TABLES;
     let (stars, orb, part_chance, parts, bag_chance, chest) = match source {
         Source::Smashable => (1 + random() as usize % 2, 0, 4, 1, 0, false),
@@ -222,7 +223,7 @@ pub fn roll(source: Source) -> Vec<u32> {
     if source == Source::Chest {
         items.push(STARS_25_ITEM);
     }
-    if chance(orb) {
+    if orb > 0 && chance(orb + orb_bonus) {
         items.push(HEALTH_ORB_ITEM);
     }
     if chance(part_chance) {
@@ -248,13 +249,13 @@ pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, sou
         }
     }
     for owner in owners {
-        drop_items(owner, playfield, pos, dropper, roll(source));
+        drop_items(owner, playfield, pos, dropper, roll(source, crate::procs::orb_bonus(owner)));
     }
 }
 
 /// An opened chest: a new bag where the chest stood.
 pub fn open_chest(owner: Id32, playfield: u32, pos: [f32; 3], chest: Id32) {
-    drop_items(owner, playfield, pos, chest, roll(Source::Chest));
+    drop_items(owner, playfield, pos, chest, roll(Source::Chest, 0));
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {

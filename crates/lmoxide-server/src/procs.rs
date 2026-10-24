@@ -9,8 +9,7 @@
 //!
 //! Not done: pulls and the special attacks' own knockbacks (Harpoon, Crowd Control, Equalizing
 //! Burst, Vortex), cooldown changes (Specialist, Technician: the client keeps the recharge
-//! times), power-up drop changes (Professional, Resourceful), Elemental Affinity (location
-//! elements).
+//! times), Elemental Affinity (location elements).
 
 use std::{
     collections::{HashMap, HashSet},
@@ -48,6 +47,12 @@ const SKIRMISHER: u32 = 481_806;
 const REGENERATE: u32 = 421_240;
 const SHIELDS_UP: u32 = 443_935;
 const CHARGE_UP: u32 = 443_056;
+const RESOURCEFUL: [u32; 2] = [421_226, 461_237];
+const PROFESSIONAL: u32 = 421_221;
+/// Resourceful: extra health orb chance per enemy (percentage points; the orb chance is 35%).
+const RESOURCEFUL_ORB_BONUS: u64 = 15;
+/// Professional: chance of a health orb when the special attack smashes an enemy.
+const PROFESSIONAL_ORB_CHANCE: u64 = 25;
 const KNOCKBACK: u32 = 421_161;
 
 // Their buffs (nano, duration).
@@ -314,10 +319,17 @@ pub fn outgoing(attacker: Id32, spell: u32, damage: u32) -> u32 {
     ((damage as f32) * factor).round() as u32
 }
 
-/// `attacker` defeated an enemy with `spell` at `at` on `playfield`.
-pub fn killed(attacker: Id32, spell: u32, playfield: u32, at: [f32; 3]) {
+/// Extra health orb chance (percent) for `player`'s loot (Resourceful).
+pub fn orb_bonus(player: Id32) -> u64 {
+    let players = PLAYERS.lock().unwrap();
+    players.get(&player).filter(|s| RESOURCEFUL.iter().any(|a| s.abilities.contains(a))).map_or(0, |_| RESOURCEFUL_ORB_BONUS)
+}
+
+/// `attacker` defeated enemy `target` with `spell` at `at` on `playfield`.
+pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: u32, at: [f32; 3]) {
     let mut records = Vec::new();
     let mut heal = 0.0;
+    let mut power_up = false;
     let (template, upgrades, level, special_kill, meltdown, personal_space) = {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&attacker) else { return };
@@ -336,8 +348,14 @@ pub fn killed(attacker: Id32, spell: u32, playfield: u32, at: [f32; 3]) {
             heal += RECONSTRUCT_HEAL;
         }
         let special = spell != s.normal;
+        if special && s.abilities.contains(&PROFESSIONAL) && crate::loot::chance(PROFESSIONAL_ORB_CHANCE) {
+            power_up = true;
+        }
         (s.template, s.upgrades, s.level, special, s.abilities.contains(&MELTDOWN), s.abilities.contains(&PERSONAL_SPACE))
     };
+    if power_up {
+        crate::loot::drop_items(attacker, playfield, at, target, vec![crate::loot::HEALTH_ORB_ITEM]);
+    }
     if heal > 0.0 {
         heal_share(attacker, heal);
     }

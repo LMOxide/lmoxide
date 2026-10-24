@@ -452,7 +452,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         };
         crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
         if kind == Kind::Enemy && by_player {
-            crate::procs::killed(attacker, spell, npc.playfield, *npc.pos.lock().unwrap());
+            crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
         }
         // achievements (and XP) of the player who defeated it
         world::send_to(
