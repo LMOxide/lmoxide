@@ -28,7 +28,7 @@ use crate::{
 const CARS_ENEMIES: u32 = 3;
 /// NPC dynel instances start here (players are accounts, so keep clear of small numbers).
 const FIRST_NPC_INSTANCE: u32 = 900_000;
-const AGGRO_RANGE: f32 = 12.0;
+const AGGRO_RANGE: f32 = 8.0;
 const LEASH_RANGE: f32 = 25.0;
 /// How close an enemy walks up to its target.
 const MELEE_RANGE: f32 = 1.8;

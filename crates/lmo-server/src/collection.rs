@@ -106,10 +106,10 @@ impl Collection {
 }
 
 /// A minifigure item at max level with all upgrades purchased and `active` selected.
-fn entry(template: u32, active: u32) -> ProtoInventoryGameEntry {
+fn entry(template: u32, active: u32, id_salt: u64) -> ProtoInventoryGameEntry {
     let stat = |stat, value| StatValue { stat: Some(stat), value: Some(value) };
     ProtoInventoryGameEntry {
-        item_id: Some(u64::from(template)),
+        item_id: Some(u64::from(template) | id_salt),
         item_data: Some(acg_item(template, MAX_LEVEL)),
         stat_list: vec![
             stat(STAT_MINIFIGURE_LEVEL, MAX_LEVEL),
@@ -121,7 +121,10 @@ fn entry(template: u32, active: u32) -> ProtoInventoryGameEntry {
     }
 }
 
-/// The team (101) and collection (109999) inventories for FullPlayerCharacterIIR.
+/// The collection (109999) and team (101) inventories for FullPlayerCharacterIIR, in that order:
+/// the client builds and caches its minifigure list (ASMinifigureList::GetMinifigureList) as soon
+/// as the team is equipped, so the collection must already be filled or every other minifigure
+/// stays locked.
 pub fn inventories(
     character: u32,
     team: &[(u32, u32)],
@@ -132,8 +135,26 @@ pub fn inventories(
         inventory_id: ProtoId32 { r#type: Some(kind), instance: Some(character) },
         max_size: Some(max_size),
         disabled_slots_count: None,
-        items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t)) }).collect(),
+        items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), 0) }).collect(),
     };
     let stored = collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (p as u32, t))).collect();
-    vec![inventory(TEAM_INVENTORY, 64, team.to_vec()), inventory(COLLECTION_INVENTORY, COLLECTION_SIZE, stored)]
+    vec![inventory(COLLECTION_INVENTORY, COLLECTION_SIZE, stored), inventory(TEAM_INVENTORY, 64, team.to_vec())]
+}
+
+/// The collection again, for an `UpdateInventoryIIR_t` after the character is in play. The
+/// item ids differ from the first copy, so the client replaces every entry and signals each
+/// as added, which unlocks it in an already built minifigure list (an identical copy is
+/// skipped).
+pub fn collection_refresh(character: u32, collection: &Collection, upgrades: &impl Fn(u32) -> u32) -> ProtoInventoryGame {
+    ProtoInventoryGame {
+        inventory_id: ProtoId32 { r#type: Some(COLLECTION_INVENTORY), instance: Some(character) },
+        max_size: Some(COLLECTION_SIZE),
+        disabled_slots_count: None,
+        items: collection
+            .slots
+            .iter()
+            .enumerate()
+            .filter_map(|(p, t)| t.map(|t| InventoryListEntry { pos: p as u32, item: entry(t, upgrades(t), 1 << 32) }))
+            .collect(),
+    }
 }

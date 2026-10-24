@@ -1,8 +1,8 @@
 {
   "1200": [
-    {"name": "Skeleton Warrior", "monster_data": 82410, "level": 1, "health": 60, "pos": [328.0, 48.75, 112.0]},
-    {"name": "Skeleton Pirate", "monster_data": 207001, "level": 1, "health": 60, "pos": [314.0, 48.75, 116.0]},
-    {"name": "Pirate Scout", "monster_data": 201478, "level": 1, "health": 60, "pos": [324.0, 48.75, 102.0]},
+    {"name": "Skeleton Warrior", "monster_data": 82410, "level": 1, "health": 60, "pos": [334.0, 48.75, 124.0]},
+    {"name": "Skeleton Pirate", "monster_data": 207001, "level": 1, "health": 60, "pos": [306.0, 48.75, 124.0]},
+    {"name": "Pirate Scout", "monster_data": 201478, "level": 1, "health": 60, "pos": [334.0, 48.75, 96.0]},
     {"kind": "smashable", "template": 153171, "name": "Crate", "monster_data": 152417, "level": 1, "health": 20, "pos": [317.0, 48.75, 105.0]},
     {"kind": "smashable", "template": 153171, "name": "Crate", "monster_data": 152417, "level": 1, "health": 20, "pos": [318.5, 48.75, 105.0]},
     {"kind": "smashable", "template": 153146, "name": "Barrel", "monster_data": 152388, "level": 1, "health": 20, "pos": [322.0, 48.75, 106.0]},

@@ -98,11 +98,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let mut records = vec![playfield_full_update(me.playfield)];
                 records.extend(spawn_records(id, &me.spec()));
                 records.insert(3, full_player_character(id, &me, &collection));
-                // The inventories again as UpdateInventoryIIR_t (header protobuf ProtoInventoryGame):
-                // FullPlayerCharacterIIR alone doesn't create the collection (109999).
-                for inventory in crate::collection::inventories(character, &me.team, &collection, &|t| me.upgrade(t)) {
-                    records.insert(4, iir::record("UpdateInventoryIIR_t", id, false, |w| w.proto(&inventory)));
-                }
                 if cfg.gm_level != 0 {
                     records.push(int32_stat(id, STAT_GM_LEVEL, cfg.gm_level));
                 }
@@ -132,6 +127,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // item effects, including its abilities (shortcut slots 104/105); sent with
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
+                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t));
+                        records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         if let Some(&(slot, template)) = me.team.first() {
                             // ParentStatChanged only reacts to a different slot, and the client
                             // may already assume this one: clear it first.

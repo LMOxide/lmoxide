@@ -143,11 +143,15 @@ pub const CHARACTER_TYPE: u32 = 50000;
 
 /// `LoginConnectReady(gameServerAddress, nCookie, cClientCharacterID, PlayfieldProxy)`
 /// (decoder 0x7bf400): string, u32, ID32, embedded `PlayfieldProxyData` protobuf.
+/// The playfield is the character's saved one (new characters: `--start-playfield`).
 fn login_connect_ready(cfg: &Config, character: Id32) -> bytes::Bytes {
+    let playfield = crate::store::Store::new(&cfg.data_dir)
+        .load(character.instance)
+        .map_or(cfg.start_playfield, |c| c.playfield);
     let pf = PlayfieldProxyData {
         dimension_id: Some(1),
-        model_id: Some(ProtoId32 { r#type: Some(crate::game::PLAYFIELD_TYPE), instance: Some(cfg.start_playfield) }),
-        running_instance: Some(cfg.start_playfield),
+        model_id: Some(ProtoId32 { r#type: Some(crate::game::PLAYFIELD_TYPE), instance: Some(playfield) }),
+        running_instance: Some(playfield),
         ..Default::default()
     };
     character
