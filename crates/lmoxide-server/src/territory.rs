@@ -21,6 +21,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .unwrap_or(1);
     let mut account = 0;
     let mut cookie = 0;
+    // a reconnect (LoginFromCrash): the client waits on its loading screen to be sent on to a
+    // game server with its character, without picking it again
+    let mut crashed = false;
     let mut _session = None;
     let mut keepalive = tokio::time::interval(KEEPALIVE);
     keepalive.tick().await;
@@ -60,6 +63,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 account = claimed;
                 cookie = their_cookie;
+                crashed = crash;
                 conn.authenticated = true;
                 _session = Some(crate::sessions::territory_opened(account));
                 let args = Writer::new().i32(status).finish();
@@ -78,6 +82,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let setup = Writer::new().i32(status).finish();
                 conn.send_as(me, Endpoint::PlayerInterface, interface::PLAYER_SETUP_COMPLETE, setup)
                     .await?;
+                if std::mem::take(&mut crashed) {
+                    connect_character(&mut conn, &cfg, account, cookie).await?;
+                }
             }
             (Some(Endpoint::PlayerAgent), agent::CLIENT_REPLY_KEEP_COOKIE) => {}
             (Some(Endpoint::PlayerAgent), agent::CREATE_CHARACTER_WITH_DATA) => {
