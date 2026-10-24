@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/lmoxide-net", "crates/lmoxide-server"]
+members = ["crates/*"]
 
 [workspace.package]
 edition = "2024"

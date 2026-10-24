@@ -6,6 +6,7 @@
 
 pub mod codec;
 pub mod iir;
+pub mod login;
 pub mod rpc;
 pub mod stream;
 pub mod types;

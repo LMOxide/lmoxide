@@ -1,0 +1,19 @@
+[package]
+name = "lmoxide-db"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "LMOxide storage: accounts, characters, friendships, API keys, audit log (SQLite)"
+
+[dependencies]
+argon2 = "0.5"
+rand = "0.9"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2 = "0.10"
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3.27.0"
