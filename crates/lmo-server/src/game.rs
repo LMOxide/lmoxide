@@ -932,6 +932,7 @@ fn run_charge(
     let full = std::time::Duration::from_secs_f32(p.channel_interval * p.charge_items.len().saturating_sub(1) as f32);
     let until = full + CHARGE_HOLD;
     let buff = p.channel_buff;
+    let counter_buff = p.counter_buff;
     let full_item = p.charge_items.last().copied();
     let tick = std::time::Duration::from_secs_f32(p.channel_interval.max(0.1));
     tokio::spawn(async move {
@@ -941,12 +942,30 @@ fn run_charge(
         let duration_cs = (tick.as_secs_f32() * 150.0) as i32;
         let started = std::time::Instant::now();
         let mut next_tick = std::time::Duration::ZERO;
+        // channel ticks so far (the press isn't one): the counter buff's count, the charge level
+        let mut ticks = 0u32;
         while active.load(std::sync::atomic::Ordering::Relaxed) && started.elapsed() < until {
-            if let Some(buff) = buff
-                && started.elapsed() >= next_tick
-            {
-                let add = crate::effects::buff_add(caster, buff, caster, duration_cs);
-                world::send_playfield(caster, true, world::Out::Records(vec![add]));
+            if started.elapsed() >= next_tick {
+                let mut records = Vec::new();
+                if let Some(buff) = buff {
+                    records.push(crate::effects::buff_add(caster, buff, caster, duration_cs));
+                }
+                // each tick's AddBuffCounter: the first adds the buff with count 1, later ones
+                // update the count; it lasts until the charge window ends
+                if let Some(counter) = counter_buff
+                    && next_tick > std::time::Duration::ZERO
+                {
+                    ticks += 1;
+                    let left = (until.saturating_sub(started.elapsed()).as_secs_f32() * 100.0) as u32;
+                    records.push(if ticks == 1 {
+                        crate::effects::buff_add_counter(caster, counter, caster, 1, left as i32)
+                    } else {
+                        crate::effects::buff_update_counter(caster, counter, caster, ticks, left)
+                    });
+                }
+                if !records.is_empty() {
+                    world::send_playfield(caster, true, world::Out::Records(records));
+                }
                 next_tick += tick;
             }
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
@@ -961,9 +980,14 @@ fn run_charge(
             *auto_fired.lock().unwrap() = Some((spell, std::time::Instant::now()));
             world::send_to(caster, world::Out::Records(vec![end_record]));
         }
-        if let Some(buff) = buff {
-            let remove = crate::effects::buff_remove(caster, buff, caster);
-            world::send_playfield(caster, true, world::Out::Records(vec![remove]));
+        // the end list removes the counter buff, then the channel buff
+        let removes: Vec<Bytes> = [counter_buff.filter(|_| ticks > 0), buff]
+            .into_iter()
+            .flatten()
+            .map(|b| crate::effects::buff_remove(caster, b, caster))
+            .collect();
+        if !removes.is_empty() {
+            world::send_playfield(caster, true, world::Out::Records(removes));
         }
     });
 }

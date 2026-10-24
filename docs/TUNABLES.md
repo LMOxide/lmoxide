@@ -39,7 +39,7 @@ playfield resources) aren't listed; neither are protocol constants.
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
-| Charge level counter buff | not sent | — | Big Blast's tick also adds counter buff 31416 (no visual; the MagicBuffIIR_c counter update isn't decoded yet). The orb buff is re-cast every tick as live did. |
+| Charge level counter buff | `game.rs` `run_charge`, `projectiles.json` `counter_buff` | every channel tick after the press raises the spell's counter buff (Alien Avenger 31416, Tennis Ace 636386 with its own effect, Baseball Fielder, Fortune Teller, Lizard Man): the first tick adds it with count 1 (`MagicBuffIIR_c` mode 0), later ones update the count (mode 2, counter type 0); it lasts until the charge window ends and is removed with the channel buff | The action lists are the spell's (Use: CastNano; tick: CastNano + AddBuffCounter; end: RemoveBuff ×2); not in the recorded session, so the counter type (0) and the time left sent are assumptions. |
 | Charge hold before auto-fire | `game.rs` `CHARGE_HOLD` | 3 s after full charge | Assumed. |
 | Re-cast after an automatic fire | `game.rs` `CHARGE_RECAST_GAP` | re-sends refused until the client stops for 0.5 s | Assumed. A still-held button re-sends the cast after the server ends the channel. |
 | Unreleased charge fallback | `game.rs` `CHARGE_TIMEOUT` | 6 s | Safety net if the release never arrives. |

@@ -11,11 +11,23 @@ use lmo_net::{iir, types::Id32};
 /// 0x1b343ac), u32 casting level, u64 end time (67 bytes in the recorded session). The client
 /// plays the buff's EffectPackage (stat 1109) on every add.
 pub fn buff_add(target: Id32, buff: u32, caster: Id32, duration_cs: i32) -> Bytes {
+    buff_add_counter(target, buff, caster, 0, duration_cs)
+}
+
+/// `buff_add` with a counter (a non-zero counter is applied right away, as UpdateBuff does).
+pub fn buff_add_counter(target: Id32, buff: u32, caster: Id32, counter: u32, duration_cs: i32) -> Bytes {
     iir::record("MagicBuffIIR_c", target, false, |w| {
-        let w = caster.write(w.u32(buff).u8(0)).u32(0).u32(0).i32(duration_cs).u8(0).u8(1);
+        let w = caster.write(w.u32(buff).u8(0)).u32(counter).u32(0).i32(duration_cs).u8(0).u8(1);
         let w = [1, 0, buff, 1, 0, 0, 0].iter().fold(w, |w, v| w.u32(*v));
         w.u32(1).u64(0)
     })
+}
+
+/// `MagicBuffIIR_c` mode 2 (update, ReadSubClass 0x139fdcc -> CoreMagicHolder::UpdateBuff): u32
+/// buff, u8 2, ID32 caster, u32 counter, u32 counter type, u32 time left (centiseconds), u32
+/// casting level, u32 (passed on to UpdateBuff). Used for buff counters (AddBuffCounter).
+pub fn buff_update_counter(target: Id32, buff: u32, caster: Id32, counter: u32, time_left_cs: u32) -> Bytes {
+    iir::record("MagicBuffIIR_c", target, false, |w| caster.write(w.u32(buff).u8(2)).u32(counter).u32(0).u32(time_left_cs).u32(1).u32(0))
 }
 
 /// `MagicBuffIIR_c` mode 1 (remove): u32 buff, u8 1, ID32 caster, u8 0.
