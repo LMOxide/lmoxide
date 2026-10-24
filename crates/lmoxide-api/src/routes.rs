@@ -154,6 +154,30 @@ pub struct Character {
     pub upgrades: BTreeMap<u32, u32>,
     /// Token counters (minifigure parts): token id -> gained, spent.
     pub tokens: BTreeMap<u32, TokenCount>,
+    /// Player XP.
+    pub xp: u64,
+    /// Player level; 0 = never set (a game server without `--progression` plays every
+    /// character at level 30).
+    pub level: u32,
+    /// Minifigure ranks (0..8) by item template, where set (`--progression`).
+    pub minifigure_ranks: BTreeMap<u32, u32>,
+    /// Earned achievements.
+    pub achievements: Vec<EarnedAchievement>,
+    /// Achievement counters: stat -> minifigure template (0 = the player) -> value (stat 3000116
+    /// enemies defeated, 3000126 smashables smashed, 3000112/3000113 per-minifigure counters).
+    pub counters: BTreeMap<u32, BTreeMap<u32, u64>>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct EarnedAchievement {
+    /// Lore tree tag id.
+    pub id: u32,
+    /// Its name in the client data, e.g. "Global_Smash 1000 Monsters" (empty if unknown).
+    pub name: String,
+    /// Achievement points.
+    pub points: u32,
+    /// Unix time it was earned.
+    pub achieved_at: i64,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -737,9 +761,39 @@ async fn get_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id):
             stars: c.stars,
             upgrades: c.upgrades,
             tokens: c.tokens.into_iter().map(|(t, (gained, spent))| (t, TokenCount { gained, spent })).collect(),
+            xp: c.xp,
+            level: c.level,
+            minifigure_ranks: c.minifigure_levels,
+            achievements: c
+                .tags
+                .into_iter()
+                .map(|(id, achieved_at)| {
+                    let (name, points) = achievement_info(id);
+                    EarnedAchievement { id, name, points, achieved_at }
+                })
+                .collect(),
+            counters: c.counters,
         }))
     })
     .await
+}
+
+/// Name and points of an achievement tag (data/achievements.json).
+fn achievement_info(id: u32) -> (String, u32) {
+    static NAMES: std::sync::LazyLock<std::collections::HashMap<u32, (String, u32)>> = std::sync::LazyLock::new(|| {
+        let doc: serde_json::Value =
+            serde_json::from_str(include_str!("../../../data/achievements.json")).expect("achievements.json");
+        doc["achievements"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|a| {
+                let id = a["id"].as_u64()? as u32;
+                Some((id, (a["name"].as_str()?.to_string(), a["points"].as_u64().unwrap_or(0) as u32)))
+            })
+            .collect()
+    });
+    NAMES.get(&id).cloned().unwrap_or_default()
 }
 
 // ------------------------------------------------------------------ API keys, audit

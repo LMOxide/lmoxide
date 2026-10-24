@@ -1149,13 +1149,67 @@
           "team",
           "stars",
           "upgrades",
-          "tokens"
+          "tokens",
+          "xp",
+          "level",
+          "minifigure_ranks",
+          "achievements",
+          "counters"
         ],
         "properties": {
+          "achievements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarnedAchievement"
+            },
+            "description": "Earned achievements."
+          },
+          "counters": {
+            "type": "object",
+            "description": "Achievement counters: stat -> minifigure template (0 = the player) -> value (stat 3000116\nenemies defeated, 3000126 smashables smashed, 3000112/3000113 per-minifigure counters).",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "propertyNames": {
+                "type": "integer",
+                "format": "int32",
+                "minimum": 0
+              }
+            },
+            "propertyNames": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
           "id": {
             "type": "integer",
             "format": "int32",
             "minimum": 0
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Player level; 0 = never set (a game server without `--progression` plays every\ncharacter at level 30).",
+            "minimum": 0
+          },
+          "minifigure_ranks": {
+            "type": "object",
+            "description": "Minifigure ranks (0..8) by item template, where set (`--progression`).",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "propertyNames": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
           },
           "name": {
             "type": "string"
@@ -1211,6 +1265,12 @@
               "format": "int32",
               "minimum": 0
             }
+          },
+          "xp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Player XP.",
+            "minimum": 0
           }
         }
       },
@@ -1290,6 +1350,38 @@
             "type": "integer",
             "format": "int32",
             "description": "How many players were affected.",
+            "minimum": 0
+          }
+        }
+      },
+      "EarnedAchievement": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "points",
+          "achieved_at"
+        ],
+        "properties": {
+          "achieved_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix time it was earned."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Lore tree tag id.",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "description": "Its name in the client data, e.g. \"Global_Smash 1000 Monsters\" (empty if unknown)."
+          },
+          "points": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Achievement points.",
             "minimum": 0
           }
         }

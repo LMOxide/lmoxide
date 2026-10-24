@@ -59,7 +59,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/accounts/{id}/password` | admin | `{password}` (null removes it) |
 | POST | `/v1/accounts/{id}/ban` | moderate | `{days?, reason?}`; kicks; staff need admin |
 | POST | `/v1/accounts/{id}/unban` | moderate | |
-| GET | `/v1/characters/{id}` | read | team, stars, upgrades, tokens |
+| GET | `/v1/characters/{id}` | read | team, stars, upgrades, tokens, level and XP, minifigure ranks, earned achievements (id, name, points, time), achievement counters |
 | GET/POST | `/v1/api-keys` | admin | list / `{name, scope}` → secret once |
 | DELETE | `/v1/api-keys/{id}` | admin | revoke |
 | GET | `/v1/audit?limit=&before=` | admin | administrative actions, newest first |

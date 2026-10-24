@@ -58,7 +58,7 @@ the key (printable text, at most 100 characters; it is the bot's claim, not auth
 | `/status` | `GET /v1/status` (`game_server_online`, `players_online`, `maintenance`, `started_at`) | public* |
 | `/online` | `GET /v1/online` (`character_name`, `playfield`) + `GET /v1/playfields` for names | public* |
 | `/whois <username>` | `GET /v1/accounts?search=<name>`, then pick the exact (case-insensitive) match; `GET /v1/accounts/{id}` | read |
-| `/character <id>` | `GET /v1/characters/{id}` (team, stars) | read |
+| `/character <id>` | `GET /v1/characters/{id}` (team, stars, level, achievements) | read |
 | `/kick <username> [reason]` | resolve the account id as above (or from `GET /v1/players`), `POST /v1/players/{account_id}/kick` `{reason}` | moderate |
 | `/ban <username> [days] [reason]` | `POST /v1/accounts/{id}/ban` `{days, reason}` (also kicks; no days = permanent) | moderate |
 | `/unban <username>` | `POST /v1/accounts/{id}/unban` | moderate |
