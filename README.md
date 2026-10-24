@@ -1,42 +1,85 @@
-# lmoxide-server
+# LMOxide
 
-A server emulator, in Rust, for the LEGO Minifigures Online client (Funcom, shut down 2016).
+A server for the LEGO Minifigures Online client (Funcom, shut down in 2016), written in Rust.
+LMO runs on Funcom's Dreamworld/N3 engine; everything here was reverse-engineered from the
+shipped client (see [docs/PROTOCOL.md](docs/PROTOCOL.md)).
 
-**Status:** the real client patches against this server, logs in through the universe agent and
-territory manager, requests character creation, and connects and authenticates to the game
-server, loads the starting playfield and **enters the game world** (FlowControl `InPlay`) with a
-(still invisible) character. Appearance, stats and gameplay messages are next.
+![first time in play](docs/img/first-inplay.png)
 
-![first time in play](docs/img/first-inplay.png) See
-[docs/PROTOCOL.md](docs/PROTOCOL.md) for everything learned so far.
+**Status:** login with real accounts, the starting worlds and all dungeons with enemies, combat,
+the minifigure collection and team, loot, friends, teams and multiplayer work; see
+[docs/TUNABLES.md](docs/TUNABLES.md) for what is guessed.
 
-## Layout
+## What's in the repository
 
-- `crates/lmoxide-net`: wire protocol (framing, RPC header, BinaryStream, protobufs, method tables)
-- `crates/lmoxide-server`: the server binary (HTTP control/patch/track, universe, territory)
-- `proto/`: protobuf schemas extracted from `LMO.exe`
-- `data/rpc_methods.json`: every RPC method ID and C++ signature, extracted from `LMO.exe`
-- `tools/re/`: reverse-engineering scripts; `tools/dev-run.sh`: run server and client together
+Everything except the (copyrighted) game clients.
 
-## Running
+| Path | |
+|---|---|
+| `crates/lmoxide-server` | the game server: universe agent, territory manager, game and chat servers, and an internal control interface; admin subcommands (`account ...`, `import-json`, `login-key`) |
+| `crates/lmoxide-api` | REST API for administration and status (web UI, Discord bot): [docs/API.md](docs/API.md) |
+| `crates/lmoxide-patch-server` | the HTTP the client needs (configuration, patching, login page, chat filter) and the LMOxide patcher protocol: [docs/PATCHING.md](docs/PATCHING.md) |
+| `crates/lmoxide-patch`, `crates/lmoxide-patcher` | patcher library (for a GUI) and command-line patcher |
+| `crates/lmoxide-db` | storage (SQLite): accounts, characters, friendships, API keys, audit log |
+| `crates/lmoxide-control` | the control interface between the API and the game server |
+| `crates/lmoxide-net` | the client's wire protocol and login encryption |
+| `patches/` | client patches for hand-installed clients: `patch-client.py`, the native Linux client kit |
+| `data/`, `proto/` | game data and protobuf schemas extracted from the client |
+| `tools/` | development and reverse-engineering scripts |
+| `docs/` | protocol notes, tunables, [security](docs/SECURITY.md), API, patching |
 
-You need an extracted client (`LEGO Minifigures Online/` including `RDB/`) and Wine. The
-scripts assume it sits next to this repo at `../clients/windows/LEGO Minifigures Online`:
+**About `data/` and `proto/`:** these were extracted from the shipped client (game data such as
+spawns, loot and stats; protobuf schemas and RPC method signatures from `LMO.exe`) and are kept
+in the repository because the server is built from them. They are included for interoperability
+with the client, which can't be played without a server since Funcom shut theirs down. The
+`tools/re/extract_*.py` scripts regenerate them from a client. No client files themselves are
+included: bring your own copy.
 
-```sh
-mkdir -p ../clients/windows && (cd ../clients/windows && unzip -q "../LEGO Minifigures Online.zip" && chmod -R u+w .)
+The web UI and the Discord bot live in their own repositories and talk to `lmoxide-api`.
 
-# server only
-cargo run -p lmoxide-server -- --client-dir "../clients/windows/LEGO Minifigures Online"
+## How it fits together
 
-# server and client (separate Wine prefix in ~/.local/share/lmo-wine), auto-login:
-LMO_CLIENT_ARGS="-username tester -password test" tools/dev-run.sh "$PWD/../clients/windows/LEGO Minifigures Online" /tmp
+```
+ game client ──TCP 7100-7102, 7200──▶ lmoxide-server ◀──control 7300 (private)── lmoxide-api ◀── web UI, bots
+      │                                     │  SQLite (data/lmoxide.db)  ───────────┘   HTTPS 8090
+      └──HTTP 8080──▶ lmoxide-patch-server ◀┘  login-public-key.txt
+ LMOxide patcher ──────────┘ (signed manifests)
 ```
 
-`dev-run.sh` writes the client's `LocalConfig.xml` from the server
-(`http://127.0.0.1:8080/control/lmo_live/LocalConfig.xml`) so that the client talks to it.
+Passwords travel encrypted with the client's Diffie-Hellman/TEA scheme against this server's own
+login key, which the patch server writes into the client binaries it serves. Game traffic itself
+can't be encrypted (client limitation): [docs/SECURITY.md](docs/SECURITY.md).
 
-Ports (all configurable, see `--help`): HTTP 8080, universe 7100, territory 7101.
+## Running with Docker
+
+```sh
+cp docker/.env.example .env            # set LMOXIDE_PUBLIC_HOST, client paths
+mkdir -p secrets && openssl rand -hex 32 > secrets/control_token
+docker compose up -d --build
+docker compose exec server lmoxide-server account create <you> --gm-level 2
+docker compose exec api lmoxide-api key create discord-bot --scope read
+```
+
+The compose file runs the game server, the API and the patch server from one image, with the
+database in the `data` volume. Players install the client with the patcher
+(`lmoxide-patcher install --server http://<host>:8080 --dir ~/Games/LMO`).
+
+## Running from source
+
+Needs Rust, `protoc`, and an extracted client at `../clients/windows/LEGO Minifigures Online`
+(the scripts' default; `../clients/linux/...` for the native Linux client).
+
+```sh
+# accounts (or --auto-register: the first login creates the account)
+cargo run -p lmoxide-server -- account create <name> --gm-level 2
+cargo run -p lmoxide-server -- import-json ../var/lmo-data-legacy   # saves of older versions
+
+tools/lan-server.sh --release            # LAN play: game server + patch server on this PC's address
+LMO_AUTOPLAY=1 tools/test-run.sh 60      # development: server + Wine client, summary, screenshot
+```
+
+Ports (all configurable, `--help`): patch server 8080, universe 7100, territory 7101, game 7102,
+chat 7200, control 7300 (private), API 8090.
 
 ## Test commands
 
