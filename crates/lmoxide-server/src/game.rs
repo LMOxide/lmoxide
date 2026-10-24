@@ -351,6 +351,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         extra.push(effect);
                                     }
                                 } else if let Some(spell) = spell {
+                                    crate::procs::cast(h.identity, spell);
                                     let damage = me
                                         .team
                                         .first()
@@ -1317,6 +1318,7 @@ fn parse_command(rest: &[u8]) -> Option<(lmoxide_net::proto::CommandMessage, &[u
 fn health_records(id: Id32, template: u32, upgrades: u32, level: u32) -> Vec<Bytes> {
     let max = crate::combat::max_life(template, upgrades, level);
     let health = crate::npc::set_active_minifigure(id, template, max, crate::combat::mitigation(template, upgrades));
+    crate::procs::set_active(id, template, upgrades, level);
     vec![int32_stat(id, STAT_LIFE, max), int32_stat(id, STAT_HEALTH, health)]
 }
 

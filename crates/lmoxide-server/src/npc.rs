@@ -89,6 +89,12 @@ pub fn set_active_minifigure(player: Id32, template: u32, max: u32, mitigation: 
 
 pub fn player_left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
+    crate::procs::left(player);
+}
+
+/// The player's active minifigure's maximum health (0 if unknown).
+pub fn player_max_health(player: Id32) -> u32 {
+    PLAYERS.lock().unwrap().get(&player).map_or(0, |p| p.max)
 }
 
 /// Sets (or with `None` clears) the damage mitigation buff `buff` gives the player.
@@ -363,6 +369,8 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
 /// if `target` isn't a live NPC. A defeated NPC drops loot for the attacker.
 pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
     let mut npcs = NPCS.lock().unwrap();
+    // (not `is_player`: NPCS is locked here)
+    let by_player = attacker.kind == crate::territory::CHARACTER_TYPE && !npcs.contains_key(&attacker);
     let npc = npcs.get_mut(&target)?;
     if npc.presence.is_none() || npc.health == 0 || matches!(npc.def.kind, Kind::Npc | Kind::Pet) {
         return None;
@@ -372,6 +380,8 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     } else {
         0.0
     };
+    // the attacking player's upgrade procs (damage bonuses)
+    let damage = if by_player { crate::procs::outgoing(attacker, spell, damage) } else { damage };
     let dealt = (((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32).min(npc.health);
     npc.health -= dealt;
     let health = npc.health;
@@ -405,6 +415,9 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             _ => crate::loot::Source::Enemy,
         };
         crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
+        if kind == Kind::Enemy && by_player {
+            crate::procs::killed(attacker, spell, npc.playfield, *npc.pos.lock().unwrap());
+        }
         // achievements (and XP) of the player who defeated it
         world::send_to(
             attacker,
@@ -643,7 +656,10 @@ fn attack(id: Id32, player: Id32) {
     };
     // enemy power ~ 1.5 × level + 1.5 (fit to the recorded session's hits)
     let damage = (1.5 * level as f32 + 1.5).round() as u32;
+    // the player's defensive upgrade procs
+    let damage = crate::procs::incoming(player, damage, crate::actions::is_channelling(player));
     let Some(health) = damage_player(player, damage) else { return };
+    crate::procs::after_damage(player, health, player_max_health(player));
     let mut records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
     records.push(combat_log_record(id, player, spell, damage));
     records.push(int32_stat(player, STAT_HEALTH, health));

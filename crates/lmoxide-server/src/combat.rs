@@ -135,6 +135,11 @@ fn scaled(m: &Minifigure, active: u32, is_normal: bool, ability_mod: f32, level:
     (rating * ability_mod * multiplier * roll).round().max(1.0) as u32
 }
 
+/// The upgrade abilities active on `template` with the upgrade bits `active`.
+pub fn active_abilities(template: u32, active: u32) -> std::collections::HashSet<u32> {
+    minifigure(template).map(|m| active_upgrades(m, active).map(|u| u.ability).collect()).unwrap_or_default()
+}
+
 /// The LEGO Minifigures series of minifigure `template`.
 pub fn series(template: u32) -> Option<u32> {
     minifigure(template).and_then(|m| m.series)

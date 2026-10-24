@@ -17,7 +17,15 @@ pkill -x LMO.exe || true
 pkill -x LMO || true
 # Only the servers an earlier dev-run started (other sessions may run their own lmoxide-server).
 PIDS=$LOGS/dev-run.pids
-if [[ -f $PIDS ]]; then kill $(cat "$PIDS") 2>/dev/null || true; rm -f "$PIDS"; fi
+stop_servers() {
+  [[ -f $PIDS ]] || return 0
+  local pids; pids=$(cat "$PIDS"); rm -f "$PIDS"
+  kill $pids 2>/dev/null || true
+  # a server that doesn't stop (stuck) is killed after 3 s
+  for _ in $(seq 30); do kill -0 $pids 2>/dev/null || return 0; sleep 0.1; done
+  kill -9 $pids 2>/dev/null || true
+}
+stop_servers
 wineserver -k 2>/dev/null || true
 WINEPREFIX=${LMO_PROTON_PREFIX:-$HOME/.local/share/lmo-proton}/pfx \
   "${PROTON:-$HOME/.local/share/Steam/steamapps/common/Proton - Experimental}/files/bin/wineserver" -k 2>/dev/null || true

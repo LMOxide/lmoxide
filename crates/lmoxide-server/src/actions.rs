@@ -246,6 +246,11 @@ pub fn release(caster: Id32, tell_client: bool) -> bool {
     true
 }
 
+/// Whether `caster` is channelling an ability.
+pub fn is_channelling(caster: Id32) -> bool {
+    ACTIVE.lock().unwrap().contains_key(&caster)
+}
+
 /// `UpdateSpellTargetPosition`: the caster aims its channel at `pos` now.
 pub fn aim(caster: Id32, pos: [f32; 3]) {
     if let Some(run) = ACTIVE.lock().unwrap().get(&caster) {

@@ -15,6 +15,7 @@ mod game;
 mod jumppad;
 mod loot;
 mod npc;
+mod procs;
 mod progression;
 mod projectile;
 mod scenery;
