@@ -14,7 +14,8 @@ itself (it runs those of its own spells); the rest are server-only. Criteria: (0
 Spells covered: minifigure normal/special attacks and their combo steps (the hits' `via` in
 data/minifigure_stats.json) that aren't charge projectiles (data/projectiles.json), plus every
 spell they reach through CastNano,
-NanoTemplate or RemoveBuff/AddBuffCounter.  Usage: tools/re/py extract_spell_actions.py"""
+NanoTemplate or RemoveBuff/AddBuffCounter. The spells an OverrideShortcut puts on a shortcut
+(TemplateID2: combo steps, mode switches) count as the minifigure's abilities too.  Usage: tools/re/py extract_spell_actions.py"""
 import json, os
 
 import gameactions as ga
@@ -74,6 +75,7 @@ for m in minifigs.values():
 
 out = {}
 todo = list(roots)
+owner = dict(roots)
 while todo:
     s = todo.pop()
     if str(s) in out:
@@ -86,6 +88,11 @@ while todo:
     out[str(s)] = r
     for acts in r["lists"].values():
         for a in acts:
+            v = a["args"].get("TemplateID2")
+            if a["type"] == "OverrideShortcut" and isinstance(v, int) and v not in roots and record(v) and not charge(v):
+                roots[v] = owner.get(s, "")
+                owner[v] = roots[v]
+                todo.append(v)
             for k in ("Value", "NanoTemplate", "TemplateID"):
                 v = a["args"].get(k)
                 if isinstance(v, int) and v > 1000 and a["type"] in ("CastNano", "RemoveBuff", "AddBuffCounter") or (
@@ -93,6 +100,7 @@ while todo:
                 ):
                     if a["type"] == "SetSpellRecastTime":
                         continue
+                    owner.setdefault(v, owner.get(s, ""))
                     todo.append(v)
 
 out = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), **{k: out[k] for k in sorted(out, key=int)}}

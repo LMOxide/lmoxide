@@ -57,12 +57,19 @@ pub fn spells(template: u32) -> Vec<u32> {
 }
 
 /// Everything a minifigure can cast or apply, to learn before it is used: its normal and
-/// special spells and its upgrade abilities (some replace the normal or special spell).
+/// special spells, their combo steps (the recorded session taught 317739, 317740, 317741), its
+/// upgrade abilities (some replace the normal or special spell) and the spells its buffs put on
+/// the shortcut bar (combo steps, mode switches: `actions::override_targets`).
 pub fn spells_to_learn(template: u32) -> Vec<u32> {
     let mut all = spells(template);
+    // (castable steps have an attack time; the hits' nanos don't)
+    all.extend(crate::combat::combo_steps(template).into_iter().filter(|s| crate::actions::hit_delay(*s).is_some()));
     if let Some(list) = ABILITIES.get(&template.to_string()) {
         all.extend(list.iter().map(|&(_, ability, _)| ability));
     }
+    all.extend(crate::actions::override_targets(&all));
+    let mut seen = std::collections::HashSet::new();
+    all.retain(|s| seen.insert(*s));
     all
 }
 

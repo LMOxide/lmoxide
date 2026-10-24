@@ -305,6 +305,16 @@ the client when the button is released (`ActionModeDefault_c::CancelSpellOnRelea
 server to the client (`MagicHolder::FinishChanneling`). While channelling, the client reports
 where it aims: `GameCharAgentProject::UpdateSpellTargetPosition(u32 command, Vector3)`.
 
+Combos and mode switches **verified**: the client casts whatever spell a shortcut shows, so the
+next combo step comes from the server. A step's PreUse casts a combo buff (e.g. 317746 "switch
+combo 1 to 2") whose only action is the server-only type 53279 (missing from the client's
+registry), {TemplateID, TemplateID2}: the original server sent
+`GameCharInterface::OverrideShortcut(int 2, int position, u32 old, u32 new, int switch time cs)`
+when the buff went on (recorded: 2, 104, 317739, 317740/317741, 100; 104/105 = the normal and
+special attack shortcuts) and `ClearOverridingShortcut(int position)` when it was removed (the
+next step's RemoveBuff) or ran out. Buffs of Jekyll, Red Hood, Hun Warrior, Spooky Girl, Jester,
+Classic King and Battle Mech use it too. The overriding spells must be learned.
+
 ## Levels, XP and minifigure ranks (progression.rs)
 
 - Player: stats XP 52, Level 54, LastXP 57, NextXP 350 (the XP bar, XpBar.swf: progress =

@@ -53,6 +53,9 @@ struct Attack {
 struct Hit {
     #[serde(default = "one")]
     ability_mod: f32,
+    /// The spells it is reached through (the attack's combo steps among them).
+    #[serde(default)]
+    via: Vec<u32>,
 }
 
 fn one() -> f32 {
@@ -76,6 +79,22 @@ static DATA: LazyLock<Data> =
 
 fn minifigure(template: u32) -> Option<&'static Minifigure> {
     DATA.minifigures.get(&template.to_string())
+}
+
+/// A minifigure's combo steps: the spells its attacks' hits are reached through besides the
+/// attack itself (Gladius Slash 317739 -> 317740, 317741), which the client casts while the
+/// previous step's combo buff is on.
+pub fn combo_steps(template: u32) -> Vec<u32> {
+    let Some(m) = minifigure(template) else { return Vec::new() };
+    let mut steps = Vec::new();
+    for attack in [&m.normal, &m.special].into_iter().flatten() {
+        for &s in attack.hits.iter().flat_map(|h| &h.via) {
+            if s != attack.spell && !steps.contains(&s) {
+                steps.push(s);
+            }
+        }
+    }
+    steps
 }
 
 /// The active upgrades of a minifigure (bits of `active`).

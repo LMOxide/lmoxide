@@ -23,6 +23,10 @@ TYPES = {}
 for line in open(os.path.join(ROOT, "data/gameaction_types.txt")):
     p = line.split()
     TYPES[int(p[0])] = (p[2].replace("e_Type_GC_GameAction_", ""), p[3] != "0x0")
+# Server-only types the client's registry lacks, named from what the original server sent:
+# 53279 {TemplateID, TemplateID2} on the combo buffs = GameCharInterface::OverrideShortcut
+# (shortcut showing TemplateID -> TemplateID2) when they were applied.
+TYPES.setdefault(53279, ("OverrideShortcut", False))
 
 
 def _try(b, o):

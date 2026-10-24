@@ -3549,10 +3549,168 @@
    ]
   }
  },
+ "209196": {
+  "name": "Rocket Combo 2",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 225628
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 209197,
+      "NPCSelectMode": 3,
+      "Angle": 60,
+      "AngleStart": -30,
+      "Ascending": 1
+     }
+    }
+   ],
+   "39": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 209198
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 209205
+     }
+    }
+   ]
+  },
+  "minifigure": "Battle Mech: Rocket Combo 1"
+ },
+ "209197": {
+  "name": "XX_Rocket Combo",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 230109
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0800000429153442
+     }
+    }
+   ]
+  }
+ },
  "209198": {
   "name": "XX_main mech1 switch combo 1 to 2",
   "stats": {},
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 36861,
+      "TemplateID2": 209196
+     }
+    }
+   ]
+  }
+ },
+ "209202": {
+  "name": "XX_main mech1 effect 3 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 446991
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 446997
+     }
+    }
+   ]
+  }
+ },
+ "209203": {
+  "name": "Rocket Combo 3",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 225629
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 209202,
+      "NPCSelectMode": 3,
+      "Angle": 60,
+      "AngleStart": -30,
+      "Ascending": 1
+     }
+    }
+   ],
+   "39": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 209205
+     }
+    }
+   ]
+  },
+  "minifigure": "Battle Mech: Rocket Combo 1"
+ },
+ "209205": {
+  "name": "XX_main mech1 switch combo 1 to 3",
+  "stats": {},
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 36861,
+      "TemplateID2": 209203
+     }
+    }
+   ]
+  }
  },
  "210424": {
   "name": "XX_Eggxactly",
@@ -4425,7 +4583,119 @@
  "297727": {
   "name": "XX_main redhood2 changed",
   "stats": {},
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "NanoResistance",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 200,
+      "Strain": 800
+     }
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 1037,
+      "ApplyOn": 1,
+      "Value": 9999999
+     }
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000012,
+      "ApplyOn": 1,
+      "Value": 100
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 3,
+      "Value": 428225
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 240,
+      "ApplyOn": 3,
+      "Value": 50
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 1435,
+      "ApplyOn": 1,
+      "Value": 4
+     }
+    },
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 15791,
+      "TemplateID2": 433889
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 433889
+     }
+    },
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 15427,
+      "TemplateID2": 435725
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 435725
+     }
+    }
+   ],
+   "20": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 500,
+      "NanoTemplate": 15791
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 435903
+     }
+    }
+   ]
+  }
  },
  "297749": {
   "name": "Emoti-poke",
@@ -5792,12 +6062,36 @@
  "317746": {
   "name": "XX_main romancommander1 switch combo 1 to 2",
   "stats": {},
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 317739,
+      "TemplateID2": 317740
+     }
+    }
+   ]
+  }
  },
  "317747": {
   "name": "XX_main romancommander1 switch combo 1 to 3",
   "stats": {},
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 317739,
+      "TemplateID2": 317741
+     }
+    }
+   ]
+  }
  },
  "317764": {
   "name": "XX_Mystical Shield",
@@ -7044,6 +7338,31 @@
   },
   "minifigure": "Mr. Good and Evil: Magnetic Bolt"
  },
+ "357889": {
+  "name": "Magnetic Smash",
+  "stats": {
+   "ItemDelay": 45,
+   "EffectPackage": 362828
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 358626,
+      "NPCSelectMode": 3,
+      "Angle": 60,
+      "AngleStart": -30,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Mr. Good and Evil: Evil Potion"
+ },
  "357890": {
   "name": "Evil Potion",
   "stats": {
@@ -7072,6 +7391,49 @@
      "args": {
       "ApplyOn": 1,
       "Value": 358710
+     }
+    },
+    {
+     "type": "SetSpellLineRecastTime",
+     "client": true,
+     "args": {
+      "Type": 5007,
+      "ApplyOn": 1,
+      "Value": 500
+     }
+    }
+   ]
+  },
+  "minifigure": "Mr. Good and Evil: Evil Potion"
+ },
+ "357891": {
+  "name": "Good Potion",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 50,
+   "ItemDelay": 50,
+   "EffectPackage": 362338
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 5,
+      "ApplyOn": 3,
+      "NanoTemplate": 358623,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    },
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 358710
      }
     },
     {
@@ -7206,12 +7568,129 @@
    ]
   }
  },
+ "358623": {
+  "name": "XX_main jekyll2 good wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 358624
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 358625
+     }
+    }
+   ]
+  }
+ },
+ "358624": {
+  "name": "XX_main jekyll2 good damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.25
+     }
+    }
+   ]
+  }
+ },
+ "358625": {
+  "name": "XX_main jekyll2 good knockaway",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 25,
+      "Arg1": 1,
+      "PowerRating": 9001,
+      "Distance": 5
+     }
+    }
+   ]
+  }
+ },
+ "358626": {
+  "name": "XX_main jekyll1 evil damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 369212
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "358710": {
   "name": "XX_main jekyll system state iamevil",
   "stats": {
    "EffectPackage": 362336
   },
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 357888,
+      "TemplateID2": 357889
+     }
+    },
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 357890,
+      "TemplateID2": 357891
+     }
+    }
+   ]
+  }
  },
  "359101": {
   "name": "XX_main scarecrow2 buff",
@@ -7838,6 +8317,44 @@
   },
   "minifigure": "Chicken Suit Guy: Eggxactly"
  },
+ "433889": {
+  "name": "Big Bad Wolf",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 297727
+     }
+    }
+   ]
+  },
+  "minifigure": "Grandma Visitor: Big Bad Wolf"
+ },
+ "435725": {
+  "name": "Big Bad Wolf",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 297727
+     }
+    }
+   ]
+  },
+  "minifigure": "Grandma Visitor: Big Bad Wolf"
+ },
  "436976": {
   "name": "XX_main mermaid2 damage",
   "stats": {
@@ -8166,6 +8683,56 @@
       "NPCSelectMode": 3,
       "Angle": 360,
       "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "446991": {
+  "name": "XX_main mech1 effect 3 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 305410
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.2300000190734863
+     }
+    }
+   ]
+  }
+ },
+ "446997": {
+  "name": "XX_main mech1 effect 3 knockaway",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 25,
+      "Arg1": 1,
+      "PowerRating": 9001,
+      "Distance": 5
      }
     }
    ]
@@ -11928,7 +12495,243 @@
   "stats": {
    "TimeExist": 1000
   },
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 500467,
+      "TemplateID2": 505615
+     }
+    },
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 500468,
+      "TemplateID2": 505955
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 3,
+      "Value": 509290
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 518817
+     }
+    }
+   ],
+   "20": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 600,
+      "NanoTemplate": 500468
+     }
+    }
+   ],
+   "37": [
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 518817
+     }
+    }
+   ]
+  }
+ },
+ "505615": {
+  "name": "Mounted Archery",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 513815
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 505618,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "AttractorID": 1,
+      "RotX": 3,
+      "ProjectileType": 2
+     }
+    }
+   ]
+  },
+  "minifigure": "Hun Warrior: Mount Up!"
+ },
+ "505630": {
+  "name": "XX_main hunwarrior2 wrapper mounted",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 505631
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 505632
+     }
+    }
+   ]
+  }
+ },
+ "505631": {
+  "name": "XX_main hunwarrior2 damage mounted",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 516789
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0800000429153442
+     }
+    }
+   ]
+  }
+ },
+ "505632": {
+  "name": "XX_main hunwarrior2 knockaway mounted",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 25,
+      "Arg1": 1,
+      "Arg2": 8,
+      "PowerRating": 9001,
+      "CollisionFlag": 1,
+      "Distance": 2
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       0,
+       516925,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 25,
+      "Arg1": 1,
+      "Arg2": 8,
+      "PowerRating": 9001,
+      "CollisionFlag": 1,
+      "Distance": 6
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       0,
+       516925,
+       91
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "505955": {
+  "name": "Hooves of Steel",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 25,
+   "ItemDelay": 50,
+   "EffectPackage": 513816
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 505630,
+      "NPCSelectMode": 3,
+      "Angle": 90,
+      "AngleStart": -45,
+      "Ascending": 1
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 200,
+      "NanoTemplate": 505955
+     }
+    }
+   ]
+  },
+  "minifigure": "Hun Warrior: Mount Up!"
  },
  "506056": {
   "name": "XX_main spookygirl1 damage human",
@@ -11956,7 +12759,199 @@
   "stats": {
    "TimeExist": 1000
   },
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 500485,
+      "TemplateID2": 506059
+     }
+    },
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 500486,
+      "TemplateID2": 506078
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 1,
+      "Value": 514368
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 360,
+      "ApplyOn": 3,
+      "Value": 50
+     }
+    }
+   ],
+   "20": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 600,
+      "NanoTemplate": 500486
+     }
+    }
+   ],
+   "37": [
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 514508
+     }
+    }
+   ]
+  }
+ },
+ "506059": {
+  "name": "Little Recluse",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 514374
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 506060,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 506059
+     }
+    }
+   ]
+  },
+  "minifigure": "Spooky Girl: Anansi Girl"
+ },
+ "506078": {
+  "name": "Orbweaver",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 50,
+   "ItemDelay": 50,
+   "EffectPackage": 234172
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Blink",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Distance": 8
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 200,
+      "NanoTemplate": 506078
+     }
+    }
+   ],
+   "1": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 506089
+     }
+    }
+   ],
+   "39": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 517100
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       0,
+       517103,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 506089
+     }
+    }
+   ]
+  },
+  "minifigure": "Spooky Girl: Anansi Girl"
+ },
+ "506089": {
+  "name": "XX_main spookygirl2 blink protection spider",
+  "stats": {
+   "TimeExist": 150
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000012,
+      "ApplyOn": 1,
+      "FloatValue1": 1.0
+     }
+    },
+    {
+     "type": "NanoResistance",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 200,
+      "Strain": 800
+     }
+    }
+   ]
+  }
  },
  "506242": {
   "name": "XX_main battlegoddess1 damage",
@@ -12237,12 +13232,65 @@
   },
   "lists": {}
  },
+ "509263": {
+  "name": "Shadow Play",
+  "stats": {
+   "TargetingMode": 4,
+   "RechargeDelay": 15,
+   "ItemDelay": 15
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 20,
+      "ApplyOn": 3,
+      "NanoTemplate": 509264,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 509263
+     }
+    }
+   ]
+  },
+  "minifigure": "Jester: Shadow Puppet"
+ },
+ "509264": {
+  "name": "XX_main jester2 teleport lua",
+  "stats": {
+   "LuaScriptID": 1361
+  },
+  "lists": {}
+ },
  "509375": {
   "name": "XX_main jester2 override",
   "stats": {
    "TimeExist": 500
   },
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 500460,
+      "TemplateID2": 509263
+     }
+    }
+   ]
+  }
  },
  "515853": {
   "name": "XX_passive piggyguy defense buff",
@@ -12837,6 +13885,67 @@
       "ApplyOn": 3,
       "Value": 1,
       "TemplateID": 515853
+     }
+    }
+   ]
+  }
+ },
+ "517098": {
+  "name": "XX_passive spookygirl web aoe",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 4,
+      "ApplyOn": 3,
+      "NanoTemplate": 517099,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "517099": {
+  "name": "XX_passive spookygirl web snare",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.6000000238418579
+     }
+    }
+   ]
+  }
+ },
+ "517100": {
+  "name": "XX_passive spookygirl web pge",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 20,
+      "Arg2": 15,
+      "EffectPackage": 520514,
+      "NanoTemplate": 517098
      }
     }
    ]
@@ -15802,12 +16911,206 @@
    ]
   }
  },
+ "577186": {
+  "name": "Sword of the King",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 577645
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 577219,
+      "NPCSelectMode": 3,
+      "Angle": 270,
+      "AngleStart": -135,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Classic King: Royal Steed"
+ },
+ "577188": {
+  "name": "Heroic Charge",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "ColumnDash",
+     "client": false,
+     "args": {
+      "Radius": 1,
+      "ApplyOn": 3,
+      "NPCSelectMode": 3,
+      "Value1": 577646,
+      "TemplateID": 577232,
+      "Distance": 12,
+      "TemplateID2": 578178,
+      "Ascending": 1,
+      "FloatValue1": 0.5
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 300,
+      "NanoTemplate": 577188
+     }
+    }
+   ]
+  },
+  "minifigure": "Classic King: Royal Steed"
+ },
  "577189": {
   "name": "XX_main classicking2 buff",
   "stats": {
    "TimeExist": 500
   },
-  "lists": {}
+  "lists": {
+   "0": [
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 577182,
+      "TemplateID2": 577186
+     }
+    },
+    {
+     "type": "OverrideShortcut",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 577183,
+      "TemplateID2": 577188
+     }
+    },
+    {
+     "type": "Set",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 1,
+      "Value": 546178
+     }
+    }
+   ],
+   "20": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 300,
+      "NanoTemplate": 577183
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       0,
+       200,
+       128
+      ],
+      [
+       0,
+       0,
+       42
+      ]
+     ]
+    }
+   ],
+   "37": [
+    {
+     "type": "Set",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 1,
+      "Value": 546176
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       0,
+       200,
+       128
+      ],
+      [
+       0,
+       0,
+       42
+      ]
+     ]
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 578825
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       0,
+       200,
+       128
+      ],
+      [
+       0,
+       0,
+       42
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "577219": {
+  "name": "XX_main classicking1 damage mounted",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 579018
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.600000023841858
+     }
+    }
+   ]
+  }
  },
  "577365": {
   "name": "Bag of Gifts",

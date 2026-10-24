@@ -186,6 +186,112 @@ pub fn cast(caster: Caster, spell: u32) {
     });
 }
 
+/// Spells that OverrideShortcut actions of `spells` (and the nanos they reach) put on the
+/// shortcut bar: they are cast, so they must be learned.
+pub fn override_targets(spells: &[u32]) -> Vec<u32> {
+    let mut seen = Vec::new();
+    let mut todo = spells.to_vec();
+    let mut out = Vec::new();
+    while let Some(spell) = todo.pop() {
+        if seen.contains(&spell) || seen.len() > 256 {
+            continue;
+        }
+        seen.push(spell);
+        let Some(s) = SPELLS.get(&spell) else { continue };
+        for a in s.lists.values().flatten() {
+            if a.kind == "OverrideShortcut" {
+                // (cast in turn: its own buffs may override further)
+                out.extend(a.u("TemplateID2"));
+                todo.extend(a.u("TemplateID2"));
+            }
+            todo.extend(["Value", "NanoTemplate"].iter().filter_map(|k| a.u(k)));
+        }
+    }
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
+/// Shortcut overrides (`GameCharInterface::OverrideShortcut`), as the original server sent
+/// them for a buff's OverrideShortcut actions: the override when the buff goes on (int type 2
+/// spell, int position, u32 old template, u32 new template, int switch time in cs; the
+/// recorded combo buffs: 2, 104, 317739, 317740/317741, 100), `ClearOverridingShortcut(int
+/// position)` when it is removed or runs out.
+mod shortcuts {
+    use std::{
+        collections::HashMap,
+        sync::{LazyLock, Mutex},
+        time::Duration,
+    };
+
+    use lmoxide_net::{Endpoint, Writer, methods::game_char_interface, types::Id32};
+
+    use crate::world;
+
+    const SPELL_SHORTCUT: i32 = 2;
+    /// The HUD's normal and special attack shortcuts.
+    const FIRST_ATTACK_SLOT: i32 = 104;
+
+    /// (player, buff) -> (positions overridden, generation).
+    static ON: LazyLock<Mutex<HashMap<(Id32, u32), (Vec<i32>, u64)>>> = LazyLock::new(Default::default);
+    static GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+    /// Buff `buff` on `player` (active minifigure `template`) shows `new` instead of `old`.
+    pub fn set(player: Id32, buff: u32, template: u32, old: u32, new: u32, duration: Duration) {
+        let Some(i) = crate::collection::spells(template).iter().position(|&s| s == old) else {
+            tracing::debug!(buff, old, template, "shortcut override: not the minifigure's attack");
+            return;
+        };
+        let position = FIRST_ATTACK_SLOT + i as i32;
+        let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let cleared = {
+            let mut on = ON.lock().unwrap();
+            let entry = on.entry((player, buff)).or_insert_with(|| (Vec::new(), generation));
+            // the buff applied again: its overrides start over
+            let cleared = if entry.1 != generation && entry.0.contains(&position) { Some(position) } else { None };
+            if !entry.0.contains(&position) {
+                entry.0.push(position);
+            }
+            entry.1 = generation;
+            cleared
+        };
+        if let Some(p) = cleared {
+            send_clear(player, p);
+        }
+        let cs = (duration.as_millis() / 10) as i32;
+        let args = Writer::new().i32(SPELL_SHORTCUT).i32(position).u32(old).u32(new).i32(cs).finish();
+        world::send_to(player, world::Out::Rpc(Endpoint::GameCharInterface, game_char_interface::OVERRIDE_SHORTCUT, args));
+        if let Ok(rt) = tokio::runtime::Handle::try_current() {
+            rt.spawn(async move {
+                tokio::time::sleep(duration).await;
+                let expired = {
+                    let mut on = ON.lock().unwrap();
+                    match on.get(&(player, buff)) {
+                        Some((_, g)) if *g == generation => on.remove(&(player, buff)).map(|(p, _)| p),
+                        _ => None,
+                    }
+                };
+                for p in expired.into_iter().flatten() {
+                    send_clear(player, p);
+                }
+            });
+        }
+    }
+
+    /// Buff `buff` was removed from `player`: its overrides end.
+    pub fn clear(player: Id32, buff: u32) {
+        let positions = ON.lock().unwrap().remove(&(player, buff)).map(|(p, _)| p);
+        for p in positions.into_iter().flatten() {
+            send_clear(player, p);
+        }
+    }
+
+    fn send_clear(player: Id32, position: i32) {
+        let args = Writer::new().i32(position).finish();
+        world::send_to(player, world::Out::Rpc(Endpoint::GameCharInterface, game_char_interface::CLEAR_OVERRIDING_SHORTCUT, args));
+    }
+}
+
 /// Whether `spell` is a channelled ability this module runs.
 pub fn is_channel(spell: u32) -> bool {
     SPELLS.get(&spell).is_some_and(|s| s.minifigure.is_some() && s.stats.channeling_interval.is_some())
@@ -401,6 +507,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
                 if id == caster {
                     crate::npc::set_buff_mitigation(caster, buff, None);
                 }
+                shortcuts::clear(id, buff);
                 show(run, vec![effects::buff_remove(id, buff, caster)]);
             }
         }
@@ -505,6 +612,15 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
             let facing = *run.caster.facing.lock().unwrap();
             crate::dash::start(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0);
         }
+        "OverrideShortcut" => {
+            // buff `spell` puts TemplateID2 on the shortcut showing TemplateID while it is on
+            // (combo steps, mode switches)
+            if let (Some(id), Some(old), Some(new), Some(n)) = (who.id, a.u("TemplateID"), a.u("TemplateID2"), SPELLS.get(&spell))
+                && !crate::npc::is_npc(id)
+            {
+                shortcuts::set(id, spell, run.caster.template, old, new, buff_duration(run, n));
+            }
+        }
         other => debug!(spell, action = other, "spell action not run"),
     }
 }
@@ -523,7 +639,8 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
     let Some(n) = SPELLS.get(&nano) else { return };
     let caster = run.caster.id;
     let on_caster = target.id == Some(caster);
-    let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client));
+    // (a shortcut override is what a buff does, not a hit)
+    let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client && a.kind != "OverrideShortcut"));
     let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
     if !is_buff
         && own_effect
@@ -537,12 +654,7 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
     {
         // a buff without TimeExist lasts until the channel's end list removes it, or on a plain
         // press (a combo buff) for the combo window
-        let duration = match n.stats.time_exist {
-            Some(cs) => Duration::from_millis(10 * cs as u64),
-            None if run.length.is_zero() => COMBO_WINDOW,
-            None => Duration::from_millis(10 * (channel_left_cs(run) as u64 + 100)),
-        };
-        show(run, effects::show_buff(id, nano, caster, Some(duration)));
+        show(run, effects::show_buff(id, nano, caster, Some(buff_duration(run, n))));
         let mitigation: f32 = n
             .lists
             .get(ON_USE)
@@ -576,6 +688,16 @@ fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: 
             tokio::time::sleep(pulse).await;
         }
     });
+}
+
+/// How long buff `n` is shown: a buff without TimeExist lasts until the channel's end list
+/// removes it, or on a plain press (a combo buff) for the combo window.
+fn buff_duration(run: &Run, n: &Spell) -> Duration {
+    match n.stats.time_exist {
+        Some(cs) => Duration::from_millis(10 * cs as u64),
+        None if run.length.is_zero() => COMBO_WINDOW,
+        None => Duration::from_millis(10 * (channel_left_cs(run) as u64 + 100)),
+    }
 }
 
 /// Centiseconds until the channel's full length is over (buff durations).
@@ -616,6 +738,16 @@ mod tests {
         let stance = &SPELLS[&596_784];
         assert_eq!(stance.stats.channeling_interval, Some(200));
         assert!(stance.lists[ON_CHANNELING_END].iter().any(|a| a.kind == "CoreFilteredAreaFormula"));
+    }
+
+    #[test]
+    fn combo_overrides() {
+        // Gladius Slash: step 1's combo buff puts step 2 on the shortcut, step 2's buff step 3
+        assert_eq!(override_targets(&[317_739]), vec![317_740, 317_741]);
+        let learned = crate::collection::spells_to_learn(317_609);
+        assert!([317_739, 317_740, 317_741].iter().all(|s| learned.contains(s)), "{learned:?}");
+        // a combo buff is still shown as a buff (its only server action is the override)
+        assert!(SPELLS[&317_746].lists[ON_USE].iter().all(|a| a.kind == "OverrideShortcut"));
     }
 
     #[test]
