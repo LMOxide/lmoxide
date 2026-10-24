@@ -79,6 +79,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut gm_level = 0;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
+    let mut tutorial_intro_done = false;
     // a test setup changed the team (sent again at the next CharInPlay), and the item id salt
     let mut team_changed = false;
     let mut team_salt = 0u64;
@@ -278,6 +279,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if let Some(&(_, template)) = me.team.first() {
                                 crate::auras::apply(id, template, &me.tags, true);
                             }
+                            // the tutorial starts with Video Game Guy waking the player up (the
+                            // recorded session: a few seconds after arriving), once a session
+                            if me.playfield == TUTORIAL_PLAYFIELD && !tutorial_intro_done {
+                                tutorial_intro_done = true;
+                                let name = me.name.clone();
+                                tokio::spawn(async move {
+                                    tokio::time::sleep(std::time::Duration::from_millis(5500)).await;
+                                    // still there (not teleported away meanwhile)
+                                    if world::whereabouts(id).is_some_and(|(pf, _)| pf == TUTORIAL_PLAYFIELD)
+                                        && let Some(npc) = crate::npc::find(TUTORIAL_GUIDE, TUTORIAL_PLAYFIELD)
+                                    {
+                                        crate::knubot::talk(id, &name, npc, TUTORIAL_GUIDE, TUTORIAL_PLAYFIELD);
+                                    }
+                                });
+                            }
                         }
                     }
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
@@ -397,7 +413,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 cast_spell = spell;
                                 cast_target = target.map(|(kind, instance)| Id32::new(kind, instance)).filter(|t| t.instance != 0);
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
-                                if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION {
+                                let talk_to = target
+                                    .map(|(kind, instance)| Id32::new(kind, instance))
+                                    .and_then(|t| crate::npc::friendly(t).map(|(name, playfield)| (t, name, playfield)))
+                                    .filter(|(_, name, playfield)| crate::knubot::has_dialogues(name, *playfield));
+                                info!(?talk_to, "interaction target");
+                                if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION && let Some((npc, name, playfield)) = talk_to {
+                                    // talking to an NPC with dialogues
+                                    crate::knubot::talk(h.identity, &me.name, npc, &name, playfield);
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION {
                                     // building a buildie; a repeat (already building or built) is
                                     // answered with success and then failure, as live did
                                     stop_after_success = crate::buildie::interact(h.identity, data) == Some(false);
@@ -625,6 +649,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
                     }
                     Some("CoreProjectileIIR") => crate::projectile::report(h.identity, blob, rest),
+                    Some("KnubotAnswerIIR") => {
+                        // u16 1, ID32 npc, u32 answer index
+                        if let Some(b) = rest.get(10..14) {
+                            crate::knubot::answer(h.identity, u32::from_be_bytes(b.try_into().unwrap()));
+                        }
+                    }
                     Some("MoveInventoryItemIIR_t") => {
                         // Reordering the team (101 -> 101). The client already moved it locally;
                         // echoing would move it back.
@@ -884,6 +914,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
                                 .await?;
                         }
+                        crate::devcmd::Action::Dialog(n) => {
+                            let me_id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            match crate::knubot::dialogues().get(n.wrapping_sub(1)) {
+                                Some(d) => {
+                                    // the speaker: that NPC if it's here, else the player
+                                    let owner = crate::npc::find(&d.npc, me.playfield).unwrap_or(me_id);
+                                    crate::knubot::start(me_id, &me.name, owner, d.clone());
+                                }
+                                None => {
+                                    let list: Vec<String> = crate::knubot::dialogues().iter().enumerate().map(|(i, d)| format!("{} {} ({})", i + 1, d.npc, d.playfield)).collect();
+                                    crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("dialogues: {}", list.join(", ")));
+                                }
+                            }
+                        }
                         crate::devcmd::Action::Aura(n) => {
                             if let Some(&(_, template)) = me.team.first() {
                                 let tags = crate::auras::tags(template);
@@ -1049,6 +1093,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     if character != 0 {
         crate::npc::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         crate::auras::left(Id32::new(crate::territory::CHARACTER_TYPE, character));
+        crate::knubot::left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         crate::jumppad::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         me.pos = *pos.lock().unwrap();
         match store.save(character, &me) {
@@ -1462,6 +1507,10 @@ fn refresh_costumes(joined: Id32) {
 const GENERIC_LOOK: u32 = 2212;
 /// After the spawn records, so the first build of the character is done (assumed).
 const COSTUME_REFRESH_DELAY: std::time::Duration = std::time::Duration::from_millis(1500);
+
+/// The tutorial and the NPC whose first dialogue starts it.
+const TUTORIAL_PLAYFIELD: u32 = 1300;
+const TUTORIAL_GUIDE: &str = "Video Game Guy";
 
 /// How long `!test` enemies stay.
 const TEST_ENEMY_LIFETIME: std::time::Duration = std::time::Duration::from_secs(15 * 60);

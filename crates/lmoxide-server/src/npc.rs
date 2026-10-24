@@ -277,6 +277,16 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
     v
 }
 
+/// A friendly (story or usable) NPC's name and playfield.
+pub fn friendly(id: Id32) -> Option<(String, u32)> {
+    NPCS.lock().unwrap().get(&id).filter(|n| n.def.kind == Kind::Npc).map(|n| (n.def.name.clone(), n.playfield))
+}
+
+/// A spawned NPC named `name` on `playfield`.
+pub fn find(name: &str, playfield: u32) -> Option<Id32> {
+    NPCS.lock().unwrap().iter().find(|(_, n)| n.playfield == playfield && n.def.name == name && n.presence.is_some()).map(|(id, _)| *id)
+}
+
 /// Where a live NPC is.
 pub fn position(id: Id32) -> Option<[f32; 3]> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())

@@ -76,6 +76,14 @@
           "count": 4
         }
       ]
+    },
+    {
+      "label": "dialogue",
+      "about": "Video Game Guy in the tutorial: his intro dialogue starts on arrival; talk to him for the next ones (!dialog lists all)",
+      "goto": {
+        "kind": "npc",
+        "name": "Video Game Guy"
+      }
     }
   ]
 }

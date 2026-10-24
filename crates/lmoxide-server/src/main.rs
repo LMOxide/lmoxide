@@ -14,6 +14,7 @@ mod dash;
 mod effects;
 mod game;
 mod jumppad;
+mod knubot;
 mod loot;
 mod npc;
 mod procs;
