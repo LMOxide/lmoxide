@@ -55,6 +55,9 @@ pub struct Params {
     /// Seconds per charge level.
     #[serde(default)]
     pub channel_interval: f32,
+    /// Buff shown on the caster while charging (re-applied every interval).
+    #[serde(default)]
+    pub channel_buff: Option<u32>,
 }
 
 impl Params {
@@ -132,6 +135,7 @@ pub fn launch_visual(caster: Id32, playfield: u32, item: u32, speed: f32, from: 
         range: 0.0,
         charge_items: vec![],
         channel_interval: 0.0,
+        channel_buff: None,
     };
     let id = Id32::new(PROJECTILE_TYPE, NEXT.fetch_add(1, Ordering::Relaxed));
     let start = [from[0], from[1] + 1.0, from[2]];

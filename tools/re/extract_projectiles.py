@@ -1,8 +1,9 @@
 """Projectile parameters of every minifigure spell (left/right-click spells, upgrade abilities):
 data/projectiles.json, spell -> {item, type, speed, attractor, offset_z, ricochets, range,
-charge_items, channel_interval}. Charge spells (hold to grow, release to fire: e.g. Big Blast)
+charge_items, channel_interval, channel_buff}. Charge spells (hold to grow, release to fire: e.g. Big Blast)
 have one Projectile action per charge level (OnChannelingEnd list, gated on a buff counter);
-charge_items lists their items by level and channel_interval (s) is ChannelingInterval (stat 447).
+charge_items lists their items by level, channel_interval (s) is ChannelingInterval (stat 447) and
+channel_buff the buff shown on the caster while charging (re-applied each interval).
 The client's Projectile GameAction does nothing by itself; the server spawns the projectile dynel
 (CoreProjectileFullUpdateIIR) from these values.  Usage: tools/re/py extract_projectiles.py"""
 import json, os, struct
@@ -39,5 +40,9 @@ for sid in sorted(ids):
             interval = struct.unpack_from("<I", body, at + 5)[0] / 100 if at >= 0 else 0.5
             out[str(sid)]["charge_items"] = [p["args"].get("GameAction_ItemInstance", 0) for p in projectiles]
             out[str(sid)]["channel_interval"] = interval
+            # the channel's visual: the buff the Use list's CastNano applies to the caster
+            nano = next((a["args"].get("GameAction_Value") or a["args"].get("GameAction_NanoTemplate") for a in acts if a["type"] == "CastNano"), None)
+            if nano:
+                out[str(sid)]["channel_buff"] = nano
 json.dump(out, open(os.path.join(ROOT, "data/projectiles.json"), "w"), indent=0, sort_keys=True)
 print(len(out), "projectile spells")

@@ -171,6 +171,7 @@
 },
 "31414": {
 "attractor": 40,
+"channel_buff": 635802,
 "channel_interval": 0.5,
 "charge_items": [
 38698,
@@ -855,6 +856,7 @@
 },
 "663939": {
 "attractor": 0,
+"channel_buff": 668547,
 "channel_interval": 0.5,
 "charge_items": [
 667130,

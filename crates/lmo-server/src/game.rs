@@ -149,11 +149,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                     }
                     Some(kind @ ("CharDCMoveIIR_t" | "MoveTaskIIR_c")) => {
+                        if let Some(yaw) = (kind == "CharDCMoveIIR_t").then(|| reported_facing(rest)).flatten() {
+                            heading = yaw;
+                        }
                         if let Some(p) = reported_position(kind, rest) {
                             let before = *pos.lock().unwrap();
                             let (dx, dz) = (p[0] - before[0], p[2] - before[2]);
                             let moved = (dx * dx + dz * dz).sqrt();
-                            if moved > 0.2 {
+                            if kind == "MoveTaskIIR_c" && moved > 0.2 {
                                 heading = [dx / moved, dz / moved];
                             }
                             *pos.lock().unwrap() = p;
@@ -231,6 +234,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .await?;
                                         let health = crate::npc::heal_player(h.identity, POTION_HEAL);
                                         extra.push(int32_stat(h.identity, STAT_HEALTH, health));
+                                        // the heal visual (hearts), shown to everyone
+                                        let effect = crate::effects::effect_package(h.identity, POTION_EFFECT);
+                                        world::send_playfield(h.identity, false, world::Out::Records(vec![effect.clone()]));
+                                        extra.push(effect);
                                     }
                                 } else if let Some(spell) = spell {
                                     let special = me.team.first().is_some_and(|&(_, t)| crate::collection::spells(t).get(1) == Some(&spell));
@@ -267,9 +274,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             // hold to charge: fired on release (BCC action 20)
                                             fire_stale_charges(&mut charges, &me, h.identity);
                                             if let Some(client_id) = msg.commandqueue_client_id {
+                                                let active = Arc::new(std::sync::atomic::AtomicBool::new(true));
+                                                show_channel(h.identity, spell, active.clone());
                                                 charges.insert(client_id, Charge {
                                                     spell,
                                                     started: std::time::Instant::now(),
+                                                    active,
                                                     ground,
                                                     target: npc_target,
                                                     damage,
@@ -284,7 +294,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             crate::npc::hit(h.identity, t, spell, damage);
                                         }
                                         _ => {
-                                            let center = ground.unwrap_or_else(|| *pos.lock().unwrap());
+                                            // melee: in front of the character (its facing)
+                                            let here = *pos.lock().unwrap();
+                                            let ahead = [here[0] + heading[0] * MELEE_REACH, here[1], here[2] + heading[1] * MELEE_REACH];
+                                            let center = ground.unwrap_or(ahead);
                                             crate::npc::hit_area(h.identity, me.playfield, center, AREA_RADIUS, spell, damage);
                                         }
                                     }
@@ -518,6 +531,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
 /// Characters are saved on disconnect and, while moving, at most this often.
 const SAVE_INTERVAL: std::time::Duration = std::time::Duration::from_secs(10);
 
+/// The facing in a `CharDCMoveIIR_t` (u8 flags, position, then a yaw-only quaternion (qy, qw)
+/// if flags & 0x10, else (qx, qy, qz, qw)), as a forward direction (x, z): yaw = 2·atan2(qy, qw),
+/// forward = (sin yaw, cos yaw). The client turns the character towards the mouse on a cast and
+/// reports it here.
+fn reported_facing(rest: &[u8]) -> Option<[f32; 2]> {
+    let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
+    let (qy, qw) = if rest.first()? & 0x10 != 0 { (f(13)?, f(17)?) } else { (f(17)?, f(25)?) };
+    let (x, z) = (2.0 * qy * qw, qw * qw - qy * qy);
+    let len = (x * x + z * z).sqrt();
+    (len > 0.01).then(|| [x / len, z / len])
+}
+
 /// Where a movement IIR says the character is (CharDCMoveIIR_t) or is heading
 /// (MoveTaskIIR_c: the path's last waypoint). See `move_record` / `move_task_record`.
 fn reported_position(kind: &str, rest: &[u8]) -> Option<[f32; 3]> {
@@ -631,13 +656,33 @@ async fn teleport(
 struct Charge {
     spell: u32,
     started: std::time::Instant,
+    /// Cleared on release: stops re-applying the channel buff.
+    active: Arc<std::sync::atomic::AtomicBool>,
     ground: Option<[f32; 3]>,
     target: Option<Id32>,
     damage: u32,
 }
 
+/// While a charge is held, shows its channel buff (the growing orb) on the caster, re-applied
+/// every channel interval (MagicBuffIIR_c; the buff lasts 0.75 s).
+fn show_channel(caster: Id32, spell: u32, active: Arc<std::sync::atomic::AtomicBool>) {
+    let Some(p) = crate::projectile::params(spell) else { return };
+    let Some(buff) = p.channel_buff else { return };
+    let interval = std::time::Duration::from_secs_f32(p.channel_interval.max(0.1));
+    tokio::spawn(async move {
+        while active.load(std::sync::atomic::Ordering::Relaxed) {
+            let add = crate::effects::buff_add(caster, buff, caster, 75);
+            world::send_playfield(caster, true, world::Out::Records(vec![add]));
+            tokio::time::sleep(interval).await;
+        }
+        let remove = crate::effects::buff_remove(caster, buff, caster);
+        world::send_playfield(caster, true, world::Out::Records(vec![remove]));
+    });
+}
+
 /// Fires a released charge: the projectile for the charge level reached.
 fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading: [f32; 2]) {
+    c.active.store(false, std::sync::atomic::Ordering::Relaxed);
     let Some(p) = crate::projectile::params(c.spell) else { return };
     let held = c.started.elapsed().as_secs_f32();
     let item = p.charged_item(held);
@@ -902,6 +947,8 @@ const START_POTIONS: u64 = 5;
 /// "Potion of Health" (in shortcut slot 100); its heal amount was server-side, so pick one.
 const POTION_SPELL: u32 = 104_554;
 const POTION_HEAL: u32 = 50;
+/// Effect package of the potion's heal (hearts on the character).
+const POTION_EFFECT: u32 = 4456;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
 /// CommandMessage protobuf, command data. The client queues a command with action 3 and the
 /// server answers 4 (OnSuccess), 5 (OnFailure), 7/8/9 (abort one/queued/all).
@@ -919,8 +966,10 @@ pub const COMMAND_MAGIC: u32 = 4;
 /// data is modelled.
 const NORMAL_DAMAGE: u32 = 15;
 const SPECIAL_DAMAGE: u32 = 30;
-/// Reach of untargeted (melee/area) attacks.
-const AREA_RADIUS: f32 = 3.0;
+/// Reach of untargeted (melee/area) attacks: a circle of AREA_RADIUS centred MELEE_REACH in
+/// front of the character.
+const AREA_RADIUS: f32 = 2.5;
+const MELEE_REACH: f32 = 1.5;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
 /// EquipItemCommand: a minifigure moved from the collection into a team slot.
