@@ -20,7 +20,7 @@ use serde::Serialize;
 
 pub use accounts::{Account, Ban};
 pub use api::{ApiKey, Scope};
-pub use characters::{Character, Defeat, Visit};
+pub use characters::{Character, CharacterSummary, Defeat, Visit};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

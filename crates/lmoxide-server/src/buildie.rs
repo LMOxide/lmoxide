@@ -52,6 +52,8 @@ const BUILD_RANGE: f32 = 6.0;
 /// `SimpleDynelVisualChangeIIR_c` states as recorded: 4 = the built visual, 2 = particles off.
 const VISUAL_BUILT: u32 = 4;
 const VISUAL_PARTICLES_OFF: u32 = 2;
+/// BCCState of a character doing nothing special (the build sets 104, the client asks for it).
+const BCC_STATE_NORMAL: u32 = 1;
 
 #[derive(Debug, Clone, Deserialize)]
 struct Def {
@@ -174,7 +176,8 @@ async fn build(id: Id32, player: Id32) {
             b.state = State::Idle;
             info!(?player, buildie = %b.def.name, progress = b.progress, "build stopped");
             drop(buildies);
-            world::send_playfield(id, false, world::Out::Records(vec![script_record(id, "buildableStop"), float_stat_record(id, STAT_BUILD_RATE, 0.0)]));
+            let records = vec![script_record(id, "buildableStop"), float_stat_record(id, STAT_BUILD_RATE, 0.0), stat_record(player, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL)];
+            world::send_playfield(id, false, world::Out::Records(records));
             return;
         }
         b.progress = (b.progress + PLAYER_RATE).min(b.def.max);
@@ -185,6 +188,8 @@ async fn build(id: Id32, player: Id32) {
             info!(?player, buildie = %b.def.name, "built");
             world::send_to(player, world::Out::Progress(crate::achievements::Event::Built { name: b.def.name.clone() }));
             records.extend(built_records(id, &b.def));
+            // the builder stops building (BCCState back to normal, as recorded)
+            records.push(stat_record(player, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL));
         }
         let (playfield, pos) = (b.def.playfield, b.def.pos);
         drop(buildies);
@@ -212,10 +217,24 @@ fn built_records(id: Id32, def: &Def) -> Vec<Bytes> {
         visual_change_record(id, VISUAL_PARTICLES_OFF, 0),
         stat_record(id, STAT_CARS_GROUP, CARS_BUILT),
         float_stat_record(id, STAT_BUILD_RATE, 0.0),
-        iir::record("UpdateSimpleDynelIIR_c", id, false, |w| w.u32(0).u8(1).u8(1).u8(0).u8(1)),
-        stat_record(id, STAT_CARS_GROUP, CARS_BUILT),
     ]);
+    // a bouncer's buildie makes way for its jump pad (recorded: the wind propeller hidden);
+    // the ramp keeps its built visual
+    if crate::jumppad::pad_at_spot(def.playfield, def.pos) {
+        r.push(hide_record(id));
+    }
+    r.push(stat_record(id, STAT_CARS_GROUP, CARS_BUILT));
     r
+}
+
+/// `UpdateSimpleDynelIIR_c` hiding the dynel (recorded: u32 0, u8 1, u8 1, u8 0, u8 1).
+fn hide_record(id: Id32) -> Bytes {
+    iir::record("UpdateSimpleDynelIIR_c", id, false, |w| w.u32(0).u8(1).u8(1).u8(0).u8(1))
+}
+
+/// Whether `player` is building something now.
+pub fn building(player: Id32) -> bool {
+    BUILDIES.lock().unwrap().values().any(|b| b.state == State::Building(player))
 }
 
 /// UpdateMessage + `DestructibleFullUpdateIIR_c` as recorded (see npc.rs `smashable_records` for
@@ -252,6 +271,9 @@ fn spawn_records(id: Id32) -> Vec<Bytes> {
         w.u32(d.tail.0).f32(d.tail.1).f32(d.tail.2).u32(u32::from(built)).f32(d.tail.4)
     });
     let mut records = vec![create_game_object(id, d.playfield, d.pos), record];
+    if built && crate::jumppad::pad_at_spot(d.playfield, d.pos) {
+        records.push(hide_record(id));
+    }
     if let State::Building(_) = b.state {
         records.extend(start_records(id));
     }

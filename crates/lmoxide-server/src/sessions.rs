@@ -47,6 +47,19 @@ pub async fn territory_closed(account: u32, timeout: Duration) -> bool {
     tokio::time::timeout(timeout, rx.wait_for(|open| !*open)).await.is_ok()
 }
 
+/// account instance -> the character it plays (picked in the territory; the chat server finds
+/// the character by the account's login cookie)
+static CHARACTERS: LazyLock<Mutex<HashMap<u32, u32>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+pub fn set_character(account: u32, character: u32) {
+    CHARACTERS.lock().unwrap().insert(account, character);
+}
+
+/// The character the account plays (its first, the account's id, if none was picked).
+pub fn character_of(account: u32) -> u32 {
+    CHARACTERS.lock().unwrap().get(&account).copied().unwrap_or(account)
+}
+
 /// account instance -> login name (the name of a new character)
 static NAMES: LazyLock<Mutex<HashMap<u32, String>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -58,8 +71,9 @@ pub fn name(account: u32) -> Option<String> {
     NAMES.lock().unwrap().get(&account).cloned()
 }
 
-/// A logged-in game connection (for the control interface: players online, kicks).
+/// A logged-in game connection (for the control interface: players online, kicks), by character.
 struct Online {
+    account: u32,
     /// Tells apart a newer connection of the same account.
     conn_id: u64,
     username: String,
@@ -72,11 +86,12 @@ struct Online {
 static ONLINE: LazyLock<Mutex<HashMap<u32, Online>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static NEXT_CONN: AtomicU64 = AtomicU64::new(1);
 
-/// Registers the account's game connection, kicking an older one; dropping the guard
-/// unregisters it.
-pub fn online(account: u32, username: &str, character_name: &str, gm_level: u32, outbox: world::Outbox) -> OnlineGuard {
+/// Registers the account's game connection with `character`, kicking an older one of the
+/// account; dropping the guard unregisters it.
+pub fn online(account: u32, character: u32, username: &str, character_name: &str, gm_level: u32, outbox: world::Outbox) -> OnlineGuard {
     let conn_id = NEXT_CONN.fetch_add(1, Ordering::Relaxed);
     let entry = Online {
+        account,
         conn_id,
         username: username.into(),
         character_name: character_name.into(),
@@ -84,46 +99,53 @@ pub fn online(account: u32, username: &str, character_name: &str, gm_level: u32,
         logged_in_at: lmoxide_db::now(),
         outbox,
     };
-    if let Some(old) = ONLINE.lock().unwrap().insert(account, entry) {
+    let mut online = ONLINE.lock().unwrap();
+    for old in online.values().filter(|o| o.account == account) {
         let _ = old.outbox.send(world::Out::Kick(Some("Logged in from another client.".into())));
     }
-    OnlineGuard { account, conn_id }
+    online.insert(character, entry);
+    OnlineGuard { character, conn_id }
 }
 
 pub struct OnlineGuard {
-    account: u32,
+    character: u32,
     conn_id: u64,
 }
 
 impl Drop for OnlineGuard {
     fn drop(&mut self) {
         let mut online = ONLINE.lock().unwrap();
-        if online.get(&self.account).is_some_and(|o| o.conn_id == self.conn_id) {
-            online.remove(&self.account);
+        if online.get(&self.character).is_some_and(|o| o.conn_id == self.conn_id) {
+            online.remove(&self.character);
         }
     }
 }
 
-/// The GM level of an account that is online (0 otherwise).
-pub fn gm_level(account: u32) -> u32 {
-    ONLINE.lock().unwrap().get(&account).map_or(0, |o| o.gm_level)
+/// The GM level of a character that is online (0 otherwise).
+pub fn gm_level(character: u32) -> u32 {
+    ONLINE.lock().unwrap().get(&character).map_or(0, |o| o.gm_level)
 }
 
 /// Disconnects the account's game connection; false if it isn't online.
 pub fn kick(account: u32, reason: Option<String>) -> bool {
-    ONLINE.lock().unwrap().get(&account).is_some_and(|o| o.outbox.send(world::Out::Kick(reason)).is_ok())
+    let online = ONLINE.lock().unwrap();
+    let mut kicked = false;
+    for o in online.values().filter(|o| o.account == account) {
+        kicked |= o.outbox.send(world::Out::Kick(reason.clone())).is_ok();
+    }
+    kicked
 }
 
 pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {
     let online = ONLINE.lock().unwrap();
     let mut list: Vec<_> = online
         .iter()
-        .map(|(&account, o)| lmoxide_control::OnlinePlayer {
-            account_id: account,
+        .map(|(&character, o)| lmoxide_control::OnlinePlayer {
+            account_id: o.account,
             username: o.username.clone(),
-            character_id: account,
+            character_id: character,
             character_name: o.character_name.clone(),
-            playfield: world::whereabouts(Id32::new(crate::territory::CHARACTER_TYPE, account)).map(|(pf, _)| pf),
+            playfield: world::whereabouts(Id32::new(crate::territory::CHARACTER_TYPE, character)).map(|(pf, _)| pf),
             gm_level: o.gm_level,
             logged_in_at: o.logged_in_at,
         })

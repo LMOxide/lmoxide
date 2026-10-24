@@ -219,6 +219,29 @@ impl Db {
         Ok(self.conn().query_row("SELECT count(*) FROM characters WHERE id = ?1", [id], |r| r.get::<_, i64>(0))? > 0)
     }
 
+    /// The account a character belongs to.
+    pub fn character_account(&self, id: u32) -> Result<Option<u32>> {
+        Ok(self.conn().query_row("SELECT account_id FROM characters WHERE id = ?1", [id], |r| r.get(0)).optional()?)
+    }
+
+    /// An unused id for an account's further character (its first has the account's id): above
+    /// 16,000,000 like the accounts (the client keeps lower instances for NPCs), clear of every
+    /// account and character id.
+    pub fn new_character_id(&self) -> Result<u32> {
+        let conn = self.conn();
+        loop {
+            let id = rand::random_range(16_000_001..0x7fff_ffffu32);
+            let used: i64 = conn.query_row(
+                "SELECT (SELECT count(*) FROM characters WHERE id = ?1) + (SELECT count(*) FROM accounts WHERE id = ?1)",
+                [id],
+                |r| r.get(0),
+            )?;
+            if used == 0 {
+                return Ok(id);
+            }
+        }
+    }
+
     pub fn character_name(&self, id: u32) -> Result<Option<String>> {
         Ok(self.conn().query_row("SELECT name FROM characters WHERE id = ?1", [id], |r| r.get(0)).optional()?)
     }

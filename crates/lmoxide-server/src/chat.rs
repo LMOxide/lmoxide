@@ -30,11 +30,11 @@ use tokio::{
 use tokio_util::codec::{FramedRead, LinesCodec};
 use tracing::{Instrument, debug, info, info_span, warn};
 
-/// account -> lines to send on its chat connection
+/// character (the one the account plays) -> lines to send on its chat connection
 static CLIENTS: LazyLock<Mutex<HashMap<u32, mpsc::UnboundedSender<String>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-/// channel name (lower case) -> member accounts
+/// channel name (lower case) -> member characters
 static CHANNELS: LazyLock<Mutex<HashMap<String, HashSet<u32>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// Set by `--bot`: the test bot answers channel messages, so incoming chat can be seen with
@@ -97,7 +97,9 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                 match cmd.to_ascii_uppercase().as_str() {
                     "PASS" => {
                         let cookie: u32 = rest.trim_start_matches(':').trim().parse().unwrap_or(0);
-                        account = crate::state::or_log(crate::state::db().game_session(cookie), "session", None);
+                        // chat is addressed to characters: the one the account plays
+                        account = crate::state::or_log(crate::state::db().game_session(cookie), "session", None)
+                            .map(crate::sessions::character_of);
                         info!(?account, "chat login");
                         let Some(a) = account else {
                             warn!("chat login with an invalid cookie");

@@ -351,6 +351,15 @@ kill). Each minifigure's achievements say what its two item counters count ("Sma
 Monsters", "Build 100 Buildies", "Smash 50 Witches"); player counters: 3000116 kills, 3000126
 smashables smashed, 3000119-3000123 collectibles, 3000140-3000142 seasonal.
 
+## Characters per account
+
+An account's first character has the account's id; further ones get their own (above 16M,
+clear of account ids). UpdateClientPlayerData's character map lists them (PlayerCharacterData_t
+u32 account, u32 character); the launcher's character screen offers the others' slots as
+"Create new Hero" (`CreateCharacterWithData`, then the creation flow below), `LoginCharacter`
+names the character picked. The game server accepts a character whose account owns the login
+cookie; the chat server maps the cookie's account to the character it plays.
+
 ## Buildies (buildie.rs)
 
 Buildies are `DestructibleFullUpdateIIR_c` dynels of type 51321 with CARS group 1 (the pirate
@@ -365,7 +374,12 @@ Building, as live did it:
 3. Every tick `StatIIR_t` 27 (progress) += rate, capped at the maximum (1600; one cannon 1100).
 4. Done: stat 27 = max (sent twice), stat 455 = 58, `SimpleDynelVisualChangeIIR_c` (4, built
    mesh), ScryScript "buildableStop", VisualChange (2, 0), stat 1050 (CARS group) = 5 (twice),
-   FloatStat 2999049 = 0, `UpdateSimpleDynelIIR_c` 00000000 01010001, stat 1050 = 5.
+   FloatStat 2999049 = 0, stat 1050 = 5. A bouncer (a buildie over a jump pad) is then hidden
+   (`UpdateSimpleDynelIIR_c` 00000000 01010001) and its `Jumper` simple dynel, hidden until then,
+   shown (00000000 00010001) with CARS group 3; the ramp keeps its built visual.
+   The builder's animation: right after the interaction's success the client queues CommandType 1
+   (data u32 104); live answered success and set the player's stat 20 (BCCState) = 104, back to 1
+   when the build ended.
 5. Commands the client queues while a build runs get action 4 then 5 (failure, reason 21).
    After a stop (player left), restarting reset 2999047 and stat 27 to 0 first.
 

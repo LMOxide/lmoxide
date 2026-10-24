@@ -158,7 +158,23 @@ fn spawn_records(pad: &Pad, playfield: u32) -> Vec<Bytes> {
         let w = w.proto(&dynel).proto(&simple).u32(pad.visual[1]).u32(pad.visual[0]).u32(0);
         pad.bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
     });
-    vec![create_game_object(id, playfield, pad.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group(pad, playfield))]
+    let mut records = vec![create_game_object(id, playfield, pad.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group(pad, playfield))];
+    if crate::buildie::unbuilt_at(playfield, pad.pos) {
+        // live: the pad under a buildie appears once the buildie is built (recorded: the wind
+        // propeller hidden, jumper 602 shown)
+        records.push(show_record(id, false));
+    }
+    records
+}
+
+/// `UpdateSimpleDynelIIR_c` as recorded: u32 0, u8 hidden, u8 1, u8 0, u8 1.
+fn show_record(id: Id32, shown: bool) -> Bytes {
+    iir::record("UpdateSimpleDynelIIR_c", id, false, |w| w.u32(0).u8(u8::from(!shown)).u8(1).u8(0).u8(1))
+}
+
+/// Whether a jump pad stands at `at` (under a buildie: a bouncer).
+pub fn pad_at_spot(playfield: u32, at: [f32; 3]) -> bool {
+    PADS.get(&playfield).is_some_and(|pads| pads.iter().any(|p| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt() < 1.0))
 }
 
 /// Pads under an unbuilt buildie are inactive (CARS group 5, as recorded) until it is built.
@@ -191,7 +207,8 @@ fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
 pub fn activate(playfield: u32, at: [f32; 3]) {
     let Some(pads) = PADS.get(&playfield) else { return };
     for pad in pads.iter().filter(|p| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
-        world::send_playfield(pad.id(), false, world::Out::Records(vec![int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)]));
+        let records = vec![show_record(pad.id(), true), int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)];
+        world::send_playfield(pad.id(), false, world::Out::Records(records));
     }
 }
 

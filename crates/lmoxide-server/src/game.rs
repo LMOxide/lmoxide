@@ -160,12 +160,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let claimed = r.u32()?;
                 let cookie = r.u32()?;
                 let version = r.string()?;
-                // Characters are keyed by account instance for now (see territory.rs).
+                // `claimed` is the character: the login cookie's account must own it (an
+                // account's first character has the account's id and may not be saved yet)
                 let ip_key = format!("ip:{}", conn.peer.ip());
-                let account = (crate::security::allowed(&ip_key)
-                    && state::or_log(state::db().game_session(cookie), "session", None) == Some(claimed))
-                .then(|| state::or_log(state::db().account(claimed), "account", None))
-                .flatten();
+                let session = state::or_log(state::db().game_session(cookie), "session", None);
+                let owner = state::or_log(state::db().character_account(claimed), "character", None).unwrap_or(claimed);
+                let account = (crate::security::allowed(&ip_key) && session.is_some() && session == Some(owner))
+                    .then(|| state::or_log(state::db().account(owner), "account", None))
+                    .flatten();
                 let Some(account) = account.filter(|a| a.active_ban().is_none()) else {
                     warn!(character = claimed, %version, "Authenticate2 refused: invalid cookie or banned");
                     crate::security::failed(&ip_key);
@@ -181,14 +183,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     ..me.clone()
                 });
                 active_at_first_position(&mut me.team);
-                _online = Some(crate::sessions::online(character, &account.username, &me.name, gm_level, outbox.clone()));
+                _online = Some(crate::sessions::online(account.id, character, &account.username, &me.name, gm_level, outbox.clone()));
                 *pos.lock().unwrap() = me.pos;
                 collection = Collection::new(&me.team);
                 info!(character, %version, name = %me.name, playfield = me.playfield, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
-                if !crate::sessions::territory_closed(character, std::time::Duration::from_secs(10)).await {
+                if !crate::sessions::territory_closed(account.id, std::time::Duration::from_secs(10)).await {
                     warn!(character, "territory connection still open; sending the world anyway");
                 }
                 // Give the client a moment to process the territory disconnect.
@@ -405,6 +407,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
                         }
                         if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
+                            end_observed(h.identity, &c);
                             fire_charge(&c, &me, h.identity, *pos.lock().unwrap(), heading);
                         } else {
                             crate::actions::release(h.identity, false);
@@ -416,6 +419,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // ends without firing.
                         if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
                             c.active.store(false, std::sync::atomic::Ordering::Relaxed);
+                            end_observed(h.identity, &c);
                             info!(spell = c.spell, "charge aborted");
                         } else {
                             crate::actions::release(h.identity, false);
@@ -438,6 +442,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the cast, for the other players
                         let mut cast_spell = None;
                         let mut cast_target = None;
+                        let mut cast_client_id = None;
                         match parse_command(rest) {
                             Some((msg, data)) => {
                                 let target = msg.target.as_ref().map(|t| (t.r#type.unwrap_or(0), t.instance.unwrap_or(0)));
@@ -446,6 +451,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     .then(|| data.get(4..8).map(|b| u32::from_be_bytes(b.try_into().unwrap())))
                                     .flatten();
                                 cast_spell = spell;
+                                cast_client_id = msg.commandqueue_client_id;
                                 cast_target = target.map(|(kind, instance)| Id32::new(kind, instance)).filter(|t| t.instance != 0);
                                 info!(command_type, ?spell, ?target, client_id = ?msg.commandqueue_client_id, data = %crate::conn::hex(data), "command");
                                 let talk_to = target
@@ -571,6 +577,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                     active,
                                                     target: npc_target,
                                                     damage,
+                                                    observed: None,
                                                 });
                                             }
                                         } else {
@@ -647,7 +654,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         {
                             // the others see the cast (its animation) too
                             let target = cast_target.unwrap_or(h.identity);
-                            world::send_playfield(h.identity, false, world::Out::Records(crate::npc::observed_cast(h.identity, target, spell).to_vec()));
+                            let (observed, records) = crate::npc::observed_cast(h.identity, target, spell);
+                            world::send_playfield(h.identity, false, world::Out::Records(records.to_vec()));
+                            // a held charge: the others' copy is ended with it (release, abort)
+                            if let Some(c) = cast_client_id.and_then(|id| charges.get_mut(&id)) {
+                                c.observed = Some((observed, target));
+                            }
                         }
                         if command_type == COMMAND_MAGIC && !refused {
                             // A MagicCommand only executes (and later finishes, freeing the queue
@@ -686,6 +698,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         if command_type == COMMAND_EQUIP_ITEM {
                             learn_team_spells(&mut conn, character, &me).await?;
+                        }
+                        if command_type == COMMAND_BCC_STATE
+                            && !refused
+                            && crate::buildie::building(h.identity)
+                            && let Some((_, data)) = parse_command(rest)
+                            && let Some(state) = data.get(0..4).map(|b| u32::from_be_bytes(b.try_into().unwrap()))
+                        {
+                            // while building, the client asks for BCCState 104 (the build
+                            // animation): live set it on the player, for everyone
+                            let record = stat_record(h.identity, STAT_BCC_STATE, state);
+                            records.push(record.clone());
+                            world::send_playfield(h.identity, false, world::Out::Records(vec![record]));
                         }
                         let blob = iir::pass_blob(&records);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
@@ -1156,9 +1180,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_CREATE_PLAYER_CHARACTER_RESULT, args)
                     .await?;
                 if starter.is_some() {
-                    // on to the tutorial (the teleport sends the character again, with its team)
+                    // on to the tutorial, without progression to the start playfield (the teleport
+                    // sends the character again, with its team)
                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::tutorial::PLAYFIELD, None, Some((crate::tutorial::START, 0.0)), potions_spent)
+                    let (playfield, at) =
+                        if crate::progression::enabled() { (crate::tutorial::PLAYFIELD, crate::tutorial::START) } else { (cfg.start_playfield, START_POS) };
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, 0.0)), potions_spent)
                         .await?;
                 }
             }
@@ -1467,6 +1494,15 @@ struct Charge {
     active: Arc<std::sync::atomic::AtomicBool>,
     target: Option<Id32>,
     damage: u32,
+    /// The others' copy of the cast (server command id, target), ended with the charge.
+    observed: Option<(u32, Id32)>,
+}
+
+/// Ends the others' copy of a held charge's cast.
+fn end_observed(caster: Id32, c: &Charge) {
+    if let Some((id, target)) = c.observed {
+        world::send_playfield(caster, false, world::Out::Records(vec![crate::npc::observed_end(caster, target, c.spell, id)]));
+    }
 }
 
 /// A held charge, from press to release: shows its channel buff (the growing orb) on the caster,
@@ -1574,6 +1610,7 @@ fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster
     let stale: Vec<u32> = charges.iter().filter(|(_, c)| c.started.elapsed() > CHARGE_TIMEOUT).map(|(k, _)| *k).collect();
     for k in stale {
         if let Some(c) = charges.remove(&k) {
+            end_observed(caster, &c);
             let here = me.pos;
             fire_charge(&c, me, caster, here, [0.0, 1.0]);
         }
@@ -2008,6 +2045,8 @@ const AREA_RADIUS: f32 = 2.5;
 const MELEE_REACH: f32 = 1.5;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
+/// The command that sets the character's BCCState (data: u32 state; building asks for 104).
+const COMMAND_BCC_STATE: u32 = 1;
 /// EquipItemCommand: a minifigure moved from the collection into a team slot.
 const COMMAND_EQUIP_ITEM: u32 = 9;
 /// Queued commands allowed (client name "CommandQueueSize"; treated as 1 when unset).

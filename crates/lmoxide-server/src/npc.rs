@@ -1081,9 +1081,15 @@ fn cast_record(caster: Id32, target: Id32, spell: u32, action: u8) -> bytes::Byt
 /// What the other players see of a player's cast of `spell` at `target`: the command queued,
 /// succeeded and allowed to execute (BCC actions 16, 4, 10), as the original server sent NPC
 /// casts to everyone; the caster's own client has its own command.
-pub fn observed_cast(caster: Id32, target: Id32, spell: u32) -> [bytes::Bytes; 3] {
+pub fn observed_cast(caster: Id32, target: Id32, spell: u32) -> (u32, [bytes::Bytes; 3]) {
     let id = NEXT_SERVER_COMMAND.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    [BCC_QUEUE, 4, 10].map(|a| cast_record_with_id(caster, target, spell, a, id))
+    (id, [BCC_QUEUE, 4, 10].map(|a| cast_record_with_id(caster, target, spell, a, id)))
+}
+
+/// Ends an observed cast (`observed_cast`'s command `id`) for the other players: BCC action 20
+/// (finish channel), as the caster's own release; else a held charge keeps animating there.
+pub fn observed_end(caster: Id32, target: Id32, spell: u32, id: u32) -> bytes::Bytes {
+    cast_record_with_id(caster, target, spell, 20, id)
 }
 
 fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, server_id: u32) -> bytes::Bytes {

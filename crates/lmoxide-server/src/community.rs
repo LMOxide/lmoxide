@@ -562,7 +562,8 @@ fn remove_member(st: &mut State, character: u32) {
 }
 
 /// `GameCharAgent` RequestTeamMemberPosList(vector<u32>): the map markers,
-/// UpdateTeamMemberPosList(vector<{u32 instance, i32 x, y, z}>).
+/// UpdateTeamMemberPosList(vector<{u32 instance, i32 x, y, z}>) of the teammates on the same
+/// playfield.
 pub fn member_positions(character: u32, r: &mut Reader) -> anyhow::Result<()> {
     let n = r.container_len()?;
     let wanted: Vec<u32> = (0..n).map(|_| r.u32()).collect::<Result<_, _>>()?;
@@ -570,6 +571,11 @@ pub fn member_positions(character: u32, r: &mut Reader) -> anyhow::Result<()> {
     let mates: Vec<(u32, [f32; 3])> = wanted
         .into_iter()
         .filter(|m| st.team_of.get(m).is_some() && st.team_of.get(m) == st.team_of.get(&character))
+        // only teammates on this playfield: the map shows positions on its own playfield
+        .filter(|m| {
+            let here = st.online.get(&character).map(|o| o.playfield);
+            here.is_some() && st.online.get(m).map(|o| o.playfield) == here
+        })
         .filter_map(|m| world::position_of(char_id(m)).map(|p| (m, p)))
         .collect();
     let w = mates.iter().fold(Writer::new().container_len(mates.len()), |w, (m, p)| {

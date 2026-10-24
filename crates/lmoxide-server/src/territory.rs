@@ -77,8 +77,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // Without progression there is no tutorial: a new account's character is made
                 // here (named after the account), so the client lists it instead of offering
                 // character creation.
-                if !crate::progression::enabled() && crate::store::Store.load(account).is_none() {
-                    create_character(account, cfg.start_playfield);
+                if !crate::progression::enabled() && owned(account).is_empty() {
+                    create_character(account, account, cfg.start_playfield);
                 }
                 let me = Some(account);
                 conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
@@ -89,7 +89,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(me, Endpoint::PlayerInterface, interface::PLAYER_SETUP_COMPLETE, setup)
                     .await?;
                 if std::mem::take(&mut crashed) {
-                    connect_character(&mut conn, &cfg, account, cookie).await?;
+                    // back with the character played last
+                    let last = listed(account).into_iter().max_by_key(|c| c.saved_at).map_or(account, |c| c.id);
+                    connect_character(&mut conn, &cfg, account, last, cookie).await?;
                 }
             }
             (Some(Endpoint::PlayerAgent), agent::CLIENT_REPLY_KEEP_COOKIE) => {}
@@ -104,21 +106,37 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let igr = r.string()?;
                 let (user_type, service_type) = (r.u32()?, r.u32()?);
                 info!(account, dim, ?data, region, age, gender, %igr, user_type, service_type, "CreateCharacterWithData");
-                // The account's one character. With progression it starts in the creation
-                // playfield, where the client sends the name and minifigure picked on the creation
-                // screen (tutorial.rs); without, it's made at GetStartupData (or at its first game
-                // login).
-                if crate::progression::enabled() && crate::store::Store.load(account).is_none() {
-                    create_character(account, crate::tutorial::CREATION_PLAYFIELD);
-                }
-                connect_character(&mut conn, &cfg, account, cookie).await?;
+                // A new character (the account's first has the account's id). It starts in the
+                // creation playfield, where the client sends the name and minifigure picked on the
+                // creation screen (tutorial.rs). One left unfinished there is used again.
+                let pending = owned(account).into_iter().find(|c| c.playfield == crate::tutorial::CREATION_PLAYFIELD).map(|c| c.id);
+                let character = match pending {
+                    Some(id) => id,
+                    None => {
+                        let id = if owned(account).is_empty() {
+                            account
+                        } else {
+                            crate::state::or_log(crate::state::db().new_character_id(), "character id", account)
+                        };
+                        create_character(account, id, crate::tutorial::CREATION_PLAYFIELD);
+                        id
+                    }
+                };
+                connect_character(&mut conn, &cfg, account, character, cookie).await?;
             }
             (Some(Endpoint::PlayerAgent), agent::LOGIN_CHARACTER) => {
                 // LoginCharacter(instance, dataMap, language, region, age, gender, igr, userType,
                 // serviceType): the saved character picked from the list
                 let instance = r.u32()?;
                 info!(account, instance, "LoginCharacter");
-                connect_character(&mut conn, &cfg, account, cookie).await?;
+                // only the account's own characters
+                let character = if listed(account).iter().any(|c| c.id == instance) {
+                    instance
+                } else {
+                    warn!(account, instance, "LoginCharacter: not this account's character");
+                    listed(account).first().map_or(account, |c| c.id)
+                };
+                connect_character(&mut conn, &cfg, account, character, cookie).await?;
             }
             (Some(Endpoint::PlayerAgent), agent::GET_DIMENSION_LIST) => {
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::SET_DIMENSION_LIST, dimension_list())
@@ -130,8 +148,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Saves a new character for `account`, named after it, in `playfield`.
-fn create_character(account: u32, playfield: u32) {
+/// The account's characters.
+fn owned(account: u32) -> Vec<lmoxide_db::CharacterSummary> {
+    crate::state::or_log(crate::state::db().characters_of(account), "characters", vec![])
+}
+
+/// The account's characters the client lists: not those still being created (the client keeps
+/// the picked name only until it quits, so it offers creation again for them).
+fn listed(account: u32) -> Vec<lmoxide_db::CharacterSummary> {
+    owned(account).into_iter().filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD).collect()
+}
+
+/// Saves a new character `id` for `account`, named after it, in `playfield`.
+fn create_character(account: u32, id: u32, playfield: u32) {
     let name = crate::state::or_log(crate::state::db().account(account), "account", None).map(|a| a.username);
     let Some(name) = name else { return };
     let mut c = crate::game::new_character(name, playfield);
@@ -139,15 +168,16 @@ fn create_character(account: u32, playfield: u32) {
         // as live: no minifigure until the player's pick arrives
         c.team.clear();
     }
-    match crate::store::Store.save(account, &c) {
-        Ok(()) => info!(account, name = %c.name, playfield = c.playfield, "character created"),
+    match crate::store::Store.create(id, account, &c) {
+        Ok(()) => info!(account, character = id, name = %c.name, playfield = c.playfield, "character created"),
         Err(e) => warn!(account, "creating the character failed: {e:#}"),
     }
 }
 
-/// Sends the client on to the game server with the account's character.
-async fn connect_character(conn: &mut Conn, cfg: &Config, account: u32, cookie: u32) -> anyhow::Result<()> {
-    let character = Id32::new(CHARACTER_TYPE, account);
+/// Sends the client on to the game server with the account's `character`.
+async fn connect_character(conn: &mut Conn, cfg: &Config, account: u32, character: u32, cookie: u32) -> anyhow::Result<()> {
+    crate::sessions::set_character(account, character);
+    let character = Id32::new(CHARACTER_TYPE, character);
     // ChatServerConnectReady(const String& address, uint cookie, const ID32& characterID):
     // the client only stores the address ("host:port") and connects after the
     // character's full update; it must come before LoginConnectReady.
@@ -202,19 +232,18 @@ const TERRITORY_ID: u32 = 1;
 /// u64 last login (Unix time), u32, u32, string language, u32, u32, string, u32 level, u32.
 /// Values as in the recorded session (its 2, 11 and 41757 unknown fields are left 0).
 fn characters(account: u32) -> Vec<u8> {
-    // a character still being created isn't listed: the client offers creation again (it keeps
-    // the picked name only until it quits)
-    let Some(c) = crate::store::Store.load(account).filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD) else {
-        return Writer::new().container_len(0).finish().to_vec();
-    };
-    let level = c.level.max(1);
-    let w = Writer::new().container_len(1).u32(account);
-    // first, middle and last name (creation picks three)
-    let mut names = c.name.splitn(3, ' ');
-    let w = w.u32(account).u32(account);
-    let w = (0..3).fold(w, |w, _| w.string(names.next().unwrap_or("")));
-    let w = w.u32(1).u32(0).string("").u32(0).u32(c.playfield).u32(level).u32(0).u32(0).u64(0);
-    let w = w.u32(0).u32(0).string("en").u32(0).u32(0).string("").u32(level).u32(0);
+    let list: Vec<(u32, crate::store::Character)> =
+        listed(account).into_iter().filter_map(|s| Some((s.id, crate::store::Store.load(s.id)?))).collect();
+    let mut w = Writer::new().container_len(list.len());
+    for (id, c) in &list {
+        let level = c.level.max(1);
+        w = w.u32(*id).u32(account).u32(*id);
+        // first, middle and last name (creation picks three)
+        let mut names = c.name.splitn(3, ' ');
+        w = (0..3).fold(w, |w, _| w.string(names.next().unwrap_or("")));
+        w = w.u32(1).u32(0).string("").u32(0).u32(c.playfield).u32(level).u32(0).u32(0).u64(0);
+        w = w.u32(0).u32(0).string("en").u32(0).u32(0).string("").u32(level).u32(0);
+    }
     w.finish().to_vec()
 }
 
