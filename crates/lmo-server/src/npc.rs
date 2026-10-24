@@ -358,14 +358,17 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
     let kind = npc.def.kind;
     let mut records = vec![int32_stat(target, STAT_HEALTH, health)];
-    if kind == Kind::Enemy {
-        records.insert(0, combat_log_record(attacker, target, spell, dealt));
-        if health == 0 {
-            // Limbo: the client plays the death and stops targeting it
-            records.push(int32_stat(target, STAT_BCC_STATE, BCC_STATE_LIMBO));
-        }
+    records.insert(0, combat_log_record(attacker, target, spell, dealt));
+    if kind == Kind::Enemy && health == 0 {
+        // Limbo: the client plays the death and stops targeting it
+        records.push(int32_stat(target, STAT_BCC_STATE, BCC_STATE_LIMBO));
     }
-    // (Health 0 on a destructible plays its smash.)
+    if kind == Kind::Smashable && health == 0 {
+        // as the original server did: Health 0 plays the smash, the visual change leaves the
+        // debris, CarsGroup 5 makes it untargetable; the debris stays (it isn't despawned)
+        records.push(visual_change_record(target, SMASHED_VISUAL_STATE, 0));
+        records.push(int32_stat(target, STAT_CARS_GROUP, CARS_INACTIVE));
+    }
     world::send_playfield(target, true, world::Out::Records(records));
     if health == 0 {
         let stars = if kind == Kind::Enemy { ENEMY_STARS } else { SMASHABLE_STARS };
@@ -378,10 +381,16 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         let presence = npc.presence.take();
         drop(npcs);
         tokio::spawn(async move {
-            // let the death play before the body disappears
-            tokio::time::sleep(Duration::from_secs(3)).await;
-            drop(presence);
-            tokio::time::sleep(RESPAWN).await;
+            if kind == Kind::Smashable {
+                // the debris stays until it respawns
+                tokio::time::sleep(RESPAWN).await;
+                drop(presence);
+            } else {
+                // let the death play before the body disappears
+                tokio::time::sleep(Duration::from_secs(3)).await;
+                drop(presence);
+                tokio::time::sleep(RESPAWN).await;
+            }
             appear(target);
         });
     }
@@ -542,6 +551,15 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
 /// RDB type of RDBMonsterData as the client registers it (resources live under 1010514).
 const MONSTER_DATA_RDB_TYPE: u32 = 1010201;
 const STAT_CARS_GROUP: u32 = 1050;
+/// CarsGroup of objects nobody can target any more (smashed destructibles, recorded session).
+const CARS_INACTIVE: u32 = 5;
+/// `SimpleDynelVisualChangeIIR_c` state the original server sent when a destructible broke.
+const SMASHED_VISUAL_STATE: u32 = 4;
+
+/// `SimpleDynelVisualChangeIIR_c`: u32 state, u32 visual (0: keep), as in the recorded session.
+fn visual_change_record(id: Id32, state: u32, visual: u32) -> bytes::Bytes {
+    lmo_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(state).u32(visual))
+}
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
     ((a[0] - b[0]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
