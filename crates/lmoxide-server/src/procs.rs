@@ -7,9 +7,10 @@
 //! the data doesn't give (heal amounts, durations of buffs without TimeExist) are assumptions,
 //! listed in docs/TUNABLES.md.
 //!
-//! Not done: knockbacks and pulls (Knockback, Harpoon, Crowd Control, Equalizing Burst, Vortex),
-//! cooldown changes (Specialist, Technician: the client keeps the recharge times), power-up drop
-//! changes (Professional, Resourceful), Elemental Affinity (location elements), Charge Up.
+//! Not done: pulls and the special attacks' own knockbacks (Harpoon, Crowd Control, Equalizing
+//! Burst, Vortex), cooldown changes (Specialist, Technician: the client keeps the recharge
+//! times), power-up drop changes (Professional, Resourceful), Elemental Affinity (location
+//! elements).
 
 use std::{
     collections::{HashMap, HashSet},
@@ -46,6 +47,8 @@ const ESCAPE_ARTIST: u32 = 465_317;
 const SKIRMISHER: u32 = 481_806;
 const REGENERATE: u32 = 421_240;
 const SHIELDS_UP: u32 = 443_935;
+const CHARGE_UP: u32 = 443_056;
+const KNOCKBACK: u32 = 421_161;
 
 // Their buffs (nano, duration).
 /// "warriordiscipline": FinalDamageMultiplier +0.1, 3 s (taken as Lionhearted's).
@@ -107,6 +110,19 @@ const REGENERATE_HEAL: f32 = 0.02;
 /// Shields Up: the stance's defense boost (Fortify's 446818 values: +0.02 a hit, at most 5).
 const SHIELDS_UP_STEP: f32 = 0.02;
 const SHIELDS_UP_MAX: f32 = 0.1;
+/// Charge Up: each normal attack adds a charge (at most 5, gone after 5 s: the stack buffs
+/// 663890..663894, TimeExist 5 s); the special releases them around the player (radius 3,
+/// AbilityMod 0.5 .. 1.5 by charges: nanos 527014..527010; effect 663901, 663889 at 5).
+const CHARGE_UP_STACKS: [u32; 5] = [663_890, 663_891, 663_892, 663_893, 663_894];
+const CHARGE_UP_MODS: [f32; 5] = [0.5, 0.75, 1.0, 1.25, 1.5];
+const CHARGE_UP_FOR: Duration = Duration::from_secs(5);
+const CHARGE_UP_RADIUS: f32 = 3.0;
+const CHARGE_UP_EFFECT: u32 = 663_901;
+const CHARGE_UP_EFFECT_FULL: u32 = 663_889;
+/// Knockback: every 3rd normal attack knocks the enemies it hits 4 m away (423323 Knockaway
+/// distance 4).
+const KNOCKBACK_EVERY: u32 = 3;
+const KNOCKBACK_DISTANCE: f32 = 4.0;
 
 #[derive(Default)]
 struct State {
@@ -124,6 +140,11 @@ struct State {
     defense: Vec<(f32, f32, Option<Instant>, u32)>,
     last_hit_taken: Option<Instant>,
     lockouts: HashMap<u32, Instant>,
+    /// Charge Up: charges and when they expire.
+    charges: u32,
+    charges_until: Option<Instant>,
+    /// Knockback: this attack's hits push enemies away until then.
+    knockback_until: Option<Instant>,
 }
 
 static PLAYERS: LazyLock<Mutex<HashMap<Id32, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -169,6 +190,7 @@ fn unbuff(player: Id32, nano: u32) -> Bytes {
 /// runs the special attack's procs.
 pub fn cast(player: Id32, spell: u32) {
     let mut records = Vec::new();
+    let mut release = None;
     {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&player) else { return };
@@ -200,6 +222,28 @@ pub fn cast(player: Id32, spell: u32) {
             s.defense.push((bonus, 0.0, Some(now + d), nano));
             records.push(buff(player, nano, Some(d)));
         }
+        if normal && s.abilities.contains(&KNOCKBACK) && s.normal_attacks % KNOCKBACK_EVERY == 0 {
+            s.knockback_until = Some(now + THIS_ATTACK);
+        }
+        if s.charges_until.is_some_and(|t| t <= now) {
+            s.charges = 0;
+        }
+        if normal && s.abilities.contains(&CHARGE_UP) {
+            if s.charges > 0 {
+                records.push(unbuff(player, CHARGE_UP_STACKS[s.charges as usize - 1]));
+            }
+            s.charges = (s.charges + 1).min(CHARGE_UP_STACKS.len() as u32);
+            s.charges_until = Some(now + CHARGE_UP_FOR);
+            records.push(buff(player, CHARGE_UP_STACKS[s.charges as usize - 1], Some(CHARGE_UP_FOR)));
+        }
+        if !normal && s.abilities.contains(&CHARGE_UP) && s.charges > 0 {
+            let n = s.charges as usize;
+            s.charges = 0;
+            records.push(unbuff(player, CHARGE_UP_STACKS[n - 1]));
+            let effect = if n == CHARGE_UP_STACKS.len() { CHARGE_UP_EFFECT_FULL } else { CHARGE_UP_EFFECT };
+            records.push(effects::effect_package(player, effect));
+            release = Some((s.template, s.upgrades, s.level, spell, CHARGE_UP_MODS[n - 1]));
+        }
         if !normal {
             if s.abilities.contains(&LIONHEARTED) {
                 let (nano, bonus, d) = LIONHEARTED_BUFF;
@@ -220,6 +264,19 @@ pub fn cast(player: Id32, spell: u32) {
         debug!(?player, spell, "attack procs");
         show(player, records);
     }
+    if let Some((template, upgrades, level, spell, ability_mod)) = release
+        && let Some((playfield, here)) = world::whereabouts(player)
+    {
+        // Charge Up: the charges go off around the player
+        let damage = crate::combat::damage_with_mod(template, upgrades, spell, ability_mod, level);
+        crate::npc::hit_area(player, playfield, here, CHARGE_UP_RADIUS, spell, damage);
+    }
+}
+
+/// Whether `attacker`'s current attack knocks the enemies it hits away (Knockback), and how far.
+pub fn knockback(attacker: Id32) -> Option<f32> {
+    let players = PLAYERS.lock().unwrap();
+    players.get(&attacker)?.knockback_until.filter(|t| *t > Instant::now()).map(|_| KNOCKBACK_DISTANCE)
 }
 
 /// `attacker` hits with `spell` for `damage`: returns the damage with the attacker's proc

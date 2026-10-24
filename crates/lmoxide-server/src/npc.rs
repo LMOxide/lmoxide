@@ -407,6 +407,20 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     let dealt = (((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32).min(npc.health);
     npc.health -= dealt;
     let health = npc.health;
+    // a knockback upgrade pushes a surviving enemy away from the attacker
+    if by_player
+        && health > 0
+        && npc.def.kind == Kind::Enemy
+        && let Some(distance) = crate::procs::knockback(attacker)
+        && let Some(from) = world::position_of(attacker)
+    {
+        let here = *npc.pos.lock().unwrap();
+        let (dx, dz) = (here[0] - from[0], here[2] - from[2]);
+        let d = dx.hypot(dz).max(0.1);
+        let to = [here[0] + dx / d * distance, here[1], here[2] + dz / d * distance];
+        *npc.pos.lock().unwrap() = to;
+        world::send_playfield(target, false, world::Out::Records(vec![move_task_record(target, here, to)]));
+    }
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
     let kind = npc.def.kind;
     let mut records = vec![if kind == Kind::Smashable {
