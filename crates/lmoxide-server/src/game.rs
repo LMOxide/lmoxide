@@ -249,17 +249,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             heading = yaw;
                             *facing.lock().unwrap() = yaw;
                         }
-                        // what the other players get: keyboard movement (CharDCMoveIIR_t) only moves
-                        // another client's character while its vehicle is in direct-control mode
-                        // (CharDCMoveIIR_t::Activate), which Vehicle_t::UpdateControlMode can leave,
-                        // so it goes out as a path move like click-to-move (MoveTaskIIR_c), which
-                        // always works
-                        let mut relay = Bytes::copy_from_slice(blob);
+                        // the other players get the record as it is, as the original server echoed
+                        // it: keyboard movement (CharDCMoveIIR_t) carries the velocity the other
+                        // clients keep the character running with until the next update
+                        // (SimpleChar_t::UpdatePlayerPos, Vehicle_t::SetVel). Turning it into a
+                        // path per update (f1659fc) made them restart the run animation every
+                        // 0.2 s and stop between updates.
                         if let Some(p) = reported_position(kind, rest) {
                             let before = *pos.lock().unwrap();
-                            if kind == "CharDCMoveIIR_t" {
-                                relay = move_task_record(h.identity, before, p);
-                            }
                             let (dx, dz) = (p[0] - before[0], p[2] - before[2]);
                             let moved = (dx * dx + dz * dz).sqrt();
                             if kind == "MoveTaskIIR_c" && moved > 0.2 {
@@ -311,7 +308,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                         }
                         if let Some(p) = &presence {
-                            world::broadcast(p.id(), vec![relay]);
+                            world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
                         }
                     }
                     Some("BehaviorControlCenterIIR_c") if rest.first() == Some(&BCC_FINISH_CHANNEL) => {
@@ -1365,14 +1362,15 @@ pub fn despawn_record(id: Id32) -> Bytes {
     iir::record("UpdateMessage", id, false, |w| id.write(w.u8(1)))
 }
 
-/// `CharDCMoveIIR_t` (ReadSubClass 0x605e40, direct-control/keyboard movement): u8 flags
-/// (bit 4: yaw-only rotation, bits 2/3: no velocity blocks), position, rotation y and w, u8 mode,
-/// f32, u8, u8, as the client sends it. Activate (0x605a90) only moves non-local dynels whose
-/// movement state allows it; the bot uses `move_task_record` instead, which works.
-#[allow(dead_code)]
-pub fn move_record(id: Id32, pos: [f32; 3], heading: [f32; 2]) -> Bytes {
+/// `CharDCMoveIIR_t` (PlayerMoveUpdateData::Read, direct-control/keyboard movement): u8 flags
+/// (bit 4: yaw-only rotation; bit 2: no velocity; bit 3: no second vector block), position,
+/// rotation y and w, u8 alignment mode, velocity, f32 rotation speed, u8, u8. On another
+/// client's character in direct-control mode (players' vehicles are, while they have no move
+/// task) Activate places it (smoothly within 3 m) and keeps it moving at `vel`.
+pub fn move_record(id: Id32, pos: [f32; 3], yaw: f32, vel: [f32; 3]) -> Bytes {
     iir::record("CharDCMoveIIR_t", id, false, |w| {
-        w.u8(0x1c).f32(pos[0]).f32(pos[1]).f32(pos[2]).f32(heading[0]).f32(heading[1]).u8(0).f32(0.0).u8(0).u8(0)
+        let w = w.u8(0x18).f32(pos[0]).f32(pos[1]).f32(pos[2]).f32((yaw / 2.0).sin()).f32((yaw / 2.0).cos()).u8(0);
+        w.f32(vel[0]).f32(vel[1]).f32(vel[2]).f32(0.0).u8(0).u8(1)
     })
 }
 
@@ -1387,7 +1385,9 @@ pub fn move_task_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> Bytes {
     })
 }
 
-const BOT_INSTANCE: u32 = 0x0b07;
+/// Above 16,000,000, so clients treat the bot as a player (n3Dynel::IsNPC is false: its
+/// vehicle takes direct-control movement like another player's).
+const BOT_INSTANCE: u32 = 16_000_000 + 0x0b07;
 /// Sender instance of the test commands' chat answers.
 pub const SERVER_INSTANCE: u32 = 0x5e7e;
 
@@ -1415,16 +1415,24 @@ pub async fn run_bot(playfield: u32) {
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    // runs around them like a player with the keyboard: a CharDCMoveIIR_t with the velocity
+    // every 0.2 s (the client's own update rate while steering)
+    const RADIUS: f32 = 4.0;
+    const SPEED: f32 = 5.6;
     let mut t = 0.0f32;
-    let mut tick = tokio::time::interval(std::time::Duration::from_millis(1000));
+    let mut tick = tokio::time::interval(std::time::Duration::from_millis(200));
     loop {
         tick.tick().await;
-        t += 0.6;
-        let center = world::someone_else(id, playfield).unwrap_or(START_POS);
-        let from = *pos.lock().unwrap();
-        let to = [center[0] + 4.0 * t.cos(), center[1], center[2] + 4.0 * t.sin()];
-        *pos.lock().unwrap() = to;
-        world::broadcast(id, vec![move_task_record(id, from, to)]);
+        t += 0.2 * SPEED / RADIUS;
+        let center = world::positions(playfield)
+            .into_iter()
+            .find(|(other, _)| *other != id && other.kind == crate::territory::CHARACTER_TYPE && !crate::npc::is_npc(*other))
+            .map_or(START_POS, |(_, p)| p);
+        let at = [center[0] + RADIUS * t.cos(), center[1], center[2] + RADIUS * t.sin()];
+        let dir = [-t.sin(), t.cos()];
+        *pos.lock().unwrap() = at;
+        let vel = [dir[0] * SPEED, 0.0, dir[1] * SPEED];
+        world::broadcast(id, vec![move_record(id, at, dir[0].atan2(dir[1]), vel)]);
     }
 }
 
@@ -1651,6 +1659,8 @@ pub struct CharSpec<'a> {
     pub cars_group: u32,
     /// Set for NPCs.
     pub npc: Option<proto_core_character_iir::NpcStats>,
+    /// Movement speed float stats (stat, m/s), see `PLAYER_SPEEDS`.
+    pub speeds: &'static [(u32, f32)],
 }
 
 /// Game rules on a saved character (the type lives in lmoxide-db).
@@ -1695,13 +1705,15 @@ impl CharacterExt for Character {
             max_health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t), self.level())),
             cars_group: 0,
             npc: None,
+            speeds: PLAYER_SPEEDS,
         }
     }
 }
 
 /// Movement speed stats of players in the recorded session (m/s): MovementChargeSpeed 1400,
-/// 1402, 1401, 1397, 1398, 1399, 1396.
-const PLAYER_SPEEDS: &[(u32, f32)] =
+/// 1402, 1401, 1397, 1398, 1399, 1396. Paths (MoveTaskIIR_c) move characters at 1397 (measured
+/// on the recorded NPCs, see npc::RUN_SPEED).
+pub const PLAYER_SPEEDS: &[(u32, f32)] =
     &[(1400, 37.5), (1402, 50.0), (1401, 50.0), (1397, 5.6), (1398, 5.6), (1399, 5.6), (1396, 5.6)];
 
 fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
@@ -1737,10 +1749,9 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
         let w = (0..5).fold(w, |w, _| w.u32(0)).string(name);
         let w = (0..4).fold(w, |w, _| w.u32(0));
         let w = w.u32(0).u32(0);
-        // float stats (u32 n, n × (u32 stat, f32)): the movement speeds the original server gave
-        // players, among them MovementChargeSpeed (1400), the speed of dashes
-        let speeds: &[(u32, f32)] = if c.npc.is_none() { PLAYER_SPEEDS } else { &[] };
-        let w = speeds.iter().fold(w.u32(speeds.len() as u32), |w, &(stat, v)| w.u32(stat).f32(v));
+        // float stats (u32 n, n × (u32 stat, f32)): the movement speeds, as the original server
+        // gave every character, among them MovementChargeSpeed (1400), the speed of dashes
+        let w = c.speeds.iter().fold(w.u32(c.speeds.len() as u32), |w, &(stat, v)| w.u32(stat).f32(v));
         // Vehicle_t::ReadState stream: u32 state, then (for vehicles that keep one) u8
         // has-move-task + the move task. The recorded session sent 2 + 0 for NPCs and 2 for the
         // player's own character; an empty stream made the client read a move task out of stray

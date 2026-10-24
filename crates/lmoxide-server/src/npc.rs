@@ -13,14 +13,14 @@ use std::{
     time::Duration,
 };
 
-use lmoxide_net::{proto::proto_core_character_iir::NpcStats, types::Id32};
+use lmoxide_net::{iir, proto::proto_core_character_iir::NpcStats, types::Id32};
 use serde::Deserialize;
 use tokio::sync::mpsc;
 use tracing::{info, warn};
 
 use crate::{
     game::{
-        BCC_STATE_LIMBO, COMMAND_MAGIC, STAT_LIFE, create_game_object, CharSpec, STAT_BCC_STATE, STAT_HEALTH, combat_log_record, int32_stat, move_task_record, remote_spawn_records},
+        BCC_STATE_LIMBO, COMMAND_MAGIC, STAT_LIFE, create_game_object, CharSpec, STAT_BCC_STATE, STAT_HEALTH, combat_log_record, int32_stat, remote_spawn_records},
     world,
 };
 
@@ -42,7 +42,22 @@ const RESPAWN: Duration = Duration::from_secs(20);
 const DESTRUCTIBLE_TYPE: u32 = 51321;
 /// CarsGroup of breakable objects (target group "Destructibles").
 const CARS_DESTRUCTIBLES: u32 = 4;
-const TICK: Duration = Duration::from_millis(750);
+const TICK: Duration = Duration::from_millis(250);
+/// A walking NPC gets a new path when its goal moved this far from the current path's end.
+const REPATH: f32 = 1.5;
+/// An NPC this close to its goal stays where it is.
+const ARRIVED: f32 = 0.3;
+/// Movement speed stats (as game::PLAYER_SPEEDS) the original server gave the recorded
+/// session's Pirates, Musketeers and Captain Dreadleg; NPC templates were server-side, so every
+/// enemy without recorded values gets these.
+const ENEMY_SPEEDS: &[(u32, f32)] =
+    &[(1396, 2.1), (1397, 4.2), (1398, 8.4), (1399, 2.1), (1400, 8.4), (1401, 50.0), (1402, 50.0)];
+/// The recorded Scallywags' and Tavern Pirates'.
+const SLOW_ENEMY_SPEEDS: &[(u32, f32)] =
+    &[(1396, 1.4), (1397, 1.4), (1398, 2.8), (1399, 1.4), (1400, 2.8), (1401, 50.0), (1402, 50.0)];
+/// The stat the clients move characters along paths with: the recorded NPCs walked their paths
+/// at it (one with 1396 = 2.1 and 1397 = 6.0 measured 4.8–6.1 m/s, Scallywags 1.3–1.4 m/s).
+const RUN_SPEED: u32 = 1397;
 const ATTACK_INTERVAL: Duration = Duration::from_millis(2500);
 /// Share of player damage enemies absorb (the original server's, measured in the recorded
 /// session: ~20% for normal enemies, ~40% for bosses).
@@ -195,6 +210,42 @@ struct Npc {
     pos: world::Position,
     presence: Option<world::Presence>,
     last_attack: Option<std::time::Instant>,
+    /// The path the clients are moving it along.
+    walk: Option<Walk>,
+}
+
+/// A straight path an NPC was sent along at `speed`: the server follows it there, so the next
+/// path starts where the clients show the NPC (a start more than 3 m from the NPC's position on
+/// a client makes it jump there: Vehicle_t::SetSyncPos).
+#[derive(Clone, Copy)]
+struct Walk {
+    from: [f32; 3],
+    to: [f32; 3],
+    since: std::time::Instant,
+    speed: f32,
+}
+
+impl Walk {
+    /// Where the NPC is on the path at `now`, and whether it arrived.
+    fn at(&self, now: std::time::Instant) -> ([f32; 3], bool) {
+        let len = distance(self.from, self.to);
+        let t = if len < 0.01 { 1.0 } else { (self.speed * now.duration_since(self.since).as_secs_f32() / len).min(1.0) };
+        ([0, 1, 2].map(|i| self.from[i] + (self.to[i] - self.from[i]) * t), t >= 1.0)
+    }
+}
+
+/// The movement speed stats of an NPC (see `ENEMY_SPEEDS`); pets and story NPCs get the
+/// players' so pets keep up with their owner.
+fn speeds(def: &SpawnDef) -> &'static [(u32, f32)] {
+    match def.kind {
+        Kind::Enemy if matches!(def.name.as_str(), "Scallywag" | "Tavern Pirate") => SLOW_ENEMY_SPEEDS,
+        Kind::Enemy => ENEMY_SPEEDS,
+        _ => crate::game::PLAYER_SPEEDS,
+    }
+}
+
+fn run_speed(def: &SpawnDef) -> f32 {
+    speeds(def).iter().find(|(stat, _)| *stat == RUN_SPEED).map_or(4.0, |&(_, v)| v)
 }
 
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -258,7 +309,7 @@ pub fn start() {
             let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
             let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
             let pos = Arc::new(Mutex::new(def.pos));
-            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None, summon: None });
+            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None, summon: None, walk: None });
             appear(id);
         }
     }
@@ -278,6 +329,7 @@ fn spec(def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> CharSpec<
         max_health: def.health,
         cars_group: def.cars_group.unwrap_or(CARS_ENEMIES),
         npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), ..Default::default() }),
+        speeds: speeds(def),
     }
 }
 
@@ -286,6 +338,7 @@ fn appear(id: Id32) {
     let mut npcs = NPCS.lock().unwrap();
     let Some(npc) = npcs.get_mut(&id) else { return };
     npc.health = npc.def.health;
+    npc.walk = None;
     *npc.pos.lock().unwrap() = npc.def.pos;
     let (def, playfield, pos) = (npc.def.clone(), npc.playfield, npc.pos.clone());
     let spawn_pos = pos.clone();
@@ -382,6 +435,7 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
             last_attack: None,
             owner: Some((owner, until)),
             summon: Some((spell, def.projectile)),
+            walk: None,
         },
     );
     appear(id);
@@ -414,12 +468,12 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         && let Some(distance) = crate::procs::knockback(attacker)
         && let Some(from) = world::position_of(attacker)
     {
-        let here = *npc.pos.lock().unwrap();
+        let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(std::time::Instant::now()).0);
         let (dx, dz) = (here[0] - from[0], here[2] - from[2]);
         let d = dx.hypot(dz).max(0.1);
         let to = [here[0] + dx / d * distance, here[1], here[2] + dz / d * distance];
         *npc.pos.lock().unwrap() = to;
-        world::send_playfield(target, false, world::Out::Records(vec![move_task_record(target, here, to)]));
+        world::send_playfield(target, false, world::Out::Records(vec![crate::game::move_task_record(target, here, to)]));
     }
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
     let kind = npc.def.kind;
@@ -549,24 +603,24 @@ async fn regenerate() {
 /// Pets: vanish when their time is up, otherwise attack an enemy near them or follow the owner.
 fn pets_tick() {
     let now = std::time::Instant::now();
-    type Pet = (Id32, Id32, std::time::Instant, u32, world::Position, u32, Option<PetProjectile>);
+    type Pet = (Id32, Id32, std::time::Instant, u32, u32, Option<PetProjectile>);
     let pets: Vec<Pet> = NPCS
         .lock()
         .unwrap()
         .iter()
         .filter_map(|(id, n)| {
             let (o, until) = n.owner?;
-            Some((*id, o, until, n.playfield, n.pos.clone(), n.def.spell, n.summon.and_then(|(_, p)| p)))
+            Some((*id, o, until, n.playfield, n.def.spell, n.summon.and_then(|(_, p)| p)))
         })
         .collect();
-    for (id, owner, until, playfield, pos, spell, projectile) in pets {
+    for (id, owner, until, playfield, spell, projectile) in pets {
         if now >= until {
             if let Some(npc) = NPCS.lock().unwrap().remove(&id) {
                 drop(npc.presence); // despawns it
             }
             continue;
         }
-        let here = *pos.lock().unwrap();
+        let Some(here) = current(id) else { continue };
         let enemy = NPCS
             .lock()
             .unwrap()
@@ -575,7 +629,7 @@ fn pets_tick() {
             .map(|(eid, n)| (*eid, *n.pos.lock().unwrap()))
             .filter(|(_, p)| distance(*p, here) < AGGRO_RANGE)
             .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
-        let goal = match enemy {
+        match enemy {
             Some((eid, p)) => {
                 let reach = if projectile.is_some() { PET_SHOOT_RANGE } else { MELEE_RANGE + 1.0 };
                 if distance(p, here) <= reach {
@@ -596,21 +650,81 @@ fn pets_tick() {
                     }
                 }
                 if projectile.is_some() && distance(p, here) <= PET_SHOOT_RANGE {
-                    here
+                    steer(id, here, here, Some(p));
                 } else {
-                    approach(here, p, MELEE_RANGE)
+                    steer(id, here, approach(here, p, MELEE_RANGE), Some(p));
                 }
             }
             None => match world::position_of(owner) {
-                Some(o) => approach(here, o, PET_FOLLOW),
-                None => here,
+                Some(o) => steer(id, here, approach(here, o, PET_FOLLOW), Some(o)),
+                None => steer(id, here, here, None),
             },
-        };
-        if distance(goal, here) > 0.3 {
-            *pos.lock().unwrap() = goal;
-            world::broadcast(id, vec![move_task_record(id, here, goal)]);
         }
     }
+}
+
+/// Where NPC `id` is now (following its path), also kept in its world position.
+fn current(id: Id32) -> Option<[f32; 3]> {
+    let mut npcs = NPCS.lock().unwrap();
+    let npc = npcs.get_mut(&id)?;
+    let Some(walk) = npc.walk else { return Some(*npc.pos.lock().unwrap()) };
+    let (here, arrived) = walk.at(std::time::Instant::now());
+    if arrived {
+        npc.walk = None;
+    }
+    *npc.pos.lock().unwrap() = here;
+    Some(here)
+}
+
+/// Moves NPC `id` (at `here`, from `current`) towards `goal`, as the original server did: one
+/// path from where it is at its run speed, a new one only when the goal moved away from the
+/// path's end, and a stop (facing `face`) when it is there while still walking.
+fn steer(id: Id32, here: [f32; 3], goal: [f32; 3], face: Option<[f32; 3]>) {
+    let now = std::time::Instant::now();
+    let record = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get_mut(&id) else { return };
+        if distance(goal, here) <= ARRIVED {
+            npc.walk.take().map(|w| {
+                let towards = face.unwrap_or(w.to);
+                let (dx, dz) = (towards[0] - here[0], towards[2] - here[2]);
+                let d = dx.hypot(dz);
+                let dir = if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] };
+                *npc.pos.lock().unwrap() = here;
+                stop_record(id, here, dir)
+            })
+        } else if npc.walk.is_none_or(|w| distance(w.to, goal) > REPATH) {
+            npc.walk = Some(Walk { from: here, to: goal, since: now, speed: run_speed(&npc.def) });
+            Some(path_record(id, here, goal))
+        } else {
+            None
+        }
+    };
+    if let Some(record) = record {
+        world::broadcast(id, vec![record]);
+    }
+}
+
+/// `MoveTaskIIR_c` as the original server sent NPC paths: u8 0, start; ListMoveTask (4): u8 wait
+/// flags 1, u8 current 0, u8 count 1; PathMoveTask (1): u8 wait flags 1, u16 path flags 0 (the
+/// character's own speed), u32 2, start, end, spline block (u8 0, u32 0, u8 0, u32 0, f32
+/// length / 35, as in the recording).
+fn path_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> bytes::Bytes {
+    iir::record("MoveTaskIIR_c", id, false, |w| {
+        let w = w.u8(0).f32(from[0]).f32(from[1]).f32(from[2]).u8(4).u8(1).u8(0).u8(1);
+        let w = w.u8(1).u8(1).u16(0).u32(2);
+        let w = [from, to].iter().flatten().fold(w, |w, v| w.f32(*v));
+        w.u8(0).u32(0).u8(0).u32(0).f32(distance(from, to) / 35.0)
+    })
+}
+
+/// `StopIIR_c` as the original server stopped NPCs: position, rotation (yaw towards `dir`),
+/// u8 0 (smooth correction, not a jump), u8 0.
+fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> bytes::Bytes {
+    let half = dir[0].atan2(dir[1]) / 2.0;
+    iir::record("StopIIR_c", id, false, |w| {
+        w.f32(at[0]).f32(at[1]).f32(at[2]).f32(0.0).f32(half.sin()).f32(0.0).f32(half.cos()).u8(0).u8(0)
+    })
 }
 
 /// `DestructibleFullUpdateIIR_c` after the GameObject: ProtoGameCodeDynelIIR; the SimpleDynel
@@ -738,41 +852,37 @@ async fn ai() {
     let mut tick = tokio::time::interval(TICK);
     loop {
         tick.tick().await;
-        let live: Vec<(Id32, u32, [f32; 3], world::Position)> = NPCS
+        let live: Vec<(Id32, u32, [f32; 3])> = NPCS
             .lock()
             .unwrap()
             .iter()
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
-            .map(|(id, n)| (*id, n.playfield, n.def.pos, n.pos.clone()))
+            .map(|(id, n)| (*id, n.playfield, n.def.pos))
             .collect();
         pets_tick();
         // players per playfield, collected once per tick (most playfields have none)
         let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
-        for (_, playfield, _, _) in &live {
+        for (_, playfield, _) in &live {
             players
                 .entry(*playfield)
                 .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| !is_npc(*other)).collect());
         }
-        for (id, playfield, home, pos) in live {
-            let here = *pos.lock().unwrap();
+        for (id, playfield, home) in live {
+            let Some(here) = current(id) else { continue };
             let target = players[&playfield]
                 .iter()
                 .copied()
                 .filter(|(_, p)| distance(*p, home) < LEASH_RANGE)
                 .filter(|(_, p)| distance(*p, here) < AGGRO_RANGE)
                 .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
-            let goal = match target {
+            match target {
                 Some((player, p)) => {
                     if distance(p, here) <= MELEE_RANGE + 1.0 {
                         attack(id, player);
                     }
-                    approach(here, p, MELEE_RANGE)
+                    steer(id, here, approach(here, p, MELEE_RANGE), Some(p));
                 }
-                None => home,
-            };
-            if distance(goal, here) > 0.3 {
-                *pos.lock().unwrap() = goal;
-                world::broadcast(id, vec![move_task_record(id, here, goal)]);
+                None => steer(id, here, home, None),
             }
         }
     }

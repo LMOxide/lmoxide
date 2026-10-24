@@ -21,7 +21,9 @@ playfield resources) aren't listed; neither are protocol constants.
 | Enemy damage | `npc.rs` `attack` | 1.5 × level + 1.5 | Fitted to the recorded session (3 at level 1, 4–5 at level 2, 5–6 for the level-3 boss). |
 | Enemy attack interval | `npc.rs` `ATTACK_INTERVAL` | 2.5 s | Assumed. |
 | Enemy aggro / leash / melee range | `npc.rs` `AGGRO_RANGE` / `LEASH_RANGE` / `MELEE_RANGE` | 8 m / 25 m / 1.8 m | Assumed. |
-| AI tick | `npc.rs` `TICK` | 0.75 s | Assumed (movement updates for enemies). |
+| AI tick | `npc.rs` `TICK` | 0.25 s | Assumed (how often enemies and pets decide; paths go out only when the goal moved, see below). |
+| NPC movement speeds | `npc.rs` `ENEMY_SPEEDS` / `SLOW_ENEMY_SPEEDS` / `RUN_SPEED` | enemies 1396 2.1, 1397 4.2, 1398 8.4, 1399 2.1, 1400 8.4, 1401/1402 50 (Scallywags and Tavern Pirates 1.4/1.4/2.8/1.4/2.8); pets and story NPCs the players' (5.6) | From the recorded session (Pirates, Musketeers, Captain Dreadleg; Scallywags, Tavern Pirates). Other enemies' values were server-side NPC template data, so they get the Pirates'. Clients move characters along paths at 1397 (measured on the recorded NPCs); the server follows them at that speed. |
+| NPC re-path distance | `npc.rs` `REPATH` / `ARRIVED` | new path when the goal is 1.5 m from the current path's end; stop within 0.3 m | Assumed. The original server sent paths only when its plan changed (and a StopIIR_c when an NPC stopped). |
 | Enemy respawn | `npc.rs` `RESPAWN` | 20 s | Assumed. |
 | Death → despawn delay | `npc.rs` `hit` | 3 s for enemies; smashed debris stays until the respawn | Assumed. In the recorded session the debris was still there minutes later; when the real server removed or rebuilt it is unknown. |
 | Proposed enemy level/health/spells | `data/world_content.json` (`source: "proposed"`), `extract_world_content.py` `THEMES`, `enemy` | world level from `THEMES` (4–19), dungeons their parent world's level + 1; health 60 + 15 × level | Only Tutorial, Pirate World and the pirate prison are from the recorded session; every other world's and dungeon's enemies are proposals. |

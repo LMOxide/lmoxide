@@ -75,15 +75,6 @@ pub fn join(
     Presence { id }
 }
 
-/// Position of some other character on `playfield` (the test bot follows it).
-pub fn someone_else(me: Id32, playfield: u32) -> Option<[f32; 3]> {
-    let members = MEMBERS.lock().unwrap();
-    members
-        .iter()
-        .find(|(id, m)| **id != me && m.playfield == playfield)
-        .map(|(_, m)| *m.pos.lock().unwrap())
-}
-
 /// Where a member is.
 pub fn position_of(id: Id32) -> Option<[f32; 3]> {
     MEMBERS.lock().unwrap().get(&id).map(|m| *m.pos.lock().unwrap())

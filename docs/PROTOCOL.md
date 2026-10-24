@@ -184,8 +184,25 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
 - **Movement relay**: the client sends `MoveTaskIIR_c` for click-to-move (u8 task type 0, start
   pos, u8 0x0f, 10 zero bytes, f32, u32 n, n waypoints, 16 zero bytes) and `CharDCMoveIIR_t`
   for keyboard movement (u8 flags, pos, ...). Relaying MoveTaskIIR_c with the mover's identity
-  makes remote characters walk. Move tasks are read by a factory (u8 type → creator table) and
-  validated (`IsValid`).
+  makes remote characters walk. Move tasks are read by a factory (u8 type → creator table:
+  0 Wait, 1 Path, 2 Rotate, 3 Jump, 4 List, 5 Ballistic, 6 Animated, 7 Formation, 8 Track (turn
+  to face a dynel), 9 Link, 10 SetPos, 11 GroundAlign, 14 ActiveDodge, 15 Attack) and validated
+  (`IsValid`). `MoveTaskIIR_c::Activate` first calls `Vehicle_t::SetSyncPos(start)`: within 3 m
+  of where the client shows the character it is eased there over 0.3 s, further away it jumps
+  (`PlaceAt`). Paths run at the character's speed stat 1397 (path flags 0).
+- **Keyboard movement** (`CharDCMoveIIR_t`, PlayerMoveUpdateData): u8 flags (0x10 yaw-only
+  rotation, 0x04 no velocity, 0x08 no second vector block), pos, rotation, u8 alignment mode,
+  [velocity], [vector, u8], f32 rotation speed, u8, u8. While moving the client sends one every
+  ~0.2 s with the velocity (flags 0x18), and one without (0x1c) when it stops (thresholds in
+  `Vehicle_t::UpdateServer`: stop 0.1 s, deviation 0.2 s, tick 1.5 s). The original server
+  echoed it unchanged. On another client it moves the character only in direct-control mode
+  (`Vehicle_t::UpdateControlMode`: a player character's vehicle without a move task), placing
+  it (SetSyncPos) and keeping it moving at the velocity until the next update.
+- **NPC movement** (recorded session): `MoveTaskIIR_c` with a ListMoveTask of PathMoveTasks
+  along navmesh waypoints, sent when the NPC's plan changes (a path in progress was re-sent
+  with its current start); `StopIIR_c` (pos, rotation, u8 jump, u8 wait) when it stops;
+  TrackMoveTask (8) to face the player it fights. NPCs' speed stats 1396–1402 came with their
+  SimpleCharFullUpdate (float stats).
 - **Keyboard movement** needs stat CharRadius (421): the collision capsule radius is
   CharRadius × MonsterScale / 10000, and with 0 `Vehicle_t::CollideAndSlide` blocks every step.
   CommandQueueSize (1360) defaults to 1, which makes the queue "full".
