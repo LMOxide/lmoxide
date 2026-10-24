@@ -38,6 +38,11 @@ playfield resources) aren't listed; neither are protocol constants.
 | Charge hold before auto-fire | `game.rs` `CHARGE_HOLD` | 3 s after full charge | Assumed. |
 | Re-cast after an automatic fire | `game.rs` `CHARGE_RECAST_GAP` | re-sends refused until the client stops for 0.5 s | Assumed. A still-held button re-sends the cast after the server ends the channel. |
 | Unreleased charge fallback | `game.rs` `CHARGE_TIMEOUT` | 6 s | Safety net if the release never arrives. |
+| Dash length | `dash.rs` `start` | towards the clicked point, whole metres, at most the spell's Distance; full Distance along the facing without a point | Fitted to the 5 recorded For Rome! casts. |
+| Dash timing | `dash.rs` `SPEED` / `SETTLE` | 37.5 m/s, end records 0.1 s after arrival | MovementChargeSpeed and timing from the recorded session. |
+| Dash path hits | `dash.rs` `start` | enemies within the spell's Radius of the path, hit when the dash starts | Recorded: hits arrived 0–21 ms after the cast. |
+| Dash spline value | `dash.rs` `path_record` | length / 35 | Empirical fit to the recorded casts; meaning unknown. |
+| Samurai Warrior stance | not implemented | — | Its dash only comes with the Lotus Dash upgrade inside a channelled stance. |
 | Summon recast block | `game.rs` `SUMMON_RECHARGE` | 2 s | The spell's real recharge wasn't enforced client-side; assumed. |
 | Summon lifetime / looks / damage | `data/summons.json`, `npc.rs` `PET_DAMAGE` / `PET_FOLLOW` / `PET_SHOOT_RANGE` | 15 s, chosen models, 60 damage, 2 m, 8 m | The spawned monster templates are server-side; looks chosen by name. |
 | Upgrade procs without client actions | not implemented | — | ~75 upgrades (Lionhearted, Meltdown, Block, Berserker…) only had server-side effects. |

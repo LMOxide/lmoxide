@@ -399,13 +399,28 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
 
 /// Hits every live NPC on `playfield` within `radius` of `center`.
 pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
+    hit_where(attacker, playfield, spell, damage, |p| distance(p, center) <= radius)
+}
+
+/// Hits every live NPC on `playfield` within `radius` of the line from `from` to `to` (a column,
+/// e.g. a dash's path).
+pub fn hit_column(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
+    let (dx, dz) = (to[0] - from[0], to[2] - from[2]);
+    let len2 = (dx * dx + dz * dz).max(0.0001);
+    hit_where(attacker, playfield, spell, damage, |p| {
+        let t = (((p[0] - from[0]) * dx + (p[2] - from[2]) * dz) / len2).clamp(0.0, 1.0);
+        distance(p, [from[0] + dx * t, p[1], from[2] + dz * t]) <= radius
+    })
+}
+
+fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool) -> u32 {
     let targets: Vec<Id32> = NPCS
         .lock()
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
         .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable))
-        .filter(|(_, n)| distance(*n.pos.lock().unwrap(), center) <= radius)
+        .filter(|(_, n)| inside(*n.pos.lock().unwrap()))
         .map(|(id, _)| *id)
         .collect();
     targets.into_iter().filter(|t| hit(attacker, *t, spell, damage) == Some(true)).count() as u32

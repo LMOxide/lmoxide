@@ -27,9 +27,19 @@ pub fn buff_remove(target: Id32, buff: u32, caster: Id32) -> Bytes {
 /// f32 hook value, u8, u32 instance id (a running package with the same id isn't restarted),
 /// vec3 ground position (zero: on the identity dynel), u32 owner spell.
 pub fn effect_package(target: Id32, package: u32) -> Bytes {
-    static NEXT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
-    let instance = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    effect_package_hook(target, package, "", "", 0.0, 0, new_instance())
+}
+
+/// An effect package started at a code hook (e.g. "charge", then "execute" with stop trigger
+/// "charge" to move on): see `effect_package`. Records of one running package share `instance`.
+pub fn effect_package_hook(target: Id32, package: u32, hook: &str, stop: &str, value: f32, flag: u8, instance: u32) -> Bytes {
     iir::record("EffectPackageIIR", target, false, |w| {
-        target.write(w).u32(package).string("").string("").f32(0.0).u8(0).u32(instance).f32(0.0).f32(0.0).f32(0.0).u32(0)
+        target.write(w).u32(package).string(hook).string(stop).f32(value).u8(flag).u32(instance).f32(0.0).f32(0.0).f32(0.0).u32(0)
     })
+}
+
+/// A fresh effect package instance id.
+pub fn new_instance() -> u32 {
+    static NEXT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
+    NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
 }

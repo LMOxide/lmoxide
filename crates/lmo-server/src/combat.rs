@@ -100,7 +100,6 @@ pub fn max_life(template: u32, active: u32) -> u32 {
 /// picks the hit of a charge ability's level.
 pub fn damage(template: u32, active: u32, spell: u32, charge: Option<usize>) -> u32 {
     let Some(m) = minifigure(template) else { return 50 };
-    let rating = (m.power as f32 * LEVEL as f32 * STAR_FACTOR).floor() + POWER_RATING_ALL;
     let is_normal = m.normal.as_ref().is_some_and(|a| a.spell == spell);
     let attack = [m.normal.as_ref(), m.special.as_ref()].into_iter().flatten().find(|a| a.spell == spell);
     let ability_mod = attack
@@ -109,6 +108,19 @@ pub fn damage(template: u32, active: u32, spell: u32, charge: Option<usize>) -> 
             _ => a.hits.first(),
         })
         .map_or(1.0, |h| h.ability_mod);
+    scaled(m, active, is_normal, ability_mod)
+}
+
+/// Damage of a hit of `template`'s `spell` with an explicit AbilityMod (hits whose WeaponHit
+/// isn't the spell's own, e.g. a dash's path and arrival hits).
+pub fn damage_with_mod(template: u32, active: u32, spell: u32, ability_mod: f32) -> u32 {
+    let Some(m) = minifigure(template) else { return 50 };
+    let is_normal = m.normal.as_ref().is_some_and(|a| a.spell == spell);
+    scaled(m, active, is_normal, ability_mod)
+}
+
+fn scaled(m: &Minifigure, active: u32, is_normal: bool, ability_mod: f32) -> u32 {
+    let rating = (m.power as f32 * LEVEL as f32 * STAR_FACTOR).floor() + POWER_RATING_ALL;
     let mut multiplier = 1.0 + upgrade_sum(m, active, "FinalDamageMultiplier");
     if is_normal && active_upgrades(m, active).any(|u| u.name.contains("Empowered Normals")) {
         multiplier *= EMPOWERED_NORMALS;

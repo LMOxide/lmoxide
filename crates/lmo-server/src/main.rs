@@ -2,6 +2,7 @@ mod chat;
 mod collection;
 mod combat;
 mod conn;
+mod dash;
 mod effects;
 mod game;
 mod http;

@@ -294,6 +294,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             let at = ground.unwrap_or_else(|| *pos.lock().unwrap());
                                             crate::npc::summon(h.identity, me.playfield, spell, at);
                                         }
+                                    } else if let Some(dash) = crate::dash::params(spell) {
+                                        // a dash: the server moves the caster (towards the
+                                        // clicked point, or along the facing) and deals the hits
+                                        let template = me.team.first().map(|&(_, t)| t);
+                                        let active = template.map_or(0, |t| me.upgrade(t));
+                                        let point = target_id
+                                            .filter(|t| *t != h.identity)
+                                            .and_then(crate::npc::position)
+                                            .or(ground);
+                                        crate::dash::start(h.identity, me.playfield, spell, dash, pos.clone(), point, heading, move |m| {
+                                            template.map_or(50, |t| crate::combat::damage_with_mod(t, active, spell, m))
+                                        });
                                     } else if crate::projectile::params(spell).is_some() {
                                         // a projectile: aim at the target, the clicked point or
                                         // where the player last moved; its hits deal the damage
@@ -1184,6 +1196,11 @@ impl Character {
     }
 }
 
+/// Movement speed stats of players in the recorded session (m/s): MovementChargeSpeed 1400,
+/// 1402, 1401, 1397, 1398, 1399, 1396.
+const PLAYER_SPEEDS: &[(u32, f32)] =
+    &[(1400, 37.5), (1402, 50.0), (1401, 50.0), (1397, 5.6), (1398, 5.6), (1399, 5.6), (1396, 5.6)];
+
 fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
     let (playfield, name, pos) = (c.playfield, c.name, c.pos);
     let dynel = ProtoGameCodeDynelIir {
@@ -1212,9 +1229,12 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
         let w = w.proto(&dynel).u8(4).u8(0);
         let w = (0..5).fold(w, |w, _| w.u32(0)).string(name);
         let w = (0..4).fold(w, |w, _| w.u32(0));
-        let w = w.u32(0)
-            .u32(0)
-            .u32(0)
+        let w = w.u32(0).u32(0);
+        // float stats (u32 n, n × (u32 stat, f32)): the movement speeds the original server gave
+        // players, among them MovementChargeSpeed (1400), the speed of dashes
+        let speeds: &[(u32, f32)] = if c.npc.is_none() { PLAYER_SPEEDS } else { &[] };
+        let w = speeds.iter().fold(w.u32(speeds.len() as u32), |w, &(stat, v)| w.u32(stat).f32(v));
+        let w = w
             // CoreCharacterFullUpdateIIR
             .u8(b'B')
             .u32(0)
