@@ -55,7 +55,15 @@ impl Db {
         if let Some(dir) = path.as_ref().parent().filter(|d| !d.as_os_str().is_empty()) {
             std::fs::create_dir_all(dir)?;
         }
-        let conn = Connection::open(path)?;
+        let new = !path.as_ref().exists();
+        let conn = Connection::open(&path)?;
+        // password hashes and the login key: owner only (SQLite gives its -wal/-shm files the
+        // same mode)
+        #[cfg(unix)]
+        if new {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))?;
+        }
         conn.pragma_update(None, "journal_mode", "WAL")?;
         conn.pragma_update(None, "synchronous", "NORMAL")?;
         Self::init(conn)
