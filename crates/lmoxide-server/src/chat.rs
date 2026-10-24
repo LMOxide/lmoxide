@@ -24,7 +24,7 @@ use std::{
 use futures::StreamExt;
 use tokio::{
     io::AsyncWriteExt,
-    net::{TcpListener, TcpStream},
+    net::TcpStream,
     sync::mpsc,
 };
 use tokio_util::codec::{FramedRead, LinesCodec};
@@ -50,7 +50,7 @@ const LOGIN_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 const DEFAULT_CHANNELS: &[&str] = &["#ChatGroup_General_D1_1"];
 
 pub async fn listen(addr: SocketAddr, max_per_ip: u32) -> anyhow::Result<()> {
-    let listener = TcpListener::bind(addr).await?;
+    let listener = crate::conn::bind(addr).await?;
     info!("chat listening on {addr}");
     loop {
         let (sock, peer) = match listener.accept().await {

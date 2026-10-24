@@ -49,8 +49,15 @@ sleep 1
 
 cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server
 # Development accounts: created by their first login, and GMs (free-text chat, test commands).
+# LMOXIDE_KEEP_LISTENING=1: under tools/keep-listening.py (ports kept open, the server started
+# again when it exits; kill the pid in logs/dev-server.pid to restart it)
+KEEP=()
+if [[ -n ${LMOXIDE_KEEP_LISTENING:-} ]]; then
+  ports=$([[ -n ${LMOXIDE_SIDE_PORTS:-} ]] && echo 17100,17101,17102,17200 || echo 7100,7101,7102,7200)
+  KEEP=(python3 "$ROOT/tools/keep-listening.py" --ports "$ports" --pidfile "$LOGS/dev-server.pid" --)
+fi
 RUST_LOG=${RUST_LOG:-info,lmoxide_server=debug} \
-  "$ROOT/target/debug/lmoxide-server" --data-dir "$DATA" --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" \
+  "${KEEP[@]}" "$ROOT/target/debug/lmoxide-server" --data-dir "$DATA" --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" \
   "${SERVER_PORTS[@]}" ${LMOXIDE_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
 echo $! >>"$PIDS"
 # The patch server patches the login key into the LMO.exe it serves (and derives PatchVersion

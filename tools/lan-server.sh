@@ -9,12 +9,27 @@
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
 # an account without one) and GM level 1 for everyone (free-text chat and the test commands need it).
 # Progression is on (--progression: XP, levels and minifigure ranks, as live).
+# The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
+# client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
+# is started again. Restart only the game server (with a fresh build) while this runs:
+#   tools/lan-server.sh --restart [--release]
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
+RESTART=0
+if [[ ${1:-} == --restart ]]; then
+  RESTART=1
+  shift
+fi
 PROFILE=debug
 if [[ ${1:-} == --release ]]; then
   PROFILE=release
   shift
+fi
+if (( RESTART )); then
+  cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server $([[ $PROFILE == release ]] && echo --release)
+  pid=$(cat "$ROOT/logs/lan-server.pid" 2>/dev/null) || { echo "no LAN game server running (logs/lan-server.pid)"; exit 1; }
+  kill "$pid" && echo "game server $pid stopped; keep-listening starts the new build"
+  exit 0
 fi
 IP=${1:-$(ip -4 route get 1.1.1.1 | sed -nE 's/.* src ([0-9.]+).*/\1/p')}
 VAR=$(realpath -m "$ROOT/../var")
@@ -45,6 +60,8 @@ if [[ -n $LINUX_CLIENT ]]; then
 fi
 # the client kit, served at http://<ip>:8080/client-kit.tar.gz for other PCs (patches/linux-client/README.md)
 KIT=$("$ROOT/patches/linux-client/make-kit.sh" | cut -d' ' -f1)
+# a LAN server already running: its supervisor first (else it starts the server again)
+[[ -s $ROOT/logs/lan-holder.pid ]] && { kill "$(cat "$ROOT/logs/lan-holder.pid")" 2>/dev/null || true; sleep 2; }
 pkill -x lmoxide-server || true
 pkill -x lmoxide-patch-s || true   # process names are cut to 15 characters
 API_PORT=${LMOXIDE_API_PORT-8090}
@@ -79,6 +96,8 @@ if [[ -n $API_PORT ]]; then
   echo "REST API: http://$IP:$API_PORT (log logs/lan-api.log)"
 fi
 trap 'kill $PATCH ${API:-} 2>/dev/null' EXIT
-"$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
+python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,7200 --pidfile "$ROOT/logs/lan-server.pid" \
+  --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
+  "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
   --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" --progression ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"

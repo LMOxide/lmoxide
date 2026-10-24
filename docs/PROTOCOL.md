@@ -113,6 +113,12 @@ from `universe::GetLoginStatusName` (40 values, table at 0x318b520 in the Linux 
 The cookie of step 4 travels to the territory (`Authenticate`), the game server (`Authenticate2`)
 and chat (`PASS`); LMOxide makes it random per login and checks it everywhere.
 
+
+Reconnect: after a lost connection the client asks "relocate to a new server?"; Yes calls
+`GameClientConnectivity::LoginFromCrash`, which connects once to the remembered territory
+address and sends `LoginFromCrash(account, cookie, character)`. A refused connect isn't retried,
+so during a server restart the ports are kept listening (tools/keep-listening.py): the connect
+waits in the backlog and the restarted server answers it.
 ## IIRs (state updates)
 
 `GameserverToClientRPC::PassBlob(BinaryStream)` = u32 length + a sequence of IIR records,

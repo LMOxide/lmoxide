@@ -88,6 +88,27 @@ pub fn hex(b: &[u8]) -> String {
     b.iter().map(|x| format!("{x:02x}")).collect()
 }
 
+/// Binds `addr`, or takes over a listening socket inherited for its port: LMOXIDE_LISTEN_FDS =
+/// "port:fd,..." (tools/keep-listening.py holds the sockets across server restarts, so a client
+/// reconnecting meanwhile waits in the backlog instead of being refused).
+pub async fn bind(addr: SocketAddr) -> anyhow::Result<TcpListener> {
+    let inherited = std::env::var("LMOXIDE_LISTEN_FDS").ok().and_then(|v| {
+        v.split(',').filter_map(|e| e.split_once(':')).find(|(port, _)| port.parse() == Ok(addr.port())).and_then(|(_, fd)| fd.parse::<i32>().ok())
+    });
+    match inherited {
+        Some(fd) => {
+            use std::os::fd::FromRawFd;
+            // SAFETY: the supervisor passed this fd as an open listening socket for this port,
+            // and nothing else in the process uses it
+            let std = unsafe { std::net::TcpListener::from_raw_fd(fd) };
+            std.set_nonblocking(true)?;
+            info!(port = addr.port(), fd, "using the inherited listening socket");
+            Ok(TcpListener::from_std(std)?)
+        }
+        None => Ok(TcpListener::bind(addr).await?),
+    }
+}
+
 pub async fn listen<F, Fut>(
     name: &'static str,
     addr: SocketAddr,
@@ -98,7 +119,7 @@ where
     F: Fn(Conn, Arc<Config>) -> Fut + Copy + Send + 'static,
     Fut: Future<Output = anyhow::Result<()>> + Send,
 {
-    let listener = TcpListener::bind(addr).await?;
+    let listener = bind(addr).await?;
     info!("{name} listening on {addr}");
     loop {
         let (sock, peer) = match listener.accept().await {
