@@ -78,9 +78,9 @@ Embedded protobuf (e.g. `FidData_c`, `PlayfieldProxy`): u32 length + encoded mes
 | Step | Call | Notes |
 |---|---|---|
 | 1 | → `UniverseAgent::InitiateAuthentication(username, gameID=1)` | **verified** |
-| 2 | ← `UniverseInterface::Challenge(data)` | we send 32 `0`s; the client accepts any |
-| 3 | → `UniverseAgent::AnswerChallenge(answer)` | 641 chars `"<hex>-<hex>"` (Diffie-Hellman); not verified by us |
-| 4 | ← `UniverseInterface::AckAuthenticate(nAuthStatus, playerID, territoryAddr, cookie, eReason)` | handler `0xb4b580`: `nAuthStatus` 1 = OK; `eReason` must be 0 (non-zero is shown as a login problem, e.g. `e_NoGameServers`); **caller instance must equal `playerID.instance`** **verified** |
+| 2 | ← `UniverseInterface::Challenge(data)` | any text; we send 32 random hex digits |
+| 3 | → `UniverseAgent::AnswerChallenge(answer)` | `"<client DH public key>-<TEA ciphertext>"` of `user\|challenge\|game id\|password\|`, see "Login encryption" **static** (round trip tested against our own encoder) |
+| 4 | ← `UniverseInterface::AckAuthenticate(nAuthStatus, playerID, territoryAddr, cookie, eReason)` | handler `0xb4b580`: `nAuthStatus` 1 = OK; `eReason` (`universe::LoginStatus`) must be 0 (non-zero is shown as a login problem, e.g. 14 `e_AuthFailure`, 13 `e_Banned`, 37 `e_UniverseMaintenanceMode`); **caller instance must equal `playerID.instance`**, cookie non-zero (asserts) **verified** |
 | 5 | → `PlayerAgent::Authenticate(account, cookie, territoryVersion=0)` on the territory address | **verified** |
 | 6 | ← `PlayerInterface::AuthenticateAck(nStatus=1)` | client proceeds **verified** |
 | 7 | → `PlayerAgent::GetStartupData(md5)` | **verified** |
@@ -96,6 +96,22 @@ Embedded protobuf (e.g. `FidData_c`, `PlayfieldProxy`): u32 length + encoded mes
 | 17 | ← `UpdateMessage` (create dw::GameObject), `SimpleCharFullUpdateIIR_t`, `FullPlayerCharacterIIR` | character dynel created; FlowControl → WaitingToSendInPlay **verified** |
 | 18 | → `ClientToGameserverRPC::SignalPassBlob` with `CharInPlayIIR_t` ← echo `CharInPlayIIR_t` | FlowControl → **InPlay**, world rendered **verified** ([screenshot](img/first-inplay.png)) |
 | 19 | → client IIRs: `CharDCMoveIIR_t` (position), `MoveTaskIIR_c`, `QuestCooldownIIR`; GameCharAgent requests (item shop, gear, guild, tutorials) | **next**: appearance (minifigure), stats, movement echo, the GameChar RPCs |
+
+### Login encryption
+
+`answer_challenge` in the Linux build (= Anarchy Online's scheme): the client picks a random
+exponent `x`, sends `5^x mod p` (hex) and derives `secret = session^x mod p`, where `p` is the
+2048-bit global `prime` and `session` the server public key (global `session`, 512 hex digits;
+both strings also in LMO.exe). The first 32 hex digits of `secret` are a TEA key (four
+little-endian words). Plaintext = 8 random bytes, u32 BE length, `user|challenge|gameID|password|`
+(the last field is an empty string), padded with spaces to whole 8-byte blocks plus one more
+block; each block is XORed with the previous ciphertext block (unless its first word is 0) and
+TEA-encrypted. Funcom's private key is unknown, so LMOxide servers generate their own pair and
+patch the public key into clients (`lmoxide_net::login`). `universe::LoginStatus` names come
+from `universe::GetLoginStatusName` (40 values, table at 0x318b520 in the Linux build).
+
+The cookie of step 4 travels to the territory (`Authenticate`), the game server (`Authenticate2`)
+and chat (`PASS`); LMOxide makes it random per login and checks it everywhere.
 
 ## IIRs (state updates)
 

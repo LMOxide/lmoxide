@@ -1,0 +1,8 @@
+target/
+logs/
+dist/
+.venv/
+.git/
+.claude/
+**/__pycache__/
+docs/img/

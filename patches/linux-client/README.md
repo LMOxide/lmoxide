@@ -50,7 +50,7 @@ version and server. To point a client at another server: `apply.sh <client dir> 
 | `libstdc++.so.6` → `libstdc++.so.6.bundled` | The bundled 2016 C++ library is older than what today's system libraries (loaded through `LD_LIBRARY_PATH=.`) need; the system one is backward compatible. |
 | `libgconf-2.so.4` (stub, `gconf-stub.c`) | `libcef.so` (the embedded browser) links GNOME 2's config library, which distributions dropped; CEF only asks it for proxy settings. |
 | `liblmofixes.so` (`lmo-fixes.c`), preloaded by `lmo` | Client bug fix: its animation name table (`MCore::StringIDGenerator`) is filled from several threads without a lock and corrupts memory (crashes while loading worlds with many monster types). |
-| `LMO`: chat filter URL (`patch-client.py`; stock copy `LMO.orig`) | Chat lines are only sent after a hard-coded Funcom filter URL approves them; it now asks the server. |
+| `LMO`: chat filter URL and login key (`patch-client.py`; stock copy `LMO.orig`) | Chat lines are only sent after a hard-coded Funcom filter URL approves them; it now asks the server. The password is encrypted against a public key compiled into the client; it becomes the LMOxide server's, fetched from `/lmoxide/v1/login-key`. |
 | `lmo` launcher, `lmo-kit.conf` | Fetches `LocalConfig.xml` (the server's addresses) like Funcom's launcher did, forces SDL's X11 driver (the 2016 renderer needs GLX; Wayland/EGL crashes) and preloads the fixes. |
 
 Nothing else in the client is modified. Bump `KIT_VERSION` when a change is added.

@@ -8,7 +8,8 @@
 #   - libstdc++.so.6 (2016, too old for today's system libraries) -> libstdc++.so.6.bundled
 #   - libgconf-2.so.4: a stub (libcef.so needs it; distributions no longer ship it)
 #   - liblmofixes.so: client bug fixes, preloaded by the launcher (lmo-fixes.c)
-#   - LMO: the chat filter URL points at the server (patch-client.py; stock copy kept as LMO.orig)
+#   - LMO: the chat filter URL and the login key are the server's (patch-client.py; stock copy
+#     kept as LMO.orig); the key comes from http://<server>:8080/lmoxide/v1/login-key
 #   - lmo: the launcher; lmo-kit.conf: kit version and server
 set -euo pipefail
 KIT=$(cd "$(dirname "$0")" && pwd)
@@ -61,8 +62,10 @@ done
 
 patcher=$KIT/patch-client.py
 [[ -f $patcher ]] || patcher=$KIT/../patch-client.py
-python3 "$patcher" --exe "$PWD/LMO" --host "$SERVER:8080" >/dev/null
-step "chat filter -> http://$SERVER:8080"
+python3 "$patcher" --exe "$PWD/LMO" --host "$SERVER:8080" \
+  --login-key-url "http://$SERVER:8080/lmoxide/v1/login-key" >/dev/null \
+  || { echo "can't patch LMO (is lmoxide-patch-server running on $SERVER:8080?)" >&2; exit 1; }
+step "chat filter and login key -> $SERVER"
 
 # leftovers of the developer test harness (tools/dev-run.sh LMO_AUTOPLAY=1)
 if [[ -f Data/startup.lua.orig ]]; then
