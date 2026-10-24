@@ -240,6 +240,9 @@ async fn main() -> anyhow::Result<()> {
             anyhow::ensure!(d.is_dir(), "{what} {} is not a directory", d.display());
         }
     }
+    // Held until exit: a second server on the same data dir would delete this one's blobs
+    // (cleanup_blobs only knows its own manifests).
+    let _lock = lock_data_dir(&cfg.data_dir)?;
     let signing = app::load_signing_key(&cfg.data_dir)?;
     info!(key = %public_key_hex(&signing.verifying_key()), "manifest signing key (patchers pin this)");
     let upstream = cfg.upstream.as_ref().map(|base| stock::Upstream {
@@ -292,6 +295,21 @@ async fn main() -> anyhow::Result<()> {
         _ = shutdown() => info!("shutting down"),
     }
     Ok(())
+}
+
+/// Takes an exclusive lock on `<data_dir>/lock`, failing if another server holds it.
+fn lock_data_dir(data_dir: &std::path::Path) -> anyhow::Result<std::fs::File> {
+    std::fs::create_dir_all(data_dir).with_context(|| format!("creating {}", data_dir.display()))?;
+    let path = data_dir.join("lock");
+    let file = std::fs::File::create(&path).with_context(|| format!("opening {}", path.display()))?;
+    match file.try_lock() {
+        Ok(()) => Ok(file),
+        Err(std::fs::TryLockError::WouldBlock) => anyhow::bail!(
+            "another lmoxide-patch-server is using --data-dir {}; give each server its own",
+            data_dir.display()
+        ),
+        Err(std::fs::TryLockError::Error(e)) => Err(e).with_context(|| format!("locking {}", path.display())),
+    }
 }
 
 async fn shutdown() {
