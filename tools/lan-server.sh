@@ -6,7 +6,7 @@
 # Listens on all interfaces and tells clients to connect to <lan-ip>. Ports: TCP 8080 (patch
 # server), 7100 (universe), 7101 (territory), 7102 (game), 7200 (chat).
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
-# an imported one) and GM level 1 for everyone (free-text chat and the test commands need it).
+# an account without one) and GM level 1 for everyone (free-text chat and the test commands need it).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PROFILE=debug

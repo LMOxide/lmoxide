@@ -1,7 +1,7 @@
 //! Administration subcommands that work on the database directly (also while the server
-//! runs): accounts, the JSON import, the login key.
+//! runs): accounts and the login key.
 
-use std::{io::IsTerminal, path::PathBuf};
+use std::io::IsTerminal;
 
 use anyhow::{Context, bail};
 use lmoxide_db::{Ban, Db};
@@ -14,11 +14,6 @@ pub enum Cmd {
     /// Manage accounts.
     #[command(subcommand)]
     Account(AccountCmd),
-    /// Import characters and friendships from the JSON files of older versions
-    /// (`<dir>/characters/*.json`, `<dir>/friends.json`). Accounts are created without a
-    /// password: set one with `account passwd`, or let the first login set it
-    /// (`--auto-register`).
-    ImportJson { dir: PathBuf },
     /// Print the login public key clients are patched with (created on first use).
     LoginKey {
         /// Make a new key pair. Every client then needs patching again.
@@ -67,18 +62,6 @@ pub fn run(cmd: Cmd, storage: &Storage) -> anyhow::Result<()> {
     let db = storage.open()?;
     match cmd {
         Cmd::Account(cmd) => account(&db, cmd),
-        Cmd::ImportJson { dir } => {
-            let r = lmoxide_db::legacy::import(&db, &dir).with_context(|| format!("importing {}", dir.display()))?;
-            println!("imported {} accounts and {} friendships", r.accounts, r.friendships);
-            for id in r.skipped {
-                println!("skipped {id}: the account already exists");
-            }
-            for (id, name) in r.renamed {
-                println!("account {id} is named {name} (its character's name isn't a valid or free username)");
-            }
-            println!("the imported accounts have no password yet: `lmoxide-server account passwd <name>`");
-            Ok(())
-        }
         Cmd::LoginKey { regenerate } => {
             let key = login_key(&db, regenerate)?;
             println!("{}", key.public_hex());

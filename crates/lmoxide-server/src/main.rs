@@ -91,7 +91,7 @@ pub struct Config {
     #[arg(long, env = "LMOXIDE_START_PLAYFIELD", default_value_t = 1200)]
     pub start_playfield: u32,
     /// Create an account on the first login with an unknown username (the password given
-    /// becomes the account's), and let accounts without a password (imported ones) set it by
+    /// becomes the account's), and let accounts without a password set it by
     /// logging in. Convenient on a LAN; leave off on public servers.
     #[arg(long, env = "LMOXIDE_AUTO_REGISTER")]
     pub auto_register: bool,

@@ -122,7 +122,7 @@ fn authenticate(cfg: &Config, conn: &Conn, username: &str, challenge: &str, answ
             }
             a
         }
-        // imported accounts have no password yet: the first login sets it
+        // accounts created without a password: the first login sets it
         Some(a) if cfg.auto_register => {
             db.set_password(a.id, Some(&password)).map_err(|e| fail(&e.to_string()))?;
             db.audit("login", "set-first-password", Some(&a.username), None).map_err(internal)?;

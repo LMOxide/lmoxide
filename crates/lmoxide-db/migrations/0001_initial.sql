@@ -3,7 +3,7 @@
 CREATE TABLE accounts (
     id             INTEGER PRIMARY KEY,
     username       TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    -- argon2 PHC string; NULL = no password set yet (e.g. imported from the JSON files)
+    -- argon2 PHC string; NULL = no password set yet
     password_hash  TEXT,
     gm_level       INTEGER NOT NULL DEFAULT 0,
     created_at     INTEGER NOT NULL,

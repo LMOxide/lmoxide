@@ -1,13 +1,12 @@
 use std::collections::BTreeMap;
 
 use rusqlite::{OptionalExtension, params};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::{Db, Error, Result, now};
 
-/// A saved character, as the game server keeps it. (Also the format of the old
-/// `characters/<id>.json` files, see [`crate::legacy`].)
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// A saved character, as the game server keeps it.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Character {
     pub name: String,
     pub playfield: u32,

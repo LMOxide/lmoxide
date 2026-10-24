@@ -12,8 +12,8 @@ pub struct Account {
     /// Account instance as the client sees it (also the character instance for now).
     pub id: u32,
     pub username: String,
-    /// False for accounts without a password yet (imported ones): they can't log in until one
-    /// is set, or the server auto-registers (`--auto-register`) and the first login sets it.
+    /// False for accounts created without a password: they can't log in until one is set, or
+    /// the server auto-registers (`--auto-register`) and the first login sets it.
     pub has_password: bool,
     pub gm_level: u32,
     /// Unix time.

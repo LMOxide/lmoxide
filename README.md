@@ -16,7 +16,7 @@ Everything except the (copyrighted) game clients.
 
 | Path | |
 |---|---|
-| `crates/lmoxide-server` | the game server: universe agent, territory manager, game and chat servers, and an internal control interface; admin subcommands (`account ...`, `import-json`, `login-key`) |
+| `crates/lmoxide-server` | the game server: universe agent, territory manager, game and chat servers, and an internal control interface; admin subcommands (`account ...`, `login-key`) |
 | `crates/lmoxide-api` | REST API for administration and status (web UI, Discord bot): [docs/API.md](docs/API.md) |
 | `crates/lmoxide-patch-server` | the HTTP the client needs (configuration, patching, login page, chat filter) and the LMOxide patcher protocol: [docs/PATCHING.md](docs/PATCHING.md) |
 | `crates/lmoxide-patch`, `crates/lmoxide-patcher` | patcher library (for a GUI) and command-line patcher |
@@ -72,7 +72,6 @@ Needs Rust, `protoc`, and an extracted client at `../clients/windows/LEGO Minifi
 ```sh
 # accounts (or --auto-register: the first login creates the account)
 cargo run -p lmoxide-server -- account create <name> --gm-level 2
-cargo run -p lmoxide-server -- import-json ../var/lmo-data-legacy   # saves of older versions
 
 tools/lan-server.sh --release            # LAN play: game server + patch server on this PC's address
 LMO_AUTOPLAY=1 tools/test-run.sh 60      # development: server + Wine client, summary, screenshot
