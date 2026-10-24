@@ -55,10 +55,10 @@
     },
     {
       "label": "kraken",
-      "about": "Crikey the Kraken's cave (boss that doesn't render)",
+      "about": "Crikey the Kraken's arena: he stays in the water past the floor and attacks from there",
       "goto": {
-        "kind": "enemy",
-        "name": "Crikey the Kraken"
+        "playfield": 4500,
+        "pos": [463.0, 100.6, 399.0]
       }
     },
     {

@@ -72762,13 +72762,14 @@
     "level": 7,
     "health": 1650,
     "pos": [
-     446.5,
-     112.08,
-     383.0
+     466.0,
+     99.0,
+     430.0
     ],
     "spell": 2029,
     "anchor": "BossEncounter_Start_CrikeyTheKraken",
-    "source": "proposed"
+    "source": "proposed",
+    "reach": 38.0
    },
    {
     "name": "Pirate Musketeer",

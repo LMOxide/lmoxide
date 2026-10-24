@@ -548,6 +548,11 @@ BOSSES = {  # playfield: [(monsterdata, name, bounded area pattern placing it, e
     1675: [(636593, "Minotaur", r"Boss")],
     1690: [(57036, "Ogre", r"BA_LastBoss")],
 }
+# Bosses that stay in one spot outside the walkable floor: monsterdata -> (position, reach). Crikey
+# the Kraken sits in the middle of the glowing pool past the arena floor's far edge (its Quest_Boss
+# area runs on to (484, 408)-(457, 433), the floor stops near z 412-416; checked in game) and
+# reaches the whole floor, not the entrance ledge (y 112) it overlooks.
+STATIONARY = {191640: ([466.0, 99.0, 430.0], 38.0)}
 # bounded areas (RDB 1000053) where the designers put fights; camps go there first
 COMBAT_AREA = re.compile(r"^(ClearHate_|Res_|res_|Harpy_Area|Quest_)|Ambush|Combat|Spawn|Swamp\d|Skeleton|Undead|Ritual|Maze", re.I)
 NOT_COMBAT_AREA = re.compile(r"Entrance|_Start$|Teleport|NoLogin|Story|Cine|Head_|Occlusion|FallThrough|Collision|Achievement|Micro", re.I)
@@ -716,6 +721,9 @@ def proposals(pf, dest, res, points, portals_here, parents, dungeon):
         if pos is None:
             pos = spot(max(big or cells, key=lambda c: dist(spot(c), arrival)))
         out["enemies"].append(enemy(md, level + 2, pos, 10, name, a["name"] if a else "farthest"))
+        if md in STATIONARY:
+            pos, out["enemies"][-1]["reach"] = STATIONARY[md]
+            out["enemies"][-1]["pos"] = pos
         avoid.append((pos, 12))
     # champions where the caves spawned one
     for a in areas:

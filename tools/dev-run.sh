@@ -15,12 +15,16 @@ DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
 # LMOXIDE_SIDE_PORTS=1: ports 17100-17102, chat 17200, control 17300, HTTP 18080, so a test run
 # doesn't collide with a LAN server (tools/lan-server.sh) on the standard ports.
 HTTP=8080
+# The patch server deletes blobs its own manifests don't use, so a test run never shares the LAN
+# server's (tools/lan-server.sh) var/patch-data: side-port runs get their own.
+PATCH_DATA=$VAR/patch-data
 SERVER_PORTS=()
 PATCH_PORTS=()
 if [[ -n ${LMOXIDE_SIDE_PORTS:-} ]]; then
   HTTP=18080
   SERVER_PORTS=(--universe-port 17100 --territory-port 17101 --game-port 17102 --chat-port 17200 --control-bind 127.0.0.1:17300)
   PATCH_PORTS=(--http-port 18080 --universe-port 17100)
+  PATCH_DATA=$VAR/patch-data-side
 fi
 
 # the test client only: the native Linux client is also "LMO" and may be the user's own
@@ -56,7 +60,7 @@ for _ in $(seq 100); do [[ -s $DATA/login-public-key.txt ]] && break; sleep 0.2;
 # the Windows client tree, even when running the Linux client (its LocalConfig.xml is the same)
 PATCH_CLIENT=${LMOXIDE_PATCH_CLIENT_DIR:-$([[ ${LMO_RUNNER:-wine} == linux ]] && realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online" || echo "$CLIENT")}
 RUST_LOG=${RUST_LOG:-info} "$ROOT/target/debug/lmoxide-patch-server" --client-dir "$PATCH_CLIENT" \
-  --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
+  --data-dir "$PATCH_DATA" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" "${PATCH_PORTS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$LOGS/patch-server.log" 2>&1 &
 echo $! >>"$PIDS"
 for _ in $(seq 100); do curl -sf http://127.0.0.1:$HTTP/lmoxide/v1/login-key >/dev/null && break; sleep 0.2; done

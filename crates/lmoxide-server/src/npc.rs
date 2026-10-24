@@ -182,6 +182,10 @@ pub struct SpawnDef {
     /// NPC template id (npc_stats.template_id); defaults to the monsterdata.
     #[serde(default)]
     pub npc_template: Option<u32>,
+    /// Enemies that never leave their spot (Crikey the Kraken in its water): they attack players
+    /// this close instead of chasing them.
+    #[serde(default)]
+    pub reach: Option<f32>,
 }
 
 /// data/world_content.json (tools/re/extract_world_content.py): per playfield, the enemies,
@@ -478,6 +482,7 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
         spell: def.spell,
         cars_group: Some(0),
         npc_template: None,
+        reach: None,
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -888,12 +893,12 @@ fn approach(from: [f32; 3], to: [f32; 3], keep: f32) -> [f32; 3] {
 /// NPC `id` swings at `player` if its attack is ready: the cast (a MagicCommand created on the
 /// NPC: BCC actions 16 queue, 4 success, 10 can-execute), the damage number and the player's
 /// new health. At 0 the client switches to the next minifigure itself.
-fn attack(id: Id32, player: Id32) {
+fn attack(id: Id32, player: Id32) -> bool {
     let (spell, level) = {
         let mut npcs = NPCS.lock().unwrap();
-        let Some(npc) = npcs.get_mut(&id) else { return };
+        let Some(npc) = npcs.get_mut(&id) else { return false };
         if npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
-            return;
+            return false;
         }
         npc.last_attack = Some(std::time::Instant::now());
         (npc.def.spell, npc.def.level)
@@ -902,13 +907,23 @@ fn attack(id: Id32, player: Id32) {
     let damage = (1.5 * level as f32 + 1.5).round() as u32;
     // the player's defensive upgrade procs
     let damage = crate::procs::incoming(player, damage, crate::actions::is_channelling(player));
-    let Some(health) = damage_player(player, damage) else { return };
+    let Some(health) = damage_player(player, damage) else { return true };
     crate::procs::after_damage(player, health, player_max_health(player));
     let mut records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
     records.push(combat_log_record(id, player, spell, damage));
     records.push(int32_stat(player, STAT_HEALTH, health));
     world::send_playfield(id, false, world::Out::Records(records));
     crate::actions::caster_hit(player);
+    true
+}
+
+/// Turn an enemy that stays put towards `target`.
+fn face(id: Id32, here: [f32; 3], target: [f32; 3]) {
+    let (dx, dz) = (target[0] - here[0], target[2] - here[2]);
+    let d = dx.hypot(dz);
+    if d > 0.01 {
+        world::broadcast(id, vec![stop_record(id, here, [dx / d, dz / d])]);
+    }
 }
 
 /// BCC action that queues a server-created command on the destination character.
@@ -958,23 +973,36 @@ async fn ai() {
     let mut tick = tokio::time::interval(TICK);
     loop {
         tick.tick().await;
-        let live: Vec<(Id32, u32, [f32; 3])> = NPCS
+        let live: Vec<(Id32, u32, [f32; 3], Option<f32>)> = NPCS
             .lock()
             .unwrap()
             .iter()
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
-            .map(|(id, n)| (*id, n.playfield, n.def.pos))
+            .map(|(id, n)| (*id, n.playfield, n.def.pos, n.def.reach))
             .collect();
         pets_tick();
         // players per playfield, collected once per tick (most playfields have none)
         let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
-        for (_, playfield, _) in &live {
+        for (_, playfield, _, _) in &live {
             players
                 .entry(*playfield)
                 .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| !is_npc(*other)).collect());
         }
-        for (id, playfield, home) in live {
+        for (id, playfield, home, reach) in live {
             let Some(here) = current(id) else { continue };
+            if let Some(reach) = reach {
+                let target = players[&playfield]
+                    .iter()
+                    .copied()
+                    .filter(|(_, p)| distance(*p, here) < reach)
+                    .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
+                if let Some((player, p)) = target {
+                    if attack(id, player) {
+                        face(id, here, p);
+                    }
+                }
+                continue;
+            }
             let target = players[&playfield]
                 .iter()
                 .copied()
