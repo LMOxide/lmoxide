@@ -2,8 +2,8 @@
 //! ("Piston <row>_<n>", look `evil_fort_wall_trap_4x4_medieval_interactable`) along three
 //! corridors, each a step above the last. In turn they push out (the interactables' open motion,
 //! mirrors.rs `TURN_PLUS`) and knock whoever stands in front of them ("BA_Piston<row>_<n>", 2.5 m
-//! in front) off the corridor, down to the one below (the bottom row: into the pit), without
-//! damage (the user's memory of live, 2026-10-25).
+//! in front) off their ledge, down to the floor below, without damage (the user's memory of
+//! live, 2026-10-25).
 //!
 //! Client data: the pistons and their areas; the piston "projectiles" XX_JumpPiston<row>_<n> run
 //! the server script "JumpToPoint=AI_JumpPiston<row>_<n>;Height=1" (RDB 1000621 503086...),
@@ -32,9 +32,10 @@ const HIT_AFTER: Duration = Duration::from_millis(300);
 const HALF_WIDTH: f32 = 1.6;
 const FRONT: (f32, f32) = (0.5, 4.0);
 const HEIGHT: f32 = 2.5;
-/// Where a hit lands, per row (the pistons push towards -z): z and the floor's height below
-/// (navmesh RDB 1000051: row 1 drops into the pit, rows 2 and 3 onto the corridor below).
-const LANDINGS: [(f32, f32); 3] = [(164.5, 39.8), (171.0, 47.8), (182.0, 52.8)];
+/// Where a hit lands, per row (the pistons push towards -z): z and height of the first lower
+/// floor straight ahead (navmesh RDB 1000051: each corridor's walkway a metre below its ledge;
+/// the user saw live drop you just one floor, 2026-10-25).
+const LANDINGS: [(f32, f32); 3] = [(167.2, 46.8), (177.5, 51.8), (188.5, 56.8)];
 const APEX: f32 = 1.0;
 
 #[derive(Deserialize)]
