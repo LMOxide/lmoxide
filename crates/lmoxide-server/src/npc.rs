@@ -28,6 +28,13 @@ use crate::{
 const CARS_ENEMIES: u32 = 3;
 /// CarsGroup of friendly NPCs players can use (talk to).
 const CARS_FRIENDS: u32 = 2;
+/// Engine stat Flags (0) bit "custom name" (CoreCharacter::SetName sets it on a rename). An NPC
+/// with a non-zero NPCTemplateInstance (npc_stats.template_id) is named by its template's TDB
+/// 51000 text (CoreCharacter::GetDisplayNameEntry); with this bit, by the name sent. Only the
+/// recorded spawns have real templates: the others' monsterdata ids aren't TDB 51000 keys, so
+/// their target bar and nametag showed no name.
+const STAT_FLAGS: u32 = 0;
+const FLAG_CUSTOM_NAME: u32 = 0x8000;
 /// NPC dynel instances start here (players are accounts, so keep clear of small numbers).
 static NEXT_INSTANCE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(900_000);
 const PET_FOLLOW: f32 = 2.0;
@@ -554,15 +561,20 @@ fn appear(id: Id32) {
     let spawn = move || {
         let health = NPCS.lock().unwrap().get(&id).map_or(def.health, |n| n.health);
         let pos = *spawn_pos.lock().unwrap();
-        match def.kind {
+        let mut records = match def.kind {
             Kind::Enemy => remote_spawn_records(id, &spec(&def, playfield, pos, health)),
             Kind::Pet => remote_spawn_records(id, &CharSpec { cars_group: 0, ..spec(&def, playfield, pos, health) }),
             Kind::Npc | Kind::Fighter => remote_spawn_records(
                 id,
                 &CharSpec { cars_group: def.cars_group.unwrap_or(CARS_FRIENDS), ..spec(&def, playfield, pos, health) },
             ),
-            Kind::Smashable => smashable_records(id, &def, playfield, pos, health),
+            Kind::Smashable => return smashable_records(id, &def, playfield, pos, health),
+        };
+        if def.npc_template.is_none() {
+            // after the full update (which sets Flags from its stats)
+            records.insert(2, int32_stat(id, STAT_FLAGS, FLAG_CUSTOM_NAME));
         }
+        records
     };
     // NPCs ignore what is sent to them
     let (outbox, mut inbox) = mpsc::unbounded_channel();
