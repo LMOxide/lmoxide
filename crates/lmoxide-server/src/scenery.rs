@@ -6,7 +6,10 @@
 //! The collectibles (discovery.rs) are spawned here too, usable (CARS group 1, as the buildies),
 //! and the boss arenas' door visuals, shown or hidden as their encounter has them (encounter.rs).
 
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, LazyLock, Mutex},
+};
 
 use bytes::Bytes;
 use lmoxide_net::{
@@ -16,7 +19,7 @@ use lmoxide_net::{
 };
 use serde::Deserialize;
 use tokio::sync::mpsc;
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::{
     game::{create_game_object, int32_stat},
@@ -29,6 +32,8 @@ const STAT_CARS_GROUP: u32 = 1050;
 const CARS_INACTIVE: u32 = 5;
 /// Usable (ObjectInteraction), as the buildies.
 const CARS_USABLE: u32 = 1;
+/// How long a respawned piece stays away (the client's fade-out, assumed).
+const RESPAWN_DELAY: std::time::Duration = std::time::Duration::from_millis(1500);
 /// Bounds for pieces whose RDB box is empty (assumed size, docs/TUNABLES.md).
 const FALLBACK_BOUNDS: [f32; 6] = [-4.0, 0.0, -4.0, 4.0, 6.0, 4.0];
 
@@ -58,7 +63,8 @@ fn wanted(name: &str) -> bool {
         || crate::discovery::is_collectible(name)
 }
 
-static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+/// The spawned pieces by guid: playfield, piece, presence (respawn: mirrors turned).
+static PRESENCES: LazyLock<Mutex<HashMap<u32, (u32, Piece, world::Presence)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 /// (name, playfield, position) of every spawned piece, for the test commands (devcmd.rs).
 static PIECES: Mutex<Vec<(String, u32, [f32; 3])>> = Mutex::new(Vec::new());
 
@@ -73,30 +79,57 @@ pub fn points(pattern: &str) -> Vec<(String, u32, [f32; 3])> {
 pub fn start() {
     let worlds: std::collections::HashMap<String, serde_json::Value> =
         serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
-    let mut presences = PRESENCES.lock().unwrap();
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };
         let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };
         for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name) || crate::encounter::is_door(p.guid)) {
-            let (outbox, mut inbox) = mpsc::unbounded_channel();
-            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
-            let id = Id32::new(SIMPLE_DYNEL_TYPE, piece.guid);
-            let pos = Arc::new(Mutex::new(piece.pos));
-            presences.push(world::join(id, playfield, pos, move || spawn_records(&piece, playfield), outbox));
+            let presence = join(&piece, playfield);
+            PRESENCES.lock().unwrap().insert(piece.guid, (playfield, piece, presence));
         }
     }
-    info!(count = presences.len(), "scenery spawned");
+    info!(count = PRESENCES.lock().unwrap().len(), "scenery spawned");
+}
+
+fn join(piece: &Piece, playfield: u32) -> world::Presence {
+    let (outbox, mut inbox) = mpsc::unbounded_channel();
+    tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    let id = Id32::new(SIMPLE_DYNEL_TYPE, piece.guid);
+    let pos = Arc::new(Mutex::new(piece.pos));
+    let p = piece.clone();
+    world::join(id, playfield, pos, move || spawn_records(&p, playfield), outbox)
+}
+
+/// Spawns piece `guid` again with its state now (a mirror turned: its new rotation,
+/// mirrors.rs): it leaves, and comes back once the client has faded it out (spawned at once,
+/// the client deleted the new one with the old).
+pub fn respawn(guid: u32) {
+    let Some((playfield, piece, old)) = PRESENCES.lock().unwrap().remove(&guid) else {
+        debug!(guid, "respawn: not spawned (yet)");
+        return;
+    };
+    debug!(guid, "respawn");
+    // (outside PRESENCES: leaving and joining take the members lock)
+    drop(old);
+    tokio::spawn(async move {
+        tokio::time::sleep(RESPAWN_DELAY).await;
+        let presence = join(&piece, playfield);
+        PRESENCES.lock().unwrap().insert(guid, (playfield, piece, presence));
+    });
 }
 
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (as for jump pads: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
 fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let id = Id32::new(SIMPLE_DYNEL_TYPE, p.guid);
-    let cars_group = if crate::discovery::is_collectible(&p.name) { CARS_USABLE } else { CARS_INACTIVE };
+    let usable = crate::discovery::is_collectible(&p.name) || crate::mirrors::is_mirror(p.guid);
+    let cars_group = if usable { CARS_USABLE } else { CARS_INACTIVE };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
-        rotation: Some(ProtoQuat { x: Some(p.rot[0]), y: Some(p.rot[1]), z: Some(p.rot[2]), w: Some(p.rot[3]) }),
+        rotation: {
+            let r = crate::mirrors::rotation(p.guid, p.rot);
+            Some(ProtoQuat { x: Some(r[0]), y: Some(r[1]), z: Some(r[2]), w: Some(r[3]) })
+        },
         playfield_instance: Some(playfield),
         running_effects: vec![],
     };
@@ -105,7 +138,8 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         kdtree: Some(0),
         name: Some(p.name.clone()),
         cars_group: Some(cars_group),
-        is_closed: Some(!p.is_gate()),
+        // gates open; mirrors as turned (mirrors.rs)
+        is_closed: Some(crate::mirrors::closed(p.guid).unwrap_or(!p.is_gate())),
         ..Default::default()
     };
     // the RDB gives the animated pieces an empty box (min +3.4e38, max -3.4e38); send a generous
@@ -116,7 +150,8 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
     });
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
-    if crate::encounter::door_hidden(p.guid) == Some(true) {
+    // hidden: an arena door that's open now, a mirror puzzle's gate once solved
+    if crate::encounter::door_hidden(p.guid).or_else(|| crate::mirrors::gate_open(p.guid)) == Some(true) {
         records.push(crate::encounter::door_record(id, true));
     }
     records

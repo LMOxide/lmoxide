@@ -444,6 +444,16 @@ under a buildie (a separate `Jumper` dynel) is in CARS group 5 until it is built
   (looping/one shot), 2 stop particle, 3 visual data, 4 collision (KD-tree) id, 7 fade in,
   8 fade out (u32), 9/10/11 visual data variants. `ScryScriptIIR_c` 0-2 start client script
   groups, 3/4 delete them.
+- Tried with the Medusa mirrors (mirrors.rs, 2026-10-25): using a usable simple dynel sends an
+  ObjectInteraction command (CommandType 18) whose data is the dynel's ID32 and u32 6, then
+  another with u32 0x22 (StopUse); the command's own target is the player. Changing `is_closed`
+  (mode 0, with or without can-be-opened) plays no motion and doesn't change the pose, nor does
+  spawning with the other `is_closed`; a repeated `SimpleDynelFullUpdateIIR_c` doesn't take a new
+  rotation; a despawn followed at once by a spawn of the same id leaves nothing (the fade-out
+  deletes the new one): a 1.5 s pause between them works. A projectile fired by a simple dynel
+  or a particle in its VisualData showed nothing. The mirrors' "+"/"-" marker pairs give the
+  puzzle (tools/re/extract_mirror_puzzles.py); `ProtoSimpleDynelIIR.reflect_projectile` hints
+  that live's light was a projectile the mirrors reflected.
 
 ## Missing game data
 

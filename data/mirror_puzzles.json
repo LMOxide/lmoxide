@@ -1,0 +1,260 @@
+{
+ "_comment": "Medusa mirror puzzles (crates/lmoxide-server/src/mirrors.rs). Writes data/mirror_puzzles.json.",
+ "2310": {
+  "mirrors": [
+   {
+    "guid": 466270,
+    "name": "1",
+    "pos": [
+     295.97,
+     40.0,
+     400.47
+    ],
+    "out": {
+     "plus": "L",
+     "minus": "R"
+    }
+   },
+   {
+    "guid": 466340,
+    "name": "L",
+    "pos": [
+     288.14,
+     40.0,
+     407.4
+    ],
+    "out": {
+     "plus": "L.1",
+     "minus": null
+    }
+   },
+   {
+    "guid": 466343,
+    "name": "L.1",
+    "pos": [
+     297.84,
+     40.48,
+     416.83
+    ],
+    "out": {
+     "plus": "L.2",
+     "minus": null
+    }
+   },
+   {
+    "guid": 493895,
+    "name": "L.2",
+    "pos": [
+     301.32,
+     40.48,
+     413.22
+    ],
+    "out": {
+     "plus": "L.2.1",
+     "minus": "L.2.2"
+    }
+   },
+   {
+    "guid": 493916,
+    "name": "L.2.1",
+    "pos": [
+     295.09,
+     40.0,
+     407.6
+    ],
+    "out": {
+     "plus": "L.2.1.1",
+     "minus": null
+    }
+   },
+   {
+    "guid": 493943,
+    "name": "L.2.1.1",
+    "pos": [
+     299.92,
+     40.0,
+     403.69
+    ],
+    "out": {
+     "plus": "1",
+     "minus": "pedestal"
+    }
+   },
+   {
+    "guid": 494726,
+    "name": "L.2.2",
+    "pos": [
+     304.07,
+     40.48,
+     416.84
+    ],
+    "out": {
+     "plus": null,
+     "minus": null
+    }
+   },
+   {
+    "guid": 472240,
+    "name": "R",
+    "pos": [
+     303.18,
+     40.0,
+     392.69
+    ],
+    "out": {
+     "plus": "R.1",
+     "minus": null
+    }
+   },
+   {
+    "guid": 493966,
+    "name": "R.1",
+    "pos": [
+     307.25,
+     39.96,
+     397.29
+    ],
+    "out": {
+     "plus": "R.2",
+     "minus": null
+    }
+   },
+   {
+    "guid": 494153,
+    "name": "R.2",
+    "pos": [
+     303.14,
+     39.96,
+     401.02
+    ],
+    "out": {
+     "plus": "R.2.1",
+     "minus": "R.2.2"
+    }
+   },
+   {
+    "guid": 494428,
+    "name": "R.2.1",
+    "pos": [
+     305.99,
+     39.96,
+     403.53
+    ],
+    "out": {
+     "plus": null,
+     "minus": null
+    }
+   },
+   {
+    "guid": 494514,
+    "name": "R.2.2",
+    "pos": [
+     297.49,
+     39.96,
+     394.77
+    ],
+    "out": {
+     "plus": null,
+     "minus": null
+    }
+   }
+  ],
+  "roots": [
+   "1"
+  ],
+  "targets": [
+   {
+    "name": "pedestal",
+    "pos": [
+     305.33,
+     41.06,
+     409.87
+    ]
+   }
+  ],
+  "opens": {
+   "arena_exit": "Thunderbolt_Start"
+  }
+ },
+ "6300": {
+  "mirrors": [
+   {
+    "guid": 508781,
+    "name": "L",
+    "pos": [
+     147.58,
+     48.0,
+     177.74
+    ],
+    "out": {
+     "plus": null,
+     "minus": "L.1"
+    }
+   },
+   {
+    "guid": 522118,
+    "name": "L.1",
+    "pos": [
+     148.17,
+     48.0,
+     169.65
+    ],
+    "out": {
+     "plus": null,
+     "minus": "gate north"
+    }
+   },
+   {
+    "guid": 518002,
+    "name": "R",
+    "pos": [
+     152.53,
+     48.0,
+     165.96
+    ],
+    "out": {
+     "plus": "R.1",
+     "minus": null
+    }
+   },
+   {
+    "guid": 518007,
+    "name": "R.1",
+    "pos": [
+     153.02,
+     48.0,
+     174.5
+    ],
+    "out": {
+     "plus": "gate south",
+     "minus": null
+    }
+   }
+  ],
+  "roots": [
+   "L",
+   "R"
+  ],
+  "targets": [
+   {
+    "name": "gate north",
+    "pos": [
+     158.6,
+     49.8,
+     170.0
+    ]
+   },
+   {
+    "name": "gate south",
+    "pos": [
+     158.6,
+     49.8,
+     174.0
+    ]
+   }
+  ],
+  "opens": {
+   "gate": 517927
+  }
+ }
+}

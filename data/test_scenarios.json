@@ -196,6 +196,22 @@
       "team": [
         "Roman Commander"
       ]
+    },
+    {
+      "label": "mirrors",
+      "about": "the Armory's mirror puzzle (mirrors.rs): use the mirrors to bring the light to the pedestal, which opens the Thunderbolt arena's entrance; !mirrors solve|reset",
+      "goto": {
+        "playfield": 2310,
+        "pos": [306.0, 40.0, 407.0]
+      }
+    },
+    {
+      "label": "mirrors2",
+      "about": "the Gauntlet's mirror puzzle (mirrors.rs): light both markers by the gate to open it; !mirrors solve|reset",
+      "goto": {
+        "playfield": 6300,
+        "pos": [150.0, 48.0, 172.0]
+      }
     }
   ]
 }

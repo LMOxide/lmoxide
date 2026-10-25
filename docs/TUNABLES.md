@@ -165,6 +165,17 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Pirate World cannon | `cannon.rs` | building the cannon (4600) fires at the fort wall 0.5 s later; the wall falls, 1 s later the Guard Captain cinematic runs and ends in the jail (4610) | Recorded (recs 29345-30059): shot item 234304 / spell 234303 from the muzzle at 20 m/s, effects 463510/463511, wall health 100000 so only the cannon breaks it; the delays are guesses (the recording's times aren't usable). |
 | Wall and cannon reset | `cannon.rs` `WALL_RESPAWN`, `RESET_AFTER` | the wall comes back after 2 min, the cannon goes back to bricks 5 s later | Assumed: live gave each player the scene; a shared world needs them back for the next player. |
 
+## Mirror puzzles (`mirrors.rs`, data/mirror_puzzles.json)
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| The puzzle | `tools/re/extract_mirror_puzzles.py` | each mirror's "+"/"-" marker faces where the light leaves it; the next mirror or target in line receives it | Client data (the markers); the user chose a working puzzle over scenery (2026-10-25). |
+| Light source and start | `PUZZLES` roots | the light falls on mirror "1" (Armory) and on L and R (Gauntlet), where the rooms' own beams (level geometry) end; every mirror starts at "-" (unsolved) | The beams match; the start positions are a guess. |
+| Turning | `mirrors::turn`, `scenery::respawn` | using a mirror turns it a quarter round: it vanishes and comes back turned 1.5 s later | The client plays no turn for `is_closed` (docs/PROTOCOL.md); live's turn animation and stone-scrape sound aren't reproduced. |
+| The light past the first mirror | — | not shown | No projectile or particle from a simple dynel showed (PROTOCOL.md). |
+| Rewards | `opens` | Armory: the barrier beside the pedestal (the Thunderbolt arena's exit) opens; Gauntlet: the gate hides | The pedestal ("complete" marker) stands at that barrier; the gate has two light markers. Inferred. |
+| Reset | `RESET_CHECK` | back to the start when nobody has been in the playfield for up to 30 s | Live gave each group its own instance. |
+
 ## Jump pads
 
 | Value | Where | Now | Source / reasoning |
@@ -178,6 +189,6 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Launch effect | `jumppad.rs` `Pad::effect` | mortar effect, fan effect for wind fans | Only mortar and fan pads were recorded; planes, catapults and lilies use the mortar's. |
 | Pads and buildies | `jumppad.rs`, `buildie.rs`, `data/buildies.json` | the 5 recorded buildies (pirate tutorial 1300, Pirate World 4600) must be built before the pads under them work; every other pad works without building | Live, many pads were buildies, but the buildie placements were server-side and only the recorded ones are known (no client data marks a pad as a buildie: tutorial pads with the same mortar look needed no building). |
 | Build tick and range | `buildie.rs` `TICK`, `BUILD_RANGE`, `PLAYER_RATE` | 62 progress per 0.1 s tick (a 1600 buildie takes 2.6 s); the builder must stay within 6 m | The rate is recorded; the tick is the item stat `BuildableServerInterval` (0.1 s, e.g. template 489061; also the 0.1 in the buildie's Destructible fields); the range is a guess. Built buildies stay built until the server restarts (live reset them at some point; when is unknown). The tutorial's scripted NPC builder (rate 19) isn't reproduced. |
-| Levers, gates, mirrors, pressure plates | `scenery.rs` | spawned as scenery: CARS group 5 (not usable), gates `is_closed` false, no collision (kdtree 0); empty RDB bounds replaced by an 8×6×8 m box | Their behaviour (lever→gate links, plate puzzles) was server script data with no surviving trace (user's choice 2026-10-23: show them, block nothing, invent no logic). Whether a gate looks open depends on how the client picks its motion (`anim_1` = open state), which isn't known. |
+| Levers, gates, pressure plates | `scenery.rs` | spawned as scenery: CARS group 5 (not usable), gates `is_closed` false, no collision (kdtree 0); empty RDB bounds replaced by an 8×6×8 m box | Their behaviour (lever→gate links, plate puzzles) was server script data with no surviving trace (user's choice 2026-10-23: show them, block nothing, invent no logic). Whether a gate looks open depends on how the client picks its motion (`anim_1` = open state), which isn't known. |
 | Re-trigger | `jumppad.rs` `State::on` | a pad fires again only after stepping off | Assumed. |
 

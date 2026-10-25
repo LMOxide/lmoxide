@@ -280,11 +280,14 @@ pub fn entered(playfield: u32, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
 }
 
 /// Whether a door (simple dynel instance) is hidden now: entrances are open (VisualOpen shown,
-/// VisualClosed hidden) unless the arena is engaged; the exit opens when the boss is beaten.
+/// VisualClosed hidden) unless the arena is engaged; the exit opens when the boss is beaten (or
+/// its mirror puzzle is solved, mirrors.rs).
 pub fn door_hidden(guid: u32) -> Option<bool> {
     let (playfield, i, kind) = *DOORS.get(&guid)?;
+    let mirrored = DATA.get(&playfield).and_then(|d| d.arenas.get(i)).is_some_and(|a| crate::mirrors::opens_exit(playfield, &a.area.name));
     let state = STATE.lock().unwrap().arenas.get(&(playfield, i)).cloned().unwrap_or(Arena::Idle);
     Some(match (kind, state) {
+        (Door::Exit, _) if mirrored => true,
         (Door::Open, Arena::Engaged { .. }) => true,
         (Door::Open, _) => false,
         (Door::Closed, Arena::Engaged { .. }) => false,
@@ -511,6 +514,13 @@ fn tick() {
                 set_doors(def);
             }
         }
+    }
+}
+
+/// Shows every arena door on `playfield` as it is now (a mirror puzzle solved or reset).
+pub fn refresh_doors(playfield: u32) {
+    for def in DATA.get(&playfield).map(|d| d.arenas.as_slice()).unwrap_or_default() {
+        set_doors(def);
     }
 }
 

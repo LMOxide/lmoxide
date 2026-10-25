@@ -63,8 +63,8 @@ const NAME_CATEGORY: u32 = 51000;
 /// How long the server waits for an answer before closing the window.
 const ANSWER_TIMEOUT: Duration = Duration::from_secs(300);
 
-/// Players in a dialogue: where their answers go.
-static TALKING: LazyLock<Mutex<HashMap<Id32, (u64, mpsc::UnboundedSender<u32>)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+/// Players in a dialogue: its generation, where their answers go, and who speaks.
+static TALKING: LazyLock<Mutex<HashMap<Id32, (u64, mpsc::UnboundedSender<u32>, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static GENERATION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 /// Per player: how many of each NPC's dialogues they've had (this session).
 static PROGRESS: LazyLock<Mutex<HashMap<(Id32, String, u32), usize>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -111,7 +111,7 @@ pub fn talk(player: Id32, player_name: &str, npc: Id32, name: &str, playfield: u
 pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
     let (tx, rx) = mpsc::unbounded_channel();
     let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    if TALKING.lock().unwrap().insert(player, (generation, tx)).is_some() {
+    if TALKING.lock().unwrap().insert(player, (generation, tx, owner)).is_some() {
         info!(?player, "dialogue replaced");
     }
     info!(?player, npc = %dialogue.npc, texts = ?dialogue.texts, "dialogue");
@@ -119,7 +119,7 @@ pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
     tokio::spawn(async move {
         run(player, owner, name, dialogue, rx, generation).await;
         let mut talking = TALKING.lock().unwrap();
-        if talking.get(&player).is_some_and(|(g, _)| *g == generation) {
+        if talking.get(&player).is_some_and(|(g, ..)| *g == generation) {
             talking.remove(&player);
         }
     });
@@ -127,9 +127,20 @@ pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
 
 /// The player answered (KnubotAnswerIIR: u16 1, ID32 npc, u32 answer index).
 pub fn answer(player: Id32, index: u32) {
-    if let Some((_, tx)) = TALKING.lock().unwrap().get(&player) {
+    if let Some((_, tx, _)) = TALKING.lock().unwrap().get(&player) {
         let _ = tx.send(index);
     }
+}
+
+/// Ends the player's dialogue, if any (a teleport: its window and cinematic would stay open in
+/// the new world): the records that close it.
+pub fn end(player: Id32) -> Vec<Bytes> {
+    let Some((_, _, owner)) = TALKING.lock().unwrap().remove(&player) else { return Vec::new() };
+    let close = remoteformat(100, "0", &key("100/0"), None, None);
+    vec![
+        actor(player, msg(Kind::ClearCinematicState, "")),
+        knubot_record("KnubotCloseChatWindowIIR", player, owner, |w| w.u32(1).string(&close)),
+    ]
 }
 
 /// The player left.
@@ -188,7 +199,7 @@ struct Speaker {
 impl Speaker {
     /// Sends to the player while this is its current dialogue (a newer one replaces it).
     fn send(&self, records: Vec<Bytes>) {
-        let current = TALKING.lock().unwrap().get(&self.player).is_some_and(|(g, _)| *g == self.generation);
+        let current = TALKING.lock().unwrap().get(&self.player).is_some_and(|(g, ..)| *g == self.generation);
         if current {
             world::send_to(self.player, world::Out::Records(records));
         }

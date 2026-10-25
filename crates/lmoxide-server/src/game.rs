@@ -496,6 +496,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     // talking to an NPC with dialogues
                                     crate::knubot::talk(h.identity, &me.name, npc, &name, playfield);
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
+                                    && let Some((guid, action)) = interaction_object(data)
+                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::mirrors::is_mirror(object.instance))
+                                        .map(|(object, action)| (object.instance, action))
+                                {
+                                    // turning a Medusa mirror (not again for the stop-use the client queues after it)
+                                    if action != INTERACTION_STOP_USE {
+                                        crate::mirrors::turn(h.identity, guid);
+                                    }
+                                    stop_after_success = true;
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some(f) = target.and_then(|(kind, instance)| (kind == crate::scenery::SIMPLE_DYNEL_TYPE).then(|| crate::discovery::collectible(instance)).flatten())
                                 {
                                     // using a collectible finds it
@@ -1038,6 +1048,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("{} stars", me.stars));
                         }
+                        crate::devcmd::Action::Mirrors(solve) => {
+                            let line = if crate::mirrors::set_solved(me.playfield, solve) {
+                                format!("mirrors: {}", if solve { "solved" } else { "reset" })
+                            } else {
+                                "no mirror puzzle here (Armory 2310, Gauntlet 6300)".to_string()
+                            };
+                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                        }
                         crate::devcmd::Action::Smash => {
                             let here = *pos.lock().unwrap();
                             let d = |p: [f32; 3]| (p[0] - here[0]).hypot(p[2] - here[2]);
@@ -1510,10 +1528,12 @@ async fn teleport(
     };
     info!(from = me.playfield, to = playfield, ?spot, "teleport");
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-    let records = [
+    // a dialogue going on ends here (its window and cinematic would stay up in the new world)
+    let mut records = crate::knubot::end(id);
+    records.extend([
         crate::teleport::intended_teleport_record(id, playfield),
         crate::teleport::teleport_record(id, playfield, arrive_pos, arrive_rot),
-    ];
+    ]);
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     // leaving: despawns the character for everyone in the old playfield
     *presence = None;
@@ -1885,6 +1905,12 @@ fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option
     (me.team.first().map(|&(s, _)| s) == Some(dst_slot)).then_some(template)
 }
 
+/// ObjectInteraction data: ID32 object, u32 action (6 use, `INTERACTION_STOP_USE`).
+fn interaction_object(data: &[u8]) -> Option<(Id32, u32)> {
+    let u = |i: usize| data.get(i..i + 4).map(|b| u32::from_be_bytes(b.try_into().unwrap()));
+    Some((Id32::new(u(0)?, u(4)?), u(8)?))
+}
+
 /// A queued command from a BehaviorControlCenterIIR_c body: u8 action, u32 CommandType,
 /// u32 length + CommandMessage protobuf, then the command's own data.
 fn parse_command(rest: &[u8]) -> Option<(lmoxide_net::proto::CommandMessage, &[u8])> {
@@ -2209,6 +2235,8 @@ const AREA_RADIUS: f32 = 2.5;
 const MELEE_REACH: f32 = 1.5;
 /// CommandType of CycleToNextWeaponCommand (switch minifigure: u8 flag, u32 slot); 4 = MagicCommand.
 const COMMAND_CYCLE_WEAPON: u32 = 0x30;
+/// The ObjectInteraction action the client queues after a use (StopUse).
+const INTERACTION_STOP_USE: u32 = 0x22;
 /// The command that sets the character's BCCState (data: u32 state; building asks for 104).
 const COMMAND_BCC_STATE: u32 = 1;
 /// EquipItemCommand: a minifigure moved from the collection into a team slot.

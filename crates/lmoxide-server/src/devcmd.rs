@@ -15,6 +15,7 @@
 //!   !test [n|label]           list the manual test setups, or set one up (data/test_scenarios.json)
 //!   !aura <0-4>               the active minifigure's aura tier (gives/takes its aura tags)
 //!   !dialog [n]               play recorded NPC dialogue n (without n: list them)
+//!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -43,6 +44,8 @@ pub enum Action {
     Aura(u32),
     /// play recorded dialogue n (0: list them)
     Dialog(usize),
+    /// turn this playfield's mirrors to the solution (true) or the start
+    Mirrors(bool),
 }
 
 /// A resolved test scenario (data/test_scenarios.json).
@@ -271,6 +274,10 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(event, n)
         }
         "smash" => Action::Smash,
+        "mirrors" => match args.first().copied() {
+            Some(how @ ("solve" | "reset")) => Action::Mirrors(how == "solve"),
+            _ => reply(vec!["usage: !mirrors <solve|reset>".into()]),
+        },
         "defeat" if !args.is_empty() => {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
