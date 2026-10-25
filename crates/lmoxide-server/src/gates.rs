@@ -193,6 +193,9 @@ fn gate_open(guid: u32) -> Option<bool> {
     if guid == crate::tiki::GATE {
         return Some(crate::tiki::solved());
     }
+    if guid == crate::ballista::GATE {
+        return Some(crate::ballista::solved());
+    }
     if let Some(open) = crate::mirrors::gate_open(guid) {
         return Some(open);
     }

@@ -97,6 +97,7 @@ pub fn start() {
                 || crate::encounter::is_shield(p.guid)
                 || crate::plates::is_plate(playfield, &p.name)
                 || crate::pistons::is_piston(playfield, &p.name)
+                || crate::ballista::is_ballista(playfield, &p.name)
                 || crate::gates::wall_blocks(p.guid).is_some()
         }) {
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
@@ -143,7 +144,7 @@ pub fn invisible_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4])
 /// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
 fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let id = Id32::new(SIMPLE_DYNEL_TYPE, p.guid);
-    let usable = crate::discovery::is_collectible(&p.name) || crate::mirrors::is_mirror(p.guid);
+    let usable = crate::discovery::is_collectible(&p.name) || crate::mirrors::is_mirror(p.guid) || crate::ballista::is_lever(p.guid);
     let cars_group = if usable { CARS_USABLE } else { CARS_INACTIVE };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
@@ -188,7 +189,8 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     records.extend(crate::gates::pose_records(p.guid));
     records.extend(crate::pistons::pose_records(p.guid));
     // hidden: an arena door that's open now, the plate room's plates' other look
-    if crate::encounter::door_hidden(p.guid).or_else(|| crate::plates::hidden(p.guid)) == Some(true) {
+    let hidden = crate::encounter::door_hidden(p.guid).or_else(|| crate::plates::hidden(p.guid)).or_else(|| crate::ballista::hidden(p.guid));
+    if hidden == Some(true) {
         records.push(crate::encounter::door_record(id, true));
     }
     records

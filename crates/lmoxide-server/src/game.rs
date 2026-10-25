@@ -498,6 +498,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     crate::knubot::talk(h.identity, &me.name, npc, &name, playfield);
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some((guid, action)) = interaction_object(data)
+                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::ballista::is_lever(object.instance))
+                                        .map(|(object, action)| (object.instance, action))
+                                {
+                                    // pulling a ballista's lever (the Gauntlet's shooting room)
+                                    if action != INTERACTION_STOP_USE {
+                                        crate::ballista::pull(h.identity, guid);
+                                    }
+                                    stop_after_success = true;
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
+                                    && let Some((guid, action)) = interaction_object(data)
                                         .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::mirrors::is_mirror(object.instance))
                                         .map(|(object, action)| (object.instance, action))
                                 {

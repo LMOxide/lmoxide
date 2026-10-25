@@ -264,6 +264,14 @@
         "playfield": 6300,
         "pos": [262.0, 48.0, 172.0]
       }
+    },
+    {
+      "label": "ballista",
+      "about": "the Gauntlet's shooting room: use the levers to fire the two ballistas at the targets, which opens the east gate (ballista.rs)",
+      "goto": {
+        "playfield": 6300,
+        "pos": [313.0, 48.0, 173.0]
+      }
     }
   ]
 }

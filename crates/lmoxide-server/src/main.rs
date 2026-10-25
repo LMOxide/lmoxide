@@ -2,6 +2,7 @@ mod achievements;
 mod actions;
 mod auras;
 mod admin;
+mod ballista;
 mod buildie;
 mod cannon;
 mod chat;
@@ -217,6 +218,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     plates::start();
     pistons::start();
     tiki::start();
+    ballista::start();
     encounter::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
