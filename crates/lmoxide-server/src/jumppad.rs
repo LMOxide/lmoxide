@@ -334,7 +334,14 @@ async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3]
 /// Throws `player` (as a jump pad does, without a pad: pistons.rs) to `end`, arcing `apex` m
 /// above the higher end; returns when they land. The lock buff is the caller's to remove.
 pub async fn throw(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32) {
+    // the BCT substate "Knockbacked" (24): the minifigure's graph plays its `launch` (tumbling)
+    // motion while it lasts (client: EmotionFXCharacter::SetBCTSubstate sets `knockback`)
+    // (and `launched`, which the graph also tumbles on: effect package 623093; the landing
+    // effect 102632 clears it)
+    let records = vec![knockback_record(player, BCC_ENTER_SUBSTATE), effects::effect_package(player, LAUNCHED_EFFECT)];
+    world::send_playfield(player, true, world::Out::Records(records));
     fly(player, pos, end, apex, None).await;
+    world::send_playfield(player, true, world::Out::Records(vec![knockback_record(player, BCC_EXIT_SUBSTATE)]));
     tokio::time::sleep(Duration::from_millis(300)).await;
     world::send_playfield(player, true, world::Out::Records(vec![effects::buff_remove(player, LOCK_BUFF, Id32::default())]));
 }
@@ -372,6 +379,16 @@ async fn fly(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32, laun
     *pos.lock().unwrap() = end;
     world::send_playfield(player, true, world::Out::Records(vec![stop_record(player, end, dir)]));
     end
+}
+
+const KNOCKBACKED: u32 = 24;
+const LAUNCHED_EFFECT: u32 = 623093;
+const BCC_ENTER_SUBSTATE: u8 = 11;
+const BCC_EXIT_SUBSTATE: u8 = 12;
+
+/// `BehaviorControlCenterIIR_c` action 11/12 (enter/exit substate) with substate 24, as dash.rs.
+fn knockback_record(id: Id32, action: u8) -> Bytes {
+    iir::record("BehaviorControlCenterIIR_c", id, false, |w| w.u8(action).u32(KNOCKBACKED))
 }
 
 /// `StopIIR_c`: position, rotation quaternion (yaw towards `dir`), u8 0, u8 0.
