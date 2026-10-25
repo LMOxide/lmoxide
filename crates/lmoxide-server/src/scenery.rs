@@ -45,7 +45,13 @@ struct Piece {
     /// [resource type, visual id]
     visual: [u32; 2],
     bounds: [f32; 6],
+    #[serde(default = "one")]
+    scale: f32,
     guid: u32,
+}
+
+fn one() -> f32 {
+    1.0
 }
 
 impl Piece {
@@ -82,7 +88,7 @@ pub fn start() {
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };
         let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };
-        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name) || crate::encounter::is_door(p.guid)) {
+        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name) || crate::encounter::is_door(p.guid) || crate::encounter::is_shield(p.guid)) {
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
             let presence = join(&piece, playfield);
             PRESENCES.lock().unwrap().insert(piece.guid, (playfield, piece, presence));
@@ -133,9 +139,11 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         playfield_instance: Some(playfield),
         running_effects: vec![],
     };
+    // an arena's shield: a wall while its door is closed (encounter.rs); nothing else collides
+    // (n3VisualDynel::EnableCollision(0))
+    let shield = crate::encounter::shield_blocks(p.guid);
     let simple = ProtoSimpleDynelIir {
-        // no collision (n3VisualDynel::EnableCollision(0))
-        kdtree: Some(0),
+        kdtree: Some(if shield == Some(true) { crate::encounter::SHIELD_COLLISION } else { 0 }),
         name: Some(p.name.clone()),
         cars_group: Some(cars_group),
         // gates open; mirrors as turned (mirrors.rs)
@@ -146,8 +154,10 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     // one instead, which at worst affects culling
     let bounds = if p.bounds[0] > p.bounds[3] { FALLBACK_BOUNDS } else { p.bounds };
     let record = iir::record("SimpleDynelFullUpdateIIR_c", id, false, |w| {
-        let w = w.proto(&dynel).proto(&simple).u32(p.visual[1]).u32(p.visual[0]).u32(0);
-        bounds.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
+        // (a shield shows its collision mesh, as recorded)
+        let visual = if shield.is_some() { crate::encounter::SHIELD_COLLISION } else { p.visual[1] };
+        let w = w.proto(&dynel).proto(&simple).u32(visual).u32(p.visual[0]).u32(0);
+        bounds.iter().fold(w, |w, v| w.f32(*v)).f32(p.scale).u32(0).u8(0)
     });
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
     // hidden: an arena door that's open now, a mirror puzzle's gate once solved

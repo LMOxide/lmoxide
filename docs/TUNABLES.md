@@ -150,6 +150,7 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Champions | `CHAMPION_HEALTH`, `CHAMPION_REST` | one per side dungeon ("Defeat the champion" area quests), named after an unbeaten champion of its world, 5x health, at BA_SpawnChampion or the farthest regular; a new one 10 min after | Champion names only exist as achievements. |
 | Past a boss | `encounter::GATES` | ambushes, arenas and the champion spot farther from the playfield's arrival point than an arena's start stay quiet until that arena's boss is beaten (arenas without a boss don't gate) | Straight-line distance; inferred. |
 | Pocket worlds | `encounter::pocket`, `npc.rs` respawn | every playfield but the open worlds (hub, 4200, 4210, 4600, 5200, 5210, 3200, 3210, 2210, 6200, tutorial): encounters run once and defeated enemies stay down while anyone is inside; when it empties, all of it resets (a new instance) | Live instanced dungeons per group. Open worlds: encounters come back after their rest, enemies after RESPAWN. |
+| Arena walls | `encounter.rs` `SHIELDS`, `scenery.rs` | each "Boss…Shield" piece within 3 m of a closed (entrance or exit) door visual is a wall (collision 60624, as recorded) while that visual shows | Recorded in the tutorial: the shield spawned with KD-tree 60624 and lost it (VisualChange 4, 0) when the boss fell. Pairing by distance is inferred. |
 | Not done | | boss buildies (Kraken 194851, Medusa mirrors, ...), boss phases/immunities, area quests, the Kraken's own script | |
 
 ## Tutorial

@@ -302,6 +302,69 @@ pub fn is_door(guid: u32) -> bool {
     DOORS.contains_key(&guid)
 }
 
+/// The arenas' collision shields ("BossEntranceShield", "BossExitShield": invisible pieces
+/// beside the door visuals): walls while the closed door visual beside them is shown. Live
+/// (recorded in the tutorial) spawned the shield with visual and collision KD-tree 60624 (its
+/// placement says 60626) and cleared the collision (`SimpleDynelVisualChangeIIR_c` state 4, id
+/// 0) when the boss fell.
+pub const SHIELD_COLLISION: u32 = 60624;
+const SHIELD_VISUAL: u32 = 60626;
+/// How far a shield may stand from its door's closed visual.
+const SHIELD_DOOR_DISTANCE: f32 = 3.0;
+
+/// Shield guid -> the closed (entrance or exit) door visual beside it.
+static SHIELDS: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
+    #[derive(Deserialize)]
+    struct Piece {
+        name: String,
+        pos: [f32; 3],
+        visual: [u32; 2],
+        guid: u32,
+    }
+    let worlds: HashMap<String, serde_json::Value> =
+        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+    let mut m = HashMap::new();
+    for (pf, w) in worlds {
+        let Ok(pf) = pf.parse::<u32>() else { continue };
+        if !DATA.contains_key(&pf) {
+            continue;
+        }
+        let pieces: Vec<Piece> = w
+            .get("simple_dynels")
+            .and_then(|v| v.as_array())
+            .map(|a| a.iter().filter_map(|d| serde_json::from_value(d.clone()).ok()).collect())
+            .unwrap_or_default();
+        let closed = |p: &Piece| DOORS.get(&p.guid).is_some_and(|&(_, _, kind)| matches!(kind, Door::Closed | Door::Exit));
+        for shield in pieces.iter().filter(|p| p.visual[1] == SHIELD_VISUAL && p.name.contains("Shield")) {
+            let near = pieces
+                .iter()
+                .filter(|d| closed(d))
+                .map(|d| (d.guid, ((d.pos[0] - shield.pos[0]).powi(2) + (d.pos[2] - shield.pos[2]).powi(2)).sqrt()))
+                .filter(|&(_, dist)| dist <= SHIELD_DOOR_DISTANCE)
+                .min_by(|a, b| a.1.total_cmp(&b.1));
+            if let Some((door, _)) = near {
+                m.insert(shield.guid, door);
+            }
+        }
+    }
+    m
+});
+
+/// Whether a simple dynel is an arena's collision shield (spawned by scenery.rs).
+pub fn is_shield(guid: u32) -> bool {
+    SHIELDS.contains_key(&guid)
+}
+
+/// Whether a shield blocks now (its door's closed visual is shown).
+pub fn shield_blocks(guid: u32) -> Option<bool> {
+    door_hidden(*SHIELDS.get(&guid)?).map(|hidden| !hidden)
+}
+
+/// `SimpleDynelVisualChangeIIR_c` state 4: the collision KD-tree (0: none), as recorded.
+pub fn collision_record(id: Id32, blocks: bool) -> Bytes {
+    iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(4).u32(if blocks { SHIELD_COLLISION } else { 0 }))
+}
+
 #[derive(Clone, Copy)]
 enum Door {
     Open,
@@ -524,12 +587,19 @@ pub fn refresh_doors(playfield: u32) {
     }
 }
 
-/// Shows the arena's doors as its state has them.
+/// Shows the arena's doors as its state has them, and makes their shields walls or not.
 fn set_doors(def: &ArenaDef) {
-    for &guid in def.doors.open.iter().chain(&def.doors.closed).chain(&def.doors.exit) {
+    let doors: Vec<u32> = def.doors.open.iter().chain(&def.doors.closed).chain(&def.doors.exit).copied().collect();
+    for &guid in &doors {
         if let Some(hidden) = door_hidden(guid) {
             let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, guid);
             world::send_playfield(id, false, world::Out::Records(vec![door_record(id, hidden)]));
+        }
+    }
+    for (&shield, door) in SHIELDS.iter().filter(|(_, door)| doors.contains(door)) {
+        if let Some(hidden) = door_hidden(*door) {
+            let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, shield);
+            world::send_playfield(id, false, world::Out::Records(vec![collision_record(id, !hidden)]));
         }
     }
 }
@@ -546,6 +616,14 @@ fn music(player: Id32, on: bool) {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn shields_stand_by_their_doors() {
+        // the Armory: the mirror room's barrier (Thunderbolt exit) and the arena's entrance
+        assert_eq!(SHIELDS.get(&494785), Some(&494789));
+        assert_eq!(SHIELDS.get(&494766), Some(&494765));
+        assert!(SHIELDS.len() >= 10, "{} shields", SHIELDS.len());
+    }
     use super::*;
 
     #[test]
