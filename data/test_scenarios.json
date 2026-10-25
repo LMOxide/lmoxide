@@ -228,6 +228,14 @@
         "playfield": 6300,
         "pos": [231.0, 48.0, 172.0]
       }
+    },
+    {
+      "label": "pistons",
+      "about": "the Gauntlet's piston room: the pistons push out in turn and knock you off their ledge (pistons.rs)",
+      "goto": {
+        "playfield": 6300,
+        "pos": [336.0, 48.0, 168.0]
+      }
     }
   ]
 }

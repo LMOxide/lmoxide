@@ -22,6 +22,7 @@ mod knubot;
 mod loot;
 mod mirrors;
 mod npc;
+mod pistons;
 mod plates;
 mod procs;
 mod progression;
@@ -212,6 +213,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     mirrors::start();
     gates::start();
     plates::start();
+    pistons::start();
     encounter::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);

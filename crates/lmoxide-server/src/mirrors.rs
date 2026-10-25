@@ -118,7 +118,7 @@ pub fn closed(guid: u32) -> Option<bool> {
 /// The mirror's pose effect (blend setup 474600's `anim` parameter, effect packages in RDB
 /// 1000622): 474576 sets `anim` 1, which plays `open` and rests in `anim_1` ("+"), 474575 sets
 /// it 0 (`close`, `anim_0`, "-"). Levers and gates share the blend setup.
-const TURN_PLUS: u32 = 474576;
+pub const TURN_PLUS: u32 = 474576;
 pub const TURN_MINUS: u32 = 474575;
 
 /// The records that put a mirror in its pose now (for its spawn: a mirror at "+" turns there).

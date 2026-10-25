@@ -327,9 +327,22 @@ async fn launch(player: Id32, playfield: u32, mut pad: &'static Pad, pos: world:
 /// One jump: arc maths from the recorded jumps (all seven fit exactly): the arc peaks `apex`
 /// above the higher of start and end; T = time up + time down. Returns where it landed.
 async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3] {
+    info!(?player, pad = pad.guid, end = ?pad.target, "jump pad");
+    fly(player, pos, pad.target, pad.apex.unwrap_or(DEFAULT_APEX), Some(effects::effect_package(pad.id(), pad.effect()))).await
+}
+
+/// Throws `player` (as a jump pad does, without a pad: pistons.rs) to `end`, arcing `apex` m
+/// above the higher end; returns when they land. The lock buff is the caller's to remove.
+pub async fn throw(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32) {
+    fly(player, pos, end, apex, None).await;
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    world::send_playfield(player, true, world::Out::Records(vec![effects::buff_remove(player, LOCK_BUFF, Id32::default())]));
+}
+
+/// The flight: arc maths from the recorded jumps; `launch` is the pad's launch effect.
+async fn fly(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32, launch: Option<Bytes>) -> [f32; 3] {
     let start = *pos.lock().unwrap();
-    let end = pad.target;
-    let top = start[1].max(end[1]) + pad.apex.unwrap_or(DEFAULT_APEX);
+    let top = start[1].max(end[1]) + apex;
     let up = (2.0 * (top - start[1]) / GRAVITY).sqrt();
     let down = (2.0 * (top - end[1]) / GRAVITY).sqrt();
     let t = up + down;
@@ -337,10 +350,10 @@ async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3]
     let (dx, dz) = (end[0] - start[0], end[2] - start[2]);
     let h = (dx * dx + dz * dz).sqrt().max(0.001);
     let dir = [dx / h, dz / h];
-    if let Some(s) = STATES.lock().unwrap().get_mut(&player) {
-        s.airborne_until = Some(Instant::now() + Duration::from_secs_f32(t + 0.3));
+    {
+        let mut states = STATES.lock().unwrap();
+        states.entry(player).or_default().airborne_until = Some(Instant::now() + Duration::from_secs_f32(t + 0.3));
     }
-    info!(?player, pad = pad.guid, ?end, t, "jump pad");
     // `ParameterizedBallisticMoveTask` (12): u8 0, start, u8 12, u8 0, f32 T, f32 T, f32 0,
     // start, end, horizontal direction, u8 0, u8 0, f32 horizontal speed, f32 vertical speed,
     // u8 1, u8 1
@@ -349,12 +362,8 @@ async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3]
         let w = [start, end, [dir[0], 0.0, dir[1]]].iter().flatten().fold(w, |w, v| w.f32(*v));
         w.u8(0).u8(0).f32(h / t).f32(vy).u8(1).u8(1)
     });
-    let records = vec![
-        effects::effect_package(pad.id(), pad.effect()),
-        stop_record(player, start, dir),
-        flight,
-        effects::buff_add(player, LOCK_BUFF, Id32::default(), 1500),
-    ];
+    let mut records: Vec<Bytes> = launch.into_iter().collect();
+    records.extend([stop_record(player, start, dir), flight, effects::buff_add(player, LOCK_BUFF, Id32::default(), 1500)]);
     world::send_playfield(player, true, world::Out::Records(records));
 
     tokio::time::sleep(Duration::from_secs_f32((t - 0.2).max(0.0))).await;

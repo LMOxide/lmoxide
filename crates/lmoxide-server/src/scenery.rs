@@ -96,6 +96,7 @@ pub fn start() {
                 || crate::encounter::is_door(p.guid)
                 || crate::encounter::is_shield(p.guid)
                 || crate::plates::is_plate(playfield, &p.name)
+                || crate::pistons::is_piston(playfield, &p.name)
                 || crate::gates::wall_blocks(p.guid).is_some()
         }) {
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
@@ -185,6 +186,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
     records.extend(crate::mirrors::pose_records(p.guid));
     records.extend(crate::gates::pose_records(p.guid));
+    records.extend(crate::pistons::pose_records(p.guid));
     // hidden: an arena door that's open now, the plate room's plates' other look
     if crate::encounter::door_hidden(p.guid).or_else(|| crate::plates::hidden(p.guid)) == Some(true) {
         records.push(crate::encounter::door_record(id, true));
