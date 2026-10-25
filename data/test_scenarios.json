@@ -138,6 +138,30 @@
           "count": 4
         }
       ]
+    },
+    {
+      "label": "clouds",
+      "about": "Mythology cloud jumpers: the wind fan throws you up three clouds to the top in one go (jumppad.rs chains)",
+      "goto": {
+        "playfield": 2210,
+        "pos": [30.0, 16.2, 249.3]
+      }
+    },
+    {
+      "label": "ravine",
+      "about": "Dinosaur Rise SwampToVolcano1: across the ravine via SwampToVolcano2 to the volcano side",
+      "goto": {
+        "playfield": 6200,
+        "pos": [89.81, 64.0, 155.56]
+      }
+    },
+    {
+      "label": "catapults",
+      "about": "a pair of Medieval Kingdom catapults: each lands you next to the other one",
+      "goto": {
+        "playfield": 5200,
+        "pos": [80.0, 25.0, 256.1]
+      }
     }
   ]
 }

@@ -16094,11 +16094,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_a_buildie",
     "target": [
-     344.0,
-     64.0,
-     104.0
+     338.99,
+     72.0,
+     111.58
     ],
-    "target_by": "nearest"
+    "target_by": "onward"
    },
    {
     "name": "jump_pad_catapult_a_buildie",
@@ -16132,11 +16132,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_a_buildie",
     "target": [
-     336.0,
-     52.0,
+     344.0,
+     64.0,
      104.0
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "Climb_JumpLocation 1",
@@ -16167,7 +16167,7 @@
     ],
     "guid": 471865,
     "tag": "28EI",
-    "kind": "marker",
+    "kind": "jump_target",
     "look": null
    },
    {
@@ -16199,7 +16199,7 @@
     ],
     "guid": 471866,
     "tag": "28EI",
-    "kind": "marker",
+    "kind": "jump_target",
     "look": null
    },
    {
@@ -16231,7 +16231,7 @@
     ],
     "guid": 471895,
     "tag": "28EI",
-    "kind": "marker",
+    "kind": "jump_target",
     "look": null
    },
    {
@@ -16301,7 +16301,7 @@
     ],
     "guid": 474483,
     "tag": "28EI",
-    "kind": "marker",
+    "kind": "jump_target",
     "look": null
    },
    {
@@ -16371,7 +16371,7 @@
     ],
     "guid": 472183,
     "tag": "28EI",
-    "kind": "marker",
+    "kind": "jump_target",
     "look": null
    },
    {
@@ -16403,7 +16403,7 @@
     ],
     "guid": 472182,
     "tag": "28EI",
-    "kind": "marker",
+    "kind": "jump_target",
     "look": null
    }
   ],
@@ -20114,11 +20114,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     26.12,
-     44.64,
-     270.47
+     34.35,
+     37.08,
+     265.62
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "jump location invisible",
@@ -20184,11 +20184,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     28.75,
-     46.62,
-     280.26
+     26.12,
+     44.64,
+     270.47
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "jump location invisible",
@@ -20251,8 +20251,14 @@
     ],
     "guid": 486291,
     "tag": "JUMP",
-    "kind": "marker",
-    "look": null
+    "kind": "jump_pad",
+    "look": null,
+    "target": [
+     28.75,
+     46.62,
+     280.26
+    ],
+    "target_by": "onward"
    },
    {
     "name": "jump_pad_wind_fan_b_buildie",
@@ -20920,7 +20926,7 @@
      41.5,
      332.47
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "jump location invisible",
@@ -20990,7 +20996,7 @@
      50.5,
      347.7
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "jump location invisible",
@@ -21162,7 +21168,7 @@
      42.44,
      343.75
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "jump_pad_water_lily_a_buildie",
@@ -21196,11 +21202,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     92.22,
-     42.52,
+     100.81,
+     43.24,
      343.98
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "Jump Location Harpy 2",
@@ -21266,11 +21272,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     100.81,
-     43.24,
+     92.22,
+     42.52,
      343.98
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "Jump Location Harpy 3",
@@ -21336,11 +21342,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     100.81,
-     43.24,
-     343.98
+     85.68,
+     42.44,
+     343.75
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "Jumpie Invisible Harpy 2_3",
@@ -21374,11 +21380,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     85.68,
-     42.44,
-     343.75
+     92.22,
+     42.52,
+     343.98
     ],
-    "target_by": "nearest"
+    "target_by": "name"
    },
    {
     "name": "Jumpie Invisible Harpy 1_2",
@@ -21412,11 +21418,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     100.81,
-     43.24,
-     343.98
+     85.68,
+     42.44,
+     343.75
     ],
-    "target_by": "nearest"
+    "target_by": "name"
    },
    {
     "name": "Jumpie Invisible Harpy 2_2",
@@ -21450,11 +21456,11 @@
     "kind": "jump_pad",
     "look": null,
     "target": [
-     85.68,
-     42.44,
-     343.75
+     92.22,
+     42.52,
+     343.98
     ],
-    "target_by": "nearest"
+    "target_by": "name"
    }
   ],
   "doors": [
@@ -33600,7 +33606,7 @@
      103.89,
      338.3
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "Jump To landing",
@@ -33670,7 +33676,7 @@
      107.4,
      354.48
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "Jump From landing",
@@ -64540,7 +64546,7 @@
      86.25,
      287.8
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano1 forward landing",
@@ -64610,7 +64616,7 @@
      100.0,
      288.92
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano1 back landing",
@@ -64676,11 +64682,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_mortar_a_buildie",
     "target": [
-     168.87,
-     99.18,
-     335.04
+     168.91,
+     86.06,
+     312.45
     ],
-    "target_by": "nearest"
+    "target_by": "name"
    },
    {
     "name": "volcano2 forward",
@@ -64718,7 +64724,7 @@
      99.18,
      335.04
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano2 forward landing",
@@ -64820,7 +64826,7 @@
      55.12,
      412.16
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano3 forward landing",
@@ -64890,7 +64896,7 @@
      99.1,
      395.07
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano4 back landing",
@@ -64956,11 +64962,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_mortar_a_buildie",
     "target": [
-     222.17,
-     99.1,
-     395.07
+     226.03,
+     83.92,
+     369.05
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano5 forward",
@@ -64994,11 +65000,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_mortar_a_buildie",
     "target": [
-     226.03,
-     83.92,
-     369.05
+     226.0,
+     99.0,
+     346.39
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano5 back landing",
@@ -65096,11 +65102,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_mortar_a_buildie",
     "target": [
-     226.0,
-     99.0,
-     346.39
+     244.39,
+     99.34,
+     339.65
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano6 forward",
@@ -65134,11 +65140,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_mortar_a_buildie",
     "target": [
-     244.39,
-     99.34,
-     339.65
+     267.63,
+     99.0,
+     350.89
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano6 back landing",
@@ -65240,7 +65246,7 @@
      83.91,
      371.59
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "volcano4 forward landing",
@@ -75328,7 +75334,7 @@
      100.23,
      397.05
     ],
-    "target_by": "adjacent"
+    "target_by": "name"
    },
    {
     "name": "Jump To landing",
@@ -82049,9 +82055,9 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_b_buildie",
     "target": [
-     82.63,
-     25.0,
-     256.05
+     70.63,
+     18.5,
+     255.92
     ],
     "target_by": "nearest"
    },
@@ -82413,9 +82419,9 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_b_buildie",
     "target": [
-     264.45,
+     280.19,
      14.0,
-     127.16
+     115.46
     ],
     "target_by": "nearest"
    },
@@ -82623,11 +82629,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_b_buildie",
     "target": [
-     368.44,
-     27.99,
-     181.46
+     338.86,
+     27.51,
+     179.37
     ],
-    "target_by": "nearest"
+    "target_by": "onward"
    },
    {
     "name": "jump_pad_catapult_b_buildie",
@@ -82661,11 +82667,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_b_buildie",
     "target": [
-     338.86,
-     27.51,
-     179.37
+     337.29,
+     27.3,
+     165.25
     ],
-    "target_by": "nearest"
+    "target_by": "onward"
    },
    {
     "name": "jump_pad_catapult_b_buildie",
@@ -82837,7 +82843,7 @@
      29.91,
      185.88
     ],
-    "target_by": "adjacent"
+    "target_by": "onward"
    },
    {
     "name": "jump location invisible",
@@ -83215,9 +83221,9 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_b_buildie",
     "target": [
-     403.78,
-     20.0,
-     78.87
+     400.97,
+     23.62,
+     65.78
     ],
     "target_by": "nearest"
    },
@@ -95636,9 +95642,9 @@
     "kind": "jump_pad",
     "look": "jump_pad_catapult_a_buildie",
     "target": [
-     198.01,
-     31.7,
-     180.71
+     206.44,
+     34.0,
+     181.96
     ],
     "target_by": "adjacent"
    },
@@ -105105,11 +105111,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     93.23,
-     64.0,
-     156.1
+     73.22,
+     56.95,
+     159.13
     ],
-    "target_by": "nearest"
+    "target_by": "chain"
    },
    {
     "name": "SwampToVolcano2",
@@ -105147,7 +105153,7 @@
      78.0,
      185.13
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "SwampToVolcanoEnd",
@@ -105213,11 +105219,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     109.19,
-     76.0,
-     185.81
+     143.13,
+     69.71,
+     165.16
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "HubToVolcanoEnd",
@@ -105287,7 +105293,7 @@
      76.0,
      185.81
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "SwampToTarpit1",
@@ -105321,11 +105327,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     265.85,
-     80.0,
-     164.67
+     249.04,
+     70.23,
+     155.74
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "SwampToTarpitEnd",
@@ -105395,7 +105401,7 @@
      80.0,
      164.67
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "SwampToPond1",
@@ -105433,7 +105439,7 @@
      32.65,
      113.1
     ],
-    "target_by": "name"
+    "target_by": "chain"
    },
    {
     "name": "SwampToPond2",
@@ -105464,8 +105470,14 @@
     ],
     "guid": 504801,
     "tag": "JUMP",
-    "kind": "marker",
-    "look": null
+    "kind": "jump_pad",
+    "look": null,
+    "target": [
+     268.64,
+     31.51,
+     79.5
+    ],
+    "target_by": "chain"
    },
    {
     "name": "SwampToPond3",
@@ -105496,8 +105508,14 @@
     ],
     "guid": 505078,
     "tag": "JUMP",
-    "kind": "marker",
-    "look": null
+    "kind": "jump_pad",
+    "look": null,
+    "target": [
+     254.85,
+     37.02,
+     80.7
+    ],
+    "target_by": "chain"
    },
    {
     "name": "SwampToPondEnd",
@@ -105563,11 +105581,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     285.45,
-     78.0,
-     126.54
+     265.15,
+     53.53,
+     88.3
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "PondToTarpitEnd",
@@ -105633,11 +105651,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     285.45,
-     78.0,
-     126.54
+     282.86,
+     58.67,
+     109.75
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "PondToTarpit3",
@@ -105675,7 +105693,7 @@
      78.0,
      126.54
     ],
-    "target_by": "nearest"
+    "target_by": "chain"
    },
    {
     "name": "TarpitToPond1",
@@ -105709,11 +105727,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     285.45,
-     78.0,
-     126.54
+     266.82,
+     72.0,
+     126.17
     ],
-    "target_by": "nearest"
+    "target_by": "chain"
    },
    {
     "name": "TarpitToPond2",
@@ -105747,11 +105765,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     285.45,
-     78.0,
-     126.54
+     267.66,
+     49.29,
+     106.69
     ],
-    "target_by": "nearest"
+    "target_by": "chain"
    },
    {
     "name": "TarpitToPond3",
@@ -105789,7 +105807,7 @@
      38.53,
      98.17
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "TarpitToPondEnd",
@@ -105859,7 +105877,7 @@
      63.57,
      160.23
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "TarpitToSwampEnd",
@@ -105989,11 +106007,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     59.64,
-     78.0,
-     185.13
+     86.48,
+     70.02,
+     165.7
     ],
-    "target_by": "nearest"
+    "target_by": "chain"
    },
    {
     "name": "VolcanoToSwamp2",
@@ -106031,7 +106049,7 @@
      64.0,
      156.1
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "VolcanoToSwampEnd",
@@ -106129,11 +106147,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     160.61,
-     64.57,
-     172.35
+     124.86,
+     78.72,
+     172.68
     ],
-    "target_by": "adjacent"
+    "target_by": "chain"
    },
    {
     "name": "PondToSwamp1",
@@ -106171,7 +106189,7 @@
      32.54,
      79.23
     ],
-    "target_by": "name"
+    "target_by": "chain"
    },
    {
     "name": "PondToSwamp2",
@@ -106202,8 +106220,14 @@
     ],
     "guid": 521797,
     "tag": "JUMP",
-    "kind": "marker",
-    "look": null
+    "kind": "jump_pad",
+    "look": null,
+    "target": [
+     235.74,
+     32.04,
+     113.27
+    ],
+    "target_by": "chain"
    },
    {
     "name": "PondToSwamp3",
@@ -106234,8 +106258,14 @@
     ],
     "guid": 521798,
     "tag": "JUMP",
-    "kind": "marker",
-    "look": null
+    "kind": "jump_pad",
+    "look": null,
+    "target": [
+     243.83,
+     51.53,
+     113.46
+    ],
+    "target_by": "chain"
    },
    {
     "name": "PondToSwamp4",
@@ -106269,11 +106299,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     235.74,
-     32.04,
-     113.27
+     228.51,
+     62.2,
+     128.82
     ],
-    "target_by": "name"
+    "target_by": "chain"
    },
    {
     "name": "PondToSwampEnd",
@@ -106339,11 +106369,11 @@
     "kind": "jump_pad",
     "look": "jump_pad_plane_a_buildie",
     "target": [
-     109.19,
-     76.0,
-     185.81
+     160.61,
+     64.57,
+     172.35
     ],
-    "target_by": "nearest"
+    "target_by": "chain"
    },
    {
     "name": "Tar 6 end",

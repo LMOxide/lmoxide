@@ -54,9 +54,15 @@ const MORTAR_EFFECT: u32 = 367572;
 const FAN_EFFECT: u32 = 102631;
 /// Landing effect on the player, shortly before touching down.
 const LANDING_EFFECT: u32 = 102632;
+/// The plain invisible visual of markers and invisible jumpers.
+const INVISIBLE_VISUAL: u32 = 95472;
+/// Most pads one jump may chain through (the longest route, 6200's PondToSwamp, has 4).
+const MAX_HOPS: usize = 8;
 
 #[derive(Debug, Clone, Deserialize)]
 struct Pad {
+    #[serde(default)]
+    name: String,
     pos: [f32; 3],
     rot: [f32; 4],
     /// [resource type, visual id]
@@ -68,11 +74,21 @@ struct Pad {
     target: [f32; 3],
     #[serde(default)]
     apex: Option<f32>,
+    #[serde(default)]
+    target_by: Option<String>,
 }
 
 impl Pad {
     fn id(&self) -> Id32 {
         Id32::new(PAD_TYPE, self.guid)
+    }
+
+    /// Whether landing on this pad throws the player on at once: the invisible jumpers (the
+    /// clouds in 2210) and the middle stops of named routes (6200's SwampToVolcano1, 2, End;
+    /// 1610's jumpie_1_chain_N). Other pads someone lands on fire only after a step off
+    /// (5200's catapult pairs land you on the way back).
+    fn throws_on(&self) -> bool {
+        self.visual[1] == INVISIBLE_VISUAL || self.target_by.as_deref() == Some("chain") || self.name.contains("chain")
     }
 
     fn effect(&self) -> u32 {
@@ -197,14 +213,14 @@ pub fn points() -> Vec<(String, u32, [f32; 3])> {
     v
 }
 
-/// A working pad at `at`.
+/// A working pad at `at`, the nearest if several (6200's pond routes cross: SwampToPond3 and
+/// PondToSwamp2 stand 0.8 m apart).
 fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
+    let flat = |p: &Pad| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt();
     PADS.get(&playfield)?
         .iter()
-        .find(|p| {
-            let (dx, dz) = (p.pos[0] - at[0], p.pos[2] - at[2]);
-            (dx * dx + dz * dz).sqrt() <= TRIGGER_RADIUS && (p.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT
-        })
+        .filter(|p| flat(p) <= TRIGGER_RADIUS && (p.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT)
+        .min_by(|a, b| flat(a).total_cmp(&flat(b)))
         .filter(|p| !crate::buildie::unbuilt_at(playfield, p.pos))
 }
 
@@ -278,9 +294,27 @@ pub fn player_left(player: Id32) {
     STATES.lock().unwrap().remove(&player);
 }
 
-/// The jump: arc maths from the recorded jumps (all seven fit exactly): the arc peaks `apex`
-/// above the higher of start and end; T = time up + time down.
-async fn launch(player: Id32, playfield: u32, pad: &'static Pad, pos: world::Position) {
+/// The jump, and on through every pad it lands on that throws on (`Pad::throws_on`).
+async fn launch(player: Id32, playfield: u32, mut pad: &'static Pad, pos: world::Position) {
+    for _ in 0..MAX_HOPS {
+        let end = hop(player, pad, &pos).await;
+        let next = pad_at(playfield, end).filter(|p| p.guid != pad.guid);
+        if let Some(s) = STATES.lock().unwrap().get_mut(&player) {
+            // landing on another pad doesn't fire it until the player steps off
+            s.on = next.map(|p| p.guid);
+        }
+        match next {
+            Some(p) if p.throws_on() => pad = p,
+            _ => break,
+        }
+    }
+    tokio::time::sleep(Duration::from_millis(300)).await;
+    world::send_playfield(player, true, world::Out::Records(vec![effects::buff_remove(player, LOCK_BUFF, Id32::default())]));
+}
+
+/// One jump: arc maths from the recorded jumps (all seven fit exactly): the arc peaks `apex`
+/// above the higher of start and end; T = time up + time down. Returns where it landed.
+async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3] {
     let start = *pos.lock().unwrap();
     let end = pad.target;
     let top = start[1].max(end[1]) + pad.apex.unwrap_or(DEFAULT_APEX);
@@ -316,12 +350,7 @@ async fn launch(player: Id32, playfield: u32, pad: &'static Pad, pos: world::Pos
     tokio::time::sleep(Duration::from_secs_f32(t.min(0.2))).await;
     *pos.lock().unwrap() = end;
     world::send_playfield(player, true, world::Out::Records(vec![stop_record(player, end, dir)]));
-    if let Some(s) = STATES.lock().unwrap().get_mut(&player) {
-        // landing on another pad doesn't fire it until the player steps off
-        s.on = pad_at(playfield, end).map(|p| p.guid);
-    }
-    tokio::time::sleep(Duration::from_millis(300)).await;
-    world::send_playfield(player, true, world::Out::Records(vec![effects::buff_remove(player, LOCK_BUFF, Id32::default())]));
+    end
 }
 
 /// `StopIIR_c`: position, rotation quaternion (yaw towards `dir`), u8 0, u8 0.

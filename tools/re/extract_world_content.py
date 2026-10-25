@@ -247,9 +247,13 @@ def classify(e):
     n, l = e["name"].lower(), look(e).lower()
     if e.get("tag") == "JUMP" and ("jump" in l or "jump" in n or "volcano" in n) and "target" not in n and "location" not in n:
         return "jump_pad"
+    # invisible pads with a script: the clouds' jumpers (2210 "invisible_monsterdata"), the
+    # middle stops of 6200's SwampToPond2/3 chains
+    if e.get("tag") == "JUMP" and e.get("script_group", -1) >= 0 and e["visual"][1] in (95472, 193788):
+        return "jump_pad"
     if "jump_pad" in l or (("jump_pad" in n or n.startswith("jumpie") or n.startswith("jumppad")) and not any(k in n for k in ("target", "end", "location", "landing"))):
         return "jump_pad"
-    if any(k in n for k in ("target", "landing", "jump location")) or re.search(r"_end$| end$", n):
+    if any(k in n for k in ("target", "landing", "jump location", "jumplocation")) or re.search(r"_end$| end$", n):
         return "jump_target"
     if "smashie" in l:
         return "smashable"
@@ -261,30 +265,50 @@ def classify(e):
 
 
 def pair_jumps(items):
-    """Jump pad -> landing point ("target", with "target_by").  By name first (jump_pad_X /
-    jump_target_X, jumpie_N[_back] / jumpie_N[_back]_target, JumpPad_1_a / JumpPad_1_a_end,
-    "Tar 6" / "Tar 6 end", SwampToVolcano1,2 / SwampToVolcanoEnd), else the invisible marker
-    listed right after (or before) the pad -- the editor's usual order -- else the nearest one."""
+    """Jump pad -> landing point ("target", with "target_by").
+    * "chain": 6200's routes XToY1, XToY2, ... XToYEnd go one stop to the next (the middle
+      stops are pads again, which throw the player on when they land there).
+    * "name": jump_pad_X / jump_target_X, jumpie_N[_back] / jumpie_N[_back]_target,
+      JumpPad_1_a / JumpPad_1_a_end, "Tar 6" / "Tar 6 end", "Jumpie Invisible Harpy 1_3" /
+      "Jump Location Harpy 1", "volcano5 forward" / "volcano5 forward landing".
+    * "onward": a pad standing on a landing point (the clouds' invisible jumpers, lily pads)
+      throws on to the next landing point listed after that one.
+    * else the landing point listed right after (or before) the pad -- the editor's usual
+      order -- else the nearest one.  Landing points within 4 m of the pad are left out there:
+      they are where the way back lands (the pairs of catapults in 5200, fans in 2210)."""
     def key(n, pad):
         n = n.lower().strip()
-        n = re.sub(r"jump_?pad_?|jump_target_?|_?target$|_?target_|jump location|[ _]end$", "", n)
-        if re.search(r"[a-z]to[a-z]", n):
-            n = re.sub(r"\d+$", "", n)
+        n = re.sub(r"jump_?pad_?|jump_target_?|_?target$|_?target_|jump location|jumpie|invisible|[ _]end$|[ _]landing$", "", n)
         n = re.sub(r"(_down|_up|_forward)$", "", n)
+        n = re.sub(r"(\d)_\d+$", r"\1", n) if pad else n
         return re.sub(r"[\s_]+", "", n)
     def landing(e):
         return e["kind"] == "jump_target" or (e["kind"] == "marker" and e["visual"][1] in (95472, 51057, 193788))
+    chain = {}
+    for j, e in enumerate(items):
+        m = re.fullmatch(r"([A-Za-z]+To[A-Za-z]+?)(\d+|End)", e["name"].strip())
+        if m:
+            chain[(m[1], m[2])] = j
     cands = [j for j, e in enumerate(items) if landing(e)]
     for i, e in enumerate(items):
         if e["kind"] != "jump_pad":
             continue
+        m = re.fullmatch(r"([A-Za-z]+To[A-Za-z]+?)(\d+)", e["name"].strip())
+        nxt = m and chain.get((m[1], str(int(m[2]) + 1)), chain.get((m[1], "End")))
+        if nxt is not None and nxt is not False:
+            e["target"], e["target_by"] = items[nxt]["pos"], "chain"
+            continue
         k = key(e["name"], True)
-        named = [j for j in cands if k and key(items[j]["name"], False) == k]
-        adj = [j for j in (i + 1, i - 1) if j in cands and dist(items[j]["pos"], e["pos"]) < 60]
-        near = sorted((j for j in cands if dist(items[j]["pos"], e["pos"]) < 40), key=lambda j: dist(items[j]["pos"], e["pos"]))
-        for how, c in (("name", named), ("adjacent", adj), ("nearest", near)):
+        named = [j for j in cands if k and k != "monsterdata" and key(items[j]["name"], False) == k]
+        under = [j for j in cands if items[j]["kind"] == "jump_target" and dist(items[j]["pos"], e["pos"]) < 1 and abs(items[j]["pos"][1] - e["pos"][1]) < 2]
+        onward = [j for j in cands if under and e.get("tag") == "JUMP" and j > under[0] and dist(items[j]["pos"], e["pos"]) >= 4][:1]
+        # (the K28B mortars in 4300 are cannons, not paired by this)
+        far = [j for j in cands if dist(items[j]["pos"], e["pos"]) >= (4 if e.get("tag") == "JUMP" else 0)]
+        adj = [j for j in (i + 1, i - 1) if j in far and dist(items[j]["pos"], e["pos"]) < 60]
+        near = sorted((j for j in far if dist(items[j]["pos"], e["pos"]) < 40), key=lambda j: dist(items[j]["pos"], e["pos"]))
+        for how, c in (("name", named), ("onward", onward), ("adjacent", adj), ("nearest", near)):
             if c:
-                j = min(c, key=lambda j: abs(j - i)) if how != "nearest" else c[0]
+                j = min(c, key=lambda j: abs(j - i)) if how in ("name", "adjacent") else c[0]
                 e["target"], e["target_by"] = items[j]["pos"], how
                 break
 
