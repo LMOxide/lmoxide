@@ -1,0 +1,33 @@
+{
+  "_comment": "NPC-against-NPC fights (npc.rs Kind::Fighter), hand-made and INFERRED: live placements were server-side. Remembered from live: knights fought in the Medieval Kingdom, and ghost pirates fought the navy at the start of the Isle of Yarr. Per playfield: replace_anchors = proposed enemy camps of world_content.json (by anchor) this replaces, enemies = hostile NPCs added, rivals = sides of enemies (by monsterdata) that attack each other, fighters = friendly NPCs that fight the enemies near them, armed_npcs = names of the playfield's friendly NPCs (world_content.json) that fight the enemies near them too (players can't attack them; they respawn like enemies). npc_template = the server's NPC template id, which is the NPC's name id in TDB 51000 (as every recorded NPC's: Scallywag 1710/1711, Musketeer 851, Tavern Pirate 1033-1035): Pirate Specter 933/934, the navy block 898-901 (Medic, Dragoon, Musketeer, Commodore Moksey; separate from the hostile Jackets' recorded Musketeer 851, hence taken for the friendly navy), Knight of the Crown 1342. Looks: the client's dialogue actor templates (RDB 1000620, dynel type 30035) carry MonsterData stat 359: Jacket Officer 198601 -> 192827 pirate_officer (Commodore Moksey; the Dragoon's look is a guess), Jacket Guard 198602 -> 192826 pirate_musketeer, Knight of the Crown 462490/462491 -> 352446/352447 medieval_npc_knight_a/b. Ghost pirates: skeleton_pirate_1/2 (207001/207030, the tutorial's recorded ghost Scallywags). Positions: on the navmesh (RDB 1000051) next to the proposed camps; levels/health as the world's regular enemies (60 + 15 x level). See docs/TUNABLES.md.",
+  "4200": {
+    "about": "Landing Beach (bounded area Quest_Beach, ~50 m from the arrival point; quest 'Push back the Ghost Pirates'): the proposed Jacket/pirate camp there becomes ghost pirates, the Imperial navy ('Jackets': Commodore Moksey, a Dragoon, two Musketeers) fights them",
+    "replace_anchors": ["Quest_Beach"],
+    "rivals_about": "ghost pirates (skeleton_pirate_1/2) and the hostile Jackets (red coats: pirate_musketeer, pirate_medic, pirate_officer) attack each other wherever they meet; a ghost group is added next to the proposed Jacket camp at Res_JacketBridge (8-11 m away) so they meet there",
+    "rivals": [[207001, 207030], [192826, 192825, 192827]],
+    "enemies": [
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [88.0, 70.36, 77.5]},
+      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 120, "pos": [90.2, 70.36, 78.7]},
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [86.2, 70.36, 79.1]},
+      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 120, "pos": [88.6, 70.36, 75.3]},
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [126.0, 70.7, 106.0], "anchor": "Res_JacketBridge"},
+      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 120, "pos": [128.2, 70.7, 107.2], "anchor": "Res_JacketBridge"},
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [127.0, 70.7, 104.0], "anchor": "Res_JacketBridge"}
+    ],
+    "fighters": [
+      {"name": "Commodore Moksey", "monster_data": 192827, "npc_template": 901, "level": 4, "health": 120, "pos": [97.0, 70.35, 75.5]},
+      {"name": "Dragoon", "monster_data": 192827, "npc_template": 899, "level": 4, "health": 120, "pos": [99.5, 70.35, 74.3]},
+      {"name": "Musketeer", "monster_data": 192826, "npc_template": 900, "level": 4, "health": 120, "pos": [98.5, 70.35, 77.8]},
+      {"name": "Musketeer", "monster_data": 192826, "npc_template": 900, "level": 4, "health": 120, "pos": [100.0, 70.35, 77.0]}
+    ]
+  },
+  "5200": {
+    "about": "outside the town gate (bounded areas Quest_Siege, BA_Head_Trolls1, BA_SiegeCatapult1): Knights of the Crown fight the proposed troll siege camp; the story Knight at the gate (Cine_KnightSpawn2) fights the proposed camp next to it (BA_CastleAmbush1)",
+    "armed_npcs": ["Knight"],
+    "fighters": [
+      {"name": "Knight of the Crown", "monster_data": 352446, "npc_template": 1342, "level": 9, "health": 195, "pos": [97.0, 15.0, 147.5]},
+      {"name": "Knight of the Crown", "monster_data": 352447, "npc_template": 1342, "level": 9, "health": 195, "pos": [95.0, 15.0, 148.8]},
+      {"name": "Knight of the Crown", "monster_data": 352446, "npc_template": 1342, "level": 9, "health": 195, "pos": [98.5, 14.25, 144.5]}
+    ]
+  }
+}

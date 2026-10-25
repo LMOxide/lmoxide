@@ -181,6 +181,9 @@ pub fn start() {
                 cars_group: Some(5),
                 npc_template: None,
                 reach: None,
+                anchor: None,
+                fights: false,
+                faction: None,
             };
             let id = crate::npc::spawn_temporary(def, PLAYFIELD, TARGET_LIFE);
             info!(ballista = i + 1, high, "dummy up");

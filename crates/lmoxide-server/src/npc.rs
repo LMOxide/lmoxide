@@ -69,6 +69,18 @@ const BOSS_MITIGATION: f32 = 0.4;
 const MAX_MITIGATION: f32 = 0.9;
 /// Enemies with more health than this count as bosses.
 const BOSS_HEALTH: u32 = 500;
+/// NPC-against-NPC fights (friendly fighters and enemies, data/npc_fights.json): one hit takes
+/// this share of the target's maximum health (± FIGHT_SPREAD), so a fight lasts about a minute.
+const FIGHT_SHARE: f32 = 0.04;
+const FIGHT_SPREAD: f32 = 0.25;
+/// Friendly fighters attack enemies this close to them, but not farther than FIGHTER_LEASH from
+/// their post.
+const FIGHTER_AGGRO: f32 = 16.0;
+const FIGHTER_LEASH: f32 = 18.0;
+/// An enemy a player hit within this time keeps fighting that player (not a friendly fighter).
+const THREAT_MEMORY: Duration = Duration::from_secs(6);
+/// Rival enemies (npc_fights.json `rivals`) attack each other this close.
+const RIVAL_AGGRO: f32 = 12.0;
 
 /// Players' combat state: each minifigure has its own health.
 #[derive(Default)]
@@ -158,6 +170,11 @@ pub enum Kind {
     Npc,
     /// A player's summon: follows its owner and attacks enemies near it, then vanishes.
     Pet,
+    /// A friendly character that fights the enemies near its post (data/npc_fights.json: the
+    /// Jacket Officers against the ghost pirates on the Isle of Yarr's beach, the Knights of the
+    /// Crown against the trolls at the Medieval Kingdom's gate). Players can't attack it; enemies
+    /// can, and it respawns like them.
+    Fighter,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -186,6 +203,23 @@ pub struct SpawnDef {
     /// this close instead of chasing them.
     #[serde(default)]
     pub reach: Option<f32>,
+    /// Proposed content: the bounded area the camp was placed in (world_content.json).
+    #[serde(default)]
+    pub anchor: Option<String>,
+    /// A friendly NPC that also fights the enemies near it (npc_fights.json `armed_npcs`).
+    #[serde(default)]
+    pub fights: bool,
+    /// Enemies: its side among rival enemies (npc_fights.json `rivals`): enemies of another
+    /// side near it are its enemies too.
+    #[serde(default)]
+    pub faction: Option<u32>,
+}
+
+impl SpawnDef {
+    /// Whether it fights enemies: a friendly fighter, or an armed friendly NPC.
+    fn fights(&self) -> bool {
+        self.kind == Kind::Fighter || (self.kind == Kind::Npc && self.fights)
+    }
 }
 
 /// data/world_content.json (tools/re/extract_world_content.py): per playfield, the enemies,
@@ -224,6 +258,8 @@ struct Npc {
     cooldowns: HashMap<u32, std::time::Instant>,
     /// Casting (or stunned) until then: it stands still.
     busy_until: Option<std::time::Instant>,
+    /// The player who last hit it, and when (enemies keep fighting them).
+    threat: Option<(Id32, std::time::Instant)>,
 }
 
 impl Npc {
@@ -241,6 +277,7 @@ impl Npc {
             temporary,
             cooldowns: HashMap::new(),
             busy_until: None,
+            threat: None,
         }
     }
 }
@@ -270,7 +307,7 @@ impl Walk {
 fn speeds(def: &SpawnDef) -> &'static [(u32, f32)] {
     match def.kind {
         Kind::Enemy if matches!(def.name.as_str(), "Scallywag" | "Tavern Pirate") => SLOW_ENEMY_SPEEDS,
-        Kind::Enemy => ENEMY_SPEEDS,
+        Kind::Enemy | Kind::Fighter => ENEMY_SPEEDS,
         _ => crate::game::PLAYER_SPEEDS,
     }
 }
@@ -282,7 +319,8 @@ fn run_speed(def: &SpawnDef) -> f32 {
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// NPCs for test commands: enemies of a rank, "boss" (≥ 8 × a regular enemy's health of their
-/// level), "champion" (≥ 4 ×) or "enemy" (all), or "npc" (friendly NPCs) or "smashable":
+/// level), "champion" (≥ 4 ×) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
+/// fighters) or "smashable":
 /// (label, playfield, home position), by playfield.
 pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
     let mut v: Vec<_> = NPCS
@@ -296,6 +334,7 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
                 "boss" => n.def.kind == Kind::Enemy && n.def.health >= regular * 8,
                 "champion" => n.def.kind == Kind::Enemy && n.def.health >= regular * 4 && n.def.health < regular * 8,
                 "npc" => n.def.kind == Kind::Npc,
+                "fighter" => n.def.fights(),
                 "smashable" => n.def.kind == Kind::Smashable,
                 _ => n.def.kind == Kind::Enemy,
             }
@@ -397,6 +436,29 @@ pub fn is_npc(id: Id32) -> bool {
 
 /// Spawns every NPC in data/spawns.json and starts their AI.
 pub fn start() {
+    for (playfield, defs) in spawn_table() {
+        let Ok(playfield) = playfield.parse::<u32>() else { continue };
+        for mut def in defs {
+            if let Some(health) = crate::cannon::health_override(playfield, &def.name) {
+                def.health = health;
+            }
+            // the tutorial's scripted NPCs appear per player (tutorial.rs)
+            if crate::tutorial::scripted(playfield, &def.name) {
+                continue;
+            }
+            let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
+            let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+            NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
+            appear(id);
+        }
+    }
+    info!(count = NPCS.lock().unwrap().len(), "NPCs spawned");
+    tokio::spawn(ai());
+    tokio::spawn(regenerate());
+}
+
+/// What every playfield spawns: data/spawns.json, world_content.json and npc_fights.json.
+fn spawn_table() -> HashMap<String, Vec<SpawnDef>> {
     let mut table: HashMap<String, Vec<SpawnDef>> =
         serde_json::from_str(include_str!("../../../data/spawns.json")).expect("spawns.json");
     let worlds: HashMap<String, serde_json::Value> =
@@ -417,25 +479,52 @@ pub fn start() {
         defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..d }));
         defs.extend(content.smashables.into_iter().map(|d| SpawnDef { kind: Kind::Smashable, ..d }));
     }
-    for (playfield, defs) in table {
-        let Ok(playfield) = playfield.parse::<u32>() else { continue };
-        for mut def in defs {
-            if let Some(health) = crate::cannon::health_override(playfield, &def.name) {
-                def.health = health;
-            }
-            // the tutorial's scripted NPCs appear per player (tutorial.rs)
-            if crate::tutorial::scripted(playfield, &def.name) {
+    add_fights(&mut table, include_str!("../../../data/npc_fights.json"));
+    table
+}
+
+/// data/npc_fights.json: per playfield, the proposed enemy camps (by anchor) it replaces, the
+/// enemies it adds, the friendly fighters that fight them and the friendly NPCs (by name) that
+/// fight the enemies near them too.
+#[derive(Deserialize)]
+struct FightSpot {
+    #[serde(default)]
+    armed_npcs: Vec<String>,
+    /// Sides of enemies (by monsterdata) that fight each other.
+    #[serde(default)]
+    rivals: Vec<Vec<u32>>,
+    #[serde(default)]
+    replace_anchors: Vec<String>,
+    #[serde(default)]
+    enemies: Vec<SpawnDef>,
+    #[serde(default)]
+    fighters: Vec<SpawnDef>,
+}
+
+fn add_fights(table: &mut HashMap<String, Vec<SpawnDef>>, json: &str) {
+    let spots: HashMap<String, serde_json::Value> = serde_json::from_str(json).expect("npc_fights.json");
+    for (playfield, spot) in spots {
+        if !spot.is_object() {
+            continue; // "_comment"
+        }
+        let spot: FightSpot = match serde_json::from_value(spot) {
+            Ok(s) => s,
+            Err(e) => {
+                warn!(%playfield, "npc_fights.json: playfield skipped: {e}");
                 continue;
             }
-            let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
-            let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
-            NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
-            appear(id);
+        };
+        let defs = table.entry(playfield).or_default();
+        defs.retain(|d| d.kind != Kind::Enemy || d.anchor.as_ref().is_none_or(|a| !spot.replace_anchors.contains(a)));
+        defs.extend(spot.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..d }));
+        defs.extend(spot.fighters.into_iter().map(|d| SpawnDef { kind: Kind::Fighter, ..d }));
+        for d in defs.iter_mut().filter(|d| d.kind == Kind::Npc && spot.armed_npcs.contains(&d.name)) {
+            d.fights = true;
+        }
+        for d in defs.iter_mut().filter(|d| d.kind == Kind::Enemy) {
+            d.faction = spot.rivals.iter().position(|side| side.contains(&d.monster_data)).map(|i| i as u32);
         }
     }
-    info!(count = NPCS.lock().unwrap().len(), "NPCs spawned");
-    tokio::spawn(ai());
-    tokio::spawn(regenerate());
 }
 
 fn spec(def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> CharSpec<'_> {
@@ -468,7 +557,7 @@ fn appear(id: Id32) {
         match def.kind {
             Kind::Enemy => remote_spawn_records(id, &spec(&def, playfield, pos, health)),
             Kind::Pet => remote_spawn_records(id, &CharSpec { cars_group: 0, ..spec(&def, playfield, pos, health) }),
-            Kind::Npc => remote_spawn_records(
+            Kind::Npc | Kind::Fighter => remote_spawn_records(
                 id,
                 &CharSpec { cars_group: def.cars_group.unwrap_or(CARS_FRIENDS), ..spec(&def, playfield, pos, health) },
             ),
@@ -604,6 +693,9 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
         cars_group: Some(0),
         npc_template: None,
         reach: None,
+        anchor: None,
+        fights: false,
+        faction: None,
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -630,12 +722,23 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
 pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
     let mut npcs = NPCS.lock().unwrap();
     // (not `is_player`: NPCS is locked here)
-    let by_player = attacker.kind == crate::territory::CHARACTER_TYPE && !npcs.contains_key(&attacker);
+    let by_npc = npcs.contains_key(&attacker);
+    let by_player = attacker.kind == crate::territory::CHARACTER_TYPE && !by_npc;
     let npc = npcs.get_mut(&target)?;
-    if npc.presence.is_none() || npc.health == 0 || matches!(npc.def.kind, Kind::Npc | Kind::Pet) {
+    if npc.presence.is_none() || npc.health == 0 || npc.def.kind == Kind::Pet || (npc.def.kind == Kind::Npc && !npc.def.fights()) {
         return None;
     }
-    let mitigation = if npc.def.kind == Kind::Enemy {
+    // friendly fighters are hurt only by enemies
+    if npc.def.fights() && !by_npc {
+        return None;
+    }
+    if by_player {
+        npc.threat = Some((attacker, std::time::Instant::now()));
+    }
+    // (NPC-against-NPC damage is final: `fight_damage`)
+    let mitigation = if by_npc {
+        0.0
+    } else if npc.def.kind == Kind::Enemy {
         if npc.def.health > BOSS_HEALTH { BOSS_MITIGATION } else { ENEMY_MITIGATION }
     } else {
         0.0
@@ -668,7 +771,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     } else {
         vec![combat_log_record(attacker, target, spell, dealt), int32_stat(target, STAT_HEALTH, health)]
     };
-    if kind == Kind::Enemy && health == 0 {
+    if (kind == Kind::Enemy || npc.def.fights()) && health == 0 {
         // Limbo: the client plays the death and stops targeting it
         records.push(int32_stat(target, STAT_BCC_STATE, BCC_STATE_LIMBO));
     }
@@ -689,8 +792,9 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             _ if npc.def.health >= regular * 4 => crate::loot::Source::Champion,
             _ => crate::loot::Source::Enemy,
         };
-        // a scripted shot (Pirate World's cannon, cannon.rs) drops no loot and earns nothing
-        if attacker.kind != DESTRUCTIBLE_TYPE {
+        // a scripted shot (Pirate World's cannon, cannon.rs) drops no loot and earns nothing,
+        // nor does an NPC's kill (a friendly fighter's), nor a defeated fighter
+        if attacker.kind != DESTRUCTIBLE_TYPE && !by_npc && !npc.def.fights() {
             crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
             if kind == Kind::Enemy && by_player {
                 crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
@@ -1099,13 +1203,14 @@ fn spells_for(def: &SpawnDef) -> Vec<u32> {
     crate::npc_spells::spells_of(def.monster_data).map_or_else(|| vec![def.spell], <[u32]>::to_vec)
 }
 
-/// Enemy `id` (at `here`) fights `player` (at `at`): when it isn't casting and its last cast
-/// is ATTACK_INTERVAL ago, it casts the strongest (AIPowerrating) of its spells that is off
-/// cooldown and reaches the player (ties: random). Returns whether it cast.
-fn engage(id: Id32, player: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
+/// NPC `id` (at `here`) fights `target` (at `at`), a player or another NPC: when it isn't
+/// casting and its last cast is ATTACK_INTERVAL ago, it casts the strongest (AIPowerrating) of
+/// its spells that is off cooldown and reaches the target (ties: random). Returns whether it
+/// cast.
+fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     let now = std::time::Instant::now();
     let d = distance(here, at);
-    let (spell, playfield, level) = {
+    let (spell, playfield, level, against_npc) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return false };
         if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
@@ -1124,14 +1229,94 @@ fn engage(id: Id32, player: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         if !busy.is_zero() {
             npc.busy_until = Some(now + busy);
         }
-        (spell, npc.playfield, npc.def.level)
+        (spell, npc.playfield, npc.def.level, npcs.contains_key(&target))
     };
-    if crate::npc_spells::known(spell) {
-        crate::npc_spells::cast(id, playfield, level, spell, player, at);
+    if against_npc {
+        strike(id, target, spell, playfield);
+    } else if crate::npc_spells::known(spell) {
+        crate::npc_spells::cast(id, playfield, level, spell, target, at);
     } else {
-        attack(id, player, spell, level);
+        attack(id, target, spell, level);
     }
     true
+}
+
+/// One NPC-against-NPC hit (a friendly fighter and an enemy): `target` loses about FIGHT_SHARE
+/// of its maximum health, whatever the attacker's level, so that fights last.
+fn fight_damage(target: Id32) -> u32 {
+    let max = NPCS.lock().unwrap().get(&target).map_or(0, |n| n.def.health);
+    let spread = 1.0 + FIGHT_SPREAD * (2.0 * crate::npc_spells::jitter() - 1.0);
+    (max as f32 * FIGHT_SHARE * spread).round().max(1.0) as u32
+}
+
+/// NPC `id` casts `spell` at NPC `target`: the cast as players see an enemy's (a MagicCommand on
+/// the caster aimed at the target), then at the spell's strike its projectile flies (if it
+/// shoots one) and the hit lands (`hit`: damage number and the target's health). The spell's
+/// other actions (areas, nanos) only ever touch players and aren't run.
+fn strike(id: Id32, target: Id32, spell: u32, playfield: u32) {
+    let (_, records) = observed_cast(id, target, spell);
+    world::send_playfield(id, false, world::Out::Records(records.to_vec()));
+    let delay = crate::npc_spells::strike_delay(spell);
+    let shot = crate::npc_spells::projectile_of(spell);
+    tokio::spawn(async move {
+        tokio::time::sleep(delay).await;
+        let (Some(from), Some(to)) = (position(id), position(target)) else { return };
+        if health_of(id).is_none() {
+            return;
+        }
+        if let Some((item, speed)) = shot {
+            crate::projectile::launch_visual(id, playfield, item, speed, from, to);
+            tokio::time::sleep(Duration::from_secs_f32(distance(from, to) / speed.max(0.1))).await;
+        }
+        hit(id, target, spell, fight_damage(target));
+    });
+}
+
+/// Friendly fighters: attack the nearest enemy near their post (FIGHTER_AGGRO from them, at most
+/// FIGHTER_LEASH from home), otherwise walk back to their post.
+fn fighters_tick() {
+    let fighters: Vec<(Id32, u32, [f32; 3], f32)> = NPCS
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.def.fights() && n.presence.is_some() && n.health > 0)
+        .map(|(id, n)| (*id, n.playfield, n.def.pos, keep_distance(&spells_for(&n.def))))
+        .collect();
+    for (id, playfield, home, keep) in fighters {
+        let Some(here) = current(id) else { continue };
+        let enemy = NPCS
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
+            .map(|(eid, n)| (*eid, *n.pos.lock().unwrap()))
+            .filter(|(_, p)| distance(*p, here) < FIGHTER_AGGRO && distance(*p, home) < FIGHTER_LEASH)
+            .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
+        match enemy {
+            Some((eid, p)) => {
+                let cast = engage(id, eid, p, here);
+                if is_busy(id) {
+                    steer(id, here, here, Some(p));
+                    if cast {
+                        face(id, here, p);
+                    }
+                } else {
+                    steer(id, here, approach(here, p, keep), Some(p));
+                }
+            }
+            None => steer(id, here, home, None),
+        }
+    }
+}
+
+/// The live friendly fighters on a playfield, with their positions.
+fn fighters_on(playfield: u32) -> Vec<(Id32, [f32; 3])> {
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.def.fights() && n.presence.is_some() && n.health > 0)
+        .map(|(id, n)| (*id, *n.pos.lock().unwrap()))
+        .collect()
 }
 
 /// A plain hit with a spell npc_spells.rs doesn't know (the default XX_Axe Chop): the cast (a
@@ -1212,8 +1397,9 @@ fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, serve
     })
 }
 
-/// A live enemy for one AI tick: id, playfield, home, reach (stationary enemies), keep distance.
-type Fighter = (Id32, u32, [f32; 3], Option<f32>, f32);
+/// A live enemy for one AI tick: id, playfield, home, reach (stationary enemies), keep
+/// distance, the player who hit it lately, its side among rival enemies.
+type Fighter = (Id32, u32, [f32; 3], Option<f32>, f32, Option<Id32>, Option<u32>);
 
 /// Chase the nearest player in range and fight it; walk home when there is none or it ran too far.
 async fn ai() {
@@ -1225,17 +1411,32 @@ async fn ai() {
             .unwrap()
             .iter()
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
-            .map(|(id, n)| (*id, n.playfield, n.def.pos, n.def.reach, keep_distance(&spells_for(&n.def))))
+            .map(|(id, n)| {
+                let threat = n.threat.filter(|(_, t)| t.elapsed() < THREAT_MEMORY).map(|(p, _)| p);
+                (*id, n.playfield, n.def.pos, n.def.reach, keep_distance(&spells_for(&n.def)), threat, n.def.faction)
+            })
+            .collect();
+        // rival enemies: (id, playfield, side, position)
+        let rivals: Vec<(Id32, u32, u32, [f32; 3])> = NPCS
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
+            .filter_map(|(id, n)| Some((*id, n.playfield, n.def.faction?, *n.pos.lock().unwrap())))
             .collect();
         pets_tick();
-        // players per playfield, collected once per tick (most playfields have none)
+        fighters_tick();
+        // players and friendly fighters per playfield, collected once per tick (most
+        // playfields have none)
         let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
-        for (_, playfield, _, _, _) in &live {
+        let mut fighters: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
+        for (_, playfield, _, _, _, _, _) in &live {
             players
                 .entry(*playfield)
                 .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other)).collect());
+            fighters.entry(*playfield).or_insert_with(|| fighters_on(*playfield));
         }
-        for (id, playfield, home, reach, keep) in live {
+        for (id, playfield, home, reach, keep, threat, faction) in live {
             let Some(here) = current(id) else { continue };
             if let Some(reach) = reach {
                 let target = players[&playfield]
@@ -1250,12 +1451,31 @@ async fn ai() {
                 }
                 continue;
             }
-            let target = players[&playfield]
-                .iter()
-                .copied()
-                .filter(|(_, p)| distance(*p, home) < LEASH_RANGE)
-                .filter(|(_, p)| distance(*p, here) < AGGRO_RANGE)
-                .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
+            let in_range = |(_, p): &(Id32, [f32; 3])| distance(*p, home) < LEASH_RANGE && distance(*p, here) < AGGRO_RANGE;
+            let nearest = |list: &[(Id32, [f32; 3])]| {
+                list.iter().copied().filter(in_range).min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)))
+            };
+            let player = nearest(&players[&playfield]);
+            // a player in range who hit it lately stays its target; otherwise a friendly
+            // fighter only when no player is closer
+            let attacker = threat.and_then(|t| players[&playfield].iter().copied().find(|x| x.0 == t)).filter(in_range);
+            // the nearest friendly fighter, or enemy of a rival side
+            let rival = faction.and_then(|mine| {
+                rivals
+                    .iter()
+                    .filter(|(_, pf, side, p)| *pf == playfield && *side != mine && distance(*p, here) < RIVAL_AGGRO && distance(*p, home) < LEASH_RANGE)
+                    .map(|(rid, _, _, p)| (*rid, *p))
+                    .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)))
+            });
+            let foe = match (nearest(&fighters[&playfield]), rival) {
+                (Some(f), Some(r)) => Some(if distance(r.1, here) < distance(f.1, here) { r } else { f }),
+                (f, r) => f.or(r),
+            };
+            let target = attacker.or(match (player, foe) {
+                (Some(p), Some(f)) if distance(f.1, here) < distance(p.1, here) => Some(f),
+                (Some(p), _) => Some(p),
+                (None, f) => f,
+            });
             match target {
                 Some((player, p)) => {
                     let cast = engage(id, player, p, here);
@@ -1286,5 +1506,60 @@ mod tests {
         let body = "0000002e0a2a0a0708d0860310e80e120708f9900310a7141a120d0000803f10e807180020002800380048002089d2241000";
         let hex = crate::conn::hex(&rec);
         assert!(hex.ends_with(body), "{hex}");
+    }
+
+    #[test]
+    fn fights_replace_their_camps() {
+        let camp = |anchor: &str| SpawnDef {
+            kind: Kind::Enemy,
+            template: 0,
+            name: "Camp".into(),
+            monster_data: 1,
+            level: 4,
+            health: 120,
+            pos: [0.0; 3],
+            spell: default_spell(),
+            cars_group: None,
+            npc_template: None,
+            reach: None,
+            anchor: Some(anchor.into()),
+            fights: false,
+            faction: None,
+        };
+        let mut table = HashMap::from([("4200".to_string(), vec![camp("Quest_Beach"), camp("Elsewhere")])]);
+        add_fights(&mut table, include_str!("../../../data/npc_fights.json"));
+        let yarr = &table["4200"];
+        assert!(yarr.iter().all(|d| d.anchor.as_deref() != Some("Quest_Beach")));
+        assert!(yarr.iter().any(|d| d.anchor.as_deref() == Some("Elsewhere")));
+        assert!(yarr.iter().any(|d| d.kind == Kind::Enemy && d.name == "Pirate Specter"));
+        assert!(yarr.iter().any(|d| d.kind == Kind::Fighter));
+    }
+
+    #[test]
+    fn every_fighter_has_enemies_to_fight() {
+        // each friendly fighter's post is within reach of an enemy camp (it walks up to one)
+        let table = spawn_table();
+        let mut fighters = 0;
+        for (playfield, defs) in &table {
+            for f in defs.iter().filter(|d| d.fights()) {
+                fighters += 1;
+                let near = defs.iter().filter(|e| e.kind == Kind::Enemy && distance(e.pos, f.pos) < FIGHTER_AGGRO.min(FIGHTER_LEASH)).count();
+                assert!(near >= 2, "{playfield} {}: {near} enemies near", f.name);
+            }
+        }
+        assert!(fighters >= 8, "{fighters}");
+        // rival enemies meet somewhere on the Isle of Yarr
+        let yarr = &table["4200"];
+        let meet = yarr.iter().filter_map(|a| Some((a, a.faction?))).any(|(a, fa)| {
+            yarr.iter().any(|b| b.faction.is_some_and(|fb| fb != fa) && distance(a.pos, b.pos) < RIVAL_AGGRO)
+        });
+        assert!(meet);
+    }
+
+    #[test]
+    fn fight_damage_lasts() {
+        // about 1/FIGHT_SHARE hits to defeat, at most a third more or less
+        let hits = 1.0 / (FIGHT_SHARE * (1.0 + FIGHT_SPREAD));
+        assert!(hits >= 15.0, "{hits}");
     }
 }

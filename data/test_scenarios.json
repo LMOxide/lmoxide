@@ -272,6 +272,30 @@
         "playfield": 6300,
         "pos": [313.0, 48.0, 173.0]
       }
+    },
+    {
+      "label": "beachfight",
+      "about": "Isle of Yarr's Landing Beach: Commodore Moksey's navy fights the ghost pirates (Pirate Specters); both respawn (npc_fights.json, inferred)",
+      "goto": {
+        "playfield": 4200,
+        "pos": [107.0, 70.4, 84.0]
+      }
+    },
+    {
+      "label": "knightfight",
+      "about": "Medieval Kingdom outside the town gate: Knights of the Crown fight the troll siege camp; both respawn (npc_fights.json, inferred)",
+      "goto": {
+        "playfield": 5200,
+        "pos": [96.0, 15.5, 157.0]
+      }
+    },
+    {
+      "label": "bridgefight",
+      "about": "Isle of Yarr at the Jacket Bridge: ghost pirates and the Jackets' red coats attack each other (npc_fights.json rivals, inferred)",
+      "goto": {
+        "playfield": 4200,
+        "pos": [122.0, 72.0, 120.0]
+      }
     }
   ]
 }

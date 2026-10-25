@@ -160,6 +160,7 @@ const KINDS: &[(&str, &str)] = &[
     ("champion", "champions"),
     ("enemy", "all enemies"),
     ("npc", "friendly NPCs"),
+    ("fighter", "friendly NPCs fighting enemies (npc_fights.json)"),
     ("smashable", "smashables"),
 ];
 
@@ -184,7 +185,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "boombox" => crate::discovery::points(false),
         "trigger" => crate::tutorial::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
-        "boss" | "champion" | "enemy" | "npc" | "smashable" => crate::npc::points(kind),
+        "boss" | "champion" | "enemy" | "npc" | "fighter" | "smashable" => crate::npc::points(kind),
         _ => return None,
     })
 }

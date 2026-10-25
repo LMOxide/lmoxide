@@ -162,6 +162,25 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Arena walls | `encounter.rs` `SHIELDS`, `scenery.rs` | each "Boss…Shield" piece within 3 m of a closed (entrance or exit) door visual is a wall (collision 60624, as recorded) while that visual shows | Recorded in the tutorial: the shield spawned with KD-tree 60624 and lost it (VisualChange 4, 0) when the boss fell. Pairing by distance is inferred. |
 | Not done | | boss buildies (Kraken 194851, Medusa mirrors, ...), boss phases/immunities, area quests, the Kraken's own script | |
 
+## NPC fights (`npc.rs` `Kind::Fighter`, data/npc_fights.json)
+
+Live had friendly NPCs fighting enemies (remembered by the user: the navy against ghost pirates
+at the start of the Isle of Yarr, knights in the Medieval Kingdom). Who stood where was
+server-side, so all of it is inferred; the data file's comment lists the client data used.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Isle of Yarr (4200) | npc_fights.json | Landing Beach (Quest_Beach, ~50 m from the arrival point): 4 Pirate Specters (ghost pirates, skeleton_pirate_1/2) replace the proposed Musketeer/Swashbuckler camp; Commodore Moksey, a Dragoon and 2 Musketeers (the navy, "Jackets") fight them | User's memory; quest "[Pirate 1] Push back the Ghost Pirates". NPC template ids = TDB 51000 name ids (as recorded NPCs'): navy 899-901, Pirate Specter 933/934. Commodore's look pirate_officer from the Jacket Officer actor template; the Dragoon's look is a guess. |
+| Medieval Kingdom (5200) | npc_fights.json | 3 Knights of the Crown (template 1342, medieval_npc_knight_a/b) beside the proposed troll camp outside the town gate (Quest_Siege / BA_Head_Trolls1) | User's memory; the siege areas (BA_SiegeCatapult*, BA_CastleAmbush1) are there. Place and count guessed. |
+| Fighters' side | `npc.rs` `spec` | CarsGroup 2 (friends): players can't target them; only enemies hurt them (`hit`) | As the recorded armed Tavern Pirates (group 2). |
+| Fight damage | `FIGHT_SHARE`, `FIGHT_SPREAD` | each NPC-against-NPC hit takes 4% ± 25% of the target's maximum health, no mitigation | So a one-on-one lasts ~25 hits (about a minute at one attack per 2.5 s); live numbers unknown. |
+| Story Knight (5200) | npc_fights.json `armed_npcs` | the Knight at the town gate (Cine_KnightSpawn2) fights the proposed camp ~13 m away (BA_CastleAmbush1); it stays a friendly NPC otherwise | User feedback in testing: knights should fight nearby enemies. |
+| Rival enemies (4200) | npc_fights.json `rivals`, `RIVAL_AGGRO` | ghost pirates (skeleton_pirate_1/2) and hostile Jackets (red coats: pirate_musketeer/medic/officer) attack each other within 12 m; a group of 3 Pirate Specters added 8–11 m from the Jacket camp at Res_JacketBridge so they meet | User's memory (ghost pirates fight the red coats on the Isle of Yarr); where they met on live is unknown, proposed camps are 28 m+ apart elsewhere. |
+| Fighter ranges | `FIGHTER_AGGRO`, `FIGHTER_LEASH` | attack enemies within 16 m of themselves and 18 m of their post, else walk back | Their posts are 7–14 m from the camp, so they walk up to it. |
+| Enemy target choice | `npc.rs` `ai` | the nearest of players and fighters in range (8 m, leash 25 m) or rivals (12 m); a player in range who hit it within 6 s (`THREAT_MEMORY`) always comes first | Players' fights stay as before. |
+| Fight visuals | `npc.rs` `strike` | the spell's cast (MagicCommand at the NPC target), its first Projectile flying (if any) after the ItemDelay, then the damage number and health | The spell's other actions (areas, nanos) only act on players. |
+| Kills between NPCs | `npc.rs` `hit` | no loot, no XP or achievements; both sides respawn after the usual RESPAWN | Nobody to give them to. |
+
 ## Tutorial
 
 | Value | Where | Now | Source / reasoning |
