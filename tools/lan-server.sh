@@ -63,10 +63,11 @@ fi
 KIT=$("$ROOT/patches/linux-client/make-kit.sh" | cut -d' ' -f1)
 # a LAN server already running: its supervisor first (else it starts the server again)
 [[ -s $ROOT/logs/lan-holder.pid ]] && { kill "$(cat "$ROOT/logs/lan-holder.pid")" 2>/dev/null || true; sleep 2; }
-pkill -x lmoxide-server || true
-pkill -x lmoxide-patch-s || true   # process names are cut to 15 characters
 API_PORT=${LMOXIDE_API_PORT-8090}
-[[ -n $API_PORT ]] && { pkill -x lmoxide-api || true; }
+# only the servers on the LAN ports (other checkouts or sessions may run their own on side ports)
+lan_pids() { ss -ltnpH "( sport = :8080 or sport = :7100 or sport = :7101 or sport = :7102 or sport = :7200 or sport = :7300${API_PORT:+ or sport = :$API_PORT} )" | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u; }
+for p in $(lan_pids); do kill "$p" 2>/dev/null || true; done
+for _ in $(seq 30); do [[ -z $(lan_pids) ]] && break; sleep 0.2; done
 cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server -p lmoxide-api $([[ $PROFILE == release ]] && echo --release)
 BIN=$ROOT/target/$PROFILE
 mkdir -p "$ROOT/logs"
