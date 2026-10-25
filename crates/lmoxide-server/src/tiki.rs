@@ -44,7 +44,10 @@ const WARNING: u32 = 241037;
 /// The skull's fireball: projectile item, speed, reach, hit radius and damage (nano 519853).
 const FIREBALL: u32 = 519852;
 const FIREBALL_SPEED: f32 = 10.0;
+/// How far the fireballs fly: the line patterns (the user: right), the spiral (further, it
+/// looked too short).
 const REACH: f32 = 12.0;
+const SPIRAL_REACH: f32 = 18.0;
 const HIT_RADIUS: f32 = 1.2;
 const DAMAGE: u32 = 250;
 /// A volley every `VOLLEY` while someone is in the room, the warning `WARN` before it.
@@ -192,6 +195,8 @@ const PATTERNS: [Pattern; 3] = [Pattern::Side, Pattern::Cross, Pattern::Spiral];
 const SPIRAL_SHOTS: usize = 16;
 const SPIRAL_STEP: Duration = Duration::from_millis(150);
 const SPIRAL_ANGLE: f32 = std::f32::consts::FRAC_PI_4;
+/// How far out of the skull the spiral's fireballs start (the side markers stand ~0.8 m out).
+const SPIRAL_START: f32 = 1.2;
 
 /// The skull's fire: a pattern every `VOLLEY` while the room is occupied and unsolved.
 async fn fire() {
@@ -214,14 +219,10 @@ async fn fire() {
             Pattern::Cross => room.spells.iter().filter_map(|(dir, origins)| origins.get(1).map(|o| (*o, *dir))).collect(),
             Pattern::Spiral => Vec::new(),
         };
-        // the warning: ground fire along each line (round the skull before a spiral)
+        // the warning: ground fire along each line
         let warnings: Vec<[f32; 3]> = match pattern {
-            Pattern::Spiral => (0..8)
-                .map(|k| {
-                    let a = k as f32 * SPIRAL_ANGLE;
-                    [room.holder[0] + a.sin() * 2.5, room.holder[1] - 1.5, room.holder[2] + a.cos() * 2.5]
-                })
-                .collect(),
+            // (none before a spiral: ground fire round the skull looked like fireballs bursting on it)
+            Pattern::Spiral => Vec::new(),
             _ => shots
                 .iter()
                 .flat_map(|(o, d)| (1..=3).map(move |k| [o[0] + d[0] * REACH * k as f32 / 3.0, o[1] - 0.7, o[2] + d[1] * REACH * k as f32 / 3.0]))
@@ -232,16 +233,17 @@ async fn fire() {
         tokio::time::sleep(WARN).await;
         match pattern {
             Pattern::Spiral => {
-                let from = [room.holder[0], room.holder[1] - 0.9, room.holder[2]];
                 for k in 0..SPIRAL_SHOTS {
                     let a = k as f32 * SPIRAL_ANGLE;
-                    shoot(from, [a.sin(), a.cos()]);
+                    // from just outside the skull (from its centre the fireball burst on it)
+                    let from = [room.holder[0] + a.sin() * SPIRAL_START, room.holder[1] - 0.9, room.holder[2] + a.cos() * SPIRAL_START];
+                    shoot(from, [a.sin(), a.cos()], SPIRAL_REACH);
                     tokio::time::sleep(SPIRAL_STEP).await;
                 }
             }
             _ => {
                 for (origin, dir) in shots {
-                    shoot(origin, dir);
+                    shoot(origin, dir, REACH);
                 }
             }
         }
@@ -250,8 +252,8 @@ async fn fire() {
 
 /// One fireball from `origin` along `dir` (x, z): whoever stands in its line when it passes is
 /// hit.
-fn shoot(origin: [f32; 3], dir: [f32; 2]) {
-    let to = [origin[0] + dir[0] * REACH, origin[1], origin[2] + dir[1] * REACH];
+fn shoot(origin: [f32; 3], dir: [f32; 2], reach: f32) {
+    let to = [origin[0] + dir[0] * reach, origin[1], origin[2] + dir[1] * reach];
     let (shot, flight) = crate::projectile::launch_enemy(skull_id(), PLAYFIELD, 0, FIREBALL, 1, FIREBALL_SPEED, 0, origin, to, None);
     tokio::spawn(async move {
         let mut hit = None;
@@ -260,7 +262,7 @@ fn shoot(origin: [f32; 3], dir: [f32; 2]) {
             let (dx, dz) = (p[0] - origin[0], p[2] - origin[2]);
             let along = dx * dir[0] + dz * dir[1];
             let off = (dx * dir[1] - dz * dir[0]).abs();
-            if (0.0..=REACH).contains(&along) && off <= HIT_RADIUS && hit.as_ref().is_none_or(|(_, a, _)| along < *a) {
+            if (0.0..=reach).contains(&along) && off <= HIT_RADIUS && hit.as_ref().is_none_or(|(_, a, _)| along < *a) {
                 hit = Some((player, along, p));
             }
         }
