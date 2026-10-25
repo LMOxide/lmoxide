@@ -25,6 +25,7 @@ mod projectile;
 mod scenery;
 mod security;
 mod sessions;
+mod shop;
 mod state;
 mod store;
 mod teleport;

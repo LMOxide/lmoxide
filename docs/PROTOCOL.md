@@ -357,6 +357,33 @@ kill). Each minifigure's achievements say what its two item counters count ("Sma
 Monsters", "Build 100 Buildies", "Smash 50 Witches"); player counters: 3000116 kills, 3000126
 smashables smashed, 3000119-3000123 collectibles, 3000140-3000142 seasonal.
 
+## Item Shop: minifigure upgrades (shop.rs)
+
+The Collection's upgrade popup (CollectionGUI UpgradeAbilityInfo.as) prices an upgrade with
+`ItemShopInterface.GetItemWithHash(m_ShopItemID)`. Every upgrade's shop item id is unset in RDB
+1000643; RDBMinifigureUpgradeData::ReadData (Linux 0x178a9f6) defaults it to
+"MinifigureUpgrade<position + 1>", so twelve items serve every minifigure. Without them the
+price is blank and the button dead (live sent only ItemShopCurrencies in the recording).
+
+- `UpdateItemShopItems` (GameCharInterfaceProject 0x17): i32 methodId 3, vector<ItemShopItem>.
+  An item (operator>>(BinaryStream&, ItemShopItem&), 0x1807281): u32 shop id, u32 template, str
+  hash, u32 item effect (6 = a "purchase world" link), str name, short description, long
+  description, additional info (a numeric string is an LDB id, category 100), u32 icon, u32
+  large icon, u32, u32 use requirement, u32, vector<ItemCost {u32 currency, f32 price, f32
+  discount, u32 stack size}> (AS3 ItemShopCost: price and discount are Numbers; a u32 price
+  shows as 7e-44), vector<str> groups, vector<u32> effects, str url, str, str, u32, u32
+  required flags (against stat 511), u32 flags (bit 1 sale, 2 hot, 3 pending).
+- The client asks with `RequestItemShopTransaction(1, 0, 0, 0, 0)` at login; a purchase is
+  `RequestItemShopTransaction(3, target template, shop id, currency, amount)` (stars = 2).
+  Answer `ItemShopReply(7, template, 0)` or `ItemShopReplyError(6, template, message)`; until
+  one arrives the client blocks further purchases. The open upgrade panel refreshes on
+  `SignalMinifigureUpgradeResponse(template, 0)`.
+- The bought upgrade: item stats PurchasedUpgrades (3000106, a bit per position),
+  ActiveUpgrades (3000098), MinifigureLevel (3000058) = upgrades bought, MinifigureXP.
+- The panel: tiers at positions 0, 1-2, 3, 4-5, 6, 7-8, 9, 10-11; tier t opens at the player
+  level of lore tag 466 + t (3, 6, ... 24) once an upgrade of the tier before is active.
+  `LevelUpMinifigure` exists, but the UI never sends it.
+
 ## Characters per account
 
 An account's first character has the account's id; further ones get their own (above 16M,

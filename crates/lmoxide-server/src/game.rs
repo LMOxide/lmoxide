@@ -222,12 +222,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
                         records.push(crate::teleport::journal_record(h.identity));
-                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()));
+                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         if std::mem::take(&mut team_changed) {
                             // a test setup changed the team: the HUD shows it after this
                             team_salt += 1 << 33;
-                            let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                            let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
                             records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&team)));
                         }
                         if let Some(&(slot, template)) = me.team.first() {
@@ -843,6 +843,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 if ok {
                     me.stars -= cost.unwrap_or(0);
                     me.minifigure_levels.insert(template, rank + 1);
+                    // (the client's UI never sends this; upgrades are bought in the Item Shop)
+                    let purchased = me.purchased(template) | crate::progression::unlocked_upgrades(rank + 1);
+                    me.purchased_upgrades.insert(template, purchased);
                     send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
                     let (inv, pos) = match me.team.iter().find(|&&(_, t)| t == template) {
                         Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
@@ -851,7 +854,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     let stats = [
                         (crate::collection::STAT_MINIFIGURE_LEVEL, rank + 1),
                         (crate::collection::STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank + 1).unwrap_or(0) as u32),
-                        (crate::collection::STAT_PURCHASED_UPGRADES, crate::progression::unlocked_upgrades(rank + 1)),
+                        (crate::collection::STAT_PURCHASED_UPGRADES, purchased),
                     ];
                     for (stat, value) in stats {
                         // SetItemStat(const ID32& inventory, int pos, int stat, int value)
@@ -875,36 +878,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let template = r.i32()? as u32;
                 let position = r.i32()? as u32;
                 let old = me.upgrade(template);
-                // only the tiers the minifigure's rank unlocked (all without progression)
-                let active = crate::collection::activate(old, position) & crate::progression::unlocked_upgrades(me.rank(template));
+                // only upgrades bought (all without progression)
+                let active = crate::collection::activate(old, position) & me.purchased(template);
                 me.upgrades.insert(template, active);
                 info!(template, position, active, "activate upgrade");
-                let (inv, pos) = match me.team.iter().find(|&&(_, t)| t == template) {
-                    Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
-                    None => (crate::collection::COLLECTION_INVENTORY, collection.position_of(template).unwrap_or(0)),
-                };
-                // SetItemStat(const ID32& inventory, int pos, int stat, int value)
-                let args = Id32::new(inv, character)
-                    .write(Writer::new())
-                    .i32(pos as i32)
-                    .i32(crate::collection::STAT_ACTIVE_UPGRADES as i32)
-                    .i32(active as i32)
-                    .finish();
-                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
-                if inv == crate::collection::TEAM_INVENTORY {
-                    // ApplyMinifigureUpgradesOnClient(uint32 minifigure, int gameActionLists, int
-                    // activatedUpgrades): remove the old upgrades' effects (3), apply the new (1)
-                    for (lists, mask) in [(3, old), (1, active)] {
-                        let args = Writer::new().u32(template).i32(lists).i32(mask as i32).finish();
-                        conn.send_as(
-                            Some(character),
-                            Endpoint::GameCharInterfaceProject,
-                            game_char_interface_project::APPLY_MINIFIGURE_UPGRADES_ON_CLIENT,
-                            args,
-                        )
-                        .await?;
-                    }
-                }
+                send_upgrades(&mut conn, character, &me, &collection, template, old, &[(crate::collection::STAT_ACTIVE_UPGRADES, active)]).await?;
                 let args = Writer::new().u32(template).i32(0).finish();
                 conn.send_as(
                     Some(character),
@@ -913,11 +891,75 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     args,
                 )
                 .await?;
-                // upgrades change maximum health ("Fit") and mitigation ("Tough")
-                if me.team.first().is_some_and(|&(_, t)| t == template) {
-                    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                    let blob = iir::pass_blob(&health_records(id, template, active, me.combat_level()));
-                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::REQUEST_ITEM_SHOP_TRANSACTION) => {
+                // RequestItemShopTransaction(requestId, targetTemplateId, itemShopId, costType,
+                // amount): 1 at login (the item list), 3 buys an item for a minifigure
+                let (request, template, shop_id, currency, amount) = (r.u32()?, r.u32()?, r.u32()?, r.u32()?, r.u32()?);
+                info!(request, template, shop_id, currency, amount, "item shop transaction");
+                if request == crate::shop::REQUEST_LIST {
+                    let args = crate::shop::upgrade_items();
+                    conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::UPDATE_ITEM_SHOP_ITEMS, args)
+                        .await?;
+                } else if request == crate::shop::REQUEST_BUY {
+                    let owned = collection.position_of(template).is_some() || me.team.iter().any(|&(_, t)| t == template);
+                    let bought = match crate::shop::upgrade_position(shop_id) {
+                        _ if !crate::progression::enabled() => Err("Every upgrade is unlocked on this server."),
+                        _ if currency != crate::shop::STARS => Err("Upgrades are bought with stars."),
+                        _ if !owned => Err("You don't have this minifigure."),
+                        None => Err("This item isn't for sale."),
+                        Some(position) => crate::shop::check(position, me.purchased(template), me.upgrade(template), me.level(), me.stars)
+                            .map(|price| (position, price)),
+                    };
+                    match bought {
+                        Ok((position, price)) => {
+                            let old = me.upgrade(template);
+                            let purchased = me.purchased(template) | (1 << position);
+                            me.stars -= u64::from(price);
+                            me.purchased_upgrades.insert(template, purchased);
+                            // bought means picked: it's activated (its pair partner deselected)
+                            let active = crate::collection::activate(old, position) & purchased;
+                            me.upgrades.insert(template, active);
+                            // the minifigure's level: one per upgrade bought
+                            let rank = purchased.count_ones().min(crate::progression::MAX_RANK);
+                            me.minifigure_levels.insert(template, rank);
+                            info!(template, position, price, stars = me.stars, purchased, active, rank, "upgrade bought");
+                            let stats = [
+                                (crate::collection::STAT_PURCHASED_UPGRADES, purchased),
+                                (crate::collection::STAT_ACTIVE_UPGRADES, active),
+                                (crate::collection::STAT_MINIFIGURE_LEVEL, rank),
+                                (crate::collection::STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank).unwrap_or(0) as u32),
+                            ];
+                            send_upgrades(&mut conn, character, &me, &collection, template, old, &stats).await?;
+                            send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
+                            let args = item_shop_currencies(me.stars);
+                            conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_CURRENCIES, args)
+                                .await?;
+                            // the open upgrade panel refreshes its stars and tiers on this
+                            // (MinifigureUpgradePanel.SlotMinifigureUpgradeResponse)
+                            let args = Writer::new().u32(template).i32(0).finish();
+                            conn.send_as(
+                                Some(character),
+                                Endpoint::GameCharInterfaceProject,
+                                game_char_interface_project::SIGNAL_MINIFIGURE_UPGRADE_RESPONSE,
+                                args,
+                            )
+                            .await?;
+                            // ItemShopReply(int methodId, uint32 templateId, uint32 optionalValue)
+                            let args = Writer::new().i32(crate::shop::METHOD_BOUGHT).u32(template).u32(0).finish();
+                            conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_REPLY, args)
+                                .await?;
+                            let out = progress(&mut me, &collection, character, Some((None, 0)));
+                            send_progress(&mut conn, character, &me, out).await?;
+                        }
+                        Err(why) => {
+                            info!(template, shop_id, why, "upgrade not bought");
+                            // ItemShopReplyError(int methodId, uint32 templateId, String error)
+                            let args = Writer::new().i32(crate::shop::METHOD_ERROR).u32(template).string(why).finish();
+                            conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_REPLY_ERROR, args)
+                                .await?;
+                        }
+                    }
                 }
             }
             (Some(Endpoint::ClientToGameserverRPC), agent::PING) => {
@@ -1151,9 +1193,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::REQUEST_ITEM_SHOP_DATA) => {
-                // Live answered every login with only the currencies (no items or banners).
+                // Live answered every login with the currencies; the items (shop.rs: the minifigure
+                // upgrades) price the Collection's upgrade popup.
                 let args = item_shop_currencies(me.stars);
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_CURRENCIES, args)
+                    .await?;
+                let args = crate::shop::upgrade_items();
+                conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::UPDATE_ITEM_SHOP_ITEMS, args)
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::SET_CHARACTER_CREATION_DATA) => {
@@ -1173,7 +1219,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     // the minifigure into the team, as live: AddItem(ID32 inventory, i32 pos, entry,
                     // u8 split), which also gives the HUD its portrait
                     team_salt += 1 << 33;
-                    let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| me.rank(t), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                    let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
                     for e in &team.items {
                         let args = Id32::new(crate::collection::TEAM_INVENTORY, character).write(Writer::new()).i32(e.pos as i32).proto(&e.item).u8(0).finish();
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
@@ -1247,6 +1293,38 @@ fn report_finds(me: &Character, at: [f32; 3], outbox: &mpsc::UnboundedSender<wor
     }
 }
 
+/// A minifigure's upgrade item stats changed (`stats`, its active upgrades were `old`): sends
+/// them, and for a team minifigure applies the upgrades' effects anew; the active one's health
+/// follows ("Fit", "Tough").
+#[allow(clippy::too_many_arguments)]
+async fn send_upgrades(conn: &mut Conn, character: u32, me: &Character, collection: &Collection, template: u32, old: u32, stats: &[(u32, u32)]) -> anyhow::Result<()> {
+    let active = me.upgrade(template);
+    let (inv, pos) = match me.team.iter().find(|&&(_, t)| t == template) {
+        Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
+        None => (crate::collection::COLLECTION_INVENTORY, collection.position_of(template).unwrap_or(0)),
+    };
+    for &(stat, value) in stats {
+        // SetItemStat(const ID32& inventory, int pos, int stat, int value)
+        let args = Id32::new(inv, character).write(Writer::new()).i32(pos as i32).i32(stat as i32).i32(value as i32).finish();
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
+    }
+    if inv == crate::collection::TEAM_INVENTORY {
+        // ApplyMinifigureUpgradesOnClient(uint32 minifigure, int gameActionLists, int
+        // activatedUpgrades): remove the old upgrades' effects (3), apply the new (1)
+        for (lists, mask) in [(3, old), (1, active)] {
+            let args = Writer::new().u32(template).i32(lists).i32(mask as i32).finish();
+            conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::APPLY_MINIFIGURE_UPGRADES_ON_CLIENT, args)
+                .await?;
+        }
+    }
+    if me.team.first().is_some_and(|&(_, t)| t == template) {
+        let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+        let blob = iir::pass_blob(&health_records(id, template, active, me.combat_level()));
+        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+    }
+    Ok(())
+}
+
 /// A new character named `name`, starting in `playfield`.
 pub fn new_character(name: String, playfield: u32) -> Character {
     Character {
@@ -1260,6 +1338,7 @@ pub fn new_character(name: String, playfield: u32) -> Character {
         xp: 0,
         level: 0,
         minifigure_levels: Default::default(),
+        purchased_upgrades: Default::default(),
         tags: Default::default(),
         counters: Default::default(),
         defeats: Default::default(),
@@ -1841,6 +1920,7 @@ pub async fn run_bot(playfield: u32) {
         xp: 0,
         level: 0,
         minifigure_levels: Default::default(),
+        purchased_upgrades: Default::default(),
         tags: Default::default(),
         counters: Default::default(),
         defeats: Default::default(),
@@ -1963,7 +2043,7 @@ const EMPTY: u32 = 0x3f1;
 /// ```
 fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
-        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t), &|t| c.rank(t), &|t| crate::combat::item_life(t, c.upgrade(t), c.combat_level())),
+        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t), &|t| (c.rank(t), c.purchased(t)), &|t| crate::combat::item_life(t, c.upgrade(t), c.combat_level())),
         ..Default::default()
     };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {
@@ -2145,13 +2225,16 @@ pub trait CharacterExt {
     fn combat_level(&self) -> u32;
     /// Minifigure rank (item stat MinifigureLevel).
     fn rank(&self, template: u32) -> u32;
+    /// The upgrades bought for a minifigure (item stat PurchasedUpgrades): all without
+    /// progression; older saves without purchases have their rank's tiers.
+    fn purchased(&self, template: u32) -> u32;
     fn spec(&self) -> CharSpec<'_>;
 }
 
 impl CharacterExt for Character {
     fn upgrade(&self, template: u32) -> u32 {
         let active = self.upgrades.get(&template).copied().unwrap_or(crate::collection::DEFAULT_ACTIVE);
-        active & crate::progression::unlocked_upgrades(self.rank(template))
+        active & self.purchased(template)
     }
 
     fn level(&self) -> u32 {
@@ -2167,6 +2250,14 @@ impl CharacterExt for Character {
             self.minifigure_levels.get(&template).copied().unwrap_or(0)
         } else {
             crate::progression::MAX_RANK
+        }
+    }
+
+    fn purchased(&self, template: u32) -> u32 {
+        if crate::progression::enabled() {
+            self.purchased_upgrades.get(&template).copied().unwrap_or_else(|| crate::progression::unlocked_upgrades(self.rank(template)))
+        } else {
+            crate::progression::unlocked_upgrades(crate::progression::MAX_RANK)
         }
     }
 

@@ -111,6 +111,15 @@ playfield resources) aren't listed; neither are protocol constants.
 | Item health stats | `combat::item_life` | MinifigureLife = max health - level x HealthPerLevel; MinifigureHealth = max health | The client adds level x HealthPerLevel to MinifigureLife (CalculateLife); sending the full value showed the bar half full. |
 | Enemy targets | `npc::is_player` | player characters only | Scenery, jump pads, doors and collectibles are world members too; enemies were chasing them. |
 
+## Upgrade shop
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Upgrade prices | `shop::price` | a tier costs a minifigure rank step's stars (MinifigureXPTables): 50, 60, 140, 150, 250, 350, 400, 700 | Prices were server shop data; the XP table is the client's own star scale for ranks. |
+| Minifigure level | `game.rs` purchase | one per upgrade bought (max 8) | Shown as the Collection's rank dots. |
+| Without `--progression` | `CharacterExt::purchased` | everything bought; purchases refused | Matches the unlocked collection. |
+| Older saves | `CharacterExt::purchased` | no purchases recorded: the tiers of the saved rank | Keeps upgrades bought with the earlier rank-up model. |
+
 ## Achievements
 
 | Value | Where | Now | Source / reasoning |

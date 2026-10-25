@@ -32,6 +32,10 @@ pub struct Character {
     /// Minifigure levels by item template (unset: the server's default).
     #[serde(default)]
     pub minifigure_levels: BTreeMap<u32, u32>,
+    /// Upgrades bought in the Item Shop by item template: a bit per upgrade position (unset:
+    /// none, or for older saves the tiers of the minifigure's level).
+    #[serde(default)]
+    pub purchased_upgrades: BTreeMap<u32, u32>,
     /// Earned achievement tags -> unix time.
     #[serde(default)]
     pub tags: BTreeMap<u32, i64>,
@@ -100,6 +104,7 @@ impl Db {
                         xp: r.get::<_, i64>(6)? as u64,
                         level: r.get(7)?,
                         minifigure_levels: BTreeMap::new(),
+                        purchased_upgrades: BTreeMap::new(),
                         tags: BTreeMap::new(),
                         counters: BTreeMap::new(),
                         defeats: BTreeMap::new(),
@@ -120,8 +125,14 @@ impl Db {
         c.tokens = stmt
             .query_map([id], |r| Ok((r.get(0)?, (r.get::<_, i64>(1)? as u64, r.get::<_, i64>(2)? as u64))))?
             .collect::<rusqlite::Result<_>>()?;
-        let mut stmt = conn.prepare("SELECT template, level FROM character_minifigures WHERE character_id = ?1")?;
-        c.minifigure_levels = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT template, level, purchased FROM character_minifigures WHERE character_id = ?1")?;
+        for row in stmt.query_map([id], |r| Ok((r.get::<_, u32>(0)?, r.get::<_, u32>(1)?, r.get::<_, u32>(2)?)))? {
+            let (template, level, purchased) = row?;
+            c.minifigure_levels.insert(template, level);
+            if purchased != 0 {
+                c.purchased_upgrades.insert(template, purchased);
+            }
+        }
         let mut stmt = conn.prepare("SELECT tag, achieved_at FROM character_tags WHERE character_id = ?1")?;
         c.tags = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
         let mut stmt = conn.prepare("SELECT stat, template, value FROM character_counters WHERE character_id = ?1")?;
@@ -180,9 +191,14 @@ impl Db {
             for (token, (gained, spent)) in &c.tokens {
                 tok.execute(params![id, token, *gained as i64, *spent as i64])?;
             }
-            let mut fig = tx.prepare("INSERT INTO character_minifigures (character_id, template, level) VALUES (?1, ?2, ?3)")?;
-            for (template, level) in &c.minifigure_levels {
-                fig.execute(params![id, template, level])?;
+            let mut fig =
+                tx.prepare("INSERT INTO character_minifigures (character_id, template, level, purchased) VALUES (?1, ?2, ?3, ?4)")?;
+            let templates: std::collections::BTreeSet<u32> =
+                c.minifigure_levels.keys().chain(c.purchased_upgrades.keys()).copied().collect();
+            for template in templates {
+                let level = c.minifigure_levels.get(&template).copied().unwrap_or(0);
+                let purchased = c.purchased_upgrades.get(&template).copied().unwrap_or(0);
+                fig.execute(params![id, template, level, purchased])?;
             }
             let mut tag = tx.prepare("INSERT INTO character_tags (character_id, tag, achieved_at) VALUES (?1, ?2, ?3)")?;
             for (t, at) in &c.tags {
@@ -311,7 +327,8 @@ mod tests {
             tokens: [(5, (10, 3))].into(),
             xp: 4321,
             level: 7,
-            minifigure_levels: [(100, 3)].into(),
+            minifigure_levels: [(100, 3), (200, 0)].into(),
+            purchased_upgrades: [(200, 0b1011)].into(),
             tags: [(385, 1_700_000_000)].into(),
             counters: [(3_000_116, [(0, 12)].into()), (3_000_112, [(100, 4), (200, 1)].into())].into(),
             defeats: [("Skeleton".into(), Defeat { kind: "enemy".into(), count: 3, first_at: 1, last_at: 2 })].into(),

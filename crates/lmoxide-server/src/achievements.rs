@@ -439,6 +439,7 @@ mod tests {
             xp: 0,
             level: 0,
             minifigure_levels: Default::default(),
+            purchased_upgrades: Default::default(),
             tags: Default::default(),
             counters: Default::default(),
             defeats: Default::default(),
