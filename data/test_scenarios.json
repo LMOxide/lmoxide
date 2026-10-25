@@ -42,6 +42,26 @@
       ]
     },
     {
+      "label": "abilities",
+      "about": "enemies with different abilities around you (npc_spells.rs): Musketeer and Space Alien Ranger shots, Space Merc Brawler slash, Pirate Corsair spin, Satyr Shaman fire, Pirate Islander Scout trap, Space Merc Blaster volley",
+      "spawn": [
+        {"name": "Musketeer", "count": 1},
+        {"name": "Space Alien Ranger", "count": 1},
+        {"name": "Space Merc Brawler", "count": 1},
+        {"name": "Pirate Corsair", "count": 1},
+        {"name": "Satyr Shaman", "count": 1},
+        {"name": "Pirate Islander Scout", "count": 1},
+        {"name": "Space Merc Blaster", "count": 1}
+      ]
+    },
+    {
+      "label": "blackheart",
+      "about": "Captain Blackheart where you stand: Captain Dreadleg's slash, spin (then stunned), shot and bomb",
+      "spawn": [
+        {"name": "Captain Blackheart", "count": 1}
+      ]
+    },
+    {
       "label": "team",
       "about": "Astronaut, Alien Trooper and Ballerina in the hub (animations, minifigure switching, health)",
       "goto": {

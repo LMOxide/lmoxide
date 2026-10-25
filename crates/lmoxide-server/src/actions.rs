@@ -786,7 +786,7 @@ mod tests {
 /// points (the original server sent the centre), u32 0. The client plays the nano's
 /// EffectPackage on every target and point (`CoreMagicHolder::DoAreaFormula`); sent also
 /// without targets.
-fn area_formula_record(caster: Id32, targets: &[Id32], nano: u32, center: [f32; 3]) -> Bytes {
+pub(crate) fn area_formula_record(caster: Id32, targets: &[Id32], nano: u32, center: [f32; 3]) -> Bytes {
     lmoxide_net::iir::record("AreaFormulaIIR_t", caster, false, |w| {
         let w = targets.iter().fold(w.container_len(targets.len()), |w, t| t.write(w));
         w.u32(nano).container_len(1).f32(center[0]).f32(center[1]).f32(center[2]).u32(0)

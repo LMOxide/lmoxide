@@ -153,6 +153,52 @@ pub fn launch_visual(caster: Id32, playfield: u32, item: u32, speed: f32, from: 
     });
 }
 
+/// An enemy's shot (npc_spells.rs): projectile `item` of `spell` flying from `from` to `to` at
+/// `speed` (move type 1 straight, 2 ballistic), at `target` when it has one, as the original
+/// server sent the recorded Scallywags' and Musketeers' shots (UpdateMessage +
+/// `CoreProjectileFullUpdateIIR` with the enemy as caster and the player as target). The server
+/// decides the hit itself (`enemy_impact`). Returns the projectile and its flight time.
+#[allow(clippy::too_many_arguments)]
+pub fn launch_enemy(caster: Id32, playfield: u32, spell: u32, item: u32, move_type: u32, speed: f32, attractor: u32, from: [f32; 3], to: [f32; 3], target: Option<Id32>) -> (Id32, Duration) {
+    let p = Params {
+        item,
+        move_type,
+        speed,
+        attractor,
+        offset_z: 0.0,
+        ricochets: 0,
+        range: 0.0,
+        charge_items: vec![],
+        channel_interval: 0.0,
+        channel_buff: None,
+        counter_buff: None,
+    };
+    let id = Id32::new(PROJECTILE_TYPE, NEXT.fetch_add(1, Ordering::Relaxed));
+    let start = [from[0], from[1] + 1.0, from[2]];
+    let end = [to[0], to[1] + 1.0, to[2]];
+    let records = vec![create_game_object(id, playfield, start), full_update(id, &p, caster, target, spell, start, end, playfield)];
+    world::send_playfield(caster, true, world::Out::Records(records));
+    let (dx, dz) = (to[0] - from[0], to[2] - from[2]);
+    (id, Duration::from_secs_f32((dx * dx + dz * dz).sqrt() / speed.max(0.1)))
+}
+
+/// An enemy's projectile `id` arrived: `CoreProjectileIIR` HitTarget (u32 1, ID32 projectile,
+/// ID32 target, position; identity the caster, as recorded) when it hit someone, then it is
+/// removed.
+pub fn enemy_impact(caster: Id32, id: Id32, hit: Option<(Id32, [f32; 3])>) {
+    if let Some((target, at)) = hit {
+        let record = iir::record("CoreProjectileIIR", caster, false, |w| {
+            let w = target.write(id.write(w.u32(1)));
+            w.f32(at[0]).f32(at[1] + 1.0).f32(at[2])
+        });
+        world::send_playfield(caster, true, world::Out::Records(vec![record]));
+    }
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        world::send_playfield(caster, true, world::Out::Records(vec![despawn_record(id)]));
+    });
+}
+
 /// `CoreProjectileFullUpdateIIR` (ReadSubClass 0x1244a60): header ProtoGameCodeDynelIIR, then
 /// u32 item, u32 move type (1 straight, 2 ballistic, 3 orbiting), ID32 caster, ID32 target,
 /// start, target position, f32 (5.0), f32 speed (m/s), u32 spell, start angle, local offset

@@ -22,6 +22,7 @@ mod knubot;
 mod loot;
 mod mirrors;
 mod npc;
+mod npc_spells;
 mod pistons;
 mod plates;
 mod procs;
