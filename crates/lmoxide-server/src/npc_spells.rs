@@ -1,0 +1,630 @@
+//! Enemy abilities: the spells each enemy casts at players and what they do, from
+//! data/npc_spells.json (tools/re/extract_npc_spells.py: the recorded session's enemies' spells,
+//! others matched to their monster by the spells' names).
+//!
+//! A cast is shown as the original server showed the recorded enemies' casts: a MagicCommand
+//! on the enemy (BehaviorControlCenterIIR_c, `npc::observed_cast`), with the player as target
+//! (the enemy itself for self-centred spells, TargetingMode 8). After the spell's ItemDelay (the
+//! animation's strike) the server runs the server-side game actions of the spell's lists, as
+//! actions.rs does for the players' abilities but aimed at players:
+//!
+//! - WeaponHit: damage = the enemy's power (`npc::enemy_damage`) × AbilityMod;
+//! - CastNano: a nano with TimeExist (or one on the enemy itself without server actions) is a
+//!   buff (`MagicBuffIIR_c`; the client runs its snares and stuns), otherwise its own list 0
+//!   runs on the target and its EffectPackage plays there;
+//! - CoreFilteredAreaFormula / ColumnFormula: the players in the shape get the formula's nano
+//!   (`AreaFormulaIIR_t` shows it), CoreRandomPointAreaFormula: nanos at random points;
+//! - CorePersistentGroundEffect / PlaceTrap: a ground zone re-applying its nano;
+//! - Projectile (a client action the server carries out, as for players): the server creates the
+//!   projectile dynel (projectile.rs `launch_enemy`, recorded Scallywag and Musketeer shots) and,
+//!   when it arrives, runs the projectile item's actions (usually CastNano of a hit nano) on whom
+//!   it hit, with `CoreProjectileIIR` HitTarget;
+//! - channelled spells: OnChanneling every ChannelingInterval for ChannelingTicks ticks, then
+//!   OnChannelingEnd and the command's abort (BCC action 7, as the recorded Dreadleg spin ended).
+//!
+//! Not run: SpawnMonster (adds come from encounter.rs), server scripts, damage redirects, buff
+//! counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
+//! in docs/TUNABLES.md.
+
+use std::{
+    collections::HashMap,
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
+
+use bytes::Bytes;
+use lmoxide_net::types::Id32;
+use serde::Deserialize;
+use tracing::{debug, info};
+
+use crate::{effects, world};
+
+#[derive(Deserialize)]
+struct Data {
+    monsters: HashMap<String, Monster>,
+    spells: HashMap<String, Spell>,
+    items: HashMap<String, Item>,
+}
+
+#[derive(Deserialize)]
+struct Monster {
+    spells: Vec<u32>,
+}
+
+#[derive(Deserialize)]
+struct Spell {
+    name: String,
+    #[serde(default)]
+    stats: Stats,
+    #[serde(default)]
+    lists: HashMap<String, Vec<Action>>,
+}
+
+/// Spell stats; times in centiseconds, distances in centimetres.
+#[derive(Default, Deserialize)]
+struct Stats {
+    #[serde(rename = "AttackRange")]
+    attack_range: Option<f32>,
+    #[serde(rename = "RechargeDelay")]
+    recharge_delay: Option<f32>,
+    #[serde(rename = "ItemDelay")]
+    item_delay: Option<f32>,
+    #[serde(rename = "ChannelingInterval")]
+    channeling_interval: Option<f32>,
+    #[serde(rename = "ChannelingTicks")]
+    channeling_ticks: Option<u32>,
+    #[serde(rename = "TargetingMode")]
+    targeting_mode: Option<u32>,
+    #[serde(rename = "TimeExist")]
+    time_exist: Option<f32>,
+    #[serde(rename = "AIPowerrating")]
+    power: Option<f32>,
+    #[serde(rename = "EffectPackage")]
+    effect_package: Option<u32>,
+}
+
+#[derive(Deserialize)]
+struct Action {
+    #[serde(rename = "type")]
+    kind: String,
+    client: bool,
+    #[serde(default)]
+    args: HashMap<String, serde_json::Value>,
+    #[serde(default)]
+    criteria: Vec<[u32; 3]>,
+}
+
+impl Action {
+    fn f(&self, key: &str) -> Option<f32> {
+        self.args.get(key).and_then(|v| v.as_f64()).map(|v| v as f32)
+    }
+    fn u(&self, key: &str) -> Option<u32> {
+        self.args.get(key).and_then(|v| v.as_u64()).map(|v| v as u32)
+    }
+    fn on_caster(&self) -> bool {
+        self.u("ApplyOn") == Some(1)
+    }
+}
+
+#[derive(Deserialize)]
+struct Item {
+    #[serde(default)]
+    actions: Vec<Action>,
+}
+
+static DATA: LazyLock<Data> = LazyLock::new(|| serde_json::from_str(include_str!("../../../data/npc_spells.json")).expect("npc_spells.json"));
+
+const ON_USE: &str = "0";
+const ON_CHANNELING: &str = "33";
+const CHANNEL_START: &str = "35";
+const ON_CHANNELING_END: &str = "36";
+const PRE_USE: &str = "39";
+const TARGETING_GROUND: u32 = 7;
+const TARGETING_SELF: u32 = 8;
+const CRITERIA_HAS_ABILITY: u32 = 91;
+const CRITERIA_BUFF_COUNTER: u32 = 166;
+/// A buff without TimeExist on a character: as long as the original server showed Captain
+/// Dreadleg's "spin tired" stun (MagicBuffIIR_c duration 300 cs, recorded).
+const DEFAULT_BUFF: Duration = Duration::from_secs(3);
+/// Ground zones: lifetime when Arg1 (tenths of a second) is missing, and their pulse (as
+/// actions.rs).
+const GROUND_DEFAULT_LIFETIME: Duration = Duration::from_secs(3);
+const GROUND_PULSE: Duration = Duration::from_secs(1);
+/// Range of a projectile without AttackRange.
+const DEFAULT_PROJECTILE_RANGE: f32 = 15.0;
+/// How close to a straight shot's line a player is hit.
+const LINE_WIDTH: f32 = 1.0;
+const MAX_DEPTH: u32 = 5;
+/// Traps (PlaceTrap) spring when a player comes this close (the islander scout's trap area
+/// formula's Radius), checked this often.
+const TRAP_RADIUS: f32 = 2.0;
+const TRAP_POLL: Duration = Duration::from_millis(250);
+
+fn spell(id: u32) -> Option<&'static Spell> {
+    DATA.spells.get(&id.to_string())
+}
+
+/// The spells enemies of monsterdata `monster_data` cast, if known.
+pub fn spells_of(monster_data: u32) -> Option<&'static [u32]> {
+    DATA.monsters.get(&monster_data.to_string()).map(|m| m.spells.as_slice())
+}
+
+/// Whether this module runs `spell` (otherwise it's a plain hit, npc.rs `attack`).
+pub fn known(id: u32) -> bool {
+    spell(id).is_some()
+}
+
+/// The spell's attack range in metres (0 when it has none).
+pub fn range(id: u32) -> f32 {
+    spell(id).and_then(|s| s.stats.attack_range).map_or(0.0, |r| r / 100.0)
+}
+
+/// The spell's AI power rating (the AI prefers higher ones when they're ready).
+pub fn power(id: u32) -> f32 {
+    spell(id).and_then(|s| s.stats.power).unwrap_or(0.0)
+}
+
+/// How long after a cast the spell can be cast again: its RechargeDelay, or the recast time
+/// its own SetSpellRecastTime sets, whichever is longer.
+pub fn cooldown(id: u32) -> Duration {
+    let Some(s) = spell(id) else { return Duration::ZERO };
+    let recast = s
+        .lists
+        .values()
+        .flatten()
+        .filter(|a| a.kind == "SetSpellRecastTime" && a.u("NanoTemplate").is_none_or(|n| n == id))
+        .filter_map(|a| a.f("Value"))
+        .fold(0.0f32, f32::max);
+    cs(s.stats.recharge_delay.unwrap_or(0.0).max(recast))
+}
+
+/// How long the caster stands still for a cast: until the strike (ItemDelay), and for
+/// channels it doesn't move with (not self-centred, e.g. a blaster volley, a breath) the
+/// channel's length.
+pub fn busy(id: u32) -> Duration {
+    let Some(s) = spell(id) else { return Duration::ZERO };
+    let strike = cs(s.stats.item_delay.unwrap_or(0.0));
+    match channel(s) {
+        Some((interval, ticks)) if !self_centred(s) => strike + interval * ticks,
+        _ => strike,
+    }
+}
+
+fn channel(s: &Spell) -> Option<(Duration, u32)> {
+    let ticks = s.stats.channeling_ticks.filter(|t| *t > 0)?;
+    Some((cs(s.stats.channeling_interval.unwrap_or(50.0)), ticks))
+}
+
+fn cs(v: f32) -> Duration {
+    Duration::from_millis((v.max(0.0) * 10.0) as u64)
+}
+
+/// A cast in progress.
+struct Run {
+    caster: Id32,
+    playfield: u32,
+    level: u32,
+    spell: u32,
+    player: Id32,
+    /// The player's position when the cast started (ground-targeted spells aim there).
+    aimed: [f32; 3],
+    /// Where the caster faced when it cast (sectors, columns, straight shots).
+    facing: [f32; 2],
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Target {
+    id: Option<Id32>,
+    pos: [f32; 3],
+}
+
+/// Enemy `caster` (on `playfield`, of `level`) casts `id` at `player` (at `at`).
+pub fn cast(caster: Id32, playfield: u32, level: u32, id: u32, player: Id32, at: [f32; 3]) {
+    let Some(s) = spell(id) else { return };
+    let here = crate::npc::position(caster).unwrap_or(at);
+    let self_cast = self_centred(s);
+    let commanded = if self_cast { caster } else { player };
+    let (command, records) = crate::npc::observed_cast(caster, commanded, id);
+    world::send_playfield(caster, false, world::Out::Records(records.to_vec()));
+    let (dx, dz) = (at[0] - here[0], at[2] - here[2]);
+    let d = dx.hypot(dz);
+    let facing = if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] };
+    let run = Arc::new(Run { caster, playfield, level, spell: id, player, aimed: at, facing });
+    info!(?caster, spell = id, name = %s.name, ?player, "enemy cast");
+    run_list(&run, id, PRE_USE, root_target(&run), 0);
+    let delay = cs(s.stats.item_delay.unwrap_or(0.0));
+    tokio::spawn(async move {
+        tokio::time::sleep(delay).await;
+        if !alive(&run) {
+            return;
+        }
+        run_list(&run, id, ON_USE, root_target(&run), 0);
+        let Some((interval, ticks)) = channel(s) else { return };
+        run_list(&run, id, CHANNEL_START, root_target(&run), 0);
+        for _ in 0..ticks {
+            tokio::time::sleep(interval).await;
+            if !alive(&run) {
+                return;
+            }
+            run_list(&run, id, ON_CHANNELING, root_target(&run), 0);
+        }
+        run_list(&run, id, ON_CHANNELING_END, root_target(&run), 0);
+        show(&run, vec![crate::npc::command_record(caster, commanded, id, crate::npc::BCC_ABORT, command)]);
+    });
+}
+
+fn alive(run: &Run) -> bool {
+    crate::npc::health_of(run.caster).is_some()
+}
+
+fn here(run: &Run) -> [f32; 3] {
+    crate::npc::position(run.caster).unwrap_or(run.aimed)
+}
+
+/// The spell's own target: the caster for self-centred spells, the player's position at the
+/// cast for ground-targeted ones, else the player.
+fn root_target(run: &Run) -> Target {
+    let Some(s) = spell(run.spell) else { return Target { id: Some(run.caster), pos: here(run) } };
+    if self_centred(s) {
+        Target { id: Some(run.caster), pos: here(run) }
+    } else if s.stats.targeting_mode == Some(TARGETING_GROUND) {
+        Target { id: None, pos: run.aimed }
+    } else {
+        Target { id: Some(run.player), pos: world::position_of(run.player).unwrap_or(run.aimed) }
+    }
+}
+
+/// Spells cast on the caster itself: TargetingMode 8, and channels without a TargetingMode
+/// (the original server cast Captain Dreadleg's spin, which has none, on himself).
+fn self_centred(s: &Spell) -> bool {
+    match s.stats.targeting_mode {
+        Some(mode) => mode == TARGETING_SELF,
+        None => channel(s).is_some(),
+    }
+}
+
+/// Sends `records` to the caster's playfield (through the player once the caster is gone).
+fn show(run: &Run, records: Vec<Bytes>) {
+    if records.is_empty() {
+        return;
+    }
+    let from = if crate::npc::position(run.caster).is_some() { run.caster } else { run.player };
+    world::send_playfield(from, true, world::Out::Records(records));
+}
+
+/// The players on the caster's playfield whose position is `inside`.
+fn players_where(run: &Run, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
+    world::positions(run.playfield).into_iter().filter(|(id, p)| inside(*p) && crate::npc::is_player(*id)).collect()
+}
+
+fn criteria_met(a: &Action) -> bool {
+    a.criteria.iter().all(|&[_, y, kind]| match kind {
+        // enemies have no upgrades and run no buff counters
+        CRITERIA_HAS_ABILITY => false,
+        CRITERIA_BUFF_COUNTER => y == 0,
+        _ => true,
+    })
+}
+
+fn run_list(run: &Arc<Run>, id: u32, event: &str, target: Target, depth: u32) {
+    let Some(list) = spell(id).and_then(|s| s.lists.get(event)) else { return };
+    for a in list.iter().filter(|a| criteria_met(a)) {
+        act(run, id, a, target, depth);
+    }
+}
+
+fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
+    let caster = run.caster;
+    let me = Target { id: Some(caster), pos: here(run) };
+    let who = if a.on_caster() { me } else { target };
+    match a.kind.as_str() {
+        // the client-side actions the server carries out for enemies
+        "Projectile" => projectile(run, id, a, target, depth),
+        _ if a.client => {}
+        "WeaponHit" => {
+            if let Some(player) = who.id.filter(|p| *p != caster && crate::npc::is_player(*p)) {
+                let damage = (crate::npc::enemy_damage(run.level) * a.f("AbilityMod").unwrap_or(1.0)).round().max(1.0) as u32;
+                crate::npc::hurt_player(caster, player, run.spell, damage);
+            }
+        }
+        "CastNano" => {
+            if let Some(nano) = a.u("Value") {
+                cast_nano(run, nano, who, depth + 1, true);
+            }
+        }
+        "RemoveBuff" => {
+            if let (Some(buff), Some(on)) = (a.u("TemplateID"), who.id) {
+                effects::forget_buff(on, buff);
+                show(run, vec![effects::buff_remove(on, buff, caster)]);
+            }
+        }
+        "CoreFilteredAreaFormula" => {
+            let center = who.pos;
+            let radius = a.f("Radius").unwrap_or(2.0);
+            let min = a.f("Min").unwrap_or(0.0);
+            let angle = a.f("Angle").unwrap_or(360.0);
+            let from = a.f("AngleStart").unwrap_or(-angle / 2.0);
+            let mut hits = players_where(run, |p| {
+                let d = distance(p, center);
+                d <= radius && d >= min && (angle >= 360.0 || in_sector(center, run.facing, p, from, angle))
+            });
+            hits.sort_by(|(_, x), (_, y)| distance(*x, center).total_cmp(&distance(*y, center)));
+            if let Some(max) = a.u("Max1").filter(|m| *m > 0) {
+                hits.truncate(max as usize);
+            }
+            if let Some(nano) = a.u("NanoTemplate") {
+                let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
+                show(run, vec![crate::actions::area_formula_record(caster, &ids, nano, center)]);
+                for (p, pos) in hits {
+                    cast_nano(run, nano, Target { id: Some(p), pos }, depth + 1, false);
+                }
+            }
+        }
+        "ColumnFormula" => {
+            let from = me.pos;
+            let dir = run.facing;
+            let length = a.f("Distance").unwrap_or(5.0);
+            let width = a.f("FloatValue1").unwrap_or(1.0);
+            let hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
+            if let Some(nano) = a.u("NanoTemplate") {
+                let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
+                let mid = [from[0] + dir[0] * length / 2.0, from[1], from[2] + dir[1] * length / 2.0];
+                show(run, vec![crate::actions::area_formula_record(caster, &ids, nano, mid)]);
+                for (p, pos) in hits {
+                    cast_nano(run, nano, Target { id: Some(p), pos }, depth + 1, false);
+                }
+            }
+        }
+        "CoreRandomPointAreaFormula" => {
+            let radius = a.f("FloatRadius").unwrap_or(3.0);
+            if let Some(nano) = a.u("NanoTemplate") {
+                for _ in 0..a.u("Max1").unwrap_or(1) {
+                    let (angle, r) = (random_unit() * std::f32::consts::TAU, radius * random_unit().sqrt());
+                    let pos = [who.pos[0] + r * angle.sin(), who.pos[1], who.pos[2] + r * angle.cos()];
+                    cast_nano(run, nano, Target { id: None, pos }, depth + 1, true);
+                }
+            }
+        }
+        "CorePersistentGroundEffect" => {
+            let lifetime = a.u("Arg1").map_or(GROUND_DEFAULT_LIFETIME, |t| Duration::from_millis(100 * t as u64));
+            if let Some(package) = a.u("EffectPackage") {
+                let instance = effects::new_instance();
+                show(run, vec![effects::ground_effect(caster, package, who.pos, id, instance)]);
+                let run = run.clone();
+                tokio::spawn(async move {
+                    tokio::time::sleep(lifetime).await;
+                    show(&run, vec![effects::stop_effect_package(run.caster, package, id, instance)]);
+                });
+            }
+            if let Some(nano) = a.u("NanoTemplate") {
+                let delay = cs(a.f("DelayTime").unwrap_or(0.0));
+                ground_zone(run, nano, who.pos, delay, GROUND_PULSE, lifetime, depth);
+            }
+        }
+        "PlaceTrap" => {
+            if let Some(nano) = a.u("NanoTemplate") {
+                let lifetime = Duration::from_secs(a.u("TimedLength").unwrap_or(3) as u64);
+                trap(run, nano, who.pos, lifetime, depth);
+            }
+        }
+        other => debug!(spell = id, action = other, "enemy spell action not run"),
+    }
+}
+
+/// Casts nano `nano` on `target`: a buff is shown as one, a hit nano plays its effect there
+/// (`own_effect`, not for an area formula's: its record shows it); then its list 0 runs there.
+fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: bool) {
+    if depth > MAX_DEPTH {
+        return;
+    }
+    let Some(n) = spell(nano) else { return };
+    let caster = run.caster;
+    let on_caster = target.id == Some(caster);
+    let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client));
+    let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
+    match target.id {
+        Some(on) if is_buff => {
+            let duration = n.stats.time_exist.map_or(DEFAULT_BUFF, cs);
+            show(run, effects::show_buff(on, nano, caster, Some(duration)));
+            // a stun on the caster (e.g. tired after a spin) keeps it from moving
+            if on_caster && n.lists.values().flatten().any(|a| a.kind == "Stun") {
+                crate::npc::set_busy(caster, duration);
+            }
+        }
+        Some(on) if own_effect => {
+            if let Some(package) = n.stats.effect_package {
+                show(run, vec![effects::effect_package(on, package)]);
+            }
+        }
+        _ => {}
+    }
+    run_list(run, nano, ON_USE, target, depth);
+}
+
+/// A ground zone at `at`: after `delay`, re-applies `nano` there every `pulse` for `lifetime`.
+fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: Duration, lifetime: Duration, depth: u32) {
+    let run = run.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(delay).await;
+        let until = std::time::Instant::now() + lifetime;
+        while std::time::Instant::now() < until {
+            cast_nano(&run, nano, Target { id: None, pos: at }, depth + 1, true);
+            tokio::time::sleep(pulse).await;
+        }
+    });
+}
+
+/// A trap at `at` (PlaceTrap): springs once, when a player comes within TRAP_RADIUS during
+/// `lifetime`, casting `nano` there.
+fn trap(run: &Arc<Run>, nano: u32, at: [f32; 3], lifetime: Duration, depth: u32) {
+    let run = run.clone();
+    tokio::spawn(async move {
+        let until = std::time::Instant::now() + lifetime;
+        while std::time::Instant::now() < until {
+            if !players_where(&run, |p| distance(p, at) <= TRAP_RADIUS).is_empty() {
+                cast_nano(&run, nano, Target { id: None, pos: at }, depth + 1, true);
+                return;
+            }
+            tokio::time::sleep(TRAP_POLL).await;
+        }
+    });
+}
+
+/// A Projectile action: the server shoots the projectile item. Aimed at a player (straight
+/// shots home in on their target, as the recorded hits show: the original server reported
+/// every shot as a hit), at the ground (ballistic or ground-targeted: the item acts where it
+/// lands), or along a line (shots from the caster's facing or turned by RotY, e.g. a fan of
+/// shots: the first player on the line is hit).
+fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
+    let Some(item) = a.u("ItemInstance") else { return };
+    let caster = run.caster;
+    let from = here(run);
+    let speed = a.f("Speed").unwrap_or(1000.0) / 100.0;
+    let move_type = a.u("ProjectileType").unwrap_or(1);
+    let attractor = a.u("AttractorID").unwrap_or(0);
+    let range = a.f("AttackRange").or(spell(id).and_then(|s| s.stats.attack_range)).map_or(DEFAULT_PROJECTILE_RANGE, |r| r / 100.0);
+    let turn = a.f("RotY").unwrap_or(0.0);
+    let aimed_at = target.id.filter(|t| *t != caster && crate::npc::is_player(*t));
+    if a.on_caster() || turn != 0.0 || (aimed_at.is_none() && target.id.is_some()) {
+        let base = if a.on_caster() || target.id == Some(caster) {
+            run.facing
+        } else {
+            let (dx, dz) = (target.pos[0] - from[0], target.pos[2] - from[2]);
+            let d = dx.hypot(dz);
+            if d > 0.01 { [dx / d, dz / d] } else { run.facing }
+        };
+        let (s, c) = turn.to_radians().sin_cos();
+        let dir = [base[0] * c + base[1] * s, -base[0] * s + base[1] * c];
+        let hit = players_where(run, |p| on_line(from, dir, p, range, LINE_WIDTH).is_some())
+            .into_iter()
+            .min_by(|(_, x), (_, y)| distance(*x, from).total_cmp(&distance(*y, from)));
+        let to = hit.map_or([from[0] + dir[0] * range, from[1], from[2] + dir[1] * range], |(_, p)| p);
+        let (shot, flight) = crate::projectile::launch_enemy(caster, run.playfield, id, item, move_type, speed, attractor, from, to, None);
+        let run = run.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(flight).await;
+            let hit = hit.map(|(p, pos)| (p, world::position_of(p).unwrap_or(pos)));
+            crate::projectile::enemy_impact(run.caster, shot, hit);
+            if let Some((p, pos)) = hit {
+                impact(&run, item, Target { id: Some(p), pos }, depth);
+            }
+        });
+    } else if let Some(player) = aimed_at.filter(|_| move_type == 1) {
+        let (shot, flight) = crate::projectile::launch_enemy(caster, run.playfield, id, item, move_type, speed, attractor, from, target.pos, Some(player));
+        let run = run.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(flight).await;
+            let pos = world::position_of(player).unwrap_or(target.pos);
+            crate::projectile::enemy_impact(run.caster, shot, Some((player, pos)));
+            impact(&run, item, Target { id: Some(player), pos }, depth);
+        });
+    } else {
+        let to = target.pos;
+        let (shot, flight) = crate::projectile::launch_enemy(caster, run.playfield, id, item, move_type, speed, attractor, from, to, None);
+        let run = run.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(flight).await;
+            crate::projectile::enemy_impact(run.caster, shot, None);
+            impact(&run, item, Target { id: None, pos: to }, depth);
+        });
+    }
+}
+
+/// A projectile item's actions where it arrived.
+fn impact(run: &Arc<Run>, item: u32, target: Target, depth: u32) {
+    let Some(i) = DATA.items.get(&item.to_string()) else { return };
+    for a in i.actions.iter().filter(|a| !a.client) {
+        act(run, run.spell, a, target, depth + 1);
+    }
+}
+
+fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
+    ((a[0] - b[0]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
+}
+
+/// How far along the line from `from` in direction `dir` the point `p` is, if it lies within
+/// `width` of it and `length` of `from`.
+fn on_line(from: [f32; 3], dir: [f32; 2], p: [f32; 3], length: f32, width: f32) -> Option<f32> {
+    let (dx, dz) = (p[0] - from[0], p[2] - from[2]);
+    let along = dx * dir[0] + dz * dir[1];
+    let across = (dx * dir[1] - dz * dir[0]).abs();
+    ((0.0..=length).contains(&along) && across <= width).then_some(along)
+}
+
+/// Whether `p` lies in the sector from `start` to `start + angle` degrees around `facing`.
+fn in_sector(center: [f32; 3], facing: [f32; 2], p: [f32; 3], start: f32, angle: f32) -> bool {
+    let (dx, dz) = (p[0] - center[0], p[2] - center[2]);
+    if dx.hypot(dz) < 0.01 {
+        return true;
+    }
+    let rel = (dx.atan2(dz) - facing[0].atan2(facing[1])).to_degrees();
+    let rel = (rel + 540.0).rem_euclid(360.0) - 180.0;
+    rel >= start && rel <= start + angle
+}
+
+fn random_unit() -> f32 {
+    use std::sync::atomic::{AtomicU32, Ordering};
+    static SEQ: AtomicU32 = AtomicU32::new(0);
+    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.subsec_nanos());
+    let x = nanos.wrapping_add(SEQ.fetch_add(0x9e37_79b9, Ordering::Relaxed));
+    (x.wrapping_mul(2_654_435_761) % 10_000) as f32 / 10_000.0
+}
+
+/// A random pick weight in [0, 1) (spell choice ties).
+pub fn jitter() -> f32 {
+    random_unit()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recorded_enemies_have_their_spells() {
+        // Scallywags (skeleton_pirate_1): XX_Shot 197370 and XX_Slash 197365, as recorded
+        assert_eq!(spells_of(207_001), Some(&[197_370, 197_365][..]));
+        // Captain Dreadleg: slash and spin
+        assert_eq!(spells_of(634_824), Some(&[232_292, 238_132][..]));
+        assert!(range(197_370) > 5.0 && range(197_365) < 1.0);
+        // the shot's own recast time (SetSpellRecastTime 500) is longer than its RechargeDelay
+        assert_eq!(cooldown(197_370), Duration::from_secs(5));
+        // the spin: channelled, self-centred (the boss keeps moving), 20 s recast
+        let spin = spell(238_132).unwrap();
+        assert_eq!(channel(spin), Some((Duration::from_millis(500), 20)));
+        assert_eq!(busy(238_132), Duration::from_millis(10));
+        assert_eq!(cooldown(238_132), Duration::from_secs(20));
+        // every projectile item the spells shoot is there
+        for s in DATA.spells.values() {
+            for a in s.lists.values().flatten().filter(|a| a.kind == "Projectile") {
+                assert!(DATA.items.contains_key(&a.u("ItemInstance").unwrap().to_string()), "{}", s.name);
+            }
+        }
+    }
+
+    #[test]
+    fn ability_test_enemies_have_spells() {
+        // `!test abilities` / `!test blackheart` spawn copies of world content enemies by name
+        let scenarios: serde_json::Value = serde_json::from_str(include_str!("../../../data/test_scenarios.json")).unwrap();
+        let worlds: HashMap<String, serde_json::Value> = serde_json::from_str(include_str!("../../../data/world_content.json")).unwrap();
+        let monster = |name: &str| {
+            worlds.values().filter_map(|w| w.get("enemies")?.as_array()).flatten().find(|e| e["name"] == name).and_then(|e| e["monster_data"].as_u64())
+        };
+        for s in scenarios["scenarios"].as_array().unwrap().iter().filter(|s| ["abilities", "blackheart"].contains(&s["label"].as_str().unwrap())) {
+            for spawn in s["spawn"].as_array().unwrap() {
+                let name = spawn["name"].as_str().unwrap();
+                let md = monster(name).unwrap_or_else(|| panic!("no enemy named {name}"));
+                assert!(spells_of(md as u32).is_some_and(|s| s.iter().all(|s| known(*s))), "{name}");
+            }
+        }
+    }
+
+    #[test]
+    fn lines_and_sectors() {
+        let o = [0.0, 0.0, 0.0];
+        assert_eq!(on_line(o, [0.0, 1.0], [0.5, 0.0, 4.0], 10.0, 1.0), Some(4.0));
+        assert_eq!(on_line(o, [0.0, 1.0], [2.0, 0.0, 4.0], 10.0, 1.0), None);
+        assert_eq!(on_line(o, [0.0, 1.0], [0.0, 0.0, -1.0], 10.0, 1.0), None);
+        assert!(in_sector(o, [0.0, 1.0], [0.0, 0.0, 2.0], -30.0, 60.0));
+        assert!(!in_sector(o, [0.0, 1.0], [0.0, 0.0, -2.0], -30.0, 60.0));
+    }
+}

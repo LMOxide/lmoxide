@@ -220,6 +220,29 @@ struct Npc {
     walk: Option<Walk>,
     /// Spawned by a test scenario: doesn't respawn, and is gone at that time.
     temporary: Option<std::time::Instant>,
+    /// When each of its spells can be cast again (npc_spells.rs).
+    cooldowns: HashMap<u32, std::time::Instant>,
+    /// Casting (or stunned) until then: it stands still.
+    busy_until: Option<std::time::Instant>,
+}
+
+impl Npc {
+    fn new(def: SpawnDef, playfield: u32, owner: Option<(Id32, std::time::Instant)>, temporary: Option<std::time::Instant>) -> Npc {
+        Npc {
+            health: def.health,
+            pos: Arc::new(Mutex::new(def.pos)),
+            def,
+            playfield,
+            presence: None,
+            last_attack: None,
+            owner,
+            summon: None,
+            walk: None,
+            temporary,
+            cooldowns: HashMap::new(),
+            busy_until: None,
+        }
+    }
 }
 
 /// A straight path an NPC was sent along at `speed`: the server follows it there, so the next
@@ -406,8 +429,7 @@ pub fn start() {
             }
             let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
             let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
-            let pos = Arc::new(Mutex::new(def.pos));
-            NPCS.lock().unwrap().insert(id, Npc { health: def.health, def, playfield, pos, presence: None, last_attack: None, owner: None, summon: None, walk: None, temporary: None });
+            NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
             appear(id);
         }
     }
@@ -508,18 +530,7 @@ pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 
         let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
         let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
         let def = SpawnDef { pos, ..def.clone() };
-        let npc = Npc {
-            health: def.health,
-            def,
-            playfield,
-            pos: Arc::new(Mutex::new(pos)),
-            presence: None,
-            last_attack: None,
-            owner: None,
-            summon: None,
-            walk: None,
-            temporary: Some(until),
-        };
+        let npc = Npc::new(def, playfield, None, Some(until));
         NPCS.lock().unwrap().insert(id, npc);
         appear(id);
         ids.push(id);
@@ -540,18 +551,7 @@ pub fn spawn_temporary(def: SpawnDef, playfield: u32, lifetime: Duration) -> Id3
     let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
     let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let until = std::time::Instant::now() + lifetime;
-    let npc = Npc {
-        health: def.health,
-        pos: Arc::new(Mutex::new(def.pos)),
-        def,
-        playfield,
-        presence: None,
-        last_attack: None,
-        owner: None,
-        summon: None,
-        walk: None,
-        temporary: Some(until),
-    };
+    let npc = Npc::new(def, playfield, None, Some(until));
     NPCS.lock().unwrap().insert(id, npc);
     appear(id);
     tokio::spawn(async move {
@@ -566,18 +566,7 @@ pub fn spawn_temporary(def: SpawnDef, playfield: u32, lifetime: Duration) -> Id3
 pub fn escort(owner: Id32, playfield: u32, def: SpawnDef, lifetime: Duration) -> Id32 {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let def = SpawnDef { kind: Kind::Pet, cars_group: Some(0), ..def };
-    let npc = Npc {
-        health: def.health,
-        pos: Arc::new(Mutex::new(def.pos)),
-        def,
-        playfield,
-        presence: None,
-        last_attack: None,
-        owner: Some((owner, std::time::Instant::now() + lifetime)),
-        summon: None,
-        walk: None,
-        temporary: None,
-    };
+    let npc = Npc::new(def, playfield, Some((owner, std::time::Instant::now() + lifetime)), None);
     NPCS.lock().unwrap().insert(id, npc);
     appear(id);
     id
@@ -631,22 +620,8 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
             drop(npc.presence);
         }
     }
-    let pos = Arc::new(Mutex::new(spawn.pos));
-    NPCS.lock().unwrap().insert(
-        id,
-        Npc {
-            health: spawn.health,
-            def: spawn,
-            playfield,
-            pos,
-            presence: None,
-            last_attack: None,
-            owner: Some((owner, until)),
-            summon: Some((spell, def.projectile)),
-            walk: None,
-            temporary: None,
-        },
-    );
+    let npc = Npc { summon: Some((spell, def.projectile)), ..Npc::new(spawn, playfield, Some((owner, until)), None) };
+    NPCS.lock().unwrap().insert(id, npc);
     appear(id);
 }
 
@@ -1071,31 +1046,101 @@ fn approach(from: [f32; 3], to: [f32; 3], keep: f32) -> [f32; 3] {
     [from[0] + (to[0] - from[0]) * t, to[1], from[2] + (to[2] - from[2]) * t]
 }
 
-/// NPC `id` swings at `player` if its attack is ready: the cast (a MagicCommand created on the
-/// NPC: BCC actions 16 queue, 4 success, 10 can-execute), the damage number and the player's
-/// new health. At 0 the client switches to the next minifigure itself.
-fn attack(id: Id32, player: Id32) -> bool {
-    let (spell, level) = {
-        let mut npcs = NPCS.lock().unwrap();
-        let Some(npc) = npcs.get_mut(&id) else { return false };
-        if npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
-            return false;
-        }
-        npc.last_attack = Some(std::time::Instant::now());
-        (npc.def.spell, npc.def.level)
-    };
-    // enemy power ~ 1.5 × level + 1.5 (fit to the recorded session's hits)
-    let damage = (1.5 * level as f32 + 1.5).round() as u32;
+/// An enemy's power: what one of its hits (AbilityMod 1) does at `level`, ~ 1.5 × level + 1.5
+/// (fit to the recorded session's hits: 3 at level 1, 4–5 at level 2, 5–6 for the level-3 boss).
+pub fn enemy_damage(level: u32) -> f32 {
+    1.5 * level as f32 + 1.5
+}
+
+/// Enemy `id` hurts `player` with `spell` for `damage` (before the player's procs and
+/// mitigation): the damage number and the player's new health. At 0 the client switches to the
+/// next minifigure itself.
+pub fn hurt_player(id: Id32, player: Id32, spell: u32, damage: u32) {
     // the player's defensive upgrade procs
     let damage = crate::procs::incoming(player, damage, crate::actions::is_channelling(player));
-    let Some(health) = damage_player(player, damage) else { return true };
+    let Some(health) = damage_player(player, damage) else { return };
     crate::procs::after_damage(player, health, player_max_health(player));
-    let mut records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
-    records.push(combat_log_record(id, player, spell, damage));
-    records.push(int32_stat(player, STAT_HEALTH, health));
-    world::send_playfield(id, false, world::Out::Records(records));
+    let records = vec![combat_log_record(id, player, spell, damage), int32_stat(player, STAT_HEALTH, health)];
+    // (through the player: a projectile can land after the enemy is gone)
+    world::send_playfield(player, true, world::Out::Records(records));
     crate::actions::caster_hit(player);
+}
+
+/// Keeps NPC `id` standing (casting, stunned) for `duration`.
+pub fn set_busy(id: Id32, duration: Duration) {
+    if let Some(npc) = NPCS.lock().unwrap().get_mut(&id) {
+        let until = std::time::Instant::now() + duration;
+        npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
+    }
+}
+
+fn is_busy(id: Id32) -> bool {
+    NPCS.lock().unwrap().get(&id).and_then(|n| n.busy_until).is_some_and(|t| t > std::time::Instant::now())
+}
+
+/// How far an enemy's spell reaches: its AttackRange, at least the melee distance (enemies
+/// stand MELEE_RANGE away, and melee spells say 0.5–1 m).
+fn reach_of(spell: u32) -> f32 {
+    crate::npc_spells::range(spell).max(MELEE_RANGE + 1.0)
+}
+
+/// How close an enemy with `spells` walks up to its target: to melee range if it has a melee
+/// attack, otherwise to 80% of its shortest ranged attack (kept inside the aggro range).
+fn keep_distance(spells: &[u32]) -> f32 {
+    let ranges: Vec<f32> = spells.iter().map(|s| crate::npc_spells::range(*s)).collect();
+    if ranges.is_empty() || ranges.iter().any(|r| *r <= MELEE_RANGE + 1.0) {
+        return MELEE_RANGE;
+    }
+    (ranges.iter().copied().fold(f32::MAX, f32::min) * 0.8).clamp(MELEE_RANGE, AGGRO_RANGE - 1.0)
+}
+
+/// The spells NPC `def` fights with: its monster's (data/npc_spells.json), else its own.
+fn spells_for(def: &SpawnDef) -> Vec<u32> {
+    crate::npc_spells::spells_of(def.monster_data).map_or_else(|| vec![def.spell], <[u32]>::to_vec)
+}
+
+/// Enemy `id` (at `here`) fights `player` (at `at`): when it isn't casting and its last cast
+/// is ATTACK_INTERVAL ago, it casts the strongest (AIPowerrating) of its spells that is off
+/// cooldown and reaches the player (ties: random). Returns whether it cast.
+fn engage(id: Id32, player: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
+    let now = std::time::Instant::now();
+    let d = distance(here, at);
+    let (spell, playfield, level) = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get_mut(&id) else { return false };
+        if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
+            return false;
+        }
+        let pick = spells_for(&npc.def)
+            .into_iter()
+            .filter(|s| npc.cooldowns.get(s).is_none_or(|t| *t <= now) && d <= reach_of(*s))
+            .map(|s| (s, crate::npc_spells::power(s) + crate::npc_spells::jitter()))
+            .max_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(s, _)| s);
+        let Some(spell) = pick else { return false };
+        npc.last_attack = Some(now);
+        npc.cooldowns.insert(spell, now + crate::npc_spells::cooldown(spell));
+        let busy = crate::npc_spells::busy(spell);
+        if !busy.is_zero() {
+            npc.busy_until = Some(now + busy);
+        }
+        (spell, npc.playfield, npc.def.level)
+    };
+    if crate::npc_spells::known(spell) {
+        crate::npc_spells::cast(id, playfield, level, spell, player, at);
+    } else {
+        attack(id, player, spell, level);
+    }
     true
+}
+
+/// A plain hit with a spell npc_spells.rs doesn't know (the default XX_Axe Chop): the cast (a
+/// MagicCommand created on the NPC: BCC actions 16 queue, 4 success, 10 can-execute) and the
+/// damage at once.
+fn attack(id: Id32, player: Id32, spell: u32, level: u32) {
+    let records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
+    world::send_playfield(id, false, world::Out::Records(records));
+    hurt_player(id, player, spell, enemy_damage(level).round() as u32);
 }
 
 /// Turn an enemy that stays put towards `target`.
@@ -1139,6 +1184,16 @@ pub fn observed_end(caster: Id32, target: Id32, spell: u32, id: u32) -> Vec<byte
     vec![cast_record_with_id(caster, target, spell, 20, id), cast_record_with_id(caster, target, spell, 7, id)]
 }
 
+/// BCC action that aborts a command (CoreCommandHolder_c::AbortOneCommand, by server id): the
+/// original server ended Captain Dreadleg's spin with it.
+pub const BCC_ABORT: u8 = 7;
+
+/// A BehaviorControlCenterIIR_c for the MagicCommand with server id `server_id` (see
+/// `observed_cast`).
+pub fn command_record(caster: Id32, target: Id32, spell: u32, action: u8, server_id: u32) -> bytes::Bytes {
+    cast_record_with_id(caster, target, spell, action, server_id)
+}
+
 fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, server_id: u32) -> bytes::Bytes {
     let msg = lmoxide_net::proto::CommandMessage {
         bcc_action_id: Some(605),
@@ -1157,27 +1212,30 @@ fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, serve
     })
 }
 
-/// Chase the nearest player in range; walk home when there is none or it ran too far.
+/// A live enemy for one AI tick: id, playfield, home, reach (stationary enemies), keep distance.
+type Fighter = (Id32, u32, [f32; 3], Option<f32>, f32);
+
+/// Chase the nearest player in range and fight it; walk home when there is none or it ran too far.
 async fn ai() {
     let mut tick = tokio::time::interval(TICK);
     loop {
         tick.tick().await;
-        let live: Vec<(Id32, u32, [f32; 3], Option<f32>)> = NPCS
+        let live: Vec<Fighter> = NPCS
             .lock()
             .unwrap()
             .iter()
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
-            .map(|(id, n)| (*id, n.playfield, n.def.pos, n.def.reach))
+            .map(|(id, n)| (*id, n.playfield, n.def.pos, n.def.reach, keep_distance(&spells_for(&n.def))))
             .collect();
         pets_tick();
         // players per playfield, collected once per tick (most playfields have none)
         let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
-        for (_, playfield, _, _) in &live {
+        for (_, playfield, _, _, _) in &live {
             players
                 .entry(*playfield)
                 .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other)).collect());
         }
-        for (id, playfield, home, reach) in live {
+        for (id, playfield, home, reach, keep) in live {
             let Some(here) = current(id) else { continue };
             if let Some(reach) = reach {
                 let target = players[&playfield]
@@ -1186,7 +1244,7 @@ async fn ai() {
                     .filter(|(_, p)| distance(*p, here) < reach)
                     .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
                 if let Some((player, p)) = target {
-                    if attack(id, player) {
+                    if engage(id, player, p, here) {
                         face(id, here, p);
                     }
                 }
@@ -1200,10 +1258,16 @@ async fn ai() {
                 .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
             match target {
                 Some((player, p)) => {
-                    if distance(p, here) <= MELEE_RANGE + 1.0 {
-                        attack(id, player);
+                    let cast = engage(id, player, p, here);
+                    if is_busy(id) {
+                        // casting: it stops (facing the player) until the strike
+                        steer(id, here, here, Some(p));
+                        if cast {
+                            face(id, here, p);
+                        }
+                    } else {
+                        steer(id, here, approach(here, p, keep), Some(p));
                     }
-                    steer(id, here, approach(here, p, MELEE_RANGE), Some(p));
                 }
                 None => steer(id, here, home, None),
             }

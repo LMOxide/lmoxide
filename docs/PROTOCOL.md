@@ -617,3 +617,20 @@ command_queue_id). With the caster's running MagicCommand's server id (BCC 4 rep
 `CombatLogIIR` (known to show the damage numbers): a test switching to AttackResultIIR (id 0)
 showed no numbers in a crowd fight, though that screenshot test was inconclusive. Switching
 needs the server command id in the player's BCC 4 replies first.
+
+## Enemy casts (npc_spells.rs)
+
+Recorded (tutorial Scallywags and Captain Dreadleg, 4600 Musketeers): an enemy's cast is a
+`BehaviorControlCenterIIR_c` MagicCommand on the enemy (action 4, CommandMessage proto with
+bcc_action_id 605, server command id, target = the player, or the enemy itself for Dreadleg's
+spin; then u32 0, u32 spell, ...), then action 10 when it strikes. Melee hits came as
+`AttackResultIIR` on the player (attacker the enemy, template = the spell, command_queue_id =
+the command's server id); the spin added a `MagicBuffIIR_c` self-snare on the boss and an
+`AreaFormulaIIR_t` (nano 238133) every tick, and ended with BCC action 7 (twice) and the
+"tired" stun buff (300 cs). Shots: `UpdateMessage` + `CoreProjectileFullUpdateIIR` (caster the
+enemy, target the player, the spell's projectile item, e.g. 197369 for XX_Shot 197370), then
+the hit as `AttackResultIIR` (template = the item's hit nano, e.g. 197368) and
+`CoreProjectileIIR` on the enemy: u32 1 (HitTarget), ID32 projectile, ID32 target, position.
+Which spells a monster has was server-side (NPC templates); data/npc_spells.json
+(tools/re/extract_npc_spells.py) holds the recorded ones and name matches (docs/TUNABLES.md).
+LMOxide still reports hits with `CombatLogIIR` + Health (see "Hit reports").

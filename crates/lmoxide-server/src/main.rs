@@ -21,6 +21,7 @@ mod knubot;
 mod loot;
 mod mirrors;
 mod npc;
+mod npc_spells;
 mod procs;
 mod progression;
 mod projectile;
