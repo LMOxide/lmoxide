@@ -161,6 +161,8 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Step order | `tutorial::Run::moved` | a trigger fires only after the one before it and once every enemy its steps spawned is beaten; the pads after the summoned pirate (195056) and the ambush (195055) open per player when those waves are beaten | Live hid them behind blockers until the waves fell (recording). A relog mid-way counts the steps west of the player as done. |
 | Who plays it | `game.rs` | anyone in 1300 without tag 4121 | Live ran it for new characters. |
 | Not done | | the MinimumHealthCap buff 236432, quest records 279/78, SpawnCompass, boss arena doors | |
+| Pirate World cannon | `cannon.rs` | building the cannon (4600) fires at the fort wall 0.5 s later; the wall falls, 1 s later the Guard Captain cinematic runs and ends in the jail (4610) | Recorded (recs 29345-30059): shot item 234304 / spell 234303 from the muzzle at 20 m/s, effects 463510/463511, wall health 100000 so only the cannon breaks it; the delays are guesses (the recording's times aren't usable). |
+| Wall and cannon reset | `cannon.rs` `WALL_RESPAWN`, `RESET_AFTER` | the wall comes back after 2 min, the cannon goes back to bricks 5 s later | Assumed: live gave each player the scene; a shared world needs them back for the next player. |
 
 ## Jump pads
 

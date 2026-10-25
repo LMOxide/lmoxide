@@ -162,6 +162,14 @@
         "playfield": 5200,
         "pos": [80.0, 25.0, 256.1]
       }
+    },
+    {
+      "label": "cannon",
+      "about": "Pirate World's cannon bricks: build it, it shoots the fort wall, the guards take you to jail (cannon.rs)",
+      "goto": {
+        "playfield": 4600,
+        "pos": [102.3, 70.0, 94.3]
+      }
     }
   ]
 }

@@ -2,8 +2,9 @@
 
   texts:     {id: text} of TDB category 50002 (the dialogue texts; their {tags} are the server
              script the original server ran, see knubot.rs)
-  answers:   {text id: 50001 answer id} the answer whose wording is the text's spoken line (the
-             button that leads to that text)
+  answers:   {text id: 50001 answer id} the button that leads to that text: the one the
+             recorded session offered before it, else the answer whose wording is the text's
+             spoken line (the recorded cinematics' and Pirate World's answers don't match by wording)
   keys:      {"category/id" or "category/token": key} the `key` attributes of localized
              references in the recorded session (the client's remoteformat XML carries them)
   names:     {51000 id: NPC name} of the dialogue owners
@@ -48,6 +49,21 @@ for x in recs:
         for m in re.finditer(r'<(?:remoteformat|localized) (?:id="(\d+)"|token="([^"]+)") category="(\d+)"[^>]*? key="([^"]*)"', level):
             ident = m.group(1) or m.group(2)
             keys.setdefault(f"{m.group(3)}/{ident}", html.unescape(m.group(4)))
+
+# the recorded answers: an answer list's first answer leads to the next text the player got
+offered = None
+for x in recs:
+    if x["dir"] != "S>C":
+        continue
+    if x["name"] == "KnubotAnswerListIIR":
+        ids = [int(i) for i in re.findall(r'<remoteformat id="(\d+)" category="50001"', x["body"].decode("latin-1"))]
+        offered = ids[0] if ids and ids[0] != 0 else None
+    elif x["name"] == "KnubotAppendTextIIR" and offered is not None:
+        tid = int(re.search(r'<remoteformat id="(\d+)" category="50002"', x["body"].decode("latin-1")).group(1))
+        answers[tid] = offered
+        offered = None
+    elif x["name"] == "KnubotCloseChatWindowIIR":
+        offered = None
 
 # the recorded dialogues: Open ... Close per NPC
 playfield = None

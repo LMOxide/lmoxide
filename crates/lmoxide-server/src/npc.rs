@@ -396,7 +396,10 @@ pub fn start() {
     }
     for (playfield, defs) in table {
         let Ok(playfield) = playfield.parse::<u32>() else { continue };
-        for def in defs {
+        for mut def in defs {
+            if let Some(health) = crate::cannon::health_override(playfield, &def.name) {
+                def.health = health;
+            }
             // the tutorial's scripted NPCs appear per player (tutorial.rs)
             if crate::tutorial::scripted(playfield, &def.name) {
                 continue;
@@ -711,27 +714,31 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             _ if npc.def.health >= regular * 4 => crate::loot::Source::Champion,
             _ => crate::loot::Source::Enemy,
         };
-        crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
-        if kind == Kind::Enemy && by_player {
-            crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
+        // a scripted shot (Pirate World's cannon, cannon.rs) drops no loot and earns nothing
+        if attacker.kind != DESTRUCTIBLE_TYPE {
+            crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
+            if kind == Kind::Enemy && by_player {
+                crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
+            }
+            // achievements (and XP) of the player who defeated it
+            world::send_to(
+                attacker,
+                world::Out::Progress(crate::achievements::Event::Defeated {
+                    id: target,
+                    name: npc.def.name.clone(),
+                    smashable: kind == Kind::Smashable,
+                    boss: source == crate::loot::Source::Boss,
+                    champion: source == crate::loot::Source::Champion,
+                    level: npc.def.level,
+                    playfield: npc.playfield,
+                }),
+            );
         }
-        // achievements (and XP) of the player who defeated it
-        world::send_to(
-            attacker,
-            world::Out::Progress(crate::achievements::Event::Defeated {
-                id: target,
-                name: npc.def.name.clone(),
-                smashable: kind == Kind::Smashable,
-                boss: source == crate::loot::Source::Boss,
-                champion: source == crate::loot::Source::Champion,
-                level: npc.def.level,
-                playfield: npc.playfield,
-            }),
-        );
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
         let temporary = npc.temporary.is_some();
         let home = npc.playfield;
+        let respawn = crate::cannon::respawn(home, &npc.def.name).unwrap_or(RESPAWN);
         drop(npcs);
         tokio::spawn(async move {
             if temporary {
@@ -742,7 +749,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             }
             if kind == Kind::Smashable {
                 // the debris stays until it respawns
-                tokio::time::sleep(RESPAWN).await;
+                tokio::time::sleep(respawn).await;
                 drop(presence);
             } else {
                 // let the death play before the body disappears

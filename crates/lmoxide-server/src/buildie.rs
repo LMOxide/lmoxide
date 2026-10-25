@@ -234,6 +234,35 @@ fn hide_record(id: Id32) -> Bytes {
     iir::record("UpdateSimpleDynelIIR_c", id, false, |w| w.u32(0).u8(1).u8(1).u8(0).u8(1))
 }
 
+/// The buildie named `name` on `playfield`.
+pub fn find(name: &str, playfield: u32) -> Option<Id32> {
+    BUILDIES.lock().unwrap().iter().find(|(_, b)| b.def.playfield == playfield && b.def.name == name).map(|(id, _)| *id)
+}
+
+/// Back to bricks (Pirate World's cannon, for the next player: cannon.rs): it leaves and comes
+/// back unbuilt.
+pub fn reset(id: Id32) {
+    let (playfield, pos, old) = {
+        let mut buildies = BUILDIES.lock().unwrap();
+        let Some(b) = buildies.get_mut(&id) else { return };
+        if matches!(b.state, State::Building(_)) {
+            return;
+        }
+        b.state = State::Idle;
+        b.progress = 0;
+        (b.def.playfield, b.def.pos, b._presence.take())
+    };
+    // (outside BUILDIES: leaving the world takes the members lock, which spawn_records nests in)
+    drop(old);
+    let (outbox, mut inbox) = mpsc::unbounded_channel();
+    tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    let presence = world::join(id, playfield, Arc::new(Mutex::new(pos)), move || spawn_records(id), outbox);
+    if let Some(b) = BUILDIES.lock().unwrap().get_mut(&id) {
+        b._presence = Some(presence);
+    }
+    info!(buildie = ?id, "buildie reset");
+}
+
 /// Whether `player` is building something now.
 pub fn building(player: Id32) -> bool {
     BUILDIES.lock().unwrap().values().any(|b| b.state == State::Building(player))

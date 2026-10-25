@@ -3,6 +3,7 @@ mod actions;
 mod auras;
 mod admin;
 mod buildie;
+mod cannon;
 mod chat;
 mod collection;
 mod combat;

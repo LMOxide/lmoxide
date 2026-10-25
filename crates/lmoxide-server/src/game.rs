@@ -112,6 +112,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 // the last of the playfield's enemies: cleared
                                 let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Cleared { playfield: *playfield }));
                             }
+                            if let crate::achievements::Event::Built { name } = &event
+                                && name == crate::cannon::BUILDIE
+                                && me.playfield == crate::cannon::PLAYFIELD
+                            {
+                                crate::cannon::fire(Id32::new(crate::territory::CHARACTER_TYPE, character), me.name.clone());
+                            }
                             if let crate::achievements::Event::Defeated { name, playfield, .. } = &event
                                 && name == crate::tutorial::BOSS
                                 && *playfield == crate::tutorial::PLAYFIELD
