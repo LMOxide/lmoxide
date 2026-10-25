@@ -137,6 +137,7 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Arena reset | `RESET_AFTER` | 20 s after no engaged player is near: boss healed, adds gone, doors open | |
 | Ambushes | `AMBUSH_WAVE`, `AMBUSH_REST` | 2 waves of 3 (the area's nearest enemy kinds, around the player), then 5 min rest | The tutorial's recorded ambush (3 + 3). |
 | Champions | `CHAMPION_HEALTH`, `CHAMPION_REST` | one per side dungeon ("Defeat the champion" area quests), named after an unbeaten champion of its world, 5x health, at BA_SpawnChampion or the farthest regular; a new one 10 min after | Champion names only exist as achievements. |
+| Past a boss | `encounter::GATES` | ambushes, arenas and the champion spot farther from the playfield's arrival point than an arena's start stay quiet until that arena's boss is beaten (arenas without a boss don't gate) | Straight-line distance; inferred. |
 | Pocket worlds | `encounter::pocket`, `npc.rs` respawn | every playfield but the open worlds (hub, 4200, 4210, 4600, 5200, 5210, 3200, 3210, 2210, 6200, tutorial): encounters run once and defeated enemies stay down while anyone is inside; when it empties, all of it resets (a new instance) | Live instanced dungeons per group. Open worlds: encounters come back after their rest, enemies after RESPAWN. |
 | Not done | | boss buildies (Kraken 194851, Medusa mirrors, ...), boss phases/immunities, area quests, the Kraken's own script | |
 

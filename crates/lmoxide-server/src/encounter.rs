@@ -20,6 +20,9 @@
 //!
 //! Exploration: the "Achievement_*" / "BA_Explore_*" areas the exploration achievements name.
 //!
+//! What lies past a boss (farther from the playfield's entrance than its arena's start: later
+//! ambushes, arenas, the champion) stays quiet until that boss is beaten.
+//!
 //! Locking: STATE is never held while calling into npc.rs or world.rs.
 
 use std::{
@@ -124,6 +127,49 @@ struct PlayfieldDef {
     explore: Vec<Area>,
 }
 
+/// Per playfield: for each ambush and arena, the arenas (indices) whose boss must be beaten
+/// first, the arenas whose start is nearer the entrance.
+struct Gates {
+    ambushes: Vec<Vec<usize>>,
+    arenas: Vec<Vec<usize>>,
+    champion: Vec<usize>,
+}
+
+static GATES: LazyLock<HashMap<u32, Gates>> = LazyLock::new(|| {
+    let dest: serde_json::Value = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
+    DATA.iter()
+        .filter_map(|(&pf, def)| {
+            let p = dest["destinations"][pf.to_string()]["pos"].as_array()?;
+            let entrance = [p[0].as_f64()? as f32, p[2].as_f64()? as f32];
+            let far = |c: [f32; 2]| (c[0] - entrance[0]).hypot(c[1] - entrance[1]);
+            let starts: Vec<f32> = def.arenas.iter().map(|a| far(a.area.centre())).collect();
+            let before = |d: f32| starts.iter().enumerate().filter(|(_, s)| **s + 1.0 < d).map(|(i, _)| i).collect::<Vec<_>>();
+            Some((
+                pf,
+                Gates {
+                    ambushes: def.ambushes.iter().map(|a| before(far(a.centre()))).collect(),
+                    arenas: starts.iter().map(|d| before(*d)).collect(),
+                    champion: def.champion.map(|c| before(far(c))).unwrap_or_default(),
+                },
+            ))
+        })
+        .collect()
+});
+
+/// Whether every boss in front of a zone (`gates`) has been beaten (an arena without a boss
+/// doesn't hold anything back).
+fn unlocked(playfield: u32, gates: &[usize]) -> bool {
+    let open: Vec<usize> = {
+        let st = STATE.lock().unwrap();
+        gates.iter().copied().filter(|i| !matches!(st.arenas.get(&(playfield, *i)), Some(Arena::Won { .. }))).collect()
+    };
+    open.into_iter().all(|i| {
+        DATA.get(&playfield)
+            .and_then(|d| d.arenas.get(i))
+            .is_none_or(|a| crate::npc::boss_near(playfield, a.area.centre(), a.area.radius() + 60.0).is_none())
+    })
+}
+
 static DATA: LazyLock<HashMap<u32, PlayfieldDef>> = LazyLock::new(|| {
     let doc: HashMap<String, serde_json::Value> =
         serde_json::from_str(include_str!("../../../data/encounters.json")).expect("encounters.json");
@@ -192,13 +238,14 @@ pub fn explored(playfield: u32, pos: [f32; 3]) -> Vec<&'static str> {
 /// A player moved to `pos` on `playfield`.
 pub fn moved(player: Id32, playfield: u32, pos: [f32; 3]) {
     let Some(def) = DATA.get(&playfield) else { return };
+    let gates = GATES.get(&playfield);
     for (i, arena) in def.arenas.iter().enumerate() {
-        if arena.area.contains(pos) {
+        if arena.area.contains(pos) && gates.is_none_or(|g| unlocked(playfield, &g.arenas[i])) {
             enter_arena(player, playfield, i, arena);
         }
     }
     for (i, area) in def.ambushes.iter().enumerate() {
-        if area.contains(pos) {
+        if area.contains(pos) && gates.is_none_or(|g| unlocked(playfield, &g.ambushes[i])) {
             enter_ambush(playfield, i, area, pos);
         }
     }
@@ -212,7 +259,7 @@ pub fn entered(playfield: u32, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
         return;
     }
     let due = STATE.lock().unwrap().champions.get(&playfield).is_none_or(|(id, ready)| id.is_none() && Instant::now() >= *ready);
-    if !due {
+    if !due || GATES.get(&playfield).is_some_and(|g| !unlocked(playfield, &g.champion)) {
         return;
     }
     // where: the champion spot, else the regular enemy farthest from the entrance
@@ -506,5 +553,18 @@ mod tests {
         let c = town.centre();
         assert_eq!(explored(4200, [c[0], town.heights[0] + 1.0, c[1]]), vec!["Achievement_PirateTown"]);
         assert!(pocket(2300) && pocket(1640) && !pocket(4200) && !pocket(1200));
+        // past a boss: Medusa's Lair's ambushes lie before her arena; Underworld's last arenas
+        // wait for the earlier ones
+        for pf in [2300, 2320, 4310, 5500] {
+            let (d, g) = (&DATA[&pf], &GATES[&pf]);
+            let names = |v: &Vec<usize>| v.iter().map(|i| d.arenas[*i].area.name.clone()).collect::<Vec<_>>();
+            for (a, gate) in d.ambushes.iter().zip(&g.ambushes) {
+                println!("{pf} ambush {} <- {:?}", a.name, names(gate));
+            }
+            for (a, gate) in d.arenas.iter().zip(&g.arenas) {
+                println!("{pf} arena {} <- {:?}", a.area.name, names(gate));
+            }
+        }
+        assert!(GATES[&2300].ambushes.iter().all(|g| g.is_empty()));
     }
 }

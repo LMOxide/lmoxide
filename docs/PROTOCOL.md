@@ -375,19 +375,19 @@ Building, as live did it:
 1. Client: `LookAtIIR_t` at the buildie + `BehaviorControlCenterIIR_c` action 3, CommandType 18,
    CommandMessage {1: 686, 2: client id, 5: 10, 6: 0, 10: player ID32}, data = buildie ID32 + u32 0.
    Server: echoes the LookAt and answers action 4 (success, field 3 = server command id).
-2. On the buildie: `FloatStatIIR` 2999049 = summed build rate per tick (player 62.0, a
-   scripted NPC 19.0, both 81.0); `ScryScriptIIR_c` "buildableStart"; `StatIIR_t` 2999047 = 1.
+2. On the buildie: `FloatStatIIR` 3000073 (BuildableTickAmount) = summed build rate per tick (player 62.0, a
+   scripted NPC 19.0, both 81.0); `ScryScriptIIR_c` "buildableStart"; `StatIIR_t` 3000071 (BuildableIsBuilding) = 1.
 3. Every tick `StatIIR_t` 27 (progress) += rate, capped at the maximum (1600; one cannon 1100).
 4. Done: stat 27 = max (sent twice), stat 455 = 58, `SimpleDynelVisualChangeIIR_c` (4, built
    mesh), ScryScript "buildableStop", VisualChange (2, 0), stat 1050 (CARS group) = 5 (twice),
-   FloatStat 2999049 = 0, stat 1050 = 5. A bouncer (a buildie over a jump pad) is then hidden
+   FloatStat 3000073 = 0, stat 1050 = 5. A bouncer (a buildie over a jump pad) is then hidden
    (`UpdateSimpleDynelIIR_c` 00000000 01010001) and its `Jumper` simple dynel, hidden until then,
    shown (00000000 00010001) with CARS group 3; the ramp keeps its built visual.
    The builder's animation: right after the interaction's success the client queues CommandType 1
    (data u32 104); live answered success and set the player's stat 20 (BCCState) = 104, back to 1
    when the build ended.
 5. Commands the client queues while a build runs get action 4 then 5 (failure, reason 21).
-   After a stop (player left), restarting reset 2999047 and stat 27 to 0 first.
+   After a stop (player left), restarting reset 3000071 and stat 27 to 0 first.
 
 The tick interval isn't recoverable (the recording keeps only the microsecond part of times).
 A full update of a built buildie (sent to newcomers) has SimpleDynel field 1 = the built visual,

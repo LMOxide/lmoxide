@@ -66,6 +66,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut gm_level = 0;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
+    // the others' copies of this player's casts, by client command id (ended on release/abort)
+    let mut observed_casts: HashMap<u32, (u32, Id32, u32, std::time::Instant)> = HashMap::new();
     // the tutorial, while in it
     let mut tutorial: Option<crate::tutorial::Run> = None;
     // clearing the playfield in this visit: its own enemies, and those defeated so far
@@ -406,8 +408,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if let Some(p) = &presence {
                             world::broadcast(p.id(), vec![Bytes::copy_from_slice(blob)]);
                         }
-                        if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
-                            end_observed(h.identity, &c);
+                        let client_id = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id);
+                        end_observed(h.identity, client_id.and_then(|id| observed_casts.remove(&id)));
+                        if let Some(c) = client_id.and_then(|id| charges.remove(&id)) {
                             fire_charge(&c, &me, h.identity, *pos.lock().unwrap(), heading);
                         } else {
                             crate::actions::release(h.identity, false);
@@ -417,9 +420,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // The client aborts a command (e.g. a jump during a charge) and waits for
                         // the server to confirm: same record, action 7 (abort one). A charge
                         // ends without firing.
-                        if let Some(c) = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id).and_then(|id| charges.remove(&id)) {
+                        let client_id = parse_command(rest).and_then(|(m, _)| m.commandqueue_client_id);
+                        end_observed(h.identity, client_id.and_then(|id| observed_casts.remove(&id)));
+                        if let Some(c) = client_id.and_then(|id| charges.remove(&id)) {
                             c.active.store(false, std::sync::atomic::Ordering::Relaxed);
-                            end_observed(h.identity, &c);
                             info!(spell = c.spell, "charge aborted");
                         } else {
                             crate::actions::release(h.identity, false);
@@ -577,7 +581,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                     active,
                                                     target: npc_target,
                                                     damage,
-                                                    observed: None,
                                                 });
                                             }
                                         } else {
@@ -656,9 +659,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let target = cast_target.unwrap_or(h.identity);
                             let (observed, records) = crate::npc::observed_cast(h.identity, target, spell);
                             world::send_playfield(h.identity, false, world::Out::Records(records.to_vec()));
-                            // a held charge: the others' copy is ended with it (release, abort)
-                            if let Some(c) = cast_client_id.and_then(|id| charges.get_mut(&id)) {
-                                c.observed = Some((observed, target));
+                            // the others' copy, ended with the caster's release or abort (held
+                            // charges and channels)
+                            if let Some(client_id) = cast_client_id {
+                                observed_casts.retain(|_, o| o.3.elapsed() < OBSERVED_CAST_KEEP);
+                                observed_casts.insert(client_id, (observed, target, spell, std::time::Instant::now()));
                             }
                         }
                         if command_type == COMMAND_MAGIC && !refused {
@@ -1494,14 +1499,15 @@ struct Charge {
     active: Arc<std::sync::atomic::AtomicBool>,
     target: Option<Id32>,
     damage: u32,
-    /// The others' copy of the cast (server command id, target), ended with the charge.
-    observed: Option<(u32, Id32)>,
 }
 
-/// Ends the others' copy of a held charge's cast.
-fn end_observed(caster: Id32, c: &Charge) {
-    if let Some((id, target)) = c.observed {
-        world::send_playfield(caster, false, world::Out::Records(vec![crate::npc::observed_end(caster, target, c.spell, id)]));
+/// How long the others' copy of a cast is remembered for a release or abort.
+const OBSERVED_CAST_KEEP: std::time::Duration = std::time::Duration::from_secs(60);
+
+/// Ends the others' copy of a cast (server command id, target, spell, when).
+fn end_observed(caster: Id32, observed: Option<(u32, Id32, u32, std::time::Instant)>) {
+    if let Some((id, target, spell, _)) = observed {
+        world::send_playfield(caster, false, world::Out::Records(crate::npc::observed_end(caster, target, spell, id)));
     }
 }
 
@@ -1610,7 +1616,6 @@ fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster
     let stale: Vec<u32> = charges.iter().filter(|(_, c)| c.started.elapsed() > CHARGE_TIMEOUT).map(|(k, _)| *k).collect();
     for k in stale {
         if let Some(c) = charges.remove(&k) {
-            end_observed(caster, &c);
             let here = me.pos;
             fire_charge(&c, me, caster, here, [0.0, 1.0]);
         }
@@ -1852,8 +1857,41 @@ pub async fn run_bot(playfield: u32) {
     const SPEED: f32 = 5.6;
     let mut t = 0.0f32;
     let mut tick = tokio::time::interval(std::time::Duration::from_millis(200));
+    // development: LMOXIDE_BOT_CAST="spell:secs:template" casts `spell` every 10 s (standing
+    // still, looking like minifigure `template`) and ends it after `secs`, as another player's
+    // held charge looks and ends to the onlookers
+    let cast: Option<(u32, f32, u32)> = std::env::var("LMOXIDE_BOT_CAST").ok().and_then(|v| {
+        let mut p = v.split(':');
+        Some((p.next()?.parse().ok()?, p.next()?.parse().ok()?, p.next().and_then(|t| t.parse().ok()).unwrap_or(0)))
+    });
+    if let Some((_, _, template)) = cast.filter(|c| c.2 != 0) {
+        set_costume(id, monster_data_for(template));
+        world::broadcast(id, vec![int32_stat(id, STAT_MONSTER_DATA, monster_data_for(template))]);
+    }
+    let mut ticks = 0u32;
     loop {
         tick.tick().await;
+        ticks += 1;
+        if cast.is_some() && (ticks % 50 >= 45 || ticks % 50 < 20) && ticks % 50 != 0 {
+            // stands still around the casts
+            if ticks % 50 == 45 {
+                let at = *pos.lock().unwrap();
+                world::broadcast(id, vec![move_record(id, at, 0.0, [0.0; 3])]);
+            }
+            continue;
+        }
+        if let Some((spell, hold, _)) = cast
+            && ticks % 50 == 0
+        {
+            let (observed, records) = crate::npc::observed_cast(id, id, spell);
+            world::broadcast(id, records.to_vec());
+            info!(spell, observed, "bot cast");
+            tokio::spawn(async move {
+                tokio::time::sleep(std::time::Duration::from_secs_f32(hold)).await;
+                info!(spell, observed, "bot cast ended");
+                world::broadcast(id, crate::npc::observed_end(id, id, spell, observed));
+            });
+        }
         t += 0.2 * SPEED / RADIUS;
         let center = world::positions(playfield)
             .into_iter()

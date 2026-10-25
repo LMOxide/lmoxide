@@ -683,12 +683,13 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     }
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
     let kind = npc.def.kind;
-    let mut records = vec![if kind == Kind::Smashable {
-        crate::game::stat_record(target, STAT_HEALTH, health)
+    let mut records = if kind == Kind::Smashable {
+        // as live: Health, then the hit as an AttackResultIIR on the smashable (applied at
+        // once), which plays the hit and the smash on the client right away
+        vec![crate::game::stat_record(target, STAT_HEALTH, health), attack_result_record(attacker, target, spell, dealt, false)]
     } else {
-        int32_stat(target, STAT_HEALTH, health)
-    }];
-    records.insert(0, combat_log_record(attacker, target, spell, dealt));
+        vec![combat_log_record(attacker, target, spell, dealt), int32_stat(target, STAT_HEALTH, health)]
+    };
     if kind == Kind::Enemy && health == 0 {
         // Limbo: the client plays the death and stops targeting it
         records.push(int32_stat(target, STAT_BCC_STATE, BCC_STATE_LIMBO));
@@ -1007,6 +1008,37 @@ const CARS_INACTIVE: u32 = 5;
 /// `SimpleDynelVisualChangeIIR_c` state the original server sent when a destructible broke.
 const SMASHED_VISUAL_STATE: u32 = 4;
 
+/// `AttackResultIIR` as live reported a hit on a smashable (recorded wagon smash): identity =
+/// the target, command queue id 0 (applied at once), u32 length + AttackResultIIRProto with one
+/// entry {attacker, target, AttackResult {damage, damage_type 1000, result 0, levels 0}, the
+/// hitting spell}. Live set killing_blow on enemy kills only, not on the smashing hit.
+fn attack_result_record(attacker: Id32, target: Id32, spell: u32, damage: u32, killing_blow: bool) -> bytes::Bytes {
+    use lmoxide_net::proto::{AttackResultIirProto, ProtoId32, attack_result_iir_proto::{AttackResult, AttackResultEntry}};
+    use prost::Message;
+    let id = |i: Id32| ProtoId32 { r#type: Some(i.kind), instance: Some(i.instance) };
+    let msg = AttackResultIirProto {
+        attack_result_entry: vec![AttackResultEntry {
+            attacker: Some(id(attacker)),
+            target: Some(id(target)),
+            attack_result: Some(AttackResult {
+                damage: Some(damage as f32),
+                damage_type: Some(1000),
+                result: Some(0),
+                offensive_level: Some(0),
+                defensive_level: Some(0),
+                is_critical_hit: None,
+                killing_blow: Some(killing_blow),
+                redirect_damage_entry: vec![],
+                attack_type: Some(0),
+            }),
+            template_id: Some(spell),
+        }],
+        command_queue_id: Some(0),
+    };
+    let body = msg.encode_to_vec();
+    lmoxide_net::iir::record("AttackResultIIR", target, false, |w| w.u32(body.len() as u32).raw(&body))
+}
+
 /// `SimpleDynelVisualChangeIIR_c`: u32 state, u32 visual (0: keep), as in the recorded session.
 fn visual_change_record(id: Id32, state: u32, visual: u32) -> bytes::Bytes {
     lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(state).u32(visual))
@@ -1087,9 +1119,11 @@ pub fn observed_cast(caster: Id32, target: Id32, spell: u32) -> (u32, [bytes::By
 }
 
 /// Ends an observed cast (`observed_cast`'s command `id`) for the other players: BCC action 20
-/// (finish channel), as the caster's own release; else a held charge keeps animating there.
-pub fn observed_end(caster: Id32, target: Id32, spell: u32, id: u32) -> bytes::Bytes {
-    cast_record_with_id(caster, target, spell, 20, id)
+/// (finish channel: UpdateCommandStatus), as the caster's own release, then 7 (abort one:
+/// CoreCommandHolder_c::AbortOneCommand, found by the server id), which takes the command off
+/// the character; else a held charge keeps animating there until its own time runs out.
+pub fn observed_end(caster: Id32, target: Id32, spell: u32, id: u32) -> Vec<bytes::Bytes> {
+    vec![cast_record_with_id(caster, target, spell, 20, id), cast_record_with_id(caster, target, spell, 7, id)]
 }
 
 fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, server_id: u32) -> bytes::Bytes {
@@ -1161,5 +1195,19 @@ async fn ai() {
                 None => steer(id, here, home, None),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn smash_attack_result_matches_recording() {
+        // the tutorial wagon smashed by Video Game Guy (rec 5316), body after the header
+        let rec = attack_result_record(Id32::new(50000, 1896), Id32::new(51321, 2599), 600329, 1, false);
+        let body = "0000002e0a2a0a0708d0860310e80e120708f9900310a7141a120d0000803f10e807180020002800380048002089d2241000";
+        let hex = crate::conn::hex(&rec);
+        assert!(hex.ends_with(body), "{hex}");
     }
 }

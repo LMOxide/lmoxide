@@ -4,7 +4,7 @@
 //! A buildie is a destructible (type 51321, CARS group 1) whose Health is the build progress.
 //! The client queues an `ObjectInteractionCommand` (CommandType 18, data = the buildie's ID32);
 //! the server accepts it and drives the build: `buildableStart`, the build rate (FloatStat
-//! 2999049), progress ticks (Health += rate) while the builder stays close, and at the maximum the
+//! 3000073 (BuildableTickAmount)), progress ticks (Health += rate) while the builder stays close, and at the maximum the
 //! built visual, `buildableStop` and CARS group 5. A jump pad under an unbuilt buildie doesn't
 //! launch anyone. Placements and visuals: data/buildies.json (tools/re/demo/buildies.py); only
 //! the recorded worlds' buildies are known.
@@ -34,10 +34,12 @@ use crate::{
 pub const COMMAND_OBJECT_INTERACTION: u32 = 18;
 const DESTRUCTIBLE_TYPE: u32 = 51321;
 const STAT_CARS_GROUP: u32 = 1050;
-/// Set to 1 while someone builds.
-const STAT_BUILDING: u32 = 2_999_047;
-/// FloatStat: the summed build rate, progress added per tick.
-const STAT_BUILD_RATE: u32 = 2_999_049;
+/// BuildableIsBuilding: 1 while someone builds (the client's brick animation, script group
+/// Client_GenericBuildable, runs while it is set).
+const STAT_BUILDING: u32 = 3_000_071;
+/// FloatStat BuildableTickAmount: the summed build rate, progress added per tick (the client's
+/// animation paces itself with it and BuildableServerInterval).
+const STAT_BUILD_RATE: u32 = 3_000_073;
 /// Sent as 58 when the build completes (meaning unknown).
 const STAT_455: u32 = 455;
 const CARS_BUILDABLE: u32 = 1;
