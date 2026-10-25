@@ -4,7 +4,13 @@
 //! - the login server public key: Funcom's ([`FUNCOM_SESSION_KEY`], the global `session`)
 //!   replaced with the game server's (see `lmoxide_net::login`), and
 //! - the chat filter URL (`http://chatfilter.funcom.com/rest/%s`, asked before every chat
-//!   line) pointed at this server, exactly like `patches/patch-client.py`.
+//!   line) pointed at this server, exactly like `patches/patch-client.py`, and
+//! - private messages: 1.5 emptied `ChatServerInterface_c::DoTell` (used by "/tell" and the
+//!   friends list), so tells went nowhere; it becomes a call of the working virtual `SendTell`
+//!   (chat filter, then IRC PRIVMSG). Linux build only (see [`patch_tells`]).
+//!
+//! [`patch_chat_gui`] patches `Data/Gui/Default/Modules.xml`: 1.5 also showed the chat window
+//! to GMs only (`stat:gmlevel!=0`), unlike live before it.
 //!
 //! Both also recognise their own earlier patch, so an already patched binary can be patched
 //! again for another key or host.
@@ -23,6 +29,41 @@ pub enum PatchError {
     UrlTooLong(String),
     #[error("chat filter URL not found in the executable")]
     UrlNotFound,
+    #[error("DoTell not found (only the Linux build is patched)")]
+    TellNotFound,
+    #[error("the chat window's GM condition not found")]
+    ChatGuiNotFound,
+}
+
+/// Linux `ChatServerInterface_c::DoTell(String const&, String const&, int)` (empty: `push rbp;
+/// mov rbp,rsp; pop rbp; ret`), recognised with the start of the next function (`SetCookie`).
+const DO_TELL_STOCK: &[u8] = &[0x55, 0x48, 0x89, 0xe5, 0x5d, 0xc3];
+/// `mov rax,[rdi]; jmp [rax+0x18]`: the vtable's SendTell(String const&, String const&) with
+/// the same arguments (the int is ignored).
+const DO_TELL_PATCHED: &[u8] = &[0x48, 0x8b, 0x07, 0xff, 0x60, 0x18];
+const SET_COOKIE: &[u8] = &[0x55, 0x48, 0x89, 0xe5, 0x89, 0x77, 0x18, 0x5d, 0xc3];
+
+/// The ChatGUI module criteria's GM condition, removed by [`patch_chat_gui`].
+pub const CHAT_GUI_GM: &str = "stat:gmlevel!=0 &amp;&amp; !fullscreen_menu";
+
+/// Makes "/tell" and the friends list's tells work (Linux executable). Returns the offset.
+pub fn patch_tells(data: &mut [u8]) -> Result<usize, PatchError> {
+    let find = |head: &[u8]| {
+        let hits = memfind_all(data, &[head, SET_COOKIE].concat());
+        (hits.len() == 1).then(|| hits[0])
+    };
+    let at = find(DO_TELL_STOCK).or_else(|| find(DO_TELL_PATCHED)).ok_or(PatchError::TellNotFound)?;
+    data[at..at + DO_TELL_PATCHED.len()].copy_from_slice(DO_TELL_PATCHED);
+    Ok(at)
+}
+
+/// Shows the chat window to everyone, not just GMs (`Data/Gui/Default/Modules.xml`).
+pub fn patch_chat_gui(xml: &str) -> Result<String, PatchError> {
+    match xml.matches(CHAT_GUI_GM).count() {
+        1 => Ok(xml.replace(CHAT_GUI_GM, "!fullscreen_menu")),
+        _ if xml.contains("chat_gui &amp;&amp; !fullscreen_menu") => Ok(xml.to_string()),
+        _ => Err(PatchError::ChatGuiNotFound),
+    }
 }
 
 /// The chat filter format string as shipped.
@@ -210,5 +251,24 @@ mod tests {
         assert!(count(&d, b"127.0.0.1") == 0);
         assert!(matches!(patch_chat_filter(&mut d, "a-very-long-host-name.example.org:8080"), Err(PatchError::UrlTooLong(_))));
         assert_eq!(patch_chat_filter(&mut b"no url".to_vec(), "h:1"), Err(PatchError::UrlNotFound));
+    }
+
+    #[test]
+    fn tells_patched_once_and_again() {
+        let mut d = [b"\x90\x90".as_slice(), DO_TELL_STOCK, SET_COOKIE, b"\xc3"].concat();
+        let at = patch_tells(&mut d).unwrap();
+        assert_eq!(&d[at..at + 6], DO_TELL_PATCHED);
+        assert_eq!(patch_tells(&mut d), Ok(at));
+        // an empty function elsewhere (no SetCookie after it) is left alone
+        assert_eq!(patch_tells(&mut [DO_TELL_STOCK, b"\x90"].concat()), Err(PatchError::TellNotFound));
+    }
+
+    #[test]
+    fn chat_gui_condition_removed() {
+        let xml = r#"criteria = "chat_gui &amp;&amp; stat:gmlevel!=0 &amp;&amp; !fullscreen_menu &amp;&amp; x""#;
+        let patched = patch_chat_gui(xml).unwrap();
+        assert_eq!(patched, r#"criteria = "chat_gui &amp;&amp; !fullscreen_menu &amp;&amp; x""#);
+        assert_eq!(patch_chat_gui(&patched).unwrap(), patched);
+        assert_eq!(patch_chat_gui("other"), Err(PatchError::ChatGuiNotFound));
     }
 }

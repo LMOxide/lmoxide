@@ -218,7 +218,10 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
 - **Keyboard movement** needs stat CharRadius (421): the collision capsule radius is
   CharRadius × MonsterScale / 10000, and with 0 `Vehicle_t::CollideAndSlide` blocks every step.
   CommandQueueSize (1360) defaults to 1, which makes the queue "full".
-- **Chat** (chat.rs): free-text chat needs GmLevel ≠ 0 (ChatGUI criteria `stat:gmlevel!=0`).
+- **Chat** (chat.rs): stock 1.5 shows the chat window to GMs only (Modules.xml ChatGUI criteria
+  `stat:gmlevel!=0`) and emptied `ChatServerInterface_c::DoTell` (no "/tell"); both were late
+  changes before shutdown. The patch server and patches/patch-client.py remove the condition and
+  make DoTell call the virtual `SendTell` (Linux build only).
   The chat server is plain IRC (CRLF lines, zlib unless LocalConfig `ChatCompression=false`) at
   the address from `PlayerInterface::ChatServerConnectReady(String "host:port", u32 cookie,
   ID32)`, sent before LoginConnectReady. Client: `PASS :<cookie>`, `NICK <name>-<PlayerID>`,

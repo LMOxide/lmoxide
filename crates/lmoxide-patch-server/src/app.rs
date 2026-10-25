@@ -175,6 +175,10 @@ fn patch_executable(
         Ok(at) => info!(%platform, at = format_args!("{at:#x}"), host = cfg.chat_filter_host(), "patched chat filter URL"),
         Err(e) => warnings.push(format!("{platform}: chat filter not patched: {e} (see --chat-filter-host)")),
     }
+    match patching::patch_tells(&mut data) {
+        Ok(at) => info!(%platform, at = format_args!("{at:#x}"), "patched DoTell (private messages)"),
+        Err(e) => warnings.push(format!("{platform}: private messages not enabled: {e}")),
+    }
     if let Some(key) = login_key {
         match patching::patch_login_key(&mut data, key) {
             Ok(at) => info!(%platform, at = format_args!("{at:#x}"), "patched login public key"),
@@ -184,6 +188,26 @@ fn patch_executable(
     if data != original {
         let blob = write_blob(cfg, &data, src.executable)?;
         tree.files.insert(rel, blob);
+    }
+    Ok(())
+}
+
+/// The chat window for everyone, not only GMs (see `patching::patch_chat_gui`).
+fn patch_modules_xml(cfg: &Config, platform: Platform, tree: &mut Tree, warnings: &mut Vec<String>) -> io::Result<()> {
+    const MODULES: &str = "Data/Gui/Default/Modules.xml";
+    let Some((rel, src)) = tree.get_ci(MODULES).map(|(k, v)| (k.clone(), v.clone())) else {
+        warnings.push(format!("{platform}: no {MODULES}; chat stays GM-only"));
+        return Ok(());
+    };
+    let original = fs::read_to_string(&src.path)?;
+    match patching::patch_chat_gui(&original) {
+        Ok(xml) if xml != original => {
+            info!(%platform, "patched the chat window for everyone");
+            let blob = write_blob(cfg, xml.as_bytes(), false)?;
+            tree.files.insert(rel, blob);
+        }
+        Ok(_) => {}
+        Err(e) => warnings.push(format!("{platform}: chat stays GM-only: {e}")),
     }
     Ok(())
 }
@@ -237,6 +261,7 @@ fn prepare_blocking(app: &App) -> anyhow::Result<Prepared> {
         })
         .with_context(|| format!("scanning {}", dir.display()))?;
         patch_executable(cfg, platform, &mut tree, login_key.as_deref(), &mut warnings)?;
+        patch_modules_xml(cfg, platform, &mut tree, &mut warnings)?;
         info!(%platform, files = tree.files.len(), remove = tree.remove.len(), "install scanned");
         trees.push((platform, tree));
     }

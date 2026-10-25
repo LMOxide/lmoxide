@@ -255,6 +255,17 @@ pub fn set_team(character: u32, team: Option<u32>) {
     debug!(character, ?old, ?new, "chat: team channel");
 }
 
+/// Sends the JOINs of a connected character's channels again (the default ones and its team's).
+pub fn rejoin(character: u32) {
+    let Some(nick) = NICKS.lock().unwrap().get(&character).cloned() else { return };
+    let team = TEAM_CHANNELS.lock().unwrap().get(&character).cloned();
+    if let Some(tx) = CLIENTS.lock().unwrap().get(&character) {
+        for channel in DEFAULT_CHANNELS.iter().copied().chain(team.as_deref()) {
+            let _ = tx.send(format!(":{nick}!u@{character}.0.0 JOIN {channel}"));
+        }
+    }
+}
+
 /// A private message ("/tell"): `target` is a nick or a character name.
 fn tell(from: u32, nick: &str, target: &str, text: &str) {
     let found = NICKS.lock().unwrap().iter().find_map(|(&a, n)| {

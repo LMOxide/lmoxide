@@ -238,6 +238,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // a test setup changed the team, or a teleport moved the active minifigure
                         // to the first position (active_at_first_position): the HUD shows the
                         // team as the client has it until this
+                        if !was_in_play {
+                            // after "relocate? Yes" the chat connection may have survived (it
+                            // reconnects by itself), but the client dropped its channels
+                            crate::chat::rejoin(character);
+                        }
                         if std::mem::take(&mut team_changed) | std::mem::replace(&mut was_in_play, true) {
                             team_salt += 1 << 33;
                             let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);

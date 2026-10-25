@@ -7,7 +7,8 @@
 # server), 7100 (universe), 7101 (territory), 7102 (game), 7200 (chat), 8090 (REST API for the
 # web UI and bots; LMOXIDE_API_PORT=, empty, leaves it off).
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
-# an account without one) and GM level 1 for everyone (free-text chat and the test commands need it).
+# an account without one). Everyone can chat (the patched client shows the chat window without a
+# GM level); test commands need one: LMOXIDE_DEFAULT_GM_LEVEL=1 gives it to every account.
 # Progression is on (--progression: XP, levels and minifigure ranks, as live).
 # The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
 # client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
@@ -99,5 +100,5 @@ trap 'kill $PATCH ${API:-} 2>/dev/null' EXIT
 python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,7200 --pidfile "$ROOT/logs/lan-server.pid" \
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
-  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" --progression ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
+  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --progression ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"
