@@ -139,6 +139,7 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
+| Bouncer built under a player | `jumppad::activate` | launched at once | Avoids needing another step. |
 | What engages an arena | `encounter::moved` | a player within 3 m of a `*Encounter_Start*` / `X_Start` area | Start areas are often thin strips across the entrance. |
 | The arena's boss | `npc::boss_near` | the strongest proposed boss (8x health) within the area's radius + 60 m | No area-to-NPC binding in the data. |
 | Doors | `encounter::door_hidden` | VisualOpen hidden and VisualClosed shown while engaged, exits hidden once won; visuals only (no collision) | Records as in the tutorial recording; shields (collision) aren't spawned. |
@@ -157,6 +158,7 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Trigger radius | `tutorial.rs` | 6 m; Video Game Guy's door 3.5 m | Live's trigger volumes aren't in the client data. |
 | Escort | `tutorial.rs`, `npc::escort` | Video Game Guy follows the player and fights like a pet, one per player | Live: escort script 597462 ("Escortee=50000:1896"); its behaviour is server script. |
 | Scripted Scallywags | `tutorial::script` | the recorded spawns, at least 75 health, gone after 15 min, per trigger | The recording caught some mid-fight (health 1). |
+| Step order | `tutorial::Run::moved` | a trigger fires only after the one before it and once every enemy its steps spawned is beaten; the pads after the summoned pirate (195056) and the ambush (195055) open per player when those waves are beaten | Live hid them behind blockers until the waves fell (recording). A relog mid-way counts the steps west of the player as done. |
 | Who plays it | `game.rs` | anyone in 1300 without tag 4121 | Live ran it for new characters. |
 | Not done | | the MinimumHealthCap buff 236432, quest records 279/78, SpawnCompass, boss arena doors | |
 

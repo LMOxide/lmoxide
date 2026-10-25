@@ -68,6 +68,33 @@ const TRIGGERS: &[(&str, Option<u32>, Speaker)] = &[
 ];
 /// The last dialogue (after the boss).
 const LAST_DIALOGUE: u32 = 765;
+/// Jump pads that stay shut until the player beat the waves before them, as live did (the
+/// recording: blocker 596 hidden and pad 597 shown once the summoned pirate fell, 601/599 after
+/// the ambush's two waves): (pad instance, script steps whose enemies must be beaten).
+const GATED_PADS: &[(u32, &[&str])] = &[(195_056, &["DreadlegSpawnPirate"]), (195_055, &["SpawnAmbush", "SpawnAmbush2"])];
+
+/// Per player in the tutorial: the enemies each script step spawned, and the pads opened.
+#[derive(Default)]
+struct Progress {
+    spawned: std::collections::HashMap<&'static str, Vec<Id32>>,
+    open: HashSet<u32>,
+}
+
+static PROGRESS: LazyLock<std::sync::Mutex<std::collections::HashMap<Id32, Progress>>> = LazyLock::new(Default::default);
+
+/// Whether the player may use jump pad `guid` (always outside the tutorial or after it).
+pub fn pad_open(player: Id32, playfield: u32, guid: u32) -> bool {
+    if playfield != PLAYFIELD || !GATED_PADS.iter().any(|(g, _)| *g == guid) {
+        return true;
+    }
+    PROGRESS.lock().unwrap().get(&player).is_none_or(|p| p.open.contains(&guid))
+}
+
+/// Whether every enemy the player's script steps spawned so far is beaten.
+fn all_beaten(player: Id32) -> bool {
+    let ids: Vec<Id32> = PROGRESS.lock().unwrap().get(&player).map_or(vec![], |p| p.spawned.values().flatten().copied().collect());
+    ids.into_iter().all(|id| crate::npc::health_of(id).is_none())
+}
 
 #[derive(Deserialize)]
 struct Trigger {
@@ -135,24 +162,47 @@ pub struct Run {
 }
 
 impl Run {
-    /// The player entered the tutorial: Video Game Guy comes out of his house.
-    pub fn start(player: Id32, name: &str) -> Run {
+    /// The player entered the tutorial at `at`: Video Game Guy comes out of his house. The
+    /// route runs west to east: a player back mid-way (a relog) has the steps and pads behind
+    /// them done.
+    pub fn start(player: Id32, name: &str, at: [f32; 3]) -> Run {
         let escort = CONTENT
             .npcs
             .iter()
             .find(|n| n.name == GUIDE)
             .map(|def| crate::npc::escort(player, PLAYFIELD, def.clone(), ESCORT_LIFETIME));
         info!(?player, ?escort, "tutorial");
-        Run { player, name: name.to_string(), fired: HashSet::new(), escort }
+        let behind = |x: f32| x + 5.0 < at[0];
+        let pad_x = |g: u32| crate::jumppad::pad_pos(PLAYFIELD, g).map_or(f32::MAX, |p| p[0]);
+        let open: HashSet<u32> = GATED_PADS.iter().map(|(g, _)| *g).filter(|g| behind(pad_x(*g))).collect();
+        let fired: HashSet<usize> = TRIGGERS
+            .iter()
+            .enumerate()
+            .filter(|(_, (n, ..))| CONTENT.triggers.iter().any(|t| t.name == *n && behind(t.pos[0])))
+            .map(|(i, _)| i)
+            .collect();
+        // the gated pads ahead are shut for this player until their waves are beaten
+        let shut: Vec<Bytes> = GATED_PADS.iter().filter(|(g, _)| !open.contains(g)).flat_map(|(g, _)| crate::jumppad::pad_records(*g, false)).collect();
+        crate::world::send_to(player, crate::world::Out::Records(shut));
+        PROGRESS.lock().unwrap().insert(player, Progress { spawned: Default::default(), open });
+        Run { player, name: name.to_string(), fired, escort }
     }
 
     /// The player is at `pos`: runs the triggers there (each once). Returns the boss music
     /// record when the boss trigger fired.
     pub fn moved(&mut self, pos: [f32; 3]) -> Option<Bytes> {
+        self.open_pads();
+        // in order, and only with the enemies so far beaten: nothing past a fight (or the boss)
+        // starts before it is won
         let (i, &(name, dialogue, speaker)) = TRIGGERS.iter().enumerate().find(|(i, (name, ..))| {
             let radius = if *i == 0 { DOOR_RADIUS } else { TRIGGER_RADIUS };
-            !self.fired.contains(i) && CONTENT.triggers.iter().any(|t| t.name == *name && distance(t.pos, pos) <= radius)
+            !self.fired.contains(i)
+                && (*i == 0 || self.fired.contains(&(i - 1)))
+                && CONTENT.triggers.iter().any(|t| t.name == *name && distance(t.pos, pos) <= radius)
         })?;
+        if !all_beaten(self.player) {
+            return None;
+        }
         self.fired.insert(i);
         info!(player = ?self.player, trigger = name, "tutorial trigger");
         match dialogue {
@@ -180,6 +230,30 @@ impl Run {
         });
     }
 
+    /// Opens the gated pads whose waves the player has beaten.
+    fn open_pads(&self) {
+        let opened: Vec<u32> = {
+            let mut progress = PROGRESS.lock().unwrap();
+            let Some(p) = progress.get_mut(&self.player) else { return };
+            let due: Vec<u32> = GATED_PADS
+                .iter()
+                .filter(|(g, steps)| {
+                    !p.open.contains(g)
+                        && steps.iter().all(|s| {
+                            p.spawned.get(s).is_some_and(|ids| ids.iter().all(|id| crate::npc::health_of(*id).is_none()))
+                        })
+                })
+                .map(|(g, _)| *g)
+                .collect();
+            p.open.extend(&due);
+            due
+        };
+        for g in opened {
+            info!(player = ?self.player, pad = g, "tutorial pad opened");
+            crate::world::send_to(self.player, crate::world::Out::Records(crate::jumppad::pad_records(g, true)));
+        }
+    }
+
     fn say(&self, first: u32, speaker: Speaker) {
         if let Some(d) = crate::knubot::starting_with(first) {
             crate::knubot::start(self.player, &self.name, self.speaker(speaker), d);
@@ -196,6 +270,7 @@ impl Run {
 
 impl Drop for Run {
     fn drop(&mut self) {
+        PROGRESS.lock().unwrap().remove(&self.player);
         if let Some(escort) = self.escort {
             crate::npc::despawn(escort);
         }
@@ -205,20 +280,24 @@ impl Drop for Run {
 /// A step of the tutorial's server script 599417 (from a dialogue tag).
 pub fn script(player: Id32, step: &str) {
     // the Scallywags by their recorded spots: AI_Combat1, then 2-4, then 8-10
-    let range = match step {
-        "DreadlegSpawnPirate" => 0..1,
-        "SpawnAmbush" => 1..4,
-        "SpawnAmbush2" => 4..7,
+    let (step, range): (&'static str, _) = match step {
+        "DreadlegSpawnPirate" => ("DreadlegSpawnPirate", 0..1),
+        "SpawnAmbush" => ("SpawnAmbush", 1..4),
+        "SpawnAmbush2" => ("SpawnAmbush2", 4..7),
         _ => {
             info!(?player, step, "tutorial script step not run");
             return;
         }
     };
     let pirates: Vec<&SpawnDef> = CONTENT.enemies.iter().filter(|e| e.name == "Scallywag").collect();
+    let mut ids = Vec::new();
     for def in pirates.get(range).unwrap_or_default() {
         // the recording caught some mid-fight: at least a regular level-1 enemy's health
         let def = SpawnDef { health: def.health.max(75), ..(*def).clone() };
-        crate::npc::spawn_temporary(def, PLAYFIELD, SPAWN_LIFETIME);
+        ids.push(crate::npc::spawn_temporary(def, PLAYFIELD, SPAWN_LIFETIME));
+    }
+    if let Some(p) = PROGRESS.lock().unwrap().get_mut(&player) {
+        p.spawned.entry(step).or_default().extend(ids);
     }
     info!(?player, step, "tutorial script step");
 }

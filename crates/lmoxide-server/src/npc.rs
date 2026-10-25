@@ -977,19 +977,25 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
+        kdtree: Some(0),
         name: Some(def.name.clone()),
         template_item_id: Some(def.template),
         cars_group: Some(def.cars_group.unwrap_or(CARS_DESTRUCTIBLES)),
+        is_closed: Some(true),
         ..Default::default()
     };
+    // as the recorded crate (rec 1781): after the visual, bounds and scale, the Destructible part
+    // u32 health, u32 maximum, f32 1.0, u32 0, ID32 0, u32 0, f32 0, f32 0, u32 0, f32 1.0. The
+    // maximum matters: with 0 the client's destructible never broke (its script starts the smash
+    // on Health 0, event 451, and checks the hardness).
     let record = lmoxide_net::iir::record("DestructibleFullUpdateIIR_c", id, false, |w| {
         let w = w.proto(&dynel).proto(&simple).u32(def.monster_data).u32(MONSTER_DATA_RDB_TYPE).u32(0);
         let w = [-0.6, 0.0, -0.6, 0.6, 1.2, 0.6].iter().fold(w, |w, v| w.f32(*v));
         // scale (n3VisualDynel asserts scale != 0), u32, u8
         let w = w.f32(1.0).u32(0).u8(0);
-        let w = w.u32(health).u32(0).f32(0.0).u32(0);
+        let w = w.u32(health).u32(def.health).f32(1.0).u32(0);
         let w = Id32::default().write(w);
-        w.u32(0).f32(0.0).f32(0.0).u32(0).f32(0.0)
+        w.u32(0).f32(0.0).f32(0.0).u32(0).f32(1.0)
     });
     vec![
         create_game_object(id, playfield, pos),

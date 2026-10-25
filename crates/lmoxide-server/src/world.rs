@@ -85,6 +85,12 @@ pub fn position_of(id: Id32) -> Option<[f32; 3]> {
     MEMBERS.lock().unwrap().get(&id).map(|m| *m.pos.lock().unwrap())
 }
 
+/// The shared position of every player character on `playfield` (to move them, e.g. a jump).
+pub fn position_handles(playfield: u32) -> Vec<(Id32, Position)> {
+    let members = MEMBERS.lock().unwrap();
+    members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, m.pos.clone())).collect()
+}
+
 /// Playfield and position of a character in play.
 pub fn whereabouts(id: Id32) -> Option<(u32, [f32; 3])> {
     MEMBERS.lock().unwrap().get(&id).map(|m| (m.playfield, *m.pos.lock().unwrap()))

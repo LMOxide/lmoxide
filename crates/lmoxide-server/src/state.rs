@@ -9,6 +9,16 @@ use lmoxide_net::login::LoginKey;
 static DB: OnceLock<Arc<Db>> = OnceLock::new();
 static LOGIN_KEY: OnceLock<LoginKey> = OnceLock::new();
 static STARTED_AT: OnceLock<i64> = OnceLock::new();
+static DATA_DIR: OnceLock<std::path::PathBuf> = OnceLock::new();
+
+/// The server's data directory (backups of deleted characters live there).
+pub fn data_dir() -> &'static std::path::Path {
+    DATA_DIR.get().map_or(std::path::Path::new("."), |p| p.as_path())
+}
+
+pub fn set_data_dir(dir: std::path::PathBuf) {
+    let _ = DATA_DIR.set(dir);
+}
 
 /// `Some(message)` while in maintenance: only accounts with a GM level may log in.
 static MAINTENANCE: Mutex<Option<Option<String>>> = Mutex::new(None);

@@ -29,6 +29,8 @@ pub enum Action {
     Teleport(u32, [f32; 3], f32, String),
     /// show the achievement summary
     Achievements,
+    /// smash the nearest smashable (or defeat the nearest enemy) as if the player hit it
+    Smash,
     /// feed achievement events (n times)
     Progress(crate::achievements::Event, u32),
     /// gain XP
@@ -268,6 +270,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             };
             Action::Progress(event, n)
         }
+        "smash" => Action::Smash,
         "defeat" if !args.is_empty() => {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }

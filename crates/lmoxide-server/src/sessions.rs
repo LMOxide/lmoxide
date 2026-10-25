@@ -121,6 +121,11 @@ impl Drop for OnlineGuard {
     }
 }
 
+/// Whether a character is in play.
+pub fn is_online(character: u32) -> bool {
+    ONLINE.lock().unwrap().contains_key(&character)
+}
+
 /// The GM level of a character that is online (0 otherwise).
 pub fn gm_level(character: u32) -> u32 {
     ONLINE.lock().unwrap().get(&character).map_or(0, |o| o.gm_level)

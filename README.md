@@ -102,6 +102,8 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them); `!aura <0-4>` sets the active minifigure's aura tier |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
+| `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
+| `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
 | `!count <kills\|smashes\|builds> [n] [name]` | count n defeats, smashes or builds for achievements (e.g. `!count kills 1000`, `!count kills 50 Witch`) |
 | `!xp [n]` | gain n XP (with `--progression`) and show level and XP |

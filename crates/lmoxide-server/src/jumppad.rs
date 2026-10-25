@@ -183,6 +183,11 @@ fn cars_group(pad: &Pad, playfield: u32) -> u32 {
 }
 
 /// Every pad, for the test commands (devcmd.rs): (name, playfield, position).
+/// Where pad `guid` stands.
+pub fn pad_pos(playfield: u32, guid: u32) -> Option<[f32; 3]> {
+    PADS.get(&playfield)?.iter().find(|p| p.guid == guid).map(|p| p.pos)
+}
+
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
     let mut v: Vec<_> = PADS
         .iter()
@@ -203,19 +208,36 @@ fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
         .filter(|p| !crate::buildie::unbuilt_at(playfield, p.pos))
 }
 
-/// The buildie at `at` was built: the pad there starts working.
+/// The buildie at `at` was built: the pad there starts working, and whoever stands on it (the
+/// builder, usually) is launched right away rather than at their next step.
 pub fn activate(playfield: u32, at: [f32; 3]) {
     let Some(pads) = PADS.get(&playfield) else { return };
     for pad in pads.iter().filter(|p| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
         let records = vec![show_record(pad.id(), true), int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)];
         world::send_playfield(pad.id(), false, world::Out::Records(records));
+        for (player, pos) in world::position_handles(playfield) {
+            let here = *pos.lock().unwrap();
+            if !crate::npc::is_player(player) || pad_at(playfield, here).is_none_or(|p| p.guid != pad.guid) {
+                continue;
+            }
+            STATES.lock().unwrap().entry(player).or_default().on = Some(pad.guid);
+            info!(?player, pad = pad.guid, "launched on the pad as it was built");
+            tokio::spawn(launch(player, playfield, pad, pos));
+        }
     }
+}
+
+/// `UpdateSimpleDynelIIR_c` showing or hiding a pad and its CARS group, for one player.
+pub fn pad_records(guid: u32, shown: bool) -> Vec<Bytes> {
+    let id = Id32::new(PAD_TYPE, guid);
+    vec![show_record(id, shown), int32_stat(id, STAT_CARS_GROUP, if shown { CARS_GROUP } else { CARS_INACTIVE })]
 }
 
 /// The player reported being at `at` (`from`: where a click-to-move path started, `at` being
 /// its end). Launches them if that is on a pad.
 pub fn moved(player: Id32, playfield: u32, pos: &world::Position, at: [f32; 3], from: Option<[f32; 3]>) {
-    let pad = pad_at(playfield, at);
+    // (the tutorial keeps a pad shut until the player beat the wave before it)
+    let pad = pad_at(playfield, at).filter(|p| crate::tutorial::pad_open(player, playfield, p.guid));
     let moves = {
         let mut states = STATES.lock().unwrap();
         let s = states.entry(player).or_default();

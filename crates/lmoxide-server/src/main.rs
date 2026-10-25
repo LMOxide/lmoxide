@@ -175,6 +175,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         warn!("--auto-register: anyone who can reach the server can create an account by logging in");
     }
     state::init(db, key);
+    state::set_data_dir(storage.data_dir.clone());
     progression::set_enabled(cfg.progression);
     let cfg = Arc::new(cfg);
 

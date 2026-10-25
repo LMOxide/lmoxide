@@ -257,8 +257,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if community.is_none() {
                             community = Some(crate::community::login(character, &me.name, me.playfield, outbox.clone()));
                         }
-                        // development: LMOXIDE_DEV_COMMANDS="!test 4;!xp 10" runs test commands 5 s
-                        // after the first entry into the world (as if typed into the chat)
+                        // development: LMOXIDE_DEV_COMMANDS="!test 4;!sleep 10;!xp 10" runs test
+                        // commands 5 s after the first entry into the world (as if typed into the
+                        // chat); "!sleep <secs>" waits between them
                         if let Ok(commands) = std::env::var("LMOXIDE_DEV_COMMANDS")
                             && !tour_started
                         {
@@ -267,6 +268,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             tokio::spawn(async move {
                                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
                                 for command in commands.split(';').map(str::trim).filter(|c| !c.is_empty()) {
+                                    // "!sleep <secs>" waits before the next one
+                                    if let Some(secs) = command.strip_prefix("!sleep ").and_then(|t| t.trim().parse::<f32>().ok()) {
+                                        tokio::time::sleep(std::time::Duration::from_secs_f32(secs)).await;
+                                        continue;
+                                    }
                                     let _ = outbox.send(world::Out::Command(command.to_string()));
                                 }
                             });
@@ -315,7 +321,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if me.playfield != crate::tutorial::PLAYFIELD || me.tags.contains_key(&crate::tutorial::DONE_TAG) {
                                 tutorial = None;
                             } else if tutorial.is_none() {
-                                tutorial = Some(crate::tutorial::Run::start(id, &me.name));
+                                tutorial = Some(crate::tutorial::Run::start(id, &me.name, here));
                             }
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(here)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
@@ -1008,6 +1014,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             me.stars += stars;
                             send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
                             crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("{} stars", me.stars));
+                        }
+                        crate::devcmd::Action::Smash => {
+                            let here = *pos.lock().unwrap();
+                            let d = |p: [f32; 3]| (p[0] - here[0]).hypot(p[2] - here[2]);
+                            let nearest = crate::npc::targets_where(me.playfield, |p| d(p) < 15.0)
+                                .into_iter()
+                                .min_by(|a, b| d(a.1).total_cmp(&d(b.1)));
+                            match nearest {
+                                Some((target, _)) => {
+                                    info!(?target, "dev smash");
+                                    crate::npc::hit(Id32::new(crate::territory::CHARACTER_TYPE, character), target, 0, 100_000);
+                                }
+                                None => crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, "nothing to smash within 15 m"),
+                            }
                         }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);

@@ -231,6 +231,13 @@ impl Db {
         Ok(())
     }
 
+    /// Deletes a character with everything it has (the per-character tables and friendships
+    /// cascade).
+    pub fn delete_character(&self, id: u32) -> Result<()> {
+        let n = self.conn().execute("DELETE FROM characters WHERE id = ?1", [id])?;
+        if n == 0 { Err(Error::NotFound("character")) } else { Ok(()) }
+    }
+
     pub fn character_exists(&self, id: u32) -> Result<bool> {
         Ok(self.conn().query_row("SELECT count(*) FROM characters WHERE id = ?1", [id], |r| r.get::<_, i64>(0))? > 0)
     }
@@ -350,6 +357,13 @@ mod tests {
         assert_eq!(db.friends_of(b.id).unwrap(), vec![a.id]);
         assert!(db.remove_friendship(a.id, b.id).unwrap());
         assert!(db.friends_of(a.id).unwrap().is_empty());
+
+        // deleting a character takes its friendships along
+        assert!(db.add_friendship(b.id, a.id).unwrap());
+        db.delete_character(b.id).unwrap();
+        assert!(db.load_character(b.id).unwrap().is_none());
+        assert!(db.friends_of(a.id).unwrap().is_empty());
+        assert!(db.delete_character(b.id).is_err());
 
         db.delete_account(a.id).unwrap();
         assert!(db.load_character(a.id).unwrap().is_none());

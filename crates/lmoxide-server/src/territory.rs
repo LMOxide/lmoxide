@@ -138,6 +138,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 };
                 connect_character(&mut conn, &cfg, account, character, cookie).await?;
             }
+            (Some(Endpoint::PlayerAgent), agent::REQUEST_DELETE_CHARACTER) => {
+                // RequestDeleteCharacter(instance): the character screen's delete. Only the
+                // account's own characters; each is backed up before it goes. The client has no
+                // "deleted" reply: it gets the character list again.
+                let instance = r.u32()?;
+                let owned = owned(account).iter().any(|c| c.id == instance);
+                info!(account, instance, owned, "RequestDeleteCharacter");
+                if owned {
+                    if crate::sessions::is_online(instance) {
+                        warn!(account, instance, "not deleting a character in play");
+                    } else {
+                        delete_character(account, instance);
+                    }
+                }
+                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
+                    .await?;
+            }
             (Some(Endpoint::PlayerAgent), agent::GET_DIMENSION_LIST) => {
                 conn.send_as(Some(account), Endpoint::PlayerInterface, interface::SET_DIMENSION_LIST, dimension_list())
                     .await?;
@@ -157,6 +174,26 @@ fn owned(account: u32) -> Vec<lmoxide_db::CharacterSummary> {
 /// the picked name only until it quits, so it offers creation again for them).
 fn listed(account: u32) -> Vec<lmoxide_db::CharacterSummary> {
     owned(account).into_iter().filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD).collect()
+}
+
+/// Deletes `character` of `account`, first writing everything it had to
+/// `<data dir>/deleted-characters/<character>-<unix time>.json` (the database row's contents).
+fn delete_character(account: u32, character: u32) {
+    let Some(c) = crate::store::Store.load(character) else { return };
+    let dir = crate::state::data_dir().join("deleted-characters");
+    let now = lmoxide_db::now();
+    let backup = serde_json::json!({ "account": account, "character": character, "deleted_at": now, "data": c });
+    let path = dir.join(format!("{character}-{now}.json"));
+    let written = std::fs::create_dir_all(&dir).and_then(|()| std::fs::write(&path, serde_json::to_vec_pretty(&backup).unwrap_or_default()));
+    if let Err(e) = written {
+        // without a backup it stays
+        warn!(account, character, path = %path.display(), "backing up the deleted character failed, not deleting: {e}");
+        return;
+    }
+    match crate::state::db().delete_character(character) {
+        Ok(()) => info!(account, character, name = %c.name, backup = %path.display(), "character deleted"),
+        Err(e) => warn!(account, character, "deleting the character failed: {e:#}"),
+    }
 }
 
 /// Saves a new character `id` for `account`, named after it, in `playfield`.

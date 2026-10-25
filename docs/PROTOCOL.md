@@ -390,7 +390,11 @@ An account's first character has the account's id; further ones get their own (a
 clear of account ids). UpdateClientPlayerData's character map lists them (PlayerCharacterData_t
 u32 account, u32 character); the launcher's character screen offers the others' slots as
 "Create new Hero" (`CreateCharacterWithData`, then the creation flow below), `LoginCharacter`
-names the character picked. The game server accepts a character whose account owns the login
+names the character picked. Its delete (X, then typing DELETE) sends PlayerAgent
+`RequestDeleteCharacter(instance)`; there is no "deleted" reply, the server sends
+UpdateClientPlayerData again. Deleted characters are written to
+`<data dir>/deleted-characters/<id>-<time>.json` first (not deleted if that fails; never while
+in play). The game server accepts a character whose account owns the login
 cookie; the chat server maps the cookie's account to the character it plays.
 
 ## Buildies (buildie.rs)
@@ -569,6 +573,13 @@ The recorded session is a new character being created and playing the whole tuto
   the client's world map tutorial follows; clicking Pirate World sends
   `TeleportWindowBypass(74, 4600)`.
 - `TutorialShown(tag)`: the client saving a tutorial tip; live answered `AddTag(tag, 0)`.
+
+## Smashables
+
+The DestructibleFullUpdateIIR_c tail must carry the maximum health (recorded crates: health 1,
+maximum 1, f32 1.0, ..., f32 1.0): with a maximum of 0 the client's Client_GenericDestructible
+script never played the smash (event 451 on Health 0) and the crate only vanished at its
+respawn.
 
 ## Encounters (encounter.rs)
 
