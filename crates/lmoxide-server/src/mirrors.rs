@@ -119,7 +119,7 @@ pub fn closed(guid: u32) -> Option<bool> {
 /// 1000622): 474576 sets `anim` 1, which plays `open` and rests in `anim_1` ("+"), 474575 sets
 /// it 0 (`close`, `anim_0`, "-"). Levers and gates share the blend setup.
 const TURN_PLUS: u32 = 474576;
-const TURN_MINUS: u32 = 474575;
+pub const TURN_MINUS: u32 = 474575;
 
 /// The records that put a mirror in its pose now (for its spawn: a mirror at "+" turns there).
 pub fn pose_records(guid: u32) -> Vec<Bytes> {
@@ -244,7 +244,12 @@ fn beam_of(guid: u32, plus: bool) -> &'static Beam {
 /// `SimpleDynelVisualChangeIIR_c` state 0: a looping particle (u32 particle, i32 attractor 35 as
 /// live always sent, f32 yaw, offset x, y, z in cm), the beam as long as the light goes.
 fn beam_record(id: Id32, guid: u32, plus: bool) -> Bytes {
-    let n = (beam_of(guid, plus).length / 2.0).round().clamp(1.0, BEAMS.len() as f32) as usize;
+    beam_particle(id, beam_of(guid, plus).length)
+}
+
+/// The light beam particle that spans `length` m along dynel `id`'s facing (gates.rs too).
+pub fn beam_particle(id: Id32, length: f32) -> Bytes {
+    let n = (length / 2.0).round().clamp(1.0, BEAMS.len() as f32) as usize;
     lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(0).u32(BEAMS[n - 1]).i32(35).f32(0.0).f32(0.0).f32(0.0).f32(0.0))
 }
 

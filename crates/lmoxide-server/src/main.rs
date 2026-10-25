@@ -16,6 +16,7 @@ mod discovery;
 mod effects;
 mod encounter;
 mod game;
+mod gates;
 mod jumppad;
 mod knubot;
 mod loot;
@@ -208,6 +209,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     jumppad::start();
     scenery::start();
     mirrors::start();
+    gates::start();
     encounter::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);

@@ -146,7 +146,12 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     // (n3VisualDynel::EnableCollision(0))
     let shield = crate::encounter::shield_blocks(p.guid);
     let simple = ProtoSimpleDynelIir {
-        kdtree: Some(if shield == Some(true) { crate::encounter::SHIELD_COLLISION } else { 0 }),
+        kdtree: Some(match shield {
+            Some(true) => crate::encounter::SHIELD_COLLISION,
+            // a gate that waits to be opened (gates.rs)
+            _ if crate::gates::blocks(p.guid) => crate::gates::collision(),
+            _ => 0,
+        }),
         name: Some(p.name.clone()),
         cars_group: Some(cars_group),
         // gates open; mirrors as turned (mirrors.rs)
@@ -164,6 +169,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     });
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
     records.extend(crate::mirrors::pose_records(p.guid));
+    records.extend(crate::gates::pose_records(p.guid));
     // hidden: an arena door that's open now, a mirror puzzle's gate once solved
     if crate::encounter::door_hidden(p.guid).or_else(|| crate::mirrors::gate_open(p.guid)) == Some(true) {
         records.push(crate::encounter::door_record(id, true));

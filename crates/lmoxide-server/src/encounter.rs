@@ -297,6 +297,11 @@ pub fn door_hidden(guid: u32) -> Option<bool> {
     })
 }
 
+/// Whether a simple dynel is an arena's exit door visual.
+pub fn is_exit_door(guid: u32) -> bool {
+    DOORS.get(&guid).is_some_and(|&(_, _, kind)| matches!(kind, Door::Exit))
+}
+
 /// Whether a simple dynel is an arena door (spawned by scenery.rs).
 pub fn is_door(guid: u32) -> bool {
     DOORS.contains_key(&guid)
@@ -596,6 +601,7 @@ fn set_doors(def: &ArenaDef) {
             world::send_playfield(id, false, world::Out::Records(vec![door_record(id, hidden)]));
         }
     }
+    crate::gates::arena_doors_changed(&doors);
     for (&shield, door) in SHIELDS.iter().filter(|(_, door)| doors.contains(door)) {
         if let Some(hidden) = door_hidden(*door) {
             let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, shield);

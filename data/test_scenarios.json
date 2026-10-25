@@ -212,6 +212,14 @@
         "playfield": 6300,
         "pos": [150.0, 48.0, 172.0]
       }
+    },
+    {
+      "label": "medusa",
+      "about": "Medusa's Lair: a gate with a mirror spot; build the mirror, its light opens the gate (gates.rs)",
+      "goto": {
+        "playfield": 2300,
+        "pos": [115.0, 28.0, 317.0]
+      }
     }
   ]
 }

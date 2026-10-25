@@ -177,6 +177,15 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Rewards | `opens` | Armory: the barrier beside the pedestal (the Thunderbolt arena's exit) opens; Gauntlet: the gate hides | The pedestal ("complete" marker) stands at that barrier; the gate has two light markers. Inferred. |
 | Reset | `RESET_CHECK` | back to the start when nobody has been in the playfield for up to 30 s | Live gave each group its own instance. |
 
+## Gates (`gates.rs`, data/light_gates.json)
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Medusa's light gates | `tools/re/extract_light_gates.py` | a gate with a "door light" marker in front has a mirror buildie (item 489061, look 489796) at each "mirror light" marker facing it (1.8 m below the marker); built, it beams light (mirrors.rs beam particle) and with every mirror of the gate built the gate plays its open motion and loses its collision | The user's memory of live (2026-10-25); marker pairing is client data; build values copied from the recorded buildies; no collision once built. |
+| Gate collision | `GATE_COLLISION` | KD-tree 2260 (the static gate model's CollisionMesh2) while shut | The interactable's own mesh has no collision; inferred. |
+| Arena exit gates | `EXIT_GATES` | a LEGO gate within 3 m of an arena's exit visual (Medusa's) opens and shuts with that exit | Inferred from the placement. |
+| Reset | — | built mirrors and opened gates stay so until the server restarts | As the other buildies. |
+
 ## Jump pads
 
 | Value | Where | Now | Source / reasoning |

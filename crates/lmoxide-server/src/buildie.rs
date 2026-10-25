@@ -51,6 +51,8 @@ const PLAYER_RATE: u32 = 62;
 const TICK: Duration = Duration::from_millis(100);
 /// The builder must stay this close (assumed).
 const BUILD_RANGE: f32 = 6.0;
+/// The recorded buildies' sparkle particle.
+const SPARKLE: u32 = 160433;
 /// `SimpleDynelVisualChangeIIR_c` states as recorded: 4 = the built visual, 2 = particles off.
 const VISUAL_BUILT: u32 = 4;
 const VISUAL_PARTICLES_OFF: u32 = 2;
@@ -98,20 +100,54 @@ static BUILDIES: LazyLock<Mutex<HashMap<Id32, Buildie>>> = LazyLock::new(|| Mute
 /// Puts every buildie into its world.
 pub fn start() {
     let defs: Vec<Def> = serde_json::from_str(include_str!("../../../data/buildies.json")).expect("buildies.json");
-    for (i, def) in defs.into_iter().enumerate() {
-        // instances clear of the NPC module's destructibles
-        let id = Id32::new(DESTRUCTIBLE_TYPE, 0x00b0_0000 + i as u32);
-        let playfield = def.playfield;
-        let pos = Arc::new(Mutex::new(def.pos));
-        BUILDIES.lock().unwrap().insert(id, Buildie { def: def.clone(), progress: 0, state: State::Idle, _presence: None });
-        let (outbox, mut inbox) = mpsc::unbounded_channel();
-        tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-        let presence = world::join(id, playfield, pos, move || spawn_records(id), outbox);
-        if let Some(b) = BUILDIES.lock().unwrap().get_mut(&id) {
-            b._presence = Some(presence);
-        }
+    for def in defs {
+        insert(def);
     }
     info!(count = BUILDIES.lock().unwrap().len(), "buildies spawned");
+}
+
+/// Puts a buildie into its world; returns its id.
+fn insert(def: Def) -> Id32 {
+    // instances clear of the NPC module's destructibles
+    let id = Id32::new(DESTRUCTIBLE_TYPE, 0x00b0_0000 + BUILDIES.lock().unwrap().len() as u32);
+    let playfield = def.playfield;
+    let pos = Arc::new(Mutex::new(def.pos));
+    BUILDIES.lock().unwrap().insert(id, Buildie { def, progress: 0, state: State::Idle, _presence: None });
+    let (outbox, mut inbox) = mpsc::unbounded_channel();
+    tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    let presence = world::join(id, playfield, pos, move || spawn_records(id), outbox);
+    if let Some(b) = BUILDIES.lock().unwrap().get_mut(&id) {
+        b._presence = Some(presence);
+    }
+    id
+}
+
+/// A buildie the recording doesn't have (gates.rs: Medusa's mirrors): the item `template` with
+/// look `monster_data` at `pos`, built like the recorded ones (their sparkle, 1600 progress,
+/// their Destructible fields); no collision once built.
+pub fn add(name: &str, template: u32, monster_data: u32, playfield: u32, pos: [f32; 3], rot: [f32; 4]) -> Id32 {
+    insert(Def {
+        name: name.into(),
+        display_name: format!("<remoteformat id=\"{template}\" category=\"50200\" key=\"\" knubot=\"0\"  ></remoteformat>"),
+        template,
+        playfield,
+        pos,
+        rot,
+        monster_data,
+        visual_type: 1010201,
+        particles: vec![[SPARKLE, 0, 0, 0, 0]],
+        bounds: [-1.0, 0.0, -1.0, 1.0, 3.0, 1.0],
+        scale: 1.0,
+        max: 1600,
+        destructible: (1.0, 0),
+        tail: (0, 0.1, 0.0, 0, 1.0),
+        built_visual: None,
+    })
+}
+
+/// Whether buildie `id` is built.
+pub fn built(id: Id32) -> bool {
+    BUILDIES.lock().unwrap().get(&id).is_some_and(|b| b.state == State::Built)
 }
 
 /// Every buildie, for the test commands (devcmd.rs): (name, playfield, position, state).
@@ -198,6 +234,7 @@ async fn build(id: Id32, player: Id32) {
         world::send_playfield(id, false, world::Out::Records(records));
         if done {
             crate::jumppad::activate(playfield, pos);
+            crate::gates::built(id);
             return;
         }
     }
