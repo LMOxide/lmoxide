@@ -76,6 +76,10 @@ struct Pad {
     apex: Option<f32>,
     #[serde(default)]
     target_by: Option<String>,
+    /// "JUMP" on pads; the mortars of 4300's cannonball course (K28B) and an idle fan (28EI)
+    /// look like pads but are scenery.
+    #[serde(default)]
+    tag: Option<String>,
 }
 
 impl Pad {
@@ -86,9 +90,17 @@ impl Pad {
     /// Whether landing on this pad throws the player on at once: the invisible jumpers (the
     /// clouds in 2210) and the middle stops of named routes (6200's SwampToVolcano1, 2, End;
     /// 1610's jumpie_1_chain_N). Other pads someone lands on fire only after a step off
-    /// (5200's catapult pairs land you on the way back).
+    /// (5200's catapult pairs land you on the way back). Lily pads float on water, where
+    /// nobody can step off (2210's lily crossings).
     fn throws_on(&self) -> bool {
-        self.visual[1] == INVISIBLE_VISUAL || self.target_by.as_deref() == Some("chain") || self.name.contains("chain")
+        self.visual[1] == INVISIBLE_VISUAL
+            || self.target_by.as_deref() == Some("chain")
+            || self.name.contains("chain")
+            || self.name.contains("lily")
+    }
+
+    fn launches(&self) -> bool {
+        self.tag.as_deref() == Some("JUMP")
     }
 
     fn effect(&self) -> u32 {
@@ -195,7 +207,7 @@ pub fn pad_at_spot(playfield: u32, at: [f32; 3]) -> bool {
 
 /// Pads under an unbuilt buildie are inactive (CARS group 5, as recorded) until it is built.
 fn cars_group(pad: &Pad, playfield: u32) -> u32 {
-    if crate::buildie::unbuilt_at(playfield, pad.pos) { CARS_INACTIVE } else { CARS_GROUP }
+    if !pad.launches() || crate::buildie::unbuilt_at(playfield, pad.pos) { CARS_INACTIVE } else { CARS_GROUP }
 }
 
 /// Every pad, for the test commands (devcmd.rs): (name, playfield, position).
@@ -221,7 +233,7 @@ fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
         .iter()
         .filter(|p| flat(p) <= TRIGGER_RADIUS && (p.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT)
         .min_by(|a, b| flat(a).total_cmp(&flat(b)))
-        .filter(|p| !crate::buildie::unbuilt_at(playfield, p.pos))
+        .filter(|p| p.launches() && !crate::buildie::unbuilt_at(playfield, p.pos))
 }
 
 /// The buildie at `at` was built: the pad there starts working, and whoever stands on it (the

@@ -170,6 +170,14 @@
         "playfield": 4600,
         "pos": [102.3, 70.0, 94.3]
       }
+    },
+    {
+      "label": "lilies",
+      "about": "Mythology wind fan onto two lily pads across the water and up to the far bank (jumppad.rs: lilies throw on)",
+      "goto": {
+        "playfield": 2210,
+        "pos": [167.9, 42.0, 321.2]
+      }
     }
   ]
 }
