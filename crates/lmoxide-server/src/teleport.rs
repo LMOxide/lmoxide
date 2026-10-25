@@ -14,7 +14,10 @@
 //! goes to FlowControl DeepTeleport), then the new playfield's records as at login; the client
 //! answers with CharInPlayIIR_t again.
 
-use std::{collections::HashMap, sync::LazyLock};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::{LazyLock, Mutex},
+};
 
 use bytes::Bytes;
 use lmoxide_net::{
@@ -55,6 +58,8 @@ static DATA: LazyLock<Data> =
 
 /// How close to a portal's position counts as standing in it.
 const PORTAL_RADIUS: f32 = 3.0;
+/// How far from every portal a player who arrived in one must go before portals open (assumed).
+const REARM_DISTANCE: f32 = 8.0;
 
 pub fn destination(playfield: u32) -> Option<&'static Destination> {
     DATA.destinations.get(&playfield.to_string())
@@ -85,6 +90,27 @@ const HUB: u32 = 1200;
 pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<(u32, u32)> {
     let portal = DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
     Some((if portal.to == playfield { HUB } else { portal.to }, portal.window))
+}
+
+/// Characters teleported since their last movement report (game.rs keeps their portals shut
+/// until they are clear of them).
+static ARRIVED: LazyLock<Mutex<HashSet<u32>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
+
+/// `character` was just teleported.
+pub fn arrived(character: u32) {
+    ARRIVED.lock().unwrap().insert(character);
+}
+
+/// Whether `character` was teleported since this was last asked.
+pub fn take_arrival(character: u32) -> bool {
+    ARRIVED.lock().unwrap().remove(&character)
+}
+
+/// Whether the player at `pos` is well clear of every portal (`REARM_DISTANCE`): someone who
+/// arrives in a portal (logging in, teleporting to a world whose arrival point is next to one,
+/// e.g. Volcano Island's by Pioneer Bay) must walk this far away before it opens for them.
+pub fn clear_of_portals(playfield: u32, pos: [f32; 3]) -> bool {
+    DATA.portals.get(&playfield.to_string()).is_none_or(|ps| ps.iter().all(|p| distance(p.pos, pos) > REARM_DISTANCE))
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {

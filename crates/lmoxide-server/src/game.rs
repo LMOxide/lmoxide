@@ -48,6 +48,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut last_save = std::time::Instant::now();
     let mut potions_spent: u64 = 0;
     let mut shown_portal: Option<u32> = None;
+    // portals open only once the player has been clear of them since arriving (login, teleport)
+    let mut portals_armed = false;
+    let mut portals_playfield = 0;
     // direction of the player's last movement (aims projectiles cast without a target)
     let mut heading = [0.0f32, 1.0];
     // the same, shared with tasks that fire later (held charges)
@@ -75,6 +78,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
     // a test setup changed the team (sent again at the next CharInPlay), and the item id salt
     let mut team_changed = false;
+    // in play before: a later CharInPlayIIR_t is the arrival after a teleport
+    let mut was_in_play = false;
     let mut team_salt = 0u64;
     loop {
         let rpc = tokio::select! {
@@ -230,8 +235,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         records.push(crate::teleport::journal_record(h.identity));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
-                        if std::mem::take(&mut team_changed) {
-                            // a test setup changed the team: the HUD shows it after this
+                        // a test setup changed the team, or a teleport moved the active minifigure
+                        // to the first position (active_at_first_position): the HUD shows the
+                        // team as the client has it until this
+                        if std::mem::take(&mut team_changed) | std::mem::replace(&mut was_in_play, true) {
                             team_salt += 1 << 33;
                             let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
                             records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&team)));
@@ -376,7 +383,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // Portals: the client sends nothing, so open the portal's teleport
                             // window when the player steps in (once per visit), and close it when
                             // they step out again (live, server scripts did this)
-                            match crate::teleport::portal_at(me.playfield, p) {
+                            // (not right after arriving: login or teleport, maybe next to one)
+                            if me.playfield != portals_playfield || crate::teleport::take_arrival(character) {
+                                portals_armed = false;
+                                portals_playfield = me.playfield;
+                                debug!(?p, "portals wait until the player is clear of them");
+                            }
+                            if !portals_armed && crate::teleport::clear_of_portals(me.playfield, p) {
+                                portals_armed = true;
+                                debug!(?p, "portals open again");
+                            }
+                            match crate::teleport::portal_at(me.playfield, p).filter(|_| portals_armed) {
                                 Some((to, window)) if shown_portal != Some(to) => {
                                     shown_portal = Some(to);
                                     info!(to, window, "portal");
@@ -1503,6 +1520,9 @@ async fn teleport(
     me.playfield = playfield;
     me.pos = arrive_pos;
     *pos.lock().unwrap() = arrive_pos;
+    crate::teleport::arrived(character);
+    // the new world's HUD shows the first team position as the active portrait, as at login
+    active_at_first_position(&mut me.team);
     if let Err(e) = store.save(character, me) {
         warn!(character, "saving character failed: {e:#}");
     }
@@ -1820,7 +1840,7 @@ fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) 
 /// Moves the active minifigure (`team[0]`) to the team's first inventory position, swapping
 /// with the one there. Live logged in with ActiveWeapon 6 every time; with the active one
 /// elsewhere the client used its spells but its HUD showed the minifigure at position 6 as
-/// the active portrait.
+/// the active portrait (also after a teleport, which sends the world again).
 fn active_at_first_position(team: &mut [(u32, u32)]) {
     let Some(first) = team.iter().map(|&(p, _)| p).min() else { return };
     if let Some(j) = team.iter().position(|&(p, _)| p == first)

@@ -178,6 +178,24 @@
         "playfield": 2210,
         "pos": [167.9, 42.0, 321.2]
       }
+    },
+    {
+      "label": "portal",
+      "about": "Volcano Island, standing in the portal to Pioneer Bay: it opens only after you walked 8 m away and came back",
+      "goto": {
+        "playfield": 4210,
+        "pos": [68.9, 65.2, 33.0]
+      }
+    },
+    {
+      "label": "newchar",
+      "about": "a new character's team (the Roman Commander starter only) at the tutorial's first trigger (HUD portrait)",
+      "goto": {
+        "kind": "trigger"
+      },
+      "team": [
+        "Roman Commander"
+      ]
     }
   ]
 }
