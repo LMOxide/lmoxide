@@ -190,6 +190,19 @@ pub fn busy(id: u32) -> Duration {
     }
 }
 
+/// When the spell strikes after its cast starts (its ItemDelay).
+pub fn strike_delay(id: u32) -> Duration {
+    spell(id).map_or(Duration::ZERO, |s| cs(s.stats.item_delay.unwrap_or(0.0)))
+}
+
+/// The projectile the spell shoots (its first Projectile action on use): the item and its
+/// speed in m/s. NPC-against-NPC fights (npc.rs `strike`) show it flying.
+pub fn projectile_of(id: u32) -> Option<(u32, f32)> {
+    let s = spell(id)?;
+    let a = [PRE_USE, ON_USE].iter().filter_map(|e| s.lists.get(*e)).flatten().find(|a| a.kind == "Projectile")?;
+    Some((a.u("ItemInstance")?, a.f("Speed").unwrap_or(1000.0) / 100.0))
+}
+
 fn channel(s: &Spell) -> Option<(Duration, u32)> {
     let ticks = s.stats.channeling_ticks.filter(|t| *t > 0)?;
     Some((cs(s.stats.channeling_interval.unwrap_or(50.0)), ticks))
