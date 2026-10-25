@@ -35,6 +35,7 @@ mod shop;
 mod state;
 mod store;
 mod teleport;
+mod tiki;
 mod tutorial;
 mod territory;
 mod universe;
@@ -215,6 +216,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     gates::start();
     plates::start();
     pistons::start();
+    tiki::start();
     encounter::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);

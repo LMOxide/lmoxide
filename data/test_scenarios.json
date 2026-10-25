@@ -256,6 +256,14 @@
         "playfield": 6300,
         "pos": [336.0, 48.0, 168.0]
       }
+    },
+    {
+      "label": "tiki",
+      "about": "the Gauntlet's Tiki room: build the 4 golden statues to break the skull's forcefield, dodge its fire (tiki.rs)",
+      "goto": {
+        "playfield": 6300,
+        "pos": [262.0, 48.0, 172.0]
+      }
     }
   ]
 }

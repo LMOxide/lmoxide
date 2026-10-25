@@ -235,6 +235,7 @@ async fn build(id: Id32, player: Id32) {
         if done {
             crate::jumppad::activate(playfield, pos);
             crate::gates::built(id);
+            crate::tiki::built(id);
             return;
         }
     }

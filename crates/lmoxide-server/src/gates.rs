@@ -7,7 +7,8 @@
 //!   the gate opens (the user's memory of live).
 //! - Arena exit gates: a gate standing at an arena's exit door visual (Medusa's) opens with that
 //!   exit (encounter.rs).
-//! - Room gates: the Gauntlet's plate room (plates.rs) and mirror room (mirrors.rs).
+//! - Room gates: the Gauntlet's plate room (plates.rs), Tiki room (tiki.rs) and mirror room
+//!   (mirrors.rs).
 //!
 //! Other gates stay open scenery (scenery.rs). Built mirrors stay built until the server
 //! restarts, as the other buildies.
@@ -188,6 +189,9 @@ fn gate_open(guid: u32) -> Option<bool> {
     // room puzzles: the Gauntlet's plate room (plates.rs) and mirror room (mirrors.rs)
     if guid == crate::plates::GATE {
         return Some(crate::plates::solved());
+    }
+    if guid == crate::tiki::GATE {
+        return Some(crate::tiki::solved());
     }
     if let Some(open) = crate::mirrors::gate_open(guid) {
         return Some(open);
