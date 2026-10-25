@@ -101,6 +101,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `smashable` |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them); `!aura <0-4>` sets the active minifigure's aura tier |
+| `!plates <solve\|reset>` | light every plate of the Gauntlet's plate room (`!test plates`), or none |
 | `!mirrors <solve\|reset>` | turn this playfield's Medusa mirrors (Armory, Gauntlet) to the solution or back to the start (`!test mirrors`, `!test mirrors2` go there) |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |

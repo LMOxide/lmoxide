@@ -16,6 +16,7 @@
 //!   !aura <0-4>               the active minifigure's aura tier (gives/takes its aura tags)
 //!   !dialog [n]               play recorded NPC dialogue n (without n: list them)
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
+//!   !plates <solve|reset>     light every plate of the Gauntlet's plate room, or none
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -274,6 +275,13 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(event, n)
         }
         "smash" => Action::Smash,
+        "plates" => match args.first().copied() {
+            Some(how @ ("solve" | "reset")) => {
+                crate::plates::set_all(how == "solve");
+                reply(vec![format!("plates: {how}")])
+            }
+            _ => reply(vec!["usage: !plates <solve|reset>".into()]),
+        },
         "mirrors" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => Action::Mirrors(how == "solve"),
             _ => reply(vec!["usage: !mirrors <solve|reset>".into()]),

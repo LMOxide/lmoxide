@@ -7,6 +7,7 @@
 //!   the gate opens (the user's memory of live).
 //! - Arena exit gates: a gate standing at an arena's exit door visual (Medusa's) opens with that
 //!   exit (encounter.rs).
+//! - Room gates: the Gauntlet's plate room (plates.rs) and mirror room (mirrors.rs).
 //!
 //! Other gates stay open scenery (scenery.rs). Built mirrors stay built until the server
 //! restarts, as the other buildies.
@@ -90,6 +91,41 @@ static EXIT_GATES: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
     m
 });
 
+/// A gate's "door collision" piece (an invisible marker at the gate, turned along the wall) ->
+/// the gate. While the gate is shut it carries the arena shields' wall (encounter.rs
+/// `SHIELD_COLLISION`, 6 m wide): the gate model's own collision left gaps to squeeze through.
+static WALLS: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
+    #[derive(Deserialize)]
+    struct Piece {
+        name: String,
+        pos: [f32; 3],
+        guid: u32,
+    }
+    let worlds: HashMap<String, serde_json::Value> =
+        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+    let mut m = HashMap::new();
+    for w in worlds.values() {
+        let pieces: Vec<Piece> = w
+            .get("simple_dynels")
+            .and_then(|v| v.as_array())
+            .map(|a| a.iter().filter_map(|d| serde_json::from_value(d.clone()).ok()).collect())
+            .unwrap_or_default();
+        for wall in pieces.iter().filter(|p| p.name.starts_with("door") && p.name.ends_with("collision")) {
+            let gate = pieces.iter().find(|g| g.name == GATE && ((g.pos[0] - wall.pos[0]).powi(2) + (g.pos[2] - wall.pos[2]).powi(2)).sqrt() < 1.0);
+            if let Some(gate) = gate {
+                m.insert(wall.guid, gate.guid);
+            }
+        }
+    }
+    m
+});
+
+/// Whether a simple dynel is a gate's wall piece (scenery.rs spawns it); `Some(blocks now)`.
+pub fn wall_blocks(guid: u32) -> Option<bool> {
+    let gate = *WALLS.get(&guid)?;
+    gate_open(gate).map(|open| !open)
+}
+
 /// Mirror buildie -> (playfield, gate, spot, beam dynel).
 static MIRRORS: LazyLock<Mutex<HashMap<Id32, (u32, u32, &'static Spot, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
@@ -133,13 +169,29 @@ pub fn built(buildie: Id32) {
     world::send_playfield(beam, false, world::Out::Records(vec![crate::mirrors::beam_particle(beam, spot.length)]));
     if gate_open(gate) == Some(true) {
         info!(playfield = pf, gate, "light gate opens");
-        let id = Id32::new(SIMPLE_DYNEL_TYPE, gate);
-        world::send_playfield(id, false, world::Out::Records(open_records(id, true)));
+        send_state(gate, true);
+    }
+}
+
+/// Shows a gate open or shut: its motion and collision, and its wall piece's.
+fn send_state(gate: u32, open: bool) {
+    let id = Id32::new(SIMPLE_DYNEL_TYPE, gate);
+    world::send_playfield(id, false, world::Out::Records(open_records(id, open)));
+    for (&wall, _) in WALLS.iter().filter(|(_, g)| **g == gate) {
+        let id = Id32::new(SIMPLE_DYNEL_TYPE, wall);
+        world::send_playfield(id, false, world::Out::Records(vec![crate::encounter::collision_record(id, !open)]));
     }
 }
 
 /// Whether a gate this module runs is open now (`None`: not one of them).
 fn gate_open(guid: u32) -> Option<bool> {
+    // room puzzles: the Gauntlet's plate room (plates.rs) and mirror room (mirrors.rs)
+    if guid == crate::plates::GATE {
+        return Some(crate::plates::solved());
+    }
+    if let Some(open) = crate::mirrors::gate_open(guid) {
+        return Some(open);
+    }
     if let Some(&exit) = EXIT_GATES.get(&guid) {
         return Some(crate::encounter::door_hidden(exit) == Some(true));
     }
@@ -173,11 +225,29 @@ fn open_records(id: Id32, open: bool) -> Vec<Bytes> {
     vec![motion, collision]
 }
 
+/// A room puzzle was solved or reset: its gate opens or shuts to match.
+pub fn refresh(guid: u32) {
+    if let Some(open) = gate_open(guid) {
+        send_state(guid, open);
+    }
+}
+
 /// An arena's doors changed (encounter.rs): its exit gates open or shut with them.
 pub fn arena_doors_changed(doors: &[u32]) {
     for (&gate, exit) in EXIT_GATES.iter().filter(|(_, exit)| doors.contains(exit)) {
-        let open = crate::encounter::door_hidden(*exit) == Some(true);
-        let id = Id32::new(SIMPLE_DYNEL_TYPE, gate);
-        world::send_playfield(id, false, world::Out::Records(open_records(id, open)));
+        send_state(gate, crate::encounter::door_hidden(*exit) == Some(true));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gates_have_their_walls() {
+        // Medusa's Lair's four gates and the Gauntlet's five
+        for gate in [476102, 474105, 476024, 474103, 506181, 506102, 517927, 516809, 517465] {
+            assert!(WALLS.values().any(|g| *g == gate), "gate {gate} has no wall piece");
+        }
     }
 }

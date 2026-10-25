@@ -170,7 +170,7 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
-| The puzzle | `tools/re/extract_mirror_puzzles.py` | each mirror's "+"/"-" marker faces where the light leaves it; the next mirror or target in line receives it | Client data (the markers); the user chose a working puzzle over scenery (2026-10-25). |
+| The puzzle | `tools/re/extract_mirror_puzzles.py` | each mirror's two markers face where the light leaves it (the one 45° from the mirror's facing in the open pose, 225° in the placed pose: the editor's "+"/"-" names don't follow the poses); the next mirror or target in line receives it | Client data (the markers); the user chose a working puzzle over scenery (2026-10-25). |
 | Light source and start | `PUZZLES` roots | the light falls on mirror "1" (Armory) and on L and R (Gauntlet), where the rooms' own beams (level geometry) end; every mirror starts at "-" (unsolved) | The beams match; the start positions are a guess. |
 | Turning | `mirrors::turn` | effect package 474576 (blend setup 474600 `anim` = 1: `open`, rest in `anim_1`) for "+", 474575 for "-"; its stone-scrape sound plays from the motion | The packages are client data; that live used them for the mirrors is inferred (the recording sent the same kind of package to jump pads). |
 | The light | `mirrors::BEAMS` | `particle_generic_lightbeam_horizontal_<n>m` (n = length / 2, rounded, 1–7) on an invisible dynel at the "+"/"-" marker of every mirror the light falls on (VisualChange state 0, attractor 35) | The rooms' own first beams are these particles (RDB 1000058); live's XX_Invisible dynels carried particles that way (recording). That live drew the mirror-to-mirror light like this is inferred. |
@@ -182,7 +182,8 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
 | Medusa's light gates | `tools/re/extract_light_gates.py` | a gate with a "door light" marker in front has a mirror buildie (item 489061, look 489796) at each "mirror light" marker facing it (1.8 m below the marker); built, it beams light (mirrors.rs beam particle) and with every mirror of the gate built the gate plays its open motion and loses its collision | The user's memory of live (2026-10-25); marker pairing is client data; build values copied from the recorded buildies; no collision once built. |
-| Gate collision | `GATE_COLLISION` | KD-tree 2260 (the static gate model's CollisionMesh2) while shut | The interactable's own mesh has no collision; inferred. |
+| Gate collision | `GATE_COLLISION`, `WALLS` | while shut: KD-tree 2260 (the static gate model's CollisionMesh2) on the gate, and the arena shields' 6 m wall (60624) on the gate's invisible "door collision" piece | The gate mesh alone left gaps to squeeze around (user, 2026-10-25); the door collision pieces are client data, their live mesh unknown. |
+| Gauntlet plate room | `plates.rs` | stepping on a plate (2.5 m tile) swaps its red look (`_b_`) for the green (`_c_`); all 30 green open the east gate; click-to-move lights the plates along the path; reset once the Gauntlet is empty | The user's memory of live; plates and areas are client data. |
 | Arena exit gates | `EXIT_GATES` | a LEGO gate within 3 m of an arena's exit visual (Medusa's) opens and shuts with that exit | Inferred from the placement. |
 | Reset | — | built mirrors and opened gates stay so until the server restarts | As the other buildies. |
 

@@ -35,6 +35,8 @@ const CARS_USABLE: u32 = 1;
 /// Live's invisible marker dynels ("XX_Invisible", recorded): template and [type, visual].
 const INVISIBLE_TEMPLATE: u32 = 249343;
 const INVISIBLE_VISUAL: [u32; 2] = [1010030, 95472];
+/// The shield wall's bounds (recorded in the tutorial).
+const SHIELD_BOUNDS: [f32; 6] = [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5];
 /// Bounds for pieces whose RDB box is empty (assumed size, docs/TUNABLES.md).
 const FALLBACK_BOUNDS: [f32; 6] = [-4.0, 0.0, -4.0, 4.0, 6.0, 4.0];
 
@@ -89,7 +91,13 @@ pub fn start() {
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };
         let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };
-        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| wanted(&p.name) || crate::encounter::is_door(p.guid) || crate::encounter::is_shield(p.guid)) {
+        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| {
+            wanted(&p.name)
+                || crate::encounter::is_door(p.guid)
+                || crate::encounter::is_shield(p.guid)
+                || crate::plates::is_plate(playfield, &p.name)
+                || crate::gates::wall_blocks(p.guid).is_some()
+        }) {
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
             let presence = join(&piece, playfield);
             PRESENCES.lock().unwrap().insert(piece.guid, (playfield, piece, presence));
@@ -144,7 +152,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     };
     // an arena's shield: a wall while its door is closed (encounter.rs); nothing else collides
     // (n3VisualDynel::EnableCollision(0))
-    let shield = crate::encounter::shield_blocks(p.guid);
+    let shield = crate::encounter::shield_blocks(p.guid).or_else(|| crate::gates::wall_blocks(p.guid));
     let simple = ProtoSimpleDynelIir {
         kdtree: Some(match shield {
             Some(true) => crate::encounter::SHIELD_COLLISION,
@@ -160,7 +168,14 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     };
     // the RDB gives the animated pieces an empty box (min +3.4e38, max -3.4e38); send a generous
     // one instead, which at worst affects culling
-    let bounds = if p.bounds[0] > p.bounds[3] { FALLBACK_BOUNDS } else { p.bounds };
+    let bounds = if shield.is_some() {
+        // the shield wall's box (recorded), whatever the marker's own
+        SHIELD_BOUNDS
+    } else if p.bounds[0] > p.bounds[3] {
+        FALLBACK_BOUNDS
+    } else {
+        p.bounds
+    };
     let record = iir::record("SimpleDynelFullUpdateIIR_c", id, false, |w| {
         // (a shield shows its collision mesh, as recorded)
         let visual = if shield.is_some() { crate::encounter::SHIELD_COLLISION } else { p.visual[1] };
@@ -170,8 +185,8 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
     records.extend(crate::mirrors::pose_records(p.guid));
     records.extend(crate::gates::pose_records(p.guid));
-    // hidden: an arena door that's open now, a mirror puzzle's gate once solved
-    if crate::encounter::door_hidden(p.guid).or_else(|| crate::mirrors::gate_open(p.guid)) == Some(true) {
+    // hidden: an arena door that's open now, the plate room's plates' other look
+    if crate::encounter::door_hidden(p.guid).or_else(|| crate::plates::hidden(p.guid)) == Some(true) {
         records.push(crate::encounter::door_record(id, true));
     }
     records

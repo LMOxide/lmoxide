@@ -133,8 +133,7 @@ fn plus_now(pf: u32, guid: u32) -> bool {
     STATE.lock().unwrap().get(&pf).is_some_and(|s| s.plus.contains(&guid))
 }
 
-/// Whether a puzzle gate is open now (its puzzle solved): hidden, as the arena doors open
-/// (`is_closed` doesn't change how a gate looks).
+/// Whether a puzzle's gate is open now (its puzzle solved; gates.rs runs it).
 pub fn gate_open(guid: u32) -> Option<bool> {
     let (&pf, _) = DATA.iter().find(|(_, p)| p.opens.gate == Some(guid))?;
     Some(solved(pf))
@@ -290,8 +289,7 @@ fn spawn_beams() {
 
 fn on_solved(pf: u32, puzzle: &Puzzle) {
     if let Some(gate) = puzzle.opens.gate {
-        let id = Id32::new(SIMPLE_DYNEL_TYPE, gate);
-        world::send_playfield(id, false, world::Out::Records(vec![crate::encounter::door_record(id, true)]));
+        crate::gates::refresh(gate);
     }
     if puzzle.opens.arena_exit.is_some() {
         crate::encounter::refresh_doors(pf);
@@ -337,8 +335,7 @@ pub fn set_solved(playfield: u32, solve: bool) -> bool {
         on_solved(playfield, puzzle);
     } else {
         if let Some(gate) = puzzle.opens.gate {
-            let id = Id32::new(SIMPLE_DYNEL_TYPE, gate);
-            world::send_playfield(id, false, world::Out::Records(vec![crate::encounter::door_record(id, false)]));
+            crate::gates::refresh(gate);
         }
         crate::encounter::refresh_doors(playfield);
     }

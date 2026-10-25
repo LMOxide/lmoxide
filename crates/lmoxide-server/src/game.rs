@@ -374,6 +374,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
                             report_finds(&me, p, &outbox);
                             crate::encounter::moved(h.identity, me.playfield, p);
+                            crate::plates::moved(me.playfield, from, p);
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }

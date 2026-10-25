@@ -220,6 +220,14 @@
         "playfield": 2300,
         "pos": [115.0, 28.0, 317.0]
       }
+    },
+    {
+      "label": "plates",
+      "about": "the Gauntlet's plate room: step on all 30 plates to light them and open the east gate (plates.rs)",
+      "goto": {
+        "playfield": 6300,
+        "pos": [231.0, 48.0, 172.0]
+      }
     }
   ]
 }

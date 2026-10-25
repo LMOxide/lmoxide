@@ -2,7 +2,8 @@
 
 Every `mirror_medusa_c_interactable` (playfield simple dynels, RDB 1000057) has two invisible
 markers beside it, "mirror <name> +" and "mirror <name> -", whose facing is where the light
-leaves the mirror in that position (the two point opposite ways along one diagonal, so the
+leaves the mirror in each pose (the one 45 degrees from the mirror's facing for the open pose,
+225 for the placed one) (the two point opposite ways along one diagonal, so the
 light comes in along the other). Following each marker's facing to the first mirror or target
 in line gives the puzzle: in the Armory (2310) one chain of settings carries the light from
 mirror "1" to "mirror L.2.1.1 complete" on the pedestal by the Thunderbolt arena's exit; in the
@@ -52,7 +53,13 @@ def main():
         entries, lit_by = [], set()
         for name, m in sorted(named.items()):
             outs, beams = {}, {}
-            for state, sign in (("plus", "+"), ("minus", "-")):
+            # the marker 45 degrees from the mirror's facing is where its open pose (anim_1, sent
+            # as "plus") reflects; the one at 225 is the placed pose's (anim_0, "minus"). The
+            # editor's "+"/"-" names don't follow that (the user saw half the mirrors reflect the
+            # other way), so the names are matched to the poses here.
+            plus_sign = "+" if (yaw(markers[f"mirror {name} +"]["rot"]) - yaw(m["rot"])) % (2 * math.pi) < math.pi else "-"
+            minus_sign = "-" if plus_sign == "+" else "+"
+            for state, sign in (("plus", plus_sign), ("minus", minus_sign)):
                 d = markers[f"mirror {name} {sign}"]
                 a = yaw(d["rot"])
                 v = (math.sin(a), math.cos(a))
