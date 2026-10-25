@@ -102,7 +102,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         world::Out::Rpc(endpoint, method, args) => conn.send_as(Some(character), endpoint, method, args).await?,
                         world::Out::DevTeleport(playfield, at, label) => {
                             info!(character, playfield, ?at, %label, "dev tour");
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &label);
+                            crate::chat::system(character, &label);
                             let at = [at[0] + 6.0, at[1], at[2]];
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)), potions_spent)
                                 .await?;
@@ -147,7 +147,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         world::Out::Kick(reason) => {
                             info!(character, ?reason, "kicked");
                             if let Some(reason) = reason {
-                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &reason);
+                                crate::chat::system(character, &reason);
                                 // let the chat line arrive before the connection drops
                                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
                             }
@@ -1036,14 +1036,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let mood = r.i32()?;
                 info!(name = %me.name, %message, mood, "chat");
                 if crate::devcmd::is_command(&message) && gm_level < cfg.devcmd_gm_level {
-                    crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, "Test commands need a GM level.");
+                    crate::chat::system(character, "Test commands need a GM level.");
                 } else if crate::devcmd::is_command(&message) {
                     // a test command (devcmd.rs), not relayed
                     let here = *pos.lock().unwrap();
                     match crate::devcmd::run(&message, me.playfield, here) {
                         crate::devcmd::Action::Reply(lines) => {
                             for line in lines {
-                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                                crate::chat::system(character, &line);
                             }
                         }
                         crate::devcmd::Action::Xp(xp) => {
@@ -1052,12 +1052,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
                             }
                             let line = format!("level {}, XP {} (next level at {})", me.level(), me.xp, crate::progression::next_xp(me.level()));
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::Stars(stars) => {
                             me.stars += stars;
                             send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("{} stars", me.stars));
+                            crate::chat::system(character, &format!("{} stars", me.stars));
                         }
                         crate::devcmd::Action::Mirrors(solve) => {
                             let line = if crate::mirrors::set_solved(me.playfield, solve) {
@@ -1065,7 +1065,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             } else {
                                 "no mirror puzzle here (Armory 2310, Gauntlet 6300)".to_string()
                             };
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::Smash => {
                             let here = *pos.lock().unwrap();
@@ -1078,27 +1078,27 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     info!(?target, "dev smash");
                                     crate::npc::hit(Id32::new(crate::territory::CHARACTER_TYPE, character), target, 0, 100_000);
                                 }
-                                None => crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, "nothing to smash within 15 m"),
+                                None => crate::chat::system(character, "nothing to smash within 15 m"),
                             }
                         }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);
                             let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);
                             let line = format!("{earned} of {total} achievements; {} kills, {} smashes", count(3_000_116), count(3_000_126));
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                             // the journal: most defeated, places, finds
                             let mut defeats: Vec<_> = me.defeats.iter().collect();
                             defeats.sort_by(|a, b| b.1.count.cmp(&a.1.count));
                             let top: Vec<String> = defeats.iter().take(8).map(|(n, d)| format!("{n} x{}", d.count)).collect();
                             let line = format!("defeated {} kinds: {}", defeats.len(), top.join(", "));
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                             let finds: Vec<&str> = me.finds.keys().map(|k| k.as_str()).collect();
                             let line = format!("visited {} playfields; found {}: {}", me.visits.len(), finds.len(), finds.join(", "));
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::Progress(event @ crate::achievements::Event::Defeated { .. }, 1) => {
                             // one defeat (!defeat): as a real one (XP, tutorial boss, clears)
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("defeated: {event:?}"));
+                            crate::chat::system(character, &format!("defeated: {event:?}"));
                             let _ = outbox.send(world::Out::Progress(event));
                         }
                         crate::devcmd::Action::Progress(event, n) => {
@@ -1106,10 +1106,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
                             send_progress(&mut conn, character, &me, out).await?;
                             let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                            crate::chat::system(character, &line);
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
                                 .await?;
                         }
@@ -1123,7 +1123,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                                 None => {
                                     let list: Vec<String> = crate::knubot::dialogues().iter().enumerate().map(|(i, d)| format!("{} {} ({})", i + 1, d.npc, d.playfield)).collect();
-                                    crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("dialogues: {}", list.join(", ")));
+                                    crate::chat::system(character, &format!("dialogues: {}", list.join(", ")));
                                 }
                             }
                         }
@@ -1139,7 +1139,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                                 crate::auras::apply(Id32::new(crate::territory::CHARACTER_TYPE, character), template, &me.tags, false);
                                 let line = if tags.is_empty() { "this minifigure has no aura".to_string() } else { format!("aura tags {n} of 4 ({tags:?})") };
-                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                                crate::chat::system(character, &line);
                             }
                         }
                         crate::devcmd::Action::Test(setup) => {
@@ -1151,13 +1151,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // when the test stays here
                             let here_rot = heading[0].atan2(heading[1]);
                             let (playfield, at, rot) = setup.destination.unwrap_or((me.playfield, *pos.lock().unwrap(), here_rot));
-                            crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &format!("test {}", setup.label));
+                            crate::chat::system(character, &format!("test {}", setup.label));
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
                                 .await?;
                             for (name, count) in &setup.spawn {
                                 let n = crate::npc::spawn_test_enemies(name, *count, playfield, at, TEST_ENEMY_LIFETIME);
                                 let line = if n == 0 { format!("no enemy named {name}") } else { format!("{n} x {name} for 15 minutes") };
-                                crate::chat::vicinity(character, SERVER_INSTANCE, "Server", 0, &line);
+                                crate::chat::system(character, &line);
                             }
                         }
                     }

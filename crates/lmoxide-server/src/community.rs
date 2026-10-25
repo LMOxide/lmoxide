@@ -178,6 +178,11 @@ pub fn team_ids(instance: u32) -> Option<(ProtoId32, ProtoId32)> {
     Some((id32(TEAM_TYPE, team), id32(CHARACTER_TYPE, st.teams[&team].leader)))
 }
 
+/// The team of a character.
+pub fn team_of(instance: u32) -> Option<u32> {
+    STATE.lock().unwrap().team_of.get(&instance).copied()
+}
+
 /// Online teammates of a character (not including it).
 pub fn teammates(instance: u32) -> Vec<u32> {
     let st = STATE.lock().unwrap();
@@ -260,6 +265,7 @@ impl Drop for Guard {
                 // nobody left online: the team ends
                 for m in &members {
                     st.team_of.remove(m);
+                    crate::chat::set_team(*m, None);
                 }
                 st.teams.remove(&team);
             } else {
@@ -492,6 +498,9 @@ fn accept(character: u32, inviter: u32) {
     }
     let members = st.teams[&team].members.clone();
     group_records(&st, team, true, &members);
+    for &m in &members {
+        crate::chat::set_team(m, Some(team));
+    }
     info!(team, ?members, "team: joined");
 }
 
@@ -544,11 +553,13 @@ fn remove_member(st: &mut State, character: u32) {
     let t = st.teams.get_mut(&team).unwrap();
     t.members.retain(|&m| m != character);
     st.team_of.remove(&character);
+    crate::chat::set_team(character, None);
     let (members, leader) = (t.members.clone(), t.leader);
     if members.len() <= 1 {
         for &m in &members {
             send_cs(st, m, cs::TEAM_DISBAND, Id32::new(TEAM_TYPE, team).write(Writer::new()).finish());
             st.team_of.remove(&m);
+            crate::chat::set_team(m, None);
         }
         group_records(st, team, false, &members);
         st.teams.remove(&team);

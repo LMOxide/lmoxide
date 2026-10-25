@@ -229,6 +229,13 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
   `{"result":"0","filtered":"..."}`. Channel lines then arrive as `FILTEREDPRIVMSG <target>
   [<hash>] :<text>` and are relayed as `PRIVMSG`; "Say" goes to the game server
   (`GameCharAgent::VicinityChatMessage`) and is shown to others via IRC `VICINITYCHAT`.
+  The client drops `VICINITYCHAT` from a sender that isn't a nearby dynel, so server lines go
+  out as `:Server!u@<inst>.0.0 PRIVMSG #ChatGroup_General_D1_1 :…` (broadcasts, shown
+  "[General] [Server]") or as a tell `PRIVMSG <own nick>` (command answers, purple "[Server]").
+  Tells: the client sends `FILTEREDPRIVMSG <name> …` (no `#`); the receiver must get
+  `PRIVMSG <its NICK>`, else the line has no group and is dropped. Team chat: a joined channel
+  starting `#ChatGroup_Team` (`ChatServerInterface_c::SlotChannelJoined`; the window's Team
+  button matches `ChatGroup_Team`); the server JOINs/PARTs `#ChatGroup_Team_D1_<team>`.
 - **Client file patches** survive the patcher because the HTTP server rebuilds FileList.bin
   (RootHash) and PatchVersion from the local files (see http.rs `rebuild_file_list`).
 

@@ -20,11 +20,14 @@ HTTP=8080
 PATCH_DATA=$VAR/patch-data
 SERVER_PORTS=()
 PATCH_PORTS=()
+# LMOXIDE_SIDE_PORTS=2: a second set (27100-27102, 27200, 27300, HTTP 28080) for when another
+# session's test run holds the first.
 if [[ -n ${LMOXIDE_SIDE_PORTS:-} ]]; then
-  HTTP=18080
-  SERVER_PORTS=(--universe-port 17100 --territory-port 17101 --game-port 17102 --chat-port 17200 --control-bind 127.0.0.1:17300)
-  PATCH_PORTS=(--http-port 18080 --universe-port 17100)
-  PATCH_DATA=$VAR/patch-data-side
+  S=$([[ $LMOXIDE_SIDE_PORTS == 2 ]] && echo 2 || echo 1)
+  HTTP=${S}8080
+  SERVER_PORTS=(--universe-port ${S}7100 --territory-port ${S}7101 --game-port ${S}7102 --chat-port ${S}7200 --control-bind 127.0.0.1:${S}7300)
+  PATCH_PORTS=(--http-port ${S}8080 --universe-port ${S}7100)
+  PATCH_DATA=$VAR/patch-data-side$([[ $S == 2 ]] && echo 2)
 fi
 
 # the test client only: the native Linux client is also "LMO" and may be the user's own
@@ -53,7 +56,7 @@ cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-p
 # again when it exits; kill the pid in logs/dev-server.pid to restart it)
 KEEP=()
 if [[ -n ${LMOXIDE_KEEP_LISTENING:-} ]]; then
-  ports=$([[ -n ${LMOXIDE_SIDE_PORTS:-} ]] && echo 17100,17101,17102,17200 || echo 7100,7101,7102,7200)
+  ports=$([[ -n ${LMOXIDE_SIDE_PORTS:-} ]] && echo ${S}7100,${S}7101,${S}7102,${S}7200 || echo 7100,7101,7102,7200)
   KEEP=(python3 "$ROOT/tools/keep-listening.py" --ports "$ports" --pidfile "$LOGS/dev-server.pid" --)
 fi
 RUST_LOG=${RUST_LOG:-info,lmoxide_server=debug} \
