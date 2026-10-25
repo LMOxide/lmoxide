@@ -452,8 +452,15 @@ under a buildie (a separate `Jumper` dynel) is in CARS group 5 until it is built
   rotation; a despawn followed at once by a spawn of the same id leaves nothing (the fade-out
   deletes the new one): a 1.5 s pause between them works. A projectile fired by a simple dynel
   or a particle in its VisualData showed nothing. The mirrors' "+"/"-" marker pairs give the
-  puzzle (tools/re/extract_mirror_puzzles.py); `ProtoSimpleDynelIIR.reflect_projectile` hints
-  that live's light was a projectile the mirrors reflected.
+  puzzle (tools/re/extract_mirror_puzzles.py).
+- Solved later: interactable looks (mirrors, levers, gates) have blend setup 474600, a state
+  machine on the parameter `anim`; `EffectPackageIIR` 474576 (an `emotionfxattribute` effect)
+  sets it 1 (plays `open`, rests in `anim_1`), 474575 sets it 0 (`close`, `anim_0`). Particles
+  on a simple dynel: `SimpleDynelVisualChangeIIR_c` state 0 (looping) / 1 (once): u32 particle,
+  i32 attractor (must be > 0; live sent 35), f32 yaw (degrees), f32 x, y, z offset (cm); state
+  2 + u32 n stops the n-th. Particles in a full update's VisualData get attractor 0 and don't
+  show. `reflect_projectile` only sets stat 1389 (projectiles hitting it go back to the caster:
+  Medusa's boss fight).
 
 ## Missing game data
 

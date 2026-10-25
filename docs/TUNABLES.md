@@ -172,8 +172,8 @@ the arena doors and the tutorial's recording survive, so everything below is inf
 |---|---|---|---|
 | The puzzle | `tools/re/extract_mirror_puzzles.py` | each mirror's "+"/"-" marker faces where the light leaves it; the next mirror or target in line receives it | Client data (the markers); the user chose a working puzzle over scenery (2026-10-25). |
 | Light source and start | `PUZZLES` roots | the light falls on mirror "1" (Armory) and on L and R (Gauntlet), where the rooms' own beams (level geometry) end; every mirror starts at "-" (unsolved) | The beams match; the start positions are a guess. |
-| Turning | `mirrors::turn`, `scenery::respawn` | using a mirror turns it a quarter round: it vanishes and comes back turned 1.5 s later | The client plays no turn for `is_closed` (docs/PROTOCOL.md); live's turn animation and stone-scrape sound aren't reproduced. |
-| The light past the first mirror | — | not shown | No projectile or particle from a simple dynel showed (PROTOCOL.md). |
+| Turning | `mirrors::turn` | effect package 474576 (blend setup 474600 `anim` = 1: `open`, rest in `anim_1`) for "+", 474575 for "-"; its stone-scrape sound plays from the motion | The packages are client data; that live used them for the mirrors is inferred (the recording sent the same kind of package to jump pads). |
+| The light | `mirrors::BEAMS` | `particle_generic_lightbeam_horizontal_<n>m` (n = length / 2, rounded, 1–7) on an invisible dynel at the "+"/"-" marker of every mirror the light falls on (VisualChange state 0, attractor 35) | The rooms' own first beams are these particles (RDB 1000058); live's XX_Invisible dynels carried particles that way (recording). That live drew the mirror-to-mirror light like this is inferred. |
 | Rewards | `opens` | Armory: the barrier beside the pedestal (the Thunderbolt arena's exit) opens; Gauntlet: the gate hides | The pedestal ("complete" marker) stands at that barrier; the gate has two light markers. Inferred. |
 | Reset | `RESET_CHECK` | back to the start when nobody has been in the playfield for up to 30 s | Live gave each group its own instance. |
 

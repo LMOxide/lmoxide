@@ -19,7 +19,7 @@ use lmoxide_net::{
 };
 use serde::Deserialize;
 use tokio::sync::mpsc;
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::{
     game::{create_game_object, int32_stat},
@@ -32,8 +32,9 @@ const STAT_CARS_GROUP: u32 = 1050;
 const CARS_INACTIVE: u32 = 5;
 /// Usable (ObjectInteraction), as the buildies.
 const CARS_USABLE: u32 = 1;
-/// How long a respawned piece stays away (the client's fade-out, assumed).
-const RESPAWN_DELAY: std::time::Duration = std::time::Duration::from_millis(1500);
+/// Live's invisible marker dynels ("XX_Invisible", recorded): template and [type, visual].
+const INVISIBLE_TEMPLATE: u32 = 249343;
+const INVISIBLE_VISUAL: [u32; 2] = [1010030, 95472];
 /// Bounds for pieces whose RDB box is empty (assumed size, docs/TUNABLES.md).
 const FALLBACK_BOUNDS: [f32; 6] = [-4.0, 0.0, -4.0, 4.0, 6.0, 4.0];
 
@@ -106,22 +107,27 @@ fn join(piece: &Piece, playfield: u32) -> world::Presence {
     world::join(id, playfield, pos, move || spawn_records(&p, playfield), outbox)
 }
 
-/// Spawns piece `guid` again with its state now (a mirror turned: its new rotation,
-/// mirrors.rs): it leaves, and comes back once the client has faded it out (spawned at once,
-/// the client deleted the new one with the old).
-pub fn respawn(guid: u32) {
-    let Some((playfield, piece, old)) = PRESENCES.lock().unwrap().remove(&guid) else {
-        debug!(guid, "respawn: not spawned (yet)");
-        return;
+/// An invisible marker dynel ("XX_Invisible", as live spawned to carry particles: the plain
+/// marker visual, not usable, no collision) at `pos`, facing `rot`: its spawn records.
+pub fn invisible_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4]) -> Vec<Bytes> {
+    let dynel = ProtoGameCodeDynelIir {
+        position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
+        rotation: Some(ProtoQuat { x: Some(rot[0]), y: Some(rot[1]), z: Some(rot[2]), w: Some(rot[3]) }),
+        playfield_instance: Some(playfield),
+        running_effects: vec![],
     };
-    debug!(guid, "respawn");
-    // (outside PRESENCES: leaving and joining take the members lock)
-    drop(old);
-    tokio::spawn(async move {
-        tokio::time::sleep(RESPAWN_DELAY).await;
-        let presence = join(&piece, playfield);
-        PRESENCES.lock().unwrap().insert(guid, (playfield, piece, presence));
+    let simple = ProtoSimpleDynelIir {
+        kdtree: Some(0),
+        name: Some("XX_Invisible".into()),
+        cars_group: Some(CARS_INACTIVE),
+        template_item_id: Some(INVISIBLE_TEMPLATE),
+        ..Default::default()
+    };
+    let record = iir::record("SimpleDynelFullUpdateIIR_c", id, false, |w| {
+        let w = w.proto(&dynel).proto(&simple).u32(INVISIBLE_VISUAL[1]).u32(INVISIBLE_VISUAL[0]).u32(0);
+        FALLBACK_BOUNDS.iter().fold(w, |w, v| w.f32(*v)).f32(1.0).u32(0).u8(0)
     });
+    vec![create_game_object(id, playfield, pos), record, int32_stat(id, STAT_CARS_GROUP, CARS_INACTIVE)]
 }
 
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (as for jump pads: ProtoGameCodeDynelIIR,
@@ -132,10 +138,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let cars_group = if usable { CARS_USABLE } else { CARS_INACTIVE };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
-        rotation: {
-            let r = crate::mirrors::rotation(p.guid, p.rot);
-            Some(ProtoQuat { x: Some(r[0]), y: Some(r[1]), z: Some(r[2]), w: Some(r[3]) })
-        },
+        rotation: Some(ProtoQuat { x: Some(p.rot[0]), y: Some(p.rot[1]), z: Some(p.rot[2]), w: Some(p.rot[3]) }),
         playfield_instance: Some(playfield),
         running_effects: vec![],
     };
@@ -160,6 +163,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
         bounds.iter().fold(w, |w, v| w.f32(*v)).f32(p.scale).u32(0).u8(0)
     });
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
+    records.extend(crate::mirrors::pose_records(p.guid));
     // hidden: an arena door that's open now, a mirror puzzle's gate once solved
     if crate::encounter::door_hidden(p.guid).or_else(|| crate::mirrors::gate_open(p.guid)) == Some(true) {
         records.push(crate::encounter::door_record(id, true));

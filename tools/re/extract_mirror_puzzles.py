@@ -17,6 +17,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 MIRROR = "mirror_medusa_c_interactable"
 # how far a target may lie off a marker's line (m)
 IN_LINE = 1.5
+# how far light that meets no mirror or target is shown going (m)
+STRAY = 4.0
 
 # per playfield: the mirrors the light first falls on (the Armory's L.2.1.1 can send it back to
 # "1", so the roots aren't simply the mirrors nothing lights), the light's targets (a marker's
@@ -49,7 +51,7 @@ def main():
         spots = {k: m["pos"] for k, m in named.items()} | targets
         entries, lit_by = [], set()
         for name, m in sorted(named.items()):
-            outs = {}
+            outs, beams = {}, {}
             for state, sign in (("plus", "+"), ("minus", "-")):
                 d = markers[f"mirror {name} {sign}"]
                 a = yaw(d["rot"])
@@ -64,9 +66,12 @@ def main():
                     if t > 0 and off < IN_LINE and (best is None or t < best[1]):
                         best = (k, t)
                 outs[state] = best[0] if best else None
+                # where the light leaves in this position: the marker's place and facing, and
+                # how far it goes (to the next mirror or target, else STRAY m into the room)
+                beams[state] = {"pos": d["pos"], "rot": d["rot"], "length": round(best[1], 2) if best else STRAY}
                 if best:
                     lit_by.add(best[0])
-            entries.append({"guid": m["guid"], "name": name, "pos": m["pos"], "out": outs})
+            entries.append({"guid": m["guid"], "name": name, "pos": m["pos"], "out": outs, "beam": beams})
         out[pf] = {
             "mirrors": entries,
             "roots": spec["roots"],

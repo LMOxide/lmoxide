@@ -6,10 +6,9 @@
 //!
 //! The mirror graph is client data (the "+"/"-" markers beside each mirror); the starting
 //! positions and the rewards were server script and are inferred (docs/TUNABLES.md "Mirror
-//! puzzles"). The light itself isn't shown past the first mirror (the room's beam is level
-//! geometry; neither a projectile from a simple dynel nor a particle on one shows). A turned
-//! mirror stands a quarter turn round. One state per playfield, shared by everyone there; it
-//! goes back to the start once nobody is left (a new instance, as live gave each group).
+//! puzzles"). A mirror turns by its animation (`TURN_PLUS`/`TURN_MINUS`); the light shows as beam
+//! particles from mirror to mirror (`BEAMS`). One state per playfield, shared by everyone there;
+//! it goes back to the start once nobody is left (a new instance, as live gave each group).
 
 use std::{
     collections::{HashMap, HashSet},
@@ -17,6 +16,7 @@ use std::{
     time::Duration,
 };
 
+use bytes::Bytes;
 use lmoxide_net::types::Id32;
 use serde::Deserialize;
 use tracing::info;
@@ -25,6 +25,12 @@ use crate::{scenery::SIMPLE_DYNEL_TYPE, world};
 
 /// How often an empty playfield's puzzle is put back to the start.
 const RESET_CHECK: Duration = Duration::from_secs(30);
+/// The light: `particle_generic_lightbeam_horizontal_<n>m` (RDB 1010207, n = 1..7; an "n m" beam
+/// runs about 2n m along the dynel's facing, as the rooms' own beams do), shown on invisible
+/// dynels at the "+"/"-" markers, as live put particles on its XX_Invisible dynels.
+const BEAMS: [u32; 7] = [495960, 495959, 495958, 495957, 495956, 495961, 495962];
+/// The beam dynels' instances: one per mirror and position, clear of the playfield guids.
+const BEAM_INSTANCES: u32 = 0x00c0_0000;
 
 #[derive(Deserialize)]
 struct Outs {
@@ -32,11 +38,27 @@ struct Outs {
     minus: Option<String>,
 }
 
+/// Where the light leaves a mirror in one position: the marker's place and facing, and how far
+/// it goes.
+#[derive(Deserialize)]
+struct Beam {
+    pos: [f32; 3],
+    rot: [f32; 4],
+    length: f32,
+}
+
+#[derive(Deserialize)]
+struct Beams {
+    plus: Beam,
+    minus: Beam,
+}
+
 #[derive(Deserialize)]
 struct Mirror {
     guid: u32,
     name: String,
     out: Outs,
+    beam: Beams,
 }
 
 #[derive(Deserialize)]
@@ -93,17 +115,22 @@ pub fn closed(guid: u32) -> Option<bool> {
     Some(!STATE.lock().unwrap().get(&pf).is_some_and(|s| s.plus.contains(&m.guid)))
 }
 
-/// A piece's rotation now: a mirror at "+" stands a quarter turn from its placement ("-"); the
-/// client neither plays a turn for `is_closed` nor takes a new rotation in a repeated full
-/// update, so a turned mirror leaves and comes back (scenery::respawn).
-pub fn rotation(guid: u32, placed: [f32; 4]) -> [f32; 4] {
-    if closed(guid) != Some(false) {
-        return placed;
+/// The mirror's pose effect (blend setup 474600's `anim` parameter, effect packages in RDB
+/// 1000622): 474576 sets `anim` 1, which plays `open` and rests in `anim_1` ("+"), 474575 sets
+/// it 0 (`close`, `anim_0`, "-"). Levers and gates share the blend setup.
+const TURN_PLUS: u32 = 474576;
+const TURN_MINUS: u32 = 474575;
+
+/// The records that put a mirror in its pose now (for its spawn: a mirror at "+" turns there).
+pub fn pose_records(guid: u32) -> Vec<Bytes> {
+    match closed(guid) {
+        Some(false) => vec![crate::effects::effect_package(Id32::new(SIMPLE_DYNEL_TYPE, guid), TURN_PLUS)],
+        _ => Vec::new(),
     }
-    // placed * (a quarter turn about the vertical axis)
-    let (s, c) = std::f32::consts::FRAC_PI_4.sin_cos();
-    let [x, y, z, w] = placed;
-    [x * c - z * s, y * c + w * s, z * c + x * s, w * c - y * s]
+}
+
+fn plus_now(pf: u32, guid: u32) -> bool {
+    STATE.lock().unwrap().get(&pf).is_some_and(|s| s.plus.contains(&guid))
 }
 
 /// Whether a puzzle gate is open now (its puzzle solved): hidden, as the arena doors open
@@ -127,27 +154,32 @@ fn solved(playfield: u32) -> bool {
 pub fn turn(player: Id32, guid: u32) {
     let Some((pf, m)) = find(guid) else { return };
     let puzzle = &DATA[&pf];
+    let before = lit_beams(pf);
     let (plus, newly_solved) = {
         let mut states = STATE.lock().unwrap();
         let s = states.entry(pf).or_default();
         if !s.plus.remove(&guid) {
             s.plus.insert(guid);
         }
-        let reached = reached(puzzle, &s.plus);
+        let (reached, _) = reached(puzzle, &s.plus);
         let newly_solved = !s.solved && puzzle.targets.iter().all(|t| reached.contains(t.name.as_str()));
         s.solved |= newly_solved;
         (s.plus.contains(&guid), newly_solved)
     };
     info!(?player, playfield = pf, mirror = %m.name, plus, "mirror turned");
-    crate::scenery::respawn(guid);
+    let id = Id32::new(SIMPLE_DYNEL_TYPE, guid);
+    let effect = crate::effects::effect_package(id, if plus { TURN_PLUS } else { TURN_MINUS });
+    world::send_playfield(id, false, world::Out::Records(vec![effect]));
+    show_beams(pf, &before);
     if newly_solved {
         info!(playfield = pf, "mirror puzzle solved");
         on_solved(pf, puzzle);
     }
 }
 
-/// The targets the light reaches, following it from every root mirror to mirror.
-fn reached<'a>(puzzle: &'a Puzzle, plus: &HashSet<u32>) -> HashSet<&'a str> {
+/// The targets the light reaches and the mirrors it falls on, following it from every root
+/// mirror to mirror.
+fn reached<'a>(puzzle: &'a Puzzle, plus: &HashSet<u32>) -> (HashSet<&'a str>, HashSet<u32>) {
     let mirror = |name: &str| puzzle.mirrors.iter().find(|m| m.name == name);
     let (mut reached, mut seen) = (HashSet::new(), HashSet::new());
     for root in &puzzle.roots {
@@ -167,7 +199,88 @@ fn reached<'a>(puzzle: &'a Puzzle, plus: &HashSet<u32>) -> HashSet<&'a str> {
             }
         }
     }
-    reached
+    (reached, seen)
+}
+
+/// The beams shown now on `pf`: (mirror, "+") for every mirror the light falls on.
+fn lit_beams(pf: u32) -> HashSet<(u32, bool)> {
+    let plus = STATE.lock().unwrap().get(&pf).map(|s| s.plus.clone()).unwrap_or_default();
+    reached(&DATA[&pf], &plus).1.into_iter().map(|g| (g, plus.contains(&g))).collect()
+}
+
+/// Starts the beams that came on and stops those that went out since `before`.
+fn show_beams(pf: u32, before: &HashSet<(u32, bool)>) {
+    let now = lit_beams(pf);
+    for &(guid, plus) in now.difference(before) {
+        let id = beam_id(guid, plus);
+        world::send_playfield(id, false, world::Out::Records(vec![beam_record(id, guid, plus)]));
+    }
+    for &(guid, plus) in before.difference(&now) {
+        let id = beam_id(guid, plus);
+        world::send_playfield(id, false, world::Out::Records(vec![beam_stop_record(id)]));
+    }
+}
+
+/// Mirror and position -> its beam dynel.
+static BEAM_IDS: LazyLock<HashMap<(u32, bool), Id32>> = LazyLock::new(|| {
+    let mut guids: Vec<u32> = DATA.values().flat_map(|p| p.mirrors.iter().map(|m| m.guid)).collect();
+    guids.sort();
+    guids
+        .into_iter()
+        .enumerate()
+        .flat_map(|(i, g)| [false, true].map(|plus| ((g, plus), Id32::new(SIMPLE_DYNEL_TYPE, BEAM_INSTANCES + 2 * i as u32 + u32::from(plus)))))
+        .collect()
+});
+
+fn beam_id(guid: u32, plus: bool) -> Id32 {
+    BEAM_IDS[&(guid, plus)]
+}
+
+fn beam_of(guid: u32, plus: bool) -> &'static Beam {
+    let (_, m) = find(guid).expect("puzzle mirror");
+    if plus { &m.beam.plus } else { &m.beam.minus }
+}
+
+/// `SimpleDynelVisualChangeIIR_c` state 0: a looping particle (u32 particle, i32 attractor 35 as
+/// live always sent, f32 yaw, offset x, y, z in cm), the beam as long as the light goes.
+fn beam_record(id: Id32, guid: u32, plus: bool) -> Bytes {
+    let n = (beam_of(guid, plus).length / 2.0).round().clamp(1.0, BEAMS.len() as f32) as usize;
+    lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(0).u32(BEAMS[n - 1]).i32(35).f32(0.0).f32(0.0).f32(0.0).f32(0.0))
+}
+
+/// State 2: stops the dynel's first particle.
+fn beam_stop_record(id: Id32) -> Bytes {
+    lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(2).u32(0))
+}
+
+static BEAM_PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+
+/// Puts the beam dynels into their worlds (each shows its beam while the light takes it).
+fn spawn_beams() {
+    let mut presences = BEAM_PRESENCES.lock().unwrap();
+    for (&pf, puzzle) in DATA.iter() {
+        for m in &puzzle.mirrors {
+            for plus in [false, true] {
+                let (id, guid, beam) = (beam_id(m.guid, plus), m.guid, beam_of(m.guid, plus));
+                let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
+                tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+                let pos = std::sync::Arc::new(Mutex::new(beam.pos));
+                presences.push(world::join(
+                    id,
+                    pf,
+                    pos,
+                    move || {
+                        let mut records = crate::scenery::invisible_records(id, pf, beam.pos, beam.rot);
+                        if lit_beams(pf).contains(&(guid, plus)) {
+                            records.push(beam_record(id, guid, plus));
+                        }
+                        records
+                    },
+                    outbox,
+                ));
+            }
+        }
+    }
 }
 
 fn on_solved(pf: u32, puzzle: &Puzzle) {
@@ -182,6 +295,7 @@ fn on_solved(pf: u32, puzzle: &Puzzle) {
 
 /// Puts the puzzles of empty playfields back to the start, now and then.
 pub fn start() {
+    spawn_beams();
     tokio::spawn(async {
         let mut tick = tokio::time::interval(RESET_CHECK);
         loop {
@@ -206,10 +320,13 @@ pub fn set_solved(playfield: u32, solve: bool) -> bool {
     } else {
         HashSet::new()
     };
+    let before = lit_beams(playfield);
     STATE.lock().unwrap().insert(playfield, State { plus, solved: solve });
-    // spawned again: turned as they are now
+    show_beams(playfield, &before);
     for m in &puzzle.mirrors {
-        crate::scenery::respawn(m.guid);
+        let id = Id32::new(SIMPLE_DYNEL_TYPE, m.guid);
+        let effect = crate::effects::effect_package(id, if plus_now(playfield, m.guid) { TURN_PLUS } else { TURN_MINUS });
+        world::send_playfield(id, false, world::Out::Records(vec![effect]));
     }
     if solve {
         on_solved(playfield, puzzle);
@@ -229,7 +346,7 @@ fn solution(puzzle: &Puzzle) -> Option<HashSet<u32>> {
     (0u32..1 << puzzle.mirrors.len())
         .map(|bits| puzzle.mirrors.iter().enumerate().filter(|(i, _)| bits & (1 << i) != 0).map(|(_, m)| m.guid).collect::<HashSet<u32>>())
         .find(|plus| {
-            let lit = reached(puzzle, plus);
+            let lit = reached(puzzle, plus).0;
             puzzle.targets.iter().all(|t| lit.contains(t.name.as_str()))
         })
 }
@@ -241,7 +358,7 @@ mod tests {
     #[test]
     fn every_puzzle_has_a_solution_and_starts_unsolved() {
         for (pf, puzzle) in DATA.iter() {
-            let lit = reached(puzzle, &HashSet::new());
+            let lit = reached(puzzle, &HashSet::new()).0;
             assert!(!puzzle.targets.iter().all(|t| lit.contains(t.name.as_str())), "{pf} starts solved");
             assert!(solution(puzzle).is_some(), "{pf} has no solution");
         }
