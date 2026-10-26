@@ -20,6 +20,8 @@ The client does have the spells themselves (RDB 1000621): "XX_<monster> <attack>
             XX_Shot 197338), Musketeers (XX_Shot 191502), Captain Dreadleg (slash 232292, spin 238132)
   named     spells whose name names the monster's family (FAMILIES below, matched by hand; the
             matches are guesses, see docs/TUNABLES.md)
+  generic   the rest: generic enemy spells (XX_Arrow Shot, XX_Bite, ...) by what the monster is
+            (GENERIC below, guesses)
 
 Monsters with neither keep the spawn's own spell (data/world_content.json `spell`, by default
 XX_Axe Chop). Spells only kept when they have an attack AI category (or none) and aren't spawn
@@ -81,6 +83,53 @@ FAMILIES = [
                              "XX_space dg alienhq boss saucer spin castable"]),
     (r"evil_mech", ["XX_space pd policeHQ boss mech stomp castable", "XX_space pd policeHQ boss mech minigun lvl1 castable"]),
     (r"space_alien_queen", ["XX_space pd port boss queen blast castable", "XX_space pd port boss queen purge castable"]),
+]
+
+# Monsters without spells of their own in the client data get generic enemy spells by what they
+# are (archer: an arrow, hound: a bite, troll heavy hitter: an area smash, ...): spell ids, since
+# most generic names have several variants (AISpellCategory 512 melee, 1024 ranged). Guesses
+# (docs/TUNABLES.md); dashes, stuns, heals and self-buffs left out (npc_spells.rs doesn't run them).
+GENERIC = [
+    (r"troll_heavy_hitter_.*", [319946, 100799]),  # XX_Smash (area), XX_Rampage
+    (r"troll_melee_.*", [238037, 196247]),  # XX_Smash, XX_Wild Swing
+    (r"troll_ranged_.*", [90650]),  # XX_Spear Throw
+    (r"troll_hornblower_.*", [196229]),  # XX_Smack
+    (r"troll_shaman_.*", [319424]),  # XX_Bolt
+    (r"skeleton_archer", [319299]),  # XX_Arrow Shot
+    (r"skeleton_trident", [194198, 99055]),  # XX_Stab, XX_Spear Throw
+    (r"skeleton_axe", [196247, 319341]),  # XX_Wild Swing, XX_Smash
+    (r"skeleton_ancient_attacker", [319786]),  # XX_Strike
+    (r"pirate_swashbuckler", [194140]),  # XX_Slash
+    (r"pirate_grenadier", [238116, 238115]),  # XX_Grenade Throw, XX_Slash
+    (r"pirate_islander_hunter", [194218, 194198]),  # XX_Dart, XX_Stab
+    (r"pirate_islander_witch_doctor", [95237]),  # XX_Magic Potion (lobbed onto the player)
+    (r"pirate_captain_pete", [201244, 238115]),  # XX_Cannon, XX_Slash
+    (r"harpy(_blade)?", [15086, 196231]),  # XX_Feather Fling, XX_Smack
+    (r"gremlin_warlock_.*", [332423]),  # XX_Bolt
+    (r"gremlin_melee_.*", [196232]),  # XX_Smack
+    (r"medieval_ogre_defender_.*", [319338]),  # XX_Smash (area)
+    (r"satyr", [194198]),  # XX_Stab
+    (r"bot_battle_merc", [331628]),  # XX_Shot
+    (r"(space_)?mushroom_runner", [321437]),  # XX_Explode
+    (r"medieval_wolf", [16203]),  # XX_Bite
+    (r"monkey", [196252]),  # XX_Banana
+    (r"monkey_fire", [236405]),  # XX_Tiki Fire Breath
+    (r"dino_coelophysis", [18249]),  # XX_Bite
+    (r"dino_dimetrodon", [16208, 16203]),  # XX_Fire Breath, XX_Bite
+    (r"dino_pterodactyl", [196231]),  # XX_Smack
+    (r"lizard_man", [99058, 194198]),  # XX_Spear Throw, XX_Stab
+    (r"treant_.*", [101016, 16101]),  # XX_Smash (area), XX_Sweep
+    (r"hound", [16203]),  # XX_Bite
+    (r"hound_fire", [16208, 16203]),  # XX_Fire Breath, XX_Bite
+    (r"medieval_leafscreamer_.*", [342476]),  # XX_Venom
+    (r"gorgon", [100144, 194140]),  # XX_Snake Shot, XX_Slash
+    (r"medieval_harlequin_minion_.*", [196233]),  # XX_Smack
+    (r"spider_.*", [342476, 342475]),  # XX_Venom, XX_Stab
+    (r"minotaur_monster_boss", [319891, 319338]),  # XX_Rampage, XX_Smash
+    (r"charon", [196247, 332423]),  # XX_Wild Swing, XX_Bolt
+    (r"mythology_witch_deino_combat", [330144]),  # XX_Bolt
+    (r"Cyclops", [319946, 16199]),  # XX_Smash (area), XX_Rock Chuck
+    (r"dragon", [321687, 101016]),  # XX_Dragon's Breath, XX_Smash
 ]
 
 # AISpellCategory bits that mark a spell as something other than an attack (on-spawn 128,
@@ -191,6 +240,12 @@ def main():
                         print("no spell named", n)
         if spells:
             monsters[str(md)] = {"name": name, "spells": list(dict.fromkeys(spells)), "source": "named"}
+            continue
+        for pattern, ids in GENERIC:
+            if re.fullmatch(pattern, name):
+                spells += [i for i in ids if spell_record(i)]
+        if spells:
+            monsters[str(md)] = {"name": name, "spells": list(dict.fromkeys(spells)), "source": "generic"}
 
     # the spells, every nano they reach and the projectile items they shoot
     spells, items = {}, {}

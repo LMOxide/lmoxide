@@ -1,6 +1,14 @@
 {
  "_comment": "Enemy abilities (tools/re/extract_npc_spells.py): monsterdata -> spells (recorded or matched by name), the spells' game action lists and the projectile items they shoot.",
  "monsters": {
+  "2254": {
+   "name": "Cyclops",
+   "spells": [
+    319946,
+    16199
+   ],
+   "source": "generic"
+  },
   "23373": {
    "name": "medusa",
    "spells": [
@@ -17,12 +25,81 @@
    ],
    "source": "named"
   },
+  "76081": {
+   "name": "harpy",
+   "spells": [
+    15086,
+    196231
+   ],
+   "source": "generic"
+  },
+  "82409": {
+   "name": "skeleton_archer",
+   "spells": [
+    319299
+   ],
+   "source": "generic"
+  },
+  "82410": {
+   "name": "skeleton_axe",
+   "spells": [
+    196247,
+    319341
+   ],
+   "source": "generic"
+  },
+  "82601": {
+   "name": "harpy_blade",
+   "spells": [
+    15086,
+    196231
+   ],
+   "source": "generic"
+  },
+  "90185": {
+   "name": "satyr",
+   "spells": [
+    194198
+   ],
+   "source": "generic"
+  },
+  "94791": {
+   "name": "hound",
+   "spells": [
+    16203
+   ],
+   "source": "generic"
+  },
   "94792": {
    "name": "satyr_shaman",
    "spells": [
     95024
    ],
    "source": "named"
+  },
+  "98178": {
+   "name": "gorgon",
+   "spells": [
+    100144,
+    194140
+   ],
+   "source": "generic"
+  },
+  "99330": {
+   "name": "skeleton_trident",
+   "spells": [
+    194198,
+    99055
+   ],
+   "source": "generic"
+  },
+  "157071": {
+   "name": "charon",
+   "spells": [
+    196247,
+    332423
+   ],
+   "source": "generic"
   },
   "190679": {
    "name": "pirate_captain_blackheart",
@@ -45,12 +122,35 @@
    ],
    "source": "named"
   },
+  "192820": {
+   "name": "pirate_captain_pete",
+   "spells": [
+    201244,
+    238115
+   ],
+   "source": "generic"
+  },
+  "192821": {
+   "name": "pirate_grenadier",
+   "spells": [
+    238116,
+    238115
+   ],
+   "source": "generic"
+  },
   "192826": {
    "name": "pirate_musketeer",
    "spells": [
     191502
    ],
    "source": "recorded"
+  },
+  "192828": {
+   "name": "pirate_swashbuckler",
+   "spells": [
+    194140
+   ],
+   "source": "generic"
   },
   "192880": {
    "name": "pirate_corsair",
@@ -59,12 +159,35 @@
    ],
    "source": "named"
   },
+  "195925": {
+   "name": "hound_fire",
+   "spells": [
+    16208,
+    16203
+   ],
+   "source": "generic"
+  },
+  "201477": {
+   "name": "pirate_islander_hunter",
+   "spells": [
+    194218,
+    194198
+   ],
+   "source": "generic"
+  },
   "201478": {
    "name": "pirate_islander_scout",
    "spells": [
     194616
    ],
    "source": "named"
+  },
+  "201479": {
+   "name": "pirate_islander_witch_doctor",
+   "spells": [
+    95237
+   ],
+   "source": "generic"
   },
   "207001": {
    "name": "skeleton_pirate_1",
@@ -81,6 +204,35 @@
    ],
    "source": "recorded"
   },
+  "220120": {
+   "name": "monkey",
+   "spells": [
+    196252
+   ],
+   "source": "generic"
+  },
+  "231991": {
+   "name": "spider_red",
+   "spells": [
+    342476,
+    342475
+   ],
+   "source": "generic"
+  },
+  "234301": {
+   "name": "monkey_fire",
+   "spells": [
+    236405
+   ],
+   "source": "generic"
+  },
+  "236397": {
+   "name": "skeleton_ancient_attacker",
+   "spells": [
+    319786
+   ],
+   "source": "generic"
+  },
   "267321": {
    "name": "evil_mech",
    "spells": [
@@ -89,6 +241,74 @@
    ],
    "source": "named"
   },
+  "316892": {
+   "name": "dragon",
+   "spells": [
+    321687,
+    101016
+   ],
+   "source": "generic"
+  },
+  "327844": {
+   "name": "troll_melee_war",
+   "spells": [
+    238037,
+    196247
+   ],
+   "source": "generic"
+  },
+  "327845": {
+   "name": "troll_melee_swamp",
+   "spells": [
+    238037,
+    196247
+   ],
+   "source": "generic"
+  },
+  "327846": {
+   "name": "troll_heavy_hitter_war",
+   "spells": [
+    319946,
+    100799
+   ],
+   "source": "generic"
+  },
+  "331167": {
+   "name": "troll_hornblower_war",
+   "spells": [
+    196229
+   ],
+   "source": "generic"
+  },
+  "331170": {
+   "name": "troll_ranged_war",
+   "spells": [
+    90650
+   ],
+   "source": "generic"
+  },
+  "331183": {
+   "name": "troll_shaman_swamp",
+   "spells": [
+    319424
+   ],
+   "source": "generic"
+  },
+  "337606": {
+   "name": "treant_brown",
+   "spells": [
+    101016,
+    16101
+   ],
+   "source": "generic"
+  },
+  "344488": {
+   "name": "gremlin_melee_greenforest",
+   "spells": [
+    196232
+   ],
+   "source": "generic"
+  },
   "344513": {
    "name": "medieval_evil_sorcerer",
    "spells": [
@@ -96,6 +316,55 @@
     318120
    ],
    "source": "named"
+  },
+  "346165": {
+   "name": "mushroom_runner",
+   "spells": [
+    321437
+   ],
+   "source": "generic"
+  },
+  "350094": {
+   "name": "gremlin_warlock_lvl1",
+   "spells": [
+    332423
+   ],
+   "source": "generic"
+  },
+  "350305": {
+   "name": "medieval_harlequin_minion_a",
+   "spells": [
+    196233
+   ],
+   "source": "generic"
+  },
+  "350740": {
+   "name": "medieval_leafscreamer_greenforest",
+   "spells": [
+    342476
+   ],
+   "source": "generic"
+  },
+  "350950": {
+   "name": "medieval_wolf",
+   "spells": [
+    16203
+   ],
+   "source": "generic"
+  },
+  "355225": {
+   "name": "medieval_ogre_defender_melee_war",
+   "spells": [
+    319338
+   ],
+   "source": "generic"
+  },
+  "359212": {
+   "name": "bot_battle_merc",
+   "spells": [
+    331628
+   ],
+   "source": "generic"
   },
   "368330": {
    "name": "space_alien_reaper",
@@ -177,6 +446,13 @@
    ],
    "source": "named"
   },
+  "387628": {
+   "name": "space_mushroom_runner",
+   "spells": [
+    321437
+   ],
+   "source": "generic"
+  },
   "388444": {
    "name": "space_merc_engineer",
    "spells": [
@@ -205,6 +481,13 @@
    ],
    "source": "named"
   },
+  "485836": {
+   "name": "mythology_witch_deino_combat",
+   "spells": [
+    330144
+   ],
+   "source": "generic"
+  },
   "486592": {
    "name": "hades",
    "spells": [
@@ -217,12 +500,42 @@
    ],
    "source": "named"
   },
+  "521169": {
+   "name": "dino_dimetrodon",
+   "spells": [
+    16208,
+    16203
+   ],
+   "source": "generic"
+  },
+  "521311": {
+   "name": "lizard_man",
+   "spells": [
+    99058,
+    194198
+   ],
+   "source": "generic"
+  },
+  "521911": {
+   "name": "dino_coelophysis",
+   "spells": [
+    18249
+   ],
+   "source": "generic"
+  },
   "521920": {
    "name": "dino_raptor",
    "spells": [
     521074
    ],
    "source": "named"
+  },
+  "525982": {
+   "name": "dino_pterodactyl",
+   "spells": [
+    196231
+   ],
+   "source": "generic"
   },
   "527281": {
    "name": "dino_raptor_fire",
@@ -238,9 +551,44 @@
     238132
    ],
    "source": "recorded"
+  },
+  "636593": {
+   "name": "minotaur_monster_boss",
+   "spells": [
+    319891,
+    319338
+   ],
+   "source": "generic"
   }
  },
  "spells": {
+  "15086": {
+   "name": "XX_Feather Fling",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 144,
+    "AttackRange": 800,
+    "ItemDelay": 56,
+    "EffectPackage": 82395
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 66253,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "AttractorID": 1,
+       "RotZ": 50,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
   "15199": {
    "name": "XX_boss medusa basic castable",
    "stats": {
@@ -346,6 +694,193 @@
     ]
    }
   },
+  "16101": {
+   "name": "XX_Sweep",
+   "stats": {
+    "AISpellCategory": 1,
+    "TargetingMode": 8,
+    "AttackRange": 200,
+    "EffectPackage": 4796
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 500,
+       "NanoTemplate": 16101
+      }
+     },
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 5,
+       "ApplyOn": 3,
+       "NanoTemplate": 16130,
+       "NPCSelectMode": 3,
+       "Angle": 90,
+       "Max1": 5,
+       "AngleStart": -90,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "16130": {
+   "name": "XX_Sweep Hit",
+   "stats": {
+    "AISpellCategory": 1,
+    "TargetingMode": 5,
+    "AttackRange": 200,
+    "EffectPackage": 4796
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AttackLength": 1.0,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "16199": {
+   "name": "XX_Rock Chuck",
+   "stats": {
+    "AISpellCategory": 1,
+    "TargetingMode": 5,
+    "AttackRange": 1200,
+    "EffectPackage": 19997
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AttackLength": 1.0,
+       "AbilityMod": 1.0
+      }
+     },
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 200,
+       "NanoTemplate": 16199
+      }
+     }
+    ]
+   }
+  },
+  "16203": {
+   "name": "XX_Bite",
+   "stats": {
+    "AISpellCategory": 513,
+    "TargetingMode": 5,
+    "AttackRange": 200
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1003,
+       "AttackLength": 1.0,
+       "AbilityMod": 1.0
+      }
+     },
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 100,
+       "NanoTemplate": 16203
+      }
+     }
+    ]
+   }
+  },
+  "16207": {
+   "name": "XX_Fire Breath",
+   "stats": {
+    "AISpellCategory": 1,
+    "TargetingMode": 5,
+    "AttackRange": 200
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1003,
+       "AttackLength": 1.0,
+       "AbilityMod": 0.20000000298023224
+      }
+     }
+    ]
+   }
+  },
+  "16208": {
+   "name": "XX_Fire Breath",
+   "stats": {
+    "AISpellCategory": 513,
+    "TargetingMode": 8,
+    "AttackRange": 200,
+    "ItemDelay": 300,
+    "ChannelingInterval": 50
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 500,
+       "NanoTemplate": 16208
+      }
+     }
+    ],
+    "33": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 5,
+       "ApplyOn": 3,
+       "NanoTemplate": 16207,
+       "NPCSelectMode": 3,
+       "Angle": 90,
+       "Max1": 5,
+       "AngleStart": -45,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
   "16238": {
    "name": "XX_boss medusa special castable",
    "stats": {
@@ -412,6 +947,39 @@
        "ApplyOn": 3,
        "Speed": 750,
        "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "18249": {
+   "name": "XX_Bite",
+   "stats": {
+    "AISpellCategory": 513,
+    "TargetingMode": 5,
+    "AttackRange": 200,
+    "EffectPackage": 4796
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AttackLength": 1.0,
+       "AbilityMod": 1.0
+      }
+     },
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 100,
+       "NanoTemplate": 18249
       }
      }
     ]
@@ -697,6 +1265,55 @@
     ]
    }
   },
+  "66252": {
+   "name": "XX_Feather Fling",
+   "stats": {
+    "AISpellCategory": 1025,
+    "TargetingMode": 5,
+    "AttackRange": 800
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AttackLength": 1.0,
+       "AbilityMod": 0.5
+      }
+     }
+    ]
+   }
+  },
+  "90650": {
+   "name": "XX_Spear Throw",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 140,
+    "AttackRange": 1250,
+    "ItemDelay": 60,
+    "EffectPackage": 90649
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 99050,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "RotX": 10,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
   "95024": {
    "name": "XX_satyr shaman fire ranged castable",
    "stats": {
@@ -740,6 +1357,352 @@
        "EffectPackage": 153402,
        "NanoTemplate": 153423,
        "TemplateID": 153423
+      }
+     }
+    ]
+   }
+  },
+  "95236": {
+   "name": "XX_Magic Potion",
+   "stats": {},
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "95237": {
+   "name": "XX_Magic Potion",
+   "stats": {
+    "AISpellCategory": 1,
+    "TargetingMode": 5,
+    "RechargeDelay": 25,
+    "AttackRange": 800,
+    "ItemDelay": 75,
+    "EffectPackage": 4796
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 95235,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "99051": {
+   "name": "XX_Spear Throw",
+   "stats": {},
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 0.5
+      }
+     }
+    ]
+   }
+  },
+  "99053": {
+   "name": "XX_Spear Throw",
+   "stats": {},
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 0.5
+      }
+     }
+    ]
+   }
+  },
+  "99055": {
+   "name": "XX_Spear Throw",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 140,
+    "AttackRange": 800,
+    "ItemDelay": 60,
+    "EffectPackage": 90649
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 99054,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "DisplaceMentY": -50,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "99056": {
+   "name": "XX_Spear Throw",
+   "stats": {},
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 0.5
+      }
+     }
+    ]
+   }
+  },
+  "99058": {
+   "name": "XX_Spear Throw",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 140,
+    "AttackRange": 800,
+    "ItemDelay": 60,
+    "EffectPackage": 90649
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 99057,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "DisplaceMentY": -50,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "100144": {
+   "name": "XX_Snake Shot",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 144,
+    "AttackRange": 1250,
+    "ItemDelay": 56,
+    "EffectPackage": 103314
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 100145,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "RotX": 15,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "100146": {
+   "name": "XX_Snake Shot",
+   "stats": {
+    "TargetingMode": 7,
+    "AttackRange": 500
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CorePersistentGroundEffect",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Arg1": 50,
+       "Arg2": 2,
+       "EffectPackage": 156297,
+       "NanoTemplate": 100150,
+       "TemplateID": 100150
+      }
+     }
+    ]
+   }
+  },
+  "100150": {
+   "name": "XX_Snake Shot",
+   "stats": {
+    "TargetingMode": 8
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 2,
+       "ApplyOn": 3,
+       "NanoTemplate": 100161,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "100161": {
+   "name": "XX_Snake Shot",
+   "stats": {
+    "TargetingMode": 5,
+    "AttackRange": 500,
+    "EffectPackage": 156296
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1001,
+       "AbilityMod": 0.30000001192092896
+      }
+     }
+    ]
+   }
+  },
+  "100799": {
+   "name": "XX_Rampage",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 15,
+    "TargetingMode": 8,
+    "RechargeDelay": 100,
+    "AttackRange": 50,
+    "ItemDelay": 180,
+    "ChannelingInterval": 68,
+    "EffectPackage": 153852,
+    "ChannelingTicks": 3
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 3,
+       "ApplyOn": 1,
+       "NanoTemplate": 100802,
+       "NPCSelectMode": 3,
+       "Angle": 180,
+       "AngleStart": -90,
+       "Ascending": 1
+      }
+     },
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 1000,
+       "NanoTemplate": 100799
+      }
+     }
+    ],
+    "33": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 3,
+       "ApplyOn": 1,
+       "NanoTemplate": 100802,
+       "NPCSelectMode": 3,
+       "Angle": 180,
+       "AngleStart": -90,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "100802": {
+   "name": "XX_Rampage",
+   "stats": {
+    "TargetingMode": 5,
+    "EffectPackage": 157914
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "101016": {
+   "name": "XX_Smash",
+   "stats": {
+    "AISpellCategory": 512,
+    "TargetingMode": 8,
+    "RechargeDelay": 98,
+    "AttackRange": 50,
+    "ItemDelay": 152,
+    "EffectPackage": 160225
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 4,
+       "ApplyOn": 1,
+       "NanoTemplate": 163537,
+       "NPCSelectMode": 3,
+       "Angle": 90,
+       "AngleStart": -45,
+       "Ascending": 1
       }
      }
     ]
@@ -825,6 +1788,26 @@
        "Value": 1,
        "DamageType": 1000,
        "AbilityMod": 0.22499999403953552
+      }
+     }
+    ]
+   }
+  },
+  "163537": {
+   "name": "XX_Smash",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 1.0
       }
      }
     ]
@@ -1283,6 +2266,104 @@
     ]
    }
   },
+  "194140": {
+   "name": "XX_Slash",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 164,
+    "AttackRange": 50,
+    "ItemDelay": 36,
+    "EffectPackage": 237748
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "194198": {
+   "name": "XX_Stab",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 160,
+    "AttackRange": 50,
+    "ItemDelay": 40,
+    "EffectPackage": 237212
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "194218": {
+   "name": "XX_Dart",
+   "stats": {
+    "AISpellCategory": 1024,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 164,
+    "AttackRange": 1000,
+    "ItemDelay": 36,
+    "EffectPackage": 236789
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 194219,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "194220": {
+   "name": "XX_Dart",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
   "194616": {
    "name": "XX_islander scout trap castable",
    "stats": {
@@ -1362,6 +2443,334 @@
       "args": {
        "ApplyOn": 3,
        "Value": 458903
+      }
+     }
+    ]
+   }
+  },
+  "196229": {
+   "name": "XX_Smack",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 168,
+    "AttackRange": 50,
+    "ItemDelay": 32,
+    "EffectPackage": 220081
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "196231": {
+   "name": "XX_Smack",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 5,
+    "TargetingMode": 5,
+    "RechargeDelay": 25,
+    "AttackRange": 50,
+    "ItemDelay": 25
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "196232": {
+   "name": "XX_Smack",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 25,
+    "AttackRange": 50,
+    "ItemDelay": 25
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "196233": {
+   "name": "XX_Smack",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 168,
+    "AttackRange": 50,
+    "ItemDelay": 32,
+    "EffectPackage": 220081
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "196247": {
+   "name": "XX_Wild Swing",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 8,
+    "RechargeDelay": 25,
+    "AttackRange": 150,
+    "ItemDelay": 25
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 2,
+       "ApplyOn": 3,
+       "NanoTemplate": 196248,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "196248": {
+   "name": "XX_Wild Swing",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "196252": {
+   "name": "XX_Banana",
+   "stats": {
+    "AISpellCategory": 1025,
+    "AIPowerrating": 5,
+    "TargetingMode": 5,
+    "RechargeDelay": 164,
+    "AttackRange": 800,
+    "ItemDelay": 36,
+    "EffectPackage": 220082
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1000,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1005,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1010,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1015,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1020,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1000,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1005,
+       "ApplyOn": 1,
+       "Value": 500
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1010,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1015,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "SetSpellLineRecastTime",
+      "client": true,
+      "args": {
+       "Type": 1020,
+       "ApplyOn": 1,
+       "Value": 100
+      }
+     },
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 196254,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "196253": {
+   "name": "XX_Banana",
+   "stats": {
+    "TargetingMode": 7
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CorePersistentGroundEffect",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Arg1": 25,
+       "Arg2": 1,
+       "EffectPackage": 241102,
+       "TemplateID": 196256
+      }
+     }
+    ]
+   }
+  },
+  "196255": {
+   "name": "XX_Banana",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 0.75
+      }
+     }
+    ]
+   }
+  },
+  "196256": {
+   "name": "XX_Banana",
+   "stats": {
+    "TargetingMode": 8
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 1,
+       "ApplyOn": 3,
+       "NanoTemplate": 196255,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
       }
      }
     ]
@@ -1583,6 +2992,51 @@
     ]
    }
   },
+  "201244": {
+   "name": "XX_Cannon",
+   "stats": {
+    "AISpellCategory": 1024,
+    "AIPowerrating": 5,
+    "TargetingMode": 5,
+    "RechargeDelay": 25,
+    "AttackRange": 1200,
+    "ItemDelay": 25
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 201245,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "201246": {
+   "name": "XX_Cannon",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
   "232267": {
    "name": "XX_boss dreadleg shot castable",
    "stats": {
@@ -1723,6 +3177,225 @@
        "Value": 100
       }
      },
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "236405": {
+   "name": "XX_Tiki Fire Breath",
+   "stats": {
+    "AISpellCategory": 1025,
+    "TargetingMode": 5,
+    "RechargeDelay": 64,
+    "AttackRange": 1800,
+    "ItemDelay": 36,
+    "EffectPackage": 272484
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 236408,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "AttractorID": 1,
+       "ProjectileType": 2
+      }
+     },
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 300,
+       "NanoTemplate": 236405
+      }
+     }
+    ]
+   }
+  },
+  "236411": {
+   "name": "XX_Tiki Fire Breath",
+   "stats": {
+    "TargetingMode": 7
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CorePersistentGroundEffect",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Arg1": 150,
+       "Arg2": 2,
+       "EffectPackage": 272485,
+       "NanoTemplate": 236444,
+       "TemplateID": 236444
+      }
+     }
+    ]
+   }
+  },
+  "236444": {
+   "name": "XX_Tiki Fire Breath",
+   "stats": {
+    "TargetingMode": 8
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 2,
+       "ApplyOn": 3,
+       "NanoTemplate": 236445,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "236445": {
+   "name": "XX_Tiki Fire Breath",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 0.5
+      }
+     }
+    ]
+   }
+  },
+  "238037": {
+   "name": "XX_Smash",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 168,
+    "AttackRange": 50,
+    "ItemDelay": 32,
+    "EffectPackage": 194649
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "238115": {
+   "name": "XX_Slash",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 168,
+    "AttackRange": 50,
+    "ItemDelay": 32,
+    "EffectPackage": 272223
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "238116": {
+   "name": "XX_Grenade Throw",
+   "stats": {
+    "AISpellCategory": 1025,
+    "TargetingMode": 5,
+    "RechargeDelay": 168,
+    "AttackRange": 1000,
+    "ItemDelay": 32,
+    "EffectPackage": 272221
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 238118,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "AttractorID": 38,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "238121": {
+   "name": "XX_Grenade",
+   "stats": {
+    "TargetingMode": 7
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 1,
+       "ApplyOn": 3,
+       "NanoTemplate": 238124,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "238124": {
+   "name": "XX_Grenade",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
      {
       "type": "WeaponHit",
       "client": false,
@@ -2071,6 +3744,587 @@
     ]
    }
   },
+  "319299": {
+   "name": "XX_Arrow Shot",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 156,
+    "AttackRange": 1500,
+    "ItemDelay": 44,
+    "EffectPackage": 338671
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 319300,
+       "ApplyOn": 3,
+       "Speed": 1250,
+       "RotX": 15,
+       "ProjectileType": 2
+      }
+     }
+    ]
+   }
+  },
+  "319301": {
+   "name": "XX_Arrow Shot",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "319338": {
+   "name": "XX_Smash",
+   "stats": {
+    "AISpellCategory": 512,
+    "TargetingMode": 8,
+    "RechargeDelay": 100,
+    "AttackRange": 100,
+    "ItemDelay": 200,
+    "EffectPackage": 353323
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 2,
+       "ApplyOn": 3,
+       "NanoTemplate": 319340,
+       "NPCSelectMode": 3,
+       "Angle": 60,
+       "AngleStart": -30,
+       "Ascending": 1
+      }
+     }
+    ],
+    "1": [
+     {
+      "type": "RemoveBuff",
+      "client": false,
+      "args": {
+       "ApplyOn": 1,
+       "TemplateID": 636737
+      }
+     }
+    ],
+    "39": [
+     {
+      "type": "CastNano",
+      "client": false,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 636737
+      }
+     }
+    ]
+   }
+  },
+  "319340": {
+   "name": "XX_Smash",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 2.5
+      }
+     }
+    ]
+   }
+  },
+  "319341": {
+   "name": "XX_Smash",
+   "stats": {
+    "AISpellCategory": 512,
+    "TargetingMode": 5,
+    "RechargeDelay": 144,
+    "AttackRange": 100,
+    "ItemDelay": 56,
+    "EffectPackage": 350398
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AttackLength": 1.0,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "319424": {
+   "name": "XX_Bolt",
+   "stats": {
+    "AISpellCategory": 1025,
+    "TargetingMode": 5,
+    "RechargeDelay": 160,
+    "AttackRange": 1000,
+    "ItemDelay": 40,
+    "EffectPackage": 338672
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "AttackRange": 2000,
+       "ItemInstance": 319431,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "AttractorID": 38,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "319432": {
+   "name": "XX_Bolt",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "319786": {
+   "name": "XX_Strike",
+   "stats": {
+    "AISpellCategory": 512,
+    "TargetingMode": 5,
+    "RechargeDelay": 168,
+    "AttackRange": 100,
+    "ItemDelay": 32,
+    "EffectPackage": 349928
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "319891": {
+   "name": "XX_Rampage",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 15,
+    "TargetingMode": 8,
+    "RechargeDelay": 100,
+    "AttackRange": 50,
+    "ItemDelay": 150,
+    "ChannelingInterval": 100,
+    "EffectPackage": 153852,
+    "ChannelingTicks": 3
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 1000,
+       "NanoTemplate": 319891
+      }
+     }
+    ],
+    "33": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 3,
+       "ApplyOn": 1,
+       "NanoTemplate": 319892,
+       "Angle": 180,
+       "AngleStart": -90,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "319892": {
+   "name": "XX_Rampage",
+   "stats": {
+    "TargetingMode": 5,
+    "EffectPackage": 157914
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "319945": {
+   "name": "XX_Smash",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1004,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "319946": {
+   "name": "XX_Smash",
+   "stats": {
+    "AISpellCategory": 512,
+    "AIPowerrating": 10,
+    "TargetingMode": 8,
+    "RechargeDelay": 150,
+    "AttackRange": 150,
+    "ItemDelay": 150,
+    "EffectPackage": 154034
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 4,
+       "ApplyOn": 3,
+       "NanoTemplate": 319945,
+       "NPCSelectMode": 3,
+       "Angle": 90,
+       "AngleStart": -45,
+       "Ascending": 1
+      }
+     }
+    ]
+   }
+  },
+  "321436": {
+   "name": "XX_Explode",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 2.0
+      }
+     }
+    ]
+   }
+  },
+  "321437": {
+   "name": "XX_Explode",
+   "stats": {
+    "AISpellCategory": 1,
+    "TargetingMode": 8,
+    "RechargeDelay": 100,
+    "AttackRange": 50,
+    "ItemDelay": 100,
+    "EffectPackage": 350324
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 3,
+       "ApplyOn": 3,
+       "NanoTemplate": 321436,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
+      }
+     },
+     {
+      "type": "Set",
+      "client": true,
+      "args": {
+       "Stat": 27,
+       "ApplyOn": 1
+      }
+     }
+    ]
+   }
+  },
+  "321685": {
+   "name": "XX_Dragon's Breath",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "SpawnMonster",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "CollisionFlag": 1,
+       "StringHash": "RUQN"
+      }
+     }
+    ]
+   }
+  },
+  "321687": {
+   "name": "XX_Dragon's Breath",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 7,
+    "RechargeDelay": 104,
+    "AttackRange": 2000,
+    "ItemDelay": 96,
+    "EffectPackage": 342384
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 321686,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "AttractorID": 38,
+       "ProjectileType": 2
+      }
+     },
+     {
+      "type": "SetSpellRecastTime",
+      "client": true,
+      "args": {
+       "ApplyOn": 1,
+       "Value": 750,
+       "NanoTemplate": 321687
+      }
+     }
+    ]
+   }
+  },
+  "330144": {
+   "name": "XX_Bolt",
+   "stats": {
+    "AISpellCategory": 1025,
+    "TargetingMode": 5,
+    "RechargeDelay": 100,
+    "AttackRange": 700,
+    "ItemDelay": 100,
+    "EffectPackage": 103279
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "ItemInstance": 330145,
+       "ApplyOn": 3,
+       "Speed": 750,
+       "AttractorID": 38,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "330146": {
+   "name": "XX_Bolt",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     },
+     {
+      "type": "StartServerSideScryScriptWithParams",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 229552,
+       "String0": "JumpToPoint=AI_JumpPoint1;Height=2.5"
+      }
+     }
+    ]
+   }
+  },
+  "331628": {
+   "name": "XX_Shot",
+   "stats": {
+    "AISpellCategory": 1024,
+    "AIPowerrating": 10,
+    "TargetingMode": 5,
+    "RechargeDelay": 144,
+    "AttackRange": 1000,
+    "ItemDelay": 56,
+    "EffectPackage": 353329
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "AttackRange": 1500,
+       "ItemInstance": 331629,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "331630": {
+   "name": "XX_Shot",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "332423": {
+   "name": "XX_Bolt",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 156,
+    "AttackRange": 1000,
+    "ItemDelay": 44,
+    "EffectPackage": 421397
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "AttackRange": 1500,
+       "ItemInstance": 332425,
+       "ApplyOn": 3,
+       "Speed": 1000,
+       "AttractorID": 1,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "332426": {
+   "name": "XX_Bolt",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
   "332433": {
    "name": "XX_drake razor breath damage",
    "stats": {
@@ -2144,6 +4398,76 @@
        "ApplyOn": 1,
        "Value": 750,
        "NanoTemplate": 332434
+      }
+     }
+    ]
+   }
+  },
+  "342475": {
+   "name": "XX_Stab",
+   "stats": {
+    "AISpellCategory": 512,
+    "TargetingMode": 5,
+    "RechargeDelay": 100,
+    "AttackRange": 50,
+    "ItemDelay": 50,
+    "EffectPackage": 234456
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
+      }
+     }
+    ]
+   }
+  },
+  "342476": {
+   "name": "XX_Venom",
+   "stats": {
+    "AISpellCategory": 1024,
+    "TargetingMode": 5,
+    "RechargeDelay": 100,
+    "AttackRange": 800,
+    "ItemDelay": 100
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "Projectile",
+      "client": true,
+      "args": {
+       "AttackRange": 1500,
+       "ItemInstance": 342477,
+       "ApplyOn": 3,
+       "Speed": 900,
+       "ProjectileType": 1
+      }
+     }
+    ]
+   }
+  },
+  "342478": {
+   "name": "XX_Venom",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 1.0
       }
      }
     ]
@@ -4558,6 +6882,25 @@
      }
     ]
    }
+  },
+  "636737": {
+   "name": "XX_troll heavy smash turnrate",
+   "stats": {
+    "TimeExist": 300
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "TempChangeStat",
+      "client": true,
+      "args": {
+       "Stat": 1402,
+       "ApplyOn": 3,
+       "FloatValue1": 0.5
+      }
+     }
+    ]
+   }
   }
  },
  "items": {
@@ -4575,6 +6918,20 @@
    ],
    "effect_package": 149979
   },
+  "66253": {
+   "name": "XX_Feather Fling",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 66252
+     }
+    }
+   ],
+   "effect_package": 82593
+  },
   "95031": {
    "name": "XX_satyr shaman fire ranged projectile",
    "actions": [
@@ -4588,6 +6945,76 @@
     }
    ],
    "effect_package": 153400
+  },
+  "95235": {
+   "name": "XX_Magic Potion",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 95236
+     }
+    }
+   ],
+   "effect_package": null
+  },
+  "99050": {
+   "name": "XX_Spear Throw",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 99051
+     }
+    }
+   ],
+   "effect_package": 98660
+  },
+  "99054": {
+   "name": "XX_Spear Throw",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 99053
+     }
+    }
+   ],
+   "effect_package": 98660
+  },
+  "99057": {
+   "name": "XX_Spear Throw",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 99056
+     }
+    }
+   ],
+   "effect_package": 98660
+  },
+  "100145": {
+   "name": "XX_Snake Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 100146
+     }
+    }
+   ],
+   "effect_package": 105789
   },
   "186915": {
    "name": "XX_boss kraken ink bubble projectile",
@@ -4617,6 +7044,34 @@
    ],
    "effect_package": 203443
   },
+  "194219": {
+   "name": "XX_Dart",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 194220
+     }
+    }
+   ],
+   "effect_package": 236788
+  },
+  "196254": {
+   "name": "XX_Banana",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 196253
+     }
+    }
+   ],
+   "effect_package": 233218
+  },
   "197337": {
    "name": "XX_Shot",
    "actions": [
@@ -4645,6 +7100,20 @@
    ],
    "effect_package": 232864
   },
+  "201245": {
+   "name": "XX_Cannon",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 201246
+     }
+    }
+   ],
+   "effect_package": null
+  },
   "232286": {
    "name": "XX_Shot",
    "actions": [
@@ -4659,6 +7128,34 @@
    ],
    "effect_package": 239185
   },
+  "236408": {
+   "name": "XX_Tiki Fire Breath",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 236411
+     }
+    }
+   ],
+   "effect_package": 272486
+  },
+  "238118": {
+   "name": "XX_Grenade",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 238121
+     }
+    }
+   ],
+   "effect_package": 272222
+  },
   "238201": {
    "name": "XX_Bomb",
    "actions": [
@@ -4672,6 +7169,104 @@
     }
    ],
    "effect_package": 239182
+  },
+  "319300": {
+   "name": "XX_Arrow Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 319301
+     }
+    }
+   ],
+   "effect_package": 339287
+  },
+  "319431": {
+   "name": "XX_Bolt",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 319432
+     }
+    }
+   ],
+   "effect_package": 338719
+  },
+  "321686": {
+   "name": "XX_Dragon's Breath",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 321685
+     }
+    }
+   ],
+   "effect_package": 342383
+  },
+  "330145": {
+   "name": "XX_Bolt",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 330146
+     }
+    }
+   ],
+   "effect_package": 157507
+  },
+  "331629": {
+   "name": "XX_Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 331630
+     }
+    }
+   ],
+   "effect_package": 236788
+  },
+  "332425": {
+   "name": "XX_Bolt",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 332426
+     }
+    }
+   ],
+   "effect_package": 421389
+  },
+  "342477": {
+   "name": "XX_Venom",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 342478
+     }
+    }
+   ],
+   "effect_package": 212586
   },
   "361464": {
    "name": "XX_space pd policeHQ boss mech minigun lvl1 projectile",

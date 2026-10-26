@@ -1199,7 +1199,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let here_rot = heading[0].atan2(heading[1]);
                             let (playfield, at, rot) = setup.destination.unwrap_or((me.playfield, *pos.lock().unwrap(), here_rot));
                             crate::chat::system(character, &format!("test {}", setup.label));
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                            teleport_keeping(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent, !setup.team.is_empty())
                                 .await?;
                             for (name, count) in &setup.spawn {
                                 let n = crate::npc::spawn_test_enemies(name, *count, playfield, at, TEST_ENEMY_LIFETIME);
@@ -1571,6 +1571,26 @@ async fn teleport(
     at: Option<([f32; 3], f32)>,
     potions_spent: u64,
 ) -> anyhow::Result<()> {
+    teleport_keeping(conn, store, character, me, collection, presence, pos, playfield, spot, at, potions_spent, false).await
+}
+
+/// `teleport`; `keep_active_slot`: the active minifigure stays in its team slot (`!test`, which
+/// swaps the team with RemoveItem/AddItem) instead of moving to the first one.
+#[allow(clippy::too_many_arguments)]
+async fn teleport_keeping(
+    conn: &mut Conn,
+    store: &Store,
+    character: u32,
+    me: &mut Character,
+    collection: &Collection,
+    presence: &mut Option<world::Presence>,
+    pos: &world::Position,
+    playfield: u32,
+    spot: Option<u32>,
+    at: Option<([f32; 3], f32)>,
+    potions_spent: u64,
+    keep_active_slot: bool,
+) -> anyhow::Result<()> {
     // arrive where asked (test commands), at the chosen teleport spot (World Map); through a
     // teleport window, by the portal back to where the player came from; else at the
     // playfield's arrival point
@@ -1600,7 +1620,9 @@ async fn teleport(
     *pos.lock().unwrap() = arrive_pos;
     crate::teleport::arrived(character);
     // the new world's HUD shows the first team position as the active portrait, as at login
-    active_at_first_position(&mut me.team);
+    if !keep_active_slot {
+        active_at_first_position(&mut me.team);
+    }
     if let Err(e) = store.save(character, me) {
         warn!(character, "saving character failed: {e:#}");
     }
@@ -1889,7 +1911,7 @@ const COSTUME_REFRESH_DELAY: std::time::Duration = std::time::Duration::from_mil
 /// How long `!test` enemies stay.
 const TEST_ENEMY_LIFETIME: std::time::Duration = std::time::Duration::from_secs(15 * 60);
 
-/// Makes `templates` the team (the first active), in the team's slots: minifigures leave and
+/// Makes `templates` the team (the first active, in the active slot), in the team's slots: minifigures leave and
 /// join the collection as an equip would move them. The client gets it with the character's
 /// next full update (a teleport).
 fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) {
@@ -1898,6 +1920,14 @@ fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) 
         if !slots.contains(&s) {
             slots.push(s);
         }
+    }
+    // the first (active) one in the slot the player was on, the others in the remaining slots
+    // in order (the HUD numbers the portraits by slot)
+    let active = slots.first().copied();
+    slots.sort_unstable();
+    if let Some(i) = active.and_then(|a| slots.iter().position(|&s| s == a)) {
+        let a = slots.remove(i);
+        slots.insert(0, a);
     }
     let mut freed = Vec::new();
     for &t in templates {

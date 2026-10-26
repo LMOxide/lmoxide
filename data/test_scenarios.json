@@ -356,6 +356,44 @@
           "count": 6
         }
       ]
+    },
+    {
+      "label": "monsters",
+      "about": "one each of 8 enemies with generic spells (npc_spells.json `generic`): Skeleton Archer arrows, Pirate Grenadier grenades, Harpy feathers, Hound bite, Troll Heavy Hitter area smash, Spider venom, Islander Witch Doctor potions, Treant smash",
+      "spawn": [
+        {
+          "name": "Skeleton Archer",
+          "count": 1
+        },
+        {
+          "name": "Pirate Grenadier",
+          "count": 1
+        },
+        {
+          "name": "Harpy",
+          "count": 1
+        },
+        {
+          "name": "Hound",
+          "count": 1
+        },
+        {
+          "name": "Troll Heavy Hitter War",
+          "count": 1
+        },
+        {
+          "name": "Spider Red",
+          "count": 1
+        },
+        {
+          "name": "Pirate Islander Witch Doctor",
+          "count": 1
+        },
+        {
+          "name": "Treant Brown",
+          "count": 1
+        }
+      ]
     }
   ]
 }

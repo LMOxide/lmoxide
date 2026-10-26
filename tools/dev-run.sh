@@ -2,6 +2,8 @@
 # Restart lmoxide-server, lmoxide-patch-server and the client (under Wine) for a test run.
 #   tools/dev-run.sh <client-dir> [log-dir]
 # <client-dir> is an extracted "LEGO Minifigures Online" folder (with RDB/).
+# LMOXIDE_LAN_SERVER=1: start only the client, against the running LAN server (tools/lan-server.sh,
+# standard ports), so others on the LAN can join the same test world.
 set -euo pipefail
 CLIENT=${1:?usage: dev-run.sh <client-dir> [log-dir]}
 LOGS=${2:-/tmp}
@@ -44,12 +46,15 @@ stop_servers() {
   for _ in $(seq 30); do kill -0 $pids 2>/dev/null || return 0; sleep 0.1; done
   kill -9 $pids 2>/dev/null || true
 }
-stop_servers
+[[ -z ${LMOXIDE_LAN_SERVER:-} ]] && stop_servers
 wineserver -k 2>/dev/null || true
 WINEPREFIX=${LMO_PROTON_PREFIX:-$HOME/.local/share/lmo-proton}/pfx \
   "${PROTON:-$HOME/.local/share/Steam/steamapps/common/Proton - Experimental}/files/bin/wineserver" -k 2>/dev/null || true
 sleep 1
 
+if [[ -n ${LMOXIDE_LAN_SERVER:-} ]]; then
+  curl -sf http://127.0.0.1:$HTTP/lmoxide/v1/login-key >/dev/null || { echo "no LAN server on :$HTTP (tools/lan-server.sh)" >&2; exit 1; }
+else
 cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server
 # Development accounts: created by their first login, and GMs (free-text chat, test commands).
 # LMOXIDE_KEEP_LISTENING=1: under tools/keep-listening.py (ports kept open, the server started
@@ -74,6 +79,7 @@ RUST_LOG=${RUST_LOG:-info} "$ROOT/target/debug/lmoxide-patch-server" --client-di
   --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" "${PATCH_PORTS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$LOGS/patch-server.log" 2>&1 &
 echo $! >>"$PIDS"
 for _ in $(seq 100); do curl -sf http://127.0.0.1:$HTTP/lmoxide/v1/login-key >/dev/null && break; sleep 0.2; done
+fi
 
 # The client must carry the server's login key (and chat filter URL).
 EXE=LMO.exe
