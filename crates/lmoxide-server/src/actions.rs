@@ -71,6 +71,9 @@ struct Stats {
     /// The nano's visual (played by the client for buffs; the server sends it for the others).
     #[serde(rename = "EffectPackage")]
     effect_package: Option<u32>,
+    /// Spell flags 33-64 (`StatSpellItem::HasFlag`: flag n is bit n-33), e.g. MORE_FLAG_BLOCKS_TURNING.
+    #[serde(rename = "MoreFlags")]
+    more_flags: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -137,6 +140,14 @@ const MAX_DEPTH: u32 = 5;
 /// the press: recorded Gladius Slash).
 const COMBO_WINDOW: Duration = Duration::from_millis(1000);
 const POLL: Duration = Duration::from_millis(50);
+/// Spell flag 62 (`MagicCommand_c::BlocksTurning`): the caster can't turn while it runs (Squad,
+/// Echo, Forceful Yodel). Its shots fly the way it was cast, without homing in, retargeting or
+/// turning the caster.
+const MORE_FLAG_BLOCKS_TURNING: u32 = 1 << (62 - 33);
+/// Projectile items whose shot is a volley that hits every enemy along its line, as it gets
+/// there (the Revolutionary Soldier's Squad: a row of soldiers firing), within this width.
+const LINE_SHOT_ITEMS: &[u32] = &[234_947];
+const LINE_SHOT_WIDTH: f32 = 1.5;
 /// How far a channel looks for its next enemy when its target fell (the default shot range).
 const RETARGET_RANGE: f32 = 15.0;
 /// A caster that moved less than this between shots stands still (turned to its shots).
@@ -220,8 +231,10 @@ pub fn cast(caster: Caster, spell: u32) {
         end_record: Bytes::new(),
         shot_from: Mutex::new(None),
         target: Mutex::new(None),
+        locked: Mutex::new(None),
     });
     debug!(caster = ?run.caster.id, spell, name = %s.name, ?delay, "ability");
+    lock_direction(&run);
     run_list(&run, spell, PRE_USE, root_target(&run), 0);
     tokio::spawn(async move {
         tokio::time::sleep(delay).await;
@@ -378,6 +391,8 @@ struct Run {
     shot_from: Mutex<Option<[f32; 3]>>,
     /// The enemy a channel switched to after its target fell (`root_target`).
     target: Mutex<Option<Id32>>,
+    /// The direction a spell that blocks turning was cast in (its shots keep it).
+    locked: Mutex<Option<[f32; 2]>>,
 }
 
 static ACTIVE: LazyLock<Mutex<HashMap<Id32, Arc<Run>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -410,8 +425,10 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         end_record,
         shot_from: Mutex::new(None),
         target: Mutex::new(None),
+        locked: Mutex::new(None),
     });
     info!(caster = ?run.caster.id, spell, name = %s.name, ticks, ?interval, "channel");
+    lock_direction(&run);
     ACTIVE.lock().unwrap().insert(run.caster.id, run.clone());
     for list in [PRE_USE, ON_USE, CHANNEL_START] {
         run_list(&run, spell, list, root_target(&run), 0);
@@ -512,7 +529,7 @@ fn root_target(run: &Run) -> Target {
     }
     // a channel whose enemy fell goes on at the nearest one, as the R key's auto-aim picks one
     // (else the rest of a volley flew straight ahead)
-    if aimed_at.is_some() && !run.length.is_zero() {
+    if aimed_at.is_some() && !run.length.is_zero() && run.locked.lock().unwrap().is_none() {
         let next = crate::npc::targets_where(run.caster.playfield, |p| distance(p, me.pos) <= RETARGET_RANGE)
             .into_iter()
             .min_by(|(_, x), (_, y)| distance(*x, me.pos).total_cmp(&distance(*y, me.pos)));
@@ -836,15 +853,22 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
     let at_self = target.id == Some(caster);
     let (dx, dz) = (target.pos[0] - from[0], target.pos[2] - from[2]);
     let d = dx.hypot(dz);
-    let base = if at_self || d < 0.01 { facing } else { [dx / d, dz / d] };
+    let locked = *run.locked.lock().unwrap();
+    let base = match locked {
+        Some(dir) => dir,
+        None if at_self || d < 0.01 => facing,
+        None => [dx / d, dz / d],
+    };
     let turn = a.f("RotY").unwrap_or(0.0);
     let dir = rotate(base, turn);
     let (side, ahead) = (a.f("DisplaceMentX").unwrap_or(0.0) / 100.0, a.f("DisplaceMentZ").unwrap_or(0.0) / 100.0);
     let start = [from[0] + dir[1] * side + dir[0] * ahead, from[1], from[2] - dir[0] * side + dir[1] * ahead];
     let reach = if at_self { 0.5 } else { d.max(0.5) };
     let towards = [start[0] + dir[0] * reach, if at_self { from[1] } else { target.pos[1] }, start[2] + dir[1] * reach];
-    let aimed = target.id.filter(|t| *t != caster && turn == 0.0 && crate::npc::is_npc(*t));
-    face_shot(run, from, base);
+    let aimed = target.id.filter(|t| *t != caster && turn == 0.0 && locked.is_none() && crate::npc::is_npc(*t));
+    if locked.is_none() {
+        face_shot(run, from, base);
+    }
     let shot = crate::projectile::Shot {
         item,
         move_type: a.u("ProjectileType").unwrap_or(1),
@@ -854,11 +878,47 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
         range: a.f("AttackRange").map_or(0.0, |r| r / 100.0),
         min_range: a.f("MinimumAttackRange").map_or(0.0, |r| r / 100.0),
     };
+    if LINE_SHOT_ITEMS.contains(&item) {
+        // the volley: shown flying, every enemy on its line hit as it gets there
+        crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, None, Arc::new(|_, _| {}));
+        let range = if shot.range > 0.0 { shot.range } else { crate::projectile::DEFAULT_RANGE };
+        let hits = crate::npc::targets_where(run.caster.playfield, |p| {
+            let (px, pz) = (p[0] - start[0], p[2] - start[2]);
+            let along = px * dir[0] + pz * dir[1];
+            (0.0..=range).contains(&along) && (px * dir[1] - pz * dir[0]).abs() <= LINE_SHOT_WIDTH
+        });
+        for (id, p) in hits {
+            let run = run.clone();
+            let flight = Duration::from_secs_f32(distance(p, start) / shot.speed.max(0.1));
+            tokio::spawn(async move {
+                tokio::time::sleep(flight).await;
+                if let Some(pos) = crate::npc::position(id) {
+                    impact(&run, spell, item, Target { id: Some(id), pos }, depth);
+                }
+            });
+        }
+        return;
+    }
     let on_hit: crate::projectile::OnHit = {
         let run = run.clone();
         Arc::new(move |hit, pos| impact(&run, spell, item, Target { id: hit, pos }, depth))
     };
     crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, aimed, on_hit);
+}
+
+/// A spell that blocks turning keeps the direction it was cast in: towards its target (an enemy
+/// or the clicked point), else the caster's facing.
+fn lock_direction(run: &Run) {
+    let flags = SPELLS.get(&run.spell).and_then(|s| s.stats.more_flags).unwrap_or(0);
+    if flags & MORE_FLAG_BLOCKS_TURNING == 0 {
+        return;
+    }
+    let from = here(run);
+    let to = root_target(run);
+    let (dx, dz) = (to.pos[0] - from[0], to.pos[2] - from[2]);
+    let d = dx.hypot(dz);
+    let dir = if to.id == Some(run.caster.id) || d < 0.01 { *run.caster.facing.lock().unwrap() } else { [dx / d, dz / d] };
+    *run.locked.lock().unwrap() = Some(dir);
 }
 
 /// Turns the caster towards a shot's direction `dir` when it stands still (hasn't moved since its
@@ -1018,6 +1078,15 @@ mod tests {
         assert!(ITEMS.contains_key(&94_115) && ITEMS.contains_key(&234_947));
         // real charges stay charges
         assert!(crate::projectile::params(31_414).is_some_and(|p| p.charge_items.len() == 4));
+    }
+
+    #[test]
+    fn turn_blocking_flag() {
+        // Squad and Pretzel Girl's attacks block turning (MagicCommand_c::BlocksTurning); Blaster
+        // Storm doesn't
+        let blocks = |spell: u32| SPELLS[&spell].stats.more_flags.unwrap_or(0) & MORE_FLAG_BLOCKS_TURNING != 0;
+        assert!(blocks(195_930) && blocks(465_035) && blocks(465_036));
+        assert!(!blocks(550_766));
     }
 
     #[test]

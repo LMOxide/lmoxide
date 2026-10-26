@@ -3,6 +3,7 @@
  "1526": {
   "name": "Fast Strike",
   "stats": {
+   "MoreFlags": 536872960,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 1762
@@ -30,6 +31,7 @@
   "name": "Shield of the Golden Eagle",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 24,
    "ItemDelay": 28,
    "EffectPackage": 1763
@@ -63,6 +65,7 @@
   "name": "Racket Swing",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 1764
@@ -90,6 +93,7 @@
   "name": "Throw Record",
   "stats": {
    "TargetingMode": 6,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 1748
@@ -142,6 +146,7 @@
   "name": "Bass Drop",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 40,
    "ItemDelay": 12,
    "EffectPackage": 1761
@@ -242,6 +247,7 @@
   "name": "Sword Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 18591
@@ -268,6 +274,7 @@
  "13966": {
   "name": "Battle Crescendo",
   "stats": {
+   "MoreFlags": 134217728,
    "RechargeDelay": 100,
    "ItemDelay": 25,
    "EffectPackage": 18590
@@ -299,6 +306,7 @@
   "name": "Aerial",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 32,
    "ItemDelay": 20,
    "EffectPackage": 18572
@@ -326,6 +334,7 @@
   "name": "Scratch Spin",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1207961600,
    "RechargeDelay": 25,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -460,6 +469,7 @@
   "name": "Aimed Shot",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 32,
    "ItemDelay": 20,
    "EffectPackage": 18587
@@ -486,6 +496,7 @@
   "name": "Extra Magnetic Grenade",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 20,
    "ItemDelay": 32,
    "EffectPackage": 18586
@@ -520,6 +531,7 @@
   "name": "Bountiful Basket",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 18589
@@ -543,6 +555,7 @@
  "15791": {
   "name": "Big Bad Wolf",
   "stats": {
+   "MoreFlags": 134217728,
    "EffectPackage": 18588
   },
   "lists": {
@@ -572,6 +585,7 @@
   "name": "Snake Wave",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 18639
@@ -695,6 +709,7 @@
   "name": "Petrifying Gaze",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 50,
@@ -906,6 +921,7 @@
   "name": "Shooting Stars",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 18585,
@@ -918,6 +934,7 @@
   "name": "Summon Pixie Friends",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 134217728,
    "ItemDelay": 100,
    "EffectPackage": 18584
   },
@@ -1125,6 +1142,7 @@
   "name": "Eggxactly",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 50942
@@ -1170,6 +1188,7 @@
   "name": "Bawk Bawk Baaaa!",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536872960,
    "RechargeDelay": 50,
    "ItemDelay": 50,
    "ChannelingInterval": 40,
@@ -1246,6 +1265,7 @@
   "name": "Psychlops",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 24207
@@ -1292,6 +1312,7 @@
  "33017": {
   "name": "Triple Shot",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 30,
    "ItemDelay": 25,
    "EffectPackage": 52111
@@ -1500,6 +1521,7 @@
   "name": "Sword and Shield",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 38618
@@ -1548,6 +1570,7 @@
   "name": "Shield Stance",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 40,
    "ItemDelay": 25,
    "ChannelingInterval": 50,
@@ -1621,6 +1644,7 @@
   "name": "Tarot Fling Tower",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 49223
@@ -1734,6 +1758,7 @@
  "34076": {
   "name": "Wheel of Fortune",
   "stats": {
+   "MoreFlags": 134217728,
    "ItemDelay": 25,
    "EffectPackage": 49224
   },
@@ -1785,6 +1810,7 @@
   "name": "Bonk ",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 14,
    "ItemDelay": 36,
    "EffectPackage": 38626
@@ -1812,6 +1838,7 @@
   "name": "The Weight of the Law",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 36,
    "ItemDelay": 16,
    "EffectPackage": 49421
@@ -1846,6 +1873,7 @@
   "name": "Starfish",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 50856
@@ -1959,6 +1987,7 @@
   "name": "Blue Potion",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 360337
@@ -2095,6 +2124,7 @@
   "name": "XX_main scientist1 buff",
   "stats": {
    "TimeExist": 200,
+   "MoreFlags": 67108864,
    "EffectPackage": 366119,
    "MaxBuffCounters": 3
   },
@@ -2105,6 +2135,7 @@
   "stats": {
    "TimeExist": 200,
    "TargetingMode": 5,
+   "MoreFlags": 67108864,
    "EffectPackage": 366118,
    "MaxBuffCounters": 3
   },
@@ -2637,6 +2668,7 @@
   "name": "Plunge",
   "stats": {
    "TargetingMode": 6,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 38663
@@ -2682,6 +2714,7 @@
   "name": "Unclog",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 116297
@@ -2717,6 +2750,7 @@
   "name": "Halt!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "ItemDelay": 20,
    "ChannelingInterval": 25,
    "EffectPackage": 50529,
@@ -2881,6 +2915,7 @@
  "36519": {
   "name": "Dictum",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 60916
@@ -3161,6 +3196,7 @@
   "name": "Tray Slap",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 65890
@@ -3188,6 +3224,7 @@
   "name": "Get Served!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "ItemDelay": 40,
    "ChannelingInterval": 25,
    "EffectPackage": 304753,
@@ -3239,6 +3276,7 @@
   "name": "Rocket Combo 1",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 225627
@@ -3276,6 +3314,7 @@
   "name": "Death From Above",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 25,
    "ItemDelay": 100,
    "ChannelingInterval": 25,
@@ -3370,6 +3409,7 @@
   "name": "The Whip",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 20,
    "ItemDelay": 35,
    "EffectPackage": 80096
@@ -3418,6 +3458,7 @@
   "name": "Blaster Shot",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 50833
@@ -3445,6 +3486,7 @@
   "name": "Long Arm of the Law",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 35,
    "ItemDelay": 20,
    "EffectPackage": 50528
@@ -3472,6 +3514,7 @@
   "name": "Order!",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 36,
    "EffectPackage": 38628
@@ -3627,6 +3670,7 @@
  "41897": {
   "name": "Walling Up",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 50,
    "EffectPackage": 80097
   },
@@ -3907,7 +3951,8 @@
  "55748": {
   "name": "XX_Push",
   "stats": {
-   "TargetingMode": 5
+   "TargetingMode": 5,
+   "MoreFlags": 33619968
   },
   "lists": {
    "0": [
@@ -3948,6 +3993,7 @@
   "stats": {
    "TimeExist": 200,
    "TargetingMode": 5,
+   "MoreFlags": 33554432,
    "EffectPackage": 57720
   },
   "lists": {
@@ -3998,6 +4044,7 @@
   "name": "Laser Eye",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -4275,7 +4322,8 @@
   "name": "XX_1 sec blocker",
   "stats": {
    "TimeExist": 100,
-   "TargetingMode": 5
+   "TargetingMode": 5,
+   "MoreFlags": 33554432
   },
   "lists": {}
  },
@@ -4341,6 +4389,7 @@
   "name": "Plan Bee",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 35,
    "EffectPackage": 194836
@@ -4367,6 +4416,7 @@
   "name": "Squad",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870914,
    "RechargeDelay": 50,
    "ItemDelay": 100,
    "ChannelingInterval": 100,
@@ -4415,6 +4465,7 @@
   "name": "Musket Shot",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 208799
@@ -4441,6 +4492,7 @@
   "name": "Paint Shot",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 34,
    "ItemDelay": 16,
    "EffectPackage": 206031
@@ -4469,6 +4521,7 @@
   "name": "Combat Roll",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 61
   },
   "lists": {
@@ -4503,6 +4556,7 @@
   "name": "Bitter Tears",
   "stats": {
    "TargetingMode": 5,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 233699
@@ -4561,6 +4615,7 @@
   "name": "Tornado",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 220856
@@ -5041,6 +5096,7 @@
   "name": "Rocket Combo 2",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 225628
@@ -5150,6 +5206,7 @@
   "name": "Rocket Combo 3",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 225629
@@ -5622,6 +5679,7 @@
  "221541": {
   "name": "XX_Honey Pot",
   "stats": {
+   "MoreFlags": 67108864,
    "EffectPackage": 636979
   },
   "lists": {
@@ -6348,6 +6406,7 @@
  "297749": {
   "name": "Emoti-poke",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 15,
    "ItemDelay": 30,
    "EffectPackage": 302151
@@ -6392,6 +6451,7 @@
  "300113": {
   "name": "Circle of Hearts",
   "stats": {
+   "MoreFlags": 1610614784,
    "RechargeDelay": 25,
    "ItemDelay": 50,
    "ChannelingInterval": 50,
@@ -6782,6 +6842,7 @@
   "name": "Bash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 22,
    "ItemDelay": 28,
    "EffectPackage": 304903
@@ -6979,6 +7040,7 @@
  "302190": {
   "name": "Hunting Axe",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 305630
@@ -7145,6 +7207,7 @@
   "name": "Spear Throw",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 28,
    "ItemDelay": 20,
    "EffectPackage": 318727
@@ -7168,6 +7231,7 @@
  "317688": {
   "name": "Mystical Shield",
   "stats": {
+   "MoreFlags": 1073743872,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 50,
@@ -7237,6 +7301,7 @@
   "name": "I'll fix this!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "EffectPackage": 318723
@@ -7299,6 +7364,7 @@
   "name": "Paint Roll",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "EffectPackage": 318718
@@ -7326,6 +7392,7 @@
   "name": "Bucket Art",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 318717
   },
@@ -7369,6 +7436,7 @@
   "name": "Arcane Spark",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 318722
   },
@@ -7393,6 +7461,7 @@
   "name": "Book of Tales",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 2050,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -7487,6 +7556,7 @@
   "name": "Paper Plane",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 318720
   },
@@ -7543,6 +7613,7 @@
   "name": "Fastball",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 10,
    "ItemDelay": 40,
    "EffectPackage": 318701
@@ -7620,6 +7691,7 @@
  "317735": {
   "name": "Diamond Focus",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 318725
@@ -7681,6 +7753,7 @@
   "name": "Gladius Slash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 12,
    "ItemDelay": 38,
    "EffectPackage": 318812
@@ -7718,6 +7791,7 @@
   "name": "Gladius Slash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 13,
    "ItemDelay": 37,
    "EffectPackage": 318811
@@ -7763,6 +7837,7 @@
   "name": "Gladius Slash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 30,
    "ItemDelay": 50,
    "EffectPackage": 318810
@@ -8913,6 +8988,7 @@
   "name": "Spin Slash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1207961600,
    "RechargeDelay": 25,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -9015,6 +9091,7 @@
   "name": "Oi!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1610614784,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -9097,6 +9174,7 @@
   "name": "Baton",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 366056
@@ -9123,6 +9201,7 @@
  "357872": {
   "name": "Rapid Fire",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 20,
    "ItemDelay": 28,
    "EffectPackage": 365705
@@ -9200,6 +9279,7 @@
  "357877": {
   "name": "Ball of Yarn",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 366654
@@ -9278,6 +9358,7 @@
  "357880": {
   "name": "Bebop",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 34,
    "EffectPackage": 367792
@@ -9302,6 +9383,7 @@
   "name": "Improvised Groove",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536872962,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 50,
@@ -9381,6 +9463,7 @@
  "357882": {
   "name": "Crow",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 366657
@@ -9407,6 +9490,7 @@
   "name": "Flock of Birds",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 134217728,
    "ItemDelay": 25,
    "EffectPackage": 366656
   },
@@ -9436,6 +9520,7 @@
  "357884": {
   "name": "Come Dance With Me",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 411154
@@ -9461,6 +9546,7 @@
   "name": "Robo-Popping",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1610614784,
    "RechargeDelay": 25,
    "ItemDelay": 50,
    "ChannelingInterval": 50,
@@ -9504,6 +9590,7 @@
  "357888": {
   "name": "Magnetic Bolt",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 362829
@@ -9553,6 +9640,7 @@
   "name": "Evil Potion",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 50,
    "ItemDelay": 50,
    "EffectPackage": 362337
@@ -9596,6 +9684,7 @@
   "name": "Good Potion",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 50,
    "ItemDelay": 50,
    "EffectPackage": 362338
@@ -10620,7 +10709,8 @@
   "name": "XX_Knock_Blocker",
   "stats": {
    "TimeExist": 250,
-   "TargetingMode": 5
+   "TargetingMode": 5,
+   "MoreFlags": 33554432
   },
   "lists": {}
  },
@@ -11058,7 +11148,8 @@
  "445629": {
   "name": "XX_Push",
   "stats": {
-   "TargetingMode": 5
+   "TargetingMode": 5,
+   "MoreFlags": 33619968
   },
   "lists": {
    "0": [
@@ -11470,7 +11561,8 @@
  "461604": {
   "name": "XX_Crowd Control Immunity (Only All Knocks) Temporary - 2s",
   "stats": {
-   "TimeExist": 200
+   "TimeExist": 200,
+   "MoreFlags": 536870912
   },
   "lists": {
    "0": [
@@ -11544,6 +11636,7 @@
   "name": "Your Order",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 467930
@@ -11626,6 +11719,7 @@
   "name": "Pow Pow Pow!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 466704
@@ -11652,7 +11746,8 @@
  "465026": {
   "name": "Catch Me!",
   "stats": {
-   "TargetingMode": 7
+   "TargetingMode": 7,
+   "MoreFlags": 65536
   },
   "lists": {
    "0": [
@@ -11678,6 +11773,7 @@
   "name": "Snowball",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 466358
@@ -11702,6 +11798,7 @@
  "465028": {
   "name": "Gift Box",
   "stats": {
+   "MoreFlags": 1207961600,
    "RechargeDelay": 25,
    "ItemDelay": 1,
    "ChannelingInterval": 50,
@@ -11796,6 +11893,7 @@
   "name": "Poke Poke",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 471885
@@ -11856,6 +11954,7 @@
   "name": "Ice Pick",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 470795
@@ -11883,6 +11982,7 @@
   "name": "Rope Swing",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 1,
    "EffectPackage": 466781
@@ -11919,6 +12019,7 @@
   "name": "Echo",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 470888
@@ -11943,6 +12044,7 @@
   "name": "Forceful Yodel",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536872962,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "ChannelingInterval": 50,
@@ -11988,6 +12090,7 @@
   "name": "Blow Torch",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 466776
@@ -12015,6 +12118,7 @@
   "name": "Flame Spitter",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 472980
   },
@@ -12045,6 +12149,7 @@
   "name": "Freezeball",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 471534
@@ -12069,6 +12174,7 @@
   "name": "Ice Slide",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536872960,
    "ItemDelay": 5
   },
   "lists": {
@@ -12879,6 +12985,7 @@
   "name": "Barbed Spear",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 471885
@@ -12954,6 +13061,7 @@
   "name": "Double Flame Spitter",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 472980
   },
@@ -13182,6 +13290,7 @@
   "name": "Mountain Avalanche",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536872962,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "ChannelingInterval": 50,
@@ -13227,6 +13336,7 @@
   "name": "Steely Ice Pick",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 470795
@@ -13510,6 +13620,7 @@
   "name": "True Aim",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 501531
@@ -13534,6 +13645,7 @@
   "name": "Nap Time",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 504687
@@ -13568,6 +13680,7 @@
   "name": "Ribbit",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 505282
@@ -13592,6 +13705,7 @@
   "name": "Frognado",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 505279
@@ -13623,6 +13737,7 @@
   "name": "Divine Spear",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 509298
@@ -13740,6 +13855,7 @@
   "name": "Wild Swing",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 513565
@@ -13793,6 +13909,7 @@
   "name": "Wispy Wishes",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 512232
@@ -13817,6 +13934,7 @@
   "name": "Ingenius Retreat",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1610612736,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -13920,6 +14038,7 @@
   "name": "Hog Wack",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 507815
@@ -13947,6 +14066,7 @@
   "name": "Mud Pit",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 50,
    "ItemDelay": 100,
    "EffectPackage": 512648
@@ -14066,6 +14186,7 @@
   "name": "Strike Gold",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 516042
@@ -14207,6 +14328,7 @@
   "name": "Rock the House!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536872962,
    "RechargeDelay": 15,
    "ItemDelay": 40,
    "ChannelingInterval": 20,
@@ -14297,6 +14419,7 @@
   "name": "Dazzling Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 506170
@@ -14348,6 +14471,7 @@
   "name": "Desolation",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 509211
@@ -14374,6 +14498,7 @@
  "500486": {
   "name": "Anansi Girl",
   "stats": {
+   "MoreFlags": 134217728,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "EffectPackage": 514508
@@ -14405,6 +14530,7 @@
   "name": "Arcade Classics",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 516913
@@ -14429,6 +14555,7 @@
   "name": "Pixel Fire",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 1610614784,
    "RechargeDelay": 25,
    "ItemDelay": 50,
    "ChannelingInterval": 50,
@@ -14550,6 +14677,7 @@
   "name": "Lightning Blast",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 506677
@@ -16095,6 +16223,7 @@
   "name": "Mounted Archery",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 513815
@@ -16257,6 +16386,7 @@
   "name": "Hooves of Steel",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 50,
    "EffectPackage": 513816
@@ -16381,6 +16511,7 @@
   "name": "Little Recluse",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 514374
@@ -16945,6 +17076,7 @@
  "514409": {
   "name": "The Big Sleep",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 504687
@@ -17067,6 +17199,7 @@
  "514729": {
   "name": "Frogageddon",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 505279
@@ -17190,6 +17323,7 @@
  "514891": {
   "name": "Tactical Advantage",
   "stats": {
+   "MoreFlags": 1207959552,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -18205,6 +18339,7 @@
   "name": "Amped Up",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536872962,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "ChannelingInterval": 20,
@@ -18268,6 +18403,7 @@
   "name": "Dazzling Lunge",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 522503
@@ -18335,6 +18471,7 @@
  "516820": {
   "name": "Upgrade!",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 516913
@@ -19027,6 +19164,7 @@
   "name": "Blaster Storm",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 1073741824,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "ChannelingInterval": 20,
@@ -19500,6 +19638,7 @@
   "name": "Snakes Everywhere",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1207959552,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 50,
@@ -19854,6 +19993,7 @@
   "name": "Psychlops",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 24207
@@ -19881,6 +20021,7 @@
   "name": "Laser Eye",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 2050,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -20107,6 +20248,7 @@
   "name": "Carpenters Craft",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 564607
@@ -20581,6 +20723,7 @@
   "name": "Gale of Steel",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 10,
    "EffectPackage": 571744
@@ -20986,6 +21129,7 @@
   "name": "Disengage",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 10,
    "ItemDelay": 40,
    "EffectPackage": 580434
@@ -21179,6 +21323,7 @@
   "name": "Ancient Guardian",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 577018
@@ -21226,7 +21371,8 @@
  "566630": {
   "name": "Sand Storm",
   "stats": {
-   "TargetingMode": 8
+   "TargetingMode": 8,
+   "MoreFlags": 134217728
   },
   "lists": {
    "0": [
@@ -21771,7 +21917,8 @@
  "577188": {
   "name": "Heroic Charge",
   "stats": {
-   "TargetingMode": 8
+   "TargetingMode": 8,
+   "MoreFlags": 536870912
   },
   "lists": {
    "0": [
@@ -22510,6 +22657,7 @@
   "name": "Vladek's Champion",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073741824,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 50,
@@ -22638,6 +22786,7 @@
   "name": "Sword and Shield",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 585738
@@ -23041,6 +23190,7 @@
   "name": "Skate Trick",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 2,
    "ItemDelay": 48,
    "EffectPackage": 598785
@@ -23097,6 +23247,7 @@
   "name": "Spear and Shield",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 599074
@@ -23145,6 +23296,7 @@
   "name": "Might of Sparta",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 40,
    "EffectPackage": 599196
@@ -23202,6 +23354,7 @@
   "name": "Chomp",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 599699
@@ -23250,6 +23403,7 @@
   "name": "Katana Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 598791
@@ -23298,6 +23452,7 @@
   "name": "Clank",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 597784
@@ -23346,6 +23501,7 @@
   "name": "Six Shooters",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 598764
@@ -23370,6 +23526,7 @@
   "name": "Triple Shot",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 598696
@@ -23533,6 +23690,7 @@
   "name": "Tesla Tower",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 599788
   },
@@ -23692,6 +23850,7 @@
  "596256": {
   "name": "Elven Defense",
   "stats": {
+   "MoreFlags": 1073743872,
    "RechargeDelay": 15,
    "ItemDelay": 1,
    "ChannelingInterval": 50,
@@ -23743,6 +23902,7 @@
   "name": "Stance of Whirling Blades",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 50,
    "ItemDelay": 1,
    "ChannelingInterval": 200,
@@ -23929,6 +24089,7 @@
   "name": "RAWR",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -24277,6 +24438,7 @@
   "name": "MOAR RAWR",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 18,
@@ -24500,6 +24662,7 @@
   "name": "Fight in the Shade",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1073743872,
    "RechargeDelay": 15,
    "ItemDelay": 1,
    "ChannelingInterval": 75,
@@ -24842,6 +25005,7 @@
   "name": "Double Tesla Tower",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "ItemDelay": 50,
    "EffectPackage": 599788
   },
@@ -25026,6 +25190,7 @@
   "stats": {
    "TimeExist": 50,
    "TargetingMode": 5,
+   "MoreFlags": 33554432,
    "EffectPackage": 3984
   },
   "lists": {
@@ -25205,6 +25370,7 @@
   "name": "Incorporeal Might",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 642793
@@ -25232,6 +25398,7 @@
   "name": "Biohazard!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 642432
@@ -25259,6 +25426,7 @@
   "name": "Monstrous Strength",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 645700
@@ -25286,6 +25454,7 @@
   "name": "Heavy Hands",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 642796
@@ -25313,6 +25482,7 @@
   "name": "Monster Bass",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 642423
@@ -25366,6 +25536,7 @@
   "name": "Spook",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643088
@@ -25393,6 +25564,7 @@
   "name": "Rattle your Chain",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643179
@@ -25420,6 +25592,7 @@
   "name": "Vampire Gestures",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 653880
@@ -25474,6 +25647,7 @@
   "name": "Extended Strikes",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 20,
    "ItemDelay": 20,
    "EffectPackage": 653889
@@ -25501,6 +25675,7 @@
   "name": "Wacky Magic",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643148
@@ -25525,6 +25700,7 @@
   "name": "Claw Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643170
@@ -25552,6 +25728,7 @@
   "name": "Last Minute Task",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 656268
@@ -25576,6 +25753,7 @@
   "name": "Zombie Cheers",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 642946
@@ -25600,6 +25778,7 @@
   "name": "Rusty Cutlass",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643180
@@ -25626,6 +25805,7 @@
  "641619": {
   "name": "Banshee's Wail",
   "stats": {
+   "MoreFlags": 1207961600,
    "RechargeDelay": 25,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -25709,6 +25889,7 @@
   "name": "Gigantuan",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 671088640,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 642863
@@ -25786,6 +25967,7 @@
  "641622": {
   "name": "Stone Statue",
   "stats": {
+   "MoreFlags": 1610614784,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 50,
@@ -25852,6 +26034,7 @@
   "name": "Static Discharge",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "EffectPackage": 642424
@@ -25920,6 +26103,7 @@
   "name": "Trick or Treat",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643089
@@ -25955,6 +26139,7 @@
   "name": "Spectral Realm",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1744830464,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -26004,6 +26189,7 @@
  "641627": {
   "name": "Spider Friends",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -26056,6 +26242,7 @@
  "641628": {
   "name": "Say Cheese!",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -26110,6 +26297,7 @@
  "641629": {
   "name": "Swirling Flurry",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 25,
@@ -26223,6 +26411,7 @@
  "641631": {
   "name": "Berserker Fury",
   "stats": {
+   "MoreFlags": 1207959552,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -26319,6 +26508,7 @@
   "name": "Team Zombie",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643150
@@ -26379,6 +26569,7 @@
   "name": "Shark! Shark!",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 643181
@@ -27801,6 +27992,7 @@
   "name": "Net Gain",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668534
@@ -27828,6 +28020,7 @@
   "name": "Bio-Weapon",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668535
@@ -27861,6 +28054,7 @@
   "name": "Zero-G Combat Moves",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668634
@@ -27888,6 +28082,7 @@
   "name": "Claim the Land",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "EffectPackage": 668635
   },
   "lists": {
@@ -27919,6 +28114,7 @@
   "name": "Graceful Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668526
@@ -27944,6 +28140,7 @@
  "663939": {
   "name": "Swan Spin",
   "stats": {
+   "MoreFlags": 1073741824,
    "RechargeDelay": 25,
    "ItemDelay": 25,
    "ChannelingInterval": 50,
@@ -28034,6 +28231,7 @@
   "name": "Crutch-Fu",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668695
@@ -28061,6 +28259,7 @@
   "name": "Peels of Fury",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32
   },
@@ -28102,6 +28301,7 @@
   "name": "Haymaker",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668575
@@ -28129,6 +28329,7 @@
   "name": "Combine Harvester",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668574
@@ -28163,6 +28364,7 @@
  "663944": {
   "name": "Mythic Song",
   "stats": {
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668532,
@@ -28174,6 +28376,7 @@
  "663945": {
   "name": "Healing Song",
   "stats": {
+   "MoreFlags": 134217728,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668533
@@ -28205,6 +28408,7 @@
   "name": "Golden Spear",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668530
@@ -28237,6 +28441,7 @@
   "name": "Wings of Divinity",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 2,
    "ItemDelay": 48,
    "EffectPackage": 668531
@@ -28269,6 +28474,7 @@
   "name": "Dreadful Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668540
@@ -28296,6 +28502,7 @@
   "name": "Sundering Smash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668541
@@ -28332,6 +28539,7 @@
   "name": "Wet Mop",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668688
@@ -28359,6 +28567,7 @@
   "name": "Mop Slide",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 1207959552,
    "RechargeDelay": 1,
    "ItemDelay": 1,
    "ChannelingInterval": 25,
@@ -28428,6 +28637,7 @@
   "name": "Flash Kick",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668542
@@ -28483,6 +28693,7 @@
   "name": "Two Swords as One",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 10,
    "EffectPackage": 668539
@@ -28546,6 +28757,7 @@
   "name": "Ultra Strike",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668544
@@ -28573,6 +28785,7 @@
   "name": "Ultra Super Gigaton Slash",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668545
@@ -28597,6 +28810,7 @@
   "name": "Regal Strike",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668528
@@ -28621,6 +28835,7 @@
   "name": "Queen's Guard",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668529
@@ -28656,6 +28871,7 @@
   "name": "Fin Slash",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 667561
@@ -28682,6 +28898,7 @@
  "663961": {
   "name": "Submerge",
   "stats": {
+   "MoreFlags": 1207959552,
    "RechargeDelay": 25,
    "ItemDelay": 75,
    "ChannelingInterval": 25,
@@ -28747,6 +28964,7 @@
   "name": "Redtail Feathers",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 668536
@@ -28771,6 +28989,7 @@
   "name": "Host Drum",
   "stats": {
    "TargetingMode": 7,
+   "MoreFlags": 536870912,
    "RechargeDelay": 1,
    "ItemDelay": 32,
    "EffectPackage": 668330
@@ -28802,6 +29021,7 @@
   "name": "Furious Strikes",
   "stats": {
    "TargetingMode": 8,
+   "MoreFlags": 536870912,
    "RechargeDelay": 16,
    "ItemDelay": 32,
    "EffectPackage": 667567
@@ -29189,6 +29409,7 @@
   "name": "XX_main s15 animalcontrol1 damage",
   "stats": {
    "TargetingMode": 5,
+   "MoreFlags": 536870912,
    "EffectPackage": 668704
   },
   "lists": {
@@ -29595,6 +29816,7 @@
   "stats": {
    "TimeExist": 50,
    "TargetingMode": 5,
+   "MoreFlags": 33554432,
    "EffectPackage": 3984
   },
   "lists": {
@@ -30270,6 +30492,7 @@
   "stats": {
    "TimeExist": 50,
    "TargetingMode": 1,
+   "MoreFlags": 67108864,
    "EffectPackage": 668639
   },
   "lists": {

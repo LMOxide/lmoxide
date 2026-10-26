@@ -36,7 +36,7 @@ use crate::{
 
 const PROJECTILE_TYPE: u32 = 51341;
 /// Range when the spell doesn't give one.
-const DEFAULT_RANGE: f32 = 15.0;
+pub const DEFAULT_RANGE: f32 = 15.0;
 /// Slow projectiles (vehicles like the combine harvester) plough through enemies; fast ones
 /// (shots) stop at the first hit.
 const PIERCING_BELOW_SPEED: f32 = 5.0;

@@ -2,7 +2,7 @@
 server's interpreter (crates/lmoxide-server/src/actions.rs). Writes data/spell_actions.json:
 
   spell -> {name, stats: {TimeExist, ChannelingInterval, ChannelingTicks, RechargeDelay,
-            TargetingMode, MaxBuffCounters, LuaScriptID, ItemDelay, EffectPackage}
+            TargetingMode, MaxBuffCounters, LuaScriptID, MoreFlags, ItemDelay, EffectPackage}
             (centiseconds where timed),
             lists: {event: [{type, client, args, criteria}]}}
 
@@ -31,7 +31,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 idx = rdb.index()
 minifigs = json.load(open(os.path.join(ROOT, "data/minifigure_stats.json")))["minifigures"]
 projectiles = json.load(open(os.path.join(ROOT, "data/projectiles.json")))
-KEEP = ("TimeExist", "ChannelingInterval", "ChannelingTicks", "RechargeDelay", "TargetingMode", "MaxBuffCounters", "LuaScriptID",
+KEEP = ("TimeExist", "ChannelingInterval", "ChannelingTicks", "RechargeDelay", "TargetingMode", "MaxBuffCounters", "LuaScriptID", "MoreFlags",
         "ItemDelay", "EffectPackage")
 SHORT = {"GameAction_": "", "AbilityMod": "AbilityMod"}
 
