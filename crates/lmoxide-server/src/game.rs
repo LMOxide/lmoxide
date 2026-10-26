@@ -1176,19 +1176,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Test(setup) => {
                             if !setup.team.is_empty() {
-                                let old: Vec<u32> = me.team.iter().map(|&(s, _)| s).collect();
+                                let old = me.team.clone();
                                 set_team(&mut me, &mut collection, &setup.team);
                                 team_changed = true;
                                 // the HUD's portraits follow only items removed from and added to
                                 // the team (RemoveItem, then AddItem as at character creation),
-                                // not the team sent again with the world
+                                // not the team sent again with the world: only the slots that
+                                // changed
                                 let inventory = Id32::new(crate::collection::TEAM_INVENTORY, character);
-                                for s in old {
+                                for &(s, _) in old.iter().filter(|e| !me.team.contains(e)) {
                                     let args = inventory.write(Writer::new()).i32(s as i32).i32(1).finish();
                                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::REMOVE_ITEM, args).await?;
                                 }
                                 team_salt += 1 << 33;
-                                let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                                let joined: Vec<(u32, u32)> = me.team.iter().copied().filter(|e| !old.contains(e)).collect();
+                                let team = crate::collection::team_refresh(character, &joined, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
                                 for e in &team.items {
                                     let args = inventory.write(Writer::new()).i32(e.pos as i32).proto(&e.item).u8(0).finish();
                                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
@@ -1911,26 +1913,26 @@ const COSTUME_REFRESH_DELAY: std::time::Duration = std::time::Duration::from_mil
 /// How long `!test` enemies stay.
 const TEST_ENEMY_LIFETIME: std::time::Duration = std::time::Duration::from_secs(15 * 60);
 
-/// Makes `templates` the team (the first active, in the active slot), in the team's slots: minifigures leave and
-/// join the collection as an equip would move them. The client gets it with the character's
-/// next full update (a teleport).
+/// Makes `templates` the team: minifigures already on it keep their slots (and the active one
+/// stays active), the others take the freed slots in order (the one replacing the active
+/// minifigure first, and it becomes active); minifigures leave and join the collection as an
+/// equip would move them. `team[0]` is the active one. The client gets the team with the
+/// character's next full update (a teleport).
 fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) {
-    let mut slots: Vec<u32> = me.team.iter().map(|&(s, _)| s).collect();
-    for &(s, _) in START_TEAM.iter() {
-        if !slots.contains(&s) {
-            slots.push(s);
-        }
+    let active = me.team.first().copied();
+    let kept: Vec<(u32, u32)> = me.team.iter().copied().filter(|(_, t)| templates.contains(t)).collect();
+    // free slots: the active one's first (when it leaves), then the rest in order
+    let mut free: Vec<u32> = me.team.iter().map(|&(s, _)| s).chain(START_TEAM.iter().map(|&(s, _)| s)).collect();
+    free.sort_unstable();
+    free.dedup();
+    free.retain(|s| !kept.iter().any(|(k, _)| k == s));
+    if let Some(i) = active.and_then(|(a, _)| free.iter().position(|&s| s == a)) {
+        let a = free.remove(i);
+        free.insert(0, a);
     }
-    // the first (active) one in the slot the player was on, the others in the remaining slots
-    // in order (the HUD numbers the portraits by slot)
-    let active = slots.first().copied();
-    slots.sort_unstable();
-    if let Some(i) = active.and_then(|a| slots.iter().position(|&s| s == a)) {
-        let a = slots.remove(i);
-        slots.insert(0, a);
-    }
+    let joining: Vec<u32> = templates.iter().copied().filter(|t| !kept.iter().any(|(_, k)| k == t)).collect();
     let mut freed = Vec::new();
-    for &t in templates {
+    for &t in &joining {
         if let Some(p) = collection.position_of(t) {
             collection.take(p);
             freed.push(p);
@@ -1942,7 +1944,15 @@ fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) 
             collection.put(p, old);
         }
     }
-    me.team = slots.into_iter().zip(templates.iter().copied()).collect();
+    let mut team: Vec<(u32, u32)> = kept.into_iter().chain(free.into_iter().zip(joining)).collect();
+    team.sort_unstable_by_key(|&(s, _)| s);
+    // the active minifigure stays active if it is still on the team; else the test's first one
+    let active_template = active.map(|(_, t)| t).filter(|t| templates.contains(t)).or(templates.first().copied());
+    if let Some(i) = team.iter().position(|&(_, t)| Some(t) == active_template) {
+        let entry = team.remove(i);
+        team.insert(0, entry);
+    }
+    me.team = team;
 }
 
 /// Moves the active minifigure (`team[0]`) to the team's first inventory position, swapping
@@ -2559,6 +2569,23 @@ mod tests {
         let mut team = vec![(6, 1), (8, 2), (20, 3)];
         active_at_first_position(&mut team);
         assert_eq!(team, vec![(6, 1), (8, 2), (20, 3)]);
+    }
+
+    #[test]
+    fn test_team_keeps_slots_and_active() {
+        let (a, b, c, d) = (550_248, 196_023, 595_244, 357_916);
+        let mut me = new_character("t".into(), 1200);
+        // Revolutionary Soldier (b) active in slot 8, the same team asked for: nothing changes
+        me.team = vec![(8, b), (6, a), (20, c)];
+        let mut collection = Collection::new(&me.team);
+        set_team(&mut me, &mut collection, &[a, b, c]);
+        assert_eq!(me.team, vec![(8, b), (6, a), (20, c)]);
+        // a new minifigure takes the leaving one's slot; the active one stays
+        set_team(&mut me, &mut collection, &[d, b, c]);
+        assert_eq!(me.team, vec![(8, b), (6, d), (20, c)]);
+        // the active one leaves: the first newcomer takes its slot and is active
+        set_team(&mut me, &mut collection, &[a, d, c]);
+        assert_eq!(me.team, vec![(8, a), (6, d), (20, c)]);
     }
 
     #[test]
