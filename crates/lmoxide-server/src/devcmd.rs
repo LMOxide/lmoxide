@@ -387,7 +387,11 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             }
             let found = query.parse::<u32>().ok().filter(|pf| teleport::destination(*pf).is_some()).or_else(|| {
                 let q = query.to_ascii_lowercase();
-                teleport::destinations().find(|(_, d)| d.name.to_ascii_lowercase().contains(&q)).map(|(pf, _)| pf)
+                // an exact name first, else the lowest playfield whose name contains it
+                teleport::destinations()
+                    .filter(|(_, d)| d.name.to_ascii_lowercase().contains(&q))
+                    .min_by_key(|(pf, d)| (d.name.to_ascii_lowercase() != q, *pf))
+                    .map(|(pf, _)| pf)
             });
             match found.and_then(|pf| teleport::destination(pf).map(|d| (pf, d))) {
                 Some((pf, d)) => Action::Teleport(pf, d.pos, d.rot, format!("going to {}", playfield_name(pf))),

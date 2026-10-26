@@ -1,5 +1,6 @@
 """Arrival points for every teleport destination in data/destinations.json: for each playfield a
-portal leads to, the first non-discoverable resurrection point (RDB 1000090 XML; Guid, position,
+portal leads to, and every other named playfield (data/playfields.json, e.g. the 7xxx minigames
+reached through encounters, for `!tp`; not their sound and art layers), the first non-discoverable resurrection point (RDB 1000090 XML; Guid, position,
 Orientation) and its name (RDB 1070003 playfield description). Existing entries (and their
 teleport window ids) are kept.  Usage: tools/re/py extract_destinations.py"""
 import json, os, re
@@ -11,6 +12,9 @@ path = os.path.join(ROOT, "data/destinations.json")
 data = json.load(open(path))
 idx = rdb.index()
 targets = {p["to"] for lst in data["portals"].values() for p in lst}
+# skipping the sound and art layers of other playfields ("Medieval - Kingdom - SOUND")
+targets |= {int(k) for k, name in json.load(open(os.path.join(ROOT, "data/playfields.json")))["playfields"].items()
+            if not re.search(r"[ _-](sound|art)$", name, re.I)}
 added, missing = [], []
 for pf in sorted(targets):
     if str(pf) in data["destinations"]:
