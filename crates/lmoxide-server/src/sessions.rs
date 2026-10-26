@@ -141,6 +141,16 @@ pub fn kick(account: u32, reason: Option<String>) -> bool {
     kicked
 }
 
+/// Runs a test command as the account's character (as typed in chat); false if it isn't online.
+pub fn command(account: u32, text: &str) -> bool {
+    let online = ONLINE.lock().unwrap();
+    let mut sent = false;
+    for o in online.values().filter(|o| o.account == account) {
+        sent |= o.outbox.send(world::Out::Command(text.to_string())).is_ok();
+    }
+    sent
+}
+
 pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {
     let online = ONLINE.lock().unwrap();
     let mut list: Vec<_> = online

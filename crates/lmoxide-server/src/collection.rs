@@ -31,6 +31,11 @@ pub const STAT_ACTIVE_UPGRADES: u32 = 3_000_098;
 pub const STAT_PURCHASED_UPGRADES: u32 = 3_000_106;
 const STAT_MINIFIGURE_LIFE: u32 = 3_000_091;
 pub const STAT_MINIFIGURE_HEALTH: u32 = 3_000_092;
+/// The minifigure's health share, a float item stat (int / 100: 100 = full). When the active one
+/// reaches 0 the client switches to the next team member whose share is above 0 and that isn't
+/// locked (SimpleChar_t::SetStat -> ItemHolder::TrySwitchMinifigureFromFatigued); unset, every
+/// teammate read 0 and was taken for smashed too.
+const STAT_MINIFIGURE_HEALTH_SHARE: u32 = 3_000_093;
 /// Item level sent without progression (ACGItem level; the Collection shows 8 ranks).
 const MAX_LEVEL: u32 = 10;
 /// One of each choose-one pair active: bits 0, 1, 3, 4, 6, 7, 9, 10.
@@ -112,9 +117,19 @@ pub struct Collection {
 }
 
 impl Collection {
-    pub fn new(team: &[(u32, u32)]) -> Self {
-        let slots = all_minifigures().into_iter().filter(|t| !team.iter().any(|&(_, m)| m == *t)).map(Some).collect();
+    /// The owned minifigures outside `team`: `owned` (`None`: every minifigure).
+    pub fn new<T>(team: &[(u32, u32)], owned: Option<&std::collections::BTreeMap<u32, T>>) -> Self {
+        let slots = all_minifigures()
+            .into_iter()
+            .filter(|t| owned.is_none_or(|o| o.contains_key(t)) && !team.iter().any(|&(_, m)| m == *t))
+            .map(Some)
+            .collect();
         Self { slots }
+    }
+
+    /// The first free position.
+    pub fn free_position(&self) -> u32 {
+        self.slots.iter().position(Option::is_none).unwrap_or(self.slots.len()) as u32
     }
 
     pub fn take(&mut self, pos: u32) -> Option<u32> {
@@ -153,9 +168,15 @@ fn entry(template: u32, active: u32, (rank, purchased): (u32, u32), life: (u32, 
             // flashed low health and a smashed minifigure's teammates were smashed in turn
             stat(STAT_MINIFIGURE_LIFE, life.0),
             stat(STAT_MINIFIGURE_HEALTH, life.1),
+            stat(STAT_MINIFIGURE_HEALTH_SHARE, 100),
         ],
         ..Default::default()
     }
+}
+
+/// A minifigure item to add to the collection (AddItem), as `entry`.
+pub fn new_item(template: u32, active: u32, rank: (u32, u32), life: (u32, u32)) -> ProtoInventoryGameEntry {
+    entry(template, active, rank, life, 0)
 }
 
 /// The character's inventories for FullPlayerCharacterIIR, collection (110001) and team (101) first:

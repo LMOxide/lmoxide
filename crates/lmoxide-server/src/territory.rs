@@ -202,8 +202,11 @@ fn create_character(account: u32, id: u32, playfield: u32) {
     let Some(name) = name else { return };
     let mut c = crate::game::new_character(name, playfield);
     if playfield == crate::tutorial::CREATION_PLAYFIELD {
-        // as live: no minifigure until the player's pick arrives
+        // as live: no minifigure until the player's pick arrives; the character owns only the
+        // members' minifigures until then (its starter is added with the pick)
         c.team.clear();
+        let now = crate::smash::now_ms() / 1000;
+        c.collection = Some(crate::loot::membership_minifigures().iter().map(|&t| (t, now)).collect());
     }
     match crate::store::Store.create(id, account, &c) {
         Ok(()) => info!(account, character = id, name = %c.name, playfield = c.playfield, "character created"),

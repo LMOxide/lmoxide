@@ -51,6 +51,12 @@ pub struct Character {
     /// Collectibles and places found ("<playfield>:<world object name>") -> unix time.
     #[serde(default)]
     pub finds: BTreeMap<String, i64>,
+    /// Smashed minifigures by item template -> unix time in milliseconds they are rebuilt.
+    #[serde(default)]
+    pub smashed: BTreeMap<u32, i64>,
+    /// The owned minifigures -> unix time obtained; `None`: every minifigure is owned.
+    #[serde(default)]
+    pub collection: Option<BTreeMap<u32, i64>>,
 }
 
 /// How often the character defeated something of one name.
@@ -90,7 +96,7 @@ impl Db {
         let conn = self.conn();
         let Some(mut c) = conn
             .query_row(
-                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level FROM characters WHERE id = ?1",
+                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level, limited_collection FROM characters WHERE id = ?1",
                 [id],
                 |r| {
                     Ok(Character {
@@ -110,6 +116,8 @@ impl Db {
                         defeats: BTreeMap::new(),
                         visits: BTreeMap::new(),
                         finds: BTreeMap::new(),
+                        smashed: BTreeMap::new(),
+                        collection: (r.get::<_, i64>(8)? != 0).then(BTreeMap::new),
                     })
                 },
             )
@@ -152,6 +160,12 @@ impl Db {
             .collect::<rusqlite::Result<_>>()?;
         let mut stmt = conn.prepare("SELECT find, found_at FROM character_finds WHERE character_id = ?1")?;
         c.finds = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT template, until_ms FROM character_smashed WHERE character_id = ?1")?;
+        c.smashed = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
+        if let Some(owned) = c.collection.as_mut() {
+            let mut stmt = conn.prepare("SELECT template, obtained_at FROM character_collection WHERE character_id = ?1")?;
+            *owned = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
+        }
         Ok(Some(c))
     }
 
@@ -161,12 +175,27 @@ impl Db {
         let tx = conn.transaction()?;
         let t = now();
         tx.execute(
-            "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, xp, level, created_at, saved_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11)
+            "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, xp, level, created_at, saved_at,
+               limited_collection)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11, ?12)
              ON CONFLICT (id) DO UPDATE SET name = excluded.name, playfield = excluded.playfield,
                pos_x = excluded.pos_x, pos_y = excluded.pos_y, pos_z = excluded.pos_z,
-               stars = excluded.stars, xp = excluded.xp, level = excluded.level, saved_at = excluded.saved_at",
-            params![id, account_id, c.name, c.playfield, c.pos[0], c.pos[1], c.pos[2], c.stars as i64, c.xp as i64, c.level, t],
+               stars = excluded.stars, xp = excluded.xp, level = excluded.level, saved_at = excluded.saved_at,
+               limited_collection = excluded.limited_collection",
+            params![
+                id,
+                account_id,
+                c.name,
+                c.playfield,
+                c.pos[0],
+                c.pos[1],
+                c.pos[2],
+                c.stars as i64,
+                c.xp as i64,
+                c.level,
+                t,
+                c.collection.is_some()
+            ],
         )?;
         tx.execute("DELETE FROM character_team WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_upgrades WHERE character_id = ?1", [id])?;
@@ -177,6 +206,8 @@ impl Db {
         tx.execute("DELETE FROM character_defeats WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_visits WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_finds WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_smashed WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_collection WHERE character_id = ?1", [id])?;
         {
             let mut team = tx.prepare("INSERT INTO character_team (character_id, slot, position, template) VALUES (?1, ?2, ?3, ?4)")?;
             for (slot, (position, template)) in c.team.iter().enumerate() {
@@ -225,6 +256,15 @@ impl Db {
             let mut find = tx.prepare("INSERT INTO character_finds (character_id, find, found_at) VALUES (?1, ?2, ?3)")?;
             for (f, at) in &c.finds {
                 find.execute(params![id, f, at])?;
+            }
+            let mut smashed = tx.prepare("INSERT INTO character_smashed (character_id, template, until_ms) VALUES (?1, ?2, ?3)")?;
+            for (template, until) in &c.smashed {
+                smashed.execute(params![id, template, until])?;
+            }
+            let mut owned =
+                tx.prepare("INSERT INTO character_collection (character_id, template, obtained_at) VALUES (?1, ?2, ?3)")?;
+            for (template, at) in c.collection.iter().flatten() {
+                owned.execute(params![id, template, at])?;
             }
         }
         tx.commit()?;
@@ -341,6 +381,8 @@ mod tests {
             defeats: [("Skeleton".into(), Defeat { kind: "enemy".into(), count: 3, first_at: 1, last_at: 2 })].into(),
             visits: [(4200, Visit { count: 2, first_at: 1, last_at: 2 })].into(),
             finds: [("4210:collectible_dreadlegs_treasure".into(), 3)].into(),
+            smashed: [(100, 1_700_000_060_000)].into(),
+            collection: Some([(100, 1), (200, 2)].into()),
         };
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();

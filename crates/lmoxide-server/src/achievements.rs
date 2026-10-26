@@ -445,6 +445,8 @@ mod tests {
             defeats: Default::default(),
             visits: Default::default(),
             finds: Default::default(),
+            smashed: Default::default(),
+            collection: None,
         }
     }
 

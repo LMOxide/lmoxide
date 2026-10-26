@@ -50,6 +50,13 @@ pub struct Broadcast {
     pub message: String,
 }
 
+/// A test command (`!loot potion`) run as if the player had typed it in chat; the player's GM
+/// level still decides whether it runs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Command {
+    pub command: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Maintenance {
     pub enabled: bool,

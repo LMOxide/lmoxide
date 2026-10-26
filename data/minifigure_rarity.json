@@ -1,0 +1,15 @@
+{
+ "_comment": "How rare each minifigure's bag and parts are (edited by hand; loot.rs). A dropped part or bag is a minifigure of the world it drops in (data/minifigure_drops.json), picked with the weight of its tier; minifigures not listed have the default tier. A part's location is then picked with the location weights. The live tiers are unknown: the names and weights here are placeholders (the client's Collection texts have 'Rare' and 'Epic').",
+ "tiers": {
+  "common": 100,
+  "rare": 30,
+  "epic": 10
+ },
+ "default": "common",
+ "minifigures": {},
+ "part_locations": {
+  "Head": 1,
+  "Torso": 1,
+  "Legs": 1
+ }
+}

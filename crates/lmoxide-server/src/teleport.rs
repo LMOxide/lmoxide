@@ -189,6 +189,12 @@ pub fn spot(playfield: u32, guid: u32) -> Option<&'static Spot> {
     SPOTS.get(&playfield.to_string())?.iter().find(|s| s.guid == guid)
 }
 
+/// The teleport spot of `playfield` nearest to `pos` (where a smashed team respawns).
+pub fn nearest_spot(playfield: u32, pos: [f32; 3]) -> Option<&'static Spot> {
+    let d = |s: &Spot| (s.pos[0] - pos[0]).powi(2) + (s.pos[1] - pos[1]).powi(2) + (s.pos[2] - pos[2]).powi(2);
+    SPOTS.get(&playfield.to_string())?.iter().min_by(|a, b| d(a).total_cmp(&d(b)))
+}
+
 /// SaveDataVec_t of a playfield's spots, all unlocked: u32 (n+1)·1009, then per spot
 /// (SaveDataEntry_t, reader 0x135c4ed) position, ID32 {51100, playfield}, u32 0, u32 0, u32 guid,
 /// u32 restoration level, u8 shady, u8 discoverable, u8 unlocked. The map shows a spot as usable

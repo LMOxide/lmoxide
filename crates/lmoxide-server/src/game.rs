@@ -43,10 +43,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let store = Store;
     let mut character = 0;
     let mut me = new_character(String::new(), cfg.start_playfield);
-    let mut collection = Collection::new(&me.team);
+    let mut collection = Collection::new(&me.team, me.collection.as_ref());
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
-    let mut potions_spent: u64 = 0;
     let mut shown_portal: Option<u32> = None;
     // portals open only once the player has been clear of them since arriving (login, teleport)
     let mut portals_armed = false;
@@ -81,6 +80,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     // in play before: a later CharInPlayIIR_t is the arrival after a teleport
     let mut was_in_play = false;
     let mut team_salt = 0u64;
+    // the active minifigure was smashed: the character is in Limbo until the next one takes over
+    let mut in_limbo = false;
     loop {
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
@@ -104,7 +105,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             info!(character, playfield, ?at, %label, "dev tour");
                             crate::chat::system(character, &label);
                             let at = [at[0] + 6.0, at[1], at[2]];
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)), potions_spent)
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)))
                                 .await?;
                         }
                         world::Out::Progress(event) => {
@@ -142,7 +143,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
                             }
                             let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
-                            send_progress(&mut conn, character, &me, out).await?;
+                            send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
                         }
                         world::Out::Kick(reason) => {
                             info!(character, ?reason, "kicked");
@@ -156,8 +157,49 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         world::Out::Command(_) => unreachable!(),
                     world::Out::Teleport(playfield, at, rot) => {
                         let playfield = playfield.unwrap_or(me.playfield);
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
                             .await?;
+                    }
+                    world::Out::Smashed(template) => {
+                        // locked for the rebuild time; the client switches to the next minifigure
+                        if let std::collections::btree_map::Entry::Vacant(e) = me.smashed.entry(template) {
+                            let until = crate::smash::now_ms() + crate::smash::REBUILD.as_millis() as i64;
+                            e.insert(until);
+                            info!(character, template, "minifigure smashed");
+                            let args = crate::smash::lock_args(template, until);
+                            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LOCK_TEMPLATE, args).await?;
+                            schedule_rebuild(&outbox, template, until);
+                            // the client switches to the next team member itself (health 0): the first
+                            // of slots 6, 8, 20 that isn't smashed (ItemHolder::
+                            // TrySwitchMinifigureFromFatigued); the server follows. With the whole
+                            // team smashed the character falls into Limbo (the death dialog).
+                            let next = me
+                                .team
+                                .iter()
+                                .enumerate()
+                                .filter(|&(_, &(_, t))| t != template && !me.smashed.contains_key(&t))
+                                .min_by_key(|&(_, &(slot, _))| slot)
+                                .map(|(i, _)| i);
+                            if let Some(i) = next.filter(|_| me.team.first().is_some_and(|&(_, t)| t == template)) {
+                                me.team[..=i].rotate_right(1);
+                                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                let new_active = me.team[0].1;
+                                let records = active_minifigure_records(id, new_active, me.upgrade(new_active), me.combat_level(), &presence);
+                                crate::auras::apply(id, new_active, &me.tags, true);
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                            }
+                            if me.team.iter().all(|(_, t)| me.smashed.contains_key(t)) {
+                                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                in_limbo = true;
+                                world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_LIMBO)]));
+                            }
+                        }
+                    }
+                    world::Out::Rebuilt(template) => {
+                        if me.smashed.get(&template).is_some_and(|&until| until <= crate::smash::now_ms()) {
+                            me.smashed.remove(&template);
+                            rebuild(&mut conn, character, &me, template).await?;
+                        }
                     }
                     }
                     continue;
@@ -196,9 +238,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     ..me.clone()
                 });
                 active_at_first_position(&mut me.team);
+                // older saves had potions per session: they start with the new character's
+                me.tokens.entry(TOKEN_HEALTH_POTIONS).or_insert((START_POTIONS, 0));
+                // smashed minifigures stay smashed until their rebuild time, across logins
+                let now = crate::smash::now_ms();
+                me.smashed.retain(|_, until| *until > now);
+                for (&template, &until) in &me.smashed {
+                    crate::npc::set_smashed(Id32::new(crate::territory::CHARACTER_TYPE, character), template);
+                    schedule_rebuild(&outbox, template, until);
+                }
                 _online = Some(crate::sessions::online(account.id, character, &account.username, &me.name, gm_level, outbox.clone()));
                 *pos.lock().unwrap() = me.pos;
-                collection = Collection::new(&me.team);
+                collection = Collection::new(&me.team, me.collection.as_ref());
                 info!(character, %version, name = %me.name, playfield = me.playfield, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
@@ -208,12 +259,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                send_world(&mut conn, character, &me, &collection, potions_spent).await?;
+                send_world(&mut conn, character, &me, &collection).await?;
                 // achievements: the earned tags and counters again (live sent them after the full
                 // update, before the client is in play, and not on playfield changes), and what
                 // is due already
                 let out = progress(&mut me, &collection, character, None);
-                send_progress(&mut conn, character, &me, out).await?;
+                send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
             }
             _ if !conn.authenticated => anyhow::bail!("{} before Authenticate2", rpc.describe()),
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
@@ -534,11 +585,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     stop_after_success = crate::buildie::interact(h.identity, data) == Some(false);
                                 } else if spell == Some(POTION_SPELL) {
                                     // Potion of Health: spends a potion (token 150) and heals.
-                                    if potions_spent >= START_POTIONS {
+                                    let (gained, spent) = me.tokens.entry(TOKEN_HEALTH_POTIONS).or_default();
+                                    if *spent >= *gained {
                                         refused = true;
                                     } else {
-                                        potions_spent += 1;
-                                        let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(START_POTIONS).u64(potions_spent).finish();
+                                        *spent += 1;
+                                        let args = Writer::new().u32(TOKEN_HEALTH_POTIONS).u64(*gained).u64(*spent).finish();
                                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
                                             .await?;
                                         let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t), me.combat_level()));
@@ -742,6 +794,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let slot = u32::from_be_bytes(rest[rest.len() - 4..].try_into().unwrap());
                             if let Some(i) = me.team.iter().position(|&(s, _)| s == slot) {
                                 me.team[..=i].rotate_right(1);
+                                if std::mem::take(&mut in_limbo) {
+                                    // back with a rebuilt minifigure after the whole team was
+                                    // smashed: at the nearest respawn point
+                                    respawn(h.identity, &me, *pos.lock().unwrap(), None, &outbox);
+                                }
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                                 records.extend(active_minifigure_records(h.identity, me.team[0].1, me.upgrade(me.team[0].1), me.combat_level(), &presence));
                                 crate::auras::apply(h.identity, me.team[0].1, &me.tags, true);
@@ -754,6 +811,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // EquipItemCommand: the client moves the item itself on success
                             records.extend(active_minifigure_records(h.identity, new_active, me.upgrade(new_active), me.combat_level(), &presence));
                             crate::auras::apply(h.identity, new_active, &me.tags, true);
+                            if in_limbo && !me.smashed.contains_key(&new_active) {
+                                // the whole team was smashed: a minifigure from the collection
+                                // takes over, at the nearest respawn point
+                                in_limbo = false;
+                                respawn(h.identity, &me, *pos.lock().unwrap(), None, &outbox);
+                            }
                         }
                         if command_type == COMMAND_EQUIP_ITEM {
                             learn_team_spells(&mut conn, character, &me).await?;
@@ -828,7 +891,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let playfield = r.u32()?;
                 let spawn = r.u32()?;
                 info!(playfield, spawn, "TeleportMe");
-                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), None, potions_spent)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), None)
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
@@ -860,7 +923,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(answer, "teleport window answer");
                 if answer > 0 || answer < -1 {
                     let playfield = (answer as u32) & 0x7fff_ffff;
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None)
                         .await?;
                 }
             }
@@ -870,7 +933,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let window = r.u32()?;
                 let playfield = r.u32()?;
                 info!(window, playfield, "teleport window bypass");
-                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None, potions_spent)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None)
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CLIENT_ATTEMPT_CLOSING_PLAYER_DESTINATION_PLAYFIELD) => {
@@ -916,7 +979,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
                     }
                     let out = progress(&mut me, &collection, character, Some((None, 0)));
-                    send_progress(&mut conn, character, &me, out).await?;
+                    send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
                 }
                 let args = Writer::new().u32(template).i32(if ok { 0 } else { 1 }).finish();
                 conn.send_as(
@@ -1004,7 +1067,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_REPLY, args)
                                 .await?;
                             let out = progress(&mut me, &collection, character, Some((None, 0)));
-                            send_progress(&mut conn, character, &me, out).await?;
+                            send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
                         }
                         Err(why) => {
                             info!(template, shop_id, why, "upgrade not bought");
@@ -1085,12 +1148,53 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 None => crate::chat::system(character, "nothing to smash within 15 m"),
                             }
                         }
+                        crate::devcmd::Action::SmashMe => crate::npc::smash_player(Id32::new(crate::territory::CHARACTER_TYPE, character)),
+                        crate::devcmd::Action::Loot(kind) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let here = *pos.lock().unwrap();
+                            let items = crate::loot::test_items(&kind, me.playfield);
+                            crate::chat::system(character, &format!("loot {kind}: {} items", items.len()));
+                            crate::loot::drop_items(id, me.playfield, [here[0] + 1.5, here[1], here[2]], id, items);
+                        }
+                        crate::devcmd::Action::Own(None) => {
+                            let line = match &me.collection {
+                                Some(owned) => format!("you own {} of {} minifigures", owned.len(), crate::collection::all_minifigures().len()),
+                                None => "you own every minifigure (!collection limit to collect them)".into(),
+                            };
+                            crate::chat::system(character, &line);
+                        }
+                        crate::devcmd::Action::Own(Some(template)) => {
+                            let line = if grant_minifigure(&mut conn, character, &mut me, &mut collection, template).await? {
+                                "obtained"
+                            } else {
+                                "already owned"
+                            };
+                            crate::chat::system(character, line);
+                        }
+                        crate::devcmd::Action::LimitCollection(limit) => {
+                            let now = crate::smash::now_ms() / 1000;
+                            me.collection = limit.then(|| {
+                                me.team.iter().map(|&(_, t)| t).chain(crate::loot::membership_minifigures().iter().copied()).map(|t| (t, now)).collect()
+                            });
+                            collection = Collection::new(&me.team, me.collection.as_ref());
+                            if let Err(e) = store.save(character, &me) {
+                                warn!(character, "save failed: {e:#}");
+                            }
+                            crate::chat::system(character, if limit { "collection limited to the team; relog to see it" } else { "every minifigure owned; relog to see it" });
+                        }
                         crate::devcmd::Action::Revive => {
                             // the server's health of each minifigure, then the client's: the
                             // MinifigureHealth item stat it switches to (a smashed one has 0) and
                             // the active one's Life and Health
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                             crate::npc::revive_player(id);
+                            for template in std::mem::take(&mut me.smashed).into_keys() {
+                                let args = crate::smash::unlock_args(template);
+                                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UNLOCK_TEMPLATE, args).await?;
+                            }
+                            if std::mem::take(&mut in_limbo) {
+                                world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_NORMAL)]));
+                            }
                             let items = me.team.iter().map(|&(p, t)| (crate::collection::TEAM_INVENTORY, p, t)).chain(
                                 collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (crate::collection::COLLECTION_INVENTORY, p as u32, t))),
                             );
@@ -1136,13 +1240,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::Progress(event, n) => {
                             let before = me.tags.len();
                             let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
-                            send_progress(&mut conn, character, &me, out).await?;
+                            send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
                             let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
                             crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
                             crate::chat::system(character, &line);
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
                                 .await?;
                         }
                         crate::devcmd::Action::Dialog(n) => {
@@ -1204,7 +1308,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             let (playfield, at) = match setup.destination {
                                 Some((playfield, at, rot)) => {
-                                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)), potions_spent)
+                                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
                                         .await?;
                                     (playfield, at)
                                 }
@@ -1281,32 +1385,41 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let (gained, spent) = (*gained, *spent);
                         send_token(&mut conn, character, token, gained, spent).await?;
                     }
+                    crate::loot::Reward::Potions(n) => {
+                        let (gained, spent) = me.tokens.entry(TOKEN_HEALTH_POTIONS).or_default();
+                        *gained += n;
+                        let (gained, spent) = (*gained, *spent);
+                        send_token(&mut conn, character, TOKEN_HEALTH_POTIONS, gained, spent).await?;
+                    }
                     crate::loot::Reward::MinifigureBag(minifigure) => {
                         // The bag reveal (BagOpenEvent.swf): AddItem(ID32 inventory 110002, i32 pos -1,
                         // entry, u8 split) only signals the bag (pos -1 isn't stored); then the
-                        // minifigure is added to the collection, or, as every minifigure is already
-                        // unlocked here, the duplicate pays out stars.
+                        // minifigure is added to the collection, or a duplicate pays out stars.
                         let entry = ProtoInventoryGameEntry { item_id: Some(u64::from(taken.template)), item_data: Some(acg_item(taken.template, 1)), ..Default::default() };
                         let args = Id32::new(MINIFIGURE_BAG_INVENTORY, character).write(Writer::new()).i32(-1).proto(&entry).u8(0).finish();
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
-                        me.stars += DUPLICATE_BAG_STARS;
-                        send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
-                        info!(character, minifigure, "minifigure bag (duplicate)");
+                        if !grant_minifigure(&mut conn, character, &mut me, &mut collection, minifigure).await? {
+                            me.stars += DUPLICATE_BAG_STARS;
+                            send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
+                            info!(character, minifigure, "minifigure bag (duplicate)");
+                        }
                     }
-                    crate::loot::Reward::Chest => crate::loot::open_chest(id, taken.playfield, taken.pos, bag),
+                    crate::loot::Reward::Chest { member } => crate::loot::open_chest(id, taken.playfield, taken.pos, bag, member),
                     crate::loot::Reward::Nothing => {}
                 }
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CONVERT_MINIFIGURE_PARTS) => {
-                // "Use duplicate parts to convert to stars": every minifigure is owned here, so all
-                // parts are spare (MinifigureHolder::CalculateSpareParts). Answer 1 = done.
+                // "Use duplicate parts to convert to stars" (MinifigureHolder::CalculateSpareParts):
+                // every part of an owned minifigure is spare; of one not owned yet, all but one
+                // (kept to build it). Answer 1 = done.
                 let mut converted = 0;
-                for token in crate::loot::all_part_tokens() {
+                for (minifigure, token) in crate::loot::all_part_tokens() {
+                    let keep = u64::from(me.collection.as_ref().is_some_and(|o| !o.contains_key(&minifigure)));
                     if let Some((gained, spent)) = me.tokens.get_mut(&token)
-                        && *gained > *spent
+                        && *gained > *spent + keep
                     {
-                        converted += *gained - *spent;
-                        *spent = *gained;
+                        converted += *gained - *spent - keep;
+                        *spent = *gained - keep;
                         let (g, s) = (*gained, *spent);
                         send_token(&mut conn, character, token, g, s).await?;
                     }
@@ -1319,10 +1432,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::BUILDMINIFIGURE_FROM_PARTS) => {
-                // one of each part; 0 = built (the minifigure is in the collection already here)
+                // one of each part; 0 = built, into the collection (`--progression` characters own
+                // only what they collected)
                 let template = r.u32()?;
                 let tokens = crate::loot::minifigure_part_tokens(template);
                 let complete = !tokens.is_empty() && tokens.iter().all(|t| me.tokens.get(t).is_some_and(|(g, s)| g > s));
+                let complete = complete && me.collection.as_ref().is_none_or(|o| !o.contains_key(&template));
                 if complete {
                     for t in tokens {
                         let (gained, spent) = me.tokens.get_mut(t).unwrap();
@@ -1330,6 +1445,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let (g, s) = (*gained, *spent);
                         send_token(&mut conn, character, *t, g, s).await?;
                     }
+                    grant_minifigure(&mut conn, character, &mut me, &mut collection, template).await?;
                 }
                 let args = Writer::new().u32(if complete { 0 } else { 1 }).finish();
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_BUILDMINIFIGURE_FROM_PARTS_RESPONSE, args)
@@ -1357,7 +1473,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 if let Some(template) = starter {
                     me.name = [nick.trim(), first.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+                    if let Some(owned) = me.collection.as_mut() {
+                        owned.insert(template, crate::smash::now_ms() / 1000);
+                    }
                     set_team(&mut me, &mut collection, &[template]);
+                    // (the placeholder team isn't owned)
+                    collection = Collection::new(&me.team, me.collection.as_ref());
                     team_changed = true;
                     // the minifigure into the team, as live: AddItem(ID32 inventory, i32 pos, entry,
                     // u8 split), which also gives the HUD its portrait
@@ -1379,8 +1500,27 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;
                     let (playfield, at) =
                         if crate::progression::enabled() { (crate::tutorial::PLAYFIELD, crate::tutorial::START) } else { (cfg.start_playfield, START_POS) };
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, 0.0)), potions_spent)
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, 0.0)))
                         .await?;
+                }
+            }
+            (Some(Endpoint::GameCharAgent), game_char_agent::RESPAWN_ME) => {
+                // RespawnMe(uint32 spawn point): "Continue" in the smashed window (the whole team
+                // smashed). With a team member rebuilt the player respawns there with it; else
+                // the window opens again: wait for a rebuild, or equip a minifigure from the
+                // collection (which ends it too)
+                let spawn = r.u32()?;
+                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                let ready = me.team.iter().enumerate().filter(|(_, (_, t))| !me.smashed.contains_key(t)).min_by_key(|(_, (slot, _))| *slot).map(|(i, _)| i);
+                info!(character, spawn, ready = ready.is_some(), "RespawnMe");
+                if let Some(i) = ready {
+                    me.team[..=i].rotate_right(1);
+                    in_limbo = false;
+                    respawn(id, &me, *pos.lock().unwrap(), crate::teleport::spot(me.playfield, spawn), &outbox);
+                } else {
+                    let first = me.smashed.values().min().map_or(0, |&until| crate::smash::left(until).as_secs() + 1);
+                    crate::chat::system(character, &format!("Your minifigures are still smashed: the first is rebuilt in {first} s. Equip another minifigure from your collection, or wait."));
+                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::RESURRECTION_FAILED_REOPEN_DIALOG, Bytes::new()).await?;
                 }
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::TUTORIAL_SHOWN) => {
@@ -1389,7 +1529,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let tag = r.u32()?;
                 if !me.tags.contains_key(&tag) {
                     let out = progress(&mut me, &collection, character, Some((Some(&crate::achievements::Event::Tag(tag)), 1)));
-                    send_progress(&mut conn, character, &me, out).await?;
+                    send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
                 }
             }
             // Client-side bookkeeping that needs no answer (to be persisted later).
@@ -1477,7 +1617,7 @@ pub fn new_character(name: String, playfield: u32) -> Character {
         team: START_TEAM.to_vec(),
         stars: 0,
         upgrades: Default::default(),
-        tokens: Default::default(),
+        tokens: [(TOKEN_HEALTH_POTIONS, (START_POTIONS, 0))].into(),
         xp: 0,
         level: 0,
         minifigure_levels: Default::default(),
@@ -1487,6 +1627,8 @@ pub fn new_character(name: String, playfield: u32) -> Character {
         defeats: Default::default(),
         visits: Default::default(),
         finds: Default::default(),
+        smashed: Default::default(),
+        collection: None,
     }
 }
 
@@ -1559,7 +1701,6 @@ async fn send_world(
     character: u32,
     me: &Character,
     collection: &Collection,
-    potions_spent: u64,
 ) -> anyhow::Result<()> {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
     let mut records = vec![playfield_full_update(me.playfield)];
@@ -1570,9 +1711,16 @@ async fn send_world(
         records.push(int32_stat(id, STAT_GM_LEVEL, gm_level));
     }
     records.extend(xp_records(id, me));
+    // every player is a member (member chests, the member smash timer)
+    records.push(int32_stat(id, crate::smash::STAT_SUBSCRIPTION_FLAGS, crate::smash::MEMBER_FLAGS));
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+    // the smashed minifigures' locks (the character's items were sent anew)
+    for (&template, &until) in &me.smashed {
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LOCK_TEMPLATE, crate::smash::lock_args(template, until))
+            .await?;
+    }
     let saved = me.tokens.iter().map(|(&t, &(g, s))| (t, g, s));
-    for (token, gained, spent) in [(TOKEN_HEALTH_POTIONS, START_POTIONS, potions_spent), (TOKEN_STARS, me.stars, 0)].into_iter().chain(saved) {
+    for (token, gained, spent) in [(TOKEN_STARS, me.stars, 0)].into_iter().chain(saved) {
         send_token(conn, character, token, gained, spent).await?;
     }
     Ok(())
@@ -1593,7 +1741,6 @@ async fn teleport(
     playfield: u32,
     spot: Option<u32>,
     at: Option<([f32; 3], f32)>,
-    potions_spent: u64,
 ) -> anyhow::Result<()> {
     // arrive where asked (test commands), at the chosen teleport spot (World Map); through a
     // teleport window, by the portal back to where the player came from; else at the
@@ -1630,7 +1777,7 @@ async fn teleport(
     }
     // let the client tear down the old playfield first
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-    send_world(conn, character, me, collection, potions_spent).await
+    send_world(conn, character, me, collection).await
 }
 
 /// The XP bar's stats: XP, LastXP and NextXP of the level (XP 0 without progression).
@@ -1686,13 +1833,14 @@ fn progress(
         Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
         None => (crate::collection::COLLECTION_INVENTORY, slots.iter().position(|s| *s == Some(t)).unwrap_or(0) as u32),
     };
-    // every minifigure is owned
+    let owned_set = me.collection.clone();
+    let owned = move |t: u32| owned_set.as_ref().is_none_or(|o| o.contains_key(&t));
     let ctx = crate::achievements::Ctx {
         character,
         active: me.team.first().map(|&(_, t)| t),
         locate: &locate,
         level: &|t| rank_of(t),
-        owned: &|_| true,
+        owned: &owned,
     };
     match event {
         Some((Some(e), times)) => crate::achievements::on_event(me, &ctx, e, times),
@@ -1701,7 +1849,13 @@ fn progress(
     }
 }
 
-async fn send_progress(conn: &mut Conn, character: u32, me: &Character, out: crate::achievements::Output) -> anyhow::Result<()> {
+async fn send_progress(
+    conn: &mut Conn,
+    character: u32,
+    me: &mut Character,
+    collection: &mut Collection,
+    out: crate::achievements::Output,
+) -> anyhow::Result<()> {
     if !out.records.is_empty() {
         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&out.records)).await?;
     }
@@ -1715,7 +1869,36 @@ async fn send_progress(conn: &mut Conn, character: u32, me: &Character, out: cra
     if let Some(&(_, template)) = me.team.first() {
         crate::auras::apply(Id32::new(crate::territory::CHARACTER_TYPE, character), template, &me.tags, false);
     }
+    // minifigures given for an achievement (Chicken Suit Guy)
+    for (tag, template) in crate::loot::achievement_minifigures() {
+        if me.tags.contains_key(&tag) {
+            grant_minifigure(conn, character, me, collection, template).await?;
+        }
+    }
     Ok(())
+}
+
+/// Adds `template` to a limited collection (a bag, a minifigure built from parts, an
+/// achievement): AddItem into the Collection inventory, which unlocks it in the client's
+/// minifigure list. False if the character owns it already (or owns every minifigure).
+async fn grant_minifigure(conn: &mut Conn, character: u32, me: &mut Character, collection: &mut Collection, template: u32) -> anyhow::Result<bool> {
+    let Some(owned) = me.collection.as_mut() else { return Ok(false) };
+    if owned.contains_key(&template) {
+        return Ok(false);
+    }
+    owned.insert(template, crate::smash::now_ms() / 1000);
+    let pos = collection.free_position();
+    collection.put(pos, template);
+    let item = crate::collection::new_item(
+        template,
+        me.upgrade(template),
+        (me.rank(template), me.purchased(template)),
+        crate::combat::item_life(template, me.upgrade(template), me.combat_level()),
+    );
+    let args = Id32::new(crate::collection::COLLECTION_INVENTORY, character).write(Writer::new()).i32(pos as i32).proto(&item).u8(0).finish();
+    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
+    info!(character, template, pos, "minifigure obtained");
+    Ok(true)
 }
 
 /// A charge ability being held (see projectile.rs `charge_items`).
@@ -2079,24 +2262,7 @@ pub async fn run_bot(playfield: u32) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let bot = Character {
-        name: "Bot".into(),
-        playfield,
-        pos: START_POS,
-        team: START_TEAM.to_vec(),
-        stars: 0,
-        upgrades: Default::default(),
-        tokens: Default::default(),
-        xp: 0,
-        level: 0,
-        minifigure_levels: Default::default(),
-        purchased_upgrades: Default::default(),
-        tags: Default::default(),
-        counters: Default::default(),
-        defeats: Default::default(),
-        visits: Default::default(),
-        finds: Default::default(),
-    };
+    let bot = Character { name: "Bot".into(), ..new_character(String::new(), playfield) };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     set_costume(id, monster_data_for(START_TEAM[0].1));
@@ -2257,6 +2423,7 @@ pub const STAT_HEALTH: u32 = 27;
 /// BCCState; 29 is Limbo (dead: death effect, "CombatChat_CharacterKilled").
 pub const STAT_BCC_STATE: u32 = 20;
 pub const BCC_STATE_LIMBO: u32 = 29;
+const BCC_STATE_NORMAL: u32 = 1;
 const STAT_LEVEL: u32 = 54;
 const STAT_XP: u32 = 52;
 const STAT_LAST_XP: u32 = 57;
@@ -2266,7 +2433,7 @@ const STAT_CHAR_RADIUS: u32 = 421;
 const STAT_MONSTER_DATA: u32 = 359;
 /// Active minifigure team slot (inventory 101 position), client name e_ActiveWeapon.
 const STAT_ACTIVE_WEAPON: u32 = 2000405;
-const TOKEN_HEALTH_POTIONS: u32 = 150;
+pub const TOKEN_HEALTH_POTIONS: u32 = 150;
 /// Minifigure XP, shown as the star counter (top left).
 const TOKEN_STARS: u32 = 100;
 /// Inventory of minifigure bags (dynel type 34001 items; ItemHolder::GetItemTypeInventory).
@@ -2290,18 +2457,55 @@ fn item_shop_currencies(stars: u64) -> Bytes {
         .finish()
 }
 
+/// Brings a player whose whole team was smashed back: out of Limbo, at `spot` or the respawn
+/// point nearest to `here` (a teleport within the playfield, which also sends the team again).
+fn respawn(id: Id32, me: &Character, here: [f32; 3], spot: Option<&crate::teleport::Spot>, outbox: &world::Outbox) {
+    world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_NORMAL)]));
+    match spot.or_else(|| crate::teleport::nearest_spot(me.playfield, here)) {
+        Some(s) => {
+            info!(character = id.instance, guid = s.guid, "respawn after the team was smashed");
+            let _ = outbox.send(world::Out::Teleport(None, s.pos, s.rot));
+        }
+        None => warn!(character = id.instance, playfield = me.playfield, "no respawn point"),
+    }
+}
+
+/// Rebuilds smashed minifigure `template` at `until` (unix ms), through the session's outbox.
+fn schedule_rebuild(outbox: &world::Outbox, template: u32, until: i64) {
+    let outbox = outbox.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(crate::smash::left(until)).await;
+        let _ = outbox.send(world::Out::Rebuilt(template));
+    });
+}
+
+/// A smashed minifigure back at full health: the server's health, then UnlockTemplate (the
+/// client restores its health share and lets it be picked), and the active one's health.
+async fn rebuild(conn: &mut Conn, character: u32, me: &Character, template: u32) -> anyhow::Result<()> {
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+    info!(character, template, "minifigure rebuilt");
+    let active = crate::npc::rebuild(id, template);
+    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UNLOCK_TEMPLATE, crate::smash::unlock_args(template))
+        .await?;
+    if active.is_some() {
+        let records = health_records(id, template, me.upgrade(template), me.combat_level());
+        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+    }
+    Ok(())
+}
+
 /// UpdateTokenAmount(u32 token, u64 gained, u64 spent): cumulative totals, not deltas.
 async fn send_token(conn: &mut Conn, character: u32, token: u32, gained: u64, spent: u64) -> anyhow::Result<()> {
     let args = Writer::new().u32(token).u64(gained).u64(spent).finish();
     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args).await
 }
 const HEALTH_ORB_HEAL_SHARE: f32 = 0.25;
-/// Potions per session (restocked at login).
-const START_POTIONS: u64 = 5;
-/// "Potion of Health" (in shortcut slot 100); its heal amount was server-side, so pick one
-/// (a share of the minifigure's maximum health).
+/// Potions a new character starts with (the count is saved; enemies drop more, loot.rs).
+pub const START_POTIONS: u64 = 5;
+/// "Potion of Health" (in shortcut slot 100): the heal was server-side; it restores the active
+/// minifigure to full health (as the user remembers live).
 const POTION_SPELL: u32 = 104_554;
-const POTION_HEAL_SHARE: f32 = 0.5;
+const POTION_HEAL_SHARE: f32 = 1.0;
 /// Effect package of the potion's heal (hearts on the character).
 const POTION_EFFECT: u32 = 4456;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,
@@ -2577,7 +2781,7 @@ mod tests {
         let mut me = new_character("t".into(), 1200);
         // Revolutionary Soldier (b) active in slot 8, the same team asked for: nothing changes
         me.team = vec![(8, b), (6, a), (20, c)];
-        let mut collection = Collection::new(&me.team);
+        let mut collection = Collection::new(&me.team, me.collection.as_ref());
         set_team(&mut me, &mut collection, &[a, b, c]);
         assert_eq!(me.team, vec![(8, b), (6, a), (20, c)]);
         // a new minifigure takes the leaving one's slot; the active one stays

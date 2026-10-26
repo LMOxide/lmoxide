@@ -163,8 +163,8 @@ pub fn heal_player(player: Id32, amount: u32) -> u32 {
     *h
 }
 
-/// Damages the player's active minifigure; returns its new health (`None` if unknown).
-fn damage_player(player: Id32, damage: u32) -> Option<u32> {
+/// Damages the player's active minifigure; returns it and its new health (`None` if unknown).
+fn damage_player(player: Id32, damage: u32) -> Option<(u32, u32)> {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.get_mut(&player)?;
     p.last_damaged = Some(std::time::Instant::now());
@@ -172,7 +172,30 @@ fn damage_player(player: Id32, damage: u32) -> Option<u32> {
     let h = p.health.entry(p.active).or_insert(max);
     let dealt = ((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32;
     *h = h.saturating_sub(dealt);
-    Some(*h)
+    Some((p.active, *h))
+}
+
+/// Smashes the player's active minifigure (`!smashme`): a hit for its whole health, as from an
+/// enemy.
+pub fn smash_player(player: Id32) {
+    hurt_player(player, player, default_spell(), u32::MAX / 4);
+}
+
+/// A smashed minifigure of the player (`health` 0 until it is rebuilt).
+pub fn set_smashed(player: Id32, template: u32) {
+    PLAYERS.lock().unwrap().entry(player).or_default().health.insert(template, 0);
+}
+
+/// A rebuilt minifigure of the player back at full health; returns that health if it is the
+/// active one.
+pub fn rebuild(player: Id32, template: u32) -> Option<u32> {
+    let mut players = PLAYERS.lock().unwrap();
+    let p = players.get_mut(&player)?;
+    p.health.remove(&template);
+    (p.active == template).then(|| {
+        p.health.insert(template, p.max);
+        p.max
+    })
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
@@ -1184,11 +1207,14 @@ pub fn enemy_damage(level: u32) -> f32 {
 pub fn hurt_player(id: Id32, player: Id32, spell: u32, damage: u32) {
     // the player's defensive upgrade procs
     let damage = crate::procs::incoming(player, damage, crate::actions::is_channelling(player));
-    let Some(health) = damage_player(player, damage) else { return };
+    let Some((minifigure, health)) = damage_player(player, damage) else { return };
     crate::procs::after_damage(player, health, player_max_health(player));
     let records = vec![combat_log_record(id, player, spell, damage), int32_stat(player, STAT_HEALTH, health)];
     // (through the player: a projectile can land after the enemy is gone)
     world::send_playfield(player, true, world::Out::Records(records));
+    if health == 0 {
+        world::send_to(player, world::Out::Smashed(minifigure));
+    }
     crate::actions::caster_hit(player);
 }
 

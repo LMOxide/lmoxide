@@ -33,6 +33,10 @@ pub enum Out {
     /// Teleport the player (a server script, e.g. an NPC dialogue): playfield (`None`: the
     /// current one), position, facing.
     Teleport(Option<u32>, [f32; 3], f32),
+    /// The player's minifigure (item template) was smashed (smash.rs).
+    Smashed(u32),
+    /// The player's smashed minifigure may be rebuilt now (smash.rs).
+    Rebuilt(u32),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;

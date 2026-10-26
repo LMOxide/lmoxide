@@ -33,6 +33,7 @@ mod scenery;
 mod security;
 mod sessions;
 mod shop;
+mod smash;
 mod state;
 mod store;
 mod teleport;

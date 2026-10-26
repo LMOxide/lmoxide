@@ -1,0 +1,1378 @@
+{
+ "_comment": "Where each minifigure comes from -> data/minifigure_drops.json. See tools/re/extract_minifig_drops.py.",
+ "worlds": {
+  "Mythology World": [
+   1630,
+   1653,
+   1675,
+   1690,
+   2210,
+   2300,
+   2310,
+   2320,
+   2500
+  ],
+  "Space World": [
+   1600,
+   1602,
+   1603,
+   1610,
+   1612,
+   1620,
+   1622,
+   1635,
+   3200,
+   3210,
+   3300,
+   3310,
+   3500
+  ],
+  "Pirate World": [
+   1300,
+   1632,
+   1633,
+   1640,
+   1642,
+   1643,
+   1650,
+   1670,
+   1672,
+   4200,
+   4210,
+   4300,
+   4310,
+   4500,
+   4600,
+   4610,
+   4630
+  ],
+  "Medieval World": [
+   1634,
+   1674,
+   1680,
+   5200,
+   5210,
+   5300,
+   5310,
+   5500,
+   5620
+  ],
+  "Dino World": [
+   6200,
+   6300
+  ],
+  "Monster Trials": []
+ },
+ "minifigures": [
+  {
+   "template": 1922,
+   "name": null,
+   "series": 8,
+   "text": "You could find me in the limited edition Most Awesome Pack in Steam.",
+   "source": "store"
+  },
+  {
+   "template": 2019,
+   "name": "Tennis Ace",
+   "series": 7,
+   "text": "You can find me in the Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 3024,
+   "name": "Aztec Warrior",
+   "series": 7,
+   "text": "You could unlock me as part of the long term membership benefits.",
+   "source": "membership"
+  },
+  {
+   "template": 14766,
+   "name": "Viking Woman",
+   "series": 7,
+   "text": "You could unlock me as part of the long term membership benefits.",
+   "source": "membership"
+  },
+  {
+   "template": 15200,
+   "name": "Ice Skater",
+   "series": 4,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 15397,
+   "name": "Galaxy Patrol",
+   "series": 7,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 15924,
+   "name": "Grandma Visitor",
+   "series": 7,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 16194,
+   "name": "Medusa",
+   "series": 10,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 22331,
+   "name": "Fairy",
+   "series": 8,
+   "text": "You could find me in the limited edition Most Awesome Pack in the Funcom store.",
+   "source": "store"
+  },
+  {
+   "template": 41754,
+   "name": "Alien Avenger",
+   "series": 9,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 41755,
+   "name": "Battle Mech",
+   "series": 9,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 41756,
+   "name": "Chicken Suit Guy",
+   "series": 9,
+   "text": "You can unlock me by completing the 'Legend of the Chicken Suit Guy' achievement.",
+   "source": "achievement",
+   "achievement": 942
+  },
+  {
+   "template": 41757,
+   "name": "Cyclops",
+   "series": 9,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 41765,
+   "name": "Forest Maiden",
+   "series": 9,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 41766,
+   "name": "Fortune Teller",
+   "series": 9,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 41767,
+   "name": "Heroic Knight",
+   "series": 9,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 41785,
+   "name": "Hollywood Starlet",
+   "series": 9,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 41840,
+   "name": "Judge",
+   "series": 9,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 41841,
+   "name": "Mermaid",
+   "series": 9,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 41894,
+   "name": "Mr. Good and Evil",
+   "series": 9,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 41896,
+   "name": "Policeman",
+   "series": 9,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 41898,
+   "name": "Roller Derby Girl",
+   "series": 9,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 41899,
+   "name": "Roman Emperor",
+   "series": 9,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 41900,
+   "name": "Waiter",
+   "series": 9,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 50715,
+   "name": "Plumber",
+   "series": 9,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 195928,
+   "name": "Bumblebee Girl",
+   "series": 10,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 196023,
+   "name": "Revolutionary Soldier",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 196052,
+   "name": "Paintball Player",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 196056,
+   "name": "Sad Clown",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 196060,
+   "name": "Sea Captain",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 301508,
+   "name": "Trendsetter",
+   "series": 10,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 301528,
+   "name": "Skydiver",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 301556,
+   "name": "Tomahawk Warrior",
+   "series": 10,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 317609,
+   "name": "Roman Commander",
+   "series": 10,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 317690,
+   "name": "Warrior Woman",
+   "series": 10,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 317701,
+   "name": "Motorcycle Mechanic",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 317704,
+   "name": "Decorator",
+   "series": 10,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 317707,
+   "name": "Librarian",
+   "series": 10,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 317713,
+   "name": "Grandpa",
+   "series": 10,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 317734,
+   "name": "Baseball Fielder",
+   "series": 10,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 317737,
+   "name": "Mr. Gold",
+   "series": 10,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 357916,
+   "name": "Barbarian",
+   "series": 11,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 357917,
+   "name": "Constable",
+   "series": 11,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 357945,
+   "name": "Evil Mech",
+   "series": 11,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 357956,
+   "name": "Grandma",
+   "series": 11,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 357957,
+   "name": "Saxophone Player",
+   "series": 11,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 357976,
+   "name": "Scarecrow",
+   "series": 11,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 357977,
+   "name": "Lady Robot",
+   "series": 11,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 357987,
+   "name": "Scientist",
+   "series": 11,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 464893,
+   "name": "Holiday Elf",
+   "series": 11,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 464894,
+   "name": "Pretzel Girl",
+   "series": 11,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 464895,
+   "name": "Yeti",
+   "series": 11,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 464896,
+   "name": "Diner Waitress",
+   "series": 11,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 464897,
+   "name": "Mountain Climber",
+   "series": 11,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 464898,
+   "name": "Island Warrior",
+   "series": 11,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 464901,
+   "name": "Gingerbread Man",
+   "series": 11,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 464906,
+   "name": "Welder",
+   "series": 11,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 498305,
+   "name": "Wizard",
+   "series": 12,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 498330,
+   "name": "Video Game Guy",
+   "series": 12,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 498513,
+   "name": "Spooky Girl",
+   "series": 12,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 498514,
+   "name": "Swashbuckler",
+   "series": 12,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 498515,
+   "name": "Space Miner",
+   "series": 12,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 498516,
+   "name": "Rock Star",
+   "series": 12,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 498517,
+   "name": "Prospector",
+   "series": 12,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 498518,
+   "name": "Pizza Delivery Man",
+   "series": 12,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 498519,
+   "name": "Piggy Guy",
+   "series": 12,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 498520,
+   "name": "Lifeguard Guy",
+   "series": 12,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 498521,
+   "name": "Genie Girl",
+   "series": 12,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 498522,
+   "name": "Hun Warrior",
+   "series": 12,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 498523,
+   "name": "Battle Goddess",
+   "series": 12,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 498528,
+   "name": "Fairytale Princess",
+   "series": 12,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 498537,
+   "name": "Dino Tracker",
+   "series": 12,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 498538,
+   "name": "Jester",
+   "series": 12,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 550248,
+   "name": "Galaxy Trooper",
+   "series": 13,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 550249,
+   "name": "Alien Trooper",
+   "series": 13,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 550251,
+   "name": "Classic King",
+   "series": 13,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 550252,
+   "name": "Lady Cyclops",
+   "series": 13,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 550253,
+   "name": "Fencer",
+   "series": 13,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 550356,
+   "name": "Samurai",
+   "series": 13,
+   "text": "You can find me in the Mythology World.",
+   "source": "world",
+   "worlds": [
+    "Mythology World"
+   ]
+  },
+  {
+   "template": 550357,
+   "name": "Goblin",
+   "series": 13,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 550359,
+   "name": "Snake Charmer",
+   "series": 13,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 550360,
+   "name": "Paleontologist",
+   "series": 13,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 550361,
+   "name": "Sheriff",
+   "series": 13,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 550362,
+   "name": "Egyptian Warrior",
+   "series": 13,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 550363,
+   "name": "Evil Wizard",
+   "series": 13,
+   "text": "You can find me in the Medieval World.",
+   "source": "world",
+   "worlds": [
+    "Medieval World"
+   ]
+  },
+  {
+   "template": 550364,
+   "name": "Carpenter",
+   "series": 13,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 550365,
+   "name": "Hot Dog Man",
+   "series": 13,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 550366,
+   "name": "Disco Diva",
+   "series": 13,
+   "text": "You can find me in the Space World.",
+   "source": "world",
+   "worlds": [
+    "Space World"
+   ]
+  },
+  {
+   "template": 550367,
+   "name": "Unicorn Girl",
+   "series": 13,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 576081,
+   "name": "Pirate Captain",
+   "series": 8,
+   "text": "You can find me in the Pirate World.",
+   "source": "world",
+   "worlds": [
+    "Pirate World"
+   ]
+  },
+  {
+   "template": 576190,
+   "name": "Santa",
+   "series": 8,
+   "text": "You can me find me during the Winter Holiday event, if you're lucky!",
+   "source": "event"
+  },
+  {
+   "template": 585552,
+   "name": "Evil Knight",
+   "series": 7,
+   "text": "You can unlock me with a code from a LEGO Club magazine promotion.",
+   "source": "club"
+  },
+  {
+   "template": 595237,
+   "name": "Ninja",
+   "series": 1,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595238,
+   "name": "Evil Dwarf",
+   "series": 5,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595239,
+   "name": "Cowboy",
+   "series": 1,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595240,
+   "name": "Robot",
+   "series": 1,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595242,
+   "name": "Skater Girl",
+   "series": 6,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595243,
+   "name": "Elf",
+   "series": 3,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595244,
+   "name": "Lizard Man",
+   "series": 5,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595245,
+   "name": "Samurai Warrior",
+   "series": 3,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 595581,
+   "name": "Spartan Warrior",
+   "series": 2,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 641015,
+   "name": "Banshee",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641016,
+   "name": "Tiger Woman",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641017,
+   "name": "Zombie Cheerleader",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641018,
+   "name": "Wacky Witch",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641019,
+   "name": "Spider Lady",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641020,
+   "name": "Skeleton Guy",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641021,
+   "name": "Fly Monster",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641022,
+   "name": "Gargoyle",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641023,
+   "name": "Square Foot",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641024,
+   "name": "Plant Monster",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641025,
+   "name": "Spectre",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641026,
+   "name": "Wolf Guy",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641027,
+   "name": "Zombie Pirate",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641028,
+   "name": "Monster Scientist",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641029,
+   "name": "Monster Rocker",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 641030,
+   "name": "Zombie Businessman",
+   "series": 14,
+   "text": "You can find me in the Monster Trials, LEGO Center.",
+   "source": "world",
+   "worlds": [
+    "Monster Trials"
+   ]
+  },
+  {
+   "template": 663917,
+   "name": "Queen",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663918,
+   "name": "Animal Control",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663919,
+   "name": "Jewel Thief",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663920,
+   "name": "Tribal Woman",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663921,
+   "name": "Ballerina",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663922,
+   "name": "Flying Warrior",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663923,
+   "name": "Faun",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663924,
+   "name": "Frightening Knight",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663925,
+   "name": "Wrestling Champion",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663926,
+   "name": "Shark Suit Guy",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663927,
+   "name": "Clumsy Guy",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663928,
+   "name": "Kendo Fighter",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663929,
+   "name": "Astronaut",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663930,
+   "name": "Laser Mech",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663931,
+   "name": "Janitor",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  },
+  {
+   "template": 663932,
+   "name": "Farmer",
+   "series": 15,
+   "text": "You can find me in the Lost Creations, Dino World.",
+   "source": "world",
+   "worlds": [
+    "Dino World"
+   ]
+  }
+ ]
+}

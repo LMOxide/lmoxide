@@ -18,6 +18,12 @@
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
 //!   !plates <solve|reset>     light every plate of the Gauntlet's plate room, or none
 //!   !revive                   every minifigure (team and collection) back to full health
+//!   !smashme                  smash the active minifigure (it rebuilds after the smash timer)
+//!   !loot <kind>              drop a loot bag at your feet: potion, part, bag, chest, memberchest,
+//!                             boss (a boss's roll: free and member chest), enemy, smashable
+//!   !own [name]               obtain a minifigure (as from a bag); without a name: how many you own
+//!   !collection <limit|all>   own only the team and the members' minifigures, or every one
+//!                             (relog to see it in the Collection)
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -50,6 +56,14 @@ pub enum Action {
     Dialog(usize),
     /// turn this playfield's mirrors to the solution (true) or the start
     Mirrors(bool),
+    /// smash the active minifigure
+    SmashMe,
+    /// drop a loot bag of a kind (`!loot`)
+    Loot(String),
+    /// obtain a minifigure (`None`: tell how many are owned)
+    Own(Option<u32>),
+    /// limit the collection (true) or own every minifigure
+    LimitCollection(bool),
 }
 
 /// A resolved test scenario (data/test_scenarios.json).
@@ -280,6 +294,20 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
         }
         "smash" => Action::Smash,
         "revive" => Action::Revive,
+        "smashme" => Action::SmashMe,
+        "loot" => match args.first().copied() {
+            Some(kind) if crate::loot::TEST_KINDS.contains(&kind) => Action::Loot(kind.to_string()),
+            _ => reply(vec![format!("usage: !loot <{}>", crate::loot::TEST_KINDS.join("|"))]),
+        },
+        "own" if args.is_empty() => Action::Own(None),
+        "own" => match crate::collection::template_by_name(&args.join(" ")) {
+            Some(t) => Action::Own(Some(t)),
+            None => reply(vec![format!("no minifigure named {}", args.join(" "))]),
+        },
+        "collection" => match args.first().copied() {
+            Some(how @ ("limit" | "all")) => Action::LimitCollection(how == "limit"),
+            _ => reply(vec!["usage: !collection <limit|all>".into()]),
+        },
         "plates" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => {
                 crate::plates::set_all(how == "solve");
@@ -295,7 +323,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>, !revive".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>, !revive, !smashme, !loot <kind>, !own [name], !collection <limit|all>".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }

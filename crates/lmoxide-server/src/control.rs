@@ -12,7 +12,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use lmoxide_control::{Broadcast, Done, Kick, Maintenance, OnlinePlayer, Status};
+use lmoxide_control::{Broadcast, Command, Done, Kick, Maintenance, OnlinePlayer, Status};
 use tracing::info;
 
 use crate::{sessions, state};
@@ -26,6 +26,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .route("/v1/status", get(status))
         .route("/v1/players", get(players))
         .route("/v1/players/{account}/kick", post(kick))
+        .route("/v1/players/{account}/command", post(command))
         .route("/v1/broadcast", post(broadcast))
         .route("/v1/maintenance", post(maintenance))
         .layer(middleware::from_fn_with_state(token, auth))
@@ -72,6 +73,15 @@ async fn kick(Path(account): Path<u32>, Json(k): Json<Kick>) -> Json<Done> {
     let kicked = sessions::kick(account, k.reason.or_else(|| Some("You were disconnected by an administrator.".into())));
     info!(account, kicked, "control: kick");
     Json(Done { affected: kicked as u32 })
+}
+
+async fn command(Path(account): Path<u32>, Json(c): Json<Command>) -> Result<Json<Done>, (StatusCode, &'static str)> {
+    if !crate::devcmd::is_command(&c.command) || c.command.len() > 500 {
+        return Err((StatusCode::UNPROCESSABLE_ENTITY, "not a test command (! or /)"));
+    }
+    let sent = sessions::command(account, &c.command);
+    info!(account, command = %c.command, sent, "control: command");
+    Ok(Json(Done { affected: sent as u32 }))
 }
 
 async fn broadcast(Json(b): Json<Broadcast>) -> Result<Json<Done>, (StatusCode, &'static str)> {
