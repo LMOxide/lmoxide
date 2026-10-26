@@ -586,19 +586,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         crate::dash::start(h.identity, me.playfield, spell, dash.clone(), pos.clone(), point, heading, move |m| {
                                             template.map_or(50, |t| crate::combat::damage_with_mod(t, active, spell, m, level))
                                         });
-                                    } else if crate::projectile::params(spell).is_some() {
-                                        // a projectile: aim at the target, the clicked point or
-                                        // where the player last moved; its hits deal the damage
-                                        let here = *pos.lock().unwrap();
+                                    } else if crate::projectile::params(spell).is_some_and(|p| !p.charge_items.is_empty()) {
+                                        // a charged shot: held, fired on release (BCC action 20)
+                                        // at the target or where the player faces then; its hits
+                                        // deal the damage
                                         let npc_target = target_id.filter(|t| *t != h.identity && crate::npc::is_npc(*t));
-                                        let towards = npc_target
-                                            .and_then(crate::npc::position)
-                                            .or(ground)
-                                            .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
-                                        let charge = crate::projectile::params(spell).is_some_and(|p| !p.charge_items.is_empty());
                                         let mut recast = auto_fired.lock().unwrap();
-                                        let held_on = charge
-                                            && recast.is_some_and(|(s, t): (u32, std::time::Instant)| s == spell && t.elapsed() < CHARGE_RECAST_GAP);
+                                        let held_on = recast.is_some_and(|(s, t): (u32, std::time::Instant)| s == spell && t.elapsed() < CHARGE_RECAST_GAP);
                                         if held_on {
                                             // the button is still held after an automatic fire:
                                             // the client re-sends the cast; refuse until it stops
@@ -606,10 +600,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             refused = true;
                                         }
                                         drop(recast);
-                                        if held_on {
-                                            // refused above
-                                        } else if charge {
-                                            // hold to charge: fired on release (BCC action 20)
+                                        if !held_on {
                                             fire_stale_charges(&mut charges, &me, h.identity);
                                             if let Some(client_id) = msg.commandqueue_client_id {
                                                 let active = Arc::new(std::sync::atomic::AtomicBool::new(true));
@@ -638,8 +629,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                     damage,
                                                 });
                                             }
-                                        } else {
-                                            crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
                                         }
                                     } else if crate::actions::is_channel(spell) {
                                         // a channelled ability: the server runs its action lists
@@ -677,6 +666,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         };
                                         crate::actions::cast(caster, spell);
                                         can_execute_after = crate::actions::hit_delay(spell);
+                                    } else if crate::projectile::params(spell).is_some() {
+                                        // a shot the action lists don't cover: aim at the target,
+                                        // the clicked point or where the player last moved
+                                        let here = *pos.lock().unwrap();
+                                        let npc_target = target_id.filter(|t| *t != h.identity && crate::npc::is_npc(*t));
+                                        let towards = npc_target
+                                            .and_then(crate::npc::position)
+                                            .or(ground)
+                                            .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
+                                        crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
                                     } else {
                                     match target_id {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
@@ -1086,6 +1085,34 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 None => crate::chat::system(character, "nothing to smash within 15 m"),
                             }
                         }
+                        crate::devcmd::Action::Revive => {
+                            // the server's health of each minifigure, then the client's: the
+                            // MinifigureHealth item stat it switches to (a smashed one has 0) and
+                            // the active one's Life and Health
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            crate::npc::revive_player(id);
+                            let items = me.team.iter().map(|&(p, t)| (crate::collection::TEAM_INVENTORY, p, t)).chain(
+                                collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (crate::collection::COLLECTION_INVENTORY, p as u32, t))),
+                            );
+                            let mut n = 0;
+                            for (inventory, p, t) in items.collect::<Vec<_>>() {
+                                let (_, full) = crate::combat::item_life(t, me.upgrade(t), me.combat_level());
+                                let args = Id32::new(inventory, character)
+                                    .write(Writer::new())
+                                    .i32(p as i32)
+                                    .i32(crate::collection::STAT_MINIFIGURE_HEALTH as i32)
+                                    .i32(full as i32)
+                                    .finish();
+                                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
+                                n += 1;
+                            }
+                            if let Some(&(_, t)) = me.team.first() {
+                                let records = health_records(id, t, me.upgrade(t), me.combat_level());
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                            }
+                            info!(character, minifigures = n, "dev revive");
+                            crate::chat::system(character, &format!("{n} minifigures revived"));
+                        }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);
                             let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);
@@ -1149,8 +1176,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Test(setup) => {
                             if !setup.team.is_empty() {
+                                let old: Vec<u32> = me.team.iter().map(|&(s, _)| s).collect();
                                 set_team(&mut me, &mut collection, &setup.team);
                                 team_changed = true;
+                                // the HUD's portraits follow only items removed from and added to
+                                // the team (RemoveItem, then AddItem as at character creation),
+                                // not the team sent again with the world
+                                let inventory = Id32::new(crate::collection::TEAM_INVENTORY, character);
+                                for s in old {
+                                    let args = inventory.write(Writer::new()).i32(s as i32).i32(1).finish();
+                                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::REMOVE_ITEM, args).await?;
+                                }
+                                team_salt += 1 << 33;
+                                let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                                for e in &team.items {
+                                    let args = inventory.write(Writer::new()).i32(e.pos as i32).proto(&e.item).u8(0).finish();
+                                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
+                                }
                             }
                             // the teleport sends the character again (with the new team), also
                             // when the test stays here

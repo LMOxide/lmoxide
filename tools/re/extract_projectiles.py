@@ -1,7 +1,9 @@
 """Projectile parameters of every minifigure spell (left/right-click spells, upgrade abilities):
 data/projectiles.json, spell -> {item, type, speed, attractor, offset_z, ricochets, range,
 charge_items, channel_interval, channel_buff, counter_buff}. Charge spells (hold to grow, release to fire: e.g. Big Blast)
-have one Projectile action per charge level (OnChannelingEnd list, gated on a buff counter);
+have one Projectile action per charge level in their OnChannelingEnd list (36, gated on a buff counter);
+other spells with several Projectile actions are volleys (all at once: Triple Shot) or channels that
+shoot every tick (Squad, Blaster Storm, RAWR): actions.rs runs those, from data/spell_actions.json.
 charge_items lists their items by level, channel_interval (s) is ChannelingInterval (stat 447) and
 channel_buff the buff shown on the caster while charging (re-applied each interval);
 counter_buff the buff whose counter the channel ticks raise (AddBuffCounter), which gates the
@@ -11,7 +13,9 @@ The client's Projectile GameAction does nothing by itself; the server spawns the
 import json, os, struct
 
 import rdb
-from gameactions import actions
+from gameactions import actions, lists
+
+ON_CHANNELING_END = 36
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 spells = json.load(open(os.path.join(ROOT, "data/minifigure_spells.json")))
@@ -36,11 +40,12 @@ for sid in sorted(ids):
             "ricochets": g.get("GameAction_MaxRicochets", 0),
             "range": g.get("AttackRange", 0) / 100,
         }
-        if len(projectiles) > 1:
+        released = [a for a in (lists(sid, idx=idx) or {}).get(ON_CHANNELING_END, []) if a["type"] == "Projectile"]
+        if len(released) > 1:
             body = rdb.body(1000621, sid, idx)
             at = body.find(struct.pack("<I", 447) + b"\x00")  # ChannelingInterval stat (u32, u8, u32)
             interval = struct.unpack_from("<I", body, at + 5)[0] / 100 if at >= 0 else 0.5
-            out[str(sid)]["charge_items"] = [p["args"].get("GameAction_ItemInstance", 0) for p in projectiles]
+            out[str(sid)]["charge_items"] = [p["args"].get("GameAction_ItemInstance", 0) for p in released]
             out[str(sid)]["channel_interval"] = interval
             # the channel's visual: the buff the Use list's CastNano applies to the caster
             nano = next((a["args"].get("GameAction_Value") or a["args"].get("GameAction_NanoTemplate") for a in acts if a["type"] == "CastNano"), None)

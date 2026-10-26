@@ -15,7 +15,12 @@
 //! is a buff shown with `MagicBuffIIR_c`; the nano's own list 0 then runs on whom it was cast),
 //! area/column formulas (each enemy in the shape gets the formula's nano), WeaponHit (damage:
 //! the caster's power × AbilityMod, combat.rs), AddBuffCounter/RemoveBuff, CorePersistentGroundEffect
-//! and PlaceTrap (a ground zone re-applying its nano), CoreRandomPointAreaFormula and ColumnDash.
+//! and PlaceTrap (a ground zone re-applying its nano), CoreRandomPointAreaFormula, ColumnDash,
+//! Blink (a leap to the target, then its nano where it lands), Chain (a nano jumping from enemy
+//! to enemy, shown with `ChainSpellIIR_t`) and Projectile: a client action the server carries
+//! out (the client's does nothing by itself), creating the shot (projectile.rs) whose item's
+//! actions run on what it hits or where it lands (data/spell_actions.json `items`). Area
+//! formulas with an Interval and a Duration pulse (-1: for as long as the buff holding them).
 //! Crowd control (snares, knockbacks, stuns), diminishing returns and resistances are only shown
 //! as the buffs' visuals. Timings the client data doesn't give are in docs/TUNABLES.md.
 
@@ -75,12 +80,17 @@ struct Action {
     client: bool,
     #[serde(default)]
     args: HashMap<String, serde_json::Value>,
-    /// (a, b, kind): 91 = has upgrade ability b, 166 = buff a's counter is b; 19 = always.
+    /// (a, b, kind): 91 = has upgrade ability b, 101 = lacks it, 166 = buff a's counter is b, 159 / 160 = above / below b; 19 = always.
     #[serde(default)]
     criteria: Vec<[u32; 3]>,
 }
 
 impl Action {
+    /// Whether the server runs it: the server-only actions, and Projectile, which the server
+    /// carries out (the client's does nothing by itself).
+    fn on_server(&self) -> bool {
+        !self.client || self.kind == "Projectile"
+    }
     fn f(&self, key: &str) -> Option<f32> {
         self.args.get(key).and_then(|v| v.as_f64()).map(|v| v as f32)
     }
@@ -95,7 +105,12 @@ impl Action {
 
 const APPLY_ON_CASTER: u32 = 1;
 const CRITERIA_HAS_ABILITY: u32 = 91;
+/// The caster lacks upgrade ability b (Triple Shot's plain arrows vs. the ricochet ones).
+const CRITERIA_LACKS_ABILITY: u32 = 101;
 const CRITERIA_BUFF_COUNTER: u32 = 166;
+/// Buff a's counter is above / below b (MOAR RAWR's letters: A while 1-4, W while 5-7).
+const CRITERIA_COUNTER_ABOVE: u32 = 159;
+const CRITERIA_COUNTER_BELOW: u32 = 160;
 /// TargetingMode of spells cast on oneself (their "target" is the caster).
 const TARGETING_SELF: u32 = 8;
 /// Event lists (GameData::GameActionList_e).
@@ -111,23 +126,43 @@ const STAT_MITIGATION_FLAT: u32 = 3_000_012;
 /// release, you will perform an area attack" (the spell's description), so being hit ends the
 /// channel.
 const ENDS_WHEN_HIT: &[u32] = &[597_608];
-/// Ground zones (CorePersistentGroundEffect): lifetime when Arg1 (assumed tenths of a second)
-/// is missing, and how often they re-apply their nano (assumed).
-const GROUND_DEFAULT_LIFETIME: Duration = Duration::from_secs(3);
-const GROUND_PULSE: Duration = Duration::from_secs(1);
+/// Ground zones (CorePersistentGroundEffect: Arg1 the pulse interval in centiseconds, Arg2 the
+/// number of pulses, e.g. Sand Storm 20 x 25): the interval when Arg1 is missing (single pulses).
+const GROUND_DEFAULT_PULSE_CS: u32 = 100;
+/// The shortest a ground effect's visual is kept.
+const GROUND_MIN_VISUAL: Duration = Duration::from_secs(1);
 /// Nested nanos deeper than this aren't followed (the data has at most 3 levels).
 const MAX_DEPTH: u32 = 5;
 /// How long a combo buff without TimeExist stays (the original server removed them ~1 s after
 /// the press: recorded Gladius Slash).
 const COMBO_WINDOW: Duration = Duration::from_millis(1000);
 const POLL: Duration = Duration::from_millis(50);
+/// How far a channel looks for its next enemy when its target fell (the default shot range).
+const RETARGET_RANGE: f32 = 15.0;
+/// A caster that moved less than this between shots stands still (turned to its shots).
+const STANDING_STILL: f32 = 0.3;
+/// Shots within about 15° of the facing don't turn the caster (cos 15°).
+const FACING_ALREADY: f32 = 0.966;
+
+static RAW: LazyLock<HashMap<String, serde_json::Value>> =
+    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/spell_actions.json")).expect("spell_actions.json"));
 
 static SPELLS: LazyLock<HashMap<u32, Spell>> = LazyLock::new(|| {
-    let raw: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/spell_actions.json")).expect("spell_actions.json");
-    raw.into_iter()
-        .filter_map(|(k, v)| Some((k.parse().ok()?, serde_json::from_value(v).expect("spell_actions.json entry"))))
+    RAW.iter()
+        .filter_map(|(k, v)| Some((k.parse().ok()?, serde_json::from_value(v.clone()).expect("spell_actions.json entry"))))
         .collect()
+});
+
+/// A projectile item: what it does where it hits or lands.
+#[derive(Debug, Deserialize)]
+struct Item {
+    #[serde(default)]
+    actions: Vec<Action>,
+}
+
+static ITEMS: LazyLock<HashMap<u32, Item>> = LazyLock::new(|| {
+    let items: HashMap<String, Item> = RAW.get("items").map(|v| serde_json::from_value(v.clone()).expect("spell_actions.json items")).unwrap_or_default();
+    items.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, v))).collect()
 });
 
 /// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
@@ -138,7 +173,7 @@ static SPELLS: LazyLock<HashMap<u32, Spell>> = LazyLock::new(|| {
 pub fn is_ability(spell: u32) -> bool {
     SPELLS.get(&spell).is_some_and(|s| {
         s.minifigure.is_some()
-            && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(|a| !a.client)))
+            && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(Action::on_server)))
             && reaches(spell, &["WeaponHit", "OverrideShortcut"], &mut Vec::new())
     })
 }
@@ -150,9 +185,14 @@ fn reaches(spell: u32, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
     }
     seen.push(spell);
     let Some(s) = SPELLS.get(&spell) else { return false };
-    s.lists.values().flatten().filter(|a| !a.client).any(|a| {
-        kinds.contains(&a.kind.as_str()) || ["Value", "NanoTemplate"].iter().filter_map(|k| a.u(k)).any(|n| reaches(n, kinds, seen))
-    })
+    s.lists.values().flatten().filter(|a| a.on_server()).any(|a| action_reaches(a, kinds, seen))
+}
+
+/// Whether action `a` is one of `kinds` or reaches one (its nanos, its projectile's item).
+fn action_reaches(a: &Action, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
+    kinds.contains(&a.kind.as_str())
+        || ["Value", "NanoTemplate", "TemplateID"].iter().filter_map(|k| a.u(k)).any(|n| reaches(n, kinds, seen))
+        || a.u("ItemInstance").and_then(|i| ITEMS.get(&i)).is_some_and(|i| i.actions.iter().filter(|a| a.on_server()).any(|a| action_reaches(a, kinds, seen)))
 }
 
 /// The time from pressing `spell` to its hit (ItemDelay), when this module runs it.
@@ -178,6 +218,8 @@ pub fn cast(caster: Caster, spell: u32) {
         ends_when_hit: false,
         aim: Mutex::new(None),
         end_record: Bytes::new(),
+        shot_from: Mutex::new(None),
+        target: Mutex::new(None),
     });
     debug!(caster = ?run.caster.id, spell, name = %s.name, ?delay, "ability");
     run_list(&run, spell, PRE_USE, root_target(&run), 0);
@@ -332,6 +374,10 @@ struct Run {
     aim: Mutex<Option<[f32; 3]>>,
     /// The client's command with action 20: ends its channel.
     end_record: Bytes,
+    /// Where the caster stood at the last shot (a caster who stays put is turned to its shots).
+    shot_from: Mutex<Option<[f32; 3]>>,
+    /// The enemy a channel switched to after its target fell (`root_target`).
+    target: Mutex<Option<Id32>>,
 }
 
 static ACTIVE: LazyLock<Mutex<HashMap<Id32, Arc<Run>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -362,6 +408,8 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         ends_when_hit,
         aim: Mutex::new(None),
         end_record,
+        shot_from: Mutex::new(None),
+        target: Mutex::new(None),
     });
     info!(caster = ?run.caster.id, spell, name = %s.name, ticks, ?interval, "channel");
     ACTIVE.lock().unwrap().insert(run.caster.id, run.clone());
@@ -445,16 +493,33 @@ fn here(run: &Run) -> [f32; 3] {
     *run.caster.pos.lock().unwrap()
 }
 
-/// The spell's own target: the caster for self-cast spells, else the targeted enemy, the
+/// The spell's own target: the caster for self-cast spells (TargetingMode 8, and channels
+/// without a TargetingMode, as enemies' spins: npc_spells.rs), else the targeted enemy, the
 /// clicked point, or the caster.
 fn root_target(run: &Run) -> Target {
     let me = Target { id: Some(run.caster.id), pos: here(run) };
-    let self_cast = SPELLS.get(&run.spell).and_then(|s| s.stats.targeting_mode) == Some(TARGETING_SELF);
+    let self_cast = SPELLS.get(&run.spell).is_some_and(|s| match s.stats.targeting_mode {
+        Some(mode) => mode == TARGETING_SELF,
+        None => s.stats.channeling_interval.is_some(),
+    });
     if self_cast {
         return me;
     }
-    if let Some((id, pos)) = run.caster.target.filter(|t| *t != run.caster.id).and_then(|t| Some((t, crate::npc::position(t)?))) {
+    let aimed_at = run.caster.target.filter(|t| *t != run.caster.id);
+    let current = (*run.target.lock().unwrap()).or(aimed_at);
+    if let Some((id, pos)) = current.and_then(|t| Some((t, crate::npc::position(t)?))) {
         return Target { id: Some(id), pos };
+    }
+    // a channel whose enemy fell goes on at the nearest one, as the R key's auto-aim picks one
+    // (else the rest of a volley flew straight ahead)
+    if aimed_at.is_some() && !run.length.is_zero() {
+        let next = crate::npc::targets_where(run.caster.playfield, |p| distance(p, me.pos) <= RETARGET_RANGE)
+            .into_iter()
+            .min_by(|(_, x), (_, y)| distance(*x, me.pos).total_cmp(&distance(*y, me.pos)));
+        if let Some((id, pos)) = next {
+            *run.target.lock().unwrap() = Some(id);
+            return Target { id: Some(id), pos };
+        }
     }
     match (*run.aim.lock().unwrap()).or(run.caster.ground) {
         Some(pos) => Target { id: None, pos },
@@ -471,7 +536,10 @@ fn show(run: &Run, records: Vec<Bytes>) {
 fn criteria_met(run: &Run, a: &Action) -> bool {
     a.criteria.iter().all(|&[x, y, kind]| match kind {
         CRITERIA_HAS_ABILITY => crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
+        CRITERIA_LACKS_ABILITY => !crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
         CRITERIA_BUFF_COUNTER => run.counters.lock().unwrap().get(&x).copied().unwrap_or(0) == y,
+        CRITERIA_COUNTER_ABOVE => run.counters.lock().unwrap().get(&x).copied().unwrap_or(0) > y,
+        CRITERIA_COUNTER_BELOW => run.counters.lock().unwrap().get(&x).copied().unwrap_or(0) < y,
         _ => true,
     })
 }
@@ -480,14 +548,14 @@ fn criteria_met(run: &Run, a: &Action) -> bool {
 fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32) {
     let Some(s) = SPELLS.get(&spell) else { return };
     let Some(list) = s.lists.get(event) else { return };
-    for a in list.iter().filter(|a| !a.client) {
+    for a in list.iter().filter(|a| a.on_server()) {
         if criteria_met(run, a) {
             act(run, spell, a, target, depth);
         }
     }
 }
 
-fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
+fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u32) {
     let caster = run.caster.id;
     let me = Target { id: Some(caster), pos: here(run) };
     let who = if a.on_caster() { me } else { target };
@@ -532,32 +600,40 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
             }
         }
         "CoreFilteredAreaFormula" => {
-            let center = if a.on_caster() { me.pos } else { target.pos };
-            let radius = a.f("Radius").unwrap_or(2.0);
-            let min = a.f("Min").unwrap_or(0.0);
-            let angle = a.f("Angle").unwrap_or(360.0);
-            let from = a.f("AngleStart").unwrap_or(-angle / 2.0);
-            let facing = *run.caster.facing.lock().unwrap();
-            let mut hits = crate::npc::targets_where(run.caster.playfield, |p| {
-                let d = distance(p, center);
-                d <= radius && d >= min && (angle >= 360.0 || in_sector(center, facing, p, from, angle))
-            });
-            hits.sort_by(|(_, x), (_, y)| distance(*x, center).total_cmp(&distance(*y, center)));
-            if let Some(max) = a.u("Max1").filter(|m| *m > 0) {
-                hits.truncate(max as usize);
-            }
-            if let Some(nano) = a.u("NanoTemplate") {
-                // the client plays the nano's effect on every hit and at the centre
-                let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
-                show(run, vec![area_formula_record(caster, &ids, nano, center)]);
-                for (id, pos) in hits {
-                    cast_nano_shown(run, nano, Target { id: Some(id), pos }, depth + 1, false);
+            let centre = if a.on_caster() { me } else { target };
+            // with a Duration (-1: as long as the buff holding it lasts), it pulses every
+            // Interval around its centre, following a character (the Lifeguard's whirlpool)
+            let lasts = match a.f("Duration") {
+                Some(d) if d < 0.0 => SPELLS.get(&spell).and_then(|s| s.stats.time_exist).map(|cs| cs as f32),
+                d => d.filter(|d| *d > 0.0),
+            };
+            match (lasts, a.f("Interval").filter(|i| *i > 0.0)) {
+                (Some(lasts), Some(interval)) => {
+                    let run = run.clone();
+                    tokio::spawn(async move {
+                        let until = Instant::now() + Duration::from_millis(10 * lasts as u64);
+                        while Instant::now() < until {
+                            let pos = match centre.id {
+                                Some(id) if id == run.caster.id => here(&run),
+                                Some(id) => match crate::npc::position(id) {
+                                    Some(p) => p,
+                                    None => break,
+                                },
+                                None => centre.pos,
+                            };
+                            area_formula(&run, a, pos, depth);
+                            tokio::time::sleep(Duration::from_millis(10 * interval as u64)).await;
+                        }
+                    });
                 }
+                _ => area_formula(run, a, centre.pos, depth),
             }
         }
         "ColumnFormula" => {
-            let from = me.pos;
-            let dir = *run.caster.facing.lock().unwrap();
+            // from the caster, or from a ground point (where a bomb landed); Value1 turns it
+            // by quarters (the Cross Bomb's four arms)
+            let from = if target.id.is_none() && !a.on_caster() { target.pos } else { me.pos };
+            let dir = rotate(*run.caster.facing.lock().unwrap(), 90.0 * a.u("Value1").unwrap_or(0) as f32);
             let length = a.f("Distance").unwrap_or(5.0);
             let width = a.f("FloatValue1").unwrap_or(1.0);
             let hits = crate::npc::targets_where(run.caster.playfield, |p| {
@@ -587,7 +663,10 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
             }
         }
         "CorePersistentGroundEffect" => {
-            let lifetime = a.u("Arg1").map_or(GROUND_DEFAULT_LIFETIME, |t| Duration::from_millis(100 * t as u64));
+            let pulse = Duration::from_millis(10 * a.u("Arg1").unwrap_or(GROUND_DEFAULT_PULSE_CS).max(1) as u64);
+            let pulses = a.u("Arg2").unwrap_or(1).max(1);
+            let delay = Duration::from_millis(10 * a.u("DelayTime").unwrap_or(0) as u64);
+            let lifetime = (delay + pulse * pulses).max(GROUND_MIN_VISUAL);
             if let Some(package) = a.u("EffectPackage") {
                 // the ground effect (e.g. Sand Storm's ring) lasts as long as the zone
                 let instance = effects::new_instance();
@@ -599,8 +678,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
                 });
             }
             if let Some(nano) = a.u("NanoTemplate") {
-                let delay = Duration::from_millis(10 * a.u("DelayTime").unwrap_or(0) as u64);
-                ground_zone(run, nano, who.pos, delay, GROUND_PULSE, lifetime, depth);
+                ground_zone(run, nano, who.pos, delay, pulse, pulse * pulses, depth);
             }
         }
         "PlaceTrap" => {
@@ -614,6 +692,26 @@ fn act(run: &Arc<Run>, spell: u32, a: &Action, target: Target, depth: u32) {
             let dash = crate::dash::Dash::column(a.f("Distance").unwrap_or(5.0), a.u("Value1").unwrap_or(0));
             let facing = *run.caster.facing.lock().unwrap();
             crate::dash::start(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0);
+        }
+        "Projectile" => shoot(run, spell, a, who, depth),
+        "Chain" => {
+            if let (Some(first), Some(nano)) = (who.id.filter(|id| *id != caster && crate::npc::is_npc(*id)), a.u("TemplateID")) {
+                let jumps = a.u("Value").unwrap_or(1);
+                let radius = a.f("Radius").or(a.f("Distance")).unwrap_or(4.0);
+                // (DelayTime 100 read as milliseconds: a second per jump was far too slow)
+                let delay = Duration::from_millis(a.u("DelayTime").unwrap_or(0) as u64);
+                chain(run, nano, first, jumps, radius, delay, depth);
+            }
+        }
+        "Blink" => {
+            let point = (who.id != Some(caster)).then_some(who.pos);
+            let facing = *run.caster.facing.lock().unwrap();
+            let (run, nano) = (run.clone(), a.u("TemplateID"));
+            crate::dash::leap(caster, run.caster.pos.clone(), point, facing, a.f("Distance").unwrap_or(10.0), move |at| {
+                if let Some(nano) = nano {
+                    cast_nano(&run, nano, Target { id: Some(run.caster.id), pos: at }, depth + 1);
+                }
+            });
         }
         "OverrideShortcut" => {
             // buff `spell` puts TemplateID2 on the shortcut showing TemplateID while it is on
@@ -641,9 +739,11 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
     }
     let Some(n) = SPELLS.get(&nano) else { return };
     let caster = run.caster.id;
+    // a self-cast nano (TargetingMode 8: the Lifeguard's whirlpool buff) goes on the caster
+    let target = if n.stats.targeting_mode == Some(TARGETING_SELF) && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
     let on_caster = target.id == Some(caster);
     // (a shortcut override is what a buff does, not a hit)
-    let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client && a.kind != "OverrideShortcut"));
+    let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.on_server() && a.kind != "OverrideShortcut"));
     let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
     if !is_buff
         && own_effect
@@ -656,8 +756,11 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
         && is_buff
     {
         // a buff without TimeExist lasts until the channel's end list removes it, or on a plain
-        // press (a combo buff) for the combo window
-        show(run, effects::show_buff(id, nano, caster, buff_duration(run, n)));
+        // press (a combo buff) for the combo window; a channel tick re-casting a buff still on
+        // only renews it (adding it again restarts its animation: the Barbarian's spin)
+        let duration = buff_duration(run, n);
+        let refreshed = duration.filter(|_| !run.length.is_zero()).and_then(|d| effects::refresh_buff(id, nano, caster, d));
+        show(run, refreshed.unwrap_or_else(|| effects::show_buff(id, nano, caster, duration)));
         let mitigation: f32 = n
             .lists
             .get(ON_USE)
@@ -691,6 +794,136 @@ fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: 
             tokio::time::sleep(pulse).await;
         }
     });
+}
+
+/// One pulse of a CoreFilteredAreaFormula around `center`: the enemies in the shape (nearest
+/// first, at most Max1) get its nano.
+fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], depth: u32) {
+    let caster = run.caster.id;
+    let radius = a.f("Radius").unwrap_or(2.0);
+    let min = a.f("Min").unwrap_or(0.0);
+    let angle = a.f("Angle").unwrap_or(360.0);
+    let from = a.f("AngleStart").unwrap_or(-angle / 2.0);
+    let facing = *run.caster.facing.lock().unwrap();
+    let mut hits = crate::npc::targets_where(run.caster.playfield, |p| {
+        let d = distance(p, center);
+        d <= radius && d >= min && (angle >= 360.0 || in_sector(center, facing, p, from, angle))
+    });
+    hits.sort_by(|(_, x), (_, y)| distance(*x, center).total_cmp(&distance(*y, center)));
+    if let Some(max) = a.u("Max1").filter(|m| *m > 0) {
+        hits.truncate(max as usize);
+    }
+    if let Some(nano) = a.u("NanoTemplate") {
+        // the client plays the nano's effect on every hit and at the centre
+        let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
+        show(run, vec![area_formula_record(caster, &ids, nano, center)]);
+        for (id, pos) in hits {
+            cast_nano_shown(run, nano, Target { id: Some(id), pos }, depth + 1, false);
+        }
+    }
+}
+
+/// A Projectile action of `spell`: the server shoots its item from the caster, towards `target`
+/// (an enemy, a ground point, or along the facing when it is the caster), turned by RotY degrees
+/// and started DisplaceMentX/Z centimetres to the side/ahead (a fan of shots, the Body Guard's
+/// row). An unturned shot at an enemy is aimed at it. What it hits, or where a lobbed one lands,
+/// gets the item's actions.
+fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u32) {
+    let Some(item) = a.u("ItemInstance") else { return };
+    let caster = run.caster.id;
+    let from = here(run);
+    let facing = *run.caster.facing.lock().unwrap();
+    let at_self = target.id == Some(caster);
+    let (dx, dz) = (target.pos[0] - from[0], target.pos[2] - from[2]);
+    let d = dx.hypot(dz);
+    let base = if at_self || d < 0.01 { facing } else { [dx / d, dz / d] };
+    let turn = a.f("RotY").unwrap_or(0.0);
+    let dir = rotate(base, turn);
+    let (side, ahead) = (a.f("DisplaceMentX").unwrap_or(0.0) / 100.0, a.f("DisplaceMentZ").unwrap_or(0.0) / 100.0);
+    let start = [from[0] + dir[1] * side + dir[0] * ahead, from[1], from[2] - dir[0] * side + dir[1] * ahead];
+    let reach = if at_self { 0.5 } else { d.max(0.5) };
+    let towards = [start[0] + dir[0] * reach, if at_self { from[1] } else { target.pos[1] }, start[2] + dir[1] * reach];
+    let aimed = target.id.filter(|t| *t != caster && turn == 0.0 && crate::npc::is_npc(*t));
+    face_shot(run, from, base);
+    let shot = crate::projectile::Shot {
+        item,
+        move_type: a.u("ProjectileType").unwrap_or(1),
+        speed: a.f("Speed").unwrap_or(1000.0) / 100.0,
+        attractor: a.u("AttractorID").unwrap_or(0),
+        ricochets: a.u("MaxRicochets").unwrap_or(0),
+        range: a.f("AttackRange").map_or(0.0, |r| r / 100.0),
+        min_range: a.f("MinimumAttackRange").map_or(0.0, |r| r / 100.0),
+    };
+    let on_hit: crate::projectile::OnHit = {
+        let run = run.clone();
+        Arc::new(move |hit, pos| impact(&run, spell, item, Target { id: hit, pos }, depth))
+    };
+    crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, aimed, on_hit);
+}
+
+/// Turns the caster towards a shot's direction `dir` when it stands still (hasn't moved since its
+/// last shot or the press): the client turns only to a command's target character, so shots at
+/// an auto-aimed point (the R key) or at the next enemy (Wild Ride) would leave it facing away.
+/// A walking caster keeps its own facing (the turn record would stop it).
+fn face_shot(run: &Run, at: [f32; 3], dir: [f32; 2]) {
+    let standing = {
+        let mut last = run.shot_from.lock().unwrap();
+        let standing = last.is_none_or(|p| distance(p, at) < STANDING_STILL);
+        *last = Some(at);
+        standing
+    };
+    let mut facing = run.caster.facing.lock().unwrap();
+    if !standing || facing[0] * dir[0] + facing[1] * dir[1] > FACING_ALREADY {
+        return;
+    }
+    *facing = dir;
+    drop(facing);
+    show(run, vec![crate::dash::stop_record(run.caster.id, at, dir)]);
+}
+
+/// A projectile item's actions where it hit or landed.
+fn impact(run: &Arc<Run>, spell: u32, item: u32, target: Target, depth: u32) {
+    let Some(i) = ITEMS.get(&item) else { return };
+    for a in i.actions.iter().filter(|a| a.on_server() && criteria_met(run, a)) {
+        act(run, spell, a, target, depth + 1);
+    }
+}
+
+/// A Chain: `nano` on `first`, then up to `jumps` times on the nearest enemy within `radius` of
+/// the last one that it hasn't hit yet, `delay` apart. Each hit is shown with `ChainSpellIIR_t`
+/// cast from the previous one (from the caster for the first).
+fn chain(run: &Arc<Run>, nano: u32, first: Id32, jumps: u32, radius: f32, delay: Duration, depth: u32) {
+    let run = run.clone();
+    tokio::spawn(async move {
+        let caster = run.caster.id;
+        let (mut last, mut next) = (caster, Some(first));
+        let mut hit = Vec::new();
+        while let Some(to) = next {
+            let Some(pos) = crate::npc::position(to) else { break };
+            show(&run, vec![effects::chain_jump(to, last, nano)]);
+            cast_nano_shown(&run, nano, Target { id: Some(to), pos }, depth + 1, false);
+            hit.push(to);
+            if hit.len() > jumps as usize {
+                break;
+            }
+            next = crate::npc::targets_where(run.caster.playfield, |p| distance(p, pos) <= radius)
+                .into_iter()
+                .filter(|(id, _)| !hit.contains(id))
+                .min_by(|(_, x), (_, y)| distance(*x, pos).total_cmp(&distance(*y, pos)))
+                .map(|(id, _)| id);
+            last = to;
+            if next.is_some() {
+                tokio::time::sleep(delay).await;
+            }
+        }
+        debug!(?caster, nano, hits = hit.len(), "chain");
+    });
+}
+
+/// `dir` turned by `degrees` (positive: clockwise seen from above, as RotY).
+fn rotate(dir: [f32; 2], degrees: f32) -> [f32; 2] {
+    let (s, c) = degrees.to_radians().sin_cos();
+    [dir[0] * c + dir[1] * s, -dir[0] * s + dir[1] * c]
 }
 
 /// How long buff `n` is shown (`None`: until a RemoveBuff). A buff without TimeExist lasts
@@ -769,6 +1002,30 @@ mod tests {
         // combo buff swaps only the normal attack: combo window
         assert!(swaps_special(41_894, &SPELLS[&358_710]));
         assert!(!swaps_special(317_609, &SPELLS[&317_746]));
+    }
+
+    #[test]
+    fn shooting_abilities_run_here() {
+        // channels that shoot every tick (were taken for charges)
+        for spell in [195_930, 550_766, 596_792, 596_851, 663_939, 596_820] {
+            assert!(is_channel(spell), "{spell}");
+            assert!(crate::projectile::params(spell).is_none_or(|p| p.charge_items.is_empty()), "{spell}");
+        }
+        // shots, lobbed bombs, the Wizard's chain and the Skydiver's Blink reach their hits
+        for spell in [15_351, 15_352, 576_069, 500_489, 301_766, 500_472, 33_017] {
+            assert!(is_ability(spell), "{spell}");
+        }
+        assert!(ITEMS.contains_key(&94_115) && ITEMS.contains_key(&234_947));
+        // real charges stay charges
+        assert!(crate::projectile::params(31_414).is_some_and(|p| p.charge_items.len() == 4));
+    }
+
+    #[test]
+    fn rotations() {
+        let r = rotate([0.0, 1.0], 90.0);
+        assert!((r[0] - 1.0).abs() < 1e-5 && r[1].abs() < 1e-5, "{r:?}");
+        let back = rotate(r, -90.0);
+        assert!(back[0].abs() < 1e-5 && (back[1] - 1.0).abs() < 1e-5);
     }
 
     #[test]

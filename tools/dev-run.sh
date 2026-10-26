@@ -27,7 +27,7 @@ if [[ -n ${LMOXIDE_SIDE_PORTS:-} ]]; then
   HTTP=${S}8080
   SERVER_PORTS=(--universe-port ${S}7100 --territory-port ${S}7101 --game-port ${S}7102 --chat-port ${S}7200 --control-bind 127.0.0.1:${S}7300)
   PATCH_PORTS=(--http-port ${S}8080 --universe-port ${S}7100)
-  PATCH_DATA=$VAR/patch-data-side$([[ $S == 2 ]] && echo 2)
+  PATCH_DATA=$VAR/patch-data-side$([[ $S == 2 ]] && echo 2 || true)
 fi
 
 # the test client only: the native Linux client is also "LMO" and may be the user's own

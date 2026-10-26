@@ -12,9 +12,14 @@ itself (it runs those of its own spells); the rest are server-only. Criteria: (0
 = the caster has that upgrade ability, (buff, n, 166) = the buff's counter is n.
 
 Spells covered: minifigure normal/special attacks and their combo steps (the hits' `via` in
-data/minifigure_stats.json) that aren't charge projectiles (data/projectiles.json), plus every
+data/minifigure_stats.json) and the upgrade abilities that replace an attack on its shortcut
+(data/minifigure_abilities.json slot 104/105) that aren't charge projectiles (data/projectiles.json), plus every
 spell they reach through CastNano,
-NanoTemplate or RemoveBuff/AddBuffCounter. The spells an OverrideShortcut puts on a shortcut
+NanoTemplate, RemoveBuff/AddBuffCounter or the TemplateID of Blink and Chain.
+
+  items: projectile item -> {name, actions: [{type, client, args}]}: what the items the spells'
+         Projectile actions shoot do where they hit or land (RDB 1000620; usually CastNano of a
+         hit nano, a ground effect for bombs). Their nanos are covered too. The spells an OverrideShortcut puts on a shortcut
 (TemplateID2: combo steps, mode switches) count as the minifigure's abilities too.  Usage: tools/re/py extract_spell_actions.py"""
 import json, os
 
@@ -73,7 +78,36 @@ for m in minifigs.values():
             if record(s) and not charge(s):
                 roots[s] = f"{m['name']}: {a['name']}"
 
-out = {}
+def item_record(item):
+    try:
+        d = it.dump(item, idx)
+    except (KeyError, FileNotFoundError):
+        return None
+    return {"name": d["name"], "actions": [{"type": a["type"], "client": a["client"], "args": short(a["args"])} for a in d["actions"]]}
+
+
+def follow(a):
+    """The spells an action reaches."""
+    out = []
+    for k in ("Value", "NanoTemplate", "TemplateID"):
+        v = a["args"].get(k)
+        if a["type"] == "SetSpellRecastTime" or not isinstance(v, int):
+            continue
+        if (v > 1000 and a["type"] in ("CastNano", "RemoveBuff", "AddBuffCounter", "Blink", "Chain")) or k == "NanoTemplate":
+            out.append(v)
+    return out
+
+
+# upgrade abilities that take an attack's shortcut (slot 104 normal, 105 special: Lizard Man's
+# MOAR RAWR replaces RAWR)
+abilities = json.load(open(os.path.join(ROOT, "data/minifigure_abilities.json")))
+for template, rows in abilities.items():
+    m = minifigs.get(template, {})
+    for _bit, spell, slot in rows:
+        if slot and spell not in roots and not charge(spell) and (r := record(spell)):
+            roots[spell] = f"{m.get('name')}: {r['name']}"
+
+out, items = {}, {}
 todo = list(roots)
 owner = dict(roots)
 while todo:
@@ -93,19 +127,26 @@ while todo:
                 roots[v] = owner.get(s, "")
                 owner[v] = roots[v]
                 todo.append(v)
-            for k in ("Value", "NanoTemplate", "TemplateID"):
-                v = a["args"].get(k)
-                if isinstance(v, int) and v > 1000 and a["type"] in ("CastNano", "RemoveBuff", "AddBuffCounter") or (
-                    k == "NanoTemplate" and isinstance(v, int)
-                ):
-                    if a["type"] == "SetSpellRecastTime":
-                        continue
-                    owner.setdefault(v, owner.get(s, ""))
-                    todo.append(v)
+            for v in follow(a):
+                owner.setdefault(v, owner.get(s, ""))
+                todo.append(v)
+            item = a["args"].get("ItemInstance")
+            if a["type"] == "Projectile" and isinstance(item, int) and str(item) not in items:
+                irec = item_record(item)
+                if irec:
+                    items[str(item)] = irec
+                    for ia in irec["actions"]:
+                        for v in follow(ia):
+                            owner.setdefault(v, owner.get(s, ""))
+                            todo.append(v)
 
-out = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), **{k: out[k] for k in sorted(out, key=int)}}
+out = {
+    "_comment": __doc__.split("\n\n")[0].replace("\n", " "),
+    **{k: out[k] for k in sorted(out, key=int)},
+    "items": dict(sorted(items.items(), key=lambda kv: int(kv[0]))),
+}
 path = os.path.join(ROOT, "data/spell_actions.json")
 json.dump(out, open(path, "w"), indent=1)
-print(f"{len(roots)} abilities and combo steps, {len(out) - 1} spells -> {path}")
+print(f"{len(roots)} abilities and combo steps, {len(out) - 2} spells, {len(items)} projectile items -> {path}")
 for s, who in sorted(roots.items(), key=lambda x: x[1]):
     print(f"  {s} {who}")

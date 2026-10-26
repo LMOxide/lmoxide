@@ -126,10 +126,10 @@ const CRITERIA_BUFF_COUNTER: u32 = 166;
 /// A buff without TimeExist on a character: as long as the original server showed Captain
 /// Dreadleg's "spin tired" stun (MagicBuffIIR_c duration 300 cs, recorded).
 const DEFAULT_BUFF: Duration = Duration::from_secs(3);
-/// Ground zones: lifetime when Arg1 (tenths of a second) is missing, and their pulse (as
-/// actions.rs).
-const GROUND_DEFAULT_LIFETIME: Duration = Duration::from_secs(3);
-const GROUND_PULSE: Duration = Duration::from_secs(1);
+/// Ground zones (Arg1 the pulse interval in centiseconds, Arg2 the number of pulses, as
+/// actions.rs): the interval when Arg1 is missing, the shortest visual.
+const GROUND_DEFAULT_PULSE_CS: f32 = 100.0;
+const GROUND_MIN_VISUAL: Duration = Duration::from_secs(1);
 /// Range of a projectile without AttackRange.
 const DEFAULT_PROJECTILE_RANGE: f32 = 15.0;
 /// How close to a straight shot's line a player is hit.
@@ -399,7 +399,10 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             }
         }
         "CorePersistentGroundEffect" => {
-            let lifetime = a.u("Arg1").map_or(GROUND_DEFAULT_LIFETIME, |t| Duration::from_millis(100 * t as u64));
+            let pulse = cs(a.f("Arg1").unwrap_or(GROUND_DEFAULT_PULSE_CS).max(1.0));
+            let pulses = a.u("Arg2").unwrap_or(1).max(1);
+            let delay = cs(a.f("DelayTime").unwrap_or(0.0));
+            let lifetime = (delay + pulse * pulses).max(GROUND_MIN_VISUAL);
             if let Some(package) = a.u("EffectPackage") {
                 let instance = effects::new_instance();
                 show(run, vec![effects::ground_effect(caster, package, who.pos, id, instance)]);
@@ -410,8 +413,7 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 });
             }
             if let Some(nano) = a.u("NanoTemplate") {
-                let delay = cs(a.f("DelayTime").unwrap_or(0.0));
-                ground_zone(run, nano, who.pos, delay, GROUND_PULSE, lifetime, depth);
+                ground_zone(run, nano, who.pos, delay, pulse, pulse * pulses, depth);
             }
         }
         "PlaceTrap" => {

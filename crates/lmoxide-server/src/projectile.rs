@@ -6,8 +6,10 @@
 //! parameters (data/projectiles.json, tools/re/extract_projectiles.py). Every client then moves
 //! it and plays its effects; the caster's client reports what it hit with `CoreProjectileIIR`
 //! (u32 action, ID32 projectile, then 1 HitTarget: ID32 target + position; 2 HitPosition: two
-//! positions; 6 DestroyOnPosition: position), and the server applies the damage and removes the
-//! dynel (clients never remove it themselves).
+//! positions; 6 DestroyOnPosition: position), and the server applies the damage (or runs the
+//! projectile item's actions there, `launch_shot`) and removes the dynel (clients never remove it
+//! themselves). Ballistic (lobbed) shots land on the point they were thrown at and act there once,
+//! at the first report or, failing one, when their flight is over.
 
 use std::{
     collections::{HashMap, HashSet},
@@ -74,13 +76,40 @@ impl Params {
 static PARAMS: LazyLock<HashMap<String, Params>> =
     LazyLock::new(|| serde_json::from_str(include_str!("../../../data/projectiles.json")).expect("projectiles.json"));
 
+/// What a projectile does to what it hits: plain damage, or a callback with the target hit (if
+/// any) and the position (the projectile item's actions, actions.rs).
+pub type OnHit = std::sync::Arc<dyn Fn(Option<Id32>, [f32; 3]) + Send + Sync>;
+
+enum Effect {
+    Damage(u32),
+    Run(OnHit),
+}
+
 struct Live {
     caster: Id32,
     spell: u32,
-    damage: u32,
+    effect: Effect,
     piercing: bool,
+    /// Lobbed: acts once where it lands (`end`).
+    ballistic: bool,
+    end: [f32; 3],
     hit: HashSet<Id32>,
 }
+
+/// One shot of a Projectile game action (actions.rs): its item, ProjectileType (1 straight, 2
+/// ballistic), Speed (m/s), AttractorID, MaxRicochets, AttackRange and MinimumAttackRange (m,
+/// 0: none / the default range).
+pub struct Shot {
+    pub item: u32,
+    pub move_type: u32,
+    pub speed: f32,
+    pub attractor: u32,
+    pub ricochets: u32,
+    pub range: f32,
+    pub min_range: f32,
+}
+
+const BALLISTIC: u32 = 2;
 
 static LIVE: LazyLock<Mutex<HashMap<Id32, Live>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static NEXT: AtomicU32 = AtomicU32::new(1);
@@ -105,25 +134,62 @@ pub fn launch(
     damage: u32,
 ) {
     let Some(base) = params(spell) else { return };
-    let p = &Params { item: item.unwrap_or(base.item), ..base.clone() };
+    let p = Params { item: item.unwrap_or(base.item), ..base.clone() };
+    send(caster, playfield, spell, p, 0.0, from, towards, target, Effect::Damage(damage));
+}
+
+/// `caster` shoots `shot` (a Projectile action of `spell`) from `from` towards `towards`, at
+/// `target` when it has one; `on_hit` runs for what it hits (straight shots) or where it lands
+/// (ballistic ones).
+#[allow(clippy::too_many_arguments)]
+pub fn launch_shot(caster: Id32, playfield: u32, spell: u32, shot: &Shot, from: [f32; 3], towards: [f32; 3], target: Option<Id32>, on_hit: OnHit) {
+    let p = Params {
+        item: shot.item,
+        move_type: shot.move_type,
+        speed: shot.speed,
+        attractor: shot.attractor,
+        offset_z: 0.0,
+        ricochets: shot.ricochets,
+        range: shot.range,
+        charge_items: vec![],
+        channel_interval: 0.0,
+        channel_buff: None,
+        counter_buff: None,
+    };
+    send(caster, playfield, spell, p, shot.min_range, from, towards, target, Effect::Run(on_hit));
+}
+
+#[allow(clippy::too_many_arguments)]
+fn send(caster: Id32, playfield: u32, spell: u32, p: Params, min_range: f32, from: [f32; 3], towards: [f32; 3], target: Option<Id32>, effect: Effect) {
     let id = Id32::new(PROJECTILE_TYPE, NEXT.fetch_add(1, Ordering::Relaxed));
     let range = if p.range > 0.0 { p.range } else { DEFAULT_RANGE };
-    // aim at full range along the direction
     let (dx, dz) = (towards[0] - from[0], towards[2] - from[2]);
     let len = (dx * dx + dz * dz).sqrt().max(0.001);
-    let end = [from[0] + dx / len * range, towards[1], from[2] + dz / len * range];
+    let ballistic = p.move_type == BALLISTIC;
+    // a straight shot flies its full range along the direction; a lobbed one lands on the point
+    // it was thrown at (between its minimum range and its range)
+    let reach = if ballistic { len.clamp(min_range.min(range), range) } else { range };
+    let end = [from[0] + dx / len * reach, towards[1], from[2] + dz / len * reach];
     let start = [from[0], from[1] + 1.0, from[2]];
-    let records = vec![create_game_object(id, playfield, start), full_update(id, p, caster, target, spell, start, end, playfield)];
-    LIVE.lock().unwrap().insert(id, Live { caster, spell, damage, piercing: p.speed < PIERCING_BELOW_SPEED, hit: HashSet::new() });
-    info!(?caster, spell, item = p.item, "projectile");
+    let records = vec![create_game_object(id, playfield, start), full_update(id, &p, caster, target, spell, start, end, playfield)];
+    let piercing = p.speed < PIERCING_BELOW_SPEED;
+    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, hit: HashSet::new() });
+    info!(?caster, spell, item = p.item, ballistic, "projectile");
     world::send_playfield(caster, true, world::Out::Records(records));
-    // fallback removal once it has flown its range
-    let lifetime = Duration::from_secs_f32(range / p.speed.max(0.1) + 2.0);
+    // fallback removal once it has flown its range (a lobbed shot lands then)
+    let lifetime = if ballistic {
+        Duration::from_secs_f32(reach / p.speed.max(0.1) + LANDING_GRACE)
+    } else {
+        Duration::from_secs_f32(range / p.speed.max(0.1) + 2.0)
+    };
     tokio::spawn(async move {
         tokio::time::sleep(lifetime).await;
-        remove(id, Duration::ZERO);
+        land(id, None, None);
     });
 }
+
+/// A lobbed shot that no report ended by then lands at its end point.
+const LANDING_GRACE: f32 = 0.3;
 
 /// A purely visual projectile (e.g. a pet's shot; the damage is dealt separately): flies from
 /// `from` to `to` and is removed when it arrives.
@@ -234,22 +300,62 @@ pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
         1 => {
             let (Some(tk), Some(ti)) = (u(12), u(16)) else { return };
             let target = Id32::new(tk, ti);
+            let at = [20, 24, 28].map(|i| rest.get(i..i + 4).map_or(0.0, |b| f32::from_be_bytes(b.try_into().unwrap())));
             let hit = {
                 let mut live = LIVE.lock().unwrap();
                 let Some(l) = live.get_mut(&id) else { return };
-                (l.caster == from && l.hit.insert(target)).then_some((l.spell, l.damage, l.piercing))
-            };
-            if let Some((spell, damage, piercing)) = hit {
-                crate::npc::hit(from, target, spell, damage);
-                if !piercing {
-                    remove(id, Duration::from_millis(300));
+                if l.caster != from {
+                    return;
                 }
+                if l.ballistic {
+                    None
+                } else {
+                    l.hit.insert(target).then(|| (l.spell, l.piercing, match &l.effect {
+                        Effect::Damage(d) => Effect::Damage(*d),
+                        Effect::Run(f) => Effect::Run(f.clone()),
+                    }))
+                }
+            };
+            match hit {
+                Some((spell, piercing, effect)) => {
+                    match effect {
+                        Effect::Damage(damage) => {
+                            crate::npc::hit(from, target, spell, damage);
+                        }
+                        Effect::Run(f) => f(Some(target), crate::npc::position(target).unwrap_or(at)),
+                    }
+                    if !piercing {
+                        remove(id, Duration::from_millis(300));
+                    }
+                }
+                // a lobbed shot that came down on someone
+                None => land(id, Some(target), Some(crate::npc::position(target).unwrap_or(at))),
             }
         }
-        // HitPosition / DestroyOnPosition: the flight is over
-        2 | 6 => remove(id, Duration::from_secs(1)),
+        // HitPosition / DestroyOnPosition: the flight is over (a lobbed shot acts there)
+        2 | 6 => {
+            let at = [12, 16, 20].map(|i| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap())));
+            let at = (at.iter().all(Option::is_some)).then(|| at.map(Option::unwrap_or_default));
+            land(id, None, at);
+        }
         _ => {}
     }
+}
+
+/// The flight of `id` is over: a lobbed shot with actions runs them where it came down (`at`, or
+/// its end point), on `target` if it hit one; then it is removed.
+fn land(id: Id32, target: Option<Id32>, at: Option<[f32; 3]>) {
+    let Some(l) = LIVE.lock().unwrap().remove(&id) else { return };
+    if l.ballistic
+        && let Effect::Run(f) = &l.effect
+    {
+        f(target, at.unwrap_or(l.end));
+    }
+    let delay = if l.ballistic || at.is_some() { Duration::from_secs(1) } else { Duration::ZERO };
+    tokio::spawn(async move {
+        tokio::time::sleep(delay).await;
+        world::send_playfield(l.caster, true, world::Out::Records(vec![despawn_record(id)]));
+    });
 }
 
 /// Removes a projectile for everyone (after `delay`, so its destroy effect can play).

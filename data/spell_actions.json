@@ -86,6 +86,58 @@
   },
   "minifigure": "Tennis Ace: Racket Swing"
  },
+ "1572": {
+  "name": "Throw Record",
+  "stats": {
+   "TargetingMode": 6,
+   "RechargeDelay": 16,
+   "ItemDelay": 36,
+   "EffectPackage": 1748
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 50547,
+      "ApplyOn": 3,
+      "Speed": 1700,
+      "ProjectileType": 1,
+      "MaxRicochets": 1,
+      "MaxChains": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 50547,
+      "ApplyOn": 3,
+      "Speed": 2200,
+      "ProjectileType": 1,
+      "MaxRicochets": 3,
+      "MaxChains": 3
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "None: Throw Record"
+ },
  "1573": {
   "name": "Bass Drop",
   "stats": {
@@ -160,6 +212,27 @@
       "Value": 1,
       "DamageType": 1000,
       "AbilityMod": 0.4000000059604645
+     }
+    }
+   ]
+  }
+ },
+ "3996": {
+  "name": "XX_main aztec2 damage",
+  "stats": {
+   "EffectPackage": 4180
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AttackLength": 1.0,
+      "AbilityMod": 1.0
      }
     }
    ]
@@ -494,6 +567,129 @@
    ]
   },
   "minifigure": "Grandma Visitor: Big Bad Wolf"
+ },
+ "16066": {
+  "name": "Snake Wave",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 34,
+   "EffectPackage": 18639
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 212520,
+      "ApplyOn": 3,
+      "Speed": 900,
+      "RotY": -22,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 212520,
+      "ApplyOn": 3,
+      "Speed": 900,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 212520,
+      "ApplyOn": 3,
+      "Speed": 900,
+      "RotY": 22,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 212520,
+      "ApplyOn": 3,
+      "Speed": 1300,
+      "RotY": 22,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 212520,
+      "ApplyOn": 3,
+      "Speed": 1300,
+      "RotY": -22,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 212520,
+      "ApplyOn": 3,
+      "Speed": 1300,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Medusa: Snake Wave"
  },
  "16079": {
   "name": "Petrifying Gaze",
@@ -863,6 +1059,28 @@
    ]
   }
  },
+ "20173": {
+  "name": "XX_Aimed Shot",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636837
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1002,
+      "AttackLength": 1.0,
+      "AbilityMod": 0.949999988079071
+     }
+    }
+   ]
+  }
+ },
  "20344": {
   "name": "XX_Summon Pixie Friends",
   "stats": {
@@ -983,6 +1201,26 @@
   },
   "minifigure": "Chicken Suit Guy: Bawk Bawk Baaaa!"
  },
+ "32423": {
+  "name": "XX_main chicken2 damage",
+  "stats": {
+   "EffectPackage": 274316
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 2.5
+     }
+    }
+   ]
+  }
+ },
  "32463": {
   "name": "XX_Psychlops",
   "stats": {
@@ -1030,6 +1268,233 @@
    ]
   },
   "minifigure": "Cyclops: Psychlops"
+ },
+ "33016": {
+  "name": "XX_Triple Shot",
+  "stats": {
+   "EffectPackage": 4180
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "33017": {
+  "name": "Triple Shot",
+  "stats": {
+   "RechargeDelay": 30,
+   "ItemDelay": 25,
+   "EffectPackage": 52111
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38943,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "AttractorID": 1,
+      "RotY": -7,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38943,
+      "ApplyOn": 3,
+      "Speed": 850,
+      "AttractorID": 1,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38943,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "AttractorID": 1,
+      "RotY": 7,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38943,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "AttractorID": 1,
+      "RotY": -7,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38943,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "AttractorID": 1,
+      "RotY": 7,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38943,
+      "ApplyOn": 3,
+      "Speed": 1200,
+      "AttractorID": 1,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Forest Maiden: Triple Shot"
+ },
+ "33022": {
+  "name": "Rope Arrow",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 301718
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 293211,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "ProjectileType": 2
+     },
+     "criteria": [
+      [
+       0,
+       441813,
+       101
+      ],
+      [
+       0,
+       459325,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 462796,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "ProjectileType": 2
+     },
+     "criteria": [
+      [
+       0,
+       441813,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 464673,
+      "ApplyOn": 3,
+      "Speed": 1200,
+      "ProjectileType": 2
+     },
+     "criteria": [
+      [
+       0,
+       459325,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 500,
+      "NanoTemplate": 33022
+     }
+    }
+   ]
+  },
+  "minifigure": "Forest Maiden: Rope Arrow"
  },
  "33393": {
   "name": "Sword and Shield",
@@ -1152,6 +1617,120 @@
   },
   "minifigure": "Heroic Knight: Shield Stance"
  },
+ "33667": {
+  "name": "Tarot Fling Tower",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 36,
+   "EffectPackage": 49223
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 40499,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       238244,
+       763,
+       202
+      ],
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 204252,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       238244,
+       764,
+       202
+      ],
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "Interval": 10,
+      "ApplyOn": 1,
+      "Value": 1,
+      "TemplateID": 238244
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 40499,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       238244,
+       763,
+       202
+      ],
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 204252,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       238244,
+       764,
+       202
+      ],
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Fortune Teller: Tarot Fling Tower"
+ },
  "34076": {
   "name": "Wheel of Fortune",
   "stats": {
@@ -1262,6 +1841,85 @@
    ]
   },
   "minifigure": "Judge: The Weight of the Law"
+ },
+ "34532": {
+  "name": "Starfish",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 34,
+   "EffectPackage": 50856
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38981,
+      "ApplyOn": 3,
+      "Speed": 900,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 38981,
+      "ApplyOn": 3,
+      "Speed": 1150,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Mermaid: Starfish"
+ },
+ "34533": {
+  "name": "XX_Starfish",
+  "stats": {
+   "TimeExist": 100,
+   "EffectPackage": 636911
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AttackLength": 1.0,
+      "AbilityMod": 1.0
+     }
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.75
+     }
+    }
+   ]
+  }
  },
  "34534": {
   "name": "Tidal Wave",
@@ -1999,6 +2657,27 @@
   },
   "minifigure": "Plumber: Plunge"
  },
+ "36055": {
+  "name": "XX_main plumber1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 50419
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.8999999761581421
+     }
+    }
+   ]
+  }
+ },
  "36203": {
   "name": "Unclog",
   "stats": {
@@ -2178,6 +2857,27 @@
   },
   "minifigure": "Policeman: Halt!"
  },
+ "36518": {
+  "name": "XX_Dictum",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636943
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "36519": {
   "name": "Dictum",
   "stats": {
@@ -2200,6 +2900,240 @@
    ]
   },
   "minifigure": "Roman Emperor: Dictum"
+ },
+ "36526": {
+  "name": "Body Guard",
+  "stats": {
+   "TargetingMode": 8,
+   "EffectPackage": 344543
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 350,
+      "NanoTemplate": 36526
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": 65,
+      "DisplaceMentZ": -50,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": -65,
+      "DisplaceMentZ": -50,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": -200,
+      "DisplaceMentZ": -100,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": 200,
+      "DisplaceMentZ": -100,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentZ": -50,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": 135,
+      "DisplaceMentZ": -100,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": -135,
+      "DisplaceMentZ": -100,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": -270,
+      "DisplaceMentZ": -150,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 344478,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "DisplaceMentX": 270,
+      "DisplaceMentZ": -150,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Roman Emperor: Body Guard"
+ },
+ "36527": {
+  "name": "Body Guard",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "ColumnFormula",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 3,
+      "NanoTemplate": 36528,
+      "NPCSelectMode": 3,
+      "Distance": 2
+     }
+    }
+   ]
+  },
+  "minifigure": "Roman Emperor: Body Guard"
+ },
+ "36528": {
+  "name": "Body Guard",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AttackLength": 1.0,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
  },
  "36529": {
   "name": "XX_Tray Slap",
@@ -2459,6 +3393,27 @@
   },
   "minifigure": "Roller Derby Girl: The Whip"
  },
+ "38124": {
+  "name": "XX_main spaceorc1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636862
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "38125": {
   "name": "Blaster Shot",
   "stats": {
@@ -2668,6 +3623,376 @@
    ]
   },
   "minifigure": "Hollywood Starlet: Walk of Fame"
+ },
+ "41897": {
+  "name": "Walling Up",
+  "stats": {
+   "RechargeDelay": 50,
+   "EffectPackage": 80097
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": 65,
+      "DisplaceMentZ": -300,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": -65,
+      "DisplaceMentZ": -300,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": -200,
+      "DisplaceMentZ": -400,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": 200,
+      "DisplaceMentZ": -400,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 500,
+      "NanoTemplate": 41897
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentZ": -300,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": 135,
+      "DisplaceMentZ": -350,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": -135,
+      "DisplaceMentZ": -350,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": 270,
+      "DisplaceMentZ": -450,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 42070,
+      "ApplyOn": 3,
+      "Speed": 1500,
+      "DisplaceMentX": -270,
+      "DisplaceMentZ": -450,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       421182,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Roller Derby Girl: Walling Up"
+ },
+ "42071": {
+  "name": "XX_Walling Up",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636941
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1004,
+      "AttackLength": 1.0,
+      "AbilityMod": 0.5
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       0,
+       116254,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 57655
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 55748
+     },
+     "criteria": [
+      [
+       0,
+       445653,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 445629
+     },
+     "criteria": [
+      [
+       0,
+       445653,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 116254
+     }
+    }
+   ]
+  }
+ },
+ "55748": {
+  "name": "XX_Push",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 20,
+      "Arg1": 1,
+      "PowerRating": 9001,
+      "Distance": 3
+     }
+    },
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 805,
+      "ApplyOn": 1,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    }
+   ]
+  }
+ },
+ "57655": {
+  "name": "XX_2s Stun",
+  "stats": {
+   "TimeExist": 200,
+   "TargetingMode": 5,
+   "EffectPackage": 57720
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 804,
+      "ApplyOn": 3,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    },
+    {
+     "type": "Stun",
+     "client": true,
+     "args": {
+      "ApplyOn": 3
+     }
+    }
+   ]
+  }
+ },
+ "60604": {
+  "name": "XX_Throw Record",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636855
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1002,
+      "AttackLength": 1.0,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
  },
  "60914": {
   "name": "Laser Eye",
@@ -2946,6 +4271,14 @@
   },
   "minifigure": "Plumber: Unclog"
  },
+ "116254": {
+  "name": "XX_1 sec blocker",
+  "stats": {
+   "TimeExist": 100,
+   "TargetingMode": 5
+  },
+  "lists": {}
+ },
  "139708": {
   "name": "XX_Scratch Spin",
   "stats": {
@@ -3029,6 +4362,54 @@
    ]
   },
   "minifigure": "Bumblebee Girl: Plan Bee"
+ },
+ "195930": {
+  "name": "Squad",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 50,
+   "ItemDelay": 100,
+   "ChannelingInterval": 100,
+   "EffectPackage": 209025,
+   "ChannelingTicks": 9
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 234947,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "33": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 234947,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "NanoTemplate": 195930
+     }
+    }
+   ]
+  },
+  "minifigure": "Revolutionary Soldier: Squad"
  },
  "196044": {
   "name": "Musket Shot",
@@ -3262,6 +4643,92 @@
    ]
   }
  },
+ "204254": {
+  "name": "XX_Tarot Fling Tower",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636900
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Chain",
+     "client": false,
+     "args": {
+      "Radius": 5,
+      "ApplyOn": 3,
+      "Value": 4,
+      "TemplateID": 204256,
+      "DelayTime": 100,
+      "Distance": 5
+     }
+    }
+   ]
+  },
+  "minifigure": "Fortune Teller: Tarot Fling Tower"
+ },
+ "204255": {
+  "name": "XX_Tarot Fling Towers",
+  "stats": {
+   "EffectPackage": 238988
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "Duration": -1,
+      "Interval": 50,
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6499999761581421
+     }
+    }
+   ]
+  }
+ },
+ "204256": {
+  "name": "XX_Tarot Fling Tower",
+  "stats": {
+   "EffectPackage": 238416
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6499999761581421
+     }
+    }
+   ]
+  }
+ },
+ "204516": {
+  "name": "XX_Paint Shot",
+  "stats": {
+   "EffectPackage": 206029
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "204635": {
   "name": "XX_main paintball2 untargetable",
   "stats": {},
@@ -3355,6 +4822,27 @@
       "Stat": 3000012,
       "ApplyOn": 1,
       "FloatValue1": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "206907": {
+  "name": "XX_Musket Shot",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637030
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6000000238418579
      }
     }
    ]
@@ -3777,6 +5265,27 @@
    ]
   }
  },
+ "210487": {
+  "name": "XX_Tornado",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637032
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.800000011920929
+     }
+    }
+   ]
+  }
+ },
  "210625": {
   "name": "XX_Anchor",
   "stats": {
@@ -3913,6 +5422,27 @@
   },
   "minifigure": "Sea Captain: Anchor"
  },
+ "212521": {
+  "name": "XX_Snake Wave",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 214644
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6499999761581421
+     }
+    }
+   ]
+  }
+ },
  "212666": {
   "name": "XX_The Wheel of Fortune",
   "stats": {
@@ -3966,6 +5496,48 @@
    ]
   },
   "minifigure": "Fortune Teller: Wheel of Fortune"
+ },
+ "212697": {
+  "name": "XX_The Wheel of Fortune",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636889
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.75
+     }
+    }
+   ]
+  }
+ },
+ "212834": {
+  "name": "XX_Plan Bee",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636971
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.550000011920929
+     }
+    }
+   ]
+  }
  },
  "212835": {
   "name": "Honey Pot ",
@@ -4255,6 +5827,27 @@
   },
   "lists": {}
  },
+ "234948": {
+  "name": "XX_Squad",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637030
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.100000023841858
+     }
+    }
+   ]
+  }
+ },
  "236376": {
   "name": "XX_main captain2 hate transfer",
   "stats": {},
@@ -4497,6 +6090,11 @@
    ]
   }
  },
+ "238244": {
+  "name": "XX_main fortune1 buffcounter",
+  "stats": {},
+  "lists": {}
+ },
  "245949": {
   "name": "XX_main pierrot2 hate transfer",
   "stats": {
@@ -4556,6 +6154,56 @@
    ]
   },
   "minifigure": "Sad Clown: From Bad to Worse"
+ },
+ "293344": {
+  "name": "XX_Rope Arrow",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 293345,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Forest Maiden: Rope Arrow"
+ },
+ "293345": {
+  "name": "XX_main forestgirl2 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 343899
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 343886
+     }
+    }
+   ]
+  },
+  "minifigure": "Forest Maiden: Rope Arrow"
  },
  "297680": {
   "name": "XX_Bountiful Basket",
@@ -4719,6 +6367,27 @@
    ]
   },
   "minifigure": "Trendsetter: Emoti-poke"
+ },
+ "297753": {
+  "name": "XX_Emoti-poke",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637037
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
  },
  "300113": {
   "name": "Circle of Hearts",
@@ -4886,6 +6555,35 @@
    ]
   },
   "minifigure": "Trendsetter: Circle of Hearts"
+ },
+ "300711": {
+  "name": "XX_Circle of Hearts",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637037
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "300712": {
+  "name": "XX_Circle of Hearts",
+  "stats": {
+   "EffectPackage": 305073,
+   "LuaScriptID": 802
+  },
+  "lists": {}
  },
  "300912": {
   "name": "XX_main police1 damage",
@@ -5337,6 +7035,27 @@
    ]
   },
   "minifigure": "Tomahawk Warrior: Hunters Dash"
+ },
+ "302193": {
+  "name": "XX_Hunting Axe",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637035
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
  },
  "302200": {
   "name": "XX_Hunting Axe",
@@ -5820,6 +7539,84 @@
   },
   "minifigure": "Grandpa: Back to Basics"
  },
+ "317732": {
+  "name": "Fastball",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 10,
+   "ItemDelay": 40,
+   "EffectPackage": 318701
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 318450,
+      "ApplyOn": 3,
+      "Speed": 1200,
+      "ProjectileType": 1,
+      "MaxRicochets": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ],
+      [
+       0,
+       448010,
+       101
+      ],
+      [
+       0,
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 318450,
+      "ApplyOn": 3,
+      "Speed": 1700,
+      "ProjectileType": 1,
+      "MaxRicochets": 2
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "AttackRange": 700,
+      "ItemInstance": 448009,
+      "ApplyOn": 3,
+      "Speed": 800,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448010,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Baseball Fielder: Fastball"
+ },
  "317735": {
   "name": "Diamond Focus",
   "stats": {
@@ -6093,6 +7890,27 @@
    ]
   }
  },
+ "317761": {
+  "name": "XX_Spear Throw",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "317764": {
   "name": "XX_Mystical Shield",
   "stats": {
@@ -6256,6 +8074,26 @@
    ]
   },
   "minifigure": "Warrior Woman: Mystical Shield"
+ },
+ "317792": {
+  "name": "XX_main warriorwoman2 damage1",
+  "stats": {
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
  },
  "318156": {
   "name": "XX_For Rome!",
@@ -6490,6 +8328,27 @@
    ]
   }
  },
+ "318384": {
+  "name": "XX_Arcane Spark",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637012
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "318386": {
   "name": "XX_Book of Tales",
   "stats": {
@@ -6506,6 +8365,27 @@
       "Value": 1,
       "DamageType": 1000,
       "AbilityMod": 0.30000001192092896
+     }
+    }
+   ]
+  }
+ },
+ "318388": {
+  "name": "XX_Paper Plane",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637010
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
      }
     }
    ]
@@ -6554,6 +8434,47 @@
    ]
   },
   "minifigure": "Grandpa: Back to Basics"
+ },
+ "318451": {
+  "name": "XX_Fastball",
+  "stats": {
+   "EffectPackage": 636961
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.75
+     }
+    }
+   ]
+  }
+ },
+ "318465": {
+  "name": "XX_Diamond Focus",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637019
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.8999999761581421
+     }
+    }
+   ]
+  }
  },
  "318466": {
   "name": "XX_Diamond Focus",
@@ -6725,6 +8646,166 @@
    ]
   },
   "minifigure": "Tomahawk Warrior: Hunters Dash"
+ },
+ "343886": {
+  "name": "XX_main forestgirl2 snare",
+  "stats": {
+   "TimeExist": 300,
+   "TargetingMode": 5,
+   "EffectPackage": 316899
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 802,
+      "ApplyOn": 3,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "343899": {
+  "name": "XX_main forestgirl2 damage",
+  "stats": {},
+  "lists": {
+   "0": [
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 802,
+      "ApplyOn": 3,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    },
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.15000000596046448
+     }
+    }
+   ]
+  }
+ },
+ "344482": {
+  "name": "XX_Body Guard",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636942
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1004,
+      "AttackLength": 1.0,
+      "AbilityMod": 0.5
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       0,
+       116254,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 57655
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 55748
+     },
+     "criteria": [
+      [
+       0,
+       445653,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 445629
+     },
+     "criteria": [
+      [
+       0,
+       445653,
+       91
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 116254
+     }
+    },
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       0,
+       0,
+       168
+      ]
+     ]
+    }
+   ]
+  }
  },
  "345997": {
   "name": "XX_main motorcyclemechanic2 wrapper",
@@ -7039,6 +9120,56 @@
   },
   "minifigure": "Constable: Baton"
  },
+ "357872": {
+  "name": "Rapid Fire",
+  "stats": {
+   "RechargeDelay": 20,
+   "ItemDelay": 28,
+   "EffectPackage": 365705
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 360320,
+      "ApplyOn": 3,
+      "Speed": 2000,
+      "AttractorID": 1,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       101
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 360320,
+      "ApplyOn": 3,
+      "Speed": 2500,
+      "AttractorID": 1,
+      "ProjectileType": 1,
+      "MaxRicochets": 2
+     },
+     "criteria": [
+      [
+       0,
+       448001,
+       91
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Evil Mech: Rapid Fire"
+ },
  "357873": {
   "name": "Evasive Maneuvers",
   "stats": {
@@ -7088,6 +9219,61 @@
    ]
   },
   "minifigure": "Grandma: Ball of Yarn"
+ },
+ "357879": {
+  "name": "Cats out the Bag",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 50,
+   "ItemDelay": 50,
+   "EffectPackage": 366655
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 500,
+      "NanoTemplate": 357879
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 360406,
+      "ApplyOn": 3,
+      "Speed": 650,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 360406,
+      "ApplyOn": 3,
+      "Speed": 550,
+      "RotY": -30,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 360406,
+      "ApplyOn": 3,
+      "Speed": 550,
+      "RotY": 30,
+      "ProjectileType": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Grandma: Cats out the Bag"
  },
  "357880": {
   "name": "Bebop",
@@ -7664,6 +9850,27 @@
    ]
   }
  },
+ "358628": {
+  "name": "XX_main jekyll1 good damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 636926
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.800000011920929
+     }
+    }
+   ]
+  }
+ },
  "358710": {
   "name": "XX_main jekyll system state iamevil",
   "stats": {
@@ -7687,6 +9894,26 @@
       "ApplyOn": 1,
       "TemplateID": 357890,
       "TemplateID2": 357891
+     }
+    }
+   ]
+  }
+ },
+ "358834": {
+  "name": "XX_main scarecrow1 projectile",
+  "stats": {
+   "EffectPackage": 637060
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.699999988079071
      }
     }
    ]
@@ -7748,6 +9975,27 @@
    ]
   },
   "minifigure": "Scarecrow: Flock of Birds"
+ },
+ "359127": {
+  "name": "XX_main scarecrow2 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637060
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.699999988079071
+     }
+    }
+   ]
+  }
  },
  "359139": {
   "name": "XX_main constable1 damage",
@@ -8071,6 +10319,78 @@
   },
   "minifigure": "Evil Mech: Evasive Maneuvers"
  },
+ "360321": {
+  "name": "XX_main evilmech1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637040
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "360325": {
+  "name": "XX_main ladyrobot1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637056
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.8999999761581421
+     }
+    }
+   ]
+  }
+ },
+ "360326": {
+  "name": "XX_main ladyrobot1 knockaway",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 25,
+      "Arg1": 1,
+      "Arg2": 5,
+      "PowerRating": 9001,
+      "Distance": 15
+     }
+    }
+   ]
+  }
+ },
  "360371": {
   "name": "XX_main ladyrobot2 bullet",
   "stats": {
@@ -8092,6 +10412,27 @@
    ]
   },
   "minifigure": "Lady Robot: Robo-Popping"
+ },
+ "360400": {
+  "name": "XX_main ladyrobot2 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637057
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.800000011920929
+     }
+    }
+   ]
+  }
  },
  "360403": {
   "name": "XX_main grandma1 wrapper",
@@ -8149,6 +10490,72 @@
    "EffectPackage": 367159
   },
   "lists": {}
+ },
+ "360836": {
+  "name": "XX_main grandma2 pge",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 50,
+      "Arg2": 4,
+      "EffectPackage": 429701,
+      "NanoTemplate": 360837,
+      "TemplateID": 360837
+     }
+    }
+   ]
+  },
+  "minifigure": "Grandma: Cats out the Bag"
+ },
+ "360837": {
+  "name": "XX_main grandma2 aoe",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 1,
+      "ApplyOn": 3,
+      "NanoTemplate": 429744,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Grandma: Cats out the Bag"
+ },
+ "360839": {
+  "name": "XX_main grandma2 aoe damage",
+  "stats": {
+   "EffectPackage": 429700
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
  },
  "360888": {
   "name": "XX_main saxophoneplayer1 damage",
@@ -8290,6 +10697,73 @@
    ]
   }
  },
+ "429697": {
+  "name": "XX_main grandma2 single damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 429700
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "429744": {
+  "name": "XX_main grandma2 aoe effect wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 360839
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 429770
+     }
+    }
+   ]
+  },
+  "minifigure": "Grandma: Cats out the Bag"
+ },
+ "429770": {
+  "name": "XX_main grandma2 aoe slow",
+  "stats": {
+   "TimeExist": 100,
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.009999999776482582
+     }
+    }
+   ]
+  }
+ },
  "430833": {
   "name": "XX_main chicken1 aoe wrapper",
   "stats": {
@@ -8406,6 +10880,35 @@
    ]
   }
  },
+ "437069": {
+  "name": "XX_main plumber1 snare",
+  "stats": {
+   "TimeExist": 300,
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 802,
+      "ApplyOn": 3,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.5
+     }
+    }
+   ]
+  }
+ },
  "437219": {
   "name": "XX_main plumber2 damage",
   "stats": {
@@ -8483,6 +10986,27 @@
   },
   "minifigure": "Saxophone Player: Bebop"
  },
+ "439226": {
+  "name": "XX_main evilmech2 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637040
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "441814": {
   "name": "XX_Friend Zone defense buff",
   "stats": {
@@ -8517,6 +11041,54 @@
      "args": {
       "ApplyOn": 3,
       "Value": 441814
+     }
+    }
+   ]
+  }
+ },
+ "444520": {
+  "name": "XX_shiny",
+  "stats": {
+   "TimeExist": 500,
+   "EffectPackage": 463358,
+   "LuaScriptID": 1046
+  },
+  "lists": {}
+ },
+ "445629": {
+  "name": "XX_Push",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 20,
+      "Arg1": 1,
+      "PowerRating": 9001,
+      "Distance": 5
+     }
+    },
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 805,
+      "ApplyOn": 1,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
      }
     }
    ]
@@ -8768,6 +11340,98 @@
   },
   "lists": {}
  },
+ "447776": {
+  "name": "XX_Cat Minions effect",
+  "stats": {
+   "TimeExist": 400,
+   "EffectPackage": 537765,
+   "MaxBuffCounters": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000096,
+      "ApplyOn": 1,
+      "FloatValue1": 0.05000000074505806
+     },
+     "criteria": [
+      [
+       447776,
+       1,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000096,
+      "ApplyOn": 1,
+      "FloatValue1": 0.10000000149011612
+     },
+     "criteria": [
+      [
+       447776,
+       2,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000096,
+      "ApplyOn": 1,
+      "FloatValue1": 0.15000000596046448
+     },
+     "criteria": [
+      [
+       447776,
+       3,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000096,
+      "ApplyOn": 1,
+      "FloatValue1": 0.20000000298023224
+     },
+     "criteria": [
+      [
+       447776,
+       4,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000096,
+      "ApplyOn": 1,
+      "FloatValue1": 0.25
+     },
+     "criteria": [
+      [
+       447776,
+       5,
+       166
+      ]
+     ]
+    }
+   ]
+  }
+ },
  "459329": {
   "name": "XX_main barbarian2 knockaway",
   "stats": {},
@@ -8826,6 +11490,28 @@
       "Stat": 1037,
       "ApplyOn": 1,
       "Value": 9999999
+     }
+    }
+   ]
+  }
+ },
+ "462797": {
+  "name": "XX_Rope Arrow friend zone",
+  "stats": {
+   "TargetingMode": 4
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 441814,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
      }
     }
    ]
@@ -9538,6 +12224,27 @@
    ]
   }
  },
+ "465868": {
+  "name": "XX_main holidayelf1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637054
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "465883": {
   "name": "XX_main holidayelf2 aoe",
   "stats": {
@@ -9687,6 +12394,27 @@
    ]
   }
  },
+ "467883": {
+  "name": "XX_main pretzelgirl1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637058
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "467889": {
   "name": "XX_main pretzelgirl2 aoe",
   "stats": {
@@ -9831,6 +12559,49 @@
       "Value": 1,
       "DamageType": 1000,
       "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "467918": {
+  "name": "XX_passive yeti comingincold lmb pge",
+  "stats": {
+   "TargetingMode": 3,
+   "EffectPackage": 470965
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 25,
+      "Arg2": 20,
+      "NanoTemplate": 467919
+     }
+    }
+   ]
+  }
+ },
+ "467919": {
+  "name": "XX_passive yeti comingincold lmb aoe",
+  "stats": {
+   "TargetingMode": 3
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 467931,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
      }
     }
    ]
@@ -10103,6 +12874,571 @@
    ]
   },
   "minifigure": "Welder: Flame Spitter"
+ },
+ "482201": {
+  "name": "Barbed Spear",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 471885
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "ColumnFormula",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "NanoTemplate": 482202,
+      "NPCSelectMode": 3,
+      "Distance": 4,
+      "Ascending": 1,
+      "FloatValue1": 0.5
+     }
+    }
+   ]
+  },
+  "minifigure": "Island Warrior: Barbed Spear"
+ },
+ "482202": {
+  "name": "XX_main islandwarrior3 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 482203
+     }
+    },
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "TemplateID": 470921
+     }
+    }
+   ]
+  }
+ },
+ "482203": {
+  "name": "XX_main islandwarrior3 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 472241
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "482372": {
+  "name": "Double Flame Spitter",
+  "stats": {
+   "TargetingMode": 8,
+   "ItemDelay": 50,
+   "EffectPackage": 472980
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "TemplateID": 482376
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 482373
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       482376,
+       1182,
+       202
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 482378
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       482376,
+       1183,
+       202
+      ]
+     ]
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 482372
+     }
+    }
+   ]
+  },
+  "minifigure": "Welder: Double Flame Spitter"
+ },
+ "482373": {
+  "name": "XX_main welder4 pge1",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "RelZPos": 1,
+      "ApplyOn": 3,
+      "Arg1": 25,
+      "Arg2": 20,
+      "Flags": 3,
+      "EffectPackage": 470791,
+      "NanoTemplate": 482375
+     }
+    }
+   ]
+  }
+ },
+ "482374": {
+  "name": "XX_main welder4 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "482375": {
+  "name": "XX_main welder4 aoe",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "ColumnFormula",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "NanoTemplate": 482374,
+      "NPCSelectMode": 3,
+      "Distance": 6,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "482376": {
+  "name": "XX_main welder4 marker buff",
+  "stats": {
+   "TimeExist": 5900
+  },
+  "lists": {}
+ },
+ "482378": {
+  "name": "XX_main welder4 pge2",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "RelZPos": 1,
+      "ApplyOn": 3,
+      "Arg1": 25,
+      "Arg2": 20,
+      "Flags": 3,
+      "EffectPackage": 470791,
+      "NanoTemplate": 482375
+     }
+    }
+   ]
+  }
+ },
+ "482720": {
+  "name": "XX_main pretzelgirl3 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 4180
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6000000238418579
+     }
+    }
+   ]
+  }
+ },
+ "482721": {
+  "name": "XX_main pretzelgirl3 aoe",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 5,
+      "ApplyOn": 3,
+      "NanoTemplate": 482720,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "482724": {
+  "name": "XX_main pretzelgirl3 pge",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 35,
+      "Arg2": 1,
+      "EffectPackage": 470692
+     }
+    }
+   ]
+  }
+ },
+ "482725": {
+  "name": "Mountain Avalanche",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "ChannelingInterval": 50,
+   "EffectPackage": 470694,
+   "ChannelingTicks": 10
+  },
+  "lists": {
+   "33": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 482721
+     }
+    },
+    {
+     "type": "CoreRandomPointAreaFormula",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "NanoTemplate": 482724,
+      "Max1": 10,
+      "FloatRadius": 5.0,
+      "FloatRadius2": 2.0
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "NanoTemplate": 482725
+     }
+    }
+   ]
+  },
+  "minifigure": "Pretzel Girl: Mountain Avalanche"
+ },
+ "484691": {
+  "name": "Steely Ice Pick",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 470795
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 484714,
+      "NPCSelectMode": 3,
+      "Angle": 60,
+      "AngleStart": -30,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Mountain Climber: Steely Ice Pick"
+ },
+ "484714": {
+  "name": "XX_main mountainclimber3 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 484715
+     }
+    },
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "TemplateID": 484723
+     }
+    }
+   ]
+  }
+ },
+ "484715": {
+  "name": "XX_main mountainclimber3 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 470804
+     }
+    }
+   ]
+  }
+ },
+ "484723": {
+  "name": "XX_main mountainclimber3 debuff",
+  "stats": {
+   "TimeExist": 300,
+   "TargetingMode": 5,
+   "MaxBuffCounters": 3
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000095,
+      "ApplyOn": 3,
+      "FloatValue1": -0.07500000298023224
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       484723,
+       1,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000095,
+      "ApplyOn": 3,
+      "FloatValue1": -0.15000000596046448
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       484723,
+       2,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000095,
+      "ApplyOn": 3,
+      "FloatValue1": -0.22499999403953552
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       484723,
+       3,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.800000011920929
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       484723,
+       1,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.6000000238418579
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       484723,
+       2,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.4000000059604645
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       484723,
+       3,
+       166
+      ]
+     ]
+    }
+   ]
+  }
  },
  "500459": {
   "name": "Wildcard",
@@ -11401,6 +14737,100 @@
    ]
   }
  },
+ "501494": {
+  "name": "XX_main dinotracker1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637064
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "502938": {
+  "name": "XX_main dinotracker2 aoe mezz",
+  "stats": {
+   "TargetingMode": 7,
+   "EffectPackage": 511748
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 502952,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "502952": {
+  "name": "XX_main dinotracker2 mezz",
+  "stats": {
+   "TimeExist": 350,
+   "TargetingMode": 5,
+   "EffectPackage": 505629
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 804,
+      "ApplyOn": 3,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    },
+    {
+     "type": "Stun",
+     "client": true,
+     "args": {
+      "ApplyOn": 3
+     }
+    }
+   ]
+  }
+ },
+ "503461": {
+  "name": "XX_main fairytaleprincess1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637066
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.100000023841858
+     }
+    }
+   ]
+  }
+ },
  "503532": {
   "name": "XX_main fairytaleprincess2 pge",
   "stats": {
@@ -11469,6 +14899,27 @@
      "args": {
       "ApplyOn": 3,
       "TemplateID": 511753
+     }
+    }
+   ]
+  }
+ },
+ "504122": {
+  "name": "XX_main geniegirl1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637074
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
      }
     }
    ]
@@ -11797,6 +15248,27 @@
    ]
   }
  },
+ "504828": {
+  "name": "XX_main pizzadeliveryman1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637081
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "504840": {
   "name": "XX_main pizzadeliveryman2 randompointarea",
   "stats": {
@@ -11909,6 +15381,27 @@
       "Value": 1,
       "DamageType": 1000,
       "AbilityMod": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "504934": {
+  "name": "XX_main rockstar1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637083
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
      }
     }
    ]
@@ -12298,6 +15791,27 @@
    ]
   }
  },
+ "505473": {
+  "name": "XX_main videogameguy1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637091
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "505499": {
   "name": "XX_main videogameguy2 buffcounter",
   "stats": {
@@ -12373,6 +15887,27 @@
    ]
   },
   "minifigure": "Video Game Guy: Pixel Fire"
+ },
+ "505506": {
+  "name": "XX_main wizard1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 506679
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.699999988079071
+     }
+    }
+   ]
+  }
  },
  "505507": {
   "name": "XX_main wizard1 chain",
@@ -12581,6 +16116,27 @@
    ]
   },
   "minifigure": "Hun Warrior: Mount Up!"
+ },
+ "505621": {
+  "name": "XX_main hunwarrior1 damage mounted",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637076
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
  },
  "505630": {
   "name": "XX_main hunwarrior2 wrapper mounted",
@@ -12853,6 +16409,27 @@
    ]
   },
   "minifigure": "Spooky Girl: Anansi Girl"
+ },
+ "506062": {
+  "name": "xx_main spookygirl1 damage spider",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 520129
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.75
+     }
+    }
+   ]
+  }
  },
  "506078": {
   "name": "Orbweaver",
@@ -13225,6 +16802,27 @@
    ]
   }
  },
+ "508083": {
+  "name": "XX_main jester1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637078
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "508258": {
   "name": "XX_main jester2 marker",
   "stats": {
@@ -13291,6 +16889,452 @@
     }
    ]
   }
+ },
+ "514377": {
+  "name": "XX_main dinotracker4 mezz",
+  "stats": {
+   "TimeExist": 450,
+   "TargetingMode": 5,
+   "EffectPackage": 505629
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddDiminishingReturn",
+     "client": false,
+     "args": {
+      "Type": 804,
+      "ApplyOn": 3,
+      "Value": 1000,
+      "FloatValue1": 0.3400000035762787
+     }
+    },
+    {
+     "type": "Stun",
+     "client": true,
+     "args": {
+      "ApplyOn": 3
+     }
+    }
+   ]
+  }
+ },
+ "514378": {
+  "name": "XX_main dinotracker4 aoe mezz",
+  "stats": {
+   "TargetingMode": 7,
+   "EffectPackage": 519957
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 514377,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "514409": {
+  "name": "The Big Sleep",
+  "stats": {
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 504687
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "MinimumAttackRange": 250,
+      "ItemInstance": 514379,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 2
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 700,
+      "NanoTemplate": 514409
+     }
+    }
+   ]
+  },
+  "minifigure": "Dino Tracker: The Big Sleep"
+ },
+ "514710": {
+  "name": "XX_main fairytaleprincess4 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.15000000596046448
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 511753
+     }
+    }
+   ]
+  }
+ },
+ "514715": {
+  "name": "XX_main fairytaleprincess4 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 514710
+     }
+    }
+   ]
+  }
+ },
+ "514722": {
+  "name": "XX_main fairytaleprincess4 aoe",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 514715,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "514723": {
+  "name": "XX_main fairytaleprincess4 pge",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 40,
+      "Arg2": 5,
+      "EffectPackage": 508328,
+      "NanoTemplate": 514722
+     }
+    }
+   ]
+  }
+ },
+ "514729": {
+  "name": "Frogageddon",
+  "stats": {
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 505279
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreRandomPointAreaFormula",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "NanoTemplate": 514723,
+      "Max1": 2,
+      "FloatRadius": 4.0,
+      "FloatRadius2": 1.0
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 600,
+      "NanoTemplate": 514729
+     }
+    }
+   ]
+  },
+  "minifigure": "Fairytale Princess: Frogageddon"
+ },
+ "514884": {
+  "name": "XX_main geniegirl4 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 506149
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "514885": {
+  "name": "XX_main geniegirl4 aoe",
+  "stats": {
+   "TargetingMode": 8,
+   "EffectPackage": 506107
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 514884,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "514886": {
+  "name": "XX_main geniegirl4 buff",
+  "stats": {
+   "EffectPackage": 506105
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 1435,
+      "ApplyOn": 1,
+      "Value": 4
+     }
+    },
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000012,
+      "ApplyOn": 1,
+      "FloatValue1": 1.0
+     }
+    },
+    {
+     "type": "NanoResistance",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 200,
+      "Strain": 800
+     }
+    },
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 3,
+      "Value": 506086
+     }
+    }
+   ]
+  }
+ },
+ "514891": {
+  "name": "Tactical Advantage",
+  "stats": {
+   "RechargeDelay": 1,
+   "ItemDelay": 1,
+   "ChannelingInterval": 25,
+   "ChannelingTicks": 20
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 514886
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 514886
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 514885
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 500,
+      "NanoTemplate": 514891
+     }
+    }
+   ]
+  },
+  "minifigure": "Genie Girl: Tactical Advantage"
+ },
+ "515548": {
+  "name": "XX_main lifeguardguy4 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 516376
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.15000000596046448
+     }
+    }
+   ]
+  }
+ },
+ "515549": {
+  "name": "XX_main lifeguardguy4 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 446977
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 515548
+     }
+    }
+   ]
+  }
+ },
+ "515550": {
+  "name": "XX_main lifeguardguy4 buff",
+  "stats": {
+   "TimeExist": 300,
+   "TargetingMode": 8,
+   "EffectPackage": 520096
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Min": 3,
+      "Duration": -1,
+      "Interval": 20,
+      "Radius": 5,
+      "ApplyOn": 3,
+      "NanoTemplate": 515549,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "515551": {
+  "name": "Maelstrom",
+  "stats": {},
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 515550
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 700,
+      "NanoTemplate": 515551
+     }
+    }
+   ]
+  },
+  "minifigure": "Lifeguard Guy: Maelstrom"
  },
  "515853": {
   "name": "XX_passive piggyguy defense buff",
@@ -13890,6 +17934,568 @@
    ]
   }
  },
+ "516525": {
+  "name": "XX_main pizzadeliveryman3 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 520122
+     }
+    }
+   ]
+  }
+ },
+ "516672": {
+  "name": "Extra Toppings",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 509396
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 516526,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Pizza Delivery Man: Extra Toppings"
+ },
+ "516673": {
+  "name": "XX_main pizzadeliveryman3 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 516525
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 504814
+     }
+    }
+   ]
+  }
+ },
+ "516676": {
+  "name": "XX_main pizzadeliveryman3 aoe",
+  "stats": {
+   "TargetingMode": 6
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 516673,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "516694": {
+  "name": "XX_main rockstar4 slow",
+  "stats": {
+   "TimeExist": 150,
+   "TargetingMode": 5,
+   "MaxBuffCounters": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.949999988079071
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       516694,
+       1,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.8999999761581421
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       516694,
+       2,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.8500000238418579
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       516694,
+       3,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.800000011920929
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       516694,
+       4,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "AddSnare",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "FloatMultiplier": 0.75
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       18
+      ],
+      [
+       516694,
+       5,
+       166
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "516695": {
+  "name": "XX_main rockstar4 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.30000001192092896
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 516843
+     }
+    }
+   ]
+  }
+ },
+ "516696": {
+  "name": "XX_main rockstar4 wrapper",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 516695
+     }
+    },
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "TemplateID": 516694
+     }
+    }
+   ]
+  }
+ },
+ "516697": {
+  "name": "Amped Up",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "ChannelingInterval": 20,
+   "EffectPackage": 520127,
+   "ChannelingTicks": 25
+  },
+  "lists": {
+   "33": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 10,
+      "ApplyOn": 3,
+      "NanoTemplate": 516696,
+      "NPCSelectMode": 3,
+      "Angle": 180,
+      "AngleStart": -90,
+      "Ascending": 1
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "NanoTemplate": 516697
+     }
+    }
+   ]
+  },
+  "minifigure": "Rock Star: Amped Up"
+ },
+ "516702": {
+  "name": "Concussion Drill",
+  "stats": {},
+  "lists": {
+   "0": [
+    {
+     "type": "ColumnDash",
+     "client": false,
+     "args": {
+      "Radius": 1,
+      "ApplyOn": 3,
+      "NPCSelectMode": 3,
+      "Value1": 513555,
+      "TemplateID": 516709,
+      "Distance": 10,
+      "TemplateID2": 528232,
+      "Ascending": 1,
+      "FloatValue1": 0.5
+     }
+    }
+   ]
+  },
+  "minifigure": "Space Miner: Concussion Drill"
+ },
+ "516807": {
+  "name": "Dazzling Lunge",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 522503
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "ColumnFormula",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "NanoTemplate": 516808,
+      "NPCSelectMode": 3,
+      "Distance": 3,
+      "Ascending": 1,
+      "FloatValue1": 0.5
+     }
+    }
+   ]
+  },
+  "minifigure": "Swashbuckler: Dazzling Lunge"
+ },
+ "516808": {
+  "name": "XX_main swashbuckler3 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 516308
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "516818": {
+  "name": "XX_main videogameguy3 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "516820": {
+  "name": "Upgrade!",
+  "stats": {
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 516913
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 516819,
+      "ApplyOn": 3,
+      "Speed": 1250,
+      "ProjectileType": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Video Game Guy: Upgrade!"
+ },
+ "516857": {
+  "name": "XX_main wizard4 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "516858": {
+  "name": "XX_main wizard4 aoe",
+  "stats": {
+   "TargetingMode": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 516857,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "516859": {
+  "name": "XX_main wizard4 pge",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg2": 1,
+      "NanoTemplate": 516858,
+      "DelayTime": 50
+     }
+    }
+   ]
+  }
+ },
+ "516860": {
+  "name": "XX_main wizard4 buffcounter",
+  "stats": {
+   "TimeExist": 300
+  },
+  "lists": {}
+ },
+ "516861": {
+  "name": "Star Fall",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 506728
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 516859
+     }
+    },
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 1,
+      "TemplateID": 516860
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 600,
+      "NanoTemplate": 516861
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       516860,
+       3,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 516860
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       516860,
+       3,
+       166
+      ]
+     ]
+    }
+   ]
+  },
+  "minifigure": "Wizard: Star Fall"
+ },
  "517098": {
   "name": "XX_passive spookygirl web aoe",
   "stats": {
@@ -14396,6 +19002,97 @@
   },
   "minifigure": "Galaxy Trooper: Double Blasters"
  },
+ "550756": {
+  "name": "XX_main galaxytrooper1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637106
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "550766": {
+  "name": "Blaster Storm",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "ChannelingInterval": 20,
+   "EffectPackage": 550950,
+   "ChannelingTicks": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 550768,
+      "ApplyOn": 3,
+      "Speed": 2000,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "33": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 550768,
+      "ApplyOn": 3,
+      "Speed": 2000,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 350,
+      "NanoTemplate": 550766
+     }
+    }
+   ]
+  },
+  "minifigure": "Galaxy Trooper: Blaster Storm"
+ },
+ "550769": {
+  "name": "XX_main galaxytrooper2 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637106
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6499999761581421
+     }
+    }
+   ]
+  }
+ },
  "550770": {
   "name": "Wave Blaster",
   "stats": {
@@ -14422,6 +19119,34 @@
    ]
   },
   "minifigure": "Alien Trooper: Wave Blaster"
+ },
+ "550772": {
+  "name": "XX_main alientrooper1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637096
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.800000011920929
+     }
+    }
+   ]
+  }
+ },
+ "550773": {
+  "name": "XX_main alientrooper1 marker",
+  "stats": {
+   "EffectPackage": 531685
+  },
+  "lists": {}
  },
  "550774": {
   "name": "UFO",
@@ -14546,6 +19271,27 @@
    ]
   },
   "minifigure": "Goblin: Bag of Bricks"
+ },
+ "550947": {
+  "name": "XX_main goblin2 damage impact",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 550990
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.5
+     }
+    }
+   ]
+  }
  },
  "550948": {
   "name": "XX_main goblin2 aoe",
@@ -14728,6 +19474,27 @@
    ]
   },
   "minifigure": "Snake Charmer: Ground Crawler"
+ },
+ "551008": {
+  "name": "XX_main snakecharmer1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637110
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
  },
  "551009": {
   "name": "Snakes Everywhere",
@@ -15518,6 +20285,27 @@
   },
   "minifigure": "Sheriff: You shoot at your enemies."
  },
+ "564264": {
+  "name": "XX_main sheriff1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637109
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "564275": {
   "name": "Jail House",
   "stats": {
@@ -15920,6 +20708,27 @@
   },
   "minifigure": "Disco Diva: Back in Style"
  },
+ "564487": {
+  "name": "XX_main discodiva1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 637102
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "564488": {
   "name": "Disco Party",
   "stats": {
@@ -16266,6 +21075,27 @@
    ]
   },
   "minifigure": "Unicorn Girl: Rainbow"
+ },
+ "566237": {
+  "name": "XX_main unicorngirl damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 578156
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
  },
  "566238": {
   "name": "End of the Rainbow",
@@ -18491,6 +23321,27 @@
   },
   "minifigure": "Robot: Clank"
  },
+ "595632": {
+  "name": "XX_main cowboy1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 656355
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "595633": {
   "name": "Six Shooters",
   "stats": {
@@ -18514,6 +23365,73 @@
    ]
   },
   "minifigure": "Cowboy: Six Shooters"
+ },
+ "595634": {
+  "name": "Triple Shot",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 16,
+   "ItemDelay": 32,
+   "EffectPackage": 598696
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 595635,
+      "ApplyOn": 3,
+      "Speed": 900,
+      "RotY": -7,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 595635,
+      "ApplyOn": 3,
+      "Speed": 1000,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 595635,
+      "ApplyOn": 3,
+      "Speed": 900,
+      "RotY": 7,
+      "ProjectileType": 1
+     }
+    }
+   ]
+  },
+  "minifigure": "Elf: Triple Shot"
+ },
+ "595636": {
+  "name": "XX_main elf1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 656360
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.6600000262260437
+     }
+    }
+   ]
+  }
  },
  "595639": {
   "name": "XX_main spartanwarrior2 damage",
@@ -18986,6 +23904,178 @@
    ]
   }
  },
+ "596790": {
+  "name": "XX_main lizardman2 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 656377
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.42500001192092896
+     }
+    }
+   ]
+  }
+ },
+ "596792": {
+  "name": "RAWR",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 25,
+   "ItemDelay": 25,
+   "ChannelingInterval": 25,
+   "EffectPackage": 656375,
+   "ChannelingTicks": 4
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596791,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "33": [
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 1,
+      "TemplateID": 596797
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596801,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596797,
+       1,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596801,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596797,
+       2,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596802,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596797,
+       3,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596791,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596797,
+       4,
+       166
+      ]
+     ]
+    }
+   ],
+   "36": [
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 50,
+      "NanoTemplate": 596792
+     }
+    },
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 596797
+     }
+    }
+   ]
+  },
+  "minifigure": "Lizard Man: RAWR"
+ },
+ "596797": {
+  "name": "XX_main lizardman2 buffcounter",
+  "stats": {
+   "MaxBuffCounters": 4
+  },
+  "lists": {}
+ },
  "596820": {
   "name": "Wild Ride",
   "stats": {
@@ -19094,6 +24184,28 @@
    ]
   }
  },
+ "596823": {
+  "name": "XX_main cowboy2 damage",
+  "stats": {
+   "TimeExist": 10,
+   "TargetingMode": 5,
+   "EffectPackage": 656355
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.20000000298023224
+     }
+    }
+   ]
+  }
+ },
  "596825": {
   "name": "XX_main cowboy2 attack",
   "stats": {
@@ -19161,6 +24273,206 @@
   },
   "minifigure": "Cowboy: Wild Ride"
  },
+ "596851": {
+  "name": "MOAR RAWR",
+  "stats": {
+   "TargetingMode": 7,
+   "RechargeDelay": 25,
+   "ItemDelay": 25,
+   "ChannelingInterval": 18,
+   "EffectPackage": 656375,
+   "ChannelingTicks": 8
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596889,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "33": [
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 1,
+      "TemplateID": 596891
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596893,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596891,
+       0,
+       159
+      ],
+      [
+       596891,
+       5,
+       160
+      ],
+      [
+       0,
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596894,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596891,
+       4,
+       159
+      ],
+      [
+       596891,
+       8,
+       160
+      ],
+      [
+       0,
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "ItemInstance": 596889,
+      "ApplyOn": 3,
+      "Speed": 750,
+      "ProjectileType": 1
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       596891,
+       7,
+       159
+      ]
+     ]
+    }
+   ],
+   "36": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 596891
+     }
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 50,
+      "NanoTemplate": 596851
+     }
+    }
+   ]
+  },
+  "minifigure": "Lizard Man: MOAR RAWR"
+ },
+ "596890": {
+  "name": "XX_main lizardman4 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 656377
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.4699999988079071
+     }
+    }
+   ]
+  }
+ },
+ "596891": {
+  "name": "XX_main lizardman4 buffcounter",
+  "stats": {
+   "MaxBuffCounters": 8
+  },
+  "lists": {}
+ },
+ "596897": {
+  "name": "XX_passive spartanwarrior kickaway knockaway",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 365804
+     }
+    },
+    {
+     "type": "Knockaway",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "Speed": 25,
+      "Arg1": 1,
+      "Arg2": 4,
+      "PowerRating": 9001,
+      "Distance": 2
+     }
+    }
+   ]
+  }
+ },
  "596898": {
   "name": "XX_passive spartanwarrior kickaway attack",
   "stats": {
@@ -19184,12 +24496,503 @@
   },
   "minifigure": "Spartan Warrior: Might of Sparta"
  },
+ "597078": {
+  "name": "Fight in the Shade",
+  "stats": {
+   "TargetingMode": 8,
+   "RechargeDelay": 15,
+   "ItemDelay": 1,
+   "ChannelingInterval": 75,
+   "EffectPackage": 600405,
+   "ChannelingTicks": 3
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 597079
+     }
+    }
+   ],
+   "33": [
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 1,
+      "TemplateID": 597114
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 597079
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 597856
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       597114,
+       0,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 597857
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       597114,
+       1,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 597858
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       597114,
+       2,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 597859
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       597114,
+       3,
+       166
+      ]
+     ]
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 597078
+     }
+    },
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 597114
+     }
+    }
+   ]
+  },
+  "minifigure": "Elf: Fight in the Shade"
+ },
+ "597079": {
+  "name": "XX_main elf4 buff mitigation",
+  "stats": {},
+  "lists": {
+   "0": [
+    {
+     "type": "Modify",
+     "client": true,
+     "args": {
+      "Stat": 3000012,
+      "ApplyOn": 1,
+      "FloatValue1": 0.5
+     }
+    }
+   ]
+  }
+ },
+ "597114": {
+  "name": "XX_main elf4 buffcounter",
+  "stats": {
+   "MaxBuffCounters": 4
+  },
+  "lists": {}
+ },
+ "597115": {
+  "name": "XX_main elf4 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.5
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 600406
+     }
+    }
+   ]
+  }
+ },
  "597608": {
   "name": "XX_main samuraiwarrior2 lua",
   "stats": {
    "LuaScriptID": 3825
   },
   "lists": {}
+ },
+ "597856": {
+  "name": "XX_main elf4 aoe 4m",
+  "stats": {
+   "EffectPackage": 600400
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 4,
+      "ApplyOn": 3,
+      "NanoTemplate": 597115,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "597857": {
+  "name": "XX_main elf4 aoe 5m",
+  "stats": {
+   "EffectPackage": 600401
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 5,
+      "ApplyOn": 3,
+      "NanoTemplate": 597115,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "597858": {
+  "name": "XX_main elf4 aoe 6m",
+  "stats": {
+   "EffectPackage": 600402
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 6,
+      "ApplyOn": 3,
+      "NanoTemplate": 597115,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "597859": {
+  "name": "XX_main elf4 aoe 7m",
+  "stats": {
+   "EffectPackage": 600403
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 7,
+      "ApplyOn": 3,
+      "NanoTemplate": 597115,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "598090": {
+  "name": "XX_main robot4 marker buff",
+  "stats": {
+   "TimeExist": 5900
+  },
+  "lists": {}
+ },
+ "598102": {
+  "name": "XX_main robot4 pge1",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "RelZPos": 2,
+      "ApplyOn": 3,
+      "Arg1": 25,
+      "Arg2": 20,
+      "Flags": 3,
+      "EffectPackage": 598539,
+      "NanoTemplate": 598122
+     }
+    }
+   ]
+  }
+ },
+ "598103": {
+  "name": "XX_main robot4 pge2",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "RelZPos": 2,
+      "ApplyOn": 3,
+      "Arg1": 25,
+      "Arg2": 20,
+      "Flags": 3,
+      "EffectPackage": 598539,
+      "NanoTemplate": 598122
+     }
+    }
+   ]
+  }
+ },
+ "598104": {
+  "name": "Double Tesla Tower",
+  "stats": {
+   "TargetingMode": 8,
+   "ItemDelay": 50,
+   "EffectPackage": 599788
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "AddBuffCounter",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "TemplateID": 598090
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 598102
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       598090,
+       1182,
+       202
+      ]
+     ]
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 598103
+     },
+     "criteria": [
+      [
+       0,
+       0,
+       19
+      ],
+      [
+       598090,
+       1183,
+       202
+      ]
+     ]
+    },
+    {
+     "type": "SetSpellRecastTime",
+     "client": true,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 100,
+      "NanoTemplate": 598104
+     }
+    }
+   ]
+  },
+  "minifigure": "Robot: Double Tesla Tower"
+ },
+ "598121": {
+  "name": "XX_main robot4 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 599362
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.25
+     }
+    }
+   ]
+  }
+ },
+ "598122": {
+  "name": "XX_main robot4 aoe",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 6,
+      "ApplyOn": 3,
+      "NanoTemplate": 598121,
+      "NPCSelectMode": 1,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  }
+ },
+ "599331": {
+  "name": "XX_Rope Arrow",
+  "stats": {
+   "TargetingMode": 7
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 25,
+      "Arg2": 20,
+      "NanoTemplate": 293344,
+      "TemplateID": 293344
+     }
+    }
+   ]
+  },
+  "minifigure": "Forest Maiden: Rope Arrow"
+ },
+ "599409": {
+  "name": "XX_passive spartanwarrior kickaway damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
  },
  "600598": {
   "name": "XX_main dj2 wrapper",
@@ -19270,6 +25073,106 @@
    ]
   },
   "minifigure": "Yeti: Freezeball"
+ },
+ "636702": {
+  "name": "XX_main warriorwoman2 damage2",
+  "stats": {
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "636703": {
+  "name": "XX_main warriorwoman2 damage3",
+  "stats": {
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 2.0
+     }
+    }
+   ]
+  }
+ },
+ "636704": {
+  "name": "XX_main warriorwoman2 damage4",
+  "stats": {
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 3.0
+     }
+    }
+   ]
+  }
+ },
+ "636705": {
+  "name": "XX_main warriorwoman2 damage5",
+  "stats": {
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 4.0
+     }
+    }
+   ]
+  }
+ },
+ "636706": {
+  "name": "XX_main warriorwoman2 damage6",
+  "stats": {
+   "EffectPackage": 637038
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 5.0
+     }
+    }
+   ]
+  }
  },
  "636822": {
   "name": "XX_main holidayelf2 selfsnare",
@@ -20818,6 +26721,26 @@
    ]
   }
  },
+ "642231": {
+  "name": "XX_main s14 wackywitch1 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "642233": {
   "name": "XX_main s14 wackywitch2 wrapper",
   "stats": {
@@ -21659,6 +27582,34 @@
    ]
   }
  },
+ "642438": {
+  "name": "XX_main s14 zombiepirate2 lua",
+  "stats": {
+   "TargetingMode": 7,
+   "LuaScriptID": 4353
+  },
+  "lists": {}
+ },
+ "642445": {
+  "name": "XX_main s14 zombiebusinessman1 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
  "642449": {
   "name": "XX_main s14 zombiebusinessman2 trigger",
   "stats": {
@@ -21732,6 +27683,27 @@
    "LuaScriptID": 4354
   },
   "lists": {}
+ },
+ "642544": {
+  "name": "XX_main s14 zombiecheerleader1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 645045
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
  },
  "642804": {
   "name": "XX_main s14 zombiecheerleader2 npc spawn wrapper",
@@ -21968,6 +27940,95 @@
    ]
   },
   "minifigure": "Ballerina: Graceful Strike"
+ },
+ "663939": {
+  "name": "Swan Spin",
+  "stats": {
+   "RechargeDelay": 25,
+   "ItemDelay": 25,
+   "ChannelingInterval": 50,
+   "ChannelingTicks": 20
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 668547
+     }
+    }
+   ],
+   "33": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 668547
+     }
+    },
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 1,
+      "NanoTemplate": 667126,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "AttackRange": 1250,
+      "ItemInstance": 667130,
+      "ApplyOn": 3,
+      "Speed": 600,
+      "RotY": 15,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "AttackRange": 1250,
+      "ItemInstance": 667130,
+      "ApplyOn": 3,
+      "Speed": 600,
+      "RotY": -15,
+      "ProjectileType": 1
+     }
+    },
+    {
+     "type": "Projectile",
+     "client": true,
+     "args": {
+      "AttackRange": 1250,
+      "ItemInstance": 667130,
+      "ApplyOn": 3,
+      "Speed": 650,
+      "ProjectileType": 1
+     }
+    }
+   ],
+   "36": [
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "TemplateID": 668547
+     }
+    }
+   ]
+  },
+  "minifigure": "Ballerina: Swan Spin"
  },
  "663940": {
   "name": "Crutch-Fu",
@@ -22797,6 +28858,56 @@
    ]
   }
  },
+ "667126": {
+  "name": "XX_main s15 ballerina2 aoe damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.10000000149011612
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 668717
+     }
+    }
+   ]
+  }
+ },
+ "667136": {
+  "name": "XX_main s15 ballerina2 projectile damage",
+  "stats": {
+   "TimeExist": 5,
+   "TargetingMode": 5,
+   "EffectPackage": 668717
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.800000011920929
+     }
+    }
+   ]
+  }
+ },
  "667137": {
   "name": "XX_main s15 wrestlingchampion1 damage",
   "stats": {
@@ -22834,6 +28945,48 @@
       "Value": 1,
       "DamageType": 1000,
       "AbilityMod": 1.2000000476837158
+     }
+    }
+   ]
+  }
+ },
+ "667148": {
+  "name": "XX_main s15 farmer2 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 668721
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    }
+   ]
+  }
+ },
+ "667149": {
+  "name": "XX_main s15 queen1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 668738
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
      }
     }
    ]
@@ -22880,6 +29033,34 @@
      "args": {
       "Stat": 27,
       "ApplyOn": 3
+     }
+    }
+   ]
+  }
+ },
+ "667218": {
+  "name": "XX_main s15 flyingwarrior1 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 668846
      }
     }
    ]
@@ -23256,6 +29437,27 @@
      "args": {
       "ApplyOn": 3,
       "FloatMultiplier": 0.699999988079071
+     }
+    }
+   ]
+  }
+ },
+ "667284": {
+  "name": "XX_main s15 tribalwoman1 damage",
+  "stats": {
+   "TargetingMode": 5,
+   "EffectPackage": 668740
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
      }
     }
    ]
@@ -23701,6 +29903,54 @@
    ]
   }
  },
+ "667317": {
+  "name": "XX_main s15 lasermech2 damage",
+  "stats": {
+   "TargetingMode": 5
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 1.0
+     }
+    },
+    {
+     "type": "StartEffect",
+     "client": true,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 668736
+     }
+    }
+   ]
+  }
+ },
+ "668547": {
+  "name": "XX_main s15 ballerina2 removemesh",
+  "stats": {
+   "TimeExist": 100,
+   "EffectPackage": 668527
+  },
+  "lists": {
+   "0": [
+    {
+     "type": "TempChangeStat",
+     "client": true,
+     "args": {
+      "Stat": 359,
+      "ApplyOn": 3,
+      "Value": 51057
+     }
+    }
+   ]
+  }
+ },
  "668556": {
   "name": "XX_main s15 flyingwarrior_removespear",
   "stats": {
@@ -24095,5 +30345,1616 @@
    "EffectPackage": 668696
   },
   "lists": {}
+ },
+ "items": {
+  "38408": {
+   "name": "XX_Blaster Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 38124
+     }
+    }
+   ]
+  },
+  "38897": {
+   "name": "XX_Musket Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 206907
+     }
+    }
+   ]
+  },
+  "38943": {
+   "name": "XX_Triple Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 33016
+     }
+    }
+   ]
+  },
+  "38981": {
+   "name": "XX_Starfish",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 34533
+     }
+    }
+   ]
+  },
+  "38996": {
+   "name": "XX_Dictum",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 36518
+     }
+    }
+   ]
+  },
+  "38997": {
+   "name": "XX_main scientist1 projectile",
+   "actions": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.25
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 34584
+     }
+    }
+   ]
+  },
+  "39041": {
+   "name": "XX_main scientist2 projectile",
+   "actions": [
+    {
+     "type": "WeaponHit",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 1,
+      "DamageType": 1000,
+      "AbilityMod": 0.25
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 34725
+     }
+    }
+   ]
+  },
+  "40499": {
+   "name": "XX_Tarot Fling Tower",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 204254
+     }
+    }
+   ]
+  },
+  "42070": {
+   "name": "XX_Walling Up",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 42071
+     }
+    }
+   ]
+  },
+  "50547": {
+   "name": "XX_Throw Record",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 60604
+     }
+    }
+   ]
+  },
+  "50699": {
+   "name": "XX_main aztec2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 3996
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 444520
+     }
+    }
+   ]
+  },
+  "50716": {
+   "name": "XX_Aimed Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 20173
+     }
+    }
+   ]
+  },
+  "50738": {
+   "name": "XX_Bountiful Basket",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 297680
+     }
+    }
+   ]
+  },
+  "75781": {
+   "name": "XX_main plumber1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 36055
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 437069
+     }
+    }
+   ]
+  },
+  "94115": {
+   "name": "XX_main galaxy2 projectile",
+   "actions": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 75,
+      "Arg2": 1,
+      "NanoTemplate": 94116,
+      "TemplateID": 94862,
+      "DelayTime": 25
+     }
+    }
+   ]
+  },
+  "204252": {
+   "name": "XX_Tarot Fling Sun",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 204255
+     }
+    }
+   ]
+  },
+  "204515": {
+   "name": "XX_Paint Shot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 204516
+     }
+    }
+   ]
+  },
+  "206913": {
+   "name": "XX_Eggxactly",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 210424
+     }
+    }
+   ]
+  },
+  "207740": {
+   "name": "XX_Bitter Tears",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 222210
+     }
+    }
+   ]
+  },
+  "210486": {
+   "name": "XX_Tornado",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 210487
+     }
+    }
+   ]
+  },
+  "212520": {
+   "name": "XX_Snake Wave",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 212521
+     }
+    }
+   ]
+  },
+  "212696": {
+   "name": "XX_The Wheel of Fortune",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 212697
+     }
+    }
+   ]
+  },
+  "212833": {
+   "name": "XX_Plan Bee",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 212834
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 221524
+     }
+    }
+   ]
+  },
+  "222206": {
+   "name": "XX_From Bad to Worse",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 222207
+     }
+    }
+   ]
+  },
+  "230490": {
+   "name": "XX_Tidal Wave",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 207678
+     }
+    }
+   ]
+  },
+  "234947": {
+   "name": "XX_Squad",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 234948
+     }
+    }
+   ]
+  },
+  "238237": {
+   "name": "XX_Honey Pot",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 214889
+     }
+    }
+   ]
+  },
+  "293211": {
+   "name": "XX_Rope Arrow",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 599331
+     }
+    }
+   ]
+  },
+  "297752": {
+   "name": "XX_SMS",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 297753
+     }
+    }
+   ]
+  },
+  "300262": {
+   "name": "XX_Hearts",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 300711
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 300712
+     }
+    }
+   ]
+  },
+  "302192": {
+   "name": "XX_Hunting Axe",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 302200
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 302193
+     }
+    }
+   ]
+  },
+  "317760": {
+   "name": "XX_Spear Throw",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 317761
+     }
+    }
+   ]
+  },
+  "317790": {
+   "name": "XX_main warriorwoman2 projectile1",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 317792
+     }
+    }
+   ]
+  },
+  "318379": {
+   "name": "XX_Arcane Spark",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318384
+     }
+    }
+   ]
+  },
+  "318387": {
+   "name": "XX_Paper Plane",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318388
+     }
+    }
+   ]
+  },
+  "318405": {
+   "name": "XX_Back to the Basics",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318418
+     }
+    }
+   ]
+  },
+  "318450": {
+   "name": "XX_Fastball",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318451
+     }
+    }
+   ]
+  },
+  "318464": {
+   "name": "XX_Diamond Focus",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318465
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318466
+     }
+    }
+   ]
+  },
+  "344478": {
+   "name": "XX_Body Guard",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 344482
+     }
+    }
+   ]
+  },
+  "358627": {
+   "name": "XX_main jekyll1 good projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 358628
+     }
+    }
+   ]
+  },
+  "358835": {
+   "name": "XX_main scarecrow1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 358834
+     }
+    }
+   ]
+  },
+  "359027": {
+   "name": "XX_main scarecrow2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 359127
+     }
+    }
+   ]
+  },
+  "360320": {
+   "name": "XX_main evilmech1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 360321
+     }
+    }
+   ]
+  },
+  "360322": {
+   "name": "XX_main evilmech2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 439226
+     }
+    }
+   ]
+  },
+  "360324": {
+   "name": "XX_main ladyrobot1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 360325
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 360326
+     }
+    }
+   ]
+  },
+  "360399": {
+   "name": "XX_main ladyrobot2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 360400
+     }
+    }
+   ]
+  },
+  "360402": {
+   "name": "XX_main grandma1 projectile",
+   "actions": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 1,
+      "ApplyOn": 3,
+      "NanoTemplate": 360403,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "360406": {
+   "name": "XX_main grandma2 projectile bag",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 429697
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 429697
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 360836
+     }
+    },
+    {
+     "type": "RemoveBuff",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "TemplateID": 360405
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 1,
+      "Value": 447776
+     }
+    }
+   ]
+  },
+  "360887": {
+   "name": "XX_main saxophoneplayer1 projectile",
+   "actions": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 1,
+      "ApplyOn": 3,
+      "NanoTemplate": 438822,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Max1": 1,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "446852": {
+   "name": "XX_main chicken2 projectile",
+   "actions": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 3,
+      "ApplyOn": 3,
+      "NanoTemplate": 32423,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "448009": {
+   "name": "XX_Fastball piercing",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 318451
+     }
+    }
+   ]
+  },
+  "462796": {
+   "name": "XX_Rope Arrow friend zone",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 293344
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 462797
+     }
+    }
+   ]
+  },
+  "464673": {
+   "name": "XX_Vortex arrow",
+   "actions": [
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 75,
+      "Arg2": 1,
+      "NanoTemplate": 293344,
+      "TemplateID": 464678,
+      "DelayTime": 25
+     }
+    }
+   ]
+  },
+  "465867": {
+   "name": "XX_main holidayelf1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 465868
+     }
+    }
+   ]
+  },
+  "467882": {
+   "name": "XX_main pretzelgirl1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 467883
+     }
+    }
+   ]
+  },
+  "467916": {
+   "name": "XX_main yeti1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 635424
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 467918
+     }
+    }
+   ]
+  },
+  "470917": {
+   "name": "XX_main islandwarrior2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 470918
+     }
+    }
+   ]
+  },
+  "501493": {
+   "name": "XX_main dinotracker1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 501494
+     }
+    }
+   ]
+  },
+  "502936": {
+   "name": "XX_main dinotracker2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 502938
+     }
+    }
+   ]
+  },
+  "503443": {
+   "name": "XX_main fairytaleprincess1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 503461
+     }
+    }
+   ]
+  },
+  "504121": {
+   "name": "XX_main geniegirl1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 504122
+     }
+    }
+   ]
+  },
+  "504827": {
+   "name": "XX_main pizzadeliveryman1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 504828
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 504814
+     }
+    }
+   ]
+  },
+  "504899": {
+   "name": "XX_main rockstar1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 504934
+     }
+    }
+   ]
+  },
+  "505472": {
+   "name": "XX_main videogameguy1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 505473
+     }
+    }
+   ]
+  },
+  "505618": {
+   "name": "XX_main hunwarrior1 projectile mounted",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 505621
+     }
+    }
+   ]
+  },
+  "506060": {
+   "name": "XX_main spookygirl1 projectile spider",
+   "actions": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 506062,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "508081": {
+   "name": "XX_main jester1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 508083
+     }
+    }
+   ]
+  },
+  "514379": {
+   "name": "XX_main dinotracker4 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 514378
+     }
+    }
+   ]
+  },
+  "516526": {
+   "name": "XX_main pizzadeliveryman3 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 516676
+     }
+    }
+   ]
+  },
+  "516819": {
+   "name": "XX_main videogameguy3 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 516818
+     }
+    }
+   ]
+  },
+  "550753": {
+   "name": "XX_main galaxytrooper1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 550756
+     }
+    }
+   ]
+  },
+  "550768": {
+   "name": "XX_main galaxytrooper2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 550769
+     }
+    }
+   ]
+  },
+  "550771": {
+   "name": "XX_main alientrooper1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 550772
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 550773
+     }
+    }
+   ]
+  },
+  "550946": {
+   "name": "XX_main goblin2 projectile",
+   "actions": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 4,
+      "ApplyOn": 3,
+      "NanoTemplate": 550947,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    },
+    {
+     "type": "CorePersistentGroundEffect",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Arg1": 20,
+      "Arg2": 25,
+      "EffectPackage": 550981,
+      "NanoTemplate": 550948
+     }
+    }
+   ]
+  },
+  "551006": {
+   "name": "XX_main snakecharmer1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 551008
+     }
+    }
+   ]
+  },
+  "562558": {
+   "name": "XX_main paleontologist2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 580642
+     }
+    }
+   ]
+  },
+  "564262": {
+   "name": "XX_main sheriff1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 564264
+     }
+    }
+   ]
+  },
+  "564486": {
+   "name": "XX_main discodiva1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 564487
+     }
+    }
+   ]
+  },
+  "566235": {
+   "name": "XX_main unicorngirl projectile",
+   "actions": [
+    {
+     "type": "CoreFilteredAreaFormula",
+     "client": false,
+     "args": {
+      "Radius": 2,
+      "ApplyOn": 3,
+      "NanoTemplate": 566237,
+      "NPCSelectMode": 3,
+      "Angle": 360,
+      "Ascending": 1
+     }
+    }
+   ]
+  },
+  "576068": {
+   "name": "XX_main piratecaptain2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 576067
+     }
+    }
+   ]
+  },
+  "595631": {
+   "name": "XX_main cowboy1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 595632
+     }
+    }
+   ]
+  },
+  "595635": {
+   "name": "XX_main elf1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 595636
+     }
+    }
+   ]
+  },
+  "596791": {
+   "name": "XX_main lizardman2 projectile r",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596790
+     }
+    }
+   ]
+  },
+  "596801": {
+   "name": "XX_main lizardman2 projectile a",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596790
+     }
+    }
+   ]
+  },
+  "596802": {
+   "name": "XX_main lizardman2 projectile w",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596790
+     }
+    }
+   ]
+  },
+  "596822": {
+   "name": "XX_main cowboy2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596823
+     }
+    }
+   ]
+  },
+  "596889": {
+   "name": "XX_main lizardman4 projectile r",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596890
+     }
+    }
+   ]
+  },
+  "596893": {
+   "name": "XX_main lizardman4 projectile a",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596890
+     }
+    }
+   ]
+  },
+  "596894": {
+   "name": "XX_main lizardman4 projectile w",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596890
+     }
+    }
+   ]
+  },
+  "596895": {
+   "name": "XX_passive spartanwarrior kickaway projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 599409
+     }
+    },
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 596897
+     }
+    }
+   ]
+  },
+  "636694": {
+   "name": "XX_main warriorwoman2 projectile2",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 636702
+     }
+    }
+   ]
+  },
+  "636695": {
+   "name": "XX_main warriorwoman2 projectile3",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 636703
+     }
+    }
+   ]
+  },
+  "636696": {
+   "name": "XX_main warriorwoman2 projectile4",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 636704
+     }
+    }
+   ]
+  },
+  "636697": {
+   "name": "XX_main warriorwoman2 projectile5",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 636705
+     }
+    }
+   ]
+  },
+  "636707": {
+   "name": "XX_main warriorwoman2 projectile6",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 636706
+     }
+    }
+   ]
+  },
+  "642230": {
+   "name": "XX_main s14 wackywitch1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 642231
+     }
+    }
+   ]
+  },
+  "642232": {
+   "name": "XX_main s14 wackywitch2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 642233
+     }
+    }
+   ]
+  },
+  "642431": {
+   "name": "XX_main s14 zombiepirate2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 642438
+     }
+    }
+   ]
+  },
+  "642444": {
+   "name": "XX_main s14 zombiebusinessman1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 642445
+     }
+    }
+   ]
+  },
+  "642545": {
+   "name": "XX_main s14 zombiecheerleader1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 642544
+     }
+    }
+   ]
+  },
+  "667130": {
+   "name": "XX_main s15 ballerina2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667136
+     }
+    }
+   ]
+  },
+  "667146": {
+   "name": "XX_main s15 farmer2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667148
+     }
+    }
+   ]
+  },
+  "667150": {
+   "name": "XX_main s15 queen1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667149
+     }
+    }
+   ]
+  },
+  "667219": {
+   "name": "XX_main s15 flyingwarrior1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667218
+     }
+    }
+   ]
+  },
+  "667221": {
+   "name": "XX_main s15 flyingwarrior2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667222
+     }
+    }
+   ]
+  },
+  "667254": {
+   "name": "XX_main s15 animalcontrol2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667253
+     }
+    }
+   ]
+  },
+  "667285": {
+   "name": "XX_main s15 tribalwoman1 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667284
+     }
+    }
+   ]
+  },
+  "667318": {
+   "name": "XX_main s15 lasermech2 projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 667317
+     }
+    }
+   ]
+  },
+  "668592": {
+   "name": "XX_main s15 clumsyguy2 banana projectile",
+   "actions": [
+    {
+     "type": "CastNano",
+     "client": false,
+     "args": {
+      "ApplyOn": 3,
+      "Value": 668596
+     }
+    }
+   ]
+  }
  }
 }

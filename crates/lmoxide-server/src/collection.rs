@@ -30,7 +30,7 @@ pub const STAT_MINIFIGURE_XP: u32 = 3_000_057;
 pub const STAT_ACTIVE_UPGRADES: u32 = 3_000_098;
 pub const STAT_PURCHASED_UPGRADES: u32 = 3_000_106;
 const STAT_MINIFIGURE_LIFE: u32 = 3_000_091;
-const STAT_MINIFIGURE_HEALTH: u32 = 3_000_092;
+pub const STAT_MINIFIGURE_HEALTH: u32 = 3_000_092;
 /// Item level sent without progression (ACGItem level; the Collection shows 8 ranks).
 const MAX_LEVEL: u32 = 10;
 /// One of each choose-one pair active: bits 0, 1, 3, 4, 6, 7, 9, 10.

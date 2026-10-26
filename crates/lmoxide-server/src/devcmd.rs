@@ -17,6 +17,7 @@
 //!   !dialog [n]               play recorded NPC dialogue n (without n: list them)
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
 //!   !plates <solve|reset>     light every plate of the Gauntlet's plate room, or none
+//!   !revive                   every minifigure (team and collection) back to full health
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -33,6 +34,8 @@ pub enum Action {
     Achievements,
     /// smash the nearest smashable (or defeat the nearest enemy) as if the player hit it
     Smash,
+    /// bring every minifigure of the player (team and collection) back from smashed, full health
+    Revive,
     /// feed achievement events (n times)
     Progress(crate::achievements::Event, u32),
     /// gain XP
@@ -276,6 +279,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(event, n)
         }
         "smash" => Action::Smash,
+        "revive" => Action::Revive,
         "plates" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => {
                 crate::plates::set_all(how == "solve");
@@ -291,7 +295,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>, !revive".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }

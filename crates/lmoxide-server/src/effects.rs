@@ -35,6 +35,20 @@ pub fn buff_remove(target: Id32, buff: u32, caster: Id32) -> Bytes {
     iir::record("MagicBuffIIR_c", target, false, |w| caster.write(w.u32(buff).u8(1)).u8(0))
 }
 
+/// `ChainSpellIIR_t` (identity the character the chain jumps to; ReadSubClass 0x139f110): ID32
+/// caster, ID32 last chain target (where the jump comes from), u32 spell, GameActionExecutorData,
+/// u32 hook value (× 1000 for the effect's "on_chain_jump" hook; unit unknown, 0 sent), u8 play
+/// effect. The client casts `spell` on the identity (its client-side actions) and, with the
+/// flag, plays the spell's EffectPackage there with the named target "lastChainTarget" (the
+/// arc). Both are `from` (the previous target), so the jump is cast from there.
+pub fn chain_jump(to: Id32, from: Id32, spell: u32) -> Bytes {
+    iir::record("ChainSpellIIR_t", to, false, |w| {
+        let w = from.write(from.write(w)).u32(spell);
+        let w = [1, 0, spell, 1, 0, 0, 0].iter().fold(w, |w, v| w.u32(*v));
+        w.u32(0).u8(1)
+    })
+}
+
 /// Buffs shown with `show_buff`, with the generation of their latest add.
 static SHOWN: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<(Id32, u32), u64>>> =
     std::sync::LazyLock::new(Default::default);
@@ -67,6 +81,31 @@ pub fn show_buff(target: Id32, buff: u32, caster: Id32, duration: Option<std::ti
         });
     }
     records
+}
+
+/// Re-casts `buff` on `target` while it is still shown (a channel's tick re-casting its
+/// self-buff, e.g. the Barbarian's Spin Slash): only its time is renewed (`MagicBuffIIR_c` mode
+/// 2), since removing and adding it again restarts its effect and the animation it sets.
+/// Returns `None` when it isn't shown (`show_buff` then).
+pub fn refresh_buff(target: Id32, buff: u32, caster: Id32, duration: std::time::Duration) -> Option<Vec<Bytes>> {
+    let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    {
+        let mut shown = SHOWN.lock().unwrap();
+        let g = shown.get_mut(&(target, buff))?;
+        *g = generation;
+    }
+    if let Ok(rt) = tokio::runtime::Handle::try_current() {
+        rt.spawn(async move {
+            tokio::time::sleep(duration).await;
+            let mut shown = SHOWN.lock().unwrap();
+            if shown.get(&(target, buff)) == Some(&generation) {
+                shown.remove(&(target, buff));
+                drop(shown);
+                crate::world::send_playfield(target, true, crate::world::Out::Records(vec![buff_remove(target, buff, caster)]));
+            }
+        });
+    }
+    Some(vec![buff_update_counter(target, buff, caster, 0, (duration.as_millis() / 10) as u32)])
 }
 
 /// `buff` is no longer shown on `target` (removed by other means).

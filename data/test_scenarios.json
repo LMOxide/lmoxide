@@ -296,6 +296,66 @@
         "playfield": 4200,
         "pos": [122.0, 72.0, 120.0]
       }
+    },
+    {
+      "label": "volleys",
+      "about": "Galaxy Trooper, Revolutionary Soldier and Lizard Man with 6 Pirate Corsairs (specials that shoot every channel tick while held: Blaster Storm, Squad, RAWR)",
+      "team": [
+        "Galaxy Trooper",
+        "Revolutionary Soldier",
+        "Lizard Man"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "lobs",
+      "about": "Galaxy Patrol, Pirate Captain and Skydiver with 6 Pirate Corsairs (thrown bombs land on the target and explode: Extra Magnetic Grenade, Cross Bomb; Skydive leaps onto the enemies)",
+      "team": [
+        "Galaxy Patrol",
+        "Pirate Captain",
+        "Skydiver"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "pulses",
+      "about": "Wizard, Cowboy and Lifeguard Guy with 6 Pirate Corsairs (Lightning Blast chains to nearby enemies, Wild Ride shoots the nearest enemy every tick, Sparkling Whirlpool hurts around you for 3 s)",
+      "team": [
+        "Wizard",
+        "Cowboy",
+        "Lifeguard Guy"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "spin",
+      "about": "Barbarian with 6 Pirate Corsairs (Spin Slash: one continuous spin while held)",
+      "team": [
+        "Barbarian",
+        "Cowboy",
+        "Ballerina"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
     }
   ]
 }

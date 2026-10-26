@@ -143,6 +143,16 @@ pub fn set_buff_mitigation(player: Id32, buff: u32, mitigation: Option<f32>) {
     };
 }
 
+/// Every minifigure of the player back to full health (smashed ones too): the health of those not
+/// active starts full again when they are switched to. Returns the active one's health.
+pub fn revive_player(player: Id32) -> u32 {
+    let mut players = PLAYERS.lock().unwrap();
+    let p = players.entry(player).or_default();
+    p.health.clear();
+    p.health.insert(p.active, p.max);
+    p.max
+}
+
 /// Heals the player's active minifigure (up to full); returns its new health.
 pub fn heal_player(player: Id32, amount: u32) -> u32 {
     let mut players = PLAYERS.lock().unwrap();

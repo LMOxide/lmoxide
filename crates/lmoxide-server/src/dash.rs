@@ -125,6 +125,32 @@ pub fn start(
     });
 }
 
+/// A Blink game action (server-only; the Skydiver's Skydive): `caster` goes to `point`, at most
+/// `max` metres away (without a point, the full distance along `facing`), on the same server
+/// path as a dash (the client plays the jump itself, from the spell's animation), and `arrive`
+/// runs at the landing point. The path's records are the dash's (no recording of a Blink).
+pub fn leap(caster: Id32, pos: world::Position, point: Option<[f32; 3]>, facing: [f32; 2], max: f32, arrive: impl FnOnce([f32; 3]) + Send + 'static) {
+    let start = *pos.lock().unwrap();
+    let towards = point.map(|p| [p[0] - start[0], p[2] - start[2]]).filter(|d| d[0].hypot(d[1]) > 0.5);
+    let (dir, len) = match towards {
+        Some(d) => {
+            let l = d[0].hypot(d[1]);
+            ([d[0] / l, d[1] / l], l.min(max))
+        }
+        None => (facing, max),
+    };
+    let end = [start[0] + dir[0] * len, point.map_or(start[1], |p| p[1]), start[2] + dir[1] * len];
+    let t = len / SPEED;
+    info!(?caster, len, ?end, "leap");
+    world::send_playfield(caster, true, world::Out::Records(vec![path_record(caster, start, end, len), substate_record(caster, BCC_ENTER_SUBSTATE)]));
+    tokio::spawn(async move {
+        tokio::time::sleep(Duration::from_secs_f32(t + SETTLE)).await;
+        *pos.lock().unwrap() = end;
+        world::send_playfield(caster, true, world::Out::Records(vec![substate_record(caster, BCC_EXIT_SUBSTATE), stop_record(caster, end, dir)]));
+        arrive(end);
+    });
+}
+
 /// What an enemy hit by a dash shows: its nanos' buffs and effect packages (see `Dash`).
 fn show_hit(caster: Id32, target: Id32, visuals: &[(u32, u32, Option<u32>)]) {
     let mut records = Vec::new();
@@ -159,7 +185,8 @@ fn substate_record(id: Id32, action: u8) -> Bytes {
 }
 
 /// `StopIIR_c`: position, rotation (yaw towards `dir`), u8 1, u8 0 (as after the recorded dashes).
-fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> Bytes {
+/// Also turns a standing player (actions.rs: towards their shots).
+pub(crate) fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> Bytes {
     let half = dir[0].atan2(dir[1]) / 2.0;
     iir::record("StopIIR_c", id, false, |w| {
         w.f32(at[0]).f32(at[1]).f32(at[2]).f32(0.0).f32(half.sin()).f32(0.0).f32(half.cos()).u8(1).u8(0)
