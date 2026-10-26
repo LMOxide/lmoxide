@@ -200,6 +200,21 @@ can be mounted read-only; only the data dir is written. All routes are GET; requ
 16 KiB are refused; there are no directory listings, and `/patch` paths with `..`, `\` or `:`
 are rejected.
 
+### Local mirror of Funcom's CDN
+
+`tools/funcom-mirror.py` downloads everything Funcom's patch CDN still serves into
+`../clients/funcom-cdn/legoupm/`, byte for byte at the same paths: the files `PatchInfoClient.txt`
+names (`RDBHashIndex.bin`, all 20 platform download lists), every platform's `FileList.bin` and
+the client files in them, and every resource in the index (84,978; the Android/iOS/Mac lists add
+none). Bodies are checked against the md5 in their URL; reruns resume. The Windows and Mac
+`PatcherSetupHash` files are already gone (404). `tools/funcom-cdn.sh` serves the folder, so the
+patch server can run without Funcom:
+
+```sh
+tools/funcom-cdn.sh &                                     # http://127.0.0.1:8070/legoupm
+LMOXIDE_UPSTREAM=http://127.0.0.1:8070/legoupm tools/lan-server.sh --release
+```
+
 Note: the Linux kit's `lmo` launcher fetches `LocalConfig.xml` from `http://$LMO_SERVER:8080`
 on every start, so with a public HTTP port other than 8080 use a launcher that doesn't (the
 manifest already installs `LocalConfig.xml`).
