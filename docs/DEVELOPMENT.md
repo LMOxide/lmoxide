@@ -12,7 +12,7 @@ scripts in `tools/` and `patches/`. For setup, see the [README](../README.md).
 
 ```sh
 LMO_AUTOPLAY=1 tools/test-run.sh 60      # server + client, wait 60 s, print a summary, screenshot
-tools/lan-server.sh --restart            # rebuild and restart only the game server of a LAN run
+tools/lan-server.sh --restart            # rebuild and restart the game server and API of a LAN run
 ```
 
 `tools/test-run.sh` logs in as `tester` / `tester-password`, prints the RPCs, warnings and client
@@ -43,6 +43,11 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!revive` | bring every minifigure (team and collection) back from smashed, at full health |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
 | `!spawn [count] <name>` | spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes, as `!test` does (`!spawn 3 Crate`, `!spawn Captain Dreadleg`) |
+| `!despawn [all]` | remove the test spawns (`!spawn`, `!test`) within 30 m, or all of this playfield's |
+| `!fx <id> [hook] [@near\|@ground]` | play effect package `<id>` on yourself, from a code hook (`onhit`, `charge`, `execute`, ...), with the nearest enemy or smashable as its target (`@near`) or at your feet (`@ground`); `!fx next\|prev\|stop` steps through every package or ends it (data/effect_catalog.json) |
+| `!anim <attribute>` | play an animation attribute (`limbostart`, `chainattack`, `get_hit`, ...: data/animations.json picks a package that sets it) |
+| `!skin <monster data\|reset>` | look like any monster data (data/monster_data.json), or your minifigure again |
+| `!state <n>` | set your character state (stat 20: 1 Idle, 4 Fighting, 7 Flying, 29 Limbo, 69 Evade, 104 Building; data/bcc_states.json) |
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
@@ -63,7 +68,7 @@ with the chat lines it produced (`tools/dev-command.sh <account> '<cmd>'` from a
 
 | Command | What it does |
 |---|---|
-| `tools/lan-server.sh [--release] [lan-ip]` | game server + patch server (Windows and, from `clients/downloads/LMO_Linux_v1.5.557666.zip`, Linux installs) + REST API on :8090 for LAN play (binds 0.0.0.0, advertises the LAN IP; `--auto-register`, GM level 1); logs in `logs/lan-*.log`. `--restart [--release]` rebuilds and restarts only the game server |
+| `tools/lan-server.sh [--release] [lan-ip]` | game server + patch server (Windows and, from `clients/downloads/LMO_Linux_v1.5.557666.zip`, Linux installs) + REST API on :8090 for LAN play (binds 0.0.0.0, advertises the LAN IP; `--auto-register`, GM level 1); logs in `logs/lan-*.log`. Also the dev servers of `../lmoxide-webui` (:5173) and `../lmoxide-debug-browser` (:5174) on all interfaces, their `/api` proxied to the API (`LMOXIDE_WEB_APPS=` picks them). `--restart [--release]` rebuilds and restarts the game server and the API |
 | `tools/lan-party.sh [--reset] [lan-ip]` | `lan-server.sh --release` with open registration + the web UI (`../lmoxide-webui` built, served on :4173); accounts `host`, `player1`..`player8` with password `password` and GM level 2 (admin); `--reset` deletes every character but host's |
 | `tools/test-run.sh [secs]` | restart the servers + client, wait, print a summary, screenshot (see [Test runs](#test-runs)); `LMO_AUTOPLAY=1` also presses "start" via Lua |
 | `tools/dev-run.sh <client-dir> <log-dir>` | restart game server, patch server and client (patched with the login key by `patches/patch-client.py`) and leave them running; `LMO_RUNNER=wine\|proton\|linux` picks how the client runs (`linux` = native build, `<client-dir>` is then the Linux client) |
@@ -116,3 +121,9 @@ from `/opt/ghidra` (Arch `ghidra` package) or `$GHIDRA_HOME`. See also [PROTOCOL
 | `tools/re/py extract_encounters.py` | `data/encounters.json` (boss arenas, ambushes, champion spots from the bounded areas, RDB 1000053 of the Linux client) |
 | `tools/re/py extract_spell_actions.py` | `data/spell_actions.json` (action lists of the channelled abilities and the nanos they cast) |
 | `tools/re/py extract_return_points.py` | `data/return_points.json` (arrival next to the portal back to where the player came from) |
+| `tools/re/py extract_effect_catalog.py [--no-refs]` | `data/effect_catalog.json`, `data/effect_package_ids.json` (effect packages: timelines, code hooks, particles and sounds with RDB ids; `used_by` takes ~10 min) |
+| `tools/re/py extract_animations.py` | `data/animations.json` (motion sets, anim graphs, animation attributes and the package `!anim` plays; after the effect catalog) |
+| `tools/re/py extract_monster_data.py` | `data/monster_data.json` (every look, RDB 1010514 binary XML: `lmxb.py`) |
+| `tools/re/py extract_bcc_states.py` | `data/bcc_states.json` (character states and substates from the client's behaviour tree) |
+| `tools/re/py extract_playfields.py` | `data/playfields.json` (every playfield's name) |
+| `tools/re/py rdb_names.py TYPE [NAME]` | the client's resource name index (RDB 1020004): names of sounds, particles, ... |

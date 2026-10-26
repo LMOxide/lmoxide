@@ -18,6 +18,8 @@ services:
       - --public-host=${LMOXIDE_PUBLIC_HOST:?set LMOXIDE_PUBLIC_HOST in .env}
       - --control-bind=0.0.0.0:7300
       - --control-token-file=/run/secrets/control_token
+      # the client's RDB: sounds of effect packages for GET /v1/catalog/sounds/{id}
+      - --client-dir=/clients/windows
     environment:
       <<: *env
       LMOXIDE_DATA_DIR: /data
@@ -25,6 +27,7 @@ services:
       LMOXIDE_DEFAULT_GM_LEVEL: ${LMOXIDE_DEFAULT_GM_LEVEL:-0}
     volumes:
       - data:/data
+      - ${LMOXIDE_WINDOWS_CLIENT:?set LMOXIDE_WINDOWS_CLIENT in .env}:/clients/windows:ro
     secrets: [control_token]
     ports:
       - "7100:7100"

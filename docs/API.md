@@ -15,7 +15,8 @@ running game server through its control interface for live data (players online,
 broadcasts, maintenance). Without a control token those routes answer 503. Flags (each also an
 environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
 `--open-registration`, `--session-ttl-hours`, `--moderator-gm-level` (1), `--admin-gm-level`
-(2), `--cors-origins`, `--trust-forwarded-for`.
+(2), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
+`/v1/catalog/sounds/{id}` serves the sounds of effect packages from its RDB; 503 without it).
 
 ## Authentication
 
@@ -42,7 +43,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/status` | public* | game server up, version, players online, maintenance |
 | GET | `/v1/online` | public* | characters in play (in-game name, playfield) |
 | GET | `/v1/config` | public | `registration_open`, `private_status`, `moderator_gm_level`, `admin_gm_level` |
-| GET | `/v1/playfields` | public | playfield ids with names (for the ids in other answers) |
+| GET | `/v1/playfields` | public | every playfield id with its name (for the ids in other answers); `teleport`: a `!tp` destination |
 | GET | `/v1/minifigures` | public | minifigure template ids with name, series, attack names, upgrade names by bit, parts (tokens) |
 | GET | `/v1/tokens` | public | token ids (minifigure parts, as in a character's `tokens`) with name and minifigure |
 | POST | `/v1/auth/login` | - | `{username, password}` → `{token, expires_at, scope, account}` |
@@ -53,7 +54,11 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/players` | read | online players with account ids and usernames |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
 | POST | `/v1/players/{account_id}/command` | admin | `{command}`: a test command (`!fx 163540`, `!skin 2212`, `!state 29`) run as the player, as if typed in chat (its GM level still applies) → `{affected, replies}`: the chat answers it produced |
-| GET | `/v1/catalog/effects` | read | every effect package / particle system: timelines, particles, sounds, animation attributes, items and spells using it |
+| GET | `/v1/catalog/effects` | read | every effect package / particle system: timelines (with the code hook that starts each, `until_stopped`), particles and sounds (with RDB ids), animation attributes, code hooks, items and spells using it |
+| GET | `/v1/catalog/sounds/{id}` | read | a sound of an effect package (`sounds[].id`) as Ogg Vorbis; needs `--client-dir` |
+| GET | `/v1/catalog/monsters` | read | every monster data (look, `!skin`): designers' name, motion set, anim graph, death effect, what uses it |
+| GET | `/v1/catalog/animations` | read | animation attributes (`!anim`), motion sets with their motions, anim graphs |
+| GET | `/v1/catalog/bcc-states` | read | character states (`!state`, stat 20) and substates by name |
 | GET | `/v1/catalog/test-commands` | read | what the test commands accept: commands with usage, `!goto` target kinds with numbered targets, `!test` scenarios, `!dialog` dialogues, `!loot` kinds, `!spawn` names, `!skin` looks |
 | POST | `/v1/broadcast` | moderate | `{message}`: a chat line from "Server" to everyone |
 | POST | `/v1/maintenance` | admin | `{enabled, message?}`: only GMs may log in |
@@ -73,7 +78,9 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 \* public unless `--private-status`, then `read`.
 
 The game data routes (`/v1/playfields`, `/v1/minifigures`, `/v1/tokens`) send
-`Cache-Control: public, max-age=3600`; everything else is `no-store`. The OpenAPI document gives
+`Cache-Control: public, max-age=3600`; the catalogs `private, max-age=3600` with an `ETag` (a
+request with `If-None-Match` gets 304 while the data is unchanged); everything else is `no-store`.
+Answers are gzip/brotli compressed when the client accepts it. The OpenAPI document gives
 the username and password rules (`pattern`, `minLength`, `maxLength`); password lengths are
 counted in bytes by the server.
 

@@ -19,6 +19,10 @@ WEB_ORIGINS=${WEB_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://lo
 # ports clear of a LAN server on the defaults
 GAME_PORTS=(--universe-port 27100 --territory-port 27101 --game-port 27102 --chat-port 27200)
 CONTROL=127.0.0.1:27300
+# the client's RDB, for the sounds of effect packages (GET /v1/catalog/sounds/{id}), if it's there
+CLIENT=${LMOXIDE_CLIENT_DIR:-$(realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online")}
+CLIENT_ARGS=()
+[[ -f $CLIENT/RDB/RDBHashIndex.bin ]] && CLIENT_ARGS=(--client-dir "$CLIENT")
 
 [[ ${1:-} == --reset ]] && rm -rf "$DATA"
 mkdir -p "$DATA"
@@ -52,4 +56,4 @@ echo "CORS:     $WEB_ORIGINS"
 echo "logs:     $DATA/server.log (game), API below"
 echo
 "$API" --data-dir "$DATA" --bind "127.0.0.1:$API_PORT" --control-url "http://$CONTROL" \
-  --control-token-file "$DATA/control_token" --cors-origins "$WEB_ORIGINS" --open-registration
+  --control-token-file "$DATA/control_token" --cors-origins "$WEB_ORIGINS" --open-registration "${CLIENT_ARGS[@]}"

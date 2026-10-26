@@ -12,8 +12,12 @@
 # Progression is on (--progression: XP, levels and minifigure ranks, as live).
 # The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
 # client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
-# is started again. Restart only the game server (with a fresh build) while this runs:
+# is started again; the API is started again too. Rebuild and restart both while this runs:
 #   tools/lan-server.sh --restart [--release]
+# Web apps: the dev servers (vite, live reload) of ../lmoxide-webui on :5173 and
+# ../lmoxide-debug-browser on :5174, on all interfaces (this PC and others); their /api goes to
+# this API, so they need no CORS setup. One whose port is taken is left as it is (already
+# running). LMOXIDE_WEB_APPS="webui:5173 debug-browser:5174" picks them (empty: none).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RESTART=0
@@ -27,9 +31,12 @@ if [[ ${1:-} == --release ]]; then
   shift
 fi
 if (( RESTART )); then
-  cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server $([[ $PROFILE == release ]] && echo --release)
+  cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-api $([[ $PROFILE == release ]] && echo --release)
   pid=$(cat "$ROOT/logs/lan-server.pid" 2>/dev/null) || { echo "no LAN game server running (logs/lan-server.pid)"; exit 1; }
   kill "$pid" && echo "game server $pid stopped; keep-listening starts the new build"
+  if pid=$(cat "$ROOT/logs/lan-api.pid" 2>/dev/null) && kill "$pid" 2>/dev/null; then
+    echo "API $pid stopped; it starts again with the new build"
+  fi
   exit 0
 fi
 IP=${1:-$(ip -4 route get 1.1.1.1 | sed -nE 's/.* src ([0-9.]+).*/\1/p')}
@@ -61,8 +68,9 @@ if [[ -n $LINUX_CLIENT ]]; then
 fi
 # the client kit, served at http://<ip>:8080/client-kit.tar.gz for other PCs (patches/linux-client/README.md)
 KIT=$("$ROOT/patches/linux-client/make-kit.sh" | cut -d' ' -f1)
-# a LAN server already running: its supervisor first (else it starts the server again)
+# a LAN server already running: its supervisors first (else they start the servers again)
 [[ -s $ROOT/logs/lan-holder.pid ]] && { kill "$(cat "$ROOT/logs/lan-holder.pid")" 2>/dev/null || true; sleep 2; }
+[[ -s $ROOT/logs/lan-api-loop.pid ]] && { kill "$(cat "$ROOT/logs/lan-api-loop.pid")" 2>/dev/null || true; }
 API_PORT=${LMOXIDE_API_PORT-8090}
 # only the servers on the LAN ports (other checkouts or sessions may run their own on side ports)
 lan_pids() { ss -ltnpH "( sport = :8080 or sport = :7100 or sport = :7101 or sport = :7102 or sport = :7200 or sport = :7300${API_PORT:+ or sport = :$API_PORT} )" | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u; }
@@ -89,15 +97,40 @@ if [[ -n $API_PORT ]]; then
   CONTROL_ARGS=(--control-token-file "$DATA/control_token")
   # after the game server opened (and migrated) the database: at the same time it's locked
   rm -f "$ROOT/logs/lan-server.log"
+  # started again when it exits (--restart stops it after a build)
   (
     until grep -qs "control interface listening" "$ROOT/logs/lan-server.log"; do sleep 1; done
-    exec "$BIN/lmoxide-api" --data-dir "$DATA" --bind "0.0.0.0:$API_PORT" --control-url http://127.0.0.1:7300 \
-      --control-token-file "$DATA/control_token" ${LMOXIDE_API_ARGS:-}
+    while true; do
+      "$BIN/lmoxide-api" --data-dir "$DATA" --bind "0.0.0.0:$API_PORT" --control-url http://127.0.0.1:7300 \
+        --control-token-file "$DATA/control_token" --client-dir "$CLIENT" ${LMOXIDE_API_ARGS:-} &
+      echo $! >"$ROOT/logs/lan-api.pid"
+      wait $! || true
+      sleep 1
+    done
   ) >"$ROOT/logs/lan-api.log" 2>&1 &
   API=$!
+  echo $API >"$ROOT/logs/lan-api-loop.pid"
   echo "REST API: http://$IP:$API_PORT (log logs/lan-api.log)"
 fi
-trap 'kill $PATCH ${API:-} 2>/dev/null' EXIT
+# the web apps' dev servers (see the top)
+WEB=()
+if [[ -n $API_PORT ]]; then
+  for app in ${LMOXIDE_WEB_APPS-webui:5173 debug-browser:5174}; do
+    name=${app%:*} port=${app#*:} dir=$(realpath -m "$ROOT/../lmoxide-${app%:*}")
+    if [[ ! -f $dir/package.json ]]; then
+      echo "$name: not at $dir, skipped"
+    elif [[ -n $(ss -ltnH "sport = :$port") ]]; then
+      echo "$name: port $port already in use (running already?), left as it is"
+    else
+      [[ -d $dir/node_modules ]] || pnpm -C "$dir" install --frozen-lockfile >"$ROOT/logs/lan-$name.log" 2>&1
+      (cd "$dir" && LMOXIDE_API=http://127.0.0.1:$API_PORT exec node_modules/.bin/vite --host 0.0.0.0 --port "$port" --strictPort) \
+        >"$ROOT/logs/lan-$name.log" 2>&1 &
+      WEB+=($!)
+      echo "$name: http://$IP:$port (log logs/lan-$name.log)"
+    fi
+  done
+fi
+trap 'kill $PATCH ${API:-} ${WEB[*]} 2>/dev/null; [[ -s $ROOT/logs/lan-api.pid ]] && kill "$(cat "$ROOT/logs/lan-api.pid")" 2>/dev/null' EXIT
 python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,7200 --pidfile "$ROOT/logs/lan-server.pid" \
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \

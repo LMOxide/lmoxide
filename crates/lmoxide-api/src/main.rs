@@ -4,6 +4,7 @@
 //! document is served at `/v1/openapi.json`.
 
 mod auth;
+mod catalog;
 mod error;
 mod routes;
 
@@ -122,6 +123,10 @@ pub struct Config {
     /// proxy that sets it), for rate limits.
     #[arg(long, env = "LMOXIDE_API_TRUST_FORWARDED_FOR")]
     pub trust_forwarded_for: bool,
+    /// Windows client folder (with RDB/): the sounds of effect packages are served from it
+    /// (GET /v1/catalog/sounds/{id}).
+    #[arg(long, env = "LMOXIDE_CLIENT_DIR")]
+    pub client_dir: Option<PathBuf>,
 }
 
 pub struct AppState {
@@ -152,6 +157,7 @@ pub async fn blocking<T: Send + 'static>(
         (name = "players", description = "The running game server"),
         (name = "accounts", description = "Accounts and characters"),
         (name = "admin", description = "API keys and the audit log"),
+        (name = "catalog", description = "Game data from the client: effects, looks, animations, character states, test commands"),
     )
 )]
 struct ApiDoc;
@@ -256,6 +262,8 @@ async fn serve(cfg: Config, db: Arc<Db>) -> anyhow::Result<()> {
         .layer(TimeoutLayer::with_status_code(axum::http::StatusCode::REQUEST_TIMEOUT, Duration::from_secs(30)))
         // static game data sets its own
         .layer(SetResponseHeaderLayer::if_not_present(header::CACHE_CONTROL, HeaderValue::from_static("no-store")))
+        // gzip/brotli when the client accepts it (the effect catalog is about 2 MB of JSON)
+        .layer(tower_http::compression::CompressionLayer::new())
         .layer(SetResponseHeaderLayer::overriding(header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff")))
         .layer(TraceLayer::new_for_http());
     if let Some(cors) = cors {

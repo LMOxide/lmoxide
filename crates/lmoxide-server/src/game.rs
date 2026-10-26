@@ -1209,22 +1209,46 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 world::send_playfield(id, true, world::Out::Records(vec![crate::effects::stop_effect_package(id, package, 0, instance)]));
                             }
                             let play = match fx {
-                                crate::devcmd::Fx::Play(package, hook) => Some((package, hook)),
+                                crate::devcmd::Fx::Play(package, hook, at) => Some((package, hook, at)),
                                 crate::devcmd::Fx::Step(step) if !ids.is_empty() => {
                                     let at = playing_fx_at.map_or(0, |i| (i as i64 + i64::from(step)).rem_euclid(ids.len() as i64) as usize);
                                     playing_fx_at = Some(at);
-                                    Some((ids[at], String::new()))
+                                    Some((ids[at], String::new(), crate::devcmd::FxAt::Me))
                                 }
                                 _ => None,
                             };
-                            if let Some((package, hook)) = play {
+                            if let Some((package, hook, at)) = play {
                                 let instance = crate::effects::new_instance();
-                                let record = crate::effects::effect_package_hook(id, package, &hook, "", 0.0, 0, instance);
-                                world::send_playfield(id, true, world::Out::Records(vec![record]));
-                                playing_fx = Some((package, instance));
-                                let n = ids.iter().position(|&p| p == package).map_or(String::new(), |i| format!(" ({} of {})", i + 1, ids.len()));
-                                crate::chat::system(character, &format!("effect package {package}{n}"));
+                                let here = *pos.lock().unwrap();
+                                // the record's identity is always the player (so `!fx stop` ends it)
+                                let (record, place) = match at {
+                                    crate::devcmd::FxAt::Me => (Some(crate::effects::effect_package_hook(id, package, &hook, "", 0.0, 0, instance)), String::new()),
+                                    crate::devcmd::FxAt::Ground => (Some(crate::effects::ground_effect(id, package, here, 0, instance)), " at your feet".into()),
+                                    crate::devcmd::FxAt::Near => {
+                                        let d = |p: [f32; 3]| (p[0] - here[0]).hypot(p[2] - here[2]);
+                                        let nearest = crate::npc::targets_where(me.playfield, |p| d(p) < 15.0).into_iter().min_by(|a, b| d(a.1).total_cmp(&d(b.1)));
+                                        match nearest {
+                                            Some((target, _)) => (Some(crate::effects::effect_package_on(id, target, package, &hook, instance)), format!(" on {}", crate::npc::name_of(target).unwrap_or_default())),
+                                            None => (None, String::new()),
+                                        }
+                                    }
+                                };
+                                match record {
+                                    Some(record) => {
+                                        world::send_playfield(id, true, world::Out::Records(vec![record]));
+                                        playing_fx = Some((package, instance));
+                                        let n = ids.iter().position(|&p| p == package).map_or(String::new(), |i| format!(" ({} of {})", i + 1, ids.len()));
+                                        let hook = if hook.is_empty() { String::new() } else { format!(" from {hook}") };
+                                        crate::chat::system(character, &format!("effect package {package}{n}{hook}{place}"));
+                                    }
+                                    None => crate::chat::system(character, "no enemy or smashable within 15 m for @near"),
+                                }
                             }
+                        }
+                        crate::devcmd::Action::Despawn(all) => {
+                            let here = *pos.lock().unwrap();
+                            let n = crate::npc::despawn_tests(me.playfield, (!all).then_some((here, 30.0)));
+                            crate::chat::system(character, &format!("{n} test spawns removed"));
                         }
                         crate::devcmd::Action::Spawn(name, count) => {
                             let at = *pos.lock().unwrap();

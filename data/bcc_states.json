@@ -1,0 +1,20 @@
+{
+ "_comment": "Names from the client's character behaviour tree (RDB 1010203/12488 \"CharacterBcc\" XML, same as 1010501/1 binary, loaded by BCCTree_c::Load); the only states and substates the client defines for player characters, extracted by tools/re/extract_bcc_states.py. groups = inherited action groups (what the character may do in it); about = observed behaviour.",
+ "states": [
+  {"value": 1, "name": "Idle", "groups": ["ChangeMoveModes", "Combat", "Idle", "Interaction", "NormalMovement", "start_charging", "start_cinematic", "start_knockback", "start_stunned", "use"], "about": "normal: what a player is in when doing nothing special (server BCC_STATE_NORMAL)"},
+  {"value": 4, "name": "Fighting", "groups": ["Combat", "CombatIdle", "Interaction", "NormalMovement", "start_charging", "start_cinematic", "start_knockback", "start_stunned", "use"], "about": "in combat (BehaviorControlCenter::IsFightState is true for it)"},
+  {"value": 7, "name": "Flying", "groups": ["Combat", "Idle", "NormalMovement"], "about": ""},
+  {"value": 29, "name": "Limbo", "groups": ["Limbo"], "about": "smashed/dead: death effect, the 'You got smashed!' window for a player; only the Limbo action group"},
+  {"value": 69, "name": "Evade", "groups": ["Evade", "NormalMovement"], "about": ""},
+  {"value": 104, "name": "Building", "groups": ["Combat", "Idle", "Interaction", "NormalMovement", "start_jumping", "start_knockback", "start_stunned"], "about": "building a buildable: the client asks for it with BCC command 1 (data 104) and the server sets it, back to 1 when the build stops"}
+ ],
+ "substates": [
+  {"value": 18, "name": "Stunned", "priority": 8, "groups": ["stunned"]},
+  {"value": 24, "name": "Knockbacked", "priority": 9, "groups": ["Knockbacked"]},
+  {"value": 38, "name": "Cinematic", "groups": ["Cinematic"]},
+  {"value": 84, "name": "Charged", "priority": 15, "groups": ["Charge"]},
+  {"value": 96, "name": "NoMovement", "groups": ["TurnOnly"]},
+  {"value": 200, "name": "Charging", "priority": 20, "groups": ["Charging"]},
+  {"value": 201, "name": "Jumping", "groups": ["Jumping"]}
+ ]
+}

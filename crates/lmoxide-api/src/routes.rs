@@ -36,8 +36,8 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(players))
         .routes(routes!(kick))
         .routes(routes!(player_command))
-        .routes(routes!(effect_catalog))
         .routes(routes!(test_commands))
+        .merge(crate::catalog::router())
         .routes(routes!(broadcast))
         .routes(routes!(maintenance))
         .routes(routes!(list_accounts, create_account))
@@ -614,6 +614,8 @@ const STATIC_DATA: [(header::HeaderName, &str); 1] = [(header::CACHE_CONTROL, "p
 pub struct Playfield {
     pub id: u32,
     pub name: String,
+    /// A `!tp` destination (with an arrival point); the others are the tutorial, layers, test maps.
+    pub teleport: bool,
 }
 
 /// Playfield ids in the other answers, with their names (worlds, dungeons, the LEGO Center).
@@ -621,18 +623,29 @@ pub struct Playfield {
     responses((status = OK, body = [Playfield])), security(()))]
 async fn playfields() -> impl axum::response::IntoResponse {
     #[derive(Deserialize)]
-    struct File {
+    struct Destinations {
         destinations: BTreeMap<u32, Dest>,
     }
     #[derive(Deserialize)]
     struct Dest {
         name: String,
     }
-    static LIST: std::sync::LazyLock<Vec<(u32, String)>> = std::sync::LazyLock::new(|| {
-        let f: File = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
-        f.destinations.into_iter().map(|(id, d)| (id, decode_entities(&d.name))).collect()
+    #[derive(Deserialize)]
+    struct Names {
+        playfields: BTreeMap<u32, String>,
+    }
+    static LIST: std::sync::LazyLock<Vec<Playfield>> = std::sync::LazyLock::new(|| {
+        let d: Destinations = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
+        let n: Names = serde_json::from_str(include_str!("../../../data/playfields.json")).expect("playfields.json");
+        let mut all: BTreeMap<u32, Playfield> =
+            n.playfields.into_iter().map(|(id, name)| (id, Playfield { id, name: decode_entities(&name), teleport: false })).collect();
+        // the teleport destinations keep their own (player-facing) names
+        for (id, dest) in d.destinations {
+            all.insert(id, Playfield { id, name: decode_entities(&dest.name), teleport: true });
+        }
+        all.into_values().collect()
     });
-    (STATIC_DATA, Json(LIST.iter().map(|(id, name)| Playfield { id: *id, name: name.clone() }).collect::<Vec<_>>()))
+    (STATIC_DATA, Json(LIST.iter().map(|p| Playfield { id: p.id, name: p.name.clone(), teleport: p.teleport }).collect::<Vec<_>>()))
 }
 
 /// Decodes the XML character entities the game data keeps in names (`Natives&apos; Hollow`).
@@ -1000,14 +1013,6 @@ async fn test_commands(State(state): State<Arc<AppState>>, auth: Auth) -> ApiRes
     auth.require(Scope::Read)?;
     let catalog = control(&state)?.test_catalog().await.map_err(ApiError::game_server)?;
     Ok(Json(catalog.into()))
-}
-
-/// The client's effect packages and particle systems with what they play and which items and
-/// spells use them (data/effect_catalog.json, tools/re/extract_effect_catalog.py). Scope: read.
-#[utoipa::path(get, path = "/v1/catalog/effects", tag = "catalog", responses((status = OK, body = Object)))]
-async fn effect_catalog(auth: Auth) -> ApiResult<([(axum::http::HeaderName, &'static str); 1], &'static str)> {
-    auth.require(Scope::Read)?;
-    Ok(([(axum::http::header::CONTENT_TYPE, "application/json")], include_str!("../../../data/effect_catalog.json")))
 }
 
 /// Send a chat line from "Server" to everyone online. Scope: moderate.

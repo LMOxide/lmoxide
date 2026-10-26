@@ -133,6 +133,14 @@ pub fn effect_package_hook(target: Id32, package: u32, hook: &str, stop: &str, v
     })
 }
 
+/// An effect package of `owner` (the record's identity) with `target` as its named target: the
+/// parts aimed at the target (`target="target"`) play on it (`!fx <id> @near`).
+pub fn effect_package_on(owner: Id32, target: Id32, package: u32, hook: &str, instance: u32) -> Bytes {
+    iir::record("EffectPackageIIR", owner, false, |w| {
+        target.write(w).u32(package).string(hook).string("").f32(0.0).u8(0).u32(instance).f32(0.0).f32(0.0).f32(0.0).u32(0)
+    })
+}
+
 /// An effect package played at a ground position, owned by `owner` (the record's identity), as
 /// the original server sent ground effects: zero named target, the position, the owning
 /// `spell` (0: none). Ends by itself or with `stop_effect_package` (same instance).

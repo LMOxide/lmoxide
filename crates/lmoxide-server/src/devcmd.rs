@@ -24,13 +24,17 @@
 //!   !own [name]               obtain a minifigure (as from a bag); without a name: how many you own
 //!   !collection <limit|all>   own only the team and the members' minifigures, or every one
 //!                             (relog to see it in the Collection)
-//!   !fx <id> [hook]           play effect package <id> on yourself (optionally from a code hook,
-//!                             e.g. limbostart); !fx next|prev steps through every package
-//!                             (data/effect_catalog.json), !fx stop ends the current one
+//!   !fx <id> [hook] [@near|@ground]  play effect package <id> on yourself (optionally from a
+//!                             code hook, e.g. onhit; @near: on the nearest enemy or smashable as
+//!                             its target, @ground: at your feet); !fx next|prev steps through
+//!                             every package (data/effect_catalog.json), !fx stop ends the current one
+//!   !anim <attribute>         play an animation attribute (limbostart, chainattack, ...: the
+//!                             package data/animations.json picks for it)
 //!   !skin <monsterdata|reset> look like any monster data (others see it too), reset: your minifigure
 //!   !state <n>                set your BCCState (stat 20: 1 normal, 29 Limbo/smashed, 104 building, ...)
 //!   !spawn [count] <name>     spawn count (default 1, at most 30) of an enemy or smashable around you
 //!                             for 15 minutes, as !test does
+//!   !despawn [all]            remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's
 //!
 //! `COMMANDS` lists them for `!help` and for the control interface's catalog (`catalog`).
 //!
@@ -81,6 +85,8 @@ pub enum Action {
     State(u32),
     /// spawn (name, count) enemies or smashables around the player (`!spawn`)
     Spawn(String, u32),
+    /// remove test spawns: within 30 m (false) or on the whole playfield (true)
+    Despawn(bool),
     /// open a teleport window by id, as a portal would (`!window`)
     Window(u32),
 }
@@ -95,6 +101,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!goto <kind> [n]", "go next to target n (default 1) of that kind"),
     ("!test [n|label]", "list the manual test setups, or set one up (data/test_scenarios.json)"),
     ("!spawn [count] <name>", "spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes"),
+    ("!despawn [all]", "remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's"),
     ("!loot <kind>", "drop a loot bag at your feet"),
     ("!smash", "smash the nearest smashable (or defeat the nearest enemy) within 15 m"),
     ("!smashme", "smash the active minifigure (it rebuilds after the smash timer)"),
@@ -110,7 +117,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
-    ("!fx <id> [hook]", "play effect package <id> on yourself (optionally from a code hook)"),
+    ("!fx <id> [hook] [@near|@ground]", "play effect package <id> on yourself, from a code hook (onhit, charge, ...), on the nearest enemy as target (@near) or at your feet (@ground)"),
+    ("!anim <attribute>", "play an animation attribute (limbostart, chainattack, get_hit, ...)"),
     ("!fx next|prev|stop", "step through every effect package, or end the current one"),
     ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
     ("!state <n>", "set your BCCState (1 normal, 29 Limbo/smashed, 104 building, ...)"),
@@ -163,9 +171,40 @@ pub fn catalog() -> lmoxide_control::TestCatalog {
 
 /// `!fx` arguments.
 pub enum Fx {
-    Play(u32, String),
+    /// package, code hook ("" for none), where
+    Play(u32, String, FxAt),
     Step(i32),
     Stop,
+}
+
+/// Where `!fx` plays a package.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FxAt {
+    /// on the player (the record's identity and named target)
+    Me,
+    /// the player's, with the nearest enemy or smashable as its named target (`@near`)
+    Near,
+    /// at the player's feet (a ground effect: `@ground`)
+    Ground,
+}
+
+/// The effect package `!anim <attribute>` plays for each animation attribute
+/// (data/animations.json, tools/re/extract_animations.py).
+pub fn animation_package(attribute: &str) -> Option<u32> {
+    #[derive(serde::Deserialize)]
+    struct File {
+        attributes: Vec<Attribute>,
+    }
+    #[derive(serde::Deserialize)]
+    struct Attribute {
+        name: String,
+        package: Option<u32>,
+    }
+    static PACKAGES: std::sync::LazyLock<std::collections::HashMap<String, u32>> = std::sync::LazyLock::new(|| {
+        let f: File = serde_json::from_str(include_str!("../../../data/animations.json")).expect("animations.json");
+        f.attributes.into_iter().filter_map(|a| Some((a.name.to_ascii_lowercase(), a.package?))).collect()
+    });
+    PACKAGES.get(&attribute.to_ascii_lowercase()).copied()
 }
 
 /// Every effect package id (data/effect_package_ids.json, from tools/re/extract_effect_catalog.py).
@@ -419,9 +458,29 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some("next") => Action::Fx(Fx::Step(1)),
             Some("prev") => Action::Fx(Fx::Step(-1)),
             Some("stop") => Action::Fx(Fx::Stop),
-            Some(n) if n.parse::<u32>().is_ok() => Action::Fx(Fx::Play(n.parse().unwrap(), args.get(1).copied().unwrap_or("").to_string())),
-            _ => reply(vec!["usage: !fx <id> [code hook] | next | prev | stop".into()]),
+            Some(n) if n.parse::<u32>().is_ok() => {
+                let mut at = FxAt::Me;
+                let mut hook = "";
+                for a in &args[1..] {
+                    match a.to_ascii_lowercase().as_str() {
+                        "@near" | "@target" => at = FxAt::Near,
+                        "@ground" => at = FxAt::Ground,
+                        w if w.starts_with('@') => return reply(vec![format!("{a}? where: @near or @ground")]),
+                        _ => hook = a,
+                    }
+                }
+                Action::Fx(Fx::Play(n.parse().unwrap(), hook.to_string(), at))
+            }
+            _ => reply(vec!["usage: !fx <id> [code hook] [@near|@ground] | next | prev | stop".into()]),
         },
+        "anim" => match args.first() {
+            Some(a) => match animation_package(a) {
+                Some(p) => Action::Fx(Fx::Play(p, String::new(), FxAt::Me)),
+                None => reply(vec![format!("no effect package sets the animation attribute {a}")]),
+            },
+            None => reply(vec!["usage: !anim <animation attribute> (limbostart, chainattack, get_hit, ...)".into()]),
+        },
+        "despawn" => Action::Despawn(args.first().is_some_and(|a| a.eq_ignore_ascii_case("all"))),
         "state" => match args.first().and_then(|n| n.parse().ok()) {
             Some(n) => Action::State(n),
             None => reply(vec!["usage: !state <BCCState number> (1 normal, 29 Limbo)".into()]),
@@ -500,6 +559,22 @@ mod tests {
         assert!(matches!(run("!tp isle of yarr", 1200, [0.0; 3]), Action::Teleport(4200, ..)));
         assert!(matches!(run("/tp 5200", 1200, [0.0; 3]), Action::Teleport(5200, ..)));
         assert!(matches!(run("!tp nowhere", 1200, [0.0; 3]), Action::Reply(_)));
+    }
+
+    #[test]
+    fn fx_takes_a_hook_and_a_place() {
+        assert!(matches!(run("!fx 966", 1200, [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Me)) if h.is_empty()));
+        assert!(matches!(run("!fx 966 onhit @near", 1200, [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Near)) if h == "onhit"));
+        assert!(matches!(run("!fx 966 @ground", 1200, [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Ground)) if h.is_empty()));
+        assert!(matches!(run("!fx 966 @moon", 1200, [0.0; 3]), Action::Reply(_)));
+    }
+
+    #[test]
+    fn anim_plays_an_attribute_package() {
+        assert!(matches!(run("!anim limbostart", 1200, [0.0; 3]), Action::Fx(Fx::Play(_, _, FxAt::Me))));
+        assert!(matches!(run("!anim nothing_like_it", 1200, [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!despawn all", 1200, [0.0; 3]), Action::Despawn(true)));
+        assert!(matches!(run("!despawn", 1200, [0.0; 3]), Action::Despawn(false)));
     }
 
     #[test]

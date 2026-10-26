@@ -294,6 +294,8 @@ struct Npc {
     walk: Option<Walk>,
     /// Spawned by a test scenario: doesn't respawn, and is gone at that time.
     temporary: Option<std::time::Instant>,
+    /// Spawned by a test command (`!spawn`, `!test`): `!despawn` removes it.
+    test_spawn: bool,
     /// When each of its spells can be cast again (npc_spells.rs).
     cooldowns: HashMap<u32, std::time::Instant>,
     /// Casting (or stunned) until then: it stands still.
@@ -315,6 +317,7 @@ impl Npc {
             summon: None,
             walk: None,
             temporary,
+            test_spawn: false,
             cooldowns: HashMap::new(),
             busy_until: None,
             threat: None,
@@ -388,6 +391,11 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
 /// A friendly (story or usable) NPC's name and playfield.
 pub fn friendly(id: Id32) -> Option<(String, u32)> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.def.kind == Kind::Npc).map(|n| (n.def.name.clone(), n.playfield))
+}
+
+/// An NPC's name.
+pub fn name_of(id: Id32) -> Option<String> {
+    NPCS.lock().unwrap().get(&id).map(|n| n.def.name.clone())
 }
 
 /// A spawned NPC named `name` on `playfield`.
@@ -707,7 +715,8 @@ pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 
         let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
         let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
         let def = SpawnDef { pos, ..def.clone() };
-        let npc = Npc::new(def, playfield, None, Some(until));
+        let mut npc = Npc::new(def, playfield, None, Some(until));
+        npc.test_spawn = true;
         NPCS.lock().unwrap().insert(id, npc);
         appear(id);
         ids.push(id);
@@ -720,6 +729,28 @@ pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 
         drop(gone); // despawns them
     });
     count
+}
+
+/// Removes the test spawns (`spawn_test_enemies`) on `playfield`, all or those within (centre,
+/// radius); how many.
+pub fn despawn_tests(playfield: u32, near: Option<([f32; 3], f32)>) -> u32 {
+    let mut npcs = NPCS.lock().unwrap();
+    let gone: Vec<Id32> = npcs
+        .iter()
+        .filter(|(_, n)| n.test_spawn && n.playfield == playfield)
+        .filter(|(_, n)| {
+            near.is_none_or(|(c, r)| {
+                let p = *n.pos.lock().unwrap();
+                (p[0] - c[0]).hypot(p[2] - c[2]) <= r
+            })
+        })
+        .map(|(id, _)| *id)
+        .collect();
+    let removed: Vec<Npc> = gone.iter().filter_map(|id| npcs.remove(id)).collect();
+    drop(npcs);
+    let n = removed.len() as u32;
+    drop(removed); // despawns them
+    n
 }
 
 /// Spawns `def` on `playfield` for a scripted event: it fights like the others but doesn't

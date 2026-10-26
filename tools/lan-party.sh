@@ -63,6 +63,7 @@ else
   echo "web UI: http://$IP:$WEBUI_PORT (log logs/lan-webui.log)"
 fi
 
-LMOXIDE_DATA_DIR=$DATA LMOXIDE_DEFAULT_GM_LEVEL=$GM \
+# (the web UI is served built above; lan-server.sh adds the debug browser's dev server)
+LMOXIDE_DATA_DIR=$DATA LMOXIDE_DEFAULT_GM_LEVEL=$GM LMOXIDE_WEB_APPS=${LMOXIDE_WEB_APPS-debug-browser:5174} \
   LMOXIDE_API_ARGS="--open-registration ${LMOXIDE_API_ARGS:-}" \
   "$ROOT/tools/lan-server.sh" --release "$@"
