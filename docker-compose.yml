@@ -1,4 +1,4 @@
-# LMOxide: game server, REST API and patch server from one image (see README "Running with Docker").
+# LMOxide: game server, REST API and patch server from one image (see README "Setup").
 #   cp docker/.env.example .env && mkdir -p secrets && openssl rand -hex 32 > secrets/control_token
 #   docker compose up -d --build
 

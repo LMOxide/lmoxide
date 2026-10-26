@@ -505,7 +505,7 @@ See `Data/smoketest.lua` (Funcom's automated test) and `tools/client/startup.lua
 
 ## Tooling
 
-See the README "Tools" table. When the client hits an assertion it opens a dialog that would
+See [DEVELOPMENT.md](DEVELOPMENT.md). When the client hits an assertion it opens a dialog that would
 send a bug report to Funcom on close — kill the process instead (`pkill -x LMO.exe`).
 `winedbg` (attach + `bt all`, see `logs/bt.txt` usage in history) gives backtraces of a stuck client. Highlights: `tools/test-run.sh` (with `LMO_AUTOPLAY=1`) for one
 end-to-end cycle including a screenshot of the game window (`grim -T` works on hidden
