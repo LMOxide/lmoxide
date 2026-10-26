@@ -8,7 +8,8 @@
 //! buttons, and answers `GameCharAgentProject::TeleportMessageBoxAnswer(playfield or -1, ctx)`.
 //! Hub portals send nothing: the server notices the player standing in one and opens that
 //! destination's teleport window. The windows (and World Map markers) require completed story
-//! quests, which `journal_record` provides.
+//! quests, which `journal_record` provides. Portals whose window would be empty ask with a Yes/No
+//! message box instead (`PLAIN_WINDOWS`).
 //!
 //! The move: `IntendedTeleportIIR_c` + `n3TeleportIIR_t` (the client stops the old playfield and
 //! goes to FlowControl DeepTeleport), then the new playfield's records as at login; the client
@@ -90,6 +91,46 @@ const HUB: u32 = 1200;
 pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<(u32, u32)> {
     let portal = DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
     Some((if portal.to == playfield { HUB } else { portal.to }, portal.window))
+}
+
+/// Teleport windows whose RDB entry names only the destination (no picture, level or texts): the
+/// client shows them as an empty window (73 to the LEGO Center, 74 to Pirate World). Their
+/// portals ask with a plain Yes/No message box instead. (window, destination)
+const PLAIN_WINDOWS: &[(u32, u32)] = &[(73, HUB), (74, 4600)];
+
+/// Whether a portal opening `window` asks with a message box instead.
+pub fn plain_window(window: u32) -> bool {
+    plain_window_destination(window).is_some()
+}
+
+/// Where a plain window leads.
+pub fn plain_window_destination(window: u32) -> Option<u32> {
+    PLAIN_WINDOWS.iter().find(|&&(w, _)| w == window).map(|&(_, to)| to)
+}
+
+/// The question a portal with a plain window asks.
+pub fn travel_question(playfield: u32) -> String {
+    let name = destination(playfield).map_or_else(|| playfield.to_string(), |d| d.name.clone());
+    format!("Do you want to travel to {name}?")
+}
+
+/// Every portal, for the test commands: (label, playfield, position), by playfield.
+pub fn points() -> Vec<(String, u32, [f32; 3])> {
+    let mut out: Vec<_> = DATA
+        .portals
+        .iter()
+        .filter_map(|(k, ps)| Some((k.parse::<u32>().ok()?, ps)))
+        .flat_map(|(playfield, ps)| {
+            ps.iter().map(move |p| {
+                let to = if p.to == playfield { HUB } else { p.to };
+                let name = destination(to).map_or_else(|| to.to_string(), |d| d.name.clone());
+                let how = if plain_window(p.window) { "asks Yes/No".to_string() } else { format!("window {}", p.window) };
+                (format!("to {name} ({how})"), playfield, p.pos)
+            })
+        })
+        .collect();
+    out.sort_by(|a, b| a.1.cmp(&b.1).then(a.2[0].total_cmp(&b.2[0])));
+    out
 }
 
 /// Characters teleported since their last movement report (game.rs keeps their portals shut

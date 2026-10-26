@@ -47,6 +47,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
     let mut shown_portal: Option<u32> = None;
+    // the open portal message box (plain windows): its cookie and where it leads
+    let mut portal_prompt: Option<(u64, u32)> = None;
+    let mut next_prompt_cookie = 1u64;
     // portals open only once the player has been clear of them since arriving (login, teleport)
     let mut portals_armed = false;
     let mut portals_playfield = 0;
@@ -461,25 +464,45 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 Some((to, window)) if shown_portal != Some(to) => {
                                     shown_portal = Some(to);
                                     info!(to, window, "portal");
-                                    let args = Writer::new().u32(window).i32(0).finish();
-                                    conn.send_as(
-                                        Some(character),
-                                        Endpoint::GameCharInterfaceProject,
-                                        game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
-                                        args,
-                                    )
-                                    .await?;
+                                    if crate::teleport::plain_window(window) {
+                                        // its window would be empty: ask Yes/No instead
+                                        let cookie = next_prompt_cookie;
+                                        next_prompt_cookie += 1;
+                                        portal_prompt = Some((cookie, to));
+                                        conn.send_as(
+                                            Some(character),
+                                            Endpoint::GameCharInterface,
+                                            game_char_interface::SCRY_SHOW_MESSAGE_BOX,
+                                            message_box_args(&crate::teleport::travel_question(to), cookie),
+                                        )
+                                        .await?;
+                                    } else {
+                                        let args = Writer::new().u32(window).i32(0).finish();
+                                        conn.send_as(
+                                            Some(character),
+                                            Endpoint::GameCharInterfaceProject,
+                                            game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
+                                            args,
+                                        )
+                                        .await?;
+                                    }
                                 }
                                 Some(_) => {}
                                 None if shown_portal.is_some() => {
                                     shown_portal = None;
-                                    conn.send_as(
-                                        Some(character),
-                                        Endpoint::GameCharInterfaceProject,
-                                        game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
-                                        Bytes::new(),
-                                    )
-                                    .await?;
+                                    if let Some((cookie, _)) = portal_prompt.take() {
+                                        let args = Writer::new().u64(cookie).finish();
+                                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_CLOSE_MESSAGE_BOX, args)
+                                            .await?;
+                                    } else {
+                                        conn.send_as(
+                                            Some(character),
+                                            Endpoint::GameCharInterfaceProject,
+                                            game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
+                                            Bytes::new(),
+                                        )
+                                        .await?;
+                                    }
                                 }
                                 None => {}
                             }
@@ -943,6 +966,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         .await?;
                 }
             }
+            (Some(Endpoint::GameCharAgent), game_char_agent::SCRY_MESSAGE_BOX_ANSWER) => {
+                // ScryMessageBoxAnswer(int answer, int ctx, uint64 cookie): 1 Yes, 2 No or closed
+                let answer = r.i32()?;
+                let _ctx = r.i32()?;
+                let cookie = r.u64()?;
+                info!(answer, cookie, "message box answer");
+                if let Some((asked, to)) = portal_prompt
+                    && asked == cookie
+                {
+                    portal_prompt = None;
+                    if answer == 1 {
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, None, None).await?;
+                    }
+                }
+            }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::TELEPORT_WINDOW_BYPASS) => {
                 // TeleportWindowBypass(uint32 windowsId, uint32 playfieldId): the Tutorial's map
                 // sends this for Pirate World instead of opening the window
@@ -1193,6 +1231,32 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let n = crate::npc::spawn_test_enemies(&name, count, me.playfield, at, TEST_ENEMY_LIFETIME);
                             let line = if n == 0 { format!("no enemy or smashable named {name}") } else { format!("{n} x {name} for 15 minutes") };
                             crate::chat::system(character, &line);
+                        }
+                        crate::devcmd::Action::Window(window) if let Some(to) = crate::teleport::plain_window_destination(window) => {
+                            // as its portals do: ask Yes/No
+                            let cookie = next_prompt_cookie;
+                            next_prompt_cookie += 1;
+                            portal_prompt = Some((cookie, to));
+                            let args = message_box_args(&crate::teleport::travel_question(to), cookie);
+                            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
+                        }
+                        crate::devcmd::Action::Window(window) => {
+                            // (an open one would stay instead)
+                            conn.send_as(
+                                Some(character),
+                                Endpoint::GameCharInterfaceProject,
+                                game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
+                                Bytes::new(),
+                            )
+                            .await?;
+                            let args = Writer::new().u32(window).i32(0).finish();
+                            conn.send_as(
+                                Some(character),
+                                Endpoint::GameCharInterfaceProject,
+                                game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
+                                args,
+                            )
+                            .await?;
                         }
                         crate::devcmd::Action::State(state) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
@@ -2242,6 +2306,14 @@ fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option
         collection.put(if swap_inv == crate::collection::COLLECTION_INVENTORY { swap_pos } else { src_pos }, old);
     }
     Some((dst_slot, template))
+}
+
+/// `GameCharInterface::ScryShowMessageBox(String text, int text1, int text2, int text3, int tip1,
+/// int tip2, int tip3, int ctx, String custom name, uint64 cookie)`: a dialog box with `text`.
+/// Button texts -1 and -1 make Yes and No (ScryMessageBox::Init); the answer comes back as
+/// ScryMessageBoxAnswer with the cookie.
+fn message_box_args(text: &str, cookie: u64) -> Bytes {
+    Writer::new().string(text).i32(-1).i32(-1).i32(0).i32(0).i32(0).i32(0).i32(0).string("").u64(cookie).finish()
 }
 
 /// ObjectInteraction data: ID32 object, u32 action (6 use, `INTERACTION_STOP_USE`).

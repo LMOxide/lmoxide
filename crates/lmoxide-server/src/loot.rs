@@ -36,6 +36,10 @@ use crate::{
 };
 
 const LOOT_BAG_TYPE: u32 = 51322;
+/// The recorded bags' template ("XX_Loot Bag"), name text and interaction radius.
+const BAG_TEMPLATE: u32 = 1209;
+const BAG_DISPLAY_NAME: &str = r#"<remoteformat id="1209" category="50200" key="S2L)UkVW7#3EI46]q1Bq" knubot="0"  ></remoteformat>"#;
+const BAG_INTERACTION_RADIUS: u32 = 50;
 /// "XX_Minifigure XP": one star (GameAction token 100, amount 1).
 pub const STAR_ITEM: u32 = 20634;
 /// Stars ("minifigure XP").
@@ -511,12 +515,29 @@ fn bag_record(id: Id32, playfield: u32, pos: [f32; 3], owner: Id32, dropper: Id3
         ..Default::default()
     };
     iir::record("LootBagFullUpdateIIR_c", id, false, |w| {
-        let w = w.proto(&dynel).proto(&ProtoSimpleDynelIir::default());
+        let w = w.proto(&dynel).proto(&bag_dynel());
         let w = w.u32(0).u32(0).u32(0);
         let w = (0..6).fold(w, |w, _| w.f32(0.0));
         // scale (must be non-zero), u32, u8
         w.f32(1.0).u32(0).u8(0).proto(&bag)
     })
+}
+
+/// The bag's SimpleDynel part, as every recorded bag had it. `is_closed` matters: a bag can be
+/// opened (SimpleDynel::CanOpen: CARS use, CanBeOpened and IsClosed) only while closed, and
+/// clicking an item works only when its bag can be opened (SimpleChar_t::GetDefaultCharacterAction
+/// for ClientLootBag); without it a click on a part did nothing.
+fn bag_dynel() -> ProtoSimpleDynelIir {
+    ProtoSimpleDynelIir {
+        kdtree: Some(0),
+        name: Some("XX_Loot Bag".into()),
+        display_name: Some(BAG_DISPLAY_NAME.into()),
+        cars_group: Some(0),
+        template_item_id: Some(BAG_TEMPLATE),
+        is_closed: Some(true),
+        interaction_radius: Some(BAG_INTERACTION_RADIUS),
+        ..Default::default()
+    }
 }
 
 /// An item taken from a bag.

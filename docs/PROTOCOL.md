@@ -276,6 +276,16 @@ team 57001 (raid 57016).
   GCA 125 RequestTeamMemberPosList(vector<u32>) → GameCharInterface 0x7c
   UpdateTeamMemberPosList(vector<{u32 instance, i32 x, y, z}>).
 
+## Message boxes
+
+- `GameCharInterface` 0x58 **ScryShowMessageBox**(String text, int text1, int text2, int text3,
+  int tip1, int tip2, int tip3, int ctx, String custom name, uint64 cookie) opens a
+  "Notification" dialog (ASDialogBox) with the text; text1 = text2 = -1 gives No and Yes buttons
+  (ScryMessageBox::Init). The client answers `GameCharAgent` 50 **ScryMessageBoxAnswer**(int
+  answer, int ctx, uint64 cookie): 1 Yes, 2 No or closed (a box closed by a teleport answers 2
+  too). 0x59 ScryCloseMessageBox(uint64 cookie) closes it. Used for portals whose teleport window
+  is empty (73, 74; teleport.rs). Verified with the Linux client.
+
 ## Loot (loot.rs)
 
 - Only the bag's **owner** sees its items (`ProjectLootBag::OnEnteringPlayfield`), so team loot
@@ -289,10 +299,20 @@ team 57001 (raid 57016).
   -> 110002, static-template items (stars) -> none, everything else incl. parts -> backpack 104
   (`ItemHolder+0x50`, created empty by CoreItemHolder::Initialize). Live's FullPlayerCharacterIIR
   carried 101 (32), 104 (50), 112 (48), 113 (48), 120 (20), 119 (24), 110001 (160), 110002 (200).
-- **Open question:** parts are picked up with the interact key (E). A mouse click on a part
-  casts the basic attack instead: `SimpleDynel::CanOpen` needs `CanBeOpened` (+0x33a; set by
-  SetCanBeOpened, UpdateSimpleDynelIIR_c::Activate, the CoreLootBag ctor) and not IsClosed.
-  Whether live allowed clicking is unknown; revisit if it turns out it did.
+- **Clicking and E** (`Combat_MainAttack`, key E in Hotkeys.xml; `Target_InteractBuild` is
+  gamepad only) end in the same `ActionModeDefault_c::UseTarget(target,
+  SimpleChar_t::GetDefaultCharacterAction(target))`: E takes the auto-aim target, a left click
+  the object under the cursor (`MouseSelection_c::TraceObjects`: loot first, then characters,
+  simple dynels and destructibles; `CanSelect` refuses CarsGroup 5 unless GM). Action 6 (use:
+  simple dynels and destructibles passing the CARS USE rule, CarsGroup 1/2/4) enters
+  ActionModeClickToUse (walk up, `DoUse`); 0xc (talk); 0x12/0x15 attack. A loot item
+  (ClientLootBag 51340) gives 0x13 only when its parent bag (51322) **can be opened**:
+  `SimpleDynel::CanOpen` = CARS USE (for loot bags: the looter check, CarsGroup ignored) and
+  `CanBeOpened` (+0x33a, CoreLootBag ctor) **and IsClosed**. Live's bags were sent closed
+  (ProtoSimpleDynelIIR name "XX_Loot Bag", template 1209, cars_group 0, is_closed 1,
+  interaction_radius 50); ours lacked is_closed, so a click on a part did nothing (fixed
+  2026-10-26; the click itself is not verified in game: injected clicks don't reach an
+  unfocused client's world input).
   `GameCharAgentProject` 0x15 ConvertMinifigureParts() → 0x22 response (1 = done); 0x16
   BuildminifigureFromParts(u32 template) → 0x23 response (0 = built).
 - **Minifigure bags** (dynel type 34001, one per minifigure, data/loot_items.json; inventory

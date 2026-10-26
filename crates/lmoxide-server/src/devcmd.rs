@@ -81,6 +81,8 @@ pub enum Action {
     State(u32),
     /// spawn (name, count) enemies or smashables around the player (`!spawn`)
     Spawn(String, u32),
+    /// open a teleport window by id, as a portal would (`!window`)
+    Window(u32),
 }
 
 /// Every command with its usage and what it does (`!help`, and tools through `catalog`).
@@ -112,6 +114,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!fx next|prev|stop", "step through every effect package, or end the current one"),
     ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
     ("!state <n>", "set your BCCState (1 normal, 29 Limbo/smashed, 104 building, ...)"),
+    ("!window <id>", "open teleport window <id> (RDB 1000644), as a portal would"),
 ];
 
 /// Most a `!spawn` brings at once.
@@ -278,6 +281,7 @@ const KINDS: &[(&str, &str)] = &[
     ("arena", "boss arena starts (encounters)"),
     ("ambush", "ambush areas (encounters)"),
     ("explore", "exploration achievement areas"),
+    ("portal", "portals (walk 8 m away after arriving, then step in)"),
     ("trigger", "tutorial triggers (1300; listed 6 m off, so !goto and the tour land inside)"),
     ("boss", "dungeon bosses"),
     ("champion", "champions"),
@@ -307,6 +311,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "collectible" => crate::discovery::points(true),
         "boombox" => crate::discovery::points(false),
         "trigger" => crate::tutorial::points(),
+        "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "smashable" => crate::npc::points(kind),
         _ => return None,
@@ -420,6 +425,10 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
         "state" => match args.first().and_then(|n| n.parse().ok()) {
             Some(n) => Action::State(n),
             None => reply(vec!["usage: !state <BCCState number> (1 normal, 29 Limbo)".into()]),
+        },
+        "window" => match args.first().and_then(|n| n.parse().ok()) {
+            Some(n) => Action::Window(n),
+            None => reply(vec!["usage: !window <teleport window id>".into()]),
         },
         "spawn" => {
             // `!spawn 3 Crate` or `!spawn Captain Dreadleg`
