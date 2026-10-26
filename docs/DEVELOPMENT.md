@@ -43,6 +43,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!revive` | bring every minifigure (team and collection) back from smashed, at full health |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
 | `!spawn [count] <name>` | spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes, as `!test` does (`!spawn 3 Crate`, `!spawn Captain Dreadleg`) |
+| `!aim [current\|lead\|homing]` | how players' shots are aimed at the enemy they target, for everyone: `current` (where it is at the shot); `lead` and `homing` are designed but not implemented yet. Without a mode: the current one |
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |

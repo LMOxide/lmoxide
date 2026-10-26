@@ -435,6 +435,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 *facing.lock().unwrap() = heading;
                             }
                             *pos.lock().unwrap() = p;
+                            // where they are between reports (what enemy shots hit)
+                            if let Some(motion) = reported_motion(kind, rest) {
+                                world::set_motion(h.identity, motion);
+                            }
                             // jump pads (click-to-move reports the path's end and its start)
                             let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
                             crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
@@ -754,7 +758,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let here = *pos.lock().unwrap();
                                         let npc_target = target_id.filter(|t| *t != h.identity && crate::npc::is_npc(*t));
                                         let towards = npc_target
-                                            .and_then(crate::npc::position)
+                                            .and_then(crate::projectile::aim_at)
                                             .or(ground)
                                             .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
                                         crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
@@ -1769,6 +1773,28 @@ fn reported_facing(rest: &[u8]) -> Option<[f32; 2]> {
     (len > 0.01).then(|| [x / len, z / len])
 }
 
+/// How a movement IIR says the character moves: keyboard movement (`CharDCMoveIIR_t`: u8 flags,
+/// position, rotation (2 floats if flags & 0x10, else 4), u8 alignment, then the velocity unless
+/// flags & 0x04), or a click-to-move path (`MoveTaskIIR_c`: from the start along the waypoints, at
+/// the players' run speed, as `PLAYER_SPEEDS` makes the client walk it).
+fn reported_motion(kind: &str, rest: &[u8]) -> Option<world::Motion> {
+    let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
+    let at = |i: usize| Some([f(i)?, f(i + 4)?, f(i + 8)?]);
+    let since = std::time::Instant::now();
+    if kind == "CharDCMoveIIR_t" {
+        let flags = *rest.first()?;
+        let vel = if flags & 0x04 != 0 { [0.0; 3] } else { at(if flags & 0x10 != 0 { 22 } else { 30 })? };
+        return Some(world::Motion::Steer { at: at(1)?, vel, since });
+    }
+    let n = rest.get(28..32).map(|b| u32::from_be_bytes(b.try_into().unwrap()))? as usize;
+    if n == 0 || n > 64 {
+        return None;
+    }
+    let points = std::iter::once(at(1)).chain((0..n).map(|i| at(32 + 12 * i))).collect::<Option<Vec<_>>>()?;
+    let speed = PLAYER_SPEEDS.iter().find(|(stat, _)| *stat == STAT_RUN_SPEED).map_or(5.6, |&(_, v)| v);
+    Some(world::Motion::Path { points, speed, since })
+}
+
 /// Where a movement IIR says the character is (CharDCMoveIIR_t) or is heading
 /// (MoveTaskIIR_c: the path's last waypoint). See `move_record` / `move_task_record`.
 fn reported_position(kind: &str, rest: &[u8]) -> Option<[f32; 3]> {
@@ -2106,7 +2132,7 @@ fn run_charge(
             // held too long: fire at full charge, in the direction faced now
             let here = *pos.lock().unwrap();
             let f = *facing.lock().unwrap();
-            let towards = target.and_then(crate::npc::position).unwrap_or([here[0] + f[0], here[1], here[2] + f[1]]);
+            let towards = target.and_then(crate::projectile::aim_at).unwrap_or([here[0] + f[0], here[1], here[2] + f[1]]);
             info!(spell, "charge fired automatically");
             crate::projectile::launch(caster, playfield, spell, full_item, here, towards, target, full_damage);
             *auto_fired.lock().unwrap() = Some((spell, std::time::Instant::now()));
@@ -2138,7 +2164,7 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     // The release resends the press-time command, so its point is where the player aimed when
     // they started charging; aim with the facing they have now instead (the client keeps
     // reporting it while they turn). A targeted cast still goes to its target.
-    let towards = c.target.and_then(crate::npc::position).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
+    let towards = c.target.and_then(crate::projectile::aim_at).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
     info!(spell = c.spell, held, item, "charge released");
     crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, damage);
 }
@@ -2784,6 +2810,8 @@ impl CharacterExt for Character {
     }
 }
 
+/// The speed paths (MoveTaskIIR_c) move characters at.
+const STAT_RUN_SPEED: u32 = 1397;
 /// Movement speed stats of players in the recorded session (m/s): MovementChargeSpeed 1400,
 /// 1402, 1401, 1397, 1398, 1399, 1396. Paths (MoveTaskIIR_c) move characters at 1397 (measured
 /// on the recorded NPCs, see npc::RUN_SPEED).
@@ -2934,6 +2962,40 @@ mod tests {
         // the first ItemShopCurrencies of the recorded session (0 stars)
         let recorded = "0000000200001b9700000001000000000008564f5543484552530000000200000000000553544152530000003900000000000c47414d455f564f55434845520000003a00000000000d504149445f4449414d4f4e44530000003b00000000000e424f4e55535f4449414d4f4e44530000003c00000000000d47414d455f4449414d4f4e4453";
         assert_eq!(crate::conn::hex(&item_shop_currencies(0)), recorded);
+    }
+
+    fn floats(head: &[u8], values: &[f32]) -> Vec<u8> {
+        let mut b = head.to_vec();
+        values.iter().for_each(|v| b.extend(v.to_be_bytes()));
+        b
+    }
+
+    #[test]
+    fn movement_reports_tell_where_players_are() {
+        let now = std::time::Instant::now();
+        // keyboard: yaw-only rotation, then u8 alignment and the velocity (as `move_record`)
+        let mut steer = floats(&[0x18], &[1.0, 0.0, 2.0, 0.0, 1.0]);
+        steer.extend(floats(&[0], &[4.0, 0.0, 0.0, 0.0]));
+        let m = reported_motion("CharDCMoveIIR_t", &steer).unwrap();
+        assert_eq!(m.at(now), [1.0, 0.0, 2.0]);
+        assert!((m.at(now + std::time::Duration::from_millis(100))[0] - 1.4).abs() < 1e-2);
+        // not further than STEER_AHEAD without another report
+        assert!((m.at(now + std::time::Duration::from_secs(2))[0] - 2.2).abs() < 1e-2);
+        // stopped (no velocity)
+        let stop = floats(&[0x1c], &[1.0, 0.0, 2.0, 0.0, 1.0]);
+        assert_eq!(reported_motion("CharDCMoveIIR_t", &stop).unwrap().at(now + std::time::Duration::from_secs(1)), [1.0, 0.0, 2.0]);
+        // click-to-move: start, then the waypoints at 32 (u32 count at 28), walked at 5.6 m/s
+        let mut path = floats(&[0], &[0.0, 0.0, 0.0]);
+        path.extend([0x0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        path.extend(0.072f32.to_be_bytes());
+        path.extend(2u32.to_be_bytes());
+        path.extend(floats(&[], &[5.6, 0.0, 0.0, 5.6, 0.0, 5.6]));
+        assert_eq!(reported_position("MoveTaskIIR_c", &path), Some([5.6, 0.0, 5.6]));
+        let m = reported_motion("MoveTaskIIR_c", &path).unwrap();
+        let at = |ms| m.at(now + std::time::Duration::from_millis(ms));
+        assert!((at(500)[0] - 2.8).abs() < 1e-3);
+        assert!((at(1500)[2] - 2.8).abs() < 1e-3 && (at(1500)[0] - 5.6).abs() < 1e-3);
+        assert_eq!(at(5000), [5.6, 0.0, 5.6]);
     }
 }
 

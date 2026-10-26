@@ -132,8 +132,6 @@ const GROUND_DEFAULT_PULSE_CS: f32 = 100.0;
 const GROUND_MIN_VISUAL: Duration = Duration::from_secs(1);
 /// Range of a projectile without AttackRange.
 const DEFAULT_PROJECTILE_RANGE: f32 = 15.0;
-/// How close to a straight shot's line a player is hit.
-const LINE_WIDTH: f32 = 1.0;
 const MAX_DEPTH: u32 = 5;
 /// Traps (PlaceTrap) spring when a player comes this close (the islander scout's trap area
 /// formula's Radius), checked this often.
@@ -305,9 +303,9 @@ fn show(run: &Run, records: Vec<Bytes>) {
     world::send_playfield(from, true, world::Out::Records(records));
 }
 
-/// The players on the caster's playfield whose position is `inside`.
+/// The players on the caster's playfield where they are now (`world::live_position`) `inside`.
 fn players_where(run: &Run, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
-    world::positions(run.playfield).into_iter().filter(|(id, p)| inside(*p) && crate::npc::is_player(*id)).collect()
+    world::live_positions(run.playfield).into_iter().filter(|(id, p)| inside(*p) && crate::npc::is_player(*id)).collect()
 }
 
 fn criteria_met(a: &Action) -> bool {
@@ -485,11 +483,11 @@ fn trap(run: &Arc<Run>, nano: u32, at: [f32; 3], lifetime: Duration, depth: u32)
     });
 }
 
-/// A Projectile action: the server shoots the projectile item. Aimed at a player (straight
-/// shots home in on their target, as the recorded hits show: the original server reported
-/// every shot as a hit), at the ground (ballistic or ground-targeted: the item acts where it
-/// lands), or along a line (shots from the caster's facing or turned by RotY, e.g. a fan of
-/// shots: the first player on the line is hit).
+/// A Projectile action: the server shoots the projectile item. Straight shots fly at where the
+/// player is when they leave (or along a line: shots from the caster's facing or turned by RotY,
+/// e.g. a fan of shots) for the spell's range, and hit the first player they touch
+/// (`projectile::launch_at_players`): a player who moves out of their line escapes them. Lobbed
+/// or ground-targeted shots act where they land.
 fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
     let Some(item) = a.u("ItemInstance") else { return };
     let caster = run.caster;
@@ -500,6 +498,10 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
     let range = a.f("AttackRange").or(spell(id).and_then(|s| s.stats.attack_range)).map_or(DEFAULT_PROJECTILE_RANGE, |r| r / 100.0);
     let turn = a.f("RotY").unwrap_or(0.0);
     let aimed_at = target.id.filter(|t| *t != caster && crate::npc::is_player(*t));
+    let on_hit = || -> crate::projectile::OnHit {
+        let run = run.clone();
+        Arc::new(move |hit, pos| impact(&run, item, Target { id: hit, pos }, depth))
+    };
     if a.on_caster() || turn != 0.0 || (aimed_at.is_none() && target.id.is_some()) {
         let base = if a.on_caster() || target.id == Some(caster) {
             run.facing
@@ -510,29 +512,11 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
         };
         let (s, c) = turn.to_radians().sin_cos();
         let dir = [base[0] * c + base[1] * s, -base[0] * s + base[1] * c];
-        let hit = players_where(run, |p| on_line(from, dir, p, range, LINE_WIDTH).is_some())
-            .into_iter()
-            .min_by(|(_, x), (_, y)| distance(*x, from).total_cmp(&distance(*y, from)));
-        let to = hit.map_or([from[0] + dir[0] * range, from[1], from[2] + dir[1] * range], |(_, p)| p);
-        let (shot, flight) = crate::projectile::launch_enemy(caster, run.playfield, id, item, move_type, speed, attractor, from, to, None);
-        let run = run.clone();
-        tokio::spawn(async move {
-            tokio::time::sleep(flight).await;
-            let hit = hit.map(|(p, pos)| (p, world::position_of(p).unwrap_or(pos)));
-            crate::projectile::enemy_impact(run.caster, shot, hit);
-            if let Some((p, pos)) = hit {
-                impact(&run, item, Target { id: Some(p), pos }, depth);
-            }
-        });
+        let to = [from[0] + dir[0] * range, from[1], from[2] + dir[1] * range];
+        crate::projectile::launch_at_players(caster, run.playfield, id, item, speed, attractor, from, to, range, None, on_hit());
     } else if let Some(player) = aimed_at.filter(|_| move_type == 1) {
-        let (shot, flight) = crate::projectile::launch_enemy(caster, run.playfield, id, item, move_type, speed, attractor, from, target.pos, Some(player));
-        let run = run.clone();
-        tokio::spawn(async move {
-            tokio::time::sleep(flight).await;
-            let pos = world::position_of(player).unwrap_or(target.pos);
-            crate::projectile::enemy_impact(run.caster, shot, Some((player, pos)));
-            impact(&run, item, Target { id: Some(player), pos }, depth);
-        });
+        let at = world::live_position(player).unwrap_or(target.pos);
+        crate::projectile::launch_at_players(caster, run.playfield, id, item, speed, attractor, from, at, range, Some(player), on_hit());
     } else {
         let to = target.pos;
         let (shot, flight) = crate::projectile::launch_enemy(caster, run.playfield, id, item, move_type, speed, attractor, from, to, None);

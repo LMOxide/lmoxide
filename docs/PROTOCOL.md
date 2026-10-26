@@ -664,3 +664,28 @@ the hit as `AttackResultIIR` (template = the item's hit nano, e.g. 197368) and
 Which spells a monster has was server-side (NPC templates); data/npc_spells.json
 (tools/re/extract_npc_spells.py) holds the recorded ones and name matches (docs/TUNABLES.md).
 LMOxide still reports hits with `CombatLogIIR` + Health (see "Hit reports").
+
+## Projectiles in the client (projectile.rs)
+
+From the Linux build (2026-10-26):
+
+- **Flight** (`ProjectileStraightLineMoveTask`): a straight shot starts at the full update's
+  start and flies towards its end point at its speed (m/s) until it is the full update's maximum
+  distance from the start (i32, metres; 0: the spell's AttackRange / 100,
+  `CoreProjectileFullUpdateIIR::Transfer`). The end point only gives the direction; the target is
+  used (its chest) only when the end point is (0, 0, 0), so shots never home in. Flag 0x40 keeps
+  it on the ground (`SnapToGround`).
+- **Hits** (`ProjectileMoveTask::TryHitDynels`): only the caster's client tests them
+  (`CheckCollision`: the caster is the client's character), in steps no longer than the radius.
+  A character is hit when the shot's centre is within the projectile's radius + the character's
+  horizontally, and within 2 × that + 1 m vertically. Projectile radius
+  (`CoreProjectile::InitFromItem`) = max(0.5, CharRadius × MonsterScale of the projectile item,
+  stats 421 and 360 each / 100, MonsterScale 0 counting as 1); a character's
+  (`SimpleChar_t::UpdateMonsterScale`) = CharRadius / 100 × MonsterScale / 100, at least 0.1.
+  tools/re/extract_projectile_sizes.py writes the items' radii.
+- **Dodge** (not used): the client has dodge hotkeys (`CoreHotkeyDispatcher::MovementDodge*`,
+  `DoDodge`) that call `SimpleChar_t::ToggleDodge`, which sends `ToggleDodge(u32 direction)`
+  (GameCharAgentProject sender method 16) unless a flag at `SimpleChar_t+0x3ef` says otherwise.
+  It also has an `ActiveDodgeMoveTask` (move task 14: a PathMoveTask plus extra fields) and
+  `CoreCharacter::SetDodgeSpeed`. The server ignores `ToggleDodge`; whether live used it, and
+  for what (perhaps immunity during some abilities), is unknown.
