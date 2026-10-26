@@ -82,6 +82,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut team_salt = 0u64;
     // the active minifigure was smashed: the character is in Limbo until the next one takes over
     let mut in_limbo = false;
+    // `!fx`: the package playing (package, instance) and its place in the list
+    let mut playing_fx: Option<(u32, u32)> = None;
+    let mut playing_fx_at: Option<usize> = None;
     loop {
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
@@ -806,14 +809,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         if command_type == COMMAND_EQUIP_ITEM
                             && let Some((_, data)) = parse_command(rest)
-                            && let Some(new_active) = equip(&mut me, &mut collection, data)
+                            && let Some((slot, template)) = equip(&mut me, &mut collection, data)
                         {
-                            // EquipItemCommand: the client moves the item itself on success
-                            records.extend(active_minifigure_records(h.identity, new_active, me.upgrade(new_active), me.combat_level(), &presence));
-                            crate::auras::apply(h.identity, new_active, &me.tags, true);
-                            if in_limbo && !me.smashed.contains_key(&new_active) {
-                                // the whole team was smashed: a minifigure from the collection
-                                // takes over, at the nearest respawn point
+                            // EquipItemCommand: the client moves the item itself on success. Into
+                            // the active slot: the new minifigure is active. With the whole team
+                            // smashed, an unsmashed one takes over wherever it goes, at the
+                            // nearest respawn point.
+                            let revives = in_limbo && !me.smashed.contains_key(&template);
+                            if revives && let Some(i) = me.team.iter().position(|&(s, _)| s == slot) {
+                                me.team[..=i].rotate_right(1);
+                                records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
+                                records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
+                            }
+                            if me.team.first() == Some(&(slot, template)) {
+                                records.extend(active_minifigure_records(h.identity, template, me.upgrade(template), me.combat_level(), &presence));
+                                crate::auras::apply(h.identity, template, &me.tags, true);
+                            }
+                            if revives {
                                 in_limbo = false;
                                 respawn(h.identity, &me, *pos.lock().unwrap(), None, &outbox);
                             }
@@ -1147,6 +1159,42 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                                 None => crate::chat::system(character, "nothing to smash within 15 m"),
                             }
+                        }
+                        crate::devcmd::Action::Fx(fx) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let ids = crate::devcmd::effect_packages();
+                            if let Some((package, instance)) = playing_fx.take() {
+                                world::send_playfield(id, true, world::Out::Records(vec![crate::effects::stop_effect_package(id, package, 0, instance)]));
+                            }
+                            let play = match fx {
+                                crate::devcmd::Fx::Play(package, hook) => Some((package, hook)),
+                                crate::devcmd::Fx::Step(step) if !ids.is_empty() => {
+                                    let at = playing_fx_at.map_or(0, |i| (i as i64 + i64::from(step)).rem_euclid(ids.len() as i64) as usize);
+                                    playing_fx_at = Some(at);
+                                    Some((ids[at], String::new()))
+                                }
+                                _ => None,
+                            };
+                            if let Some((package, hook)) = play {
+                                let instance = crate::effects::new_instance();
+                                let record = crate::effects::effect_package_hook(id, package, &hook, "", 0.0, 0, instance);
+                                world::send_playfield(id, true, world::Out::Records(vec![record]));
+                                playing_fx = Some((package, instance));
+                                let n = ids.iter().position(|&p| p == package).map_or(String::new(), |i| format!(" ({} of {})", i + 1, ids.len()));
+                                crate::chat::system(character, &format!("effect package {package}{n}"));
+                            }
+                        }
+                        crate::devcmd::Action::State(state) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, state)]));
+                            crate::chat::system(character, &format!("BCCState {state}"));
+                        }
+                        crate::devcmd::Action::Skin(look) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let look = look.unwrap_or_else(|| monster_data_for(me.team.first().map_or(0, |&(_, t)| t)));
+                            set_costume(id, look);
+                            world::send_playfield(id, true, world::Out::Records(vec![int32_stat(id, STAT_MONSTER_DATA, look)]));
+                            crate::chat::system(character, &format!("look {look}"));
                         }
                         crate::devcmd::Action::SmashMe => crate::npc::smash_player(Id32::new(crate::territory::CHARACTER_TYPE, character)),
                         crate::devcmd::Action::Loot(kind) => {
@@ -2165,7 +2213,7 @@ async fn learn_team_spells(conn: &mut Conn, character: u32, me: &Character) -> a
 /// inventory, u32 destination slot, ID32 swap inventory, u32 swap position (where the
 /// displaced item goes), ... Applies a collection → team move to our model; returns the new
 /// active minifigure if the active slot changed.
-fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option<u32> {
+fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option<(u32, u32)> {
     let u = |i: usize| data.get(i..i + 4).map(|b| u32::from_be_bytes(b.try_into().unwrap()));
     let (src_inv, src_pos, dst_inv, dst_slot, swap_inv, swap_pos) = (u(0)?, u(8)?, u(12)?, u(20)?, u(24)?, u(32)?);
     info!(src_inv, src_pos, dst_inv, dst_slot, swap_inv, swap_pos, "equip");
@@ -2183,7 +2231,7 @@ fn equip(me: &mut Character, collection: &mut Collection, data: &[u8]) -> Option
     if let Some(old) = displaced {
         collection.put(if swap_inv == crate::collection::COLLECTION_INVENTORY { swap_pos } else { src_pos }, old);
     }
-    (me.team.first().map(|&(s, _)| s) == Some(dst_slot)).then_some(template)
+    Some((dst_slot, template))
 }
 
 /// ObjectInteraction data: ID32 object, u32 action (6 use, `INTERACTION_STOP_USE`).

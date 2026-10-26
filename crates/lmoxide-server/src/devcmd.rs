@@ -24,6 +24,11 @@
 //!   !own [name]               obtain a minifigure (as from a bag); without a name: how many you own
 //!   !collection <limit|all>   own only the team and the members' minifigures, or every one
 //!                             (relog to see it in the Collection)
+//!   !fx <id> [hook]           play effect package <id> on yourself (optionally from a code hook,
+//!                             e.g. limbostart); !fx next|prev steps through every package
+//!                             (data/effect_catalog.json), !fx stop ends the current one
+//!   !skin <monsterdata|reset> look like any monster data (others see it too), reset: your minifigure
+//!   !state <n>                set your BCCState (stat 20: 1 normal, 29 Limbo/smashed, 104 building, ...)
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -64,6 +69,26 @@ pub enum Action {
     Own(Option<u32>),
     /// limit the collection (true) or own every minifigure
     LimitCollection(bool),
+    /// play / step through / stop effect packages (`!fx`)
+    Fx(Fx),
+    /// look like a monster data (`None`: the active minifigure again)
+    Skin(Option<u32>),
+    /// set the player's BCCState
+    State(u32),
+}
+
+/// `!fx` arguments.
+pub enum Fx {
+    Play(u32, String),
+    Step(i32),
+    Stop,
+}
+
+/// Every effect package id (data/effect_package_ids.json, from tools/re/extract_effect_catalog.py).
+pub fn effect_packages() -> &'static [u32] {
+    static IDS: std::sync::LazyLock<Vec<u32>> =
+        std::sync::LazyLock::new(|| serde_json::from_str(include_str!("../../../data/effect_package_ids.json")).expect("effect_package_ids.json"));
+    &IDS
 }
 
 /// A resolved test scenario (data/test_scenarios.json).
@@ -304,6 +329,22 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some(t) => Action::Own(Some(t)),
             None => reply(vec![format!("no minifigure named {}", args.join(" "))]),
         },
+        "fx" => match args.first().copied() {
+            Some("next") => Action::Fx(Fx::Step(1)),
+            Some("prev") => Action::Fx(Fx::Step(-1)),
+            Some("stop") => Action::Fx(Fx::Stop),
+            Some(n) if n.parse::<u32>().is_ok() => Action::Fx(Fx::Play(n.parse().unwrap(), args.get(1).copied().unwrap_or("").to_string())),
+            _ => reply(vec!["usage: !fx <id> [code hook] | next | prev | stop".into()]),
+        },
+        "state" => match args.first().and_then(|n| n.parse().ok()) {
+            Some(n) => Action::State(n),
+            None => reply(vec!["usage: !state <BCCState number> (1 normal, 29 Limbo)".into()]),
+        },
+        "skin" => match args.first().copied() {
+            Some("reset") => Action::Skin(None),
+            Some(n) if n.parse::<u32>().is_ok() => Action::Skin(n.parse().ok()),
+            _ => reply(vec!["usage: !skin <monster data id> | reset".into()]),
+        },
         "collection" => match args.first().copied() {
             Some(how @ ("limit" | "all")) => Action::LimitCollection(how == "limit"),
             _ => reply(vec!["usage: !collection <limit|all>".into()]),
@@ -323,7 +364,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>, !revive, !smashme, !loot <kind>, !own [name], !collection <limit|all>".into(),
+            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>, !revive, !smashme, !loot <kind>, !own [name], !collection <limit|all>, !fx <id|next|prev|stop>, !skin <id|reset>, !state <n>".into(),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }

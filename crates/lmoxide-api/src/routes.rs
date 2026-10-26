@@ -35,6 +35,8 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(change_own_password))
         .routes(routes!(players))
         .routes(routes!(kick))
+        .routes(routes!(player_command))
+        .routes(routes!(effect_catalog))
         .routes(routes!(broadcast))
         .routes(routes!(maintenance))
         .routes(routes!(list_accounts, create_account))
@@ -269,6 +271,12 @@ pub struct BanRequest {
     /// Length in days; permanent without it.
     pub days: Option<u32>,
     pub reason: Option<String>,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub struct CommandRequest {
+    /// A test command as typed in chat, e.g. `!fx 163540`, `!skin 2212`, `!state 29`.
+    pub command: String,
 }
 
 #[derive(Deserialize, ToSchema, Default)]
@@ -832,6 +840,34 @@ async fn kick(State(state): State<Arc<AppState>>, auth: Auth, Path(account_id): 
         .map_err(ApiError::game_server)?;
     audit_account(&state, &auth, "kick", account_id, k.reason).await;
     Ok(Json(Done { affected: done.affected }))
+}
+
+/// Run a test command (the game server's devcmd.rs: `!fx`, `!skin`, `!state`, `!tp`, ...) as the
+/// player, as if typed in chat; the player's GM level still decides whether it runs. For tools
+/// such as an effect browser that preview things in the game client. Scope: admin.
+#[utoipa::path(post, path = "/v1/players/{account_id}/command", tag = "players", request_body = CommandRequest,
+    params(("account_id" = u32, Path)), responses((status = OK, body = Done)))]
+async fn player_command(
+    State(state): State<Arc<AppState>>,
+    auth: Auth,
+    Path(account_id): Path<u32>,
+    Json(c): Json<CommandRequest>,
+) -> ApiResult<Json<Done>> {
+    auth.require(Scope::Admin)?;
+    if !(c.command.starts_with('!') || c.command.starts_with('/')) || c.command.len() > 500 {
+        return Err(ApiError::invalid("command must start with ! or / (at most 500 characters)"));
+    }
+    let done = control(&state)?.command(account_id, &c.command).await.map_err(ApiError::game_server)?;
+    audit_account(&state, &auth, "command", account_id, Some(c.command)).await;
+    Ok(Json(Done { affected: done.affected }))
+}
+
+/// The client's effect packages and particle systems with what they play and which items and
+/// spells use them (data/effect_catalog.json, tools/re/extract_effect_catalog.py). Scope: read.
+#[utoipa::path(get, path = "/v1/catalog/effects", tag = "catalog", responses((status = OK, body = Object)))]
+async fn effect_catalog(auth: Auth) -> ApiResult<([(axum::http::HeaderName, &'static str); 1], &'static str)> {
+    auth.require(Scope::Read)?;
+    Ok(([(axum::http::header::CONTENT_TYPE, "application/json")], include_str!("../../../data/effect_catalog.json")))
 }
 
 /// Send a chat line from "Server" to everyone online. Scope: moderate.

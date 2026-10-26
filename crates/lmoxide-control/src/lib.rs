@@ -124,6 +124,11 @@ impl Client {
             .await
     }
 
+    pub async fn command(&self, account: u32, command: &str) -> Result<Done, Error> {
+        self.send(self.http.post(format!("{}/v1/players/{account}/command", self.base)).json(&Command { command: command.into() }))
+            .await
+    }
+
     pub async fn maintenance(&self, m: &Maintenance) -> Result<Status, Error> {
         self.send(self.http.post(format!("{}/v1/maintenance", self.base)).json(m)).await
     }

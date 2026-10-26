@@ -52,6 +52,8 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/me/password` | session | `{current_password, new_password}` |
 | GET | `/v1/players` | read | online players with account ids and usernames |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
+| POST | `/v1/players/{account_id}/command` | admin | `{command}`: a test command (`!fx 163540`, `!skin 2212`, `!state 29`) run as the player, as if typed in chat (its GM level still applies) |
+| GET | `/v1/catalog/effects` | read | every effect package / particle system: timelines, particles, sounds, animation attributes, items and spells using it |
 | POST | `/v1/broadcast` | moderate | `{message}`: a chat line from "Server" to everyone |
 | POST | `/v1/maintenance` | admin | `{enabled, message?}`: only GMs may log in |
 | GET | `/v1/accounts?search=&offset=&limit=` | read | by username; header `X-Total-Count`: matches in all |

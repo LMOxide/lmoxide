@@ -38,12 +38,17 @@ use crate::{
 const LOOT_BAG_TYPE: u32 = 51322;
 /// "XX_Minifigure XP": one star (GameAction token 100, amount 1).
 pub const STAR_ITEM: u32 = 20634;
+/// Stars ("minifigure XP").
+const STAR_TOKEN: u32 = 100;
 /// "Health Orb": heals the active minifigure.
 pub const HEALTH_ORB_ITEM: u32 = 20908;
 /// "XX_25_Minifigure XP": 25 stars (a recorded quest reward).
 pub const STARS_25_ITEM: u32 = 386269;
 /// "XX_100_Minifigure XP": 100 stars.
 pub const STARS_100_ITEM: u32 = 386270;
+/// "XX_250_Minifigure XP" and "XX_1000_Minifigure XP".
+const STARS_250_ITEM: u32 = 386271;
+const STARS_1000_ITEM: u32 = 386272;
 /// "Health Potion": one potion (token 150).
 pub const HEALTH_POTION_ITEM: u32 = 399661;
 /// Bags nobody empties disappear after this long.
@@ -140,6 +145,8 @@ struct Tables {
     member_chests: Vec<u32>,
     /// token items of Health Potions -> potions
     potion_items: HashMap<u32, u64>,
+    /// token items of stars (minifigure XP, token 100) -> stars
+    star_items: HashMap<u32, u64>,
     /// minifigures given for an achievement (lore tag) and to members
     achievement_minifigures: HashMap<u32, u32>,
     membership_minifigures: Vec<u32>,
@@ -174,6 +181,7 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
         chests: Vec::new(),
         member_chests: Vec::new(),
         potion_items: HashMap::new(),
+        star_items: HashMap::new(),
         achievement_minifigures: HashMap::new(),
         membership_minifigures: Vec::new(),
     };
@@ -219,6 +227,12 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
         .filter(|i| i.token == crate::game::TOKEN_HEALTH_POTIONS && i.amount.unwrap_or(1) > 0)
         .map(|i| (i.template, i.amount.unwrap_or(1) as u64))
         .collect();
+    t.star_items = tokens
+        .token_items
+        .iter()
+        .filter(|i| i.token == STAR_TOKEN && i.amount.is_some_and(|a| a > 0))
+        .map(|i| (i.template, i.amount.unwrap_or(1) as u64))
+        .collect();
     t
 });
 
@@ -260,12 +274,11 @@ pub enum Reward {
 pub fn reward(template: u32) -> Reward {
     let t = &*TABLES;
     match template {
-        STAR_ITEM => Reward::Stars(1),
-        STARS_25_ITEM => Reward::Stars(25),
-        STARS_100_ITEM => Reward::Stars(100),
         HEALTH_ORB_ITEM => Reward::HealthOrb,
         template => {
-            if let Some(&token) = t.part_token.get(&template) {
+            if let Some(&n) = t.star_items.get(&template) {
+                Reward::Stars(n)
+            } else if let Some(&token) = t.part_token.get(&template) {
                 Reward::Part(token)
             } else if let Some(&m) = t.bag_minifigure.get(&template) {
                 Reward::MinifigureBag(m)
@@ -354,17 +367,27 @@ fn pick_bag(playfield: u32) -> Option<u32> {
 /// Resourceful upgrade).
 pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
     let t = &*TABLES;
-    // (stars, bundle, orb %, potion %, part %, parts, bag %, chests)
+    // (stars, guaranteed bundle, orb %, potion %, part %, parts, bag %, chests)
     let (stars, bundle, orb, potion, part_chance, parts, bag_chance, chests) = match source {
         Source::Smashable => (1 + random() as usize % 2, None, 0, 3, 4, 1, 0, false),
         Source::Enemy => (3, None, 35, 5, 6, 1, 1, false),
-        Source::Champion => (6, None, 100, 50, 100, 1, 15, false),
-        Source::Boss => (10, None, 100, 100, 100, 2, 40, true),
+        Source::Champion => (6, Some(STARS_25_ITEM), 100, 50, 100, 1, 15, false),
+        Source::Boss => (10, Some(STARS_100_ITEM), 100, 100, 100, 2, 40, true),
         Source::Chest => (5, Some(STARS_25_ITEM), 0, 100, 100, 2, 25, false),
         Source::MemberChest => (5, Some(STARS_100_ITEM), 0, 100, 100, 3, 50, false),
     };
     let mut items = vec![STAR_ITEM; stars];
     items.extend(bundle);
+    // bigger star bundles now and then (per mille)
+    let bundles: &[(u32, u64)] = match source {
+        Source::Smashable => &[(STARS_25_ITEM, 20)],
+        Source::Enemy => &[(STARS_25_ITEM, 30), (STARS_100_ITEM, 5)],
+        Source::Champion => &[(STARS_100_ITEM, 200)],
+        Source::Boss => &[(STARS_250_ITEM, 250), (STARS_1000_ITEM, 50)],
+        Source::Chest => &[(STARS_100_ITEM, 200)],
+        Source::MemberChest => &[(STARS_250_ITEM, 300), (STARS_1000_ITEM, 50)],
+    };
+    items.extend(bundles.iter().filter(|&&(_, per_mille)| random() % 1000 < per_mille).map(|&(item, _)| item));
     if orb > 0 && chance(orb + orb_bonus) {
         items.push(HEALTH_ORB_ITEM);
     }
@@ -559,6 +582,9 @@ mod tests {
     #[test]
     fn rewards_of_new_items() {
         assert!(matches!(reward(HEALTH_POTION_ITEM), Reward::Potions(1)));
+        assert!(matches!(reward(STAR_ITEM), Reward::Stars(1)));
+        assert!(matches!(reward(STARS_1000_ITEM), Reward::Stars(1000)));
+        assert!(matches!(reward(465_756), Reward::Stars(250)));
         assert!(matches!(reward(464_407), Reward::Potions(10)));
         assert!(matches!(reward(580_943), Reward::Chest { member: true }));
         assert!(matches!(reward(482_326), Reward::Chest { member: false }));

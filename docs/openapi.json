@@ -617,6 +617,26 @@
         }
       }
     },
+    "/v1/catalog/effects": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "The client's effect packages and particle systems with what they play and which items and\nspells use them (data/effect_catalog.json, tools/re/extract_effect_catalog.py). Scope: read.",
+        "operationId": "effect_catalog",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/characters/{id}": {
       "get": {
         "tags": [
@@ -861,6 +881,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/players/{account_id}/command": {
+      "post": {
+        "tags": [
+          "players"
+        ],
+        "summary": "Run a test command (the game server's devcmd.rs: `!fx`, `!skin`, `!state`, `!tp`, ...) as the\nplayer, as if typed in chat; the player's GM level still decides whether it runs. For tools\nsuch as an effect browser that preview things in the game client. Scope: admin.",
+        "operationId": "player_command",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
                 }
               }
             }
@@ -1444,6 +1506,18 @@
             "type": "integer",
             "format": "int64",
             "minimum": 0
+          }
+        }
+      },
+      "CommandRequest": {
+        "type": "object",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "A test command as typed in chat, e.g. `!fx 163540`, `!skin 2212`, `!state 29`."
           }
         }
       },
