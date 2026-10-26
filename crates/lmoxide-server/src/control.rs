@@ -12,7 +12,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use lmoxide_control::{Broadcast, Command, Done, Kick, Maintenance, OnlinePlayer, Status};
+use lmoxide_control::{Broadcast, Command, CommandDone, Done, Kick, Maintenance, OnlinePlayer, Status, TestCatalog};
 use tracing::info;
 
 use crate::{sessions, state};
@@ -27,6 +27,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .route("/v1/players", get(players))
         .route("/v1/players/{account}/kick", post(kick))
         .route("/v1/players/{account}/command", post(command))
+        .route("/v1/test-commands", get(test_commands))
         .route("/v1/broadcast", post(broadcast))
         .route("/v1/maintenance", post(maintenance))
         .layer(middleware::from_fn_with_state(token, auth))
@@ -75,13 +76,33 @@ async fn kick(Path(account): Path<u32>, Json(k): Json<Kick>) -> Json<Done> {
     Json(Done { affected: kicked as u32 })
 }
 
-async fn command(Path(account): Path<u32>, Json(c): Json<Command>) -> Result<Json<Done>, (StatusCode, &'static str)> {
+/// How long a command may take to be handled before answering without (all) its replies.
+const COMMAND_WAIT: std::time::Duration = std::time::Duration::from_secs(5);
+
+async fn command(Path(account): Path<u32>, Json(c): Json<Command>) -> Result<Json<CommandDone>, (StatusCode, &'static str)> {
     if !crate::devcmd::is_command(&c.command) || c.command.len() > 500 {
         return Err((StatusCode::UNPROCESSABLE_ENTITY, "not a test command (! or /)"));
     }
-    let sent = sessions::command(account, &c.command);
-    info!(account, command = %c.command, sent, "control: command");
-    Ok(Json(Done { affected: sent as u32 }))
+    // keep the characters' server lines from before the command is queued
+    let characters = crate::sessions::characters_of(account);
+    for &ch in &characters {
+        crate::chat::capture(ch);
+    }
+    let sent = crate::sessions::command(account, &c.command);
+    let affected = sent.len() as u32;
+    for (_, handled) in sent {
+        let _ = tokio::time::timeout(COMMAND_WAIT, handled).await;
+    }
+    let mut replies = Vec::new();
+    for ch in characters {
+        replies.extend(crate::chat::end_capture(ch));
+    }
+    info!(account, command = %c.command, affected, "control: command");
+    Ok(Json(CommandDone { affected, replies }))
+}
+
+async fn test_commands() -> Json<TestCatalog> {
+    Json(crate::devcmd::catalog())
 }
 
 async fn broadcast(Json(b): Json<Broadcast>) -> Result<Json<Done>, (StatusCode, &'static str)> {

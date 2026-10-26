@@ -37,6 +37,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(kick))
         .routes(routes!(player_command))
         .routes(routes!(effect_catalog))
+        .routes(routes!(test_commands))
         .routes(routes!(broadcast))
         .routes(routes!(maintenance))
         .routes(routes!(list_accounts, create_account))
@@ -302,6 +303,135 @@ pub struct MaintenanceRequest {
 pub struct Done {
     /// How many players were affected.
     pub affected: u32,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct CommandResult {
+    /// How many players it reached (0: not online).
+    pub affected: u32,
+    /// What the server answered in the player's chat while running it (e.g. `effect package
+    /// 1748 (12 of 2518)`, a usage line, `Test commands need a GM level.`). Lines that come
+    /// later (after a teleport, during a dialogue) aren't here.
+    pub replies: Vec<String>,
+}
+
+/// What the test commands accept, for tools that offer them as choices (the game server's
+/// devcmd.rs). Targets and spawnable names come from the world as loaded; their numbers are
+/// what `!goto <kind> <n>`, `!test <n>` and `!dialog <n>` take.
+#[derive(Serialize, ToSchema)]
+pub struct TestCatalog {
+    pub commands: Vec<TestCommand>,
+    /// `!list <kind>` / `!goto <kind> [n]`
+    pub kinds: Vec<TargetKind>,
+    /// `!test <n|label>`
+    pub scenarios: Vec<TestScenario>,
+    /// `!dialog <n>`
+    pub dialogues: Vec<TestDialogue>,
+    /// `!loot <kind>`
+    pub loot_kinds: Vec<String>,
+    /// `!spawn [count] <name>`: enemies and smashables
+    pub spawnable: Vec<Spawnable>,
+    /// `!skin <monster data>`: the looks of the world's characters and smashables
+    pub looks: Vec<Look>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct TestCommand {
+    /// e.g. `!goto <kind> [n]`
+    pub usage: String,
+    pub about: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct TargetKind {
+    pub kind: String,
+    pub about: String,
+    pub targets: Vec<Target>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Target {
+    /// For `!goto <kind> <n>` (from 1).
+    pub n: u32,
+    pub label: String,
+    pub playfield: u32,
+    /// x, y, z
+    pub pos: [f32; 3],
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct TestScenario {
+    /// For `!test <n>` (from 1).
+    pub n: u32,
+    pub label: String,
+    pub about: String,
+    /// Minifigure names of the team it sets, the first active; empty: the team stays.
+    pub team: Vec<String>,
+    pub spawn: Vec<SpawnCount>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct SpawnCount {
+    pub name: String,
+    pub count: u32,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct TestDialogue {
+    /// For `!dialog <n>` (from 1).
+    pub n: u32,
+    pub npc: String,
+    pub playfield: u32,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Spawnable {
+    pub name: String,
+    /// `enemy` or `smashable`
+    pub kind: String,
+    pub level: u32,
+    pub playfields: Vec<u32>,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Look {
+    pub monster_data: u32,
+    /// Names of the characters with this look.
+    pub names: Vec<String>,
+    /// `enemy`, `smashable`, `npc` or `pet`
+    pub kind: String,
+}
+
+impl From<lmoxide_control::TestCatalog> for TestCatalog {
+    fn from(c: lmoxide_control::TestCatalog) -> Self {
+        Self {
+            commands: c.commands.into_iter().map(|c| TestCommand { usage: c.usage, about: c.about }).collect(),
+            kinds: c
+                .kinds
+                .into_iter()
+                .map(|k| TargetKind {
+                    kind: k.kind,
+                    about: k.about,
+                    targets: k.targets.into_iter().map(|t| Target { n: t.n, label: t.label, playfield: t.playfield, pos: t.pos }).collect(),
+                })
+                .collect(),
+            scenarios: c
+                .scenarios
+                .into_iter()
+                .map(|s| TestScenario {
+                    n: s.n,
+                    label: s.label,
+                    about: s.about,
+                    team: s.team,
+                    spawn: s.spawn.into_iter().map(|sp| SpawnCount { name: sp.name, count: sp.count }).collect(),
+                })
+                .collect(),
+            dialogues: c.dialogues.into_iter().map(|d| TestDialogue { n: d.n, npc: d.npc, playfield: d.playfield }).collect(),
+            loot_kinds: c.loot_kinds,
+            spawnable: c.spawnable.into_iter().map(|s| Spawnable { name: s.name, kind: s.kind, level: s.level, playfields: s.playfields }).collect(),
+            looks: c.looks.into_iter().map(|l| Look { monster_data: l.monster_data, names: l.names, kind: l.kind }).collect(),
+        }
+    }
 }
 
 #[derive(Serialize, ToSchema)]
@@ -846,20 +976,30 @@ async fn kick(State(state): State<Arc<AppState>>, auth: Auth, Path(account_id): 
 /// player, as if typed in chat; the player's GM level still decides whether it runs. For tools
 /// such as an effect browser that preview things in the game client. Scope: admin.
 #[utoipa::path(post, path = "/v1/players/{account_id}/command", tag = "players", request_body = CommandRequest,
-    params(("account_id" = u32, Path)), responses((status = OK, body = Done)))]
+    params(("account_id" = u32, Path)), responses((status = OK, body = CommandResult)))]
 async fn player_command(
     State(state): State<Arc<AppState>>,
     auth: Auth,
     Path(account_id): Path<u32>,
     Json(c): Json<CommandRequest>,
-) -> ApiResult<Json<Done>> {
+) -> ApiResult<Json<CommandResult>> {
     auth.require(Scope::Admin)?;
     if !(c.command.starts_with('!') || c.command.starts_with('/')) || c.command.len() > 500 {
         return Err(ApiError::invalid("command must start with ! or / (at most 500 characters)"));
     }
     let done = control(&state)?.command(account_id, &c.command).await.map_err(ApiError::game_server)?;
     audit_account(&state, &auth, "command", account_id, Some(c.command)).await;
-    Ok(Json(Done { affected: done.affected }))
+    Ok(Json(CommandResult { affected: done.affected, replies: done.replies }))
+}
+
+/// What the test commands accept: commands with usage, target kinds with their numbered targets,
+/// test scenarios, dialogues, loot kinds, spawnable enemies and smashables, and monster data
+/// looks (the game server's devcmd.rs). For tools that offer them as choices. Scope: read.
+#[utoipa::path(get, path = "/v1/catalog/test-commands", tag = "catalog", responses((status = OK, body = TestCatalog)))]
+async fn test_commands(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Json<TestCatalog>> {
+    auth.require(Scope::Read)?;
+    let catalog = control(&state)?.test_catalog().await.map_err(ApiError::game_server)?;
+    Ok(Json(catalog.into()))
 }
 
 /// The client's effect packages and particle systems with what they play and which items and

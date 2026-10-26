@@ -28,8 +28,9 @@ pub enum Out {
     Progress(crate::achievements::Event),
     /// Development tour: teleport next to (playfield, position), announcing `label`.
     DevTeleport(u32, [f32; 3], String),
-    /// A test command (devcmd.rs) typed into a chat-server channel (e.g. the Global tab).
-    Command(String),
+    /// A test command (devcmd.rs) typed into a chat-server channel (e.g. the Global tab) or sent
+    /// through the control interface; the sender, if any, is dropped once it has been handled.
+    Command(String, Option<std::sync::Arc<tokio::sync::oneshot::Sender<()>>>),
     /// Teleport the player (a server script, e.g. an NPC dialogue): playfield (`None`: the
     /// current one), position, facing.
     Teleport(Option<u32>, [f32; 3], f32),

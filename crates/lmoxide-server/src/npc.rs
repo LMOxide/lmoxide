@@ -639,6 +639,49 @@ struct PetProjectile {
 static SUMMONS: LazyLock<HashMap<String, serde_json::Value>> =
     LazyLock::new(|| serde_json::from_str(include_str!("../../../data/summons.json")).expect("summons.json"));
 
+/// What `spawn_test_enemies` can spawn (devcmd `!spawn`) and the looks of everything placed
+/// in the world (`!skin`), for the control interface's test command catalog.
+pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::Look>) {
+    use std::collections::BTreeMap;
+    let kind_name = |k: &Kind| match k {
+        Kind::Enemy => "enemy",
+        Kind::Smashable => "smashable",
+        Kind::Npc | Kind::Fighter => "npc",
+        Kind::Pet => "pet",
+    };
+    let mut spawnable: BTreeMap<String, lmoxide_control::Spawnable> = BTreeMap::new();
+    let mut looks: BTreeMap<u32, lmoxide_control::Look> = BTreeMap::new();
+    for n in NPCS.lock().unwrap().values().filter(|n| n.owner.is_none()) {
+        let d = &n.def;
+        if matches!(d.kind, Kind::Enemy | Kind::Smashable) {
+            let s = spawnable.entry(d.name.to_ascii_lowercase()).or_insert_with(|| lmoxide_control::Spawnable {
+                name: d.name.clone(),
+                kind: kind_name(&d.kind).into(),
+                level: d.level,
+                playfields: Vec::new(),
+            });
+            if !s.playfields.contains(&n.playfield) {
+                s.playfields.push(n.playfield);
+            }
+        }
+        if d.monster_data != 0 {
+            let l = looks.entry(d.monster_data).or_insert_with(|| lmoxide_control::Look {
+                monster_data: d.monster_data,
+                names: Vec::new(),
+                kind: kind_name(&d.kind).into(),
+            });
+            if !l.names.contains(&d.name) {
+                l.names.push(d.name.clone());
+            }
+        }
+    }
+    let mut spawnable: Vec<_> = spawnable.into_values().collect();
+    for s in &mut spawnable {
+        s.playfields.sort_unstable();
+    }
+    (spawnable, looks.into_values().collect())
+}
+
 /// Test scenarios (devcmd `!test`): `count` copies of the enemy or smashable named `name` (any
 /// spawn of it gives the look, level, health and attack) in a ring around `center` on
 /// `playfield`, for `lifetime`. They fight (or break) like the others but don't respawn.

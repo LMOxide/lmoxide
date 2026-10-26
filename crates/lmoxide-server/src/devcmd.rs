@@ -29,6 +29,10 @@
 //!                             (data/effect_catalog.json), !fx stop ends the current one
 //!   !skin <monsterdata|reset> look like any monster data (others see it too), reset: your minifigure
 //!   !state <n>                set your BCCState (stat 20: 1 normal, 29 Limbo/smashed, 104 building, ...)
+//!   !spawn [count] <name>     spawn count (default 1, at most 30) of an enemy or smashable around you
+//!                             for 15 minutes, as !test does
+//!
+//! `COMMANDS` lists them for `!help` and for the control interface's catalog (`catalog`).
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
@@ -75,6 +79,83 @@ pub enum Action {
     Skin(Option<u32>),
     /// set the player's BCCState
     State(u32),
+    /// spawn (name, count) enemies or smashables around the player (`!spawn`)
+    Spawn(String, u32),
+}
+
+/// Every command with its usage and what it does (`!help`, and tools through `catalog`).
+/// (`!help` first: anything unknown answers with the list.)
+pub const COMMANDS: &[(&str, &str)] = &[
+    ("!help", "the commands"),
+    ("!where", "current playfield and position"),
+    ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
+    ("!list <kind>", "numbered list of a kind of test target"),
+    ("!goto <kind> [n]", "go next to target n (default 1) of that kind"),
+    ("!test [n|label]", "list the manual test setups, or set one up (data/test_scenarios.json)"),
+    ("!spawn [count] <name>", "spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes"),
+    ("!loot <kind>", "drop a loot bag at your feet"),
+    ("!smash", "smash the nearest smashable (or defeat the nearest enemy) within 15 m"),
+    ("!smashme", "smash the active minifigure (it rebuilds after the smash timer)"),
+    ("!revive", "every minifigure (team and collection) back to full health"),
+    ("!own [name]", "obtain a minifigure (as from a bag); without a name: how many you own"),
+    ("!collection <limit|all>", "own only the team and the members' minifigures, or every one (relog to see it)"),
+    ("!aura <0-4>", "the active minifigure's aura tier: none, Disciple, Master, Grandmaster, Superachiever"),
+    ("!xp [n]", "gain n XP (with --progression), show level and XP"),
+    ("!stars <n>", "gain n stars (minifigure XP for ranking up)"),
+    ("!ach", "achievements earned, kill and smash counters"),
+    ("!count <kills|smashes|builds> [n] [name]", "count n (default 1) defeats or builds for achievements"),
+    ("!defeat <boss name>", "count a boss defeat (boss achievements, the active minifigure's)"),
+    ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
+    ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
+    ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
+    ("!fx <id> [hook]", "play effect package <id> on yourself (optionally from a code hook)"),
+    ("!fx next|prev|stop", "step through every effect package, or end the current one"),
+    ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
+    ("!state <n>", "set your BCCState (1 normal, 29 Limbo/smashed, 104 building, ...)"),
+];
+
+/// Most a `!spawn` brings at once.
+const MAX_SPAWN: u32 = 30;
+
+/// What the commands accept, for the control interface (`GET /v1/test-commands`).
+pub fn catalog() -> lmoxide_control::TestCatalog {
+    let (spawnable, looks) = crate::npc::test_catalog();
+    lmoxide_control::TestCatalog {
+        commands: COMMANDS.iter().map(|(usage, about)| lmoxide_control::TestCommand { usage: usage.to_string(), about: about.to_string() }).collect(),
+        kinds: KINDS
+            .iter()
+            .map(|(kind, about)| lmoxide_control::TargetKind {
+                kind: kind.to_string(),
+                about: about.to_string(),
+                targets: targets(kind)
+                    .unwrap_or_default()
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, (label, playfield, pos))| lmoxide_control::Target { n: i as u32 + 1, label, playfield, pos })
+                    .collect(),
+            })
+            .collect(),
+        scenarios: SCENARIOS
+            .scenarios
+            .iter()
+            .enumerate()
+            .map(|(i, s)| lmoxide_control::TestScenario {
+                n: i as u32 + 1,
+                label: s.label.clone(),
+                about: s.about.clone(),
+                team: s.team.clone(),
+                spawn: s.spawn.iter().map(|sp| lmoxide_control::SpawnCount { name: sp.name.clone(), count: sp.count }).collect(),
+            })
+            .collect(),
+        dialogues: crate::knubot::dialogues()
+            .iter()
+            .enumerate()
+            .map(|(i, d)| lmoxide_control::TestDialogue { n: i as u32 + 1, npc: d.npc.clone(), playfield: d.playfield })
+            .collect(),
+        loot_kinds: crate::loot::TEST_KINDS.iter().map(|k| k.to_string()).collect(),
+        spawnable,
+        looks,
+    }
 }
 
 /// `!fx` arguments.
@@ -340,6 +421,17 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some(n) => Action::State(n),
             None => reply(vec!["usage: !state <BCCState number> (1 normal, 29 Limbo)".into()]),
         },
+        "spawn" => {
+            // `!spawn 3 Crate` or `!spawn Captain Dreadleg`
+            let (count, name) = match args.first().and_then(|n| n.parse::<u32>().ok()) {
+                Some(n) => (n, args[1..].join(" ")),
+                None => (1, args.join(" ")),
+            };
+            if name.is_empty() || count == 0 {
+                return reply(vec!["usage: !spawn [count] <enemy or smashable name>".into()]);
+            }
+            Action::Spawn(name, count.min(MAX_SPAWN))
+        }
         "skin" => match args.first().copied() {
             Some("reset") => Action::Skin(None),
             Some(n) if n.parse::<u32>().is_ok() => Action::Skin(n.parse().ok()),
@@ -364,7 +456,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
         _ => reply(vec![
-            "commands: !where, !tp <playfield|name>, !list <kind>, !goto <kind> [n], !test [n|label], !aura <0-4>, !dialog [n], !ach, !count <kills|smashes|builds> [n] [name], !defeat <boss>, !xp [n], !stars <n>, !revive, !smashme, !loot <kind>, !own [name], !collection <limit|all>, !fx <id|next|prev|stop>, !skin <id|reset>, !state <n>".into(),
+            format!("commands: {}", COMMANDS.iter().map(|c| c.0).collect::<Vec<_>>().join(", ")),
             format!("kinds: {}", KINDS.iter().map(|k| k.0).collect::<Vec<_>>().join(", ")),
         ]),
     }
@@ -399,6 +491,31 @@ mod tests {
         assert!(matches!(run("!tp isle of yarr", 1200, [0.0; 3]), Action::Teleport(4200, ..)));
         assert!(matches!(run("/tp 5200", 1200, [0.0; 3]), Action::Teleport(5200, ..)));
         assert!(matches!(run("!tp nowhere", 1200, [0.0; 3]), Action::Reply(_)));
+    }
+
+    #[test]
+    fn spawn_takes_an_optional_count() {
+        assert!(matches!(run("!spawn 3 Crate", 1200, [0.0; 3]), Action::Spawn(n, 3) if n == "Crate"));
+        assert!(matches!(run("!spawn Captain Dreadleg", 1200, [0.0; 3]), Action::Spawn(n, 1) if n == "Captain Dreadleg"));
+        assert!(matches!(run("!spawn 500 Crate", 1200, [0.0; 3]), Action::Spawn(_, MAX_SPAWN)));
+        assert!(matches!(run("!spawn", 1200, [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!spawn 0 Crate", 1200, [0.0; 3]), Action::Reply(_)));
+    }
+
+    #[test]
+    fn catalog_lists_the_static_choices() {
+        let c = catalog();
+        assert_eq!(c.scenarios.len(), SCENARIOS.scenarios.len());
+        assert_eq!(c.kinds.len(), KINDS.len());
+        assert_eq!(c.commands.len(), COMMANDS.len());
+        assert!(c.loot_kinds.iter().any(|k| k == "potion"));
+        assert_eq!(c.scenarios[0].n, 1);
+        // every command `run` knows is in COMMANDS (the help and the catalog)
+        for c in &COMMANDS[1..] {
+            let word = c.0.split_whitespace().next().unwrap();
+            let line = format!("{word} x"); // (!defeat needs a name)
+            assert!(!matches!(run(&line, 1200, [0.0; 3]), Action::Reply(l) if l[0].starts_with("commands:")), "{word}");
+        }
     }
 
     #[test]

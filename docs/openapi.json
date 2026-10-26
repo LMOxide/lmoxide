@@ -637,6 +637,26 @@
         }
       }
     },
+    "/v1/catalog/test-commands": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "What the test commands accept: commands with usage, target kinds with their numbered targets,\ntest scenarios, dialogues, loot kinds, spawnable enemies and smashables, and monster data\nlooks (the game server's devcmd.rs). For tools that offer them as choices. Scope: read.",
+        "operationId": "test_commands",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestCatalog"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/characters/{id}": {
       "get": {
         "tags": [
@@ -922,7 +942,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Done"
+                  "$ref": "#/components/schemas/CommandResult"
                 }
               }
             }
@@ -1521,6 +1541,28 @@
           }
         }
       },
+      "CommandResult": {
+        "type": "object",
+        "required": [
+          "affected",
+          "replies"
+        ],
+        "properties": {
+          "affected": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How many players it reached (0: not online).",
+            "minimum": 0
+          },
+          "replies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What the server answered in the player's chat while running it (e.g. `effect package\n1748 (12 of 2518)`, a usage line, `Test commands need a GM level.`). Lines that come\nlater (after a teleport, during a dialogue) aren't here."
+          }
+        }
+      },
       "CreatedApiKey": {
         "type": "object",
         "required": [
@@ -1668,6 +1710,32 @@
               "null"
             ],
             "description": "Shown to the player in chat."
+          }
+        }
+      },
+      "Look": {
+        "type": "object",
+        "required": [
+          "monster_data",
+          "names",
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`enemy`, `smashable`, `npc` or `pet`"
+          },
+          "monster_data": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of the characters with this look."
           }
         }
       },
@@ -1991,6 +2059,54 @@
           }
         }
       },
+      "SpawnCount": {
+        "type": "object",
+        "required": [
+          "name",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Spawnable": {
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "level",
+          "playfields"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`enemy` or `smashable`"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string"
+          },
+          "playfields": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        }
+      },
       "Status": {
         "type": "object",
         "required": [
@@ -2034,6 +2150,201 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "Target": {
+        "type": "object",
+        "required": [
+          "n",
+          "label",
+          "playfield",
+          "pos"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "n": {
+            "type": "integer",
+            "format": "int32",
+            "description": "For `!goto <kind> <n>` (from 1).",
+            "minimum": 0
+          },
+          "playfield": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "pos": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "x, y, z"
+          }
+        }
+      },
+      "TargetKind": {
+        "type": "object",
+        "required": [
+          "kind",
+          "about",
+          "targets"
+        ],
+        "properties": {
+          "about": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Target"
+            }
+          }
+        }
+      },
+      "TestCatalog": {
+        "type": "object",
+        "description": "What the test commands accept, for tools that offer them as choices (the game server's\ndevcmd.rs). Targets and spawnable names come from the world as loaded; their numbers are\nwhat `!goto <kind> <n>`, `!test <n>` and `!dialog <n>` take.",
+        "required": [
+          "commands",
+          "kinds",
+          "scenarios",
+          "dialogues",
+          "loot_kinds",
+          "spawnable",
+          "looks"
+        ],
+        "properties": {
+          "commands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestCommand"
+            }
+          },
+          "dialogues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestDialogue"
+            },
+            "description": "`!dialog <n>`"
+          },
+          "kinds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TargetKind"
+            },
+            "description": "`!list <kind>` / `!goto <kind> [n]`"
+          },
+          "looks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Look"
+            },
+            "description": "`!skin <monster data>`: the looks of the world's characters and smashables"
+          },
+          "loot_kinds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "`!loot <kind>`"
+          },
+          "scenarios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestScenario"
+            },
+            "description": "`!test <n|label>`"
+          },
+          "spawnable": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Spawnable"
+            },
+            "description": "`!spawn [count] <name>`: enemies and smashables"
+          }
+        }
+      },
+      "TestCommand": {
+        "type": "object",
+        "required": [
+          "usage",
+          "about"
+        ],
+        "properties": {
+          "about": {
+            "type": "string"
+          },
+          "usage": {
+            "type": "string",
+            "description": "e.g. `!goto <kind> [n]`"
+          }
+        }
+      },
+      "TestDialogue": {
+        "type": "object",
+        "required": [
+          "n",
+          "npc",
+          "playfield"
+        ],
+        "properties": {
+          "n": {
+            "type": "integer",
+            "format": "int32",
+            "description": "For `!dialog <n>` (from 1).",
+            "minimum": 0
+          },
+          "npc": {
+            "type": "string"
+          },
+          "playfield": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "TestScenario": {
+        "type": "object",
+        "required": [
+          "n",
+          "label",
+          "about",
+          "team",
+          "spawn"
+        ],
+        "properties": {
+          "about": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "n": {
+            "type": "integer",
+            "format": "int32",
+            "description": "For `!test <n>` (from 1).",
+            "minimum": 0
+          },
+          "spawn": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpawnCount"
+            }
+          },
+          "team": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Minifigure names of the team it sets, the first active; empty: the team stays."
           }
         }
       },

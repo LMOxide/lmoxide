@@ -86,13 +86,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut playing_fx: Option<(u32, u32)> = None;
     let mut playing_fx_at: Option<usize> = None;
     loop {
+        // a control interface command being handled: dropped (signalling "done") when this
+        // iteration ends, so its caller can collect the chat answers (chat::capture)
+        let mut _command_done = None;
         let rpc = tokio::select! {
             rpc = conn.recv() => match rpc? {
                 Some(rpc) => rpc,
                 None => break,
             },
             Some(out) = inbox.recv() => {
-                if let world::Out::Command(text) = out {
+                if let world::Out::Command(text, done) = out {
+                    _command_done = done;
                     // handled like the same line typed into the local chat
                     let args = Writer::new().string(&text).i32(0).finish();
                     let agent = Endpoint::GameCharAgent.proto(None);
@@ -157,7 +161,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             break;
                         }
-                        world::Out::Command(_) => unreachable!(),
+                        world::Out::Command(..) => unreachable!(),
                     world::Out::Teleport(playfield, at, rot) => {
                         let playfield = playfield.unwrap_or(me.playfield);
                         teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
@@ -345,7 +349,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         tokio::time::sleep(std::time::Duration::from_secs_f32(secs)).await;
                                         continue;
                                     }
-                                    let _ = outbox.send(world::Out::Command(command.to_string()));
+                                    let _ = outbox.send(world::Out::Command(command.to_string(), None));
                                 }
                             });
                         }
@@ -1183,6 +1187,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let n = ids.iter().position(|&p| p == package).map_or(String::new(), |i| format!(" ({} of {})", i + 1, ids.len()));
                                 crate::chat::system(character, &format!("effect package {package}{n}"));
                             }
+                        }
+                        crate::devcmd::Action::Spawn(name, count) => {
+                            let at = *pos.lock().unwrap();
+                            let n = crate::npc::spawn_test_enemies(&name, count, me.playfield, at, TEST_ENEMY_LIFETIME);
+                            let line = if n == 0 { format!("no enemy or smashable named {name}") } else { format!("{n} x {name} for 15 minutes") };
+                            crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::State(state) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);

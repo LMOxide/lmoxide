@@ -161,7 +161,7 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                             // a test command typed into a channel tab: run it in the player's
                             // game session (answers come as local chat lines), not relayed
                             let id = lmoxide_net::types::Id32::new(crate::territory::CHARACTER_TYPE, a);
-                            crate::world::send_to(id, crate::world::Out::Command(text.to_string()));
+                            crate::world::send_to(id, crate::world::Out::Command(text.to_string(), None));
                         } else if let Some(a) = account
                             && !target.starts_with('#')
                         {
@@ -287,11 +287,37 @@ fn tell(from: u32, nick: &str, target: &str, text: &str) {
 /// A line from "Server" to one character (a tell: command answers, kick reasons).
 pub fn system(character: u32, text: &str) {
     let text = text.replace(['\r', '\n'], " ");
+    if let Some(c) = CAPTURES.lock().unwrap().get_mut(&character) {
+        c.lines.push(text.clone());
+    }
     let Some(nick) = NICKS.lock().unwrap().get(&character).cloned() else { return };
     let line = format!(":Server!u@{}.0.0 PRIVMSG {nick} :{text}", crate::game::SERVER_INSTANCE);
     if let Some(tx) = CLIENTS.lock().unwrap().get(&character) {
         let _ = tx.send(line);
     }
+}
+
+/// Server lines to a character while control interface commands run for it.
+#[derive(Default)]
+struct Capture {
+    /// captures open (commands in flight)
+    open: u32,
+    lines: Vec<String>,
+}
+
+static CAPTURES: LazyLock<Mutex<HashMap<u32, Capture>>> = LazyLock::new(Default::default);
+
+/// Starts keeping the server lines `system` sends to `character` (until `end_capture`).
+pub fn capture(character: u32) {
+    CAPTURES.lock().unwrap().entry(character).or_default().open += 1;
+}
+
+/// The lines kept since `capture`; with several captures open, each gets the lines so far.
+pub fn end_capture(character: u32) -> Vec<String> {
+    let mut captures = CAPTURES.lock().unwrap();
+    let Some(c) = captures.get_mut(&character) else { return Vec::new() };
+    c.open -= 1;
+    if c.open == 0 { captures.remove(&character).map(|c| c.lines).unwrap_or_default() } else { c.lines.clone() }
 }
 
 /// Sends `line` to the other members of `channel`, if `from` is one of them.
@@ -340,3 +366,25 @@ pub fn broadcast(sender: u32, text: &str) -> u32 {
     clients.len() as u32
 }
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn capture_keeps_server_lines_while_open() {
+        // (no chat connection: the lines are kept all the same)
+        let ch = 0xC0FFEE;
+        system(ch, "before");
+        capture(ch);
+        system(ch, "one");
+        capture(ch);
+        system(ch, "two");
+        assert_eq!(end_capture(ch), ["one", "two"]);
+        system(ch, "three");
+        assert_eq!(end_capture(ch), ["one", "two", "three"]);
+        system(ch, "after");
+        assert!(end_capture(ch).is_empty());
+        assert!(!CAPTURES.lock().unwrap().contains_key(&ch));
+    }
+}

@@ -41,6 +41,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!mirrors <solve\|reset>` | turn this playfield's Medusa mirrors (Armory, Gauntlet) to the solution or back to the start (`!test mirrors`, `!test mirrors2` go there) |
 | `!revive` | bring every minifigure (team and collection) back from smashed, at full health |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
+| `!spawn [count] <name>` | spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes, as `!test` does (`!spawn 3 Crate`, `!spawn Captain Dreadleg`) |
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
@@ -49,7 +50,11 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!stars <n>` | gain n stars (to rank minifigures up with `--progression`) |
 | `!defeat <boss name>` | count a boss defeat (`!defeat Hades`) for the boss and the active minifigure's achievements |
 
-New features add their targets to `devcmd.rs` `targets`.
+New features add their targets to `devcmd.rs` `targets`, and new commands to `COMMANDS` (`!help`,
+and `GET /v1/catalog/test-commands` for tools such as the effect browser).
+
+Through the API, `POST /v1/players/{id}/command` runs a command as an online player and answers
+with the chat lines it produced (`tools/dev-command.sh <account> '<cmd>'` from a shell).
 
 ## Scripts
 

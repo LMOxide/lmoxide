@@ -141,14 +141,24 @@ pub fn kick(account: u32, reason: Option<String>) -> bool {
     kicked
 }
 
-/// Runs a test command as the account's character (as typed in chat); false if it isn't online.
-pub fn command(account: u32, text: &str) -> bool {
+/// Runs a test command as the account's character (as typed in chat): the characters it went
+/// to, each with a receiver that resolves (with an error: the sender is dropped) once the
+/// command has been handled. Empty if the account isn't online.
+pub fn command(account: u32, text: &str) -> Vec<(u32, tokio::sync::oneshot::Receiver<()>)> {
     let online = ONLINE.lock().unwrap();
-    let mut sent = false;
-    for o in online.values().filter(|o| o.account == account) {
-        sent |= o.outbox.send(world::Out::Command(text.to_string())).is_ok();
+    let mut sent = Vec::new();
+    for (&character, o) in online.iter().filter(|(_, o)| o.account == account) {
+        let (done, handled) = tokio::sync::oneshot::channel();
+        if o.outbox.send(world::Out::Command(text.to_string(), Some(std::sync::Arc::new(done)))).is_ok() {
+            sent.push((character, handled));
+        }
     }
     sent
+}
+
+/// The account's characters online (usually one).
+pub fn characters_of(account: u32) -> Vec<u32> {
+    ONLINE.lock().unwrap().iter().filter(|(_, o)| o.account == account).map(|(&c, _)| c).collect()
 }
 
 pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {

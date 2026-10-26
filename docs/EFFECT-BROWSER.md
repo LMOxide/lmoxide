@@ -54,12 +54,17 @@ user's own character play the effect in the client, through the LMOxide REST API
   player through the game server's control interface; `tools/dev-command.sh <account> '<cmd>'`
   does the same from a shell.
 - Test commands (devcmd.rs): `!fx <id> [hook]`, `!fx next|prev|stop` (steps through every
-  package in id order), `!skin <monster data|reset>`, `!state <n>`.
+  package in id order), `!skin <monster data|reset>`, `!state <n>`, `!spawn [count] <name>`, and
+  the rest in [DEVELOPMENT.md](DEVELOPMENT.md#test-commands). The command answer has `replies`:
+  the chat lines the command produced.
+- `GET /v1/catalog/test-commands` (scope read): everything the test commands accept (commands,
+  `!goto` targets, `!test` scenarios, dialogues, loot kinds, spawnable names, monster data looks).
 - Local backend for development: `tools/web-dev-backend.sh` (API on :8090 with demo accounts);
   previews need a running game server and a logged-in client, e.g. the LAN server
   (`tools/lan-server.sh`).
 
 ## Possible next catalogs
 
-Monster data (looks, `!skin`), animations (EMotionFX motion names a package's attributes switch),
-minifigure items, spells with their effect packages. Ask for them when the browser needs them.
+Animations (EMotionFX motion names a package's attributes switch), spells with their effect
+packages, monster data looks beyond what is placed in the world. The browser's
+`docs/API-PROPOSALS.md` lists what it still asks for.

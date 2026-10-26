@@ -10,6 +10,8 @@
 //! | GET | `/v1/status` | | [`Status`] |
 //! | GET | `/v1/players` | | `Vec<`[`OnlinePlayer`]`>` |
 //! | POST | `/v1/players/{account}/kick` | [`Kick`] | [`Done`] |
+//! | POST | `/v1/players/{account}/command` | [`Command`] | [`CommandDone`] |
+//! | GET | `/v1/test-commands` | | [`TestCatalog`] |
 //! | POST | `/v1/broadcast` | [`Broadcast`] | [`Done`] |
 //! | POST | `/v1/maintenance` | [`Maintenance`] | [`Status`] |
 
@@ -69,6 +71,103 @@ pub struct Done {
     pub affected: u32,
 }
 
+/// A test command's outcome: whether it reached the player, and what the server answered in
+/// chat while running it (a teleport or a dialogue may add lines later, which aren't here).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommandDone {
+    /// How many players were affected (0: not online).
+    pub affected: u32,
+    /// The chat lines from "Server" the command produced.
+    #[serde(default)]
+    pub replies: Vec<String>,
+}
+
+/// What the test commands accept (devcmd.rs), for tools that offer them as choices.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TestCatalog {
+    pub commands: Vec<TestCommand>,
+    /// `!list <kind>` / `!goto <kind> [n]`
+    pub kinds: Vec<TargetKind>,
+    /// `!test <n|label>`
+    pub scenarios: Vec<TestScenario>,
+    /// `!dialog <n>`
+    pub dialogues: Vec<TestDialogue>,
+    /// `!loot <kind>`
+    pub loot_kinds: Vec<String>,
+    /// `!spawn [count] <name>`
+    pub spawnable: Vec<Spawnable>,
+    /// `!skin <monster data>`: the looks of the world's characters and smashables
+    pub looks: Vec<Look>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestCommand {
+    /// e.g. `!goto <kind> [n]`
+    pub usage: String,
+    pub about: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetKind {
+    pub kind: String,
+    pub about: String,
+    pub targets: Vec<Target>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Target {
+    /// for `!goto <kind> <n>` (1-based; the order can change when the world does, e.g. buildables)
+    pub n: u32,
+    pub label: String,
+    pub playfield: u32,
+    pub pos: [f32; 3],
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestScenario {
+    /// for `!test <n>` (1-based)
+    pub n: u32,
+    pub label: String,
+    pub about: String,
+    /// minifigure names of the team it sets (the first active); empty: keeps the team
+    pub team: Vec<String>,
+    pub spawn: Vec<SpawnCount>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpawnCount {
+    pub name: String,
+    pub count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestDialogue {
+    /// for `!dialog <n>` (1-based)
+    pub n: u32,
+    /// the speaking NPC
+    pub npc: String,
+    pub playfield: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Spawnable {
+    pub name: String,
+    /// `enemy` or `smashable`
+    pub kind: String,
+    pub level: u32,
+    /// where it lives
+    pub playfields: Vec<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Look {
+    pub monster_data: u32,
+    /// the names of the characters with this look
+    pub names: Vec<String>,
+    /// `enemy`, `smashable`, `npc` or `pet`
+    pub kind: String,
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("game server unreachable: {0}")]
@@ -124,9 +223,13 @@ impl Client {
             .await
     }
 
-    pub async fn command(&self, account: u32, command: &str) -> Result<Done, Error> {
+    pub async fn command(&self, account: u32, command: &str) -> Result<CommandDone, Error> {
         self.send(self.http.post(format!("{}/v1/players/{account}/command", self.base)).json(&Command { command: command.into() }))
             .await
+    }
+
+    pub async fn test_catalog(&self) -> Result<TestCatalog, Error> {
+        self.send(self.http.get(format!("{}/v1/test-commands", self.base))).await
     }
 
     pub async fn maintenance(&self, m: &Maintenance) -> Result<Status, Error> {
