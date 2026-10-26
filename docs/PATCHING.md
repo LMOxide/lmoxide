@@ -211,9 +211,15 @@ none). Bodies are checked against the md5 in their URL; reruns resume. The Windo
 patch server can run without Funcom:
 
 ```sh
+LMOXIDE_LOCAL_CDN=1 tools/lan-server.sh --release         # starts tools/funcom-cdn.sh on :8070
+# or by hand, for any patch server:
 tools/funcom-cdn.sh &                                     # http://127.0.0.1:8070/legoupm
-LMOXIDE_UPSTREAM=http://127.0.0.1:8070/legoupm tools/lan-server.sh --release
+LMOXIDE_UPSTREAM=http://127.0.0.1:8070/legoupm tools/dev-run.sh
 ```
+
+Only the patch server talks to the CDN: clients get their patch address (`HttpPatchAddr`) from it
+and ask it for missing resources while playing, so the upstream is a server setting; installs made
+by the patcher don't change.
 
 Note: the Linux kit's `lmo` launcher fetches `LocalConfig.xml` from `http://$LMO_SERVER:8080`
 on every start, so with a public HTTP port other than 8080 use a launcher that doesn't (the

@@ -18,6 +18,9 @@
 # ../lmoxide-debug-browser on :5174, on all interfaces (this PC and others); their /api goes to
 # this API, so they need no CORS setup. One whose port is taken is left as it is (already
 # running). LMOXIDE_WEB_APPS="webui:5173 debug-browser:5174" picks them (empty: none).
+# Map data the clients lack comes from Funcom's CDN through the patch server (LMOXIDE_UPSTREAM);
+# LMOXIDE_LOCAL_CDN=1 uses the local mirror instead (tools/funcom-mirror.py, served on :8070 by
+# tools/funcom-cdn.sh, started here unless already running). Clients see no difference.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RESTART=0
@@ -84,9 +87,20 @@ echo "  d=\$(mktemp -d) && curl -fsSL http://$IP:8080/client-kit.tar.gz | tar xz
 echo "logs: $ROOT/logs/lan-server.log, $ROOT/logs/lan-patch-server.log"
 
 export RUST_LOG=${RUST_LOG:-info}
+CDN=
+UPSTREAM=${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}
+if [[ -n ${LMOXIDE_LOCAL_CDN:-} ]]; then
+  [[ -d $CLIENTS/funcom-cdn/legoupm ]] || { echo "no CDN mirror in $CLIENTS/funcom-cdn: run tools/funcom-mirror.py"; exit 1; }
+  UPSTREAM=http://127.0.0.1:8070/legoupm
+  if [[ -z $(ss -ltnH "sport = :8070") ]]; then
+    "$ROOT/tools/funcom-cdn.sh" >"$ROOT/logs/funcom-cdn.log" 2>&1 &
+    CDN=$!
+  fi
+  echo "map data from the local Funcom CDN mirror: $UPSTREAM (log logs/funcom-cdn.log)"
+fi
 "$BIN/lmoxide-patch-server" --bind 0.0.0.0 --public-host "$IP" --client-dir "$CLIENT" \
   --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
-  --upstream "${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}" --cache-dir "$VAR/rdb-cache" \
+  --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" \
   --client-kit "$KIT" "${LINUX_ARGS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/lan-patch-server.log" 2>&1 &
 PATCH=$!
 # the API reaches the game server's control interface (127.0.0.1:7300) with a shared token
@@ -130,7 +144,7 @@ if [[ -n $API_PORT ]]; then
     fi
   done
 fi
-trap 'kill $PATCH ${API:-} ${WEB[*]} 2>/dev/null; [[ -s $ROOT/logs/lan-api.pid ]] && kill "$(cat "$ROOT/logs/lan-api.pid")" 2>/dev/null' EXIT
+trap 'kill $PATCH ${CDN:-} ${API:-} ${WEB[*]} 2>/dev/null; [[ -s $ROOT/logs/lan-api.pid ]] && kill "$(cat "$ROOT/logs/lan-api.pid")" 2>/dev/null' EXIT
 python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,7200 --pidfile "$ROOT/logs/lan-server.pid" \
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
