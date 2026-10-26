@@ -848,6 +848,9 @@ fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], depth: u32
 fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u32) {
     let Some(item) = a.u("ItemInstance") else { return };
     let caster = run.caster.id;
+    // an enemy is aimed at as every player's shot is (`projectile::aim_at`)
+    let aim = target.id.filter(|t| *t != caster && crate::npc::is_npc(*t)).and_then(crate::projectile::aim_at);
+    let target = Target { pos: aim.unwrap_or(target.pos), ..target };
     let from = here(run);
     let facing = *run.caster.facing.lock().unwrap();
     let at_self = target.id == Some(caster);
@@ -869,6 +872,8 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
     if locked.is_none() {
         face_shot(run, from, base);
     }
+    // the volley hits every enemy along its line, as it gets there
+    let volley = LINE_SHOT_ITEMS.contains(&item);
     let shot = crate::projectile::Shot {
         item,
         move_type: a.u("ProjectileType").unwrap_or(1),
@@ -877,33 +882,14 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
         ricochets: a.u("MaxRicochets").unwrap_or(0),
         range: a.f("AttackRange").map_or(0.0, |r| r / 100.0),
         min_range: a.f("MinimumAttackRange").map_or(0.0, |r| r / 100.0),
+        width: volley.then_some(LINE_SHOT_WIDTH),
+        piercing: volley,
     };
-    if LINE_SHOT_ITEMS.contains(&item) {
-        // the volley: shown flying, every enemy on its line hit as it gets there
-        crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, None, Arc::new(|_, _| {}));
-        let range = if shot.range > 0.0 { shot.range } else { crate::projectile::DEFAULT_RANGE };
-        let hits = crate::npc::targets_where(run.caster.playfield, |p| {
-            let (px, pz) = (p[0] - start[0], p[2] - start[2]);
-            let along = px * dir[0] + pz * dir[1];
-            (0.0..=range).contains(&along) && (px * dir[1] - pz * dir[0]).abs() <= LINE_SHOT_WIDTH
-        });
-        for (id, p) in hits {
-            let run = run.clone();
-            let flight = Duration::from_secs_f32(distance(p, start) / shot.speed.max(0.1));
-            tokio::spawn(async move {
-                tokio::time::sleep(flight).await;
-                if let Some(pos) = crate::npc::position(id) {
-                    impact(&run, spell, item, Target { id: Some(id), pos }, depth);
-                }
-            });
-        }
-        return;
-    }
     let on_hit: crate::projectile::OnHit = {
         let run = run.clone();
         Arc::new(move |hit, pos| impact(&run, spell, item, Target { id: hit, pos }, depth))
     };
-    crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, aimed, on_hit);
+    crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, aimed.filter(|_| !volley), on_hit);
 }
 
 /// A spell that blocks turning keeps the direction it was cast in: towards its target (an enemy

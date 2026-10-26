@@ -467,9 +467,16 @@ pub fn regulars_near(playfield: u32, at: [f32; 2], radius: f32, n: usize) -> Vec
     out
 }
 
-/// Where a live NPC is.
+/// Where a live NPC is (along its walk, between AI ticks).
 pub fn position(id: Id32) -> Option<[f32; 3]> {
-    NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| *n.pos.lock().unwrap())
+    NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| n.now_at(std::time::Instant::now()))
+}
+
+impl Npc {
+    /// Where it is at `now`: along its walk, else where it stands.
+    fn now_at(&self, now: std::time::Instant) -> [f32; 3] {
+        self.walk.map_or_else(|| *self.pos.lock().unwrap(), |w| w.at(now).0)
+    }
 }
 
 /// Whether a world member is a player's character (not an NPC, nor scenery, jump pads, doors
@@ -1004,12 +1011,13 @@ fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: im
 
 /// The live enemies and smashables on `playfield` whose position is `inside`, with their positions.
 pub fn targets_where(playfield: u32, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
+    let now = std::time::Instant::now();
     NPCS.lock()
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
         .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable))
-        .map(|(id, n)| (*id, *n.pos.lock().unwrap()))
+        .map(|(id, n)| (*id, n.now_at(now)))
         .filter(|(_, p)| inside(*p))
         .collect()
 }

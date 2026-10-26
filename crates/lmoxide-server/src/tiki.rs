@@ -41,14 +41,14 @@ const FORCEFIELD: u32 = 412053;
 const STATUE_GLOW: u32 = 532195;
 /// Ground fire along the coming fireballs' lines (effect package of the monkeys' ground fire).
 const WARNING: u32 = 241037;
-/// The skull's fireball: projectile item, speed, reach, hit radius and damage (nano 519853).
+/// The skull's fireball: projectile item (its hit radius: data/projectile_sizes.json), speed,
+/// reach and damage (nano 519853).
 const FIREBALL: u32 = 519852;
 const FIREBALL_SPEED: f32 = 10.0;
 /// How far the fireballs fly: the line patterns (the user: right), the spiral (further, it
 /// looked too short).
 const REACH: f32 = 12.0;
 const SPIRAL_REACH: f32 = 18.0;
-const HIT_RADIUS: f32 = 1.2;
 const DAMAGE: u32 = 250;
 /// A volley every `VOLLEY` while someone is in the room, the warning `WARN` before it.
 const VOLLEY: Duration = Duration::from_secs(4);
@@ -250,32 +250,14 @@ async fn fire() {
     }
 }
 
-/// One fireball from `origin` along `dir` (x, z): whoever stands in its line when it passes is
-/// hit.
+/// One fireball from `origin` along `dir` (x, z): the first player in the room it touches on
+/// its way is hit (`projectile::launch_at_players`).
 fn shoot(origin: [f32; 3], dir: [f32; 2], reach: f32) {
     let to = [origin[0] + dir[0] * reach, origin[1], origin[2] + dir[1] * reach];
-    let (shot, flight) = crate::projectile::launch_enemy(skull_id(), PLAYFIELD, 0, FIREBALL, 1, FIREBALL_SPEED, 0, origin, to, None);
-    tokio::spawn(async move {
-        let mut hit = None;
-        for (player, pos) in in_room() {
-            let p = *pos.lock().unwrap();
-            let (dx, dz) = (p[0] - origin[0], p[2] - origin[2]);
-            let along = dx * dir[0] + dz * dir[1];
-            let off = (dx * dir[1] - dz * dir[0]).abs();
-            if (0.0..=reach).contains(&along) && off <= HIT_RADIUS && hit.as_ref().is_none_or(|(_, a, _)| along < *a) {
-                hit = Some((player, along, p));
-            }
-        }
-        match hit {
-            Some((player, along, at)) => {
-                tokio::time::sleep(Duration::from_secs_f32(along / FIREBALL_SPEED)).await;
-                crate::npc::hurt_player(skull_id(), player, FIREBALL, DAMAGE);
-                crate::projectile::enemy_impact(skull_id(), shot, Some((player, at)));
-            }
-            None => {
-                tokio::time::sleep(flight).await;
-                crate::projectile::enemy_impact(skull_id(), shot, None);
-            }
+    let on_hit: crate::projectile::OnHit = std::sync::Arc::new(|player, _| {
+        if let Some(player) = player.filter(|p| in_room().iter().any(|(id, _)| id == p)) {
+            crate::npc::hurt_player(skull_id(), player, FIREBALL, DAMAGE);
         }
     });
+    crate::projectile::launch_at_players(skull_id(), PLAYFIELD, 0, FIREBALL, FIREBALL_SPEED, 0, origin, to, reach, None, on_hit);
 }

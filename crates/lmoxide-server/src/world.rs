@@ -7,6 +7,7 @@
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, Mutex},
+    time::Instant,
 };
 
 use bytes::Bytes;
@@ -46,9 +47,58 @@ pub type Position = Arc<Mutex<[f32; 3]>>;
 struct Member {
     playfield: u32,
     pos: Position,
+    /// How the player last said they move (`set_motion`).
+    motion: Option<Motion>,
     /// Records that make this character appear for a newcomer (see `game::spawn_records`).
     spawn: Spawn,
     outbox: Outbox,
+}
+
+/// How long a keyboard-moving player is assumed to keep their reported velocity: the client
+/// reports every ~0.2 s while it moves and once when it stops (`Vehicle_t::UpdateServer`).
+const STEER_AHEAD: f32 = 0.3;
+
+/// How a player last said they move (game.rs), to tell where they are between their reports
+/// (`live_position`): `pos` only holds what they reported, which for click-to-move is where they
+/// are going.
+#[derive(Clone, Debug)]
+pub enum Motion {
+    /// Keyboard movement (`CharDCMoveIIR_t`): at `at` with velocity `vel` (m/s) at `since`.
+    Steer { at: [f32; 3], vel: [f32; 3], since: Instant },
+    /// Click-to-move (`MoveTaskIIR_c`): along `points` at `speed` (m/s) from `since`.
+    Path { points: Vec<[f32; 3]>, speed: f32, since: Instant },
+}
+
+impl Motion {
+    /// Where it puts the character at `now`.
+    pub fn at(&self, now: Instant) -> [f32; 3] {
+        match self {
+            Motion::Steer { at, vel, since } => {
+                let t = now.saturating_duration_since(*since).as_secs_f32().min(STEER_AHEAD);
+                [0, 1, 2].map(|i| at[i] + vel[i] * t)
+            }
+            Motion::Path { points, speed, since } => {
+                let mut left = speed * now.saturating_duration_since(*since).as_secs_f32();
+                for w in points.windows(2) {
+                    let len = (0..3).map(|i| (w[1][i] - w[0][i]).powi(2)).sum::<f32>().sqrt();
+                    if left < len {
+                        let t = left / len;
+                        return [0, 1, 2].map(|i| w[0][i] + (w[1][i] - w[0][i]) * t);
+                    }
+                    left -= len;
+                }
+                points.last().copied().unwrap_or_default()
+            }
+        }
+    }
+
+    /// The position the report itself gave (what `pos` was set to).
+    fn reported(&self) -> Option<[f32; 3]> {
+        match self {
+            Motion::Steer { at, .. } => Some(*at),
+            Motion::Path { points, .. } => points.last().copied(),
+        }
+    }
 }
 
 static MEMBERS: LazyLock<Mutex<HashMap<Id32, Member>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -71,7 +121,7 @@ pub fn join(
     let others: Vec<(Spawn, Outbox)> = {
         let mut members = MEMBERS.lock().unwrap();
         let others = members.values().filter(|m| m.playfield == playfield).map(|m| (m.spawn.clone(), m.outbox.clone())).collect();
-        members.insert(id, Member { playfield, pos, spawn: spawn.clone(), outbox: outbox.clone() });
+        members.insert(id, Member { playfield, pos, motion: None, spawn: spawn.clone(), outbox: outbox.clone() });
         others
     };
     let mut theirs = Vec::new();
@@ -88,6 +138,38 @@ pub fn join(
 /// Where a member is.
 pub fn position_of(id: Id32) -> Option<[f32; 3]> {
     MEMBERS.lock().unwrap().get(&id).map(|m| *m.pos.lock().unwrap())
+}
+
+/// Records how player `id` moves, as their latest movement report says (after `pos` was set
+/// from it).
+pub fn set_motion(id: Id32, motion: Motion) {
+    if let Some(m) = MEMBERS.lock().unwrap().get_mut(&id) {
+        m.motion = Some(motion);
+    }
+}
+
+impl Member {
+    /// Where the member is now: along its motion while that is what last set `pos` (a
+    /// teleport, jump or knockback since then moved it elsewhere), else `pos`.
+    fn live(&self, now: Instant) -> [f32; 3] {
+        let pos = *self.pos.lock().unwrap();
+        match &self.motion {
+            Some(m) if m.reported() == Some(pos) => m.at(now),
+            _ => pos,
+        }
+    }
+}
+
+/// Where a member is now, between its movement reports (see `Motion`).
+pub fn live_position(id: Id32) -> Option<[f32; 3]> {
+    MEMBERS.lock().unwrap().get(&id).map(|m| m.live(Instant::now()))
+}
+
+/// Every character on `playfield` with where it is now (`live_position`).
+pub fn live_positions(playfield: u32) -> Vec<(Id32, [f32; 3])> {
+    let now = Instant::now();
+    let members = MEMBERS.lock().unwrap();
+    members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, m.live(now))).collect()
 }
 
 /// The shared position of every player character on `playfield` (to move them, e.g. a jump).

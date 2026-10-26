@@ -35,6 +35,8 @@
 //!   !spawn [count] <name>     spawn count (default 1, at most 30) of an enemy or smashable around you
 //!                             for 15 minutes, as !test does
 //!   !despawn [all]            remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's
+//!   !aim [current|lead|homing]  how players' shots are aimed at their enemy (projectile.rs), for
+//!                             everyone; without a mode: the current one
 //!
 //! `COMMANDS` lists them for `!help` and for the control interface's catalog (`catalog`).
 //!
@@ -123,6 +125,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
     ("!state <n>", "set your BCCState (1 normal, 29 Limbo/smashed, 104 building, ...)"),
     ("!window <id>", "open teleport window <id> (RDB 1000644), as a portal would"),
+    ("!aim [current|lead|homing]", "how players' shots are aimed at their enemy, for everyone (without a mode: the current one)"),
 ];
 
 /// Most a `!spawn` brings at once.
@@ -520,6 +523,16 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             }
             _ => reply(vec!["usage: !plates <solve|reset>".into()]),
         },
+        "aim" => {
+            use crate::projectile::{Aim, player_aim, set_player_aim};
+            let modes = Aim::ALL.map(Aim::name).join("|");
+            match args.first().map(|m| Aim::ALL.into_iter().find(|a| a.name() == *m)) {
+                None => reply(vec![format!("players aim: {} (!aim <{modes}>)", player_aim().name())]),
+                Some(None) => reply(vec![format!("usage: !aim <{modes}>")]),
+                Some(Some(aim)) if set_player_aim(aim) => reply(vec![format!("players aim: {}", aim.name())]),
+                Some(Some(aim)) => reply(vec![format!("aim {} isn't implemented yet; players aim: {}", aim.name(), player_aim().name())]),
+            }
+        }
         "mirrors" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => Action::Mirrors(how == "solve"),
             _ => reply(vec!["usage: !mirrors <solve|reset>".into()]),
