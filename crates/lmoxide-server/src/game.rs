@@ -407,6 +407,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             } else if tutorial.is_none() {
                                 tutorial = Some(crate::tutorial::Run::start(id, &me.name, here));
                             }
+                            // the dialogue the live server started on arrival here (the jail's)
+                            crate::knubot::arrived(id, &me.name, me.playfield, &|t| me.tags.contains_key(&t));
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(here)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }

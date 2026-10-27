@@ -8,7 +8,12 @@
 //! "Goodbye"; a following text without a line of its own is the epilogue run on goodbye.
 //!
 //! Which NPC says what, and when, was server-side: only the recorded session's dialogues are
-//! known (Video Game Guy in the tutorial and Pirate World, two cinematics). `addtagtoplayer`
+//! known (Video Game Guy in the tutorial and Pirate World, two cinematics), and the live
+//! capture's (tools/re/live_dialogue.py: the same ones, and the LEGO Center's and Monster
+//! Laboratory's Monster Scientist, Swashbuckler in the jail, the jail escape on Isle of Yarr and
+//! the Island Warrior's rescue). The live server started those itself, none on a click:
+//! `ARRIVALS` are the ones it started on the player's arrival, and a dialogue that followed
+//! another (`follows`) runs when that one ends. The others are only for `!dialog`. `addtagtoplayer`
 //! gives the tag (achievements), `teleportplayer` teleports, the tutorial's script steps
 //! (`gameactiononnpc` 599417) go to tutorial.rs; quest tags (`spawn`, `resolvegoal`) and other
 //! server scripts are logged, not run.
@@ -50,6 +55,19 @@ pub struct Dialogue {
     pub npc: String,
     pub playfield: u32,
     texts: Vec<u32>,
+    /// "demo" (the recorded session) or "live" (the live capture)
+    #[serde(default)]
+    pub source: String,
+    /// for the live capture's own: what the server started it on ("arrival", "after_dialogue",
+    /// "quest_goal", "server"); the demo's are started by their triggers or a click
+    #[serde(default)]
+    start: Option<String>,
+    /// the first text of the dialogue this one followed
+    #[serde(default)]
+    follows: Option<u32>,
+    /// where the speaker stood (live capture)
+    #[serde(default)]
+    pos: Option<[f32; 3]>,
 }
 
 static DATA: LazyLock<Data> =
@@ -62,6 +80,15 @@ const TEXT_CATEGORY: u32 = 50002;
 const NAME_CATEGORY: u32 = 51000;
 /// How long the server waits for an answer before closing the window.
 const ANSWER_TIMEOUT: Duration = Duration::from_secs(300);
+/// The live capture's dialogues the server started on the player's arrival (CharInPlay): the
+/// first text, the tag the player needs first, and how long after the arrival it started. Each
+/// runs until the player has the tags it gives. Left out: the LEGO Center's Monster Scientist
+/// (1025), whose text runs "if it HAS ticket" (a Monster Laboratory ticket, checked how is
+/// unknown). The jail escape (822) needs the jail's last tag (322, text 229): the capture
+/// arrived on Isle of Yarr from the jail.
+const ARRIVALS: &[(u32, Option<u32>, Duration)] = &[(79, None, Duration::from_millis(880)), (822, Some(322), Duration::ZERO)];
+/// How long after a dialogue's close the one that follows it starts (live: 0.46 s).
+const FOLLOW_DELAY: Duration = Duration::from_millis(460);
 
 /// Players in a dialogue: its generation, where their answers go, and who speaks.
 static TALKING: LazyLock<Mutex<HashMap<Id32, (u64, mpsc::UnboundedSender<u32>, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -79,9 +106,62 @@ pub fn starting_with(first: u32) -> Option<Dialogue> {
     DATA.dialogues.iter().find(|d| d.texts.first() == Some(&first)).cloned()
 }
 
-/// The dialogues `npc` (by name) has on `playfield`, in order.
+/// The dialogues `npc` (by name) has on `playfield`, in order (the ones a click starts: not the
+/// live capture's, which the server started itself).
 fn of(npc: &str, playfield: u32) -> Vec<&'static Dialogue> {
-    DATA.dialogues.iter().filter(|d| d.npc == npc && d.playfield == playfield).collect()
+    DATA.dialogues.iter().filter(|d| d.npc == npc && d.playfield == playfield && d.start.is_none()).collect()
+}
+
+/// The tags a dialogue's texts give (`addtagtoplayer`).
+fn tags_given(d: &Dialogue) -> Vec<u32> {
+    d.texts
+        .iter()
+        .filter_map(|t| DATA.texts.get(&t.to_string()))
+        .flat_map(|text| tags(text))
+        .filter_map(|tag| tag.strip_prefix("addtagtoplayer ").and_then(|t| t.trim().parse().ok()))
+        .collect()
+}
+
+/// The dialogue the server starts on arrival at `playfield` for a player with the tags
+/// `has_tag` says, and its delay.
+fn arrival(playfield: u32, has_tag: &dyn Fn(u32) -> bool) -> Option<(&'static Dialogue, Duration)> {
+    ARRIVALS.iter().find_map(|&(first, needs, delay)| {
+        let d = DATA.dialogues.iter().find(|d| d.texts.first() == Some(&first) && d.playfield == playfield)?;
+        let given = tags_given(d);
+        (needs.is_none_or(|t| has_tag(t)) && !given.is_empty() && !given.iter().all(|&t| has_tag(t))).then_some((d, delay))
+    })
+}
+
+/// The live dialogue that followed the one starting with `first`.
+fn following(first: u32) -> Option<&'static Dialogue> {
+    DATA.dialogues.iter().find(|d| d.follows == Some(first) && d.start.as_deref() == Some("after_dialogue"))
+}
+
+/// `player` arrived on `playfield`: the dialogue the live server started then, if any (its
+/// speaker: that NPC if it's here, else the player, as for the cinematics).
+pub fn arrived(player: Id32, player_name: &str, playfield: u32, has_tag: &dyn Fn(u32) -> bool) {
+    let Some((d, delay)) = arrival(playfield, has_tag) else { return };
+    let (d, name) = (d.clone(), player_name.to_string());
+    tokio::spawn(async move {
+        tokio::time::sleep(delay).await;
+        if world::whereabouts(player).is_some_and(|(pf, _)| pf == d.playfield) {
+            let owner = crate::npc::find(&d.npc, d.playfield).unwrap_or(player);
+            start(player, &name, owner, d);
+        }
+    });
+}
+
+/// The live capture's dialogues and where their speakers stood (for `!goto dialogue`).
+pub fn points() -> Vec<(String, u32, [f32; 3])> {
+    DATA.dialogues
+        .iter()
+        .filter(|d| d.source == "live")
+        .filter_map(|d| {
+            let at = d.pos?;
+            let start = d.start.as_deref().unwrap_or("");
+            Some((format!("{} {} ({start})", d.npc, d.texts.first()?), d.playfield, at))
+        })
+        .collect()
 }
 
 /// Whether `npc` (by name) has dialogues on `playfield`.
@@ -117,10 +197,22 @@ pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
     info!(?player, npc = %dialogue.npc, texts = ?dialogue.texts, "dialogue");
     let name = player_name.to_string();
     tokio::spawn(async move {
-        run(player, owner, name, dialogue, rx, generation).await;
-        let mut talking = TALKING.lock().unwrap();
-        if talking.get(&player).is_some_and(|(g, ..)| *g == generation) {
-            talking.remove(&player);
+        let first = dialogue.texts.first().copied();
+        let ended = run(player, owner, name.clone(), dialogue, rx, generation).await;
+        let current = {
+            let mut talking = TALKING.lock().unwrap();
+            let current = talking.get(&player).is_some_and(|(g, ..)| *g == generation);
+            if current {
+                talking.remove(&player);
+            }
+            current
+        };
+        // the live server started the next one itself (the jail: Swashbuckler's second)
+        if let Some(next) = first.and_then(following).filter(|_| ended && current) {
+            tokio::time::sleep(FOLLOW_DELAY).await;
+            if !TALKING.lock().unwrap().contains_key(&player) && world::whereabouts(player).is_some_and(|(pf, _)| pf == next.playfield) {
+                start(player, &name, owner, next.clone());
+            }
         }
     });
 }
@@ -149,7 +241,8 @@ pub fn left(player: Id32) {
     PROGRESS.lock().unwrap().retain(|(p, _, _), _| *p != player);
 }
 
-async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: mpsc::UnboundedReceiver<u32>, generation: u64) {
+/// Returns whether the player answered to the end (not a timeout).
+async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: mpsc::UnboundedReceiver<u32>, generation: u64) -> bool {
     let speaker = Speaker { player, owner, name, npc_name: d.npc_name, generation };
     let send = |records: Vec<Bytes>| speaker.send(records);
     // the cinematic actors "playerActor" and "knubotOwnerActor", then the window
@@ -160,6 +253,7 @@ async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: 
     ]);
     let mut i = 0;
     let mut cleared = false;
+    let mut ended = true;
     while i < d.texts.len() {
         cleared = run_text(&speaker, d.texts[i]).await;
         let next = d.texts.get(i + 1).copied();
@@ -176,7 +270,10 @@ async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: 
                 }
                 break;
             }
-            None => break,
+            None => {
+                ended = false;
+                break;
+            }
         }
     }
     let mut records = Vec::new();
@@ -186,6 +283,7 @@ async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: 
     let close = remoteformat(100, "0", &key("100/0"), None, None);
     records.push(knubot_record("KnubotCloseChatWindowIIR", player, owner, |w| w.u32(1).string(&close)));
     send(records);
+    ended
 }
 
 struct Speaker {
@@ -409,9 +507,35 @@ mod tests {
 
     #[test]
     fn data_and_tags() {
-        assert_eq!(DATA.dialogues.len(), 8);
+        // the demo recording's 8 first (each also in the live capture), then the live capture's 7
+        assert_eq!(DATA.dialogues.len(), 15);
+        assert!(DATA.dialogues[..8].iter().all(|d| d.source == "demo" && d.start.is_none()));
+        assert!(DATA.dialogues[8..].iter().all(|d| d.source == "live" && d.start.is_some()));
         assert_eq!(tags(&DATA.texts["742"]), ["changeguivisibility 0", "delay 1", "spawn S1M7 10 m", "clearcinematic"]);
         assert_eq!(DATA.answers.get("743"), Some(&510));
+    }
+
+    #[test]
+    fn live_dialogues() {
+        // the answers the live server offered chain the texts (not only the epilogue)
+        assert_eq!(DATA.answers.get("1026"), Some(&765));
+        assert_eq!(DATA.answers.get("223"), Some(&136));
+        // started by the server, not by a click
+        assert!(!has_dialogues("Swashbuckler", 4610));
+        assert!(has_dialogues("Video Game Guy", 1300));
+        // arriving in the jail: Swashbuckler's first, until its tag (308)
+        let none = |_| false;
+        assert_eq!(arrival(4610, &none).map(|(d, _)| d.texts[0]), Some(79));
+        assert!(arrival(4610, &|t| t == 308).is_none());
+        // Isle of Yarr: the escape only after the jail (322), once (4182)
+        assert!(arrival(4200, &none).is_none());
+        assert_eq!(arrival(4200, &|t| t == 322).map(|(d, _)| d.texts[0]), Some(822));
+        assert!(arrival(4200, &|t| t == 322 || t == 4182).is_none());
+        // no arrival dialogue for the LEGO Center (ticket check unknown) or the tutorial
+        assert!(arrival(1200, &none).is_none() && arrival(1300, &none).is_none());
+        assert_eq!(following(79).map(|d| d.texts[0]), Some(224));
+        assert!(following(741).is_none());
+        assert_eq!(points().len(), 7);
     }
 
     #[test]

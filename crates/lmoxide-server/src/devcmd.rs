@@ -334,6 +334,7 @@ const KINDS: &[(&str, &str)] = &[
     ("explore", "exploration achievement areas"),
     ("portal", "portals (walk 8 m away after arriving, then step in)"),
     ("trigger", "tutorial triggers (1300; listed 6 m off, so !goto and the tour land inside)"),
+    ("dialogue", "the live capture's dialogue speakers (arriving in the jail, or on Isle of Yarr after it, starts its dialogue; !dialog plays any)"),
     ("boss", "dungeon bosses"),
     ("champion", "champions"),
     ("enemy", "all enemies"),
@@ -362,6 +363,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "collectible" => crate::discovery::points(true),
         "boombox" => crate::discovery::points(false),
         "trigger" => crate::tutorial::points(),
+        "dialogue" => crate::knubot::points(),
         "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "smashable" => crate::npc::points(kind),
@@ -612,6 +614,14 @@ mod tests {
         assert!(matches!(run("!tp isle of yarr", 1200, [0.0; 3]), Action::Teleport(4200, ..)));
         assert!(matches!(run("/tp 5200", 1200, [0.0; 3]), Action::Teleport(5200, ..)));
         assert!(matches!(run("!tp nowhere", 1200, [0.0; 3]), Action::Reply(_)));
+    }
+
+    #[test]
+    fn goto_the_live_dialogue_speakers() {
+        // in capture order: the LEGO Center, the Monster Laboratory (2), the jail (2), ...
+        assert!(matches!(run("!goto dialogue 1", 4200, [0.0; 3]), Action::Teleport(1200, ..)));
+        assert!(matches!(run("!goto dialogue 4", 4200, [0.0; 3]), Action::Teleport(4610, ..)));
+        assert!(matches!(run("!goto dialogue 6", 4610, [0.0; 3]), Action::Teleport(4200, ..)));
     }
 
     #[test]

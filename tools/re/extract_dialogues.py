@@ -3,24 +3,38 @@
   texts:     {id: text} of TDB category 50002 (the dialogue texts; their {tags} are the server
              script the original server ran, see knubot.rs)
   answers:   {text id: 50001 answer id} the button that leads to that text: the one the
-             recorded session offered before it, else the answer whose wording is the text's
-             spoken line (the recorded cinematics' and Pirate World's answers don't match by wording)
+             recorded session offered before it, else the one the live capture offered, else
+             the answer whose wording is the text's spoken line (the recorded cinematics' and
+             Pirate World's answers don't match by wording)
   keys:      {"category/id" or "category/token": key} the `key` attributes of localized
              references in the recorded session (the client's remoteformat XML carries them)
   names:     {51000 id: NPC name} of the dialogue owners
-  dialogues: the recorded dialogues in order: {npc_name (51000 id), npc, playfield, texts}
+  dialogues: the recorded dialogues in order: {npc_name (51000 id), npc, playfield, texts,
+             source}: first the demo recording's ("demo"; seen_live when the live capture has
+             the same one), then the live capture's others ("live", from
+             data/live-capture/lmo-captures/dialogues.json, tools/re/live_dialogue.py) with
+             start (what preceded it there: "arrival", "after_dialogue" + follows = the first
+             text of the dialogue it followed, "quest_goal", "server") and pos (the speaker's
+             position in the capture)
 
 The dialogue graph (which NPC, when) was server-side; only the recorded session's dialogues
-(the tutorial and the start of Pirate World) are known. Their texts chain: each answer list
-offered the next text's line and "Goodbye".
+(the tutorial and the start of Pirate World) and the live capture's (2016: also the LEGO
+Center, the Monster Laboratory, the jail, Isle of Yarr and the Monkey Cave) are known. Their
+texts chain: each answer list offered the next text's line and "Goodbye".
 
-Usage: tools/re/py extract_dialogues.py <dir with recs.pkl from tools/re/demo/recs.py>"""
-import html, json, os, pickle, re, struct, sys
+Usage: tools/re/py extract_dialogues.py <dir with recs.pkl from tools/re/demo/recs.py> [--live FILE]"""
+import argparse, html, json, os, pickle, re, struct, sys
 
 import tdc
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
-recs = pickle.load(open(os.path.join(sys.argv[1], "recs.pkl"), "rb"))
+ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+ap.add_argument("demo", help="dir with recs.pkl from tools/re/demo/recs.py")
+ap.add_argument("--live", default=os.path.join(ROOT, "data/live-capture/lmo-captures/dialogues.json"),
+                help="tools/re/live_dialogue.py output (skipped if missing)")
+args = ap.parse_args()
+recs = pickle.load(open(os.path.join(args.demo, "recs.pkl"), "rb"))
+live = json.load(open(args.live)) if os.path.exists(args.live) else None
 
 texts = tdc.texts(50002)
 answers_db = tdc.texts(50001)
@@ -38,6 +52,13 @@ by_line = {}
 for aid, a in answers_db.items():
     by_line.setdefault(a.strip(), aid)
 answers = {tid: by_line[spoken(t)] for tid, t in texts.items() if spoken(t) in by_line}
+# the live capture's answers: the answer picked before a text led to it
+live_answers = {}
+for d in (live or {}).get("dialogues", []):
+    for t in d["texts"]:
+        if t["answer_id"] not in (None, 0):
+            live_answers.setdefault(t["id"], t["answer_id"])
+answers.update(live_answers)
 
 # keys of localized references (the XML is escaped once inside parameter values)
 keys = {}
@@ -98,6 +119,32 @@ for x in recs:
         dialogues.append(current)
         current = None
 
+for d in dialogues:
+    d["source"] = "demo"
+
+# the live capture's dialogues the demo recording doesn't have
+conflicts = [(t, a, answers[t]) for t, a in live_answers.items() if answers.get(t) != a]
+for d in (live or {}).get("dialogues", []):
+    entry = {"texts": [t["id"] for t in d["texts"]], "playfield": d["playfield"]}
+    name_id = d["npc"].get("name_id")
+    same = [x for x in dialogues if x["texts"] == entry["texts"] and x["playfield"] == entry["playfield"]
+            and x.get("npc_name") == name_id]
+    if same:
+        same[0]["seen_live"] = True
+        continue
+    if name_id is not None:
+        entry["npc_name"] = name_id
+    entry["npc"] = names_db.get(name_id) or d["npc"].get("name") or ""
+    entry["source"] = "live"
+    entry["start"] = d["start"]
+    if d.get("follows") is not None:
+        entry["follows"] = d["follows"]
+    if d["npc"].get("pos"):
+        entry["pos"] = d["npc"]["pos"]
+    dialogues.append(entry)
+for k, v in (live or {}).get("keys", {}).items():
+    keys.setdefault(k, v)
+
 used = {d["npc_name"] for d in dialogues if "npc_name" in d}
 out = {
     "_comment": __doc__.split("\n\n")[0].replace("\n", " "),
@@ -111,4 +158,6 @@ path = os.path.join(ROOT, "data/dialogues.json")
 json.dump(out, open(path, "w"), indent=1, ensure_ascii=False)
 print(f"{len(texts)} texts, {len(answers)} answers, {len(keys)} keys, {len(dialogues)} dialogues -> {path}")
 for d in dialogues:
-    print(f"  {d['playfield']} {d['npc']}: {d['texts']}")
+    print(f"  {d['source']} {d['playfield']} {d['npc']}: {d['texts']}" + (f" ({d['start']})" if "start" in d else ""))
+for t, a, kept in conflicts:
+    print(f"  text {t}: live offered answer {a}, the demo recording {kept} (kept)")

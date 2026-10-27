@@ -856,6 +856,7 @@
   "208": 125,
   "209": 126,
   "210": 127,
+  "223": 136,
   "225": 137,
   "245": 155,
   "247": 156,
@@ -969,6 +970,8 @@
   "768": 527,
   "770": 528,
   "775": 530,
+  "776": 531,
+  "777": 532,
   "789": 540,
   "790": 541,
   "791": 542,
@@ -982,12 +985,18 @@
   "820": 565,
   "821": 566,
   "824": 567,
+  "825": 568,
+  "826": 569,
+  "827": 570,
   "830": 572,
   "831": 573,
   "836": 578,
   "841": 582,
+  "847": 588,
+  "848": 589,
   "854": 595,
   "855": 552,
+  "1026": 765,
   "1031": 767,
   "1032": 768,
   "1037": 769,
@@ -1007,6 +1016,10 @@
   "50001/125": "cpR_Mpz+w*,I\"E!IE#$k",
   "50001/126": "a/A(hOHbg^q//S-R420U",
   "50001/127": "fhLB?T-.Tmao5r3H@[tQ",
+  "50001/136": "0z?rPp&g4jl&yuq#eyLu",
+  "50001/137": "b7sw%my)t*b$*&p$W%Mk",
+  "50001/20": "7V([b3y-7,W6BQaYxN?8",
+  "50001/21": "b/0HqQ4Z.KEtM(*+I2[\\",
   "50001/510": "M0X&id&jwgDN[UrwLS!v",
   "50001/513": "DJ!62E2Oilf+GUT1cUw3",
   "50001/514": "@bsPk^pmnfmP2\\xob\"gA",
@@ -1017,6 +1030,9 @@
   "50001/526": "[rj?&&J&Efev[Mh$gI5S",
   "50001/527": "0o!E\"O?4!@$tO9\"(,H-m",
   "50001/528": "Ymk\"HXac2xnTNr&P/v9H",
+  "50001/530": "^L&7_cWL%b,.DV#_y7^U",
+  "50001/531": "+7Y80CxB)!%(cn.]kHl8",
+  "50001/532": "yo(F[G\\@BC\"&PvSp8FW8",
   "50001/540": "2&lh]%['UXwtVlh\\!./v",
   "50001/541": "2]$*5U\\X'yE10Fv*mP@V",
   "50001/542": "OBixR%l#-J8%jcN_Amse",
@@ -1028,13 +1044,48 @@
   "50001/564": "YQAh%Wveu%imp*?KUioC",
   "50001/565": "XB\"$J[tNIoZfB#0oFsO^",
   "50001/566": "4v?iDbM79CAwl8RM^77\"",
+  "50001/567": "qAQFR9g`tcWB\\#-1(IZ4",
+  "50001/568": "EW.zT7d^*&X.X?DFNMp7",
+  "50001/569": "ay2ih%]xUw]5[k2R(Rqe",
+  "50001/570": "(dL+823)FgGhjK+h@#fv",
+  "50001/588": "N1b@T&5USbh_tzYc^WSI",
+  "50001/589": "k'Gq]TDSb(z#6VdI_b`-",
   "50001/595": "**uxTj4/V#oPf_[16`tv",
+  "50001/765": "\\YuS_?focI,tj0ZxiocK",
+  "50001/767": "WHQ9\\*pWDSWOVZojS[y.",
+  "50001/768": "B11m]5URJmxkOWB\\?nfX",
+  "50001/769": "Z'o1R%c!EX/A\"w'8ZJ7X",
+  "50001/771": "Np`6?!Uz6h+1a\"6[F9d0",
+  "50001/772": "Ql)Kd1Q.KdcRJ8r_Rzj,",
+  "50001/775": "\"8u&fJ_r7)a5uKWfcsp6",
+  "50001/776": "deFvkh#59TC[1r]YW8'4",
+  "50001/777": ".'QmOp_xapFLrPY5k^nA",
+  "50002/1025": "Yh$8A%MHr\\a1zE7\\!_4@",
+  "50002/1026": "LO\"6WTcC(+^Q'+\"fQZ'4",
+  "50002/1027": "*\\CF+HIsB)[NfXKah/G`",
+  "50002/1029": "w.-b(DY-T-U5u[_v,5AK",
+  "50002/1030": "$5.58.TAiH`kWo.)P^uz",
+  "50002/1031": "IT\"o)3@(0E+tr6o#+ao#",
+  "50002/1032": "?te3qCaFct4YifYA[bq@",
+  "50002/1035": "6W0cwpZ/NMVS%7`+f(6!",
+  "50002/1036": "iz-dD$Wbvt,]57!)a$YR",
+  "50002/1037": "_k&ZT@-'*,&fCVuW?E]r",
+  "50002/1039": "Ml%NjgndULM4!r&jl4oe",
+  "50002/1040": "^L^Dz?WDcEh5CsSUQ$9\\",
+  "50002/1042": "qrLoj534nhJg*T5/i[ev",
+  "50002/1043": "g\"S/O'Z0MGUU4Iu\"&nVL",
+  "50002/1044": "B-d5Qd(SSPASoY,BeW3+",
+  "50002/126": "8_%UQ5x,x%hgqqun@2kZ",
   "50002/206": "`L'X]Fne6xhCsl%Avi\\e",
   "50002/207": "6m4)KckYd.fj\\I^d5Z2A",
   "50002/208": "RxZx\"K)AE@lzy?f00&4C",
   "50002/209": "^/e?o$pR7S)v^l8TwjR`",
   "50002/210": "oIFEviuL7efp)lx'g9VS",
   "50002/211": "wli1h[`#Xvr'Slz'6XJP",
+  "50002/223": "Q7[]nY)b4\"`lAM,*@#sn",
+  "50002/224": "B7Z4qk(B1rkQ?F`-]a$4",
+  "50002/225": "v]3O?x)7yh\\/M%'0dHJM",
+  "50002/229": "RxA2hgl2WlRf\"Ds.(HSw",
   "50002/741": "DgKQ?nHumufdKJWvqyK9",
   "50002/742": "p$pSzkmkxoQfr6@Eimz0",
   "50002/743": "eOF8I(n\"2'_XG75Rob)P",
@@ -1056,10 +1107,18 @@
   "50002/769": "rAaa06eST!jgM0r7J$BC",
   "50002/770": "j*,$jRsBJD9IcSrlULu_",
   "50002/772": "U]@qXbp)0Q`]sx1K.\"j6",
+  "50002/773": "M)5R-NmN!7Ts\"9y3x8+$",
+  "50002/774": "eQ.nhYtV]A3b*Z*xp9,K",
+  "50002/775": "GKF[aMw&3-2eH1X_kpo\\",
+  "50002/776": "(/-J$3[ZMp9+Z,.gwF'z",
+  "50002/777": "hXAfxI!wpABl_$B[kSbA",
   "50002/789": "H1WOPY`tLD]N*NI5a.-Z",
+  "50002/79": ",S)^@HD@i(O8%+cVSGr7",
   "50002/790": "Y#wUs)-Bn*wpK?/mU\"tL",
   "50002/791": "@Xf[@@_Jtgdy7_wbK089",
   "50002/799": "l0\\7jd34ATQB*fa!Q@#\"",
+  "50002/80": "1Bu)'7iP1%&7[8?1N'2j",
+  "50002/81": "/[Kvx#PxTSA\\r6_WZedM",
   "50002/812": "4kr#.LiOAEDomj0T6yKW",
   "50002/814": "gDr,%4'-K+#mC6mFDue)",
   "50002/815": "$?Sb_/FSmMr.,'(\"jKx]",
@@ -1069,19 +1128,39 @@
   "50002/819": "en?2PkKQzGwW)8`60Nha",
   "50002/820": "_J5%\\pOLCNQAxaG/e]aY",
   "50002/821": "E`Z*fj?x/Hws`]SHXDhG",
+  "50002/822": "7P(%XBOG)rSg,xy3k?YD",
+  "50002/823": "FSlSFcW.5.PV)WO%DFXX",
+  "50002/824": "O&XFT&Hm-rw2c2Ti/\\)8",
+  "50002/825": "5GZ-weuIgalX4l,rz.D!",
+  "50002/826": "\\].@rq^L\"$Wj\\@\\Y%!Q^",
+  "50002/827": "qRSb4e7L$UB%b(k.irbR",
+  "50002/847": "HIH2woKFBjR0#9e&v$GY",
+  "50002/848": ".'^AAfD?b-QL77CjvzBR",
   "50002/854": "Q6oX`##/LBWKStP]0,NC",
   "51000/1014": "lvda/\"50-X`!n*BgWal?",
   "51000/1711": "X,(vK-i^)aIE2V@B8]B$",
   "51000/2621": "G1QjE.DB?\\\"(x-o*,,7x",
   "51000/2622": "M0DnfwdM\\8+\"?L4LoWt_",
   "51000/2625": "3Ybu@!Mfj-N3SBFfPv]%",
-  "51000/2730": "dH\\$yN[?5MbX'6mxsj8u"
+  "51000/2682": "-&'oN+h@qLf9UnMalaRM",
+  "51000/2725": "Q`#H7F@,dwf-ezPauWpa",
+  "51000/2730": "dH\\$yN[?5MbX'6mxsj8u",
+  "51000/2921": "Mrkv@Ep$Mrl,w1rHl.^m",
+  "51000/2941": "&(t1EVCBEm5d&Z+$hL]2",
+  "51000/2969": "GWjN%]\\cNmfc*K-3OGhD",
+  "51000/961": "9/]O[O]1[dD0L-`_HGY!"
  },
  "names": {
+  "961": "Swashbuckler",
   "1014": "Cinematic Start Oops",
   "2621": "Video Game Guy",
   "2625": "Cinematic Start Dreadleg Summons Pirate",
-  "2730": "Video Game Guy"
+  "2682": "XX__Cinematic Rescue Island Warrior",
+  "2725": "Cinematic Start Escaped From Jail",
+  "2730": "Video Game Guy",
+  "2921": "Monster Scientist",
+  "2941": "Monster Scientist",
+  "2969": "Monster Scientist"
  },
  "dialogues": [
   {
@@ -1093,7 +1172,9 @@
    ],
    "playfield": 1300,
    "npc_name": 2621,
-   "npc": "Video Game Guy"
+   "npc": "Video Game Guy",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1102,7 +1183,9 @@
    ],
    "playfield": 1300,
    "npc_name": 2621,
-   "npc": "Video Game Guy"
+   "npc": "Video Game Guy",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1113,7 +1196,9 @@
    ],
    "playfield": 1300,
    "npc_name": 2625,
-   "npc": "Cinematic Start Dreadleg Summons Pirate"
+   "npc": "Cinematic Start Dreadleg Summons Pirate",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1124,7 +1209,9 @@
    ],
    "playfield": 1300,
    "npc_name": 2621,
-   "npc": "Video Game Guy"
+   "npc": "Video Game Guy",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1135,7 +1222,9 @@
    ],
    "playfield": 1300,
    "npc_name": 2621,
-   "npc": "Video Game Guy"
+   "npc": "Video Game Guy",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1150,7 +1239,9 @@
    ],
    "playfield": 1300,
    "npc_name": 2621,
-   "npc": "Video Game Guy"
+   "npc": "Video Game Guy",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1166,7 +1257,9 @@
    ],
    "playfield": 4600,
    "npc_name": 2730,
-   "npc": "Video Game Guy"
+   "npc": "Video Game Guy",
+   "source": "demo",
+   "seen_live": true
   },
   {
    "texts": [
@@ -1179,7 +1272,144 @@
    ],
    "playfield": 4600,
    "npc_name": 1014,
-   "npc": "Cinematic Start Oops"
+   "npc": "Cinematic Start Oops",
+   "source": "demo",
+   "seen_live": true
+  },
+  {
+   "texts": [
+    1025,
+    1026,
+    1042,
+    1043,
+    1044,
+    1027
+   ],
+   "playfield": 1200,
+   "npc_name": 2921,
+   "npc": "Monster Scientist",
+   "source": "live",
+   "start": "arrival",
+   "pos": [
+    365.7982,
+    48.5822,
+    68.6658
+   ]
+  },
+  {
+   "texts": [
+    1029,
+    1031,
+    1032,
+    1030
+   ],
+   "playfield": 8030,
+   "npc_name": 2941,
+   "npc": "Monster Scientist",
+   "source": "live",
+   "start": "server",
+   "pos": [
+    212.9947,
+    42.883,
+    274.7831
+   ]
+  },
+  {
+   "texts": [
+    1035,
+    1037,
+    1039,
+    1040,
+    1036
+   ],
+   "playfield": 8030,
+   "npc_name": 2969,
+   "npc": "Monster Scientist",
+   "source": "live",
+   "start": "server",
+   "pos": [
+    241.6528,
+    42.0,
+    280.1072
+   ]
+  },
+  {
+   "texts": [
+    79,
+    80,
+    81,
+    223,
+    126
+   ],
+   "playfield": 4610,
+   "npc_name": 961,
+   "npc": "Swashbuckler",
+   "source": "live",
+   "start": "arrival",
+   "pos": [
+    229.8686,
+    16.0289,
+    259.068
+   ]
+  },
+  {
+   "texts": [
+    224,
+    225,
+    229
+   ],
+   "playfield": 4610,
+   "npc_name": 961,
+   "npc": "Swashbuckler",
+   "source": "live",
+   "start": "after_dialogue",
+   "follows": 79,
+   "pos": [
+    229.8686,
+    16.0289,
+    259.068
+   ]
+  },
+  {
+   "texts": [
+    822,
+    824,
+    825,
+    826,
+    827,
+    823
+   ],
+   "playfield": 4200,
+   "npc_name": 2725,
+   "npc": "Cinematic Start Escaped From Jail",
+   "source": "live",
+   "start": "arrival",
+   "pos": [
+    126.4161,
+    79.2001,
+    60.5725
+   ]
+  },
+  {
+   "texts": [
+    773,
+    775,
+    776,
+    777,
+    847,
+    848,
+    774
+   ],
+   "playfield": 1643,
+   "npc_name": 2682,
+   "npc": "XX__Cinematic Rescue Island Warrior",
+   "source": "live",
+   "start": "quest_goal",
+   "pos": [
+    333.6201,
+    18.6156,
+    277.2638
+   ]
   }
  ]
 }
