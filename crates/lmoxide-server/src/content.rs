@@ -177,6 +177,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     st.catalog = crate::survey::catalog_of(&st.bases);
     let active = review::only_features(&st.approved, &st.rules.active);
     crate::walls::set(&active);
+    crate::jumppad::set(&active);
     crate::achievements::set_smash_rules(&active.smash_rules);
     let pfs: BTreeSet<u32> = st.bases.keys().chain(st.approved.placements.keys()).copied().collect();
     for pf in pfs {
@@ -329,13 +330,15 @@ fn rebuild(st: &mut State) {
 fn respawn_changed(st: &mut State, before: &Set, after: &Set) {
     let pfs: BTreeSet<u32> = before.placements.keys().chain(after.placements.keys()).copied().collect();
     for pf in pfs {
-        let placements = |s: &Set| s.placements.get(&pf).map(|f| f.placements.clone()).unwrap_or_default();
+        // (bouncers are jumppad.rs's)
+        let placements = |s: &Set| s.placements.get(&pf).map(|f| f.placements.iter().filter(|p| p.kind != lmoxide_survey::Kind::Bouncer).cloned().collect::<Vec<_>>()).unwrap_or_default();
         if placements(before) != placements(after) {
             info!(playfield = pf, "world content: playfield spawned again");
             spawn_playfield(st, pf);
         }
     }
     crate::walls::set(after);
+    crate::jumppad::set(after);
     crate::achievements::set_smash_rules(&after.smash_rules);
 }
 

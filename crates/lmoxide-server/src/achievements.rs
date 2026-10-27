@@ -18,6 +18,13 @@
 //! (approved world content, [`set_smash_rules`]): a defeat then counts only when the defeated one
 //! is named in the rule, instead of the achievement's own match or target.
 //!
+//! Collectible counters ("A Nose for Gold": 3 goblets, ... [`collect_achievements`]) count
+//! what the world editor says gives one: a trigger wall that collects it (once per wall per
+//! player, `Event::Collected`), or defeating an enemy its rule names (each defeat, or once per
+//! enemy name when the rule says `once`). A `drop:<name>` rule with an item template drops that
+//! item from the enemies it names (a loot bag; picking it up gives nothing yet: there is no
+//! mission item inventory).
+//!
 //! Every event also goes into the character's journal (`defeats`, `visits`, `finds`): what it
 //! defeated and how often, the playfields it entered, the collectibles and places it found.
 
@@ -131,7 +138,8 @@ pub struct SmashAchievement {
     pub text: String,
     /// The parent category's title ("Minifigures" for the per-minifigure copies).
     pub group: Option<String>,
-    /// counter or defeat
+    /// counter, defeat or collect ([`collect_achievements`]; the survey server adds find,
+    /// category and drop)
     pub kind: &'static str,
     /// kills, smashes or kills_or_smashes (counters)
     pub what: Option<String>,
@@ -182,21 +190,113 @@ pub fn smash_achievements() -> &'static [SmashAchievement] {
     &LIST
 }
 
+/// The collectible counters ("Pirate_Collectibles_Goblets": 3 goblets, ...): counters of their
+/// own stat (not kills, smashes or builds), not the global or holiday ones. Kind `collect`, `n`
+/// the counter's target.
+pub fn collect_achievements() -> &'static [SmashAchievement] {
+    static LIST: LazyLock<Vec<SmashAchievement>> = LazyLock::new(|| {
+        let title_of = |id: u32| TREE.by_id.get(&id).and_then(|&i| TREE.all[i].title.clone());
+        TREE.all
+            .iter()
+            .filter(|a| a.kind == "counter" && a.counts.is_none() && a.minifigure.is_none())
+            .filter(|a| !a.name.starts_with("Global_") && !a.name.contains("Holidays"))
+            .filter_map(|a| {
+                let [stat, n] = a.counter?;
+                (stat != STAT_PLAYER_KILLS as u64 && stat != STAT_PLAYER_SMASHES as u64).then(|| SmashAchievement {
+                    key: a.id.to_string(),
+                    ids: vec![a.id],
+                    title: a.title.clone().unwrap_or_else(|| a.name.clone()),
+                    text: a.text.clone().unwrap_or_default(),
+                    group: title_of(a.parent),
+                    kind: "collect",
+                    what: None,
+                    matching: None,
+                    n: n as u32,
+                    minifigures: 0,
+                })
+            })
+            .collect()
+    });
+    &LIST
+}
+
+/// The counter stat of collect achievement `key` (its id).
+fn collect_stat(key: &str) -> Option<u32> {
+    let a = collect_achievements().iter().find(|a| a.key == key)?;
+    let [stat, _] = TREE.all[TREE.by_id[&a.ids[0]]].counter?;
+    Some(stat as u32)
+}
+
 /// Achievement id -> the enemies its approved, active smash rule names (lowercase).
 static RULES: LazyLock<RwLock<HashMap<u32, Vec<String>>>> = LazyLock::new(Default::default);
 
+/// A collect achievement's or a `drop:<name>` rule: which enemies give one.
+#[derive(Debug, Clone)]
+struct DropRule {
+    key: String,
+    /// lowercase, categories expanded
+    enemies: Vec<String>,
+    once: bool,
+    item: Option<u32>,
+}
+
+static DROPS: LazyLock<RwLock<Vec<DropRule>>> = LazyLock::new(Default::default);
+
 /// The smash rules to count by (the approved, active ones; content.rs). Rules without enemies,
-/// and those of discover locations, change nothing.
+/// and those of discover locations, change nothing. `@<category>` in a rule's enemies stands
+/// for the enemies of the rule `category:<category>` (one level; unknown: none).
 pub fn set_smash_rules(rules: &[SmashRule]) {
     let mut by_id = HashMap::new();
+    let mut drops = Vec::new();
     for r in rules.iter().filter(|r| !r.enemies.is_empty()) {
+        let enemies: Vec<String> = lmoxide_survey::expand_enemies(&r.enemies, rules).iter().map(|e| e.to_lowercase()).collect();
+        if r.id.starts_with(lmoxide_survey::DROP_PREFIX) || collect_stat(&r.id).is_some() {
+            drops.push(DropRule { key: r.id.clone(), enemies, once: r.once, item: r.item });
+            continue;
+        }
         let Some(a) = smash_achievements().iter().find(|a| a.key == r.id) else { continue };
-        let enemies: Vec<String> = r.enemies.iter().map(|e| e.to_lowercase()).collect();
         for &id in &a.ids {
             by_id.insert(id, enemies.clone());
         }
     }
     *RULES.write().unwrap() = by_id;
+    *DROPS.write().unwrap() = drops;
+}
+
+/// The item template a `drop:<name>` rule drops, if it says.
+fn drop_item(key: &str) -> Option<u32> {
+    DROPS.read().unwrap().iter().find(|d| d.key == key).and_then(|d| d.item)
+}
+
+/// A trigger wall that collects `key` (walls.rs) was crossed by `player`: counted in their
+/// session (`Event::Collected`; once per wall and player, whatever the wall's `once`).
+pub fn wall_collect(player: Id32, key: Option<&str>, wall: &str) {
+    match key.filter(|k| !k.is_empty()) {
+        Some(key) => crate::world::send_to(player, crate::world::Out::Progress(Event::Collected { key: key.into(), wall: wall.into() })),
+        None => info!(wall, "trigger wall: collects nothing (no rule key set)"),
+    }
+}
+
+/// One collectible (or drop) of `key` for the character, from `from` (`wall:<id>`,
+/// `enemy:<name>`); `from` is remembered in the journal's finds when `remember`, and then gives
+/// nothing again.
+fn collect(c: &mut Character, ctx: &Ctx, out: &mut Output, key: &str, from: &str, remember: bool, dropper: Id32) {
+    let seen = format!("collect:{key}:{from}");
+    if remember {
+        if c.finds.contains_key(&seen) {
+            return;
+        }
+        c.finds.insert(seen, unix_now());
+    }
+    if let Some(stat) = collect_stat(key) {
+        info!(character = ctx.character, key, from, "collected");
+        bump(c, ctx, out, stat, 0, 1);
+    } else if let Some(item) = drop_item(key) {
+        info!(character = ctx.character, key, from, item, "drop");
+        out.drops.push((dropper, item));
+    } else {
+        info!(character = ctx.character, key, from, "collect: no such collect achievement, or the drop names no item");
+    }
 }
 
 /// Whether achievement `id`'s smash rule names `name` (lowercase); `None`: it has no rule.
@@ -233,6 +333,9 @@ pub enum Event {
     Found { playfield: u32, name: String },
     /// Defeated every enemy of a dungeon in one visit.
     Cleared { playfield: u32 },
+    /// Crossed trigger wall `wall` that collects `key` (a collect achievement's id, or a
+    /// `drop:<name>` rule's key).
+    Collected { key: String, wall: String },
     /// Completed level `level` of the Lost Creations (stub: the Lost Creations don't run yet,
     /// only the test command sends it).
     LostCreations { level: u32 },
@@ -247,6 +350,8 @@ pub struct Output {
     pub records: Vec<Bytes>,
     /// Stars rewarded (already added to the character).
     pub stars: u64,
+    /// Items to drop for the player (dropper, item template): `drop:<name>` rules.
+    pub drops: Vec<(Id32, u32)>,
 }
 
 /// The character's view the rules need.
@@ -304,6 +409,23 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
             let d = c.defeats.entry(name.clone()).or_insert_with(|| Defeat { kind: kind.into(), count: 0, first_at: now, last_at: now });
             d.count += times;
             d.last_at = now;
+            // collectibles and drops the editor's rules give for this enemy
+            let lower = name.to_lowercase();
+            let id = match event {
+                Event::Defeated { id, .. } => *id,
+                _ => unreachable!(),
+            };
+            let hits: Vec<DropRule> = DROPS.read().unwrap().iter().filter(|d| d.enemies.iter().any(|e| same_name(e, &lower))).cloned().collect();
+            for d in hits {
+                for _ in 0..if d.once { 1 } else { times } {
+                    collect(c, ctx, &mut out, &d.key, &format!("enemy:{lower}"), d.once, id);
+                }
+            }
+        }
+        Event::Collected { key, wall } => {
+            collect(c, ctx, &mut out, key, &format!("wall:{wall}"), true, player_id(ctx));
+            evaluate(c, ctx, &mut out);
+            return out;
         }
         Event::Visited { playfield } => {
             let v = c.visits.entry(*playfield).or_insert(Visit { count: 0, first_at: now, last_at: now });
@@ -504,6 +626,12 @@ pub fn remove(c: &mut Character, which: Option<&[u32]>) -> (Vec<u32>, Vec<(Endpo
     for id in &gone {
         c.tags.remove(id);
         let a = &TREE.all[TREE.by_id[id]];
+        if let Some(stat) = collect_stat(&id.to_string()) {
+            // a collectible counter starts again
+            c.counters.remove(&stat);
+            let prefix = format!("collect:{id}:");
+            c.finds.retain(|key, _| !key.starts_with(&prefix));
+        }
         if a.kind == "find"
             && let Some(name) = &a.find
         {
@@ -621,6 +749,42 @@ pub fn champions_for(playfield: u32) -> Vec<String> {
     };
     let prefix = format!("{world}_Combat_Champion_");
     TREE.all.iter().filter(|a| a.name.starts_with(&prefix)).filter_map(|a| a.target.clone()).collect()
+}
+
+/// The enemies achievements name (`kind` "champion" or "boss", the playfields they appear in):
+/// the champions (named after their achievements' targets, "Uggluk Gatekeeper", in the side
+/// dungeons of their world, `champions_for`) and the targets of defeat and per-minifigure target
+/// achievements that aren't places.
+pub fn achievement_enemies() -> Vec<(String, &'static str, Vec<u32>)> {
+    let mut pfs: Vec<u32> = TREE.playfields.keys().copied().collect();
+    pfs.sort();
+    let by_pf: Vec<(u32, Vec<String>)> = pfs.into_iter().map(|pf| (pf, champions_for(pf))).filter(|(_, c)| !c.is_empty()).collect();
+    let places: std::collections::HashSet<&str> = TREE.playfields.values().map(String::as_str).collect();
+    let mut out: Vec<(String, &'static str, Vec<u32>)> = Vec::new();
+    for a in &TREE.all {
+        let Some(target) = a.target.as_ref().filter(|t| !t.is_empty()) else { continue };
+        let champion = a.name.contains("_Combat_Champion_");
+        if !champion && (a.kind != "defeat" && a.kind != "target" || places.contains(target.to_lowercase().as_str())) {
+            continue;
+        }
+        if out.iter().any(|(n, ..)| n == target) {
+            continue;
+        }
+        let playfields = by_pf.iter().filter(|(_, c)| c.contains(target)).map(|(pf, _)| *pf).collect();
+        out.push((target.clone(), if champion { "champion" } else { "boss" }, playfields));
+    }
+    // a target achievement's enemy listed before its champion achievement: still a champion
+    for (pf, names) in &by_pf {
+        for n in names {
+            if let Some(e) = out.iter_mut().find(|(x, ..)| x == n) {
+                e.1 = "champion";
+                if !e.2.contains(pf) {
+                    e.2.push(*pf);
+                }
+            }
+        }
+    }
+    out
 }
 
 /// A minifigure item's achievement counters (item stat, value), for every copy of the item.
@@ -773,13 +937,19 @@ mod tests {
         assert!(!list.iter().any(|a| a.key.contains("builds") || a.key == "2421"), "no builds or collectibles");
     }
 
+    /// The smash rules are global: tests setting them take turns.
+    static RULES_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
     #[test]
     fn smash_rules_choose_the_enemies() {
+        let _turn = RULES_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let judge = 41_840;
         let ctx = Ctx { character: 1, active: Some(judge), locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|t| t == judge };
         let rule = |id: &str, enemies: &[&str]| SmashRule {
             id: id.into(),
             enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            once: false,
+            item: None,
             comment: String::new(),
             tags: Vec::new(),
             feature: "live".into(),
@@ -798,6 +968,56 @@ mod tests {
         // a defeat achievement counts the rule's enemies (bosses or not), not its target
         on_event(&mut c, &ctx, &defeat("Troll"), 1);
         assert!(c.tags.contains_key(&770));
+        set_smash_rules(&[]);
+    }
+
+    #[test]
+    fn categories_and_collectibles() {
+        let _turn = RULES_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| false };
+        let rule = |id: &str, enemies: &[&str], once: bool, item: Option<u32>| SmashRule {
+            id: id.into(),
+            enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            once,
+            item,
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: "live".into(),
+            author: String::new(),
+            updated: 0,
+        };
+        let collar = collect_achievements().iter().find(|a| a.key == "2431").expect("Cerberus' Collar");
+        assert_eq!((collar.kind, collar.n), ("collect", 3));
+        assert_eq!(collect_achievements().iter().map(|a| a.key.as_str()).collect::<Vec<_>>(), ["2421", "2424", "2426", "2428", "2431"]);
+        set_smash_rules(&[
+            rule("category:Trolls", &["Troll", "Cave Troll"], false, None),
+            rule("770", &["@Trolls"], false, None),
+            rule("2431", &["@Hounds"], false, None), // unknown category: nothing
+            rule("2421", &["Pirate Goon"], true, None),
+            rule("drop:Mushroom", &["@Trolls"], true, Some(12345)),
+        ]);
+        let mut c = character();
+        let defeat = |name: &str| Event::Defeated { id: Id32::new(0, 7), name: name.into(), smashable: false, boss: false, champion: false, level: 1, playfield: 4200 };
+        // a defeat achievement counting a category's enemies
+        let out = on_event(&mut c, &ctx, &defeat("Cave Troll"), 1);
+        assert!(c.tags.contains_key(&770));
+        assert_eq!(out.drops, [(Id32::new(0, 7), 12345)]);
+        assert!(on_event(&mut c, &ctx, &defeat("Cave Troll"), 1).drops.is_empty(), "once per enemy name");
+        assert_eq!(on_event(&mut c, &ctx, &defeat("Troll"), 1).drops.len(), 1);
+        // goblets: once per enemy name
+        on_event(&mut c, &ctx, &defeat("Pirate Goon"), 2);
+        on_event(&mut c, &ctx, &defeat("Pirate Goon"), 1);
+        assert_eq!(counter(&c.counters, 3_000_119, 0), 1);
+        // a wall collecting a collar: once per wall
+        for wall in ["t-1", "t-1", "t-2", "t-3"] {
+            on_event(&mut c, &ctx, &Event::Collected { key: "2431".into(), wall: wall.into() }, 1);
+        }
+        assert_eq!(counter(&c.counters, 3_000_122, 0), 3);
+        assert!(c.tags.contains_key(&2431), "Collar of the Beast");
+        remove(&mut c, Some(&[2431]));
+        assert_eq!(counter(&c.counters, 3_000_122, 0), 0);
+        on_event(&mut c, &ctx, &Event::Collected { key: "2431".into(), wall: "t-1".into() }, 1);
+        assert_eq!(counter(&c.counters, 3_000_122, 0), 1, "removed: collected again");
         set_smash_rules(&[]);
     }
 

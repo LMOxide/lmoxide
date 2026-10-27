@@ -7,10 +7,18 @@
 //! a landing effect and a `StopIIR_c` at the landing point. Pads and landing points come from
 //! data/world_content.json (`kind: "jump_pad"`, tools/re/extract_world_content.py); outside
 //! the recorded worlds the landing points are guesses.
+//!
+//! The world editor's bouncer placements (`kind: "bouncer"`, docs/SURVEY.md) apply on top
+//! ([`set`]): the approved, active ones on play servers (content.rs), the whole working set on
+//! the survey server (survey.rs). A placement that replaces a guessed pad takes its place (its
+//! guid too); new ones are added, deleted ones removed. Pads change in the world as they do.
 
 use std::{
-    collections::HashMap,
-    sync::{LazyLock, Mutex},
+    collections::{BTreeMap, HashMap},
+    sync::{
+        Arc, LazyLock, Mutex, RwLock,
+        atomic::{AtomicBool, Ordering},
+    },
     time::{Duration, Instant},
 };
 
@@ -20,9 +28,14 @@ use lmoxide_net::{
     proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3},
     types::Id32,
 };
+use lmoxide_survey::{
+    self as sv, Kind as SKind, Placement,
+    apply::{Base, Category, Spawn},
+    set::Set,
+};
 use serde::Deserialize;
 use tokio::sync::mpsc;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{
     effects,
@@ -71,7 +84,9 @@ struct Pad {
     guid: u32,
     #[serde(default)]
     look: Option<String>,
-    target: [f32; 3],
+    /// Where it throws you (a placed bouncer may have none yet: it doesn't launch).
+    #[serde(default)]
+    target: Option<[f32; 3]>,
     #[serde(default)]
     apex: Option<f32>,
     #[serde(default)]
@@ -100,7 +115,30 @@ impl Pad {
     }
 
     fn launches(&self) -> bool {
-        self.tag.as_deref() == Some("JUMP")
+        self.tag.as_deref() == Some("JUMP") && self.target.is_some()
+    }
+
+    /// Heading (radians) of its rotation around the vertical axis.
+    fn heading(&self) -> f32 {
+        2.0 * self.rot[1].atan2(self.rot[3])
+    }
+
+    /// What it is, for people: "Mortar", "Wind fan", ... or its data name.
+    fn readable(&self) -> String {
+        let look = self.look.as_deref().unwrap_or("");
+        let named = [("mortar", "Mortar"), ("wind_fan", "Wind fan"), ("catapult", "Catapult"), ("plane", "Plane")];
+        if let Some((_, n)) = named.iter().find(|(k, _)| look.contains(k)) {
+            return n.to_string();
+        }
+        if self.name.contains("lily") {
+            "Lily pad".into()
+        } else if self.visual[1] == INVISIBLE_VISUAL {
+            "Invisible jumper".into()
+        } else if self.name.is_empty() {
+            "Jumper".into()
+        } else {
+            self.name.clone()
+        }
     }
 
     /// Cannons (mortars) spin you; every other bouncer bounces you.
@@ -119,7 +157,8 @@ struct World {
     simple_dynels: Vec<serde_json::Value>,
 }
 
-static PADS: LazyLock<HashMap<u32, Vec<Pad>>> = LazyLock::new(|| {
+/// The pads of world_content.json.
+static BASE: LazyLock<HashMap<u32, Vec<Pad>>> = LazyLock::new(|| {
     let worlds: HashMap<String, serde_json::Value> =
         serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
     worlds
@@ -137,6 +176,281 @@ static PADS: LazyLock<HashMap<u32, Vec<Pad>>> = LazyLock::new(|| {
         .collect()
 });
 
+/// A pad as it stands now: a base pad, or a bouncer placement's.
+pub struct Live {
+    pad: Pad,
+    /// Its survey id: the base pad's (`ids::base_id`) or the placement's.
+    pub id: String,
+    pub category: Category,
+    /// The placement it comes from (surveyed ones).
+    pub placement: Option<Placement>,
+}
+
+/// The pads by playfield, with the bouncer placements applied ([`set`]).
+static PADS: LazyLock<RwLock<HashMap<u32, Vec<Arc<Live>>>>> =
+    LazyLock::new(|| RwLock::new(BASE.keys().map(|&pf| (pf, applied(pf, &[]))).collect()));
+/// The bouncer placements applied, by playfield.
+static PLACEMENTS: LazyLock<Mutex<BTreeMap<u32, Vec<Placement>>>> = LazyLock::new(Default::default);
+static STARTED: AtomicBool = AtomicBool::new(false);
+/// How far a regenerated guess may have moved and still be the one a placement replaces.
+const MATCH_DISTANCE: f32 = 1.0;
+/// Guids of placed pads (a hash of the placement id in this range, so they stay the same).
+const PLACED_GUIDS: u32 = 0x00c0_0000;
+
+fn pads_of(playfield: u32) -> Vec<Arc<Live>> {
+    PADS.read().unwrap().get(&playfield).cloned().unwrap_or_default()
+}
+
+/// A base pad's category: exact landing points (the recorded worlds) are demo content, the
+/// guessed ones guesses (the world editor's to check).
+fn base_category(p: &Pad) -> Category {
+    if p.target_by.as_deref() == Some("demo") { Category::Demo } else { Category::Guessed }
+}
+
+/// Playfield `pf`'s base pads with `placements` (bouncers) applied.
+fn applied(pf: u32, placements: &[Placement]) -> Vec<Arc<Live>> {
+    let empty = Vec::new();
+    let base = BASE.get(&pf).unwrap_or(&empty);
+    let bases: Vec<Base<&Pad>> = base
+        .iter()
+        .map(|p| Base { kind: SKind::Bouncer, monster_data: None, template: Some(p.visual[1]), pos: p.pos, category: base_category(p), data: p })
+        .collect();
+    let a = sv::apply::apply(pf, &bases, placements, MATCH_DISTANCE);
+    for p in &a.orphans {
+        warn!(playfield = pf, placement = %p.id, "bouncer: the pad this placement replaces is gone; not spawned");
+    }
+    let mut out: Vec<Arc<Live>> = a
+        .start
+        .into_iter()
+        .map(|s| match s {
+            Spawn::Base { id, category, data } => Live { pad: (*data).clone(), id, category, placement: None },
+            Spawn::Surveyed { placement, replaced } => from_placement(placement, replaced.copied()),
+        })
+        .map(Arc::new)
+        .collect();
+    out.extend(a.waves.into_iter().map(|p| Arc::new(from_placement(p, None))));
+    out
+}
+
+/// A base pad of that visual (its resource type, bounds, look), if any.
+fn model_of(visual: u32) -> Option<&'static Pad> {
+    let mut all: Vec<(&u32, &Vec<Pad>)> = BASE.iter().collect();
+    all.sort_by_key(|(pf, _)| **pf);
+    all.into_iter().flat_map(|(_, v)| v).find(|p| p.visual[1] == visual)
+}
+
+fn from_placement(p: &Placement, replaced: Option<&Pad>) -> Live {
+    let visual = p.template.or(replaced.map(|r| r.visual[1])).unwrap_or(0);
+    let model = replaced.filter(|r| r.visual[1] == visual).or_else(|| model_of(visual)).or(replaced);
+    let guid = replaced.map_or_else(|| PLACED_GUIDS + (fnv(&p.id) % 0x0010_0000) as u32, |r| r.guid);
+    let rot = match replaced {
+        Some(r) if (r.heading() - p.heading).abs() < 1e-3 => r.rot,
+        _ => [0.0, (p.heading / 2.0).sin(), 0.0, (p.heading / 2.0).cos()],
+    };
+    let pad = Pad {
+        name: if p.name.is_empty() { model.map(|m| m.name.clone()).unwrap_or_default() } else { p.name.clone() },
+        pos: p.pos,
+        rot,
+        visual: [model.map_or(1_010_201, |m| m.visual[0]), visual],
+        bounds: model.map_or([-1.5, 0.0, -1.5, 1.5, 0.5, 1.5], |m| m.bounds),
+        guid,
+        look: model.and_then(|m| m.look.clone()),
+        target: p.target,
+        apex: replaced.and_then(|r| r.apex),
+        target_by: Some("survey".into()),
+        tag: Some("JUMP".into()),
+    };
+    Live { pad, id: p.id.clone(), category: Category::Surveyed, placement: Some(p.clone()) }
+}
+
+fn fnv(s: &str) -> u64 {
+    s.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3))
+}
+
+/// Applies the bouncer placements of `set` (play servers: the approved, active content; the
+/// survey server: its working set). Playfields whose bouncers changed get their pads again; once
+/// the pads are in the world ([`start`]), changed ones are spawned again.
+pub fn set(set: &Set) {
+    let wanted: BTreeMap<u32, Vec<Placement>> = set
+        .placements
+        .iter()
+        .map(|(pf, f)| (*pf, f.placements.iter().filter(|p| p.kind == SKind::Bouncer).cloned().collect::<Vec<_>>()))
+        .filter(|(_, v)| !v.is_empty())
+        .collect();
+    let changed: Vec<u32> = {
+        let mut had = PLACEMENTS.lock().unwrap();
+        let pfs: std::collections::BTreeSet<u32> = had.keys().chain(wanted.keys()).copied().collect();
+        let changed = pfs.into_iter().filter(|pf| had.get(pf) != wanted.get(pf)).collect();
+        *had = wanted.clone();
+        changed
+    };
+    for pf in changed {
+        let new = applied(pf, wanted.get(&pf).map_or(&[], Vec::as_slice));
+        let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
+        info!(playfield = pf, pads = new.len(), "jump pads: bouncer placements applied");
+        if STARTED.load(Ordering::SeqCst) {
+            respawn(pf, &old, &new);
+        }
+    }
+}
+
+/// Takes pads that changed or went out of the world and puts new and changed ones in (a changed
+/// pad keeps its id: it comes back after the client lets go of it).
+fn respawn(playfield: u32, old: &[Arc<Live>], new: &[Arc<Live>]) {
+    let same = |a: &Live, b: &Live| a.pad.guid == b.pad.guid && format!("{:?}", a.pad) == format!("{:?}", b.pad);
+    let mut presences = PRESENCES.lock().unwrap();
+    for o in old.iter().filter(|o| !new.iter().any(|n| same(n, o))) {
+        presences.remove(&o.pad.id());
+    }
+    for n in new.iter().filter(|n| !old.iter().any(|o| same(n, o))) {
+        let reused = old.iter().any(|o| o.pad.guid == n.pad.guid);
+        let live = n.clone();
+        if !reused {
+            presences.insert(live.pad.id(), join(&live, playfield));
+            continue;
+        }
+        tokio::spawn(async move {
+            // (the client needs ~1.5 s before an id is used again)
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            let still = pads_of(playfield).iter().any(|p| Arc::ptr_eq(p, &live));
+            if still {
+                let presence = join(&live, playfield);
+                PRESENCES.lock().unwrap().insert(live.pad.id(), presence);
+            }
+        });
+    }
+}
+
+fn join(live: &Arc<Live>, playfield: u32) -> world::Presence {
+    let (outbox, mut inbox) = mpsc::unbounded_channel();
+    tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    let p = live.pad.clone();
+    let pos = Arc::new(Mutex::new(p.pos));
+    world::join(p.id(), playfield, pos, move || spawn_records(&p, playfield), outbox)
+}
+
+/// A pad as the world editor lists it.
+pub struct Listed {
+    pub id: String,
+    pub playfield: u32,
+    pub category: Category,
+    pub name: String,
+    /// The visual id (a placement's `template`).
+    pub visual: u32,
+    pub pos: [f32; 3],
+    pub heading: f32,
+    pub target: Option<[f32; 3]>,
+    /// The hops after the first, when it lands on pads that throw on.
+    pub chain: Vec<[f32; 3]>,
+    pub placement: Option<Placement>,
+    /// Its dynel.
+    pub dynel: Id32,
+}
+
+fn listed(playfield: u32, l: &Live) -> Listed {
+    let p = &l.pad;
+    let name = l.placement.as_ref().map(|x| x.name.clone()).filter(|n| !n.is_empty()).unwrap_or_else(|| p.readable());
+    Listed {
+        id: l.id.clone(),
+        playfield,
+        category: l.category,
+        name,
+        visual: p.visual[1],
+        pos: p.pos,
+        heading: l.placement.as_ref().map_or_else(|| p.heading(), |x| x.heading),
+        target: p.target,
+        chain: chain(playfield, p),
+        placement: l.placement.clone(),
+        dynel: p.id(),
+    }
+}
+
+/// Where a jump from `pad` goes on after its landing point (the pads it lands on that throw on).
+fn chain(playfield: u32, pad: &Pad) -> Vec<[f32; 3]> {
+    let mut out = Vec::new();
+    let (mut at, mut from) = (pad.target, pad.guid);
+    while let Some(end) = at {
+        if out.len() + 1 >= MAX_HOPS {
+            break;
+        }
+        match pad_at(playfield, end).filter(|p| p.pad.guid != from && p.pad.throws_on()) {
+            Some(next) => {
+                at = next.pad.target;
+                from = next.pad.guid;
+                out.extend(next.pad.target);
+            }
+            None => break,
+        }
+    }
+    out
+}
+
+/// The pads of `playfield` (all when none), as the world editor lists them.
+pub fn list(playfield: Option<u32>) -> Vec<Listed> {
+    let all: Vec<(u32, Vec<Arc<Live>>)> = match playfield {
+        Some(pf) => vec![(pf, pads_of(pf))],
+        None => PADS.read().unwrap().iter().map(|(pf, v)| (*pf, v.clone())).collect(),
+    };
+    all.into_iter().flat_map(|(pf, v)| v.into_iter().map(move |l| listed(pf, &l))).collect()
+}
+
+/// The pad with survey id `id`.
+pub fn find(id: &str) -> Option<Listed> {
+    // (listing reads the pads again: not under this lock)
+    let found = PADS.read().unwrap().iter().find_map(|(pf, v)| v.iter().find(|l| l.id == id).map(|l| (*pf, l.clone())));
+    found.map(|(pf, l)| listed(pf, &l))
+}
+
+/// The pad whose dynel is `dynel`.
+pub fn by_dynel(dynel: Id32) -> Option<Listed> {
+    if dynel.kind != PAD_TYPE {
+        return None;
+    }
+    let found = PADS.read().unwrap().iter().find_map(|(pf, v)| v.iter().find(|l| l.pad.guid == dynel.instance).map(|l| (*pf, l.clone())));
+    found.map(|(pf, l)| listed(pf, &l))
+}
+
+/// One pad look (visual) as the world editor's catalog has it.
+pub struct Look {
+    pub visual: u32,
+    pub name: String,
+    /// Where it is used most ("Pirate World ×12, 30 in all").
+    pub used: String,
+}
+
+/// Every pad look of the base content, by name.
+pub fn looks() -> Vec<Look> {
+    let mut seen: BTreeMap<u32, (&Pad, BTreeMap<u32, u32>)> = BTreeMap::new();
+    for (pf, pads) in BASE.iter() {
+        for p in pads {
+            let e = seen.entry(p.visual[1]).or_insert_with(|| (p, BTreeMap::new()));
+            *e.1.entry(*pf).or_default() += 1;
+        }
+    }
+    let mut out: Vec<Look> = seen
+        .into_iter()
+        .map(|(visual, (p, uses))| {
+            let total: u32 = uses.values().sum();
+            let (top, n) = uses.iter().max_by_key(|(_, n)| **n).map(|(pf, n)| (*pf, *n)).unwrap_or((0, 0));
+            let place = crate::teleport::destination(top).map_or_else(|| top.to_string(), |d| d.name.clone());
+            let used = if uses.len() > 1 { format!("{place} ×{n}, {total} in all") } else { format!("{place} ×{n}") };
+            // "jump_pad_wind_fan_b_buildie": Wind fan (b); pads without a look: by their visual
+            let look = p.look.as_deref().unwrap_or("");
+            let variant = ["_a_", "_b_"].iter().find(|v| look.contains(*v)).map(|v| v.trim_matches('_'));
+            let readable = if p.look.is_some() || p.name.contains("lily") || visual == INVISIBLE_VISUAL { p.readable() } else { "Jumper".into() };
+            let name = match (variant, look.ends_with("_idle"), p.look.is_some()) {
+                (_, true, _) => format!("{readable} (idle)"),
+                (Some(v), _, _) => format!("{readable} ({v})"),
+                (None, _, false) if readable == "Jumper" => format!("Jumper ({visual})"),
+                _ => readable,
+            };
+            Look { visual, name, used }
+        })
+        .collect();
+    out.sort_by(|a, b| a.name.cmp(&b.name));
+    out
+}
+
 /// What a player is doing with pads.
 #[derive(Default)]
 struct State {
@@ -150,20 +464,18 @@ struct State {
 }
 
 static STATES: LazyLock<Mutex<HashMap<Id32, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+static PRESENCES: LazyLock<Mutex<HashMap<Id32, world::Presence>>> = LazyLock::new(Default::default);
 
 /// Puts every pad into its world.
 pub fn start() {
+    let all: Vec<(u32, Vec<Arc<Live>>)> = PADS.read().unwrap().iter().map(|(pf, v)| (*pf, v.clone())).collect();
     let mut presences = PRESENCES.lock().unwrap();
-    for (&playfield, pads) in PADS.iter() {
-        for pad in pads {
-            let (outbox, mut inbox) = mpsc::unbounded_channel();
-            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-            let p = pad.clone();
-            let pos = std::sync::Arc::new(Mutex::new(pad.pos));
-            presences.push(world::join(pad.id(), playfield, pos, move || spawn_records(&p, playfield), outbox));
+    for (playfield, pads) in all {
+        for live in pads {
+            presences.insert(live.pad.id(), join(&live, playfield));
         }
     }
+    STARTED.store(true, Ordering::SeqCst);
     info!(count = presences.len(), "jump pads spawned");
 }
 
@@ -207,7 +519,7 @@ fn show_record(id: Id32, shown: bool) -> Bytes {
 
 /// Whether a jump pad stands at `at` (under a buildie: a bouncer).
 pub fn pad_at_spot(playfield: u32, at: [f32; 3]) -> bool {
-    PADS.get(&playfield).is_some_and(|pads| pads.iter().any(|p| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt() < 1.0))
+    pads_of(playfield).iter().any(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0)
 }
 
 /// Pads under an unbuilt buildie are inactive (CARS group 5, as recorded) until it is built.
@@ -218,44 +530,46 @@ fn cars_group(pad: &Pad, playfield: u32) -> u32 {
 /// Every pad, for the test commands (devcmd.rs): (name, playfield, position).
 /// Where pad `guid` stands.
 pub fn pad_pos(playfield: u32, guid: u32) -> Option<[f32; 3]> {
-    PADS.get(&playfield)?.iter().find(|p| p.guid == guid).map(|p| p.pos)
+    pads_of(playfield).iter().find(|l| l.pad.guid == guid).map(|l| l.pad.pos)
 }
 
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
     let mut v: Vec<_> = PADS
+        .read()
+        .unwrap()
         .iter()
-        .flat_map(|(&pf, pads)| pads.iter().map(move |p| (p.look.clone().unwrap_or_else(|| "pad".into()), pf, p.pos)))
+        .flat_map(|(&pf, pads)| pads.iter().map(move |l| (l.pad.look.clone().unwrap_or_else(|| "pad".into()), pf, l.pad.pos)).collect::<Vec<_>>())
         .collect();
-    v.sort_by(|a, b| a.1.cmp(&b.1));
+    v.sort_by_key(|p| p.1);
     v
 }
 
 /// A working pad at `at`, the nearest if several (6200's pond routes cross: SwampToPond3 and
 /// PondToSwamp2 stand 0.8 m apart).
-fn pad_at(playfield: u32, at: [f32; 3]) -> Option<&'static Pad> {
+fn pad_at(playfield: u32, at: [f32; 3]) -> Option<Arc<Live>> {
     let flat = |p: &Pad| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt();
-    PADS.get(&playfield)?
-        .iter()
-        .filter(|p| flat(p) <= TRIGGER_RADIUS && (p.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT)
-        .min_by(|a, b| flat(a).total_cmp(&flat(b)))
-        .filter(|p| p.launches() && !crate::buildie::unbuilt_at(playfield, p.pos))
+    pads_of(playfield)
+        .into_iter()
+        .filter(|l| flat(&l.pad) <= TRIGGER_RADIUS && (l.pad.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT)
+        .min_by(|a, b| flat(&a.pad).total_cmp(&flat(&b.pad)))
+        .filter(|l| l.pad.launches() && !crate::buildie::unbuilt_at(playfield, l.pad.pos))
 }
 
 /// The buildie at `at` was built: the pad there starts working, and whoever stands on it (the
 /// builder, usually) is launched right away rather than at their next step.
 pub fn activate(playfield: u32, at: [f32; 3]) {
-    let Some(pads) = PADS.get(&playfield) else { return };
-    for pad in pads.iter().filter(|p| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
+    for live in pads_of(playfield).into_iter().filter(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
+        let pad = &live.pad;
         let records = vec![show_record(pad.id(), true), int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)];
         world::send_playfield(pad.id(), false, world::Out::Records(records));
         for (player, pos) in world::position_handles(playfield) {
             let here = *pos.lock().unwrap();
-            if !crate::npc::is_player(player) || pad_at(playfield, here).is_none_or(|p| p.guid != pad.guid) {
+            if !crate::npc::is_player(player) || pad_at(playfield, here).is_none_or(|p| p.pad.guid != pad.guid) {
                 continue;
             }
             STATES.lock().unwrap().entry(player).or_default().on = Some(pad.guid);
             info!(?player, pad = pad.guid, "launched on the pad as it was built");
-            tokio::spawn(launch(player, playfield, pad, pos));
+            tokio::spawn(launch(player, playfield, live.clone(), pos));
         }
     }
 }
@@ -270,7 +584,7 @@ pub fn pad_records(guid: u32, shown: bool) -> Vec<Bytes> {
 /// its end). Launches them if that is on a pad.
 pub fn moved(player: Id32, playfield: u32, pos: &world::Position, at: [f32; 3], from: Option<[f32; 3]>) {
     // (the tutorial keeps a pad shut until the player beat the wave before it)
-    let pad = pad_at(playfield, at).filter(|p| crate::tutorial::pad_open(player, playfield, p.guid));
+    let pad = pad_at(playfield, at).filter(|p| crate::tutorial::pad_open(player, playfield, p.pad.guid));
     let moves = {
         let mut states = STATES.lock().unwrap();
         let s = states.entry(player).or_default();
@@ -279,7 +593,7 @@ pub fn moved(player: Id32, playfield: u32, pos: &world::Position, at: [f32; 3], 
             return;
         }
         s.airborne_until = None;
-        let id = pad.map(|p| p.guid);
+        let id = pad.as_ref().map(|p| p.pad.guid);
         if id.is_none() || s.on == id {
             s.on = id;
             return;
@@ -300,7 +614,7 @@ pub fn moved(player: Id32, playfield: u32, pos: &world::Position, at: [f32; 3], 
             if s.moves != moves {
                 return;
             }
-            s.on = Some(pad.guid);
+            s.on = Some(pad.pad.guid);
         }
         launch(player, playfield, pad, pos).await;
     });
@@ -312,16 +626,16 @@ pub fn player_left(player: Id32) {
 }
 
 /// The jump, and on through every pad it lands on that throws on (`Pad::throws_on`).
-async fn launch(player: Id32, playfield: u32, mut pad: &'static Pad, pos: world::Position) {
+async fn launch(player: Id32, playfield: u32, mut pad: Arc<Live>, pos: world::Position) {
     for _ in 0..MAX_HOPS {
-        let end = hop(player, pad, &pos).await;
-        let next = pad_at(playfield, end).filter(|p| p.guid != pad.guid);
+        let Some(end) = hop(player, &pad.pad, &pos).await else { break };
+        let next = pad_at(playfield, end).filter(|p| p.pad.guid != pad.pad.guid);
         if let Some(s) = STATES.lock().unwrap().get_mut(&player) {
             // landing on another pad doesn't fire it until the player steps off
-            s.on = next.map(|p| p.guid);
+            s.on = next.as_ref().map(|p| p.pad.guid);
         }
         match next {
-            Some(p) if p.throws_on() => pad = p,
+            Some(p) if p.pad.throws_on() => pad = p,
             _ => break,
         }
     }
@@ -331,13 +645,14 @@ async fn launch(player: Id32, playfield: u32, mut pad: &'static Pad, pos: world:
 
 /// One jump: arc maths from the recorded jumps (all seven fit exactly): the arc peaks `apex`
 /// above the higher of start and end; T = time up + time down. Returns where it landed.
-async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3] {
-    info!(?player, pad = pad.guid, end = ?pad.target, "jump pad");
+async fn hop(player: Id32, pad: &Pad, pos: &world::Position) -> Option<[f32; 3]> {
+    let target = pad.target?;
+    info!(?player, pad = pad.guid, end = ?target, "jump pad");
     let how = pad.tumble();
     world::send_playfield(player, true, world::Out::Records(how.start_records(player)));
-    let end = fly(player, pos, pad.target, pad.apex.unwrap_or(DEFAULT_APEX), Some(effects::effect_package(pad.id(), pad.effect())), how.direction).await;
+    let end = fly(player, pos, target, pad.apex.unwrap_or(DEFAULT_APEX), Some(effects::effect_package(pad.id(), pad.effect())), how.direction).await;
     world::send_playfield(player, true, world::Out::Records(how.end_records(player)));
-    end
+    Some(end)
 }
 
 /// Throws `player` (as a jump pad does, without a pad: pistons.rs) to `end`, arcing `apex` m
@@ -441,4 +756,68 @@ fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> Bytes {
     iir::record("StopIIR_c", id, false, |w| {
         w.f32(at[0]).f32(at[1]).f32(at[2]).f32(0.0).f32(half.sin()).f32(0.0).f32(half.cos()).u8(0).u8(0)
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn bouncer(id: &str, pos: [f32; 3], target: Option<[f32; 3]>) -> Placement {
+        Placement {
+            id: id.into(),
+            kind: SKind::Bouncer,
+            name: String::new(),
+            monster_data: None,
+            template: Some(212_668),
+            level: None,
+            pos,
+            heading: 0.0,
+            target,
+            replaces: None,
+            removed: false,
+            wave: None,
+            patrol: Vec::new(),
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: sv::features::live(),
+            author: String::new(),
+            updated: 0,
+        }
+    }
+
+    #[test]
+    fn placements_replace_add_and_remove_pads() {
+        let base = applied(6200, &[]);
+        let first = base.iter().find(|l| l.pad.name == "SwampToVolcano1").unwrap();
+        assert_eq!(first.category, Category::Guessed);
+        assert_eq!(first.id, sv::ids::base_id(6200, SKind::Bouncer, None, Some(first.pad.visual[1]), first.pad.pos));
+        // its chain: on through SwampToVolcano2's landing point
+        let l = listed(6200, first);
+        assert_eq!(l.target, Some([73.22, 56.95, 159.13]));
+        assert_eq!(l.chain, [[59.64, 78.0, 185.13]]);
+        let origin = sv::Origin { id: first.id.clone(), kind: SKind::Bouncer, monster_data: None, template: Some(first.pad.visual[1]), pos: first.pad.pos };
+        let moved = Placement { replaces: Some(origin.clone()), template: Some(first.pad.visual[1]), ..bouncer("p-1", first.pad.pos, Some([1.0, 2.0, 3.0])) };
+        let new = bouncer("p-2", [10.0, 0.0, 10.0], None);
+        let after = applied(6200, &[moved, new]);
+        assert_eq!(after.len(), base.len() + 1);
+        let surveyed = after.iter().find(|l| l.id == "p-1").unwrap();
+        assert_eq!((surveyed.pad.guid, surveyed.pad.target, surveyed.category), (first.pad.guid, Some([1.0, 2.0, 3.0]), Category::Surveyed));
+        assert!(!after.iter().any(|l| l.id == first.id), "replaced");
+        let placed = after.iter().find(|l| l.id == "p-2").unwrap();
+        assert!(!placed.pad.launches(), "no landing point yet");
+        assert_eq!(placed.pad.readable(), "Mortar");
+        assert!(placed.pad.guid >= PLACED_GUIDS);
+        let deleted = Placement { replaces: Some(origin), removed: true, ..bouncer("p-3", first.pad.pos, None) };
+        assert_eq!(applied(6200, &[deleted]).len(), base.len() - 1);
+        // the recorded worlds' pads are exact (demo)
+        assert!(applied(1300, &[]).iter().all(|l| l.category == Category::Demo));
+    }
+
+    #[test]
+    fn looks_are_named() {
+        let names: Vec<String> = looks().into_iter().map(|l| l.name).collect();
+        for n in ["Mortar (a)", "Wind fan (b)", "Wind fan (idle)", "Plane (a)", "Catapult (b)", "Lily pad", "Invisible jumper"] {
+            assert!(names.iter().any(|x| x == n), "{n} in {names:?}");
+        }
+    }
 }

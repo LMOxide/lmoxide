@@ -124,6 +124,7 @@ fn fire(w: &TriggerWall, player: Id32, player_name: &str, pf: u32) {
             None => info!(wall = %w.id, to, "trigger wall: no arrival point for that playfield"),
         },
         WallAction::Message { text } if !text.is_empty() => crate::chat::system(player.instance, text),
+        WallAction::Collect { drop } => crate::achievements::wall_collect(player, drop.as_deref(), &w.id),
         WallAction::Script { .. } => info!(wall = %w.id, "trigger wall: script waves don't run on play servers yet"),
         WallAction::Portal { .. } | WallAction::Message { .. } | WallAction::Other => {}
     }

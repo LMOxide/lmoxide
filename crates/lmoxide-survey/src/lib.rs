@@ -34,6 +34,9 @@ pub enum Kind {
     Smashable,
     Buildie,
     Interactable,
+    /// A jump pad (mortar, wind fan, catapult, plane ...): `template` is its visual id (its look),
+    /// `target` where it throws you.
+    Bouncer,
 }
 
 impl Kind {
@@ -44,6 +47,7 @@ impl Kind {
             Kind::Smashable => "smashable",
             Kind::Buildie => "buildie",
             Kind::Interactable => "interactable",
+            Kind::Bouncer => "bouncer",
         }
     }
 }
@@ -79,7 +83,8 @@ pub struct Placement {
     /// The look (MonsterData) of enemies, NPCs and smashables.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub monster_data: Option<u32>,
-    /// The item template of smashables, buildies and interactables.
+    /// The item template of smashables, buildies and interactables (bouncers: the pad's visual
+    /// id).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub template: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -88,6 +93,9 @@ pub struct Placement {
     /// Yaw in radians (as `world_content.json` `rot`).
     #[serde(default)]
     pub heading: f32,
+    /// Bouncers: where it throws you (none: not set yet, the pad doesn't launch).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<Vec3>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replaces: Option<Origin>,
     /// Deleted: with `replaces`, the guess isn't spawned; without, it marks a placement deleted
@@ -298,6 +306,12 @@ pub enum WallAction {
         #[serde(default)]
         text: String,
     },
+    /// Gives the player one collectible: `drop` is a smash rule key, a collect achievement's
+    /// (its id, e.g. "2431") or a `drop:<name>` one.
+    Collect {
+        #[serde(default)]
+        drop: Option<String>,
+    },
     Other,
 }
 
@@ -384,15 +398,25 @@ impl TriggerWall {
 
 /// Which enemies count toward an achievement (play servers count a defeat toward it only when the
 /// defeated one is named here, instead of the achievement's own match), or, for a discover
-/// location (`find:<playfield>:<location>`), only its tags and comment.
+/// location (`find:<playfield>:<location>`), only its tags and comment. Also an editor's own
+/// named list of enemies (`category:<name>`), and a mission item enemies drop (`drop:<name>`;
+/// a collect achievement's rule, keyed by its id, says which enemies drop its collectible).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SmashRule {
     /// The achievement's key: its id, `minifigure:<what>:<match>:<n>` for the per-minifigure
-    /// copies of one achievement, or `find:<playfield>:<location>`.
+    /// copies of one achievement, `find:<playfield>:<location>`, `category:<name>` or
+    /// `drop:<name>`.
     pub id: String,
-    /// Enemy or smashable names as defeats name them.
+    /// Enemy or smashable names as defeats name them; `@<name>`: every enemy of the category
+    /// `category:<name>` (one level deep).
     #[serde(default)]
     pub enemies: Vec<String>,
+    /// Drops and collectibles: each enemy drops it only once (per player).
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub once: bool,
+    /// Drops: the item template dropped, if known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub item: Option<u32>,
     #[serde(default)]
     pub comment: String,
     /// Labels for sorting work out ([`tidy_tags`]).
@@ -405,6 +429,32 @@ pub struct SmashRule {
     pub author: String,
     #[serde(default)]
     pub updated: u64,
+}
+
+/// The prefix of an enemy category's key (`category:<name>`) and of a reference to one in a
+/// rule's enemies (`@<name>`).
+pub const CATEGORY_PREFIX: &str = "category:";
+pub const DROP_PREFIX: &str = "drop:";
+
+/// `enemies` with every `@<name>` replaced by the enemies of the rule `category:<name>` in
+/// `rules` (one level: references inside a category are dropped; an unknown category gives
+/// nothing).
+pub fn expand_enemies(enemies: &[String], rules: &[SmashRule]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for e in enemies {
+        match e.strip_prefix('@') {
+            Some(name) => {
+                let key = format!("{CATEGORY_PREFIX}{name}");
+                if let Some(c) = rules.iter().find(|r| r.id == key) {
+                    out.extend(c.enemies.iter().filter(|x| !x.starts_with('@')).cloned());
+                }
+            }
+            None => out.push(e.clone()),
+        }
+    }
+    let mut seen = std::collections::HashSet::new();
+    out.retain(|x| seen.insert(x.clone()));
+    out
 }
 
 /// `achievements.json`.
@@ -560,6 +610,26 @@ mod tests {
         assert!(json.contains(r#""action":"other""#));
         let back: TriggerWall = serde_json::from_str(r#"{"id":"x","pos":[0,0,0],"size":[1,2,3],"action":{"script":{"script":"s"}}}"#).unwrap();
         assert_eq!((back.color.as_str(), back.action), ("green", WallAction::Script { script: Some("s".into()), wave: None }));
+    }
+
+    #[test]
+    fn categories_expand_one_level() {
+        let rule = |id: &str, enemies: &[&str]| SmashRule {
+            id: id.into(),
+            enemies: enemies.iter().map(|s| s.to_string()).collect(),
+            once: false,
+            item: None,
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: crate::features::live(),
+            author: String::new(),
+            updated: 0,
+        };
+        let rules = vec![rule("category:Skeletons", &["Skeleton Warrior", "Skeleton Archer", "@Other"]), rule("category:Other", &["Goblin"])];
+        let got = expand_enemies(&["@Skeletons".into(), "Goblin".into(), "Skeleton Archer".into(), "@Missing".into()], &rules);
+        assert_eq!(got, ["Skeleton Warrior", "Skeleton Archer", "Goblin"]);
+        let json = serde_json::to_string(&WallAction::Collect { drop: Some("2431".into()) }).unwrap();
+        assert_eq!(json, r#"{"collect":{"drop":"2431"}}"#);
     }
 
     #[test]

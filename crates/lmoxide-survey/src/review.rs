@@ -192,6 +192,12 @@ fn placement_details(new: &Placement, old: Option<&Placement>) -> Vec<String> {
             if (o.heading - new.heading).abs() > 0.01 {
                 d.push("turned".into());
             }
+            match (o.target, new.target) {
+                (Some(a), Some(b)) if crate::distance(a, b) >= 0.05 => d.push(format!("target moved {:.1} m", crate::distance(a, b))),
+                (None, Some(_)) => d.push("target set".into()),
+                (Some(_), None) => d.push("target cleared".into()),
+                _ => {}
+            }
             if o.level != new.level {
                 d.push(format!("level {} -> {}", o.level.map_or("-".into(), |l| l.to_string()), new.level.map_or("-".into(), |l| l.to_string())));
             }
@@ -420,7 +426,7 @@ pub fn only_features(set: &Set, active: &[String]) -> Set {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Kind, Origin, PlacementsFile};
+    use crate::{Kind, Origin, PlacementsFile, Vec3};
 
     fn crate_at(id: &str, x: f32, feature: &str, author: &str) -> Placement {
         Placement {
@@ -432,6 +438,7 @@ mod tests {
             level: None,
             pos: [x, 0.0, 0.0],
             heading: 0.0,
+            target: None,
             replaces: None,
             removed: false,
             wave: None,
@@ -448,6 +455,27 @@ mod tests {
         let mut s = Set::default();
         s.placements.insert(1200, PlacementsFile { placements, ..PlacementsFile::new(1200) });
         s
+    }
+
+    #[test]
+    fn a_bouncer_target_moved_is_a_change() {
+        let pad = |target: Option<Vec3>, updated| Placement { kind: Kind::Bouncer, name: "Mortar".into(), monster_data: None, template: Some(148906), target, updated, ..crate_at("p-pad", 0.0, "live", "ann") };
+        let approved = with(vec![pad(Some([10.0, 0.0, 0.0]), 1)]);
+        let working = with(vec![pad(Some([13.2, 0.0, 0.0]), 2)]);
+        let ch = changes(&working, &approved);
+        assert_eq!(ch.len(), 1);
+        assert_eq!(ch[0].items[0].op, Op::Changed);
+        assert_eq!(ch[0].items[0].details, ["target moved 3.2 m"]);
+        let cleared = with(vec![pad(None, 3)]);
+        assert_eq!(changes(&cleared, &approved)[0].items[0].details, ["target cleared"]);
+        let mut a = approved.clone();
+        approve(&mut a, &working, &ch[0], None);
+        assert_eq!(a.placements[&1200].placements[0].target, Some([13.2, 0.0, 0.0]));
+        // round trip: kind "bouncer" and the target
+        let json = serde_json::to_string(&working.placements[&1200].placements[0]).unwrap();
+        assert!(json.contains(r#""kind":"bouncer""#) && json.contains(r#""target":[13.2,0.0,0.0]"#), "{json}");
+        let crate_json = serde_json::to_string(&crate_at("p-1", 0.0, "live", "ann")).unwrap();
+        assert!(!crate_json.contains("target"));
     }
 
     #[test]
@@ -485,6 +513,8 @@ mod tests {
         let rule = |enemies: &[&str], feature: &str, updated| SmashRule {
             id: "2163".into(),
             enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            once: false,
+            item: None,
             comment: String::new(),
             tags: Vec::new(),
             feature: feature.into(),

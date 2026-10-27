@@ -94,6 +94,8 @@ struct Surveyor {
     /// The running selection marker: the character wearing it (the helper's, if one was
     /// spawned for this surveyor) and the effect instance.
     marker: Option<(Id32, u32, bool)>,
+    /// A selected bouncer's landing point marker: its helper and the effect instance.
+    landing: Option<(Id32, u32)>,
     /// Their marks on groups of objects ([`show_marks`]), the running mark effects (wearer,
     /// package, instance, a helper?) and the playfield and revision they show.
     marks: Vec<Mark>,
@@ -185,6 +187,7 @@ fn nkind(k: SKind) -> Result<Kind, Error> {
         SKind::Npc => Ok(Kind::Npc),
         SKind::Smashable => Ok(Kind::Smashable),
         SKind::Buildie | SKind::Interactable => Err(Error::Invalid("buildies and interactables can't be placed yet".into())),
+        SKind::Bouncer => Err(Error::Invalid("bouncers are jump pads, not characters".into())),
     }
 }
 
@@ -246,6 +249,7 @@ impl Object {
             level: Some(self.def.level),
             pos: self.def.pos,
             heading: self.def.rot.unwrap_or(0.0),
+            target: None,
             replaces: self.replaces.clone(),
             removed: false,
             wave: self.wave.clone(),
@@ -296,6 +300,8 @@ impl Object {
             color: None,
             action: None,
             once: None,
+            target: None,
+            chain: None,
         }
     }
 }
@@ -316,6 +322,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     for pf in playfields {
         build_playfield(st, pf);
     }
+    crate::jumppad::set(&st.set);
     info!(objects = st.objects.len(), walls = st.walls.len(), "survey: content spawned");
     tokio::spawn(watch_walls());
     tokio::spawn(autosave());
@@ -339,7 +346,9 @@ fn bases_of(defs: &[SpawnDef]) -> Vec<Base<SpawnDef>> {
 /// script waves (play servers don't run scripts yet); also how many of those were left out.
 pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement], catalog: &[(Placeable, SpawnDef)]) -> (Vec<SpawnDef>, usize) {
     let bases = bases_of(defs);
-    let applied = sv::apply::apply(pf, &bases, placements, MATCH_DISTANCE);
+    // (bouncers are jumppad.rs's)
+    let placements: Vec<Placement> = placements.iter().filter(|p| p.kind != SKind::Bouncer).cloned().collect();
+    let applied = sv::apply::apply(pf, &bases, &placements, MATCH_DISTANCE);
     for p in &applied.orphans {
         warn!(playfield = pf, placement = %p.id, "world content: the guess this placement replaces is gone; not spawned");
     }
@@ -359,7 +368,8 @@ fn build_playfield(st: &mut State, pf: u32) {
     let empty = Vec::new();
     let defs = st.bases.get(&pf).unwrap_or(&empty);
     let bases = bases_of(defs);
-    let placements: Vec<Placement> = st.set.placements.get(&pf).map(|f| f.placements.clone()).unwrap_or_default();
+    // (bouncers are jumppad.rs's: `crate::jumppad::set`)
+    let placements: Vec<Placement> = st.set.placements.get(&pf).map(|f| f.placements.iter().filter(|p| p.kind != SKind::Bouncer).cloned().collect()).unwrap_or_default();
     let applied = sv::apply::apply(pf, &bases, &placements, MATCH_DISTANCE);
     for p in &applied.orphans {
         warn!(playfield = pf, placement = %p.id, "survey: the guess this placement replaces is gone; not spawned");
@@ -627,6 +637,9 @@ fn sync_hidden(st: &State, viewer: Id32) {
     for b in crate::buildie::list(None) {
         all.insert(b.id, (b.playfield, s.hidden.contains(&buildie_id(&b))));
     }
+    for l in crate::jumppad::list(None) {
+        all.insert(l.dynel, (l.playfield, s.hidden.contains(&l.id)));
+    }
     let want: HashSet<Id32> = all.iter().filter(|(_, (_, h))| *h).map(|(id, _)| *id).collect();
     let had = HIDDEN.lock().unwrap().insert(viewer, want.clone()).unwrap_or_default();
     let here = world::whereabouts(viewer).map(|(pf, _)| pf);
@@ -658,7 +671,10 @@ fn mark(st: &mut State, viewer: Id32) {
     let target = selected.as_ref().and_then(|id| st.objects.get(id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos, o.playfield))).or_else(|| {
         let w = st.walls.get(selected.as_ref()?)?;
         Some((w.pieces.first()?.0, Kind::Smashable, w.def.pos, w.playfield))
-    }).or_else(|| buildie(selected.as_ref()?).map(|b| (b.id, Kind::Smashable, b.pos, b.playfield)));
+    }).or_else(|| buildie(selected.as_ref()?).map(|b| (b.id, Kind::Smashable, b.pos, b.playfield)))
+    // (a bouncer: as a smashable, and its landing point marked the same way)
+    .or_else(|| crate::jumppad::find(selected.as_ref()?).map(|l| (l.dynel, Kind::Smashable, l.pos, l.playfield)));
+    let landing = selected.as_deref().and_then(crate::jumppad::find).and_then(|l| Some((l.playfield, l.target?)));
     let Some(s) = st.surveyors.get_mut(&viewer) else { return };
     let mut records = Vec::new();
     if let Some((wearer, instance, helper)) = s.marker.take() {
@@ -666,6 +682,17 @@ fn mark(st: &mut State, viewer: Id32) {
         if helper {
             records.push(crate::game::despawn_record(wearer));
         }
+    }
+    if let Some((helper, instance)) = s.landing.take() {
+        records.push(crate::effects::stop_effect_package(helper, SELECT_EFFECT, 0, instance));
+        records.push(crate::game::despawn_record(helper));
+    }
+    if let Some((playfield, at)) = landing {
+        let instance = crate::effects::new_instance();
+        let (helper, spawn) = helper_at(playfield, at);
+        records.extend(spawn);
+        records.push(crate::effects::effect_package_hook(helper, SELECT_EFFECT, "", "", 0.0, 0, instance));
+        s.landing = Some((helper, instance));
     }
     if let Some((npc, kind, pos, playfield)) = target {
         let instance = crate::effects::new_instance();
@@ -857,7 +884,16 @@ pub fn attacked(attacker: Id32, target: Id32) {
 /// A player interacted with buildie `target` (survey servers don't build): it becomes their
 /// selection.
 pub fn interacted(player: Id32, target: Id32) {
-    let Some(b) = crate::buildie::list(None).into_iter().find(|b| b.id == target) else { return };
+    let Some(b) = crate::buildie::list(None).into_iter().find(|b| b.id == target) else {
+        // a bouncer
+        let Some(l) = crate::jumppad::by_dynel(target) else { return };
+        let mut guard = STATE.lock().unwrap();
+        let Some(st) = guard.as_mut() else { return };
+        st.surveyors.entry(player).or_default().selected = Some(l.id.clone());
+        mark(st, player);
+        crate::chat::system(player.instance, &format!("selected [{}] {}", label(l.category), l.name));
+        return;
+    };
     let mut guard = STATE.lock().unwrap();
     let Some(st) = guard.as_mut() else { return };
     let id = buildie_id(&b);
@@ -911,7 +947,144 @@ fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
         color: None,
         action: None,
         once: None,
+        target: None,
+        chain: None,
     }
+}
+
+// ------------------------------------------------------------------ bouncers
+
+/// Jump pads (jumppad.rs) as survey objects: base pads (a guessed landing point is a guess) and
+/// the set's bouncer placements, which jumppad.rs applies (`crate::jumppad::set`).
+fn bouncer_view(l: &crate::jumppad::Listed) -> SurveyObject {
+    let p = l.placement.as_ref();
+    SurveyObject {
+        id: l.id.clone(),
+        kind: SKind::Bouncer.as_str().into(),
+        name: l.name.clone(),
+        monster_data: None,
+        template: Some(l.visual),
+        level: None,
+        pos: l.pos,
+        heading: l.heading,
+        category: l.category,
+        wave: None,
+        patrol: Vec::new(),
+        comment: p.map(|p| p.comment.clone()).unwrap_or_default(),
+        feature: p.map_or_else(sv::features::live, |p| p.feature.clone()),
+        tags: p.map(|p| p.tags.clone()).unwrap_or_default(),
+        author: p.map(|p| p.author.clone()).unwrap_or_default(),
+        updated: p.map_or(0, |p| p.updated),
+        playfield: l.playfield,
+        replaces: p.and_then(|p| p.replaces.clone()),
+        size: None,
+        radius: None,
+        color: None,
+        action: None,
+        once: None,
+        target: Some(l.target),
+        chain: (!l.chain.is_empty()).then(|| l.chain.clone()),
+    }
+}
+
+/// The placement to change for a bouncer: a surveyed one's own, or a new one replacing a
+/// guessed pad (as a guessed spawn becomes surveyed).
+fn bouncer_placement(l: &crate::jumppad::Listed, author: &str) -> Result<Placement, Error> {
+    match (l.category, &l.placement) {
+        (Category::Surveyed, Some(p)) => Ok(p.clone()),
+        (Category::Guessed, _) => Ok(Placement {
+            id: ids::new_id("p", if author.is_empty() { "web" } else { author }),
+            kind: SKind::Bouncer,
+            name: l.name.clone(),
+            monster_data: None,
+            template: Some(l.visual),
+            level: None,
+            pos: l.pos,
+            heading: l.heading,
+            target: l.target,
+            replaces: Some(Origin { id: l.id.clone(), kind: SKind::Bouncer, monster_data: None, template: Some(l.visual), pos: l.pos }),
+            removed: false,
+            wave: None,
+            patrol: Vec::new(),
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: sv::features::live(),
+            author: author.to_string(),
+            updated: ids::now(),
+        }),
+        (c, _) => Err(Error::Invalid(format!("{} objects can only be hidden", label(c)))),
+    }
+}
+
+/// Saves bouncer placement `p` in playfield `pf` (replacing the record with its id) and applies
+/// the set's bouncers again; selections and hiding of `old` (the pad it was) follow it. Its view
+/// (none when deleted).
+fn store_bouncer(st: &mut State, pf: u32, p: Placement, old: &str) -> Result<SurveyObject, Error> {
+    let id = p.id.clone();
+    let removed = p.removed;
+    let list = &mut st.set.placements_mut(pf).placements;
+    match list.iter_mut().find(|x| x.id == id) {
+        Some(x) => *x = p,
+        None => list.push(p),
+    }
+    save(st);
+    crate::jumppad::set(&st.set);
+    if old != id {
+        for s in st.surveyors.values_mut() {
+            if s.selected.as_deref() == Some(old) {
+                s.selected = Some(id.clone());
+            }
+            if s.hidden.remove(old) {
+                s.hidden.insert(id.clone());
+            }
+        }
+    }
+    sync_all(st);
+    mark_selecting(st, &id);
+    bump(st, pf);
+    match crate::jumppad::find(&id) {
+        Some(l) => Ok(bouncer_view(&l)),
+        None if removed => Err(Error::NotFound(format!("{id} is deleted"))),
+        None => Err(Error::Invalid(format!("{id}: the pad it replaces is gone (not spawned)"))),
+    }
+}
+
+/// Edits a bouncer (a guessed one becomes a surveyed placement replacing it).
+fn edit_bouncer(st: &mut State, l: &crate::jumppad::Listed, c: Changes, author: &str) -> Result<SurveyObject, Error> {
+    if c.kind.is_some_and(|k| k != SKind::Bouncer) {
+        return Err(Error::Invalid("a bouncer can't be changed into another kind".into()));
+    }
+    let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
+    let mut p = bouncer_placement(l, author)?;
+    if let Some(Some(t)) = c.template {
+        p.template = Some(t);
+    }
+    if let Some(pos) = c.pos {
+        p.pos = pos;
+    }
+    if let Some(h) = c.heading {
+        p.heading = h;
+    }
+    if let Some(t) = c.target {
+        p.target = t;
+    }
+    if let Some(n) = c.name.filter(|n| !n.trim().is_empty()) {
+        p.name = n;
+    }
+    if let Some(t) = c.comment {
+        p.comment = t;
+    }
+    if let Some(f) = feature {
+        p.feature = f;
+    }
+    if let Some(t) = c.tags {
+        p.tags = sv::tidy_tags(t);
+    }
+    if !author.is_empty() {
+        p.author = author.to_string();
+    }
+    p.updated = ids::now();
+    store_bouncer(st, l.playfield, p, &l.id)
 }
 
 // ------------------------------------------------------------------ API shapes
@@ -967,6 +1140,12 @@ struct SurveyObject {
     action: Option<WallAction>,
     #[serde(skip_serializing_if = "Option::is_none")]
     once: Option<bool>,
+    /// Bouncers: where it throws you (null: not set yet).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target: Option<Option<[f32; 3]>>,
+    /// Bouncers whose landing point is on pads that throw on: the hops after `target`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    chain: Option<Vec<[f32; 3]>>,
 }
 
 #[derive(Serialize)]
@@ -1022,6 +1201,9 @@ struct Changes {
     color: Option<String>,
     action: Option<WallAction>,
     once: Option<bool>,
+    /// Bouncers: where it throws you (null: not set)
+    #[serde(default, deserialize_with = "some")]
+    target: Option<Option<[f32; 3]>>,
 }
 
 /// A field that may be given as null (`Some(None)`) or left out (`None`).
@@ -1133,6 +1315,7 @@ pub fn routes() -> Router {
         .route("/v1/survey/smash-achievements", get(smash_achievements))
         .route("/v1/survey/smash-achievements/{key}", put(save_smash_rule).delete(delete_smash_rule))
         .route("/v1/survey/achievement-rules", get(achievement_rules))
+        .route("/v1/survey/enemy-names", get(enemy_names))
         .route("/v1/survey/players/{account}/select", post(select))
         .route("/v1/survey/players/{account}/hide", post(hide))
         .route("/v1/survey/players/{account}/unhide-all", post(unhide_all))
@@ -1167,7 +1350,10 @@ async fn surveyors() -> R<Vec<SurveyorInfo>> {
 }
 
 async fn catalog() -> R<Vec<Placeable>> {
-    with(|st| Ok(Json(st.catalog.iter().map(|(p, _)| p.clone()).collect())))
+    with(|st| {
+        let bouncers = crate::jumppad::looks().into_iter().map(|l| Placeable { kind: SKind::Bouncer, name: l.name, monster_data: None, template: Some(l.visual), level: None, used: Some(l.used) });
+        Ok(Json(st.catalog.iter().map(|(p, _)| p.clone()).chain(bouncers).collect()))
+    })
 }
 
 fn state_of(st: &mut State, account: u32) -> Result<PlayerState, Error> {
@@ -1231,10 +1417,39 @@ struct PlaceBody {
 async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<PlaceBody>) -> R<SurveyObject> {
     with(|st| {
         let (player, pf) = player_of(account)?;
-        let kind = nkind(b.what.kind)?;
         let pos = world::live_position(player).unwrap_or_default();
         let heading = heading_of(world::facing_of(player).unwrap_or([0.0, 1.0]));
         let author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or_else(|| crate::sessions::players().into_iter().find(|p| p.account_id == account).map(|p| p.character_name).unwrap_or_default());
+        if b.what.kind == SKind::Bouncer {
+            // at the surveyor; where it throws you is set later (`target`)
+            if b.what.template.is_none() {
+                return Err(Error::Invalid("a bouncer needs its look (template: the pad's visual id, from the catalog)".into()));
+            }
+            let p = Placement {
+                id: ids::new_id("p", &author),
+                kind: SKind::Bouncer,
+                name: b.what.name.clone(),
+                monster_data: None,
+                template: b.what.template,
+                level: None,
+                pos,
+                heading,
+                target: None,
+                replaces: None,
+                removed: false,
+                wave: None,
+                patrol: Vec::new(),
+                comment: String::new(),
+                tags: sv::tidy_tags(&b.tags),
+                feature: checked_feature(&st.set, b.feature)?,
+                author,
+                updated: ids::now(),
+            };
+            let id = p.id.clone();
+            st.surveyors.entry(player).or_default().selected = Some(id.clone());
+            return store_bouncer(st, pf, p, &id);
+        }
+        let kind = nkind(b.what.kind)?;
         let mut def = template_of(&st.catalog, b.what.kind, b.what.monster_data, b.what.template)
             .unwrap_or_else(|| bare_def(kind, b.what.monster_data.unwrap_or(0), b.what.template.unwrap_or(0), b.what.level.unwrap_or(1)));
         let level = b.what.level.unwrap_or(def.level).max(1);
@@ -1303,14 +1518,16 @@ async fn select(Path(account): Path<u32>, Json(b): Json<SelectBody>) -> R<Player
             let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.set))).map(|o| (&o.id, o.def.pos));
             let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (w.def.id.clone(), w.def.pos));
             let buildies = crate::buildie::list(Some(pf)).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
+            let bouncers = crate::jumppad::list(Some(pf)).into_iter().map(|l| (l.id, l.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
             objects
                 .map(|(id, p)| (id.clone(), p))
                 .chain(walls)
                 .chain(buildies)
+                .chain(bouncers)
                 .min_by(|a, b| distance(a.1, here).total_cmp(&distance(b.1, here)))
                 .map(|(id, _)| id)
         } else {
-            if let Some(id) = b.id.as_ref().filter(|id| !st.objects.contains_key(*id) && !st.walls.contains_key(*id) && buildie(id).is_none()) {
+            if let Some(id) = b.id.as_ref().filter(|id| !st.objects.contains_key(*id) && !st.walls.contains_key(*id) && buildie(id).is_none() && crate::jumppad::find(id).is_none()) {
                 return Err(Error::NotFound(format!("no object {id}")));
             }
             b.id
@@ -1418,6 +1635,7 @@ async fn objects(Path(pf): Path<u32>) -> R<ObjectList> {
                 .map(Object::view)
                 .chain(st.walls.values().filter(|w| w.playfield == pf).map(Wall::view))
                 .chain(crate::buildie::list(Some(pf)).iter().map(buildie_view))
+                .chain(crate::jumppad::list(Some(pf)).iter().map(bouncer_view))
                 .collect(),
         }))
     })
@@ -1560,6 +1778,9 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         if st.walls.contains_key(&id) {
             return edit_wall(st, &id, c, author);
         }
+        if let Some(l) = crate::jumppad::find(&id) {
+            return edit_bouncer(st, &l, c, &author);
+        }
         let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
         let id = surveyed(st, &id, &author)?;
         let catalog = st.catalog.clone();
@@ -1632,6 +1853,9 @@ async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> 
             return Err(Error::Invalid("trigger walls are surveyed already".into()));
         }
         let author = author_of(&headers);
+        if let Some(l) = crate::jumppad::find(&id) {
+            return edit_bouncer(st, &l, Changes::default(), &author);
+        }
         let id = surveyed(st, &id, &author)?;
         if let Some(o) = st.objects.get_mut(&id) {
             o.updated = ids::now();
@@ -1660,6 +1884,20 @@ async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
         if st.walls.contains_key(&id) {
             remove_wall(st, &id, &author_of(&headers));
             return Ok(Json(Removed { id }));
+        }
+        if let Some(l) = crate::jumppad::find(&id) {
+            let author = author_of(&headers);
+            let mut p = bouncer_placement(&l, &author)?;
+            p.removed = true;
+            p.updated = ids::now();
+            if !author.is_empty() {
+                p.author = author;
+            }
+            let removed = p.id.clone();
+            // (its view: none, it is gone)
+            let _ = store_bouncer(st, l.playfield, p, &id);
+            deselect(st, &removed);
+            return Ok(Json(Removed { id: removed }));
         }
         let o = st.objects.get(&id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
         if !o.category.editable() {
@@ -1772,6 +2010,14 @@ async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
             .ok_or_else(|| Error::NotFound(format!("no placement {id}")))?;
         st.set.placements_mut(pf).placements.retain(|p| p.id != id);
         save(st);
+        if record.kind == SKind::Bouncer {
+            crate::jumppad::set(&st.set);
+            deselect(st, &id);
+            bump(st, pf);
+            // the pad it replaced, back
+            let back = record.replaces.as_ref().and_then(|o| crate::jumppad::find(&o.id)).map(|l| bouncer_view(&l));
+            return Ok(Json(back));
+        }
         if let Some(mut o) = st.objects.remove(&id) {
             if let Some(n) = o.npc {
                 st.by_npc.remove(&n);
@@ -1822,6 +2068,9 @@ struct Snapshot {
     action: Option<WallAction>,
     #[serde(default)]
     once: Option<bool>,
+    /// Bouncers: where it throws you
+    #[serde(default)]
+    target: Option<[f32; 3]>,
 }
 
 /// Makes `id` exactly as the snapshot has it (spawned again; a guess it replaces goes away).
@@ -1880,6 +2129,34 @@ fn put_snapshot(st: &mut State, id: String, pf: u32, b: Snapshot, author: String
         return Ok(view);
     }
     let kind: SKind = serde_json::from_value(serde_json::Value::String(b.kind.clone())).map_err(|_| Error::Invalid(format!("kind {}?", b.kind)))?;
+    if kind == SKind::Bouncer {
+        if b.template.is_none() {
+            return Err(Error::Invalid("a bouncer needs its look (template: the pad's visual id, from the catalog)".into()));
+        }
+        let p = Placement {
+            id: id.clone(),
+            kind,
+            name: b.name,
+            monster_data: None,
+            template: b.template,
+            level: None,
+            pos: b.pos,
+            heading: b.heading,
+            target: b.target,
+            replaces: b.replaces,
+            removed: false,
+            wave: None,
+            patrol: Vec::new(),
+            comment: b.comment,
+            tags: sv::tidy_tags(&b.tags),
+            feature: b.feature,
+            author,
+            updated: ids::now(),
+        };
+        // (the pad it replaces, if listed as itself, goes away: its selections follow)
+        let old = p.replaces.as_ref().map(|o| o.id.clone()).filter(|o| crate::jumppad::find(o).is_some()).unwrap_or_else(|| id.clone());
+        return store_bouncer(st, pf, p, &old);
+    }
     let p = Placement {
         id: id.clone(),
         kind,
@@ -1889,6 +2166,7 @@ fn put_snapshot(st: &mut State, id: String, pf: u32, b: Snapshot, author: String
         level: b.level,
         pos: b.pos,
         heading: b.heading,
+        target: None,
         replaces: b.replaces,
         removed: false,
         wave: b.wave,
@@ -1954,6 +2232,7 @@ fn rebuild(st: &mut State, pfs: impl IntoIterator<Item = u32>) {
         build_playfield(st, pf);
         bump(st, pf);
     }
+    crate::jumppad::set(&st.set);
     sync_all(st);
     let viewers: Vec<Id32> = st.surveyors.keys().copied().collect();
     for v in viewers {
@@ -2325,6 +2604,8 @@ impl Wall {
             color: Some(d.color.clone()),
             action: Some(d.action.clone()),
             once: Some(d.once),
+            target: None,
+            chain: None,
         }
     }
 }
@@ -2713,6 +2994,13 @@ fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
             }
         }
         WallAction::Message { text } => say(if text.is_empty() { "(a message)".into() } else { text.clone() }),
+        WallAction::Collect { drop } => {
+            let what = drop.as_deref().map(|k| match smash_target(k) {
+                Ok(a) => a.title,
+                Err(_) => k.strip_prefix(sv::DROP_PREFIX).unwrap_or(k).to_string(),
+            });
+            say(format!("collects {}", what.unwrap_or_else(|| "something (none chosen yet)".into())))
+        }
         WallAction::Other => say(if def.comment.is_empty() { "crossed".into() } else { def.comment.clone() }),
     }
 }
@@ -2978,7 +3266,32 @@ fn smash_target(key: &str) -> Result<crate::achievements::SmashAchievement, Erro
             minifigures: 0,
         });
     }
-    crate::achievements::smash_achievements().iter().find(|a| a.key == key).cloned().ok_or_else(|| Error::NotFound(format!("no smash achievement {key}")))
+    // an editor's own list of enemies, or a mission item enemies drop
+    for (prefix, kind) in [(sv::CATEGORY_PREFIX, "category"), (sv::DROP_PREFIX, "drop")] {
+        if let Some(name) = key.strip_prefix(prefix) {
+            if name.trim().is_empty() {
+                return Err(Error::Invalid(format!("{prefix}<name>: the name?")));
+            }
+            return Ok(crate::achievements::SmashAchievement {
+                key: key.into(),
+                ids: Vec::new(),
+                title: name.into(),
+                text: String::new(),
+                group: None,
+                kind,
+                what: None,
+                matching: None,
+                n: 0,
+                minifigures: 0,
+            });
+        }
+    }
+    crate::achievements::smash_achievements()
+        .iter()
+        .chain(crate::achievements::collect_achievements())
+        .find(|a| a.key == key)
+        .cloned()
+        .ok_or_else(|| Error::NotFound(format!("no smash achievement {key}")))
 }
 
 /// Every smash achievement (counters of kills or smashes, defeats) with its rule.
@@ -2987,6 +3300,7 @@ async fn smash_achievements() -> R<Vec<SmashEntry>> {
         Ok(Json(
             crate::achievements::smash_achievements()
                 .iter()
+                .chain(crate::achievements::collect_achievements())
                 .map(|a| SmashEntry { rule: st.set.smash_rule(&a.key).cloned(), achievement: a.clone() })
                 .collect(),
         ))
@@ -3002,6 +3316,12 @@ async fn achievement_rules() -> R<Vec<SmashRule>> {
 struct SmashRuleBody {
     #[serde(default)]
     enemies: Vec<String>,
+    /// Drops and collectibles: each enemy gives one only once (per player).
+    #[serde(default)]
+    once: bool,
+    /// Drops: the item template.
+    #[serde(default)]
+    item: Option<u32>,
     #[serde(default)]
     comment: String,
     #[serde(default)]
@@ -3027,6 +3347,8 @@ async fn save_smash_rule(Path(key): Path<String>, headers: HeaderMap, Json(b): J
         let rule = SmashRule {
             id: key.clone(),
             enemies,
+            once: b.once,
+            item: b.item,
             comment: b.comment,
             tags: sv::tidy_tags(&b.tags),
             feature: checked_feature(&st.set, b.feature)?,
@@ -3038,6 +3360,81 @@ async fn save_smash_rule(Path(key): Path<String>, headers: HeaderMap, Json(b): J
         save(st);
         Ok(Json(SmashEntry { achievement, rule: Some(rule) }))
     })
+}
+
+/// An enemy or smashable name a defeat can carry (what smash rules and categories list).
+#[derive(Serialize, Debug, Clone)]
+struct EnemyName {
+    name: String,
+    /// enemy, smashable, boss or champion
+    kind: &'static str,
+    playfields: Vec<u32>,
+    /// live, demo, client (the base content and catalog) or achievement (only achievements name it)
+    source: &'static str,
+}
+
+/// Whether a spawn is a boss or a champion, by its health over a regular enemy's of its level
+/// (npc.rs `BOSS_RANK` 7, `CHAMPION_RANK` 4).
+fn enemy_kind(def: &SpawnDef) -> &'static str {
+    match def.kind {
+        Kind::Smashable => "smashable",
+        _ => match def.health / npc::regular_life(def.level).max(1) {
+            7.. => "boss",
+            4.. => "champion",
+            _ => "enemy",
+        },
+    }
+}
+
+fn enemy_names_of(bases: &BTreeMap<u32, Vec<SpawnDef>>, catalog: &[(Placeable, SpawnDef)]) -> Vec<EnemyName> {
+    let mut out: BTreeMap<String, EnemyName> = BTreeMap::new();
+    let mut add = |name: &str, kind: &'static str, playfields: &[u32], source: &'static str| {
+        let name = name.trim();
+        if name.is_empty() || name == "?" {
+            return;
+        }
+        let e = out.entry(name.to_string()).or_insert_with(|| EnemyName { name: name.to_string(), kind, playfields: Vec::new(), source });
+        for pf in playfields {
+            if !e.playfields.contains(pf) {
+                e.playfields.push(*pf);
+            }
+        }
+        // the bigger kind wins (a boss somewhere is a boss)
+        let rank = |k: &str| ["smashable", "enemy", "champion", "boss"].iter().position(|x| *x == k).unwrap_or(0);
+        if rank(kind) > rank(e.kind) {
+            e.kind = kind;
+        }
+        let order = |s: &str| ["live", "demo", "client", "achievement"].iter().position(|x| *x == s).unwrap_or(9);
+        if order(source) < order(e.source) {
+            e.source = source;
+        }
+    };
+    let source_of = |d: &SpawnDef| match d.source.as_deref() {
+        Some("live") => "live",
+        Some("demo") => "demo",
+        _ => "client",
+    };
+    for (pf, defs) in bases {
+        for d in defs.iter().filter(|d| matches!(d.kind, Kind::Enemy | Kind::Smashable)) {
+            add(&d.name, enemy_kind(d), &[*pf], source_of(d));
+        }
+    }
+    for (p, d) in catalog.iter().filter(|(p, _)| matches!(p.kind, SKind::Enemy | SKind::Smashable)) {
+        add(&p.name, enemy_kind(d), &[], source_of(d));
+    }
+    for (name, kind, pfs) in crate::achievements::achievement_enemies() {
+        add(&name, kind, &pfs, "achievement");
+    }
+    for e in out.values_mut() {
+        e.playfields.sort();
+    }
+    out.into_values().collect()
+}
+
+/// Every enemy and smashable name a defeat can carry: the base content of every playfield, the
+/// catalog, the encounter champions and the defeat and target achievements' targets.
+async fn enemy_names() -> R<Vec<EnemyName>> {
+    with(|st| Ok(Json(enemy_names_of(&st.bases, &st.catalog))))
 }
 
 async fn delete_smash_rule(Path(key): Path<String>) -> Result<StatusCode, Error> {
@@ -3071,6 +3468,22 @@ mod tests {
         assert!(matches!(smash_target("find:4200:Nowhere"), Err(Error::NotFound(_))));
         assert_eq!(smash_target("2163").unwrap().title, "Novice Monster Smasher");
         assert!(matches!(smash_target("1"), Err(Error::NotFound(_))));
+    }
+
+    #[test]
+    fn enemy_names_and_categories() {
+        let names = enemy_names_of(&BTreeMap::new(), &[]);
+        let uggluk = names.iter().find(|n| n.name == "Uggluk Gatekeeper").expect("Uggluk Gatekeeper");
+        assert_eq!((uggluk.kind, uggluk.source), ("champion", "achievement"));
+        assert!(!uggluk.playfields.is_empty(), "the side dungeons he appears in");
+        assert!(names.iter().any(|n| n.name == "Skram Gatecrasher"), "a defeat target");
+        assert!(!names.iter().any(|n| n.name == "Siege Command Room"), "places aren't enemies");
+        let cat = smash_target("category:My skeletons").unwrap();
+        assert_eq!((cat.kind, cat.title.as_str(), cat.n, cat.ids.len()), ("category", "My skeletons", 0, 0));
+        assert_eq!(smash_target("drop:Mushroom").unwrap().kind, "drop");
+        assert!(matches!(smash_target("category: "), Err(Error::Invalid(_))));
+        let collar = smash_target("2431").unwrap();
+        assert_eq!((collar.kind, collar.n), ("collect", 3));
     }
 
     #[test]
