@@ -25,6 +25,14 @@ chat 7210, control 127.0.0.1:7310, patch server 8081 (`lmo <name> <lan-ip>:8081`
 `tools/survey-server.sh --restart` rebuilds and restarts the game server and API; the set is
 loaded again.
 
+Switching servers in game: `!server editor` on the play server and `!server play` here (also
+the dev UI's "→ …" buttons) move the player without logging out: same login, each server's own
+character (`switch.rs`; the servers name each other with `--peer-name`, `--peer-data-dir`,
+`--peer-game-addr`, `--peer-chat-addr`, which the two scripts pass). The leaving server teleports the
+client to where the character is saved on the other one and sends `RedirectToServer`; the other
+checks the login cookie in the first one's database, matching accounts by username. Chat stays
+with the chat server the client logged in through, which passes it on to the other server's.
+
 ## Content categories
 
 Every enemy, NPC, smashable and buildie a server spawns has a category:

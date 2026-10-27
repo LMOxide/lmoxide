@@ -66,6 +66,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut community: Option<crate::community::Guard> = None;
     // the account's effective GM level and its entry in the online list (control interface)
     let mut gm_level = 0;
+    let mut account_id = 0;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
     // the others' copies of this player's casts, by client command id (ended on release/abort)
@@ -233,8 +234,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // `claimed` is the character: the login cookie's account must own it (an
                 // account's first character has the account's id and may not be saved yet)
                 let ip_key = format!("ip:{}", conn.peer.ip());
-                let session = state::or_log(state::db().game_session(cookie), "session", None);
-                let owner = state::or_log(state::db().character_account(claimed), "character", None).unwrap_or(claimed);
+                // (a player the peer server sent here: their account here, by username)
+                let arrived = crate::switch::arrival(cookie, claimed);
+                let session = arrived.or_else(|| state::or_log(state::db().game_session(cookie), "session", None));
+                let owner = arrived
+                    .or_else(|| state::or_log(state::db().character_account(claimed), "character", None))
+                    .unwrap_or(claimed);
                 let account = (crate::security::allowed(&ip_key) && session.is_some() && session == Some(owner))
                     .then(|| state::or_log(state::db().account(owner), "account", None))
                     .flatten();
@@ -247,6 +252,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 };
                 character = claimed;
                 conn.authenticated = true;
+                crate::switch::set_away(account.id, false);
+                // from the peer server, first visit: the character this server keeps under the
+                // client's id
+                if arrived.is_some() && store.load(character).is_none() {
+                    let new = new_character(account.username.clone(), cfg.start_playfield);
+                    match store.create(character, account.id, &new) {
+                        Ok(()) => info!(account = account.id, character, "character made for a player from the peer server"),
+                        Err(e) => warn!(character, "creating the character failed: {e:#}"),
+                    }
+                }
+                // (chat finds the character by the account; one sent here by the peer server
+                // didn't pick it in this server's territory)
+                crate::sessions::set_character(account.id, character);
+                account_id = account.id;
                 gm_level = account.gm_level.max(cfg.default_gm_level);
                 me = store.load(character).unwrap_or_else(|| Character {
                     name: crate::sessions::name(character).unwrap_or_else(|| account.username.clone()),
@@ -1254,6 +1273,37 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             world::send_playfield(id, true, world::Out::Records(vec![int32_stat(id, STAT_MONSTER_DATA, look)]));
                             crate::chat::system(character, &format!("look {look}"));
                         }
+                        crate::devcmd::Action::Server(to) => match crate::switch::request(&to) {
+                            Ok((line, peer)) => {
+                                if let Err(e) = store.save(character, &me) {
+                                    warn!(character, "save failed: {e:#}");
+                                }
+                                crate::chat::system(character, &line);
+                                // A teleport to where the character is saved there (the client only
+                                // takes a new world while teleporting), then the client leaves this
+                                // game server and authenticates there with the same character and
+                                // cookie (live's move between playfield servers). Its chat
+                                // connection, closed, comes back to the chat server it knows, which
+                                // passes it on (switch.rs).
+                                let (playfield, at) = crate::switch::saved_there(character).unwrap_or((cfg.start_playfield, START_POS));
+                                let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                let mut records = crate::knubot::end(id);
+                                records.extend([
+                                    crate::teleport::intended_teleport_record(id, playfield),
+                                    crate::teleport::teleport_record(id, playfield, at, 0.0),
+                                ]);
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                                crate::switch::set_away(account_id, true);
+                                let to = Writer::new().string(&peer.game_addr).finish();
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::REDIRECT_TO_SERVER, to).await?;
+                                info!(character, to = %peer.name, "redirected to the peer server");
+                                tokio::spawn(async move {
+                                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                                    crate::chat::disconnect(character);
+                                });
+                            }
+                            Err(line) => crate::chat::system(character, &line),
+                        },
                         crate::devcmd::Action::SmashMe => crate::npc::smash_player(Id32::new(crate::territory::CHARACTER_TYPE, character)),
                         crate::devcmd::Action::Loot(kind) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);

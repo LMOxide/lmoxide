@@ -38,6 +38,7 @@ mod smash;
 mod state;
 mod store;
 mod survey;
+mod switch;
 mod teleport;
 mod tiki;
 mod tutorial;
@@ -177,6 +178,18 @@ pub struct Config {
     /// own. Logins are copied at startup, every minute and when someone logs in.
     #[arg(long, env = "LMOXIDE_SHARE_ACCOUNTS")]
     pub share_accounts: Option<PathBuf>,
+    /// A server next to this one players can switch to in game (`!server <name>`, the dev UI),
+    /// e.g. the world editor's survey server for the play server and the other way round: its
+    /// name, its data directory (its database checks login cookies), and the addresses clients
+    /// reach its game and chat servers at ("host:port"). The peer needs this server as its peer.
+    #[arg(long, env = "LMOXIDE_PEER_NAME", requires_all = ["peer_data_dir", "peer_game_addr", "peer_chat_addr"])]
+    pub peer_name: Option<String>,
+    #[arg(long, env = "LMOXIDE_PEER_DATA_DIR")]
+    pub peer_data_dir: Option<PathBuf>,
+    #[arg(long, env = "LMOXIDE_PEER_GAME_ADDR")]
+    pub peer_game_addr: Option<String>,
+    #[arg(long, env = "LMOXIDE_PEER_CHAT_ADDR")]
+    pub peer_chat_addr: Option<String>,
     /// Add a server-side character that walks around the start position (for testing what
     /// other players look like).
     #[arg(long, env = "LMOXIDE_BOT")]
@@ -246,6 +259,11 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         content::init(&storage.data_dir, cfg.world_editor_set.clone());
     }
     progression::set_enabled(cfg.progression);
+    let peer = cfg.peer_name.clone().map(|name| {
+        let dir = cfg.peer_data_dir.clone().unwrap_or_default();
+        (name, dir.join("lmoxide.db"), cfg.peer_game_addr.clone().unwrap_or_default(), cfg.peer_chat_addr.clone().unwrap_or_default())
+    });
+    switch::init(if cfg.mode == Mode::Survey { "editor" } else { "play" }, peer)?;
     for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {
         anyhow::ensure!(projectile::set_player_aim(shots, aim), "aim {} isn't implemented yet", aim.name());
     }

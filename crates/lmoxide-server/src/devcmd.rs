@@ -64,6 +64,8 @@ pub enum Action {
     Smash,
     /// bring every minifigure of the player (team and collection) back from smashed, full health
     Revive,
+    /// go to the server next to this one (`!server`, switch.rs); empty: tell which this is
+    Server(String),
     /// feed achievement events (n times)
     Progress(crate::achievements::Event, u32),
     /// gain XP
@@ -119,6 +121,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!loot <kind>", "drop a loot bag at your feet"),
     ("!smash", "smash the nearest smashable (or defeat the nearest enemy) within 15 m"),
     ("!smashme", "smash the active minifigure (it rebuilds after the smash timer)"),
+    ("!server [play|editor]", "which server this is; go to the play server or the world editor's (same account, the character there; answer Yes to \"relocate\")"),
     ("!revive", "every minifigure (team and collection) back to full health"),
     ("!own [name]", "obtain a minifigure (as from a bag); without a name: how many you own"),
     ("!collection <limit|all>", "own only the team and the members' minifigures, or every one (relog to see it)"),
@@ -496,6 +499,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
         }
         "smash" => Action::Smash,
         "revive" => Action::Revive,
+        "server" => Action::Server(args.join(" ")),
         "smashme" => Action::SmashMe,
         "loot" => match args.first().copied() {
             Some(kind) if crate::loot::TEST_KINDS.contains(&kind) => Action::Loot(kind.to_string()),

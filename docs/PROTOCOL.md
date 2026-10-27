@@ -114,6 +114,13 @@ The cookie of step 4 travels to the territory (`Authenticate`), the game server 
 and chat (`PASS`); LMOxide makes it random per login and checks it everywhere.
 
 
+Game server change: `GameserverToClientRPC::RedirectToServer(String "host:port")` (method 2)
+makes the client leave its game server ("Client redirecting to …") and send the new one
+`Authenticate2` with the same character id and cookie; it doesn't reconnect chat or the territory.
+The client takes the new world only while teleporting (a full update while InPlay logs
+"SlotPlayerCharacterFullUpdateReceived() called in invalid state 'InPlay'" and leaves the old
+playfield drawn), so a teleport to the new playfield goes first. Used by `!server` (switch.rs).
+
 Reconnect: after a lost connection the client asks "relocate to a new server?"; Yes calls
 `GameClientConnectivity::LoginFromCrash`, which connects once to the remembered territory
 address and sends `LoginFromCrash(account, cookie, character)`. A refused connect isn't retried,

@@ -11,7 +11,8 @@
 # It shares the LAN server's login key and logins (--share-accounts ../var/data/lmoxide.db):
 # clients patched for the LAN server log in here too, with the same usernames and passwords (the
 # web page as well); characters are the survey server's own; every account is a GM (test commands, teleports)
-# and is created on its first login. Every account may use the world editor (the API gives logins
+# and is created on its first login. `!server play` in game (or the dev UI's switch) takes a player to
+# the LAN server's game with their character there, `!server editor` there back here. Every account may use the world editor (the API gives logins
 # the admin scope from GM level 0): keep it to the LAN.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -80,6 +81,7 @@ python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports "$UNIVERSE,$TERRI
   "$BIN/lmoxide-server" --mode survey --data-dir "$DATA" --survey-set "$SET" --bind 0.0.0.0 --public-host "$IP" \
   --universe-port $UNIVERSE --territory-port $TERRITORY --game-port $GAME --chat-port $CHAT \
   --control-bind 127.0.0.1:$CONTROL --control-token-file "$DATA/control_token" --auto-register "${SHARE[@]}" \
+  --peer-name play --peer-data-dir "$VAR/data" --peer-game-addr "$IP:7102" --peer-chat-addr "$IP:7200" \
   ${LMOXIDE_SERVER_ARGS:-} >"$ROOT/logs/survey-server.log" 2>&1 &
 SERVER=$!
 # the patch server serves the login key the game server wrote
