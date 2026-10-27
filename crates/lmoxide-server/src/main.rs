@@ -37,6 +37,7 @@ mod security;
 mod sessions;
 mod shop;
 mod skills;
+mod spawns;
 mod smash;
 mod state;
 mod store;

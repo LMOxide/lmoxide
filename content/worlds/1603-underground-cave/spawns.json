@@ -105,6 +105,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [257.3, 24.73, 289.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -141,6 +146,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [230.9, 24.65, 292.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },

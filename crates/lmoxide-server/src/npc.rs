@@ -1,7 +1,7 @@
 //! Server-controlled NPCs (enemies).
 //!
-//! LMO's spawn tables and monster templates were server-side, so spawns come from
-//! data/spawns.json (playfield -> name, monsterdata look, level, health, position). An enemy is
+//! LMO's spawn tables and monster templates were server-side, so spawns come from the content
+//! tree (spawns.rs: each world's spawns with their NPC and object templates). An enemy is
 //! an ordinary character dynel (type 50000; instances <= 16,000,000 count as NPCs) whose
 //! ProtoCoreCharacterIIR has `stats.cars_group = 3` (Enemies) and a non-zero
 //! `npc_stats.template_id`: the client's CARS rules then let players target and attack it while
@@ -16,7 +16,7 @@ use std::{
 use lmoxide_net::{iir, proto::proto_core_character_iir::NpcStats, types::Id32};
 use serde::Deserialize;
 use tokio::sync::mpsc;
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::{
     game::{
@@ -86,10 +86,10 @@ const BOSS_MITIGATION: f32 = 0.4;
 const MAX_MITIGATION: f32 = 0.9;
 /// Ranks of enemies by their health over a regular enemy's of their level (`rank_of`): the live
 /// server's bosses had 7.5–11.25 times it, its champions (Gargantuan, Banshee, T.E.S.L.A)
-/// 4.25–6 (data/npc_life.json); proposed bosses get 10, champions 4.
+/// 4.25–6 (tunables.json `npc_life`); proposed bosses get 10, champions 4.
 const BOSS_RANK: u32 = 7;
 const CHAMPION_RANK: u32 = 4;
-/// NPC-against-NPC fights (friendly fighters and enemies, data/npc_fights.json): one hit takes
+/// NPC-against-NPC fights (friendly fighters and enemies, world.json `npc_fights`): one hit takes
 /// this share of the target's maximum health (± FIGHT_SPREAD), so a fight lasts about a minute.
 const FIGHT_SHARE: f32 = 0.04;
 const FIGHT_SPREAD: f32 = 0.25;
@@ -99,7 +99,7 @@ const FIGHTER_AGGRO: f32 = 16.0;
 const FIGHTER_LEASH: f32 = 18.0;
 /// An enemy a player hit within this time keeps fighting that player (not a friendly fighter).
 const THREAT_MEMORY: Duration = Duration::from_secs(6);
-/// Rival enemies (npc_fights.json `rivals`) attack each other this close.
+/// Rival enemies (world.json `npc_fights.rivals`) attack each other this close.
 const RIVAL_AGGRO: f32 = 12.0;
 
 /// Players' combat state: each minifigure has its own health.
@@ -223,7 +223,7 @@ pub enum Kind {
     Npc,
     /// A player's summon: follows its owner and attacks enemies near it, then vanishes.
     Pet,
-    /// A friendly character that fights the enemies near its post (data/npc_fights.json: the
+    /// A friendly character that fights the enemies near its post (world.json `npc_fights`: the
     /// Jacket Officers against the ghost pirates on the Isle of Yarr's beach, the Knights of the
     /// Crown against the trolls at the Medieval Kingdom's gate). Players can't attack it; enemies
     /// can, and it respawns like them.
@@ -256,25 +256,29 @@ pub struct SpawnDef {
     /// this close instead of chasing them.
     #[serde(default)]
     pub reach: Option<f32>,
-    /// Proposed content: the bounded area the camp was placed in (world_content.json).
+    /// Proposed content: the bounded area the camp was placed in (the spawn's `anchor`).
     #[serde(default)]
     pub anchor: Option<String>,
-    /// A friendly NPC that also fights the enemies near it (npc_fights.json `armed_npcs`).
+    /// A friendly NPC that also fights the enemies near it (`npc_fights.armed_npcs`).
     #[serde(default)]
     pub fights: bool,
-    /// Enemies: its side among rival enemies (npc_fights.json `rivals`): enemies of another
+    /// Enemies: its side among rival enemies (`npc_fights.rivals`): enemies of another
     /// side near it are its enemies too.
     #[serde(default)]
     pub faction: Option<u32>,
     /// The looping route it walks while it has nobody to fight, as the live server's patrolling
-    /// NPCs did (world_content.json, from the live capture's patrol MoveTasks).
+    /// NPCs did (the spawn's `patrol`, from the live capture's patrol MoveTasks).
     #[serde(default)]
     pub patrol: Vec<[f32; 3]>,
-    /// Where it comes from (world_content.json `source`: live, demo, proposed, rdb_*, ...);
+    /// Where it comes from (the spawn's `source`: live, demo, proposed, client, ...);
     /// survey mode tells guesses ("proposed") from recorded content by it.
     #[serde(default)]
     pub source: Option<String>,
-    /// Facing (radians around the vertical axis, world_content.json `rot`); shown only in
+    /// Its own loot table (`loot/...`, its template's `loot`), when it isn't the usual one for
+    /// its kind (tunables `loot.tables`): it drops that instead, whatever its rank.
+    #[serde(default)]
+    pub loot: Option<String>,
+    /// Facing (radians around the vertical axis, the spawn's `rot`); shown only in
     /// survey mode.
     #[serde(default)]
     pub rot: Option<f32>,
@@ -287,24 +291,11 @@ impl SpawnDef {
     }
 }
 
-/// data/world_content.json (tools/re/extract_world_content.py): per playfield, the enemies,
-/// NPCs and smashables the original server spawned (from the recorded demo session in the client
-/// folder for 1300/4600/4610) or proposed ones at the world's AI and resurrection points.
-#[derive(Deserialize)]
-struct WorldContent {
-    /// The playfield's source when an entry has none.
-    #[serde(default)]
-    source: Option<String>,
-    #[serde(default)]
-    enemies: Vec<SpawnDef>,
-    #[serde(default)]
-    npcs: Vec<SpawnDef>,
-    #[serde(default)]
-    smashables: Vec<SpawnDef>,
-}
+/// The attack of enemies without one ("XX_Axe Chop").
+pub const DEFAULT_SPELL: u32 = 2029;
 
 fn default_spell() -> u32 {
-    2029
+    DEFAULT_SPELL
 }
 
 struct Npc {
@@ -469,15 +460,15 @@ fn rank_of(def: &SpawnDef) -> u32 {
     def.health / regular_life(def.level)
 }
 
-/// data/npc_life.json (tools/re/live_npc_life.py): the life of a regular (1x) NPC per level, as
-/// the live server gave it.
+/// The life of a regular (1x) NPC per level, as the live server gave it (tunables.json
+/// `npc_life`, from tools/re/live_npc_life.py).
 static LIFE: LazyLock<Vec<(u32, f32)>> = LazyLock::new(|| {
-    let data: serde_json::Value = serde_json::from_str(include_str!("../../../data/npc_life.json")).expect("npc_life.json");
-    let mut v: Vec<(u32, f32)> = data["base"]
-        .as_object()
-        .expect("npc_life.json base")
+    let mut v: Vec<(u32, f32)> = crate::gamedata::get()
+        .tunables
+        .npc_life
+        .base
         .iter()
-        .map(|(level, life)| (level.parse().expect("npc_life.json level"), life.as_f64().expect("npc_life.json life") as f32))
+        .map(|(level, life)| (level.parse().expect("tunables.json npc_life level"), *life as f32))
         .collect();
     v.sort_by_key(|p| p.0);
     v
@@ -573,10 +564,11 @@ pub fn is_smashable(id: Id32) -> bool {
     NPCS.lock().unwrap().get(&id).is_some_and(|n| n.def.kind == Kind::Smashable)
 }
 
-/// Spawns every NPC in data/spawns.json and starts their AI.
+/// Spawns every playfield's NPCs and smashables (the content tree's spawns, spawns.rs) and
+/// starts their AI.
 pub fn start() {
     let mut all = Vec::new();
-    for (playfield, defs) in spawn_table() {
+    for (playfield, defs) in crate::spawns::table() {
         let Ok(playfield) = playfield.parse::<u32>() else { continue };
         for mut def in defs {
             if let Some(health) = crate::cannon::health_override(playfield, &def.name) {
@@ -623,82 +615,6 @@ pub fn spawn_as(id: Id32, def: SpawnDef, playfield: u32) {
 pub fn spawn_once(id: Id32, def: SpawnDef, playfield: u32) {
     NPCS.lock().unwrap().insert(id, Npc { once: true, ..Npc::new(def, playfield, None, None) });
     appear(id);
-}
-
-/// What every playfield spawns: data/spawns.json, world_content.json and npc_fights.json.
-/// Entries without a source are the proposed (guessed) content.
-fn spawn_table() -> HashMap<String, Vec<SpawnDef>> {
-    let mut table: HashMap<String, Vec<SpawnDef>> =
-        serde_json::from_str(include_str!("../../../data/spawns.json")).expect("spawns.json");
-    for d in table.values_mut().flatten() {
-        d.source.get_or_insert_with(|| "proposed".into());
-    }
-    let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
-    for (playfield, world) in worlds {
-        if !world.is_object() {
-            continue; // "_comment"
-        }
-        let content = match serde_json::from_value::<WorldContent>(world) {
-            Ok(c) => c,
-            Err(e) => {
-                warn!(%playfield, "world_content.json: playfield skipped: {e}");
-                continue;
-            }
-        };
-        let defs = table.entry(playfield).or_default();
-        let source = |d: SpawnDef| SpawnDef { source: d.source.or_else(|| content.source.clone()), ..d };
-        defs.extend(content.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..source(d) }));
-        defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..source(d) }));
-        defs.extend(content.smashables.into_iter().map(|d| SpawnDef { kind: Kind::Smashable, ..source(d) }));
-    }
-    add_fights(&mut table, include_str!("../../../data/npc_fights.json"));
-    table
-}
-
-/// data/npc_fights.json: per playfield, the proposed enemy camps (by anchor) it replaces, the
-/// enemies it adds, the friendly fighters that fight them and the friendly NPCs (by name) that
-/// fight the enemies near them too.
-#[derive(Deserialize)]
-struct FightSpot {
-    #[serde(default)]
-    armed_npcs: Vec<String>,
-    /// Sides of enemies (by monsterdata) that fight each other.
-    #[serde(default)]
-    rivals: Vec<Vec<u32>>,
-    #[serde(default)]
-    replace_anchors: Vec<String>,
-    #[serde(default)]
-    enemies: Vec<SpawnDef>,
-    #[serde(default)]
-    fighters: Vec<SpawnDef>,
-}
-
-fn add_fights(table: &mut HashMap<String, Vec<SpawnDef>>, json: &str) {
-    let spots: HashMap<String, serde_json::Value> = serde_json::from_str(json).expect("npc_fights.json");
-    for (playfield, spot) in spots {
-        if !spot.is_object() {
-            continue; // "_comment"
-        }
-        let spot: FightSpot = match serde_json::from_value(spot) {
-            Ok(s) => s,
-            Err(e) => {
-                warn!(%playfield, "npc_fights.json: playfield skipped: {e}");
-                continue;
-            }
-        };
-        let defs = table.entry(playfield).or_default();
-        defs.retain(|d| d.kind != Kind::Enemy || d.anchor.as_ref().is_none_or(|a| !spot.replace_anchors.contains(a)));
-        let proposed = |d: SpawnDef| SpawnDef { source: d.source.or_else(|| Some("proposed".into())), ..d };
-        defs.extend(spot.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..proposed(d) }));
-        defs.extend(spot.fighters.into_iter().map(|d| SpawnDef { kind: Kind::Fighter, ..proposed(d) }));
-        for d in defs.iter_mut().filter(|d| d.kind == Kind::Npc && spot.armed_npcs.contains(&d.name)) {
-            d.fights = true;
-        }
-        for d in defs.iter_mut().filter(|d| d.kind == Kind::Enemy) {
-            d.faction = spot.rivals.iter().position(|side| side.contains(&d.monster_data)).map(|i| i as u32);
-        }
-    }
 }
 
 fn spec(def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> CharSpec<'_> {
@@ -947,6 +863,7 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
         fights: false,
         faction: None,
         patrol: Vec::new(),
+        loot: None,
         source: None,
         rot: None,
     };
@@ -1051,7 +968,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         // a scripted shot (Pirate World's cannon, cannon.rs) drops no loot and earns nothing,
         // nor does an NPC's kill (a friendly fighter's), nor a defeated fighter
         if attacker.kind != DESTRUCTIBLE_TYPE && !by_npc && !npc.def.fights() {
-            crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source);
+            crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source, npc.def.loot.as_deref());
             if kind == Kind::Enemy && by_player {
                 crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
             }
@@ -2091,6 +2008,7 @@ mod tests {
             fights: false,
             faction: None,
             patrol: Vec::new(),
+            loot: None,
             source: None,
             rot: None,
         }
@@ -2157,31 +2075,11 @@ mod tests {
     }
 
     #[test]
-    fn fights_replace_their_camps() {
-        let camp = |anchor: &str| SpawnDef {
-            kind: Kind::Enemy,
-            template: 0,
-            name: "Camp".into(),
-            monster_data: 1,
-            level: 4,
-            health: 120,
-            pos: [0.0; 3],
-            spell: default_spell(),
-            cars_group: None,
-            npc_template: None,
-            reach: None,
-            anchor: Some(anchor.into()),
-            fights: false,
-            faction: None,
-            patrol: Vec::new(),
-            source: None,
-            rot: None,
-        };
-        let mut table = HashMap::from([("4200".to_string(), vec![camp("Quest_Beach"), camp("Elsewhere")])]);
-        add_fights(&mut table, include_str!("../../../data/npc_fights.json"));
+    fn npc_fights_spawn() {
+        // the Isle of Yarr's beach: ghost pirates and the Jackets who fight them
+        let table = crate::spawns::table();
         let yarr = &table["4200"];
-        assert!(yarr.iter().all(|d| d.anchor.as_deref() != Some("Quest_Beach")));
-        assert!(yarr.iter().any(|d| d.anchor.as_deref() == Some("Elsewhere")));
+        assert!(yarr.iter().all(|d| d.kind != Kind::Enemy || d.anchor.as_deref() != Some("Quest_Beach")));
         assert!(yarr.iter().any(|d| d.kind == Kind::Enemy && d.name == "Pirate Specter"));
         assert!(yarr.iter().any(|d| d.kind == Kind::Fighter));
     }
@@ -2189,7 +2087,7 @@ mod tests {
     #[test]
     fn every_fighter_has_enemies_to_fight() {
         // each friendly fighter's post is within reach of an enemy camp (it walks up to one)
-        let table = spawn_table();
+        let table = crate::spawns::table();
         let mut fighters = 0;
         for (playfield, defs) in &table {
             for f in defs.iter().filter(|d| d.fights()) {

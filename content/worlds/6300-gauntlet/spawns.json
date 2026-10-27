@@ -599,6 +599,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [262.9, 48.74, 173.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -635,6 +640,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [391.0, 58.87, 196.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_MazeRoom",
       "source": "proposed"
     },
@@ -671,6 +681,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [296.3, 48.86, 173.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -707,6 +722,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [223.4, 48.74, 172.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -743,6 +763,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [403.5, 58.65, 212.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_MazeRoom",
       "source": "proposed"
     },
@@ -779,6 +804,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [351.8, 48.75, 172.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_DodgeRoom",
       "source": "proposed"
     },

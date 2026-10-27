@@ -120,6 +120,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [344.0, 40.65, 134.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -156,6 +161,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [358.3, 72.75, 112.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -192,6 +202,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [360.4, 73.74, 130.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },

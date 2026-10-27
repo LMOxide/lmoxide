@@ -299,7 +299,8 @@ impl Templates {
                 }
             }
         }
-        if !e["cars_group"].is_null() && e["cars_group"] != base["cars_group"] {
+        // (null: this placement has none, though its template has)
+        if e["cars_group"] != base["cars_group"] {
             o.insert("render".into(), json!({ "cars_group": e["cars_group"] }));
         }
         (!o.is_empty()).then_some(Value::Object(o))
@@ -907,6 +908,7 @@ fn npc_spawn(
         template: Some(template.to_string()),
         pos: vec3(&e["pos"]).unwrap_or_default(),
         rot: rot(&e["rot"]),
+        anchor: str_of(&e["anchor"]),
         scale: 1.0,
         overrides: t.overrides(template, e, "stats"),
         patrol: e["patrol"]

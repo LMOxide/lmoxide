@@ -1261,6 +1261,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [160.0, 43.23, 304.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1297,6 +1302,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [96.8, 51.26, 460.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1333,6 +1343,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [434.4, 98.56, 470.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1369,6 +1384,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [253.5, 73.07, 380.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1405,6 +1425,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [133.8, 43.65, 334.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "ba_MinotaurMaze_Spawn",
       "source": "proposed"
     },
@@ -1441,6 +1466,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [234.9, 48.54, 309.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Ogre_Mountains",
       "source": "proposed"
     },
@@ -1477,6 +1507,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [334.5, 86.69, 394.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "BA_Undead_Ritual",
       "source": "proposed"
     },
@@ -1513,6 +1548,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [57.3, 48.84, 470.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Harpy",
       "source": "proposed"
     },
@@ -1549,6 +1589,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [144.4, 40.65, 399.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Satyr",
       "source": "proposed"
     },
@@ -1612,6 +1657,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [276.8, 60.86, 307.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Ogre_Mountains",
       "source": "proposed"
     },
@@ -1648,6 +1698,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [282.9, 72.42, 364.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },

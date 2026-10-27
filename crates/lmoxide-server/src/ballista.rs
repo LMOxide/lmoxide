@@ -185,6 +185,7 @@ pub fn start() {
                 fights: false,
                 faction: None,
                 patrol: Vec::new(),
+                loot: None,
                 source: None,
                 rot: None,
             };

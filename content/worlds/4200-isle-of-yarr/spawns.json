@@ -2649,6 +2649,7 @@
       "kind": "enemy",
       "template": "npc/pirate-specter",
       "pos": [120.0, 70.7, 106.0],
+      "anchor": "Res_JacketBridge",
       "fight": "enemy",
       "source": "server"
     },
@@ -2658,6 +2659,7 @@
       "kind": "enemy",
       "template": "npc/pirate-specter-2",
       "pos": [122.2, 70.75, 107.2],
+      "anchor": "Res_JacketBridge",
       "fight": "enemy",
       "source": "server"
     },
@@ -2667,6 +2669,7 @@
       "kind": "enemy",
       "template": "npc/pirate-specter",
       "pos": [121.0, 70.75, 104.0],
+      "anchor": "Res_JacketBridge",
       "fight": "enemy",
       "source": "server"
     },
@@ -5282,6 +5285,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [369.9, 73.63, 361.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -5417,6 +5425,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [303.4, 72.51, 297.15],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Fort",
       "source": "proposed"
     },
@@ -5471,6 +5484,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [374.65, 66.33, 266.15],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -5552,6 +5570,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [427.65, 67.17, 302.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -5579,6 +5602,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [457.65, 67.15, 226.65],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_TreasureHunt",
       "source": "proposed"
     },

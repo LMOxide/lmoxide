@@ -3,11 +3,6 @@
     "Combat": {
       "additionalProperties": false,
       "properties": {
-        "empowered_normals": {
-          "description": "Damage of normals while empowered.",
-          "format": "float",
-          "type": "number"
-        },
         "health_per_level": {
           "format": "float",
           "type": "number"
@@ -26,12 +21,16 @@
           "format": "float",
           "type": "number"
         },
+        "this_attack": {
+          "$ref": "#/$defs/Duration",
+          "description": "How long \"this attack\" lasts for procs that change an attack's hits (an area attack\nhits several enemies): Berserker's strike, Knockback."
+        },
         "variance": {
           "$ref": "#/$defs/Ratio",
           "description": "Damage varies by this share either way."
         }
       },
-      "required": ["level", "health_per_level", "star_factor", "power_rating_all", "variance", "empowered_normals"],
+      "required": ["level", "health_per_level", "star_factor", "power_rating_all", "variance", "this_attack"],
       "type": "object"
     },
     "Duration": {

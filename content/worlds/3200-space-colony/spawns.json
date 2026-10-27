@@ -1792,6 +1792,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [480.3, 120.48, 29.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1828,6 +1833,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [196.4, 138.01, 255.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1864,6 +1874,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [334.5, 125.1, 396.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1900,6 +1915,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [500.3, 118.65, 128.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "BA_Biosquare_Ambush_3",
       "source": "proposed"
     },
@@ -1936,6 +1956,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [425.9, 127.02, 451.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_SpaceTown",
       "source": "proposed"
     },
@@ -1972,6 +1997,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [381.5, 126.75, 434.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_SpaceTown",
       "source": "proposed"
     },
@@ -2008,6 +2038,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [307.3, 112.54, 65.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Mercs",
       "source": "proposed"
     },
@@ -2044,6 +2079,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [405.4, 127.06, 490.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_SpaceTown",
       "source": "proposed"
     },
@@ -2080,6 +2120,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [291.0, 108.69, 114.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Mercs",
       "source": "proposed"
     },
@@ -2116,6 +2161,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [481.8, 120.43, 71.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -2152,6 +2202,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [257.9, 120.55, 362.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_CrystalMine",
       "source": "proposed"
     },
@@ -2188,6 +2243,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [467.0, 118.55, 229.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Biodome",
       "source": "proposed"
     },
@@ -2224,6 +2284,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [462.3, 128.84, 468.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_SpaceTown",
       "source": "proposed"
     },
@@ -2260,6 +2325,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [302.4, 133.03, 224.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -2296,6 +2366,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [191.5, 128.14, 365.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_CrystalMine",
       "source": "proposed"
     },
@@ -2332,6 +2407,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [231.8, 96.78, 37.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Colonists",
       "source": "proposed"
     },
@@ -2368,6 +2448,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [283.4, 120.96, 331.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_CrystalMine",
       "source": "proposed"
     },
@@ -2404,6 +2489,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [460.5, 118.65, 111.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Biodome",
       "source": "proposed"
     },
@@ -2440,6 +2530,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [223.8, 120.79, 347.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_CrystalMine",
       "source": "proposed"
     },
@@ -2476,6 +2571,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [432.9, 118.44, 242.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Biodome",
       "source": "proposed"
     },
@@ -2512,6 +2612,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [231.0, 127.19, 384.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_CrystalMine",
       "source": "proposed"
     },
@@ -2548,6 +2653,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [366.8, 128.9, 467.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_SpaceTown",
       "source": "proposed"
     },
@@ -2584,6 +2694,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [500.4, 118.76, 208.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Biodome",
       "source": "proposed"
     },

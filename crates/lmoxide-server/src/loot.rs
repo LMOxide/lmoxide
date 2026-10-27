@@ -450,7 +450,8 @@ pub fn test_items(kind: &str, playfield: u32) -> Vec<u32> {
 
 /// Loot for a kill: a bag for the killer and one for each teammate in play nearby, each
 /// rolled separately.
-pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, source: Source) {
+/// `table`: the dropper's own loot table instead of `source`'s.
+pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, source: Source, table: Option<&str>) {
     let mut owners = vec![killer];
     for mate in crate::community::teammates(killer.instance) {
         let id = Id32::new(killer.kind, mate);
@@ -459,7 +460,16 @@ pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, sou
         }
     }
     for owner in owners {
-        drop_items(owner, playfield, pos, dropper, roll(source, crate::procs::orb_bonus(owner), playfield));
+        let bonus = crate::procs::orb_bonus(owner);
+        let items = match table {
+            Some(t) => {
+                let mut items = Vec::new();
+                roll_table(t, bonus, playfield, 0, &mut items);
+                items
+            }
+            None => roll(source, bonus, playfield),
+        };
+        drop_items(owner, playfield, pos, dropper, items);
     }
 }
 

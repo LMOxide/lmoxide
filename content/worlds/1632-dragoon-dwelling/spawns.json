@@ -249,6 +249,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [139.4, 62.32, 86.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "BA_SpawnChampion",
       "source": "proposed"
     },
@@ -303,6 +308,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [157.9, 69.07, 141.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "BA_SpawnChampion",
       "source": "proposed"
     },

@@ -785,6 +785,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [201.3, 41.3, 258.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -821,6 +826,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [447.4, 122.09, 276.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -857,6 +867,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [66.0, 496.15, 146.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Swamp",
       "source": "proposed"
     },
@@ -893,6 +908,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [448.8, 124.38, 374.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Refinery",
       "source": "proposed"
     },
@@ -929,6 +949,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [71.4, 495.81, 101.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Swamp",
       "source": "proposed"
     },
@@ -965,6 +990,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [145.5, 508.62, 228.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Ruins",
       "source": "proposed"
     },
@@ -1001,6 +1031,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [422.3, 124.52, 339.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Refinery",
       "source": "proposed"
     },
@@ -1037,6 +1072,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [109.4, 503.19, 200.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Ruins",
       "source": "proposed"
     },
@@ -1073,6 +1113,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [409.5, 123.11, 482.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_AlienBase",
       "source": "proposed"
     },
@@ -1109,6 +1154,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [156.8, 514.96, 262.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Ruins",
       "source": "proposed"
     },
@@ -1145,6 +1195,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [96.9, 495.0, 65.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },

@@ -90,16 +90,11 @@ pub fn level_cap(playfield: u32) -> u32 {
 pub fn combat_cap(playfield: u32) -> u32 {
     static ENEMY_LEVELS: std::sync::LazyLock<std::collections::HashMap<u32, u32>> = std::sync::LazyLock::new(|| {
         let mut m = std::collections::HashMap::new();
-        let world: std::collections::HashMap<String, serde_json::Value> =
-            serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
-        let spawns: std::collections::HashMap<String, serde_json::Value> =
-            serde_json::from_str(include_str!("../../../data/spawns.json")).expect("spawns.json");
-        for (pf, v) in world.iter().map(|(k, v)| (k, &v["enemies"])).chain(spawns.iter().map(|(k, v)| (k, v))) {
+        for (pf, defs) in crate::spawns::table() {
             let Ok(pf) = pf.parse::<u32>() else { continue };
-            for e in v.as_array().into_iter().flatten() {
-                let level = e["level"].as_u64().unwrap_or(0) as u32;
+            for d in defs.iter().filter(|d| d.kind == crate::npc::Kind::Enemy) {
                 let top = m.entry(pf).or_insert(0);
-                *top = (*top).max(level);
+                *top = (*top).max(d.level);
             }
         }
         m

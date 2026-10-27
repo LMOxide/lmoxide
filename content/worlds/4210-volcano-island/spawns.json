@@ -1230,6 +1230,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [163.15, 74.41, 49.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1284,6 +1289,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [384.65, 82.15, 398.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1338,6 +1348,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [169.65, 86.43, 311.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1392,6 +1407,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [176.4, 99.47, 394.65],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1446,6 +1466,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [235.65, 92.35, 200.65],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_PirateFort",
       "source": "proposed"
     },
@@ -1500,6 +1525,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [108.15, 74.15, 170.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1554,6 +1584,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [220.9, 99.5, 399.65],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1608,6 +1643,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [209.9, 86.54, 289.15],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1662,6 +1702,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [418.4, 78.95, 352.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_ScorchedCity",
       "source": "proposed"
     },
@@ -1716,6 +1761,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [215.15, 74.35, 77.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Native",
       "source": "proposed"
     },
@@ -1770,6 +1820,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [179.4, 74.94, 85.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },

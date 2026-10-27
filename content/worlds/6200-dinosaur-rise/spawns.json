@@ -1508,6 +1508,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [427.4, 74.65, 149.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Tarpit",
       "source": "proposed"
     },
@@ -1544,6 +1549,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [41.5, 78.7, 210.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Volcano",
       "source": "proposed"
     },
@@ -1598,6 +1608,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [230.0, 62.79, 132.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
@@ -1634,6 +1649,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [292.8, 80.57, 247.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Tarpit",
       "source": "proposed"
     },
@@ -1670,6 +1690,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [347.9, 82.66, 236.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Tarpit",
       "source": "proposed"
     },
@@ -1706,6 +1731,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [318.0, 80.67, 200.0],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Tarpit",
       "source": "proposed"
     },
@@ -1742,6 +1772,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [237.8, 39.63, 54.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Pond",
       "source": "proposed"
     },
@@ -1778,6 +1813,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [137.4, 62.65, 141.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Swamp",
       "source": "proposed"
     },
@@ -1832,6 +1872,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [412.3, 74.65, 186.7],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Tarpit",
       "source": "proposed"
     },
@@ -1868,6 +1913,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [94.9, 62.34, 79.4],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Swamp",
       "source": "proposed"
     },
@@ -1904,6 +1954,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [392.0, 75.11, 153.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Tarpit",
       "source": "proposed"
     },
@@ -1940,6 +1995,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [208.8, 39.33, 36.2],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "Quest_Pond",
       "source": "proposed"
     },
@@ -1976,6 +2036,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [175.9, 64.73, 147.9],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "ClearHate_DinoHub",
       "source": "proposed"
     },
@@ -2012,6 +2077,11 @@
       "kind": "smashable",
       "template": "object/xx-crate",
       "pos": [158.5, 65.17, 173.5],
+      "overrides": {
+        "render": {
+          "cars_group": null
+        }
+      },
       "anchor": "navmesh",
       "source": "proposed"
     },
