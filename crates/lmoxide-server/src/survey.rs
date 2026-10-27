@@ -56,10 +56,13 @@ const MATCH_DISTANCE: f32 = 1.0;
 /// What marks a selected character: the champions' looping feet aura
 /// (particle_generic_champion_aura, "XX_champion feet aura castable").
 const SELECT_EFFECT: u32 = 162435;
-/// What marks a selected smashable (simple dynels show no effects): a looping ground marker
-/// (Particle_Dev_SpeedBoost_With_Marker) at its spot. The feet aura played there showed on the
-/// surveyor instead (its parts target the owner).
-const SELECT_GROUND_EFFECT: u32 = 222321;
+/// Selected smashables and trigger walls show no effects themselves (simple dynels), and the
+/// feet aura played at a ground spot shows on its owner: they get an invisible character at
+/// their spot ("invisible_monsterdata", the marker dynels' mesh), sent only to the surveyor,
+/// wearing the aura.
+const INVISIBLE_LOOK: u32 = 51057;
+/// Character instances of those helpers (the client's NPC range, under 16,000,000).
+static NEXT_HELPER: AtomicU32 = AtomicU32::new(0x00f0_0000);
 /// CARS group that lets players attack (select) friendly NPCs in survey mode.
 const CARS_ATTACKABLE: u32 = 3;
 
@@ -84,8 +87,9 @@ struct Surveyor {
     /// script id -> wave id or "all"
     shown: HashMap<String, String>,
     wearing: Option<Placeable>,
-    /// The running selection marker: its owner (the record identity), package and instance.
-    marker: Option<(Id32, u32, u32)>,
+    /// The running selection marker: the character wearing it (the helper's, if one was
+    /// spawned for this surveyor) and the effect instance.
+    marker: Option<(Id32, u32, bool)>,
 }
 
 struct State {
@@ -552,25 +556,45 @@ fn sync_all(st: &State) {
 fn mark(st: &mut State, viewer: Id32) {
     let selected = st.surveyors.get(&viewer).and_then(|s| s.selected.clone());
     // (a trigger wall: a ground marker at its foot, as a smashable's)
-    let target = selected.as_ref().and_then(|id| st.objects.get(id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos))).or_else(|| {
+    // (a trigger wall: as a smashable, at its foot)
+    let target = selected.as_ref().and_then(|id| st.objects.get(id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos, o.playfield))).or_else(|| {
         let w = st.walls.get(selected.as_ref()?)?;
-        Some((w.pieces.first()?.0, Kind::Smashable, w.def.pos))
+        Some((w.pieces.first()?.0, Kind::Smashable, w.def.pos, w.playfield))
     });
     let Some(s) = st.surveyors.get_mut(&viewer) else { return };
     let mut records = Vec::new();
-    if let Some((owner, package, instance)) = s.marker.take() {
-        records.push(crate::effects::stop_effect_package(owner, package, 0, instance));
-    }
-    if let Some((npc, kind, pos)) = target {
-        let instance = crate::effects::new_instance();
-        if kind == Kind::Smashable {
-            // at its spot, owned by the surveyor
-            records.push(crate::effects::ground_effect(viewer, SELECT_GROUND_EFFECT, pos, 0, instance));
-            s.marker = Some((viewer, SELECT_GROUND_EFFECT, instance));
-        } else {
-            records.push(crate::effects::effect_package_hook(npc, SELECT_EFFECT, "", "", 0.0, 0, instance));
-            s.marker = Some((npc, SELECT_EFFECT, instance));
+    if let Some((wearer, instance, helper)) = s.marker.take() {
+        records.push(crate::effects::stop_effect_package(wearer, SELECT_EFFECT, 0, instance));
+        if helper {
+            records.push(crate::game::despawn_record(wearer));
         }
+    }
+    if let Some((npc, kind, pos, playfield)) = target {
+        let instance = crate::effects::new_instance();
+        let wearer = if kind == Kind::Smashable {
+            let helper = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_HELPER.fetch_add(1, Ordering::Relaxed));
+            records.extend(crate::game::remote_spawn_records(
+                helper,
+                &crate::game::CharSpec {
+                    name: "",
+                    playfield,
+                    pos,
+                    monster_data: INVISIBLE_LOOK,
+                    level: 1,
+                    health: 1,
+                    max_health: 1,
+                    // nobody can target it (attacks select what is under it)
+                    cars_group: 5,
+                    npc: Some(lmoxide_net::proto::proto_core_character_iir::NpcStats { template_id: Some(INVISIBLE_LOOK), ..Default::default() }),
+                    speeds: &[],
+                },
+            ));
+            helper
+        } else {
+            npc
+        };
+        records.push(crate::effects::effect_package_hook(wearer, SELECT_EFFECT, "", "", 0.0, 0, instance));
+        s.marker = Some((wearer, instance, kind == Kind::Smashable));
     }
     if !records.is_empty() {
         world::send_to(viewer, world::Out::Records(records));

@@ -210,8 +210,10 @@ In survey mode:
 - Guessed objects are named `[guess] <name>` and surveyed ones `[surveyed] <name>` (a custom NPC
   name, Flags stat 0x8000), so the category shows in game. Friendly NPCs get CARS group 3 so they
   can be attacked (selected), and everything shows its recorded facing.
-- The selected character wears the champions' feet aura (effect 162435); a selected smashable
-  gets a ground marker at its spot (222321), shown only to the surveyor who selected it.
+- The selected character wears the champions' feet aura (effect 162435), shown only to the
+  surveyor who selected it. Smashables and trigger walls can't show effects themselves: an
+  invisible character ("invisible_monsterdata" 51057, sent only to that surveyor) stands at their
+  spot wearing it.
 - Hides are per surveyor and held in memory (`HIDDEN` in survey.rs: what isn't sent to them).
 - Edits respawn the object under a new NPC id (the client needs ~1.5 s before an id is reused).
 - Not yet: placing or wearing buildies and interactables (they aren't NPCs; the catalog lists
