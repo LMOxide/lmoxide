@@ -244,7 +244,7 @@ async fn serve(cfg: Config, db: Arc<Db>) -> anyhow::Result<()> {
         let origins: Vec<HeaderValue> = cfg.cors_origins.iter().filter_map(|o| o.parse().ok()).collect();
         CorsLayer::new()
             .allow_origin(AllowOrigin::list(origins))
-            .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
+            .allow_methods([Method::GET, Method::POST, Method::PUT, Method::PATCH, Method::DELETE])
             .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE])
             .expose_headers([header::HeaderName::from_static(routes::TOTAL_COUNT)])
             .max_age(Duration::from_secs(3600))
@@ -256,6 +256,10 @@ async fn serve(cfg: Config, db: Arc<Db>) -> anyhow::Result<()> {
     let doc = Arc::new(doc);
     let mut app: Router = api
         .route("/v1/openapi.json", get(move || std::future::ready(Json(doc.as_ref().clone()))))
+        .route(
+            "/v1/survey/{*path}",
+            axum::routing::any(routes::survey).layer(axum::extract::DefaultBodyLimit::max(routes::SURVEY_BODY_LIMIT)),
+        )
         .layer(axum::middleware::from_fn_with_state(state.clone(), auth::rate_limit))
         .with_state(state)
         .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))

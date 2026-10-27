@@ -3,7 +3,8 @@
 #   tools/dev-run.sh <client-dir> [log-dir]
 # <client-dir> is an extracted "LEGO Minifigures Online" folder (with RDB/).
 # LMOXIDE_LAN_SERVER=1: start only the client, against the running LAN server (tools/lan-server.sh,
-# standard ports), so others on the LAN can join the same test world.
+# standard ports), so others on the LAN can join the same test world. LMOXIDE_HTTP_PORT=8081: the
+# survey server next to it (tools/survey-server.sh) instead.
 set -euo pipefail
 CLIENT=${1:?usage: dev-run.sh <client-dir> [log-dir]}
 LOGS=${2:-/tmp}
@@ -16,7 +17,7 @@ UPSTREAM=${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}
 DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
 # LMOXIDE_SIDE_PORTS=1: ports 17100-17102, chat 17200, control 17300, HTTP 18080, so a test run
 # doesn't collide with a LAN server (tools/lan-server.sh) on the standard ports.
-HTTP=8080
+HTTP=${LMOXIDE_HTTP_PORT:-8080}
 # The patch server deletes blobs its own manifests don't use, so a test run never shares the LAN
 # server's (tools/lan-server.sh) var/patch-data: side-port runs get their own.
 PATCH_DATA=$VAR/patch-data

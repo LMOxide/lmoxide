@@ -36,6 +36,7 @@ mod shop;
 mod smash;
 mod state;
 mod store;
+mod survey;
 mod teleport;
 mod tiki;
 mod tutorial;
@@ -122,11 +123,22 @@ pub struct Config {
     /// GM level needed for the test commands typed into chat (`!tp`, `!goto`, ...).
     #[arg(long, env = "LMOXIDE_DEVCMD_GM_LEVEL", default_value_t = 1)]
     pub devcmd_gm_level: u32,
-    /// Character progression: characters start at level 1 and level up from defeated enemies
-    /// (capped per world), minifigures start at rank 0 and are ranked up with stars. Off: every
-    /// character is at the level cap with every minifigure fully ranked.
+    /// What kind of server this is: `play` (every character at the level cap with every
+    /// minifigure fully ranked), `progression` (characters level up from level 1, see
+    /// --progression) or `survey` (nothing moves or attacks; surveyors place and mark content
+    /// from the web UI, docs/SURVEY.md). Run one server per mode, on its own ports and data dir.
+    #[arg(long, env = "LMOXIDE_MODE", value_enum, default_value_t = Mode::Play)]
+    pub mode: Mode,
+    /// Character progression (the same as `--mode progression`): characters start at level 1
+    /// and level up from defeated enemies (capped per world), minifigures start at rank 0 and are
+    /// ranked up with stars. Off: every character is at the level cap with every minifigure
+    /// fully ranked.
     #[arg(long, env = "LMOXIDE_PROGRESSION")]
     pub progression: bool,
+    /// Survey mode: the survey set's folder (default <data-dir>/survey). It is saved as
+    /// surveyors work; export and import go through the web UI.
+    #[arg(long, env = "LMOXIDE_SURVEY_SET")]
+    pub survey_set: Option<PathBuf>,
     /// How players' straight shots are aimed at the enemy they target: where it is when the
     /// shot leaves (`current`), or where it will be when the shot gets there (`lead`).
     #[arg(long, env = "LMOXIDE_SHOT_AIM", value_enum, default_value_t = projectile::Aim::Current)]
@@ -153,10 +165,22 @@ pub struct Config {
     /// clients (default <data-dir>/login-public-key.txt).
     #[arg(long, env = "LMOXIDE_LOGIN_PUBLIC_KEY_FILE")]
     pub login_public_key_file: Option<PathBuf>,
+    /// Use the login key of another server's database (e.g. the play server's, for a survey
+    /// server next to it), so clients patched for that server log in here too. Copied into
+    /// this server's database at startup.
+    #[arg(long, env = "LMOXIDE_SHARE_LOGIN_KEY")]
+    pub share_login_key: Option<PathBuf>,
     /// Add a server-side character that walks around the start position (for testing what
     /// other players look like).
     #[arg(long, env = "LMOXIDE_BOT")]
     pub bot: bool,
+}
+
+#[derive(clap::ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    Play,
+    Progression,
+    Survey,
 }
 
 impl Config {
@@ -182,6 +206,10 @@ fn main() -> anyhow::Result<()> {
 
 async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     let db = Arc::new(storage.open()?);
+    if let Some(path) = &cfg.share_login_key {
+        let other = lmoxide_db::Db::open(path).map_err(|e| anyhow::anyhow!("opening {}: {e}", path.display()))?;
+        admin::share_login_key(&other, &db)?;
+    }
     let key = admin::login_key(&db, false)?;
     let key_file = cfg.login_public_key_file.clone().unwrap_or_else(|| storage.data_dir.join("login-public-key.txt"));
     if let Some(dir) = key_file.parent() {
@@ -194,6 +222,17 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     }
     state::init(db, key);
     state::set_data_dir(storage.data_dir.clone());
+    let mut cfg = cfg;
+    if cfg.mode == Mode::Progression {
+        cfg.progression = true;
+    }
+    if cfg.mode == Mode::Survey {
+        anyhow::ensure!(!cfg.progression, "survey servers have no progression: drop --progression");
+        // surveyors teleport and use the test commands
+        cfg.default_gm_level = cfg.default_gm_level.max(cfg.devcmd_gm_level).max(1);
+        let dir = cfg.survey_set.clone().unwrap_or_else(|| storage.data_dir.join("survey"));
+        survey::init(dir);
+    }
     progression::set_enabled(cfg.progression);
     for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {
         anyhow::ensure!(projectile::set_player_aim(shots, aim), "aim {} isn't implemented yet", aim.name());
@@ -232,7 +271,10 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     pistons::start();
     tiki::start();
     ballista::start();
-    encounter::start();
+    if cfg.mode != Mode::Survey {
+        // arenas close doors and spawn adds
+        encounter::start();
+    }
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(cfg.start_playfield));

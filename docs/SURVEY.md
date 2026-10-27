@@ -6,8 +6,23 @@ edit or delete the guessed content, and mark areas (missions, achievements, dial
 comments) for someone to review later. Each surveyor's work is saved in files that others can
 import and merge.
 
-Status: being planned. The `lmoxide-survey` crate (file formats, ids, merging, applying to the
-existing content) is the first step; the steps after it are below.
+Status: steps 1–4 work (tested with the Linux client and the survey page). Run one next to the
+LAN server with `tools/survey-server.sh` (ports below); the page is `survey.html` of
+lmoxide-debug-browser (branch `survey`).
+
+## Running
+
+`lmoxide-server --mode survey --survey-set <dir>` (default `<data-dir>/survey`): its own data dir,
+so survey characters are separate from play characters; every account is GM; nothing moves or
+attacks. `--share-login-key <play server's database>` gives it the play server's login key, so
+the same patched clients log in.
+
+`tools/survey-server.sh` does all of it next to `tools/lan-server.sh`: game server 7110–7112,
+chat 7210, control 127.0.0.1:7310, patch server 8081 (`lmo <name> <lan-ip>:8081`), API 8091
+(every account gets the admin scope there: keep it to the LAN), the page on 5175
+(`http://<lan-ip>:5175/survey.html`). Data: `var/survey-data`, the set: `var/survey-set`.
+`tools/survey-server.sh --restart` rebuilds and restarts the game server and API; the set is
+loaded again.
 
 ## Content categories
 
@@ -171,8 +186,14 @@ In survey mode:
 - The selected NPC shows an aura. A selected smashable or buildie gets a ground effect at its
   position, because simple dynels can't show effects.
 - Guessed objects are named `[guess] <name>` and surveyed ones `[surveyed] <name>` (a custom NPC
-  name, Flags stat 0x8000), so the category shows in game.
-- Hides are per surveyor and held in memory.
+  name, Flags stat 0x8000), so the category shows in game. Friendly NPCs get CARS group 3 so they
+  can be attacked (selected), and everything shows its recorded facing.
+- The selected character wears the champions' feet aura (effect 162435); a selected smashable
+  gets a ground marker at its spot (222321), shown only to the surveyor who selected it.
+- Hides are per surveyor and held in memory (`HIDDEN` in survey.rs: what isn't sent to them).
+- Edits respawn the object under a new NPC id (the client needs ~1.5 s before an id is reused).
+- Not yet: placing or wearing buildies and interactables (they aren't NPCs; the catalog lists
+  enemies, NPCs and smashables), showing patrol routes in game, play servers using a set.
 
 ## API
 
@@ -211,26 +232,29 @@ changes, so changes made in game (a selection by attacking, someone else's edit)
 
 ## Steps
 
-1. **`lmoxide-survey` crate** (no server changes): formats, ids, load/save, merge and its report,
-   and `apply` (base content + sets → what to spawn, with categories; what waves spawn). Unit tests.
-2. **Survey mode in the server**: `--mode`, frozen AI, no damage, maxed survey characters, GM,
-   the categories in names, select by attack, selection marker, hide/unhide. Wait for the
-   live-capture import (other session: `world_content.json`, `extract_world_content.py`,
-   `npc_fights.json`) to land first, since this changes `npc.rs` spawning.
-3. **Placing**: `!skin` to wear enemy and NPC looks. A ghost object for buildies and
-   interactables, which can't be worn. Place / confirm / edit / delete. Moving NPCs live;
-   simple dynels respawn under a new id (the client needs about 1.5 s before an id can be reused).
-   The server saves to the active set as it goes.
-4. **Control routes and API**: the routes above on the control interface, proxied by
-   `lmoxide-api` (`openapi.json`). The survey page in `lmoxide-debug-browser` (branch `survey`)
-   is built against them and works with an in-memory mock (`survey.html?mock`) until then.
-5. **Notes, scripts and waves** on the server (the page has them). "Preview wave" spawns one wave;
-   each surveyor sees one wave of each script at a time. Patrol routes are shown in game while
-   the patroller is selected (markers at the points), and patrol in play servers as now.
-6. **Import / merge** routes (the page's preview and import are done).
-7. **Play servers use accepted sets**: `data/survey/<set>/` is applied over the base content at
-   startup. Placements with a wave aren't spawned until their (reviewed, implemented) trigger.
-8. **Hosting**: `lan-server.sh --modes play,survey`, docker-compose services per mode.
+Done:
+
+1. **`lmoxide-survey` crate**: formats, ids, load/save, merge and its report, and `apply` (base
+   content + sets → what to spawn, with categories; what waves spawn). Unit tests.
+2. **Survey mode in the server** (`survey.rs`, hooks in `npc.rs` and `world.rs`): `--mode`,
+   frozen AI, no damage, maxed survey characters, GM, categories in names, select by attack,
+   selection markers, per-surveyor hiding and shown waves, `--share-login-key`.
+3. **Placing**: wear a look (`!skin`), place, confirm, edit (position, heading, level, name,
+   comment, wave, patrol, change into another spawn), delete; the set is saved as it goes.
+4. **Control routes and API**: the routes above (survey.rs `routes`), passed on by `lmoxide-api`.
+5. **Notes, scripts and waves** stored and shown per wave; "Preview" spawns a wave again.
+6. **Import / export** with the merge preview.
+7. **Hosting**: `tools/survey-server.sh` next to the LAN server; `lmo <name> <ip>:<port>`.
+
+Next:
+
+8. **Buildies and interactables**: placing them (ghosts to wear), editing and hiding them (they
+   are buildie.rs / scenery.rs objects, not NPCs).
+9. **Patrol routes in game**: markers at the selected patroller's points.
+10. **Play servers use accepted sets**: a reviewed set (e.g. `data/survey/<set>/`) applied over
+    the base content at startup with `lmoxide_survey::apply`. Placements with a wave aren't
+    spawned until their (reviewed, implemented) trigger.
+11. **docker-compose** service for a survey server.
 
 Open research, separate from the steps: whether the client lets GMs zoom freely (Linux symbols),
 and the client's dimension list as a server picker (not needed now).

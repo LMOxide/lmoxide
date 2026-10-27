@@ -157,6 +157,17 @@ fn read_password() -> anyhow::Result<String> {
 const LOGIN_KEY_SETTING: &str = "login_private_key";
 
 /// The server's login key, created and stored in the database on first use.
+/// Gives `db` the login key of `from` (creating one there if it has none).
+pub fn share_login_key(from: &Db, db: &Db) -> anyhow::Result<()> {
+    let key = login_key(from, false)?;
+    if db.setting(LOGIN_KEY_SETTING)?.as_deref() != Some(key.private_hex().as_str()) {
+        db.set_setting(LOGIN_KEY_SETTING, &key.private_hex())?;
+        db.audit("cli", "login-key-share", None, None)?;
+        tracing::info!("login key copied from the shared database");
+    }
+    Ok(())
+}
+
 pub fn login_key(db: &Db, regenerate: bool) -> anyhow::Result<LoginKey> {
     if !regenerate && let Some(hex) = db.setting(LOGIN_KEY_SETTING)? {
         return LoginKey::from_private_hex(&hex).map_err(|e| anyhow::anyhow!("stored login key: {e}"));

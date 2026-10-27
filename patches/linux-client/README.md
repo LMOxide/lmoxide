@@ -36,6 +36,8 @@ Options: `--dir <install dir>` (default `~/Games/LMO`), `--zip <file>` (an alrea
 Needs `curl`, `unzip`, `python3`; the installer lists missing system libraries.
 
 Any username works and creates its own character; there is no password.
+`lmo <username> <server-ip>:<port>` picks another server on that PC by its HTTP port (default
+8080), e.g. a survey server (`tools/survey-server.sh`, port 8081).
 
 ## Update
 

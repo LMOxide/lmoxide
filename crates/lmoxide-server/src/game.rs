@@ -426,6 +426,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if let Some(yaw) = (kind == "CharDCMoveIIR_t").then(|| reported_facing(rest)).flatten() {
                             heading = yaw;
                             *facing.lock().unwrap() = yaw;
+                            world::set_facing(h.identity, yaw);
                         }
                         // the other players get the record as it is, as the original server echoed
                         // it: keyboard movement (CharDCMoveIIR_t) carries the velocity the other
@@ -440,6 +441,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if kind == "MoveTaskIIR_c" && moved > 0.2 {
                                 heading = [dx / moved, dz / moved];
                                 *facing.lock().unwrap() = heading;
+                                world::set_facing(h.identity, heading);
                             }
                             *pos.lock().unwrap() = p;
                             // where they are between reports (what enemy shots hit)

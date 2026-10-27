@@ -1360,6 +1360,7 @@ dependencies = [
  "lmoxide-control",
  "lmoxide-db",
  "lmoxide-net",
+ "lmoxide-survey",
  "prost",
  "rand 0.9.5",
  "rpassword",

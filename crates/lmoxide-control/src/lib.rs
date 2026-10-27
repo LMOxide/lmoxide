@@ -14,6 +14,7 @@
 //! | GET | `/v1/test-commands` | | [`TestCatalog`] |
 //! | POST | `/v1/broadcast` | [`Broadcast`] | [`Done`] |
 //! | POST | `/v1/maintenance` | [`Maintenance`] | [`Status`] |
+//! | any | `/v1/survey/...` | | survey servers (lmoxide-server's survey.rs, docs/SURVEY.md "API"): [`Client::survey`] |
 
 use serde::{Deserialize, Serialize};
 
@@ -234,6 +235,22 @@ impl Client {
 
     pub async fn maintenance(&self, m: &Maintenance) -> Result<Status, Error> {
         self.send(self.http.post(format!("{}/v1/maintenance", self.base)).json(m)).await
+    }
+
+    /// Sends a `/v1/survey` request on as it is (lmoxide-api's survey pass-through), with who
+    /// made it (`X-Lmoxide-Actor`): the answer's status, content type and body, errors included.
+    pub async fn survey(&self, method: &str, path_and_query: &str, actor: &str, body: Vec<u8>) -> Result<(u16, Option<String>, Vec<u8>), Error> {
+        let method = reqwest::Method::from_bytes(method.as_bytes()).unwrap_or(reqwest::Method::GET);
+        let mut req = self.http.request(method, format!("{}/v1/survey/{}", self.base, path_and_query.trim_start_matches('/')));
+        req = req.bearer_auth(&self.token).header("x-lmoxide-actor", actor);
+        if !body.is_empty() {
+            req = req.header(reqwest::header::CONTENT_TYPE, "application/json").body(body);
+        }
+        let resp = req.send().await.map_err(Error::Unreachable)?;
+        let status = resp.status().as_u16();
+        let content_type = resp.headers().get(reqwest::header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).map(str::to_string);
+        let body = resp.bytes().await.map_err(Error::Decode)?.to_vec();
+        Ok((status, content_type, body))
     }
 }
 

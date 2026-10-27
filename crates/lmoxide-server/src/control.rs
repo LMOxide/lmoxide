@@ -17,6 +17,9 @@ use tracing::info;
 
 use crate::{sessions, state};
 
+/// Largest survey request (an imported set).
+pub const SURVEY_BODY_LIMIT: usize = 16 * 1024 * 1024;
+
 /// Shortest control token accepted.
 pub const MIN_TOKEN_LEN: usize = 32;
 
@@ -30,8 +33,10 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .route("/v1/test-commands", get(test_commands))
         .route("/v1/broadcast", post(broadcast))
         .route("/v1/maintenance", post(maintenance))
-        .layer(middleware::from_fn_with_state(token, auth))
-        .layer(axum::extract::DefaultBodyLimit::max(64 * 1024));
+        .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
+        // survey imports carry whole sets
+        .merge(crate::survey::routes().layer(axum::extract::DefaultBodyLimit::max(SURVEY_BODY_LIMIT)))
+        .layer(middleware::from_fn_with_state(token, auth));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     info!("control interface listening on {addr}");
     axum::serve(listener, app).await?;

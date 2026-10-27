@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
 # LEGO Minifigures Online launcher (installed into the client folder by the lmo client kit).
-#   lmo <username> [server-ip]
+#   lmo <username> [server-ip[:port]]
 # Any username works (a new one gets a new character); there is no password.
-# The server defaults to the one the kit was applied with (lmo-kit.conf).
+# The server defaults to the one the kit was applied with (lmo-kit.conf). The port is its HTTP
+# port (default 8080); another one picks another server on the same PC (a survey server: 8081).
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 source ./lmo-kit.conf
-USER_NAME=${1:?usage: lmo <username> [server-ip]}
+USER_NAME=${1:?usage: lmo <username> [server-ip[:port]]}
 SERVER=${2:-$LMO_SERVER}
-if [[ $SERVER != "$LMO_SERVER" ]]; then
-  echo "note: chat is set up for $LMO_SERVER; for $SERVER re-run apply.sh with --server $SERVER" >&2
+HOST=${SERVER%%:*}
+PORT=8080
+[[ $SERVER == *:* ]] && PORT=${SERVER##*:}
+if [[ $HOST != "$LMO_SERVER" ]]; then
+  echo "note: chat is set up for $LMO_SERVER; for $HOST re-run apply.sh with --server $HOST" >&2
 fi
 # What Funcom's launcher used to fetch: the server's addresses for every service.
-curl -sf --max-time 5 "http://$SERVER:8080/control/lmo_live/LocalConfig.xml" >LocalConfig.xml.new \
-  || { echo "can't reach lmoxide-server at http://$SERVER:8080 (running? firewall?)" >&2; rm -f LocalConfig.xml.new; exit 1; }
+curl -sf --max-time 5 "http://$HOST:$PORT/control/lmo_live/LocalConfig.xml" >LocalConfig.xml.new \
+  || { echo "can't reach lmoxide-server at http://$HOST:$PORT (running? firewall?)" >&2; rm -f LocalConfig.xml.new; exit 1; }
 mv LocalConfig.xml.new LocalConfig.xml
 # SDL_VIDEODRIVER=x11: the 2016 build needs GLX; sdl2-compat would pick Wayland/EGL and the
 # renderer crashes in gl3wInit. liblmofixes.so by bare name (found through LD_LIBRARY_PATH):

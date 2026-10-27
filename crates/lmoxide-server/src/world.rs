@@ -52,6 +52,8 @@ struct Member {
     /// Records that make this character appear for a newcomer (see `game::spawn_records`).
     spawn: Spawn,
     outbox: Outbox,
+    /// Players: the way they face (x, z), as their movement last said (`set_facing`).
+    facing: [f32; 2],
 }
 
 /// How long a keyboard-moving player is assumed to keep their reported velocity: the client
@@ -118,21 +120,44 @@ pub fn join(
     let mine = spawn();
     // The spawn closures run outside the MEMBERS lock: NPCs' lock NPCS, and code holding NPCS
     // sends through MEMBERS (npc::hit), so calling them under MEMBERS could deadlock.
-    let others: Vec<(Spawn, Outbox)> = {
+    let others: Vec<(Id32, Spawn, Outbox)> = {
         let mut members = MEMBERS.lock().unwrap();
-        let others = members.values().filter(|m| m.playfield == playfield).map(|m| (m.spawn.clone(), m.outbox.clone())).collect();
-        members.insert(id, Member { playfield, pos, motion: None, spawn: spawn.clone(), outbox: outbox.clone() });
+        let others = members.iter().filter(|(_, m)| m.playfield == playfield).map(|(i, m)| (*i, m.spawn.clone(), m.outbox.clone())).collect();
+        members.insert(id, Member { playfield, pos, motion: None, spawn: spawn.clone(), outbox: outbox.clone(), facing: [0.0, 1.0] });
         others
     };
     let mut theirs = Vec::new();
-    for (their_spawn, their_outbox) in others {
-        theirs.extend(their_spawn());
-        let _ = their_outbox.send(Out::Records(mine.clone()));
+    // (survey mode: what a surveyor hid isn't sent to them)
+    for (their_id, their_spawn, their_outbox) in others {
+        if !crate::survey::hides(id, their_id) {
+            theirs.extend(their_spawn());
+        }
+        if !crate::survey::hides(their_id, id) {
+            let _ = their_outbox.send(Out::Records(mine.clone()));
+        }
     }
     if !theirs.is_empty() {
         let _ = outbox.send(Out::Records(theirs));
     }
     Presence { id }
+}
+
+/// The records that make member `id` appear (to show it again to one player).
+pub fn spawn_records_of(id: Id32) -> Option<Vec<Bytes>> {
+    let spawn = MEMBERS.lock().unwrap().get(&id).map(|m| m.spawn.clone())?;
+    Some(spawn())
+}
+
+/// Records the way player `id` faces (x, z).
+pub fn set_facing(id: Id32, facing: [f32; 2]) {
+    if let Some(m) = MEMBERS.lock().unwrap().get_mut(&id) {
+        m.facing = facing;
+    }
+}
+
+/// The way player `id` faces (x, z).
+pub fn facing_of(id: Id32) -> Option<[f32; 2]> {
+    MEMBERS.lock().unwrap().get(&id).map(|m| m.facing)
 }
 
 /// Where a member is.

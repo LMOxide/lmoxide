@@ -266,6 +266,14 @@ pub struct SpawnDef {
     /// NPCs did (world_content.json, from the live capture's patrol MoveTasks).
     #[serde(default)]
     pub patrol: Vec<[f32; 3]>,
+    /// Where it comes from (world_content.json `source`: live, demo, proposed, rdb_*, ...);
+    /// survey mode tells guesses ("proposed") from recorded content by it.
+    #[serde(default)]
+    pub source: Option<String>,
+    /// Facing (radians around the vertical axis, world_content.json `rot`); shown only in
+    /// survey mode.
+    #[serde(default)]
+    pub rot: Option<f32>,
 }
 
 impl SpawnDef {
@@ -280,6 +288,9 @@ impl SpawnDef {
 /// folder for 1300/4600/4610) or proposed ones at the world's AI and resurrection points.
 #[derive(Deserialize)]
 struct WorldContent {
+    /// The playfield's source when an entry has none.
+    #[serde(default)]
+    source: Option<String>,
     #[serde(default)]
     enemies: Vec<SpawnDef>,
     #[serde(default)]
@@ -547,6 +558,7 @@ pub fn is_smashable(id: Id32) -> bool {
 
 /// Spawns every NPC in data/spawns.json and starts their AI.
 pub fn start() {
+    let mut all = Vec::new();
     for (playfield, defs) in spawn_table() {
         let Ok(playfield) = playfield.parse::<u32>() else { continue };
         for mut def in defs {
@@ -557,10 +569,15 @@ pub fn start() {
             if crate::tutorial::scripted(playfield, &def.name) {
                 continue;
             }
-            let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
-            let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
-            NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
-            appear(id);
+            all.push((playfield, def));
+        }
+    }
+    if crate::survey::enabled() {
+        // what is spawned, and as what, is the survey set's business
+        crate::survey::start(all);
+    } else {
+        for (playfield, def) in all {
+            spawn_as(new_id(&def), def, playfield);
         }
     }
     info!(count = NPCS.lock().unwrap().len(), "NPCs spawned");
@@ -568,10 +585,26 @@ pub fn start() {
     tokio::spawn(regenerate());
 }
 
+/// A fresh id for an NPC or smashable (`spawn_as`).
+pub fn new_id(def: &SpawnDef) -> Id32 {
+    let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
+    Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
+}
+
+/// Spawns a resident NPC or smashable under `id` (from `new_id`).
+pub fn spawn_as(id: Id32, def: SpawnDef, playfield: u32) {
+    NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
+    appear(id);
+}
+
 /// What every playfield spawns: data/spawns.json, world_content.json and npc_fights.json.
+/// Entries without a source are the proposed (guessed) content.
 fn spawn_table() -> HashMap<String, Vec<SpawnDef>> {
     let mut table: HashMap<String, Vec<SpawnDef>> =
         serde_json::from_str(include_str!("../../../data/spawns.json")).expect("spawns.json");
+    for d in table.values_mut().flatten() {
+        d.source.get_or_insert_with(|| "proposed".into());
+    }
     let worlds: HashMap<String, serde_json::Value> =
         serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
     for (playfield, world) in worlds {
@@ -586,9 +619,10 @@ fn spawn_table() -> HashMap<String, Vec<SpawnDef>> {
             }
         };
         let defs = table.entry(playfield).or_default();
-        defs.extend(content.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..d }));
-        defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..d }));
-        defs.extend(content.smashables.into_iter().map(|d| SpawnDef { kind: Kind::Smashable, ..d }));
+        let source = |d: SpawnDef| SpawnDef { source: d.source.or_else(|| content.source.clone()), ..d };
+        defs.extend(content.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..source(d) }));
+        defs.extend(content.npcs.into_iter().map(|d| SpawnDef { kind: Kind::Npc, ..source(d) }));
+        defs.extend(content.smashables.into_iter().map(|d| SpawnDef { kind: Kind::Smashable, ..source(d) }));
     }
     add_fights(&mut table, include_str!("../../../data/npc_fights.json"));
     table
@@ -627,8 +661,9 @@ fn add_fights(table: &mut HashMap<String, Vec<SpawnDef>>, json: &str) {
         };
         let defs = table.entry(playfield).or_default();
         defs.retain(|d| d.kind != Kind::Enemy || d.anchor.as_ref().is_none_or(|a| !spot.replace_anchors.contains(a)));
-        defs.extend(spot.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..d }));
-        defs.extend(spot.fighters.into_iter().map(|d| SpawnDef { kind: Kind::Fighter, ..d }));
+        let proposed = |d: SpawnDef| SpawnDef { source: d.source.or_else(|| Some("proposed".into())), ..d };
+        defs.extend(spot.enemies.into_iter().map(|d| SpawnDef { kind: Kind::Enemy, ..proposed(d) }));
+        defs.extend(spot.fighters.into_iter().map(|d| SpawnDef { kind: Kind::Fighter, ..proposed(d) }));
         for d in defs.iter_mut().filter(|d| d.kind == Kind::Npc && spot.armed_npcs.contains(&d.name)) {
             d.fights = true;
         }
@@ -675,9 +710,13 @@ fn appear(id: Id32) {
             ),
             Kind::Smashable => return smashable_records(id, &def, playfield, pos, health),
         };
-        if def.npc_template.is_none() {
+        // survey mode names everything by its category ("[guess] Crate"), so the name must show
+        if def.npc_template.is_none() || crate::survey::enabled() {
             // after the full update (which sets Flags from its stats)
             records.insert(2, int32_stat(id, STAT_FLAGS, FLAG_CUSTOM_NAME));
+        }
+        if let (Some(rot), true) = (def.rot, crate::survey::enabled()) {
+            records.push(stop_record(id, pos, [rot.sin(), rot.cos()]));
         }
         records
     };
@@ -880,6 +919,8 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
         fights: false,
         faction: None,
         patrol: Vec::new(),
+        source: None,
+        rot: None,
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -904,6 +945,11 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
 /// `attacker` hits NPC `target` with `spell` for `damage`. Returns whether it died, or `None`
 /// if `target` isn't a live NPC. A defeated NPC drops loot for the attacker.
 pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
+    if crate::survey::enabled() {
+        // nothing is hurt: attacking something selects it
+        crate::survey::attacked(attacker, target);
+        return None;
+    }
     let mut npcs = NPCS.lock().unwrap();
     // (not `is_player`: NPCS is locked here)
     let by_npc = npcs.contains_key(&attacker);
@@ -1055,6 +1101,14 @@ pub fn hit_column_with(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32;
 /// Hits the NPCs `inside`; returns how many died.
 fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool, on_hit: impl Fn(Id32)) -> u32 {
     let targets = targets_where(playfield, inside);
+    if crate::survey::enabled() {
+        // an area attack selects the one nearest the attacker
+        let from = world::position_of(attacker).unwrap_or_default();
+        if let Some((t, _)) = targets.iter().min_by(|a, b| distance(a.1, from).total_cmp(&distance(b.1, from))) {
+            crate::survey::attacked(attacker, *t);
+        }
+        return 0;
+    }
     let mut died = 0;
     for (t, _) in targets {
         if let Some(dead) = hit(attacker, t, spell, damage) {
@@ -1072,7 +1126,7 @@ pub fn targets_where(playfield: u32, inside: impl Fn([f32; 3]) -> bool) -> Vec<(
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
-        .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable))
+        .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable) || (crate::survey::enabled() && matches!(n.def.kind, Kind::Npc | Kind::Fighter)))
         .map(|(id, n)| (*id, n.now_at(now)))
         .filter(|(_, p)| inside(*p))
         .collect()
@@ -1300,7 +1354,11 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
     use lmoxide_net::proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3};
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
-        rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
+        rotation: Some({
+            // survey mode shows how it was turned (yaw only)
+            let half = def.rot.filter(|_| crate::survey::enabled()).unwrap_or(0.0) / 2.0;
+            ProtoQuat { x: Some(0.0), y: Some(half.sin()), z: Some(0.0), w: Some(half.cos()) }
+        }),
         playfield_instance: Some(playfield),
         running_effects: vec![],
     };
@@ -1651,6 +1709,9 @@ async fn ai() {
     let mut tick = tokio::time::interval(TICK);
     loop {
         tick.tick().await;
+        if crate::survey::enabled() {
+            continue; // nothing moves or attacks
+        }
         let live: Vec<Fighter> = NPCS
             .lock()
             .unwrap()
@@ -1799,6 +1860,8 @@ mod tests {
             fights: false,
             faction: None,
             patrol: Vec::new(),
+            source: None,
+            rot: None,
         }
     }
 
@@ -1880,6 +1943,8 @@ mod tests {
             fights: false,
             faction: None,
             patrol: Vec::new(),
+            source: None,
+            rot: None,
         };
         let mut table = HashMap::from([("4200".to_string(), vec![camp("Quest_Beach"), camp("Elsewhere")])]);
         add_fights(&mut table, include_str!("../../../data/npc_fights.json"));
