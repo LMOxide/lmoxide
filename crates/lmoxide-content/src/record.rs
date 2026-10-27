@@ -142,6 +142,7 @@ macro_rules! record {
             pub id: String,
             /// Another record of the same kind this one starts from: its fields, then this one's on top.
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[schemars(extend("x-lmoxide-ref" = [$prefix]))]
             pub extends: Option<$crate::record::Ref>,
             #[serde(default, skip_serializing_if = "String::is_empty")]
             pub name: String,

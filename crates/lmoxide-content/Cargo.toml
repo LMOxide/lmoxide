@@ -12,3 +12,6 @@ clap.workspace = true
 serde.workspace = true
 serde_json = { workspace = true, features = ["float_roundtrip"] }
 lmoxide-survey.workspace = true
+
+[dev-dependencies]
+jsonschema = { version = "0.60.2", default-features = false }

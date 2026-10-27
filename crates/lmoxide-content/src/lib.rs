@@ -22,6 +22,7 @@ pub mod import;
 pub mod load;
 pub mod model;
 pub mod record;
+pub mod schema;
 pub mod tunables;
 pub mod units;
 

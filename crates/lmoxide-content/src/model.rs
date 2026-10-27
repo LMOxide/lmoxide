@@ -37,8 +37,10 @@ pub struct RespawnPoint {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub guid: Option<u32>,
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Vec3,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-rotation" = true))]
     pub rot: Option<Rot>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub discoverable: Option<bool>,
@@ -74,6 +76,7 @@ pub struct NpcFights {
     pub rivals_about: String,
     /// Sides by look (monster data): each group fights the other groups.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-client" = "monster_data"))]
     pub rivals: Vec<Vec<u32>>,
     /// NPC names that fight the world's enemies.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -85,6 +88,7 @@ record! {
     #[derive(Default)]
     pub struct World: "world" {
         /// The client's playfield id.
+        #[schemars(extend("x-lmoxide-client" = "playfield"))]
         pub playfield: u32,
         /// The name the client shows (TDB 52000), when it differs from `name`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -93,6 +97,7 @@ record! {
         pub kind: WorldKind,
         /// The region it belongs to (`region/...`): which minifigures drop here.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["region"]))]
         pub region: Option<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub level: Option<LevelRange>,
@@ -107,9 +112,11 @@ record! {
         pub arrival_mode: Option<String>,
         /// Arrival when coming back from another world (`world/...` -> point).
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[schemars(extend("x-lmoxide-ref-key" = ["world"]))]
         pub arrival_from: BTreeMap<Ref, Point>,
         /// The client teleport window that leads here.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "window"))]
         pub window: Option<u32>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub respawn_points: Vec<RespawnPoint>,
@@ -117,6 +124,7 @@ record! {
         pub npc_fights: Option<NpcFights>,
         /// Music tracks (client ids).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-client" = "music"))]
         pub music: Vec<u32>,
     }
 }
@@ -126,6 +134,7 @@ record! {
     #[derive(Default)]
     pub struct Region: "region" {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-ref" = ["world"]))]
         pub worlds: Vec<Ref>,
     }
 }
@@ -162,6 +171,7 @@ pub enum FightRole {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct WaveRef {
+    #[schemars(extend("x-lmoxide-ref" = ["script"]))]
     pub script: Ref,
     pub wave: String,
 }
@@ -194,6 +204,7 @@ pub struct SpawnClient {
     pub interaction_radius: Option<u32>,
     /// Cinematic actors: their item template, AI point and alias.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "item"))]
     pub item_template: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ai_point: Option<String>,
@@ -210,9 +221,12 @@ record! {
         pub kind: SpawnKind,
         /// What it is: `npc/...` for enemies, NPCs and triggers, `object/...` for the rest.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["npc", "object"]))]
         pub template: Option<Ref>,
+        #[schemars(extend("x-lmoxide-position" = true))]
         pub pos: Vec3,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-rotation" = true))]
         pub rot: Option<Rot>,
         #[serde(default = "crate::record::one", skip_serializing_if = "crate::record::is_one")]
         pub scale: f32,
@@ -223,6 +237,7 @@ record! {
         pub respawn: Option<Duration>,
         /// Patrol route (positions in order; looped).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-position" = true))]
         pub patrol: Vec<Vec3>,
         /// Spawned by a script wave instead of with the world.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -237,6 +252,7 @@ record! {
         pub fight: Option<FightRole>,
         /// A world-editor placement that replaced a proposed spawn: that spawn's id.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["spawn"]))]
         pub replaces: Option<Ref>,
         /// Deleted in this feature (the spawn it replaces is gone too).
         #[serde(default, skip_serializing_if = "crate::record::is_false")]
@@ -250,12 +266,14 @@ record! {
     /// A portal: `worlds/<world>/portals.json`.
     #[derive(Default)]
     pub struct Portal: "portal" {
+        #[schemars(extend("x-lmoxide-position" = true))]
         pub pos: Vec3,
         /// Walk-in radius (m).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub radius: Option<f32>,
         /// The client teleport window it opens (none: straight to `to`).
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "window"))]
         pub window: Option<u32>,
         pub to: Destination,
     }
@@ -267,14 +285,18 @@ record! {
     pub struct Bouncer: "bouncer" {
         /// Its kind (`object/...` with `bouncer`): look and launch.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["object"]))]
         pub template: Option<Ref>,
+        #[schemars(extend("x-lmoxide-position" = true))]
         pub pos: Vec3,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-rotation" = true))]
         pub rot: Option<Rot>,
         #[serde(default = "crate::record::one", skip_serializing_if = "crate::record::is_one")]
         pub scale: f32,
         /// Where it throws you; none: it doesn't launch (shown only).
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-position" = true))]
         pub target: Option<Vec3>,
         /// How the landing point was found (`name`, `adjacent`, `chain`, `demo`, `onward`, ...).
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -286,12 +308,15 @@ record! {
         pub flight: Option<Duration>,
         /// The next pad of a route (thrown on without stopping).
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["bouncer"]))]
         pub then: Option<Ref>,
         /// Works only after this buildie spawn is built.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["spawn"]))]
         pub requires_built: Option<Ref>,
         /// The world-editor bouncer this one replaced.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["bouncer"]))]
         pub replaces: Option<Ref>,
         #[serde(default, skip_serializing_if = "crate::record::is_false")]
         pub removed: bool,
@@ -307,13 +332,16 @@ pub enum Shape {
     /// An upright box standing on `pos` (bottom centre), `size` = width, height, depth,
     /// turned by `heading`.
     Wall {
+        #[schemars(extend("x-lmoxide-position" = true))]
         pos: Vec3,
         #[serde(default)]
+        #[schemars(extend("x-lmoxide-rotation" = true))]
         heading: f32,
         size: Vec3,
     },
     /// A cylinder.
     Circle {
+        #[schemars(extend("x-lmoxide-position" = true))]
         pos: Vec3,
         radius: f32,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -328,8 +356,10 @@ pub enum Shape {
     Ground { at: [f32; 2] },
     /// A point (cinematic and AI points).
     Point {
+        #[schemars(extend("x-lmoxide-position" = true))]
         pos: Vec3,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-rotation" = true))]
         rot: Option<Rot>,
     },
 }
@@ -434,11 +464,12 @@ pub enum WaveTrigger {
     /// A spawn (none: the script's strongest) drops below this share of its health.
     HealthBelow {
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["spawn"]))]
         spawn: Option<Ref>,
         share: Ratio,
     },
     /// A player enters this area (none: the script's own).
-    EnterArea(Option<Ref>),
+    EnterArea(#[schemars(extend("x-lmoxide-ref" = ["area"]))] Option<Ref>),
     /// Every spawn of that wave is defeated.
     WaveCleared(String),
     /// Started only by a trigger or command naming the wave.
@@ -500,6 +531,7 @@ record! {
     #[derive(Default)]
     pub struct Script: "script" {
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["area"]))]
         pub area: Option<Ref>,
         #[serde(default, skip_serializing_if = "crate::record::is_default")]
         pub start: ScriptStart,
@@ -527,6 +559,7 @@ record! {
 pub struct Mirror {
     pub guid: u32,
     pub name: String,
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Vec3,
     /// The mirror each turn sends the beam to (`plus`/`minus`; none: nowhere).
     pub out: BTreeMap<String, Option<String>>,
@@ -536,7 +569,9 @@ pub struct Mirror {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Beam {
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Vec3,
+    #[schemars(extend("x-lmoxide-rotation" = true))]
     pub rot: Rot,
     pub length: f32,
 }
@@ -545,6 +580,7 @@ pub struct Beam {
 #[serde(deny_unknown_fields)]
 pub struct NamedPos {
     pub name: String,
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Vec3,
 }
 
@@ -553,8 +589,11 @@ pub struct NamedPos {
 #[serde(deny_unknown_fields)]
 pub struct LightGateMirror {
     pub guid: u32,
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Vec3,
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub light: Vec3,
+    #[schemars(extend("x-lmoxide-rotation" = true))]
     pub rot: Rot,
     pub length: f32,
 }
@@ -570,6 +609,7 @@ pub enum PuzzleKind {
     },
     LightGate {
         gate: u32,
+        #[schemars(extend("x-lmoxide-position" = true))]
         pos: Vec3,
         mirrors: Vec<LightGateMirror>,
     },
@@ -616,12 +656,15 @@ pub enum NpcKind {
 pub struct Render {
     /// The look: client monster data (RDB 1010514).
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "monster_data"))]
     pub monster_data: Option<u32>,
     /// Client NPC template (TDB 51000 name).
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "npc_template"))]
     pub npc_template: Option<u32>,
     /// Client item template (smashables, buildies, chests, ...).
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "item"))]
     pub template: Option<u32>,
     /// The look's name, for reading.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -633,12 +676,14 @@ pub struct Render {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scale: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "effect_package"))]
     pub effect_package: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct SkillUse {
+    #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
     pub skill: Ref,
     /// How often it's picked against the others.
     #[serde(default = "one_u32")]
@@ -702,9 +747,11 @@ record! {
         #[serde(default, skip_serializing_if = "crate::record::is_default")]
         pub stats: NpcStats,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["faction"]))]
         pub faction: Option<Ref>,
         /// Its basic attack.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
         pub attack: Option<Ref>,
         /// Other skills it casts.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -715,11 +762,13 @@ record! {
         #[serde(default, skip_serializing_if = "crate::record::is_default")]
         pub ai: Ai,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
         pub loot: Option<Ref>,
         /// Smash and collect achievement categories it counts for.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub counts_as: Vec<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["dialogue"]))]
         pub dialogue: Option<Ref>,
         /// Summons: how long they stay.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -734,6 +783,7 @@ record! {
     #[derive(Default)]
     pub struct Faction: "faction" {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-ref" = ["faction"]))]
         pub enemies: Vec<Ref>,
     }
 }
@@ -813,6 +863,7 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub health: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
         pub loot: Option<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub respawn: Option<Duration>,
@@ -852,6 +903,7 @@ pub enum TargetKind {
 pub struct Projectile {
     /// The client item it shows.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "item"))]
     pub item: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub speed: Option<f32>,
@@ -875,6 +927,7 @@ pub struct Projectile {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub channel_interval: Option<f32>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-client" = "item"))]
     pub charge_items: Vec<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub counter_buff: Option<u32>,
@@ -908,6 +961,7 @@ pub struct Dash {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Summon {
+    #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
     pub npc: Ref,
     #[serde(default = "one_u32")]
     pub count: u32,
@@ -941,6 +995,7 @@ pub struct AreaOfEffect {
 #[serde(deny_unknown_fields)]
 pub struct ClientSpell {
     /// The client spell / nano id.
+    #[schemars(extend("x-lmoxide-client" = "spell"))]
     pub spell: u32,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub stats: BTreeMap<String, serde_json::Value>,
@@ -1080,6 +1135,7 @@ pub enum BuffEffect {
     /// Replaces a shortcut's skill while on (stances, combos: OverrideShortcut).
     Override {
         slot: u32,
+        #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
         skill: Ref,
     },
     /// A client game action as the client's data has it.
@@ -1104,8 +1160,10 @@ record! {
     pub struct Buff: "buff" {
         /// The client nano / ability that shows it (icon, visuals), if any.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "nano"))]
         pub nano: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "effect_package"))]
         pub effect_package: Option<u32>,
         /// Default size, used by effects' `"amount"`; callers may give their own.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1129,6 +1187,7 @@ record! {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct BuffUse {
+    #[schemars(extend("x-lmoxide-ref" = ["buff"]))]
     pub buff: Ref,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub amount: Option<serde_json::Value>,
@@ -1147,7 +1206,7 @@ pub struct BuffUse {
 pub enum MinifigureSource {
     /// `"world"`: the minifigures of the world it drops in, by rarity.
     World(String),
-    Some(Vec<Ref>),
+    Some(#[schemars(extend("x-lmoxide-ref" = ["minifig"]))] Vec<Ref>),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
@@ -1179,12 +1238,15 @@ pub struct LootBundle {
     pub minifig_bags: Option<MinifigureDrop>,
     /// One of these chests (`item/...`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-ref" = ["item"]))]
     pub chest: Vec<Ref>,
     /// These items (mission items, star bundles, ...).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-ref" = ["item"]))]
     pub items: Vec<Ref>,
     /// Another table rolled too.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
     pub table: Option<Ref>,
 }
 
@@ -1194,6 +1256,7 @@ pub struct LootWhen {
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub once_per_player: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-ref" = ["world"]))]
     pub worlds: Vec<Ref>,
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub members_only: bool,
@@ -1255,6 +1318,7 @@ pub struct ChestInfo {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub client_loot_table: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "effect_package"))]
     pub spawn_effect_package: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lua_script: Option<u32>,
@@ -1262,6 +1326,7 @@ pub struct ChestInfo {
     pub offset: Option<serde_json::Value>,
     /// What opening it gives.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
     pub loot: Option<Ref>,
     /// Not dropped (the client's Endless chests).
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
@@ -1284,6 +1349,7 @@ record! {
         pub kind: ItemKind,
         /// The client item template.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "item"))]
         pub template: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub dynel_type: Option<u32>,
@@ -1291,6 +1357,7 @@ record! {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub tokens: Vec<TokenAmount>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
         pub minifigure: Option<Ref>,
         /// Parts: `Head`, `Torso`, `Legs`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1299,8 +1366,10 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub controlled_loot_type: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "monster_data"))]
         pub monster_data: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "effect_package"))]
         pub effect_package: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub chest: Option<ChestInfo>,
@@ -1331,6 +1400,7 @@ pub struct MinifigureStats {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Hit {
+    #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
     pub skill: Ref,
     #[serde(rename = "type")]
     pub kind: String,
@@ -1340,6 +1410,7 @@ pub struct Hit {
     pub damage_type: Option<u32>,
     /// The client spells it goes through.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-client" = "spell"))]
     pub via: Vec<u32>,
 }
 
@@ -1349,6 +1420,7 @@ pub struct Attack {
     /// The name the game shows for it ("Throw Record").
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub name: String,
+    #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
     pub skill: Ref,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub hits: Vec<Hit>,
@@ -1361,6 +1433,7 @@ pub struct Upgrade {
     pub bit: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub slot: Option<u32>,
+    #[schemars(extend("x-lmoxide-ref" = ["buff"]))]
     pub buff: Ref,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub amount: Option<serde_json::Value>,
@@ -1374,8 +1447,10 @@ pub struct MinifigureObtain {
     /// `world`, `store`, `membership`, `achievement`, `event`, `club`.
     pub source: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-ref" = ["region"]))]
     pub regions: Vec<Ref>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "lore"))]
     pub achievement: Option<u32>,
     /// The client's "You can find me in ..." text.
     #[serde(default, skip_serializing_if = "String::is_empty")]
@@ -1384,6 +1459,7 @@ pub struct MinifigureObtain {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rarity: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "text"))]
     pub location_text: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub location_picture: Option<u32>,
@@ -1393,6 +1469,7 @@ pub struct MinifigureObtain {
 #[serde(deny_unknown_fields)]
 pub struct MinifigurePart {
     pub location: String,
+    #[schemars(extend("x-lmoxide-ref" = ["item"]))]
     pub item: Ref,
 }
 
@@ -1402,6 +1479,7 @@ record! {
     #[derive(Default)]
     pub struct Minifigure: "minifig" {
         /// The client minifigure item template.
+        #[schemars(extend("x-lmoxide-client" = "item"))]
         pub template: u32,
         pub series: u32,
         #[serde(default)]
@@ -1413,6 +1491,7 @@ record! {
         pub special: Attack,
         /// The client's left/right click spells.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-client" = "spell"))]
         pub click_spells: Vec<u32>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub upgrades: Vec<Upgrade>,
@@ -1422,6 +1501,7 @@ record! {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub parts: Vec<MinifigurePart>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["item"]))]
         pub bag: Option<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub obtain: Option<MinifigureObtain>,
@@ -1435,11 +1515,14 @@ record! {
     /// An NPC dialogue: `dialogues/<slug>.json`. Its lines are client text ids (`texts.json`).
     #[derive(Default)]
     pub struct Dialogue: "dialogue" {
+        #[schemars(extend("x-lmoxide-client" = "text"))]
         pub texts: Vec<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["world"]))]
         pub world: Option<Ref>,
         /// Who speaks: the client's name text id and the name.
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "text"))]
         pub npc_name: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub npc: Option<String>,
@@ -1447,6 +1530,7 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub start: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-position" = true))]
         pub pos: Option<Vec3>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub follows: Option<serde_json::Value>,
@@ -1468,6 +1552,7 @@ pub struct AchievementRule {
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub once: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "item"))]
     pub item: Option<u32>,
 }
 
@@ -1478,8 +1563,10 @@ record! {
     pub struct Achievement: "achievement" {
         /// The client's lore id (none: a rule-only record).
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-client" = "lore"))]
         pub lore: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["achievement"]))]
         pub parent: Option<Ref>,
         /// The client's parent lore id when it isn't an achievement here (2: the tree's root).
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1497,6 +1584,7 @@ record! {
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub kind: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["world"]))]
         pub world: Option<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub find: Option<String>,
@@ -1507,11 +1595,13 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub target: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-ref" = ["achievement"]))]
         pub children: Vec<Ref>,
         /// Client stat and the count needed.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub counter: Option<[u32; 2]>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
         pub minifigure: Option<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub n: Option<u32>,

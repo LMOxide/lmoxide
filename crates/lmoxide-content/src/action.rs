@@ -30,7 +30,7 @@ pub enum Target {
     /// Everyone in the area of the trigger or script.
     AllInArea,
     /// One placement or object by id (`spawn/4200/gate-north`).
-    Placement(Ref),
+    Placement(#[schemars(extend("x-lmoxide-ref" = ["spawn", "bouncer", "trigger"]))] Ref),
     /// Every placement with this tag.
     Tag(String),
 }
@@ -49,8 +49,8 @@ pub enum SpawnAt {
     AroundSelf,
     AroundTarget,
     /// A random point in an area (`area/...`).
-    InArea(Ref),
-    At(Vec3),
+    InArea(#[schemars(extend("x-lmoxide-ref" = ["area"]))] Ref),
+    At(#[schemars(extend("x-lmoxide-position" = true))] Vec3),
 }
 
 /// Where a portal, trigger or teleport takes a player.
@@ -59,12 +59,14 @@ pub enum SpawnAt {
 pub struct Destination {
     /// The world (`world/...`); none: the same world.
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["world"]))]
     pub world: Option<Ref>,
     /// A named arrival point of that world (`arrival_from` key or respawn point name).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub point: Option<String>,
     /// An exact position (instead of a point).
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Option<Vec3>,
     /// A server command instead of a place, e.g. `lost_creations.advance` (the server lists its
     /// commands and their arguments).
@@ -82,6 +84,7 @@ pub struct Destination {
 pub enum Action {
     Spawn {
         /// `npc/...` or `object/...`.
+        #[schemars(extend("x-lmoxide-ref" = ["npc", "object"]))]
         template: Ref,
         #[serde(default)]
         at: SpawnAt,
@@ -123,6 +126,7 @@ pub enum Action {
         target: Target,
     },
     ApplyBuff {
+        #[schemars(extend("x-lmoxide-ref" = ["buff"]))]
         buff: Ref,
         /// Overrides the buff's own `amount`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -135,6 +139,7 @@ pub enum Action {
         target: Target,
     },
     RemoveBuff {
+        #[schemars(extend("x-lmoxide-ref" = ["buff"]))]
         buff: Ref,
         #[serde(default, skip_serializing_if = "is_default_target")]
         target: Target,
@@ -148,6 +153,7 @@ pub enum Action {
     },
     /// Shows a client effect package.
     Effect {
+        #[schemars(extend("x-lmoxide-client" = "effect_package"))]
         effect_package: u32,
         #[serde(default, skip_serializing_if = "is_default_target")]
         target: Target,
@@ -157,15 +163,18 @@ pub enum Action {
     },
     /// Opens a client teleport window.
     OpenWindow {
+        #[schemars(extend("x-lmoxide-client" = "window"))]
         window: u32,
     },
     Dialogue {
+        #[schemars(extend("x-lmoxide-ref" = ["dialogue"]))]
         dialogue: Ref,
     },
     Message {
         text: String,
     },
     Music {
+        #[schemars(extend("x-lmoxide-client" = "music"))]
         track: u32,
     },
     /// Changes an object's state (doors and gates `open`/`closed`, levers, buildies `built`).
@@ -174,11 +183,13 @@ pub enum Action {
         state: String,
     },
     StartScript {
+        #[schemars(extend("x-lmoxide-ref" = ["script"]))]
         script: Ref,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         wave: Option<String>,
     },
     EndScript {
+        #[schemars(extend("x-lmoxide-ref" = ["script"]))]
         script: Ref,
     },
     /// Counts a location as found (an exploration area's name), for its achievements.
@@ -186,9 +197,11 @@ pub enum Action {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         location: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["achievement"]))]
         achievement: Option<Ref>,
     },
     GrantAchievement {
+        #[schemars(extend("x-lmoxide-ref" = ["achievement"]))]
         achievement: Ref,
     },
     /// One collectible: a collect achievement (`achievement/...`) or a `drop:<name>` key.
@@ -197,9 +210,11 @@ pub enum Action {
     },
     /// Rolls a loot table where the owner is.
     Drop {
+        #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
         loot: Ref,
     },
     GiveItem {
+        #[schemars(extend("x-lmoxide-ref" = ["item"]))]
         item: Ref,
         #[serde(default = "one_u32")]
         count: u32,

@@ -79,6 +79,7 @@ impl JsonSchema for Duration {
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         json_schema!({
+            "x-lmoxide-unit": "duration",
             "description": "A length of time: \"1.5s\", \"200ms\", \"2m\", \"1h\", or a number of seconds",
             "anyOf": [
                 { "type": "string", "pattern": "^\\s*-?[0-9.]+\\s*(ms|s|m|h)?\\s*$" },
@@ -143,6 +144,7 @@ impl JsonSchema for Ratio {
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         json_schema!({
+            "x-lmoxide-unit": "ratio",
             "description": "A share: \"20%\" or a fraction (0.2)",
             "anyOf": [
                 { "type": "string", "pattern": "^\\s*-?[0-9.]+\\s*%\\s*$" },
@@ -198,6 +200,7 @@ impl JsonSchema for Range {
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         json_schema!({
+            "x-lmoxide-unit": "range",
             "description": "A number, or [min, max]",
             "anyOf": [
                 { "type": "integer", "minimum": 0 },

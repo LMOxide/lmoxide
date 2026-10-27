@@ -409,20 +409,36 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             }
         }
     }
-    let ref_ok = |r: &Option<String>, kinds: &[&str]| {
-        r.as_deref()
-            .is_none_or(|r| kind_of(r).is_some_and(|k| kinds.contains(&k)))
-    };
+    // the kinds each reference may name (the schemas' x-lmoxide-ref); spawn overrides by
+    // their template's schema
+    let walker = crate::schema::Walker::new();
+    for (id, value) in &resolved {
+        let Some(kind) = kind_of(id) else { continue };
+        let file = &merged[id].1;
+        let mut found = walker.find(kind, value).refs;
+        if kind == "spawn"
+            && let Some(o) = value.get("overrides")
+            && let Some(t) = value.get("template").and_then(Value::as_str).and_then(kind_of)
+        {
+            found.extend(walker.find(t, o).refs.into_iter().map(|mut r| {
+                r.path = format!("/overrides{}", r.path);
+                r
+            }));
+        }
+        for r in found {
+            if !kind_of(&r.id).is_some_and(|k| r.kinds.iter().any(|x| x == k)) {
+                let wanted: Vec<String> = r.kinds.iter().map(|k| format!("{k}/")).collect();
+                err(
+                    Severity::Error,
+                    Some(file),
+                    Some(id),
+                    format!("{} must name a {} (it names {:?})", &r.path[1..], wanted.join(" or "), r.id),
+                );
+            }
+        }
+    }
     for (id, s) in &content.spawns {
         let file = &merged[id].1;
-        if !ref_ok(&s.template, &["npc", "object"]) {
-            err(
-                Severity::Error,
-                Some(file),
-                Some(id),
-                "template must be an npc/ or object/".into(),
-            );
-        }
         if s.overrides.is_some()
             && let Some(t) = content.spawn_template(s)
         {
@@ -438,19 +454,6 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
                     format!("overrides don't fit the template: {e}"),
                 );
             }
-        }
-    }
-    for (id, n) in &content.npcs {
-        if !ref_ok(&n.loot, &["loot"])
-            || !ref_ok(&n.attack, &["skill"])
-            || !ref_ok(&n.faction, &["faction"])
-        {
-            err(
-                Severity::Error,
-                Some(&merged[id].1),
-                Some(id),
-                "loot, attack or faction names the wrong kind of record".into(),
-            );
         }
     }
     for (id, r) in &resolved {

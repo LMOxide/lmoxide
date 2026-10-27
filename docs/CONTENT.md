@@ -70,7 +70,7 @@ web UI.
 ```sh
 cargo run -p lmoxide-content -- check [--feature feature/christmas] [--warnings]  # every problem, exit 1 on errors
 cargo run -p lmoxide-content -- fmt [--check]     # rewrite files in canonical form
-cargo run -p lmoxide-content -- schema            # content/schemas/*.schema.json
+cargo run -p lmoxide-content -- schema            # content/schemas/*.schema.json and index.json
 cargo run -p lmoxide-content -- import --data data --survey ../var/survey-set/published --out content
 tools/content/verify_import.py data content       # compares a fresh import with the old files
 ```
@@ -181,6 +181,29 @@ uses new ids.
 
 Full field lists with descriptions: `content/schemas/<kind>.schema.json`, or the types in
 `crates/lmoxide-content/src/model.rs`.
+
+### What the schemas say for editors
+
+Besides JSON types, the schemas carry annotations (schemars `#[schemars(extend(...))]` on the
+fields; `crates/lmoxide-content/src/schema.rs`). On an array or a map they apply to its items or
+values:
+
+| Annotation | Means | The world editor shows |
+|---|---|---|
+| `x-lmoxide-ref: ["npc", "object"]` | a reference; the kinds it may name | a picker of those records, "go to" |
+| `x-lmoxide-ref-key: ["world"]` | the map's keys are references (`arrival_from`) | the same, for the keys |
+| `x-lmoxide-client: "monster_data"` | a client id from that catalog (`monster_data`, `effect_package`, `spell`, `nano`, `item`, `text`, `lore`, `playfield`, `window`, `music`, `npc_template`) | a picker over the catalog |
+| `x-lmoxide-unit: "duration"` | `Duration`, `Ratio`, `Range` | a text input that shows what it parsed to |
+| `x-lmoxide-position`, `x-lmoxide-rotation` | a position, a heading or rotation | "use my position", "show in game" |
+
+The loader checks references by these annotations (a reference to the wrong kind is an error,
+in spawn `overrides` too, by the template's schema), and `cargo test -p lmoxide-content` checks
+that every record fits its schema and that every reference sits in an annotated field: a new
+reference field needs its `x-lmoxide-ref`.
+
+`schemas/index.json` lists every kind for the world editor: id prefix, where its records are,
+title and plural, description, whether it's kept per world, the fields its lists show; and the
+root files (`content.json`, `tunables.json`, `texts.json`).
 
 ### Destinations
 

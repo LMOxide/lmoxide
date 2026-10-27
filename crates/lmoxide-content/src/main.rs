@@ -47,7 +47,7 @@ enum Command {
         #[arg(long)]
         check: bool,
     },
-    /// Writes one JSON Schema per kind (for the world editor's forms and editors).
+    /// Writes one JSON Schema per kind and `index.json` (for the world editor's forms and editors).
     Schema {
         #[arg(long, default_value = "content/schemas")]
         out: PathBuf,
@@ -129,6 +129,10 @@ fn run() -> Result<ExitCode> {
                     canon::to_string(&schema)?,
                 )?;
             }
+            std::fs::write(
+                out.join("index.json"),
+                canon::to_string(&lmoxide_content::schema::index())?,
+            )?;
             println!("wrote schemas to {}", out.display());
         }
     }
