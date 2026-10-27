@@ -307,7 +307,7 @@ isn't playable (it never drops; picking one up now gives nothing instead of that
    modules still read the old files' shapes, built from content (`spawns.rs`, `world_data.rs`,
    `skills.rs`, `minifigs.rs`, `lmoxide_content::compat`); they can move to the templates
    themselves as they change. Reloading on change comes with the world editor switch.
-2. The world editor reads and writes records of this format (forms from `content/schemas`), with
+2. (Plan: docs/WORLD-EDITOR-CONTENT.md.) The world editor reads and writes records of this format (forms from `content/schemas`), with
    `rev` merging; its survey set becomes records in `content/` (or a feature folder) instead of a
    separate format.
 3. Then the extractors in `tools/re/` stop writing `data/` files that became content, and the
