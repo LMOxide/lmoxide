@@ -65,15 +65,15 @@ Routes, admin scope, through lmoxide-api (`/v1/content/...`, forwarded to the co
 
 | Method | Path | |
 |---|---|---|
-| GET | `/v1/content/state` | source folder and error, rules, revision, pending changes/records |
-| GET | `/v1/content/queue` | changes waiting: `{playfield, playfield_name, feature, feature_path, author, active, summary, items: [{kind, id, name, op, details, updated}]}` |
+| GET | `/v1/content/state` | source folder and error, rules, revision, pending changes/records, `authors` and `tags` of either set (for suggestions) |
+| GET | `/v1/content/queue` | changes waiting: `{playfield, playfield_name, feature, feature_path, author, active, summary, items: [{kind, id, name, op, details, updated, tags}]}` (details include "tags +todo -approximate") |
 | POST | `/v1/content/approve` | `{playfield, feature, author, ids?}` → `{records, revision}` |
 | POST | `/v1/content/reject` | same |
 | POST | `/v1/content/preview` | `{playfield, feature, author, ids?, minutes?}` → `{records, revision, seq, until}` |
-| GET | `/v1/content/history?limit=` | approvals, newest first: `{seq, at, by, playfield, playfield_name, feature, feature_path, author, summary, status: applied\|undone\|preview\|preview_ended, preview_until?, last_action?: [who, when], actions: [undo\|redo\|keep\|revert], edits: [{kind, id, name, op, details}]}` |
+| GET | `/v1/content/history?limit=` | approvals, newest first: `{seq, at, by, playfield, playfield_name, feature, feature_path, author, summary, status: applied\|undone\|preview\|preview_ended, preview_until?, last_action?: [who, when], actions: [undo\|redo\|keep\|revert], edits: [{kind, id, name, op, details, tags}]}` |
 | POST | `/v1/content/history/{seq}/{undo\|redo\|keep\|revert}` | → the entry as above |
 | GET/PUT | `/v1/content/rules` | `{active, auto_features, auto_authors}` (saving approves what the new rules approve and respawns what `active` changes) |
-| GET | `/v1/content/summary?of=approved\|working` | per playfield and feature: placements, deletions, in waves, triggers, notes, scripts, authors, newest change |
+| GET | `/v1/content/summary?of=approved\|working` | per playfield and feature: placements, deletions, in waves, triggers, notes, scripts, authors, `tags` (tag → records), newest change |
 | GET | `/v1/content/features` | categories and the world editor's features (`{id, path, comment, copied_from}`) |
 | POST | `/v1/content/refresh` | read the world editor's set now |
 

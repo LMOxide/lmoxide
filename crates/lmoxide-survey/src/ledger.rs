@@ -47,6 +47,17 @@ pub enum Record {
     Script(Script),
 }
 
+impl Record {
+    pub fn tags(&self) -> &[String] {
+        match self {
+            Record::Placement(x) => &x.tags,
+            Record::Trigger(x) => &x.tags,
+            Record::Note(x) => &x.tags,
+            Record::Script(x) => &x.tags,
+        }
+    }
+}
+
 /// One record a change touched.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Edit {
@@ -251,6 +262,7 @@ mod tests {
             wave: None,
             patrol: Vec::new(),
             comment: String::new(),
+            tags: Vec::new(),
             feature: "live".into(),
             author: "ed".into(),
             updated,

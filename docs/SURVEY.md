@@ -126,6 +126,12 @@ itself at the first start (it was all visible to play servers already).
 - `patrol` (enemies and NPCs, optional): the looping route it walks while nobody is fighting it,
   as the play server's patrols (`world_content.json` `patrol`, `npc.rs` `patrol`): two or more
   points, the last leading back to the first; it starts at the point nearest to where it is.
+- `tags` (any record: placements, trigger walls, notes, scripts; optional): labels for sorting
+  work out, e.g. `approximate` (rough, fix later), `todo`, `review`. Stored lower case without
+  the `#` (`lmoxide_survey::tidy_tags`: letters, digits, `-`, `_`, `/`). They change nothing in
+  game; the world editor filters, marks and shows them, and the approval queue lists them.
+  `GET /v1/survey/tags` counts them (with the suggested ones: approximate, todo, review, guess,
+  placeholder, needs-footage, verified).
 
 ### Trigger walls
 
@@ -149,8 +155,11 @@ walks through them.
   or a description; optional), `portal` (`window`: the teleport window it opens, `to`: where it
   leads; with only `to`, a trip there), `message` (`text`), `other` (the comment says what). `once`: only
   each player's first crossing counts. `GET /v1/survey/trigger-targets` lists what the world
-  editor suggests: the exploration areas (with the achievements each counts toward), the
-  exploration achievements (with every location each needs), the recorded dialogues and the
+  editor suggests: the exploration areas (with the achievements each counts toward, and the
+  `title` players know them by: "Volcano Summit" for 6200's `Achievement_Volcano`), the
+  exploration achievements (with every location each needs, and as the game shows them:
+  `title` "Fiery Explorer", `text` "Find the Volcano Summit in Dinosaur Rise.", `group`
+  "Paleontologist"; data/achievements.json from TDB 55700/55701), the recorded dialogues and the
   portals' teleport windows (`portals`: window, destination, whether it asks Yes/No, the
   playfields with such a portal).
 - `color`: how the survey server draws it, from the arena doors and forcefields: `green` (the
@@ -248,9 +257,9 @@ In survey mode:
   surveyor who selected it. Smashables and trigger walls can't show effects themselves: an
   invisible character ("invisible_monsterdata" 51057, sent only to that surveyor) stands at their
   spot wearing it.
-- Marks (`PUT /v1/survey/players/{account}/marks`, `[{by: author|feature, value, look}]`; looks
+- Marks (`PUT /v1/survey/players/{account}/marks`, `[{by: author|feature|tag, value, look}]`; looks
   from `GET /v1/survey/mark-looks`: achievement auras, champion icons): an effect on every object
-  an author changed last or a feature holds, shown only to that surveyor (helpers for simple
+  an author changed last, a feature holds or a tag is on, shown only to that surveyor (helpers for simple
   dynels, as the selection's), refreshed after changes and playfield moves; never saved.
 - Hides are per surveyor and held in memory (`HIDDEN` in survey.rs: what isn't sent to them).
 - Edits respawn the object under a new NPC id (the client needs ~1.5 s before an id is reused).
@@ -271,10 +280,11 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | GET | `/catalog` | | what can be placed: `kind`, `name`, `monster_data`, `template`, `level`, `used` |
 | GET | `/players/{account}/state` | | `PlayerState`: playfield, position, heading, selection, hidden ids, `shown_waves` (script id → wave id or `"all"`; a script that isn't there shows its first wave), what they wear, the playfield's `revision` |
 | POST | `/players/{account}/wear` | `{what: Placeable \| null}` | `PlayerState` |
-| POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected; its wave is shown) |
-| POST | `/players/{account}/place-trigger` | `{name, size, color, action, once}` | the new trigger wall as a `SurveyObject` (`kind: "trigger"`, selected) |
+| POST | `/players/{account}/place` | `{what, wave: WaveRef \| null, feature?, tags?}` | the new `SurveyObject` (selected; its wave is shown) |
+| POST | `/players/{account}/place-trigger` | `{name, size, color, action, once, feature?, tags?}` | the new trigger wall as a `SurveyObject` (`kind: "trigger"`, selected) |
 | GET | `/wall-looks` | | `[{color}]`: the looks trigger walls can have |
 | GET | `/trigger-targets` | | `{locations, achievements, dialogs, portals}`: what trigger walls can discover or open |
+| GET | `/tags` | | `[{tag, count, suggested}]`: every tag in the working set, most used first, and the suggested ones |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
 | POST | `/players/{account}/unhide-all` | | `PlayerState` |
@@ -285,7 +295,7 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | GET | `/playfields/{pf}/notes` | | `{notes, scripts}` |
 | PUT / DELETE | `/playfields/{pf}/notes/{id}` | `Note` | `Note` |
 | PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
-| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
+| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `tags`, `feature`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
 | POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
 | DELETE | `/objects/{id}` | | `{id}`: the record that keeps it deleted (a deleted guess's is a new placement) |
 | POST | `/objects/{id}/forget` | | drops a placement's or trigger wall's record entirely (no deletion record stays); a guess it replaced comes back: its `SurveyObject`, else `null`. Undoing a placement, undoing a delete (forget its record), resetting an edited guess |

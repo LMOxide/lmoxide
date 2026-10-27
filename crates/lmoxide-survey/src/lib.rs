@@ -102,6 +102,9 @@ pub struct Placement {
     pub patrol: Vec<Vec3>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub comment: String,
+    /// Labels for sorting work out ("approximate", "todo", "review"; [`tidy_tags`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
     /// The feature it belongs to ([`features`]; `live`: mimicking live).
     #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
     pub feature: String,
@@ -182,6 +185,9 @@ pub struct Note {
     pub comment: String,
     #[serde(default)]
     pub status: Review,
+    /// Labels for sorting work out ("approximate", "todo", "review"; [`tidy_tags`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
     /// The feature it belongs to ([`features`]; `live`: mimicking live).
     #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
     pub feature: String,
@@ -240,6 +246,9 @@ pub struct Script {
     pub waves: Vec<Wave>,
     #[serde(default)]
     pub status: Review,
+    /// Labels for sorting work out ("approximate", "todo", "review"; [`tidy_tags`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
     /// The feature it belongs to ([`features`]; `live`: mimicking live).
     #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
     pub feature: String,
@@ -317,6 +326,9 @@ pub struct TriggerWall {
     /// Deleted (kept so merging doesn't bring it back).
     #[serde(default, skip_serializing_if = "is_false")]
     pub removed: bool,
+    /// Labels for sorting work out ("approximate", "todo", "review"; [`tidy_tags`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
     /// The feature it belongs to ([`features`]; `live`: mimicking live).
     #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
     pub feature: String,
@@ -411,9 +423,39 @@ pub(crate) fn heading_difference(a: f32, b: f32) -> f32 {
     d.min(std::f32::consts::TAU - d).to_degrees()
 }
 
+/// Tags every editor is offered (any other word works too).
+pub const SUGGESTED_TAGS: &[&str] = &["approximate", "todo", "review", "guess", "placeholder", "needs-footage", "verified"];
+
+/// Tags as stored: lower case, without `#`, letters, digits, `-`, `_` and `/` only (spaces become
+/// `-`), at most 32 characters, each once, in order.
+pub fn tidy_tags<S: AsRef<str>>(tags: impl IntoIterator<Item = S>) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for t in tags {
+        let t: String = t
+            .as_ref()
+            .trim()
+            .trim_start_matches('#')
+            .to_lowercase()
+            .chars()
+            .map(|c| if c.is_whitespace() { '-' } else { c })
+            .filter(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '/'))
+            .take(32)
+            .collect();
+        if !t.is_empty() && !out.contains(&t) {
+            out.push(t);
+        }
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn tags_are_tidied() {
+        assert_eq!(tidy_tags(["#Approximate", " todo ", "", "#", "needs footage", "todo", "a!b"]), ["approximate", "todo", "needs-footage", "ab"]);
+    }
 
     #[test]
     fn documented_examples_parse() {
@@ -460,6 +502,7 @@ mod tests {
             once: false,
             comment: String::new(),
             removed: false,
+            tags: Vec::new(),
             feature: crate::features::live(),
             author: String::new(),
             updated: 0,

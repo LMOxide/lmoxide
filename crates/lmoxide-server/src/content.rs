@@ -376,6 +376,16 @@ struct StateView {
     /// changes waiting, records in them
     pending: usize,
     pending_records: usize,
+    /// everyone who made a record of either set, and every tag in them (for suggestions)
+    authors: Vec<String>,
+    tags: Vec<String>,
+}
+
+/// Sorted, each once: what `of` gives for every row of the working and approved sets' summaries.
+fn names(st: &State, of: impl Fn(&review::Counts) -> Vec<String>) -> Vec<String> {
+    let rows = review::summary(&st.working).into_iter().chain(review::summary(&st.approved));
+    let all: std::collections::BTreeSet<String> = rows.flat_map(|r| of(&r.counts)).filter(|n| !n.is_empty()).collect();
+    all.into_iter().collect()
 }
 
 async fn state() -> Result<Json<StateView>, Error> {
@@ -388,6 +398,8 @@ async fn state() -> Result<Json<StateView>, Error> {
             revision: st.revision,
             pending: q.len(),
             pending_records: q.iter().map(|c| c.items.len()).sum(),
+            authors: names(st, |c| c.authors.clone()),
+            tags: names(st, |c| c.tags.keys().cloned().collect()),
         }))
     })
 }
@@ -610,6 +622,9 @@ struct EditView {
     op: Op,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     details: Vec<String>,
+    /// the record's tags (after the change; removals: before)
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    tags: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -666,6 +681,7 @@ fn entry_view(st: &State, e: &Entry) -> EntryView {
                     _ => Op::Changed,
                 },
                 details: x.details.clone(),
+                tags: x.after.as_ref().or(x.before.as_ref()).map(|r| r.tags().to_vec()).unwrap_or_default(),
             })
             .collect(),
     }

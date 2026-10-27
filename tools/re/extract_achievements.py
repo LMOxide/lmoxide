@@ -28,6 +28,11 @@ minifigure it belongs to (MinifigureTemplateID) and, for counters, the stat coun
             exploration ("..._Exploration_<x>", EXPLORE): the bounded area `find` walked into
   manual    no rule (some exploration, events, global Lost Creations, ...)
 
+Every achievement also gets the client's own `title` (text category 55701, "Fiery Explorer")
+and `text` (55700, "Find the Volcano Summit in Dinosaur Rise."); `find` achievements get the
+`place` a player would call what they find ("Volcano Summit"), from the text when it says
+"Find/Discover the X in Y", else from PLACES.
+
 Usage: tools/re/py extract_achievements.py"""
 import json, os, re, sys
 
@@ -42,8 +47,9 @@ STATS = json.load(open(os.path.join(ROOT, "data/stats.json")))
 STATS.update(json.load(open(os.path.join(ROOT, "data/stats_linux.json"))))
 STAT_ID = {v: int(k) for k, v in STATS.items()}
 ACHIEVEMENTS_ROOT = 2
-# TDB category of the achievements' descriptions (keyed by tag id)
+# TDB categories of the achievements' descriptions and titles (keyed by tag id)
 ACHIEVEMENT_TEXTS = 55700
+ACHIEVEMENT_TITLES = 55701
 PLAYFIELD_NAMES = 52000
 STARS_ICON = 530321
 GENERIC1, GENERIC2 = STAT_ID["InventoryItemGeneric1"], STAT_ID["InventoryItemGeneric2"]
@@ -100,6 +106,32 @@ EXPLORE = {
     "Dino_Exploration_Lost Pirates": (6200, "Achievement_Swamp"),
     "Dino_Exploration_Beauty Salon": (6200, "Achievement_Tarpit"),
 }
+
+
+# the place of `find` achievements whose text doesn't name one ("Find the X in Y")
+PLACES = {
+    "Pirate_Exploration_The Sirens": "The Sirens",
+    "Pirate_Story_Escape Jacket Fort": "Way out of Jacket Fort",
+    "Pirate_Exploration_Cross the Lava River": "Lava River",
+    "Pirate_Exploration_Discover the Cursed Treasure": "Cursed Treasure",
+    "Pirate_Exploration_Climb the Volcano": "Top of the volcano",
+    "Medieval_Exploration_Center of Attention": "Middle of the training grounds",
+    "Medieval_Exploration_Overlook the Medieval World": "Overlook Pointe",
+    "Medieval_Exploration_Take the Web Shortcut": "Web shortcut",
+    "Space_Exploration_Space Vanguard": "Space Vanguard",
+    "Space_Exploration_Escort Ship": "Path to the dark side",
+}
+FIND_TEXT = re.compile(r"^(?:Find|Discover) (?:the )?(.+?) in (?:the )?[^.]+\.?$")
+
+
+def place(name, text):
+    """What a `find` achievement's player finds, as they would call it."""
+    if name in PLACES:
+        return PLACES[name]
+    if name.endswith("] Boombox"):
+        return "Boombox"
+    m = FIND_TEXT.match(text.strip())
+    return m.group(1)[0].upper() + m.group(1)[1:] if m else None
 
 
 def signed(v):
@@ -168,6 +200,7 @@ def main():
         keep.add(i)
         todo.extend(c for c in nodes[i]["children"] if c in nodes)
     texts = tdc.texts(ACHIEVEMENT_TEXTS)
+    titles = tdc.texts(ACHIEVEMENT_TITLES)
     out = []
     for i in sorted(keep - {ACHIEVEMENTS_ROOT}):
         n = nodes[i]
@@ -175,6 +208,10 @@ def main():
         name = n.get("name", "")
         parent = nodes.get(n.get("parent", 0), {})
         a = {"id": i, "parent": n.get("parent", 0), "name": name}
+        if titles.get(i, "").strip():
+            a["title"] = titles[i].strip()
+        if texts.get(i, "").strip():
+            a["text"] = texts[i].strip()
         if n.get("invisible"):
             a["invisible"] = True
         if s.get("AchievementPoints", 0) > 0:
@@ -225,6 +262,8 @@ def main():
             a["kind"], a["target"] = "target", name.split("_", 1)[1].strip()
         else:
             a["kind"] = "manual"
+        if a["kind"] == "find" and (p := place(name, a.get("text", ""))):
+            a["place"] = p
         out.append(a)
     # playfield names (TDB 52000) for the dungeon targets: world_content.json lacks some
     # ("Siege Command Room", "Spider's Nest")

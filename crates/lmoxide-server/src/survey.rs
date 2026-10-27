@@ -78,6 +78,7 @@ struct Object {
     comment: String,
     /// lmoxide_survey::features (base objects: live)
     feature: String,
+    tags: Vec<String>,
     author: String,
     updated: u64,
     npc: Option<Id32>,
@@ -250,6 +251,7 @@ impl Object {
             wave: self.wave.clone(),
             patrol: self.def.patrol.clone(),
             comment: self.comment.clone(),
+            tags: self.tags.clone(),
             feature: self.feature.clone(),
             author: self.author.clone(),
             updated: self.updated,
@@ -284,6 +286,7 @@ impl Object {
             patrol: self.def.patrol.clone(),
             comment: self.comment.clone(),
             feature: self.feature.clone(),
+            tags: self.tags.clone(),
             author: self.author.clone(),
             updated: self.updated,
             playfield: self.playfield,
@@ -373,6 +376,7 @@ fn build_playfield(st: &mut State, pf: u32) {
                 replaces: None,
                 comment: String::new(),
                 feature: sv::features::live(),
+                tags: Vec::new(),
                 author: String::new(),
                 updated: 0,
                 npc: None,
@@ -446,6 +450,7 @@ fn from_placement(catalog: &[(Placeable, SpawnDef)], pf: u32, p: &Placement, rep
         replaces: p.replaces.clone(),
         comment: p.comment.clone(),
         feature: p.feature.clone(),
+        tags: p.tags.clone(),
         author: p.author.clone(),
         updated: p.updated,
         npc: None,
@@ -725,6 +730,7 @@ const MARK_LOOKS: &[(&str, u32)] = &[
 pub enum MarkBy {
     Author,
     Feature,
+    Tag,
 }
 
 /// An editor's own marker on a group of objects (never saved, like hiding).
@@ -737,10 +743,11 @@ pub struct Mark {
 }
 
 impl Mark {
-    fn matches(&self, author: &str, feature: &str) -> bool {
+    fn matches(&self, author: &str, feature: &str, tags: &[String]) -> bool {
         match self.by {
             MarkBy::Author => author.eq_ignore_ascii_case(&self.value),
             MarkBy::Feature => sv::features::within(feature, &self.value),
+            MarkBy::Tag => tags.iter().any(|t| t.eq_ignore_ascii_case(self.value.trim_start_matches('#'))),
         }
     }
 }
@@ -759,12 +766,12 @@ fn show_marks(st: &mut State, viewer: Id32) {
     if !s.marks.is_empty() {
         for o in st.objects.values().filter(|o| o.playfield == pf && !is_hidden_for(s, o, &st.set)) {
             let Some(npc) = o.npc else { continue };
-            if let Some(pkg) = s.marks.iter().find(|m| m.matches(&o.author, &o.feature)).and_then(look) {
+            if let Some(pkg) = s.marks.iter().find(|m| m.matches(&o.author, &o.feature, &o.tags)).and_then(look) {
                 targets.push(((o.def.kind != Kind::Smashable).then_some(npc), o.def.pos, pkg));
             }
         }
         for w in st.walls.values().filter(|w| w.playfield == pf && !s.hidden.contains(&w.def.id)) {
-            if let Some(pkg) = s.marks.iter().find(|m| m.matches(&w.def.author, &w.def.feature)).and_then(look) {
+            if let Some(pkg) = s.marks.iter().find(|m| m.matches(&w.def.author, &w.def.feature, &w.def.tags)).and_then(look) {
                 targets.push((None, w.def.pos, pkg));
             }
         }
@@ -894,6 +901,7 @@ fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
         patrol: Vec::new(),
         comment: if b.built { "built".into() } else { String::new() },
         feature: sv::features::live(),
+        tags: Vec::new(),
         author: String::new(),
         updated: 0,
         playfield: b.playfield,
@@ -939,6 +947,8 @@ struct SurveyObject {
     comment: String,
     /// lmoxide_survey::features
     feature: String,
+    /// labels like "approximate", "todo" (lmoxide_survey::tidy_tags)
+    tags: Vec<String>,
     author: String,
     updated: u64,
     playfield: u32,
@@ -1002,6 +1012,8 @@ struct Changes {
     wave: Option<Option<WaveRef>>,
     /// lmoxide_survey::features: moves it to another feature
     feature: Option<String>,
+    /// replaces its tags
+    tags: Option<Vec<String>>,
     /// Trigger walls
     size: Option<[f32; 3]>,
     /// a trigger radius (m); null: a wall
@@ -1111,6 +1123,7 @@ pub fn routes() -> Router {
         .route("/v1/survey/players/{account}/place", post(place))
         .route("/v1/survey/players/{account}/place-trigger", post(place_trigger))
         .route("/v1/survey/wall-looks", get(wall_looks))
+        .route("/v1/survey/tags", get(tags))
         .route("/v1/survey/mark-looks", get(mark_looks))
         .route("/v1/survey/players/{account}/marks", put(set_marks))
         .route("/v1/survey/trigger-targets", get(trigger_targets))
@@ -1204,6 +1217,8 @@ struct PlaceBody {
     /// The feature it belongs to (default live).
     #[serde(default)]
     feature: Option<String>,
+    #[serde(default)]
+    tags: Vec<String>,
 }
 
 async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<PlaceBody>) -> R<SurveyObject> {
@@ -1236,6 +1251,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
             replaces: None,
             comment: String::new(),
             feature,
+            tags: sv::tidy_tags(&b.tags),
             author,
             updated: ids::now(),
             npc: None,
@@ -1423,6 +1439,7 @@ async fn save_note(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Json
     with(|st| {
         n.id = id;
         n.feature = checked_feature(&st.set, Some(n.feature))?;
+        n.tags = sv::tidy_tags(&n.tags);
         n.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(n.author);
         n.updated = ids::now();
         let notes = &mut st.set.notes_mut(pf).notes;
@@ -1454,6 +1471,7 @@ async fn save_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Js
         }
         s.id = id;
         s.feature = checked_feature(&st.set, Some(s.feature))?;
+        s.tags = sv::tidy_tags(&s.tags);
         s.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(s.author);
         s.updated = ids::now();
         let scripts = &mut st.set.notes_mut(pf).scripts;
@@ -1574,6 +1592,9 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         }
         if let Some(f) = feature {
             o.feature = f;
+        }
+        if let Some(t) = c.tags {
+            o.tags = sv::tidy_tags(t);
         }
         if let Some(w) = c.wave {
             o.wave = w;
@@ -1707,6 +1728,7 @@ fn bring_back(st: &mut State, pf: u32, origin: &Origin) -> Option<SurveyObject> 
         replaces: None,
         comment: String::new(),
         feature: sv::features::live(),
+        tags: Vec::new(),
         author: String::new(),
         updated: 0,
         npc: None,
@@ -1779,6 +1801,8 @@ struct Snapshot {
     replaces: Option<Origin>,
     #[serde(default = "sv::features::live")]
     feature: String,
+    #[serde(default)]
+    tags: Vec<String>,
     size: Option<[f32; 3]>,
     #[serde(default)]
     radius: Option<f32>,
@@ -1806,6 +1830,7 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
                 once: b.once.unwrap_or(false),
                 comment: b.comment,
                 removed: false,
+                tags: sv::tidy_tags(&b.tags),
                 feature: b.feature,
                 author,
                 updated: ids::now(),
@@ -1835,6 +1860,7 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
             wave: b.wave,
             patrol: b.patrol,
             comment: b.comment,
+            tags: sv::tidy_tags(&b.tags),
             feature: b.feature,
             author,
             updated: ids::now(),
@@ -2247,6 +2273,7 @@ impl Wall {
             patrol: Vec::new(),
             comment: d.comment.clone(),
             feature: d.feature.clone(),
+            tags: d.tags.clone(),
             author: d.author.clone(),
             updated: d.updated,
             playfield: self.playfield,
@@ -2348,6 +2375,33 @@ async fn wall_looks() -> R<Vec<WallLook>> {
     with(|_| Ok(Json(walls.chain(circles).collect())))
 }
 
+#[derive(Serialize, Debug, PartialEq)]
+struct TagUse {
+    tag: String,
+    /// records of the working set carrying it
+    count: usize,
+    /// one of the tags every editor is offered
+    suggested: bool,
+}
+
+/// Every tag in the working set, most used first, and the suggested ones.
+fn tag_uses(set: &Set) -> Vec<TagUse> {
+    let mut counts: BTreeMap<&str, usize> = sv::SUGGESTED_TAGS.iter().map(|t| (*t, 0)).collect();
+    let placements = set.placements.values().flat_map(|f| f.placements.iter().filter(|p| !p.removed).flat_map(|p| &p.tags));
+    let walls = set.placements.values().flat_map(|f| f.triggers.iter().filter(|w| !w.removed).flat_map(|w| &w.tags));
+    let notes = set.notes.values().flat_map(|f| f.notes.iter().flat_map(|n| &n.tags).chain(f.scripts.iter().flat_map(|s| &s.tags)));
+    for t in placements.chain(walls).chain(notes) {
+        *counts.entry(t).or_default() += 1;
+    }
+    let mut out: Vec<TagUse> = counts.into_iter().map(|(t, count)| TagUse { tag: t.into(), count, suggested: sv::SUGGESTED_TAGS.contains(&t) }).collect();
+    out.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.tag.cmp(&b.tag)));
+    out
+}
+
+async fn tags() -> R<Vec<TagUse>> {
+    with(|st| Ok(Json(tag_uses(&st.set))))
+}
+
 #[derive(Deserialize, Default)]
 struct PlaceTriggerBody {
     #[serde(default)]
@@ -2363,6 +2417,8 @@ struct PlaceTriggerBody {
     /// A trigger radius (m) instead of a wall.
     #[serde(default)]
     radius: Option<f32>,
+    #[serde(default)]
+    tags: Vec<String>,
 }
 
 /// A feature a record may name: a category or one of the set's features (none: live).
@@ -2412,6 +2468,7 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
             once: b.once,
             comment: String::new(),
             removed: false,
+            tags: sv::tidy_tags(&b.tags),
             feature: checked_feature(&st.set, b.feature)?,
             author,
             updated: ids::now(),
@@ -2461,6 +2518,9 @@ fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<Sur
     }
     if let Some(f) = c.feature {
         d.feature = checked_feature(&st.set, Some(f))?;
+    }
+    if let Some(t) = c.tags {
+        d.tags = sv::tidy_tags(t);
     }
     if let Some(t) = c.comment {
         d.comment = t;
@@ -2618,7 +2678,10 @@ fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
 
 #[derive(Serialize, Clone)]
 struct TargetLocation {
+    /// the bounded area's (or world object's) name, what a wall stores ("Achievement_Volcano")
     name: String,
+    /// what players call it ("Volcano Summit", from its achievements' texts), if known
+    title: Option<String>,
     playfield: u32,
     playfield_name: Option<String>,
     /// where it is (an exploration area's middle), if known
@@ -2630,9 +2693,15 @@ struct TargetLocation {
 #[derive(Serialize, Clone)]
 struct TargetAchievement {
     id: u32,
+    /// the client's internal name, its group cut off ("Lava Pier")
     name: String,
-    /// the achievement's group ("Pirate Exploration")
+    /// the achievement's internal group ("Pirate Exploration")
     category: String,
+    /// as the game shows it: its title ("Fiery Explorer"), text ("Find the Volcano Summit in
+    /// Dinosaur Rise.") and the title of the achievement it is part of ("Paleontologist")
+    title: Option<String>,
+    text: Option<String>,
+    group: Option<String>,
     /// the locations it needs (all of them)
     locations: Vec<TargetLocationRef>,
 }
@@ -2641,6 +2710,7 @@ struct TargetAchievement {
 struct TargetLocationRef {
     name: String,
     playfield: u32,
+    title: Option<String>,
 }
 
 #[derive(Serialize, Clone)]
@@ -2682,7 +2752,15 @@ fn targets() -> &'static Targets {
         #[derive(Deserialize)]
         struct Ach {
             id: u32,
+            #[serde(default)]
+            parent: u32,
             name: String,
+            #[serde(default)]
+            title: Option<String>,
+            #[serde(default)]
+            text: Option<String>,
+            #[serde(default)]
+            place: Option<String>,
             kind: String,
             #[serde(default)]
             playfield: Option<u32>,
@@ -2705,8 +2783,9 @@ fn targets() -> &'static Targets {
         let finds: HashMap<u32, TargetLocationRef> = file
             .achievements
             .iter()
-            .filter_map(|a| Some((a.id, TargetLocationRef { name: a.find.clone()?, playfield: a.playfield? })))
+            .filter_map(|a| Some((a.id, TargetLocationRef { name: a.find.clone()?, playfield: a.playfield?, title: a.place.clone() })))
             .collect();
+        let titles: HashMap<u32, &str> = file.achievements.iter().filter_map(|a| Some((a.id, a.title.as_deref()?))).collect();
         let mut achievements = Vec::new();
         for a in &file.achievements {
             let locations: Vec<TargetLocationRef> = match a.kind.as_str() {
@@ -2718,20 +2797,29 @@ fn targets() -> &'static Targets {
                 continue;
             }
             let (name, category) = split(&a.name);
-            achievements.push(TargetAchievement { id: a.id, name, category, locations });
+            achievements.push(TargetAchievement {
+                id: a.id,
+                name,
+                category,
+                title: a.title.clone(),
+                text: a.text.clone(),
+                group: titles.get(&a.parent).map(|t| t.to_string()),
+                locations,
+            });
         }
         // the exploration areas, and the found places that aren't areas
         let mut locations: Vec<TargetLocation> = crate::encounter::explore_areas()
             .into_iter()
-            .map(|(pf, name, pos)| TargetLocation { name: name.into(), playfield: pf, playfield_name: pf_name(pf), pos: Some(pos), achievements: Vec::new() })
+            .map(|(pf, name, pos)| TargetLocation { name: name.into(), title: None, playfield: pf, playfield_name: pf_name(pf), pos: Some(pos), achievements: Vec::new() })
             .collect();
         for f in finds.values() {
             if !locations.iter().any(|l| l.name == f.name && l.playfield == f.playfield) {
-                locations.push(TargetLocation { name: f.name.clone(), playfield: f.playfield, playfield_name: pf_name(f.playfield), pos: None, achievements: Vec::new() });
+                locations.push(TargetLocation { name: f.name.clone(), title: None, playfield: f.playfield, playfield_name: pf_name(f.playfield), pos: None, achievements: Vec::new() });
             }
         }
         for l in &mut locations {
             l.achievements = achievements.iter().filter(|a| a.locations.iter().any(|r| r.name == l.name && r.playfield == l.playfield)).map(|a| a.id).collect();
+            l.title = finds.values().find(|r| r.name == l.name && r.playfield == l.playfield).and_then(|r| r.title.clone());
         }
         locations.sort_by(|a, b| (a.playfield, &a.name).cmp(&(b.playfield, &b.name)));
         let dialogs = crate::knubot::dialogues()
@@ -2758,12 +2846,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn tags_are_counted() {
+        let mut set = Set::default();
+        let note: Note = serde_json::from_str(r#"{"id":"n-1","kind":"comment","area":{"point":[0,0,0]},"tags":["todo","rough"]}"#).unwrap();
+        set.notes_mut(1200).notes.push(note);
+        let uses = tag_uses(&set);
+        assert_eq!(uses[0..2].iter().map(|u| (u.tag.as_str(), u.count, u.suggested)).collect::<Vec<_>>(), [("rough", 1, false), ("todo", 1, true)]);
+        assert!(uses.iter().any(|u| u.tag == "approximate" && u.count == 0));
+    }
+
+    #[test]
     fn trigger_targets() {
         let t = targets();
         let town = t.locations.iter().find(|l| l.playfield == 4200 && l.name == "Achievement_PirateTown").expect("Hidden Pirate Town");
         assert!(town.achievements.contains(&724), "{:?}", town.achievements);
         let a = t.achievements.iter().find(|a| a.id == 724).unwrap();
         assert_eq!((a.name.as_str(), a.category.as_str()), ("Find the Hidden Pirate Town", "Pirate Exploration"));
+        assert_eq!(town.title.as_deref(), Some("Hidden Pirate Town"));
+        // named as the game shows them
+        let fiery = t.achievements.iter().find(|a| a.id == 1613).unwrap();
+        assert_eq!((fiery.title.as_deref(), fiery.group.as_deref()), (Some("Fiery Explorer"), Some("Paleontologist")));
+        assert_eq!(fiery.text.as_deref(), Some("Find the Volcano Summit in Dinosaur Rise."));
+        let summit = t.locations.iter().find(|l| l.playfield == 6200 && l.name == "Achievement_Volcano").unwrap();
+        assert_eq!((summit.title.as_deref(), summit.playfield_name.as_deref()), (Some("Volcano Summit"), Some("Dinosaur Rise")));
         // some need several locations
         assert!(t.achievements.iter().any(|a| a.locations.len() > 1));
         let d = t.dialogs.iter().find(|d| d.npc == "Video Game Guy").unwrap();

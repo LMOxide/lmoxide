@@ -46,6 +46,9 @@ pub struct Item {
     pub details: Vec<String>,
     /// The working record's last change (unix seconds; removals: the approved record's).
     pub updated: u64,
+    /// The record's tags (removals: the approved record's).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -81,6 +84,14 @@ impl Rec<'_> {
             Rec::T(x) => &x.author,
             Rec::N(x) => &x.author,
             Rec::S(x) => &x.author,
+        }
+    }
+    fn tags(&self) -> &[String] {
+        match self {
+            Rec::P(x) => &x.tags,
+            Rec::T(x) => &x.tags,
+            Rec::N(x) => &x.tags,
+            Rec::S(x) => &x.tags,
         }
     }
     fn updated(&self) -> u64 {
@@ -183,6 +194,14 @@ fn placement_details(new: &Placement, old: Option<&Placement>) -> Vec<String> {
     d
 }
 
+/// "tags +todo -approximate", if they changed.
+fn tag_details(old: &[String], new: &[String]) -> Option<String> {
+    let added = new.iter().filter(|t| !old.contains(t)).map(|t| format!("+{t}"));
+    let removed = old.iter().filter(|t| !new.contains(t)).map(|t| format!("-{t}"));
+    let all: Vec<String> = added.chain(removed).collect();
+    (!all.is_empty()).then(|| format!("tags {}", all.join(" ")))
+}
+
 /// The changes of `working` that `approved` doesn't have yet, by playfield, feature and author
 /// (a removal is the remover's when the working set keeps a removed record, else the approved
 /// record's author's).
@@ -205,20 +224,21 @@ pub fn changes(working: &Set, approved: &Set) -> Vec<Change> {
                 Some(_) => Op::Changed,
             };
             let op = if old.is_none() && rec.removed() { Op::Removed } else { op };
-            let details = match (rec, old) {
+            let mut details = match (rec, old) {
                 (Rec::P(p), Some(Rec::P(o))) => placement_details(p, Some(o)),
                 (Rec::P(p), _) => placement_details(p, None),
                 _ => Vec::new(),
             };
+            details.extend(old.and_then(|o| tag_details(o.tags(), rec.tags())));
             let key = ChangeKey { playfield: pf, feature: rec.feature().to_string(), author: rec.author().to_string() };
-            by_key.entry(key).or_default().push(Item { kind: k.0, id: k.1.to_string(), name: rec.name(), op, details, updated: rec.updated() });
+            by_key.entry(key).or_default().push(Item { kind: k.0, id: k.1.to_string(), name: rec.name(), op, details, updated: rec.updated(), tags: rec.tags().to_vec() });
         }
         for (k, old) in &a {
             if w.contains_key(k) {
                 continue;
             }
             let key = ChangeKey { playfield: pf, feature: old.feature().to_string(), author: old.author().to_string() };
-            by_key.entry(key).or_default().push(Item { kind: k.0, id: k.1.to_string(), name: old.name(), op: Op::Removed, details: Vec::new(), updated: old.updated() });
+            by_key.entry(key).or_default().push(Item { kind: k.0, id: k.1.to_string(), name: old.name(), op: Op::Removed, details: Vec::new(), updated: old.updated(), tags: old.tags().to_vec() });
         }
     }
     by_key
@@ -287,6 +307,9 @@ pub struct Counts {
     pub notes: usize,
     pub scripts: usize,
     pub authors: Vec<String>,
+    /// How many records carry each tag.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub tags: BTreeMap<String, usize>,
     /// unix seconds of the newest change
     pub updated: u64,
 }
@@ -302,9 +325,12 @@ pub struct SummaryRow {
 /// The whole set at a glance: per playfield and feature, what it holds.
 pub fn summary(set: &Set) -> Vec<SummaryRow> {
     let mut rows: BTreeMap<(u32, String), Counts> = BTreeMap::new();
-    let mut add = |pf: u32, feature: &str, author: &str, updated: u64, f: &mut dyn FnMut(&mut Counts)| {
+    let mut add = |pf: u32, feature: &str, author: &str, tags: &[String], updated: u64, f: &mut dyn FnMut(&mut Counts)| {
         let c = rows.entry((pf, feature.to_string())).or_default();
         f(c);
+        for t in tags {
+            *c.tags.entry(t.clone()).or_default() += 1;
+        }
         if !author.is_empty() && !c.authors.iter().any(|a| a == author) {
             c.authors.push(author.into());
         }
@@ -315,7 +341,7 @@ pub fn summary(set: &Set) -> Vec<SummaryRow> {
             if p.removed && p.replaces.is_none() {
                 continue;
             }
-            add(*pf, &p.feature, &p.author, p.updated, &mut |c| {
+            add(*pf, &p.feature, &p.author, &p.tags, p.updated, &mut |c| {
                 if p.removed {
                     c.deletions += 1;
                 } else {
@@ -325,15 +351,15 @@ pub fn summary(set: &Set) -> Vec<SummaryRow> {
             });
         }
         for t in file.triggers.iter().filter(|t| !t.removed) {
-            add(*pf, &t.feature, &t.author, t.updated, &mut |c| c.triggers += 1);
+            add(*pf, &t.feature, &t.author, &t.tags, t.updated, &mut |c| c.triggers += 1);
         }
     }
     for (pf, file) in &set.notes {
         for x in &file.notes {
-            add(*pf, &x.feature, &x.author, x.updated, &mut |c| c.notes += 1);
+            add(*pf, &x.feature, &x.author, &x.tags, x.updated, &mut |c| c.notes += 1);
         }
         for x in &file.scripts {
-            add(*pf, &x.feature, &x.author, x.updated, &mut |c| c.scripts += 1);
+            add(*pf, &x.feature, &x.author, &x.tags, x.updated, &mut |c| c.scripts += 1);
         }
     }
     rows.into_iter().map(|((playfield, feature), mut counts)| {
@@ -378,6 +404,7 @@ mod tests {
             wave: None,
             patrol: Vec::new(),
             comment: String::new(),
+            tags: Vec::new(),
             feature: feature.into(),
             author: author.into(),
             updated: 1,
@@ -418,5 +445,18 @@ mod tests {
         assert_eq!(s.iter().map(|r| (r.feature.as_str(), r.counts.placements, r.counts.deletions)).collect::<Vec<_>>(), [("feature/xmas/2026", 1, 0), ("live", 1, 1)]);
         let live_only = only_features(&a, &["live".into()]);
         assert_eq!(live_only.placements[&1200].placements.len(), 2);
+    }
+
+    #[test]
+    fn tags_show_in_changes_and_summary() {
+        let approved = with(vec![crate_at("p-1", 0.0, "live", "ann")]);
+        let tagged = Placement { tags: vec!["todo".into(), "approximate".into()], updated: 2, ..crate_at("p-1", 0.0, "live", "ann") };
+        let working = with(vec![tagged.clone()]);
+        let ch = changes(&working, &approved);
+        assert_eq!(ch[0].items[0].details, ["tags +todo +approximate"]);
+        assert_eq!(ch[0].items[0].tags, ["todo", "approximate"]);
+        let less = with(vec![Placement { tags: vec!["todo".into()], ..tagged }]);
+        assert_eq!(changes(&less, &working)[0].items[0].details, ["tags -approximate"]);
+        assert_eq!(summary(&working)[0].counts.tags.get("todo"), Some(&1));
     }
 }
