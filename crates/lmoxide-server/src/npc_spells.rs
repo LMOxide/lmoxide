@@ -603,10 +603,8 @@ mod tests {
     fn ability_test_enemies_have_spells() {
         // `!test abilities` / `!test blackheart` spawn copies of world content enemies by name
         let scenarios: serde_json::Value = serde_json::from_str(include_str!("../../../data/test_scenarios.json")).unwrap();
-        let worlds: HashMap<String, serde_json::Value> = serde_json::from_str(include_str!("../../../data/world_content.json")).unwrap();
-        let monster = |name: &str| {
-            worlds.values().filter_map(|w| w.get("enemies")?.as_array()).flatten().find(|e| e["name"] == name).and_then(|e| e["monster_data"].as_u64())
-        };
+        let table = crate::spawns::table();
+        let monster = |name: &str| table.values().flatten().find(|d| d.kind == crate::npc::Kind::Enemy && d.name == name).map(|d| u64::from(d.monster_data));
         for s in scenarios["scenarios"].as_array().unwrap().iter().filter(|s| ["abilities", "blackheart"].contains(&s["label"].as_str().unwrap())) {
             for spawn in s["spawn"].as_array().unwrap() {
                 let name = spawn["name"].as_str().unwrap();

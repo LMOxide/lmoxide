@@ -110,8 +110,14 @@ struct Content {
 }
 
 static CONTENT: LazyLock<Content> = LazyLock::new(|| {
-    let worlds: serde_json::Value = serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
-    serde_json::from_value(worlds[PLAYFIELD.to_string()].clone()).expect("world_content.json 1300")
+    // the cinematic triggers (world_data.rs) and the enemies and NPCs (spawns.rs)
+    let world = &crate::world_data::WORLD_CONTENT[&PLAYFIELD.to_string()];
+    let defs = crate::spawns::table().remove(&PLAYFIELD.to_string()).unwrap_or_default();
+    Content {
+        triggers: serde_json::from_value(world["triggers"].clone()).expect("tutorial triggers"),
+        enemies: defs.iter().filter(|d| d.kind == crate::npc::Kind::Enemy).cloned().collect(),
+        npcs: defs.iter().filter(|d| d.kind == crate::npc::Kind::Npc).cloned().collect(),
+    }
 });
 
 /// Whether the tutorial spawns this NPC itself (per player) instead of it standing there.

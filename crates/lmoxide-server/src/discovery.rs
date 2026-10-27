@@ -29,7 +29,7 @@ pub struct Find {
 
 static FINDS: LazyLock<Vec<Find>> = LazyLock::new(|| {
     let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     let mut finds = Vec::new();
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };

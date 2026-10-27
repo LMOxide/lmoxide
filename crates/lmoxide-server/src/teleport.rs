@@ -55,7 +55,7 @@ struct Data {
 }
 
 static DATA: LazyLock<Data> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json"));
+    LazyLock::new(|| serde_json::from_value(crate::world_data::DESTINATIONS.clone()).expect("destinations"));
 
 /// How close to a portal's position counts as standing in it.
 const PORTAL_RADIUS: f32 = 3.0;
@@ -75,7 +75,7 @@ pub fn destinations() -> impl Iterator<Item = (u32, &'static Destination)> {
 /// (tools/re/extract_return_points.py). Live used source-specific "TP_From<source>" points whose
 /// positions were server-side; these stand in for them (docs/TUNABLES.md).
 static RETURNS: LazyLock<HashMap<String, HashMap<String, Destination>>> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/return_points.json")).expect("return_points.json"));
+    LazyLock::new(|| serde_json::from_value(serde_json::json!(*crate::world_data::RETURN_POINTS)).expect("return points"));
 
 /// Where to arrive in `playfield` when coming back from `from` through a teleport window.
 pub fn return_point(playfield: u32, from: u32) -> Option<&'static Destination> {
@@ -206,15 +206,16 @@ pub fn teleport_record(character: Id32, playfield: u32, pos: [f32; 3], rot: f32)
 }
 
 /// `JournalUpdateIIR` (header protobuf JournalUpdateIIRProto) with every story line completed
-/// (data/story_quests.json): the teleport windows and the World Map check
+/// (tunables.json `story_quests`): the teleport windows and the World Map check
 /// CoreJournalHolder::HasEverCompletedQuest for their required quests.
 pub fn journal_record(character: Id32) -> Bytes {
     use lmoxide_net::proto::{
         JournalUpdateIirProto,
         journal_update_iir_proto::{AddedMainQuestType, AddedQuestType},
     };
+    // (tunables.json `story_quests`)
     let table: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/story_quests.json")).expect("story_quests.json");
+        crate::gamedata::get().tunables.story_quests.iter().map(|(k, v)| (k.clone(), serde_json::json!(v))).collect();
     let added_main_quest = table
         .iter()
         .filter_map(|(main, quests)| {
@@ -232,7 +233,7 @@ pub fn journal_record(character: Id32) -> Bytes {
     iir::record("JournalUpdateIIR", character, false, |w| w.proto(&msg))
 }
 
-/// A resurrection point (World Map teleport spot), data/resurrection_points.json
+/// A resurrection point (World Map teleport spot), the worlds' `respawn_points` (world_data.rs)
 /// (tools/re/extract_resurrection_points.py, from RDB 1000090).
 #[derive(Debug, Clone, Deserialize)]
 pub struct Spot {
@@ -244,7 +245,7 @@ pub struct Spot {
 }
 
 static SPOTS: LazyLock<HashMap<String, Vec<Spot>>> = LazyLock::new(|| {
-    serde_json::from_str(include_str!("../../../data/resurrection_points.json")).expect("resurrection_points.json")
+    serde_json::from_value(serde_json::json!(*crate::world_data::RESURRECTION_POINTS)).expect("resurrection points")
 });
 
 /// The teleport spot `guid` of `playfield`.

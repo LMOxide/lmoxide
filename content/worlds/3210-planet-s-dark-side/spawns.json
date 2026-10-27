@@ -1290,7 +1290,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -1306,7 +1307,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -1322,7 +1324,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -1338,7 +1341,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -1784,7 +1788,8 @@
         "guid": 526297,
         "tag": "----",
         "script_group": 0,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1800,7 +1805,8 @@
         "guid": 526298,
         "tag": "----",
         "script_group": 1,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1816,7 +1822,8 @@
         "guid": 526299,
         "tag": "----",
         "script_group": 2,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1832,7 +1839,8 @@
         "guid": 526300,
         "tag": "----",
         "script_group": 3,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1848,7 +1856,8 @@
         "guid": 526301,
         "tag": "----",
         "script_group": 4,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1864,7 +1873,8 @@
         "guid": 526302,
         "tag": "----",
         "script_group": 5,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1880,7 +1890,8 @@
         "guid": 526303,
         "tag": "----",
         "script_group": 6,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

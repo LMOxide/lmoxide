@@ -18,6 +18,7 @@ to it one system at a time:
 | Upgrades and procs (procs.rs, combat.rs) | minifigures' stats, attacks (AbilityMods, combo steps) and upgrades; the upgrades' buffs: stat effects (`Life`, `FinalDamageMultiplier`, `MitigationOverrideFlat`, `orb_chance`), `skill_mod` (Empowered Normals), `proc`s and the buffs they apply; `tunables.combat` | `LEVEL` (a constant other constants use); the nanos' client-side Modify actions (the client runs them) |
 | Skills (actions.rs, npc_spells.rs, projectile.rs, dash.rs, summons in npc.rs; through skills.rs) | skills' client spells (stats, game action lists), projectiles, dashes, summons and summoned NPCs, ranges; projectile items' on-hit actions and radii; the spells each enemy look casts (its NPC templates' `skills`) | the action types' behaviour (code) |
 | NPCs and spawns (npc.rs, progression.rs; through spawns.rs) | each world's enemies, NPCs and smashables (spawns with their templates and overrides; not `removed`, not `surveyed`: those come from the world editor's approved set), NPC fights (`npc_fights`: fighters, armed NPCs, rivals), `tunables.npc_life`; a template's own `loot` table (when it isn't its kind's usual one) replaces the rolled one | spawns that appear during play (`appeared_at`), triggers, actors, scenery, doors and buildies (other modules, still `data/`) |
+| Worlds (scenery.rs, jumppad.rs, teleport.rs, encounter.rs, gates.rs, mirrors.rs, buildie.rs, tutorial.rs, discovery.rs, ballista.rs, pistons.rs, plates.rs, tiki.rs; through world_data.rs) | scenery and interactables (spawns with `client.guid`), jump pads (bouncers), teleport destinations (arrival, window, display name), portals, return and respawn points, encounter areas (arenas, ambushes, exploration, champion points), light gates and mirror puzzles, the recorded buildies, cinematic triggers, playfield names, `tunables.story_quests` | how each piece behaves (code) |
 | Everything else | | `data/*.json` and constants in the code |
 
 Edits to what the server doesn't read yet have no effect in game. Running the importer again
@@ -278,7 +279,8 @@ isn't playable (it never drops; picking one up now gives nothing instead of that
    loot (done), upgrades and procs (done: same health, damage and mitigation for every minifigure
    and upgrade, the same procs in scripted attack/kill/hit sequences), skills (done: every spell,
    projectile, dash, summon and enemy spell list as the old files had them), NPCs and spawns (done: the
-   same spawn list for every playfield), NPCs and spawns (then each enemy's own `loot` table),
+   same spawn list for every playfield), worlds (done: the same scenery, pads, portals, destinations,
+   points, areas, puzzles and buildies; the same counts at startup), NPCs and spawns (then each enemy's own `loot` table),
    worlds (portals, bouncers, areas, puzzles), minifigures, achievements. Reloading on change comes
    with the world editor switch.
 2. The world editor reads and writes records of this format (forms from `content/schemas`), with

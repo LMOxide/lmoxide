@@ -3195,16 +3195,9 @@ struct PlayfieldView {
     notes: u32,
 }
 
-/// The client's playfield names (data/playfields.json).
+/// The client's playfield names (the content tree's worlds).
 fn playfield_names() -> &'static BTreeMap<u32, String> {
-    static NAMES: LazyLock<BTreeMap<u32, String>> = LazyLock::new(|| {
-        #[derive(Deserialize)]
-        struct File {
-            playfields: BTreeMap<String, String>,
-        }
-        let f: File = serde_json::from_str(include_str!("../../../data/playfields.json")).expect("playfields.json");
-        f.playfields.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, v))).collect()
-    });
+    static NAMES: LazyLock<BTreeMap<u32, String>> = LazyLock::new(crate::world_data::playfield_names);
     &NAMES
 }
 

@@ -6415,7 +6415,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6431,7 +6432,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6447,7 +6449,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6463,7 +6466,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6479,7 +6483,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6495,7 +6500,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6511,7 +6517,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6527,7 +6534,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6543,7 +6551,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6559,7 +6568,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6575,7 +6585,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -6591,7 +6602,8 @@
         "tag": "UMME",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },
@@ -6639,7 +6651,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -6655,7 +6668,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -6671,7 +6685,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -6687,7 +6702,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -6703,7 +6719,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -6719,7 +6736,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -7233,7 +7251,8 @@
         "guid": 526130,
         "tag": "----",
         "script_group": 384,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7249,7 +7268,8 @@
         "guid": 526131,
         "tag": "----",
         "script_group": 385,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7265,7 +7285,8 @@
         "guid": 526132,
         "tag": "----",
         "script_group": 386,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7281,7 +7302,8 @@
         "guid": 526133,
         "tag": "----",
         "script_group": 387,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7297,7 +7319,8 @@
         "guid": 526134,
         "tag": "----",
         "script_group": 388,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7313,7 +7336,8 @@
         "guid": 525900,
         "tag": "----",
         "script_group": 389,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7329,7 +7353,8 @@
         "guid": 525898,
         "tag": "----",
         "script_group": 390,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -7345,7 +7370,8 @@
         "guid": 525899,
         "tag": "----",
         "script_group": 391,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },

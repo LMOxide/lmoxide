@@ -1394,7 +1394,8 @@
         "tag": "----",
         "script_group": 91,
         "visual": [1010201, 234506],
-        "bounds": [-1.423, -0.035, -0.654, 1.344, 2.361, 0.654]
+        "bounds": [-1.423, -0.035, -0.654, 1.344, 2.361, 0.654],
+        "look": "lego_cannon_a_boss_buildie"
       },
       "source": "client"
     },
@@ -1666,7 +1667,8 @@
         "guid": 594998,
         "tag": "----",
         "script_group": 2,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1682,7 +1684,8 @@
         "guid": 594999,
         "tag": "----",
         "script_group": 3,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

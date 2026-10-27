@@ -482,6 +482,7 @@ pub fn world_records(
             let mut s = object_spawn(ctx, pf, e, SpawnKind::Buildie, &template, &t);
             if let Some(b) = recorded.filter(|b| u32_of(&b["playfield"]) == Some(pf)) {
                 s.rot = rot(&b["rot"]).or(s.rot);
+                s.pos = vec3(&b["pos"]).unwrap_or(s.pos);
                 s.client.get_or_insert_with(Default::default).cars_group = u32_of(&b["cars_group"]);
             }
             spawns.push(s);
@@ -540,6 +541,7 @@ pub fn world_records(
                     guid: u32_of(&e["guid"]),
                     tag: str_of(&e["tag"]),
                     script_group: e["script_group"].as_i64().map(|n| n as i32),
+                    look: str_of(&e["look"]),
                     bounds: strict(&e["bounds"]),
                     visual: strict(&e["visual"]),
                     ..Default::default()
@@ -713,6 +715,7 @@ pub fn world_records(
                     guid: u32_of(&e["guid"]),
                     tag: str_of(&e["tag"]),
                     script_group: e["script_group"].as_i64().map(|n| n as i32),
+                    look: str_of(&e["look"]),
                     bounds: strict(&e["bounds"]),
                     visual: strict(&e["visual"]),
                     ..Default::default()

@@ -2,6 +2,7 @@
   "id": "world/kingdom",
   "name": "Kingdom",
   "playfield": 5200,
+  "display_name": "Medieval Kingdom",
   "kind": "open",
   "region": "region/medieval-world",
   "level": {

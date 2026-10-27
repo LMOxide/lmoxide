@@ -40,7 +40,7 @@ struct Piece {
 /// The plates: (unlit guid, lit guid, position).
 static PLATES: LazyLock<Vec<(u32, u32, [f32; 3])>> = LazyLock::new(|| {
     let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     let pieces: Vec<Piece> = worlds
         .get(&PLAYFIELD.to_string())
         .and_then(|w| w.get("simple_dynels"))

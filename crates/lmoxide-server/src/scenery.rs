@@ -87,7 +87,7 @@ pub fn points(pattern: &str) -> Vec<(String, u32, [f32; 3])> {
 /// Puts every piece into its world.
 pub fn start() {
     let worlds: std::collections::HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };
         let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };

@@ -103,8 +103,8 @@ struct Tree {
     all: Vec<Achievement>,
     by_id: HashMap<u32, usize>,
     children: HashMap<u32, Vec<u32>>,
-    /// Playfield names for dungeon targets, lowercase: world_content.json's, else the client's
-    /// (world_content.json has none for some dungeons, e.g. Siege Command Room).
+    /// Playfield names for dungeon targets, lowercase: the content tree's worlds' (display name,
+    /// else the playfield name), else the client's achievement playfield names.
     playfields: HashMap<u32, String>,
 }
 
@@ -115,12 +115,9 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
     for a in &data.achievements {
         children.entry(a.parent).or_default().push(a.id);
     }
-    let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
     let mut playfields: HashMap<u32, String> = data.playfields.iter().map(|(&k, v)| (k, v.to_lowercase())).collect();
-    playfields.extend(
-        worlds.iter().filter_map(|(k, v)| Some((k.parse().ok()?, v.get("name")?.as_str()?.replace("&apos;", "'").to_lowercase()))),
-    );
+    // the content tree's worlds: their display name, else the client's playfield name
+    playfields.extend(crate::gamedata::get().worlds.values().map(|w| (w.playfield, w.display_name.as_ref().unwrap_or(&w.name).to_lowercase())));
     Tree { all: data.achievements, by_id, children, playfields }
 });
 

@@ -760,7 +760,7 @@
       "name": "XX_Buildie : Level 01 : 1 Normal",
       "kind": "buildie",
       "template": "object/xx-buildie-level-01-1-normal",
-      "pos": [109.0, 69.84, 48.34],
+      "pos": [109.003265, 69.83735, 48.34112],
       "rot": [-0.009557672, 0.7522561, -0.018363234, 0.65854555],
       "client": {
         "cars_group": 1
@@ -772,7 +772,7 @@
       "name": "XX_Buildie : Level 02 : 0 No Drop",
       "kind": "buildie",
       "template": "object/xx-buildie-level-02-0-no-drop",
-      "pos": [103.78, 70.02, 95.72],
+      "pos": [103.77946, 70.0247, 95.715454],
       "rot": [-0.0028760566, 0.37674803, 0.0012049987, -0.9263106],
       "client": {
         "cars_group": 1
@@ -887,7 +887,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },

@@ -1,6 +1,6 @@
 //! Reading the content tree: features, `extends`, typed records, reference checks.
 
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -86,6 +86,8 @@ pub struct Content {
     pub achievements: BTreeMap<String, Achievement>,
     /// The world of each record kept in a world's folder.
     pub world_of: BTreeMap<String, String>,
+    /// Where each record is in the tree (files in name order, records in file order).
+    pub order: HashMap<String, usize>,
     /// Every record as resolved JSON (features and `extends` applied), by id.
     pub resolved: BTreeMap<String, Value>,
 }
@@ -96,16 +98,18 @@ impl Content {
         self.worlds.values().find(|w| w.playfield == playfield)
     }
 
-    /// Records of a world's folder of one kind (`spawns` of world `w`, ...).
+    /// Records of a world's folder of one kind (`spawns` of world `w`, ...), in file order.
     pub fn in_world<'a, T>(
         &'a self,
         records: &'a BTreeMap<String, T>,
         world: &'a str,
     ) -> impl Iterator<Item = &'a T> {
-        records
+        let mut list: Vec<(&String, &T)> = records
             .iter()
-            .filter(move |(id, _)| self.world_of.get(*id).is_some_and(|w| w == world))
-            .map(|(_, r)| r)
+            .filter(|(id, _)| self.world_of.get(*id).is_some_and(|w| w == world))
+            .collect();
+        list.sort_by_key(|(id, _)| self.order.get(*id).copied().unwrap_or(usize::MAX));
+        list.into_iter().map(|(_, r)| r)
     }
 
     /// A spawn's template with its overrides applied, as JSON (parse it as the template's kind).
@@ -291,6 +295,8 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
                 .filter(|f| !f.is_empty())
                 .unwrap_or("live")
                 .to_string();
+            let next = content.order.len();
+            content.order.entry(id.clone()).or_insert(next);
             by_id.entry(id).or_default().push(Raw {
                 value,
                 file: file.clone(),

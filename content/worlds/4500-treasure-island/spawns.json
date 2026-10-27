@@ -1438,7 +1438,8 @@
         "guid": 594993,
         "tag": "----",
         "script_group": 134,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1454,7 +1455,8 @@
         "guid": 594994,
         "tag": "----",
         "script_group": 135,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

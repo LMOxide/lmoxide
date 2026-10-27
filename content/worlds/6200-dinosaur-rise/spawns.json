@@ -2265,7 +2265,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2938,7 +2939,8 @@
         "guid": 522018,
         "tag": "----",
         "script_group": 51,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -2954,7 +2956,8 @@
         "guid": 544337,
         "tag": "----",
         "script_group": 52,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },

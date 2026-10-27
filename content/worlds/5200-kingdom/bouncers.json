@@ -13,7 +13,8 @@
         "tag": "JUMP",
         "script_group": 32,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -30,7 +31,8 @@
         "tag": "JUMP",
         "script_group": 33,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -47,7 +49,8 @@
         "tag": "JUMP",
         "script_group": 34,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -64,7 +67,8 @@
         "tag": "JUMP",
         "script_group": 35,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -81,7 +85,8 @@
         "tag": "JUMP",
         "script_group": 137,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -98,7 +103,8 @@
         "tag": "JUMP",
         "script_group": 138,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -115,7 +121,8 @@
         "tag": "JUMP",
         "script_group": 139,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -132,7 +139,8 @@
         "tag": "JUMP",
         "script_group": 140,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -149,7 +157,8 @@
         "tag": "JUMP",
         "script_group": 141,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -166,7 +175,8 @@
         "tag": "JUMP",
         "script_group": 142,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -183,7 +193,8 @@
         "tag": "JUMP",
         "script_group": 143,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -200,7 +211,8 @@
         "tag": "JUMP",
         "script_group": 144,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -217,7 +229,8 @@
         "tag": "JUMP",
         "script_group": 152,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -234,7 +247,8 @@
         "tag": "JUMP",
         "script_group": 153,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -251,7 +265,8 @@
         "tag": "JUMP",
         "script_group": 154,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -268,7 +283,8 @@
         "tag": "JUMP",
         "script_group": 155,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -285,7 +301,8 @@
         "tag": "JUMP",
         "script_group": 158,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     },
@@ -302,7 +319,8 @@
         "tag": "JUMP",
         "script_group": 159,
         "visual": [1010201, 459643],
-        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856],
+        "look": "jump_pad_catapult_b_buildie"
       },
       "source": "client"
     }

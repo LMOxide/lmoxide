@@ -954,7 +954,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -1208,7 +1209,8 @@
         "guid": 525856,
         "tag": "----",
         "script_group": 4,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1224,7 +1226,8 @@
         "guid": 525857,
         "tag": "----",
         "script_group": 5,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1240,7 +1243,8 @@
         "guid": 659002,
         "tag": "----",
         "script_group": 12,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1256,7 +1260,8 @@
         "guid": 525858,
         "tag": "----",
         "script_group": 13,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1272,7 +1277,8 @@
         "guid": 525859,
         "tag": "----",
         "script_group": 14,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1288,7 +1294,8 @@
         "guid": 525860,
         "tag": "----",
         "script_group": 19,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1304,7 +1311,8 @@
         "guid": 525861,
         "tag": "----",
         "script_group": 20,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1320,7 +1328,8 @@
         "guid": 525862,
         "tag": "----",
         "script_group": 23,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1336,7 +1345,8 @@
         "guid": 515093,
         "tag": "----",
         "script_group": 25,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1352,7 +1362,8 @@
         "guid": 541860,
         "tag": "----",
         "script_group": 26,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },

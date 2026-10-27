@@ -13,7 +13,8 @@
         "tag": "JUMP",
         "script_group": 10,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     },
@@ -30,7 +31,8 @@
         "tag": "JUMP",
         "script_group": 11,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     },
@@ -47,7 +49,8 @@
         "tag": "JUMP",
         "script_group": 75,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     },
@@ -64,7 +67,8 @@
         "tag": "JUMP",
         "script_group": 76,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     },
@@ -81,7 +85,8 @@
         "tag": "JUMP",
         "script_group": 91,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     },
@@ -98,7 +103,8 @@
         "tag": "JUMP",
         "script_group": 92,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     },
@@ -115,7 +121,8 @@
         "tag": "JUMP",
         "script_group": 124,
         "visual": [1010201, 280812],
-        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8],
+        "look": "jump_pad_catapult_a_buildie"
       },
       "source": "client"
     }

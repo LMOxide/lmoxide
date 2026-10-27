@@ -6,7 +6,7 @@
 //! the server accepts it and drives the build: `buildableStart`, the build rate (FloatStat
 //! 3000073 (BuildableTickAmount)), progress ticks (Health += rate) while the builder stays close, and at the maximum the
 //! built visual, `buildableStop` and CARS group 5. A jump pad under an unbuilt buildie doesn't
-//! launch anyone. Placements and visuals: data/buildies.json (tools/re/demo/buildies.py); only
+//! launch anyone. Placements and visuals: the recorded buildies (content: buildie spawns and their objects' `client`, world_data.rs); only
 //! the recorded worlds' buildies are known.
 
 use std::{
@@ -90,7 +90,7 @@ enum State {
 
 struct Buildie {
     def: Def,
-    /// From the recorded session (data/buildies.json), not added by a module ([`add`]).
+    /// From the recorded session (world_data.rs `BUILDIES`), not added by a module ([`add`]).
     recorded: bool,
     progress: u32,
     state: State,
@@ -101,7 +101,7 @@ static BUILDIES: LazyLock<Mutex<HashMap<Id32, Buildie>>> = LazyLock::new(|| Mute
 
 /// Puts every buildie into its world.
 pub fn start() {
-    let defs: Vec<Def> = serde_json::from_str(include_str!("../../../data/buildies.json")).expect("buildies.json");
+    let defs: Vec<Def> = serde_json::from_value(serde_json::json!(*crate::world_data::BUILDIES)).expect("buildies");
     for def in defs {
         insert(def, true);
     }
@@ -431,7 +431,7 @@ mod tests {
     fn spawn_record_matches_recording() {
         // the ramp's DestructibleFullUpdateIIR_c body in the recorded session
         let body = "0000002c0a0f0d4f2d574315acff2f421d168d7e4312140d0000000015f404353f1d0000000025f204353f188ad48210000000770800120758585f52616d701a623c72656d6f7465666f726d61742069643d22323430363231222063617465676f72793d22353032303022206b65793d225721405a47523173683144554c405a572831603022206b6e75626f743d22302220203e3c2f72656d6f7465666f726d61743e280140edd70e60010003ab39000f6a1900000001000272b100000000000000000000000000000000bfc020cdb423d70abdd6d80f3fbfffe1408bcd583f91985c3f800000000000000000000000000006403f800000000000000000000000000000000000003dcccccd00000000000000003f800000";
-        let defs: Vec<Def> = serde_json::from_str(include_str!("../../../data/buildies.json")).unwrap();
+        let defs: Vec<Def> = serde_json::from_value(serde_json::json!(*crate::world_data::BUILDIES)).expect("buildies");
         let mut def = defs.into_iter().find(|d| d.name == "XX_Ramp").unwrap();
         def.playfield = 33597962; // the recorded instance
         let id = Id32::new(51321, 2606);

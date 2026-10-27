@@ -1,4 +1,4 @@
-//! Encounters: the original server's Scry scripts on bounded areas (data/encounters.json,
+//! Encounters: the original server's Scry scripts on bounded areas (content/worlds/*/areas.json, world_data.rs;
 //! tools/re/extract_encounters.py; research notes in research/lmoxide-notes/world-events.md).
 //! Only the areas, the arena doors and the recorded tutorial survive; what runs here is
 //! inferred (docs/TUNABLES.md "Encounters"):
@@ -136,7 +136,7 @@ struct Gates {
 }
 
 static GATES: LazyLock<HashMap<u32, Gates>> = LazyLock::new(|| {
-    let dest: serde_json::Value = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
+    let dest: serde_json::Value = serde_json::from_value(crate::world_data::DESTINATIONS.clone()).expect("destinations");
     DATA.iter()
         .filter_map(|(&pf, def)| {
             let p = dest["destinations"][pf.to_string()]["pos"].as_array()?;
@@ -172,7 +172,7 @@ fn unlocked(playfield: u32, gates: &[usize]) -> bool {
 
 static DATA: LazyLock<HashMap<u32, PlayfieldDef>> = LazyLock::new(|| {
     let doc: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/encounters.json")).expect("encounters.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::ENCOUNTERS)).expect("encounters");
     doc.into_iter()
         .filter(|(pf, _)| pf != &crate::tutorial::PLAYFIELD.to_string()) // tutorial.rs runs its own
         .filter_map(|(pf, v)| Some((pf.parse().ok()?, serde_json::from_value(v).expect("encounters.json playfield"))))
@@ -338,7 +338,7 @@ static SHIELDS: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
         guid: u32,
     }
     let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     let mut m = HashMap::new();
     for (pf, w) in worlds {
         let Ok(pf) = pf.parse::<u32>() else { continue };

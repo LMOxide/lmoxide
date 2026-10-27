@@ -1410,7 +1410,8 @@
         "guid": 595180,
         "tag": "----",
         "script_group": 2,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1426,7 +1427,8 @@
         "guid": 595181,
         "tag": "----",
         "script_group": 3,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

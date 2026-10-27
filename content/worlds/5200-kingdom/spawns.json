@@ -1974,7 +1974,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -1990,7 +1991,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2006,7 +2008,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2022,7 +2025,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2038,7 +2042,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2054,7 +2059,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2070,7 +2076,8 @@
         "tag": "5MHR",
         "script_group": -1,
         "visual": [1010201, 564580],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_2x2x2_icecream"
       },
       "source": "client"
     },
@@ -2824,7 +2831,8 @@
         "guid": 530755,
         "tag": "----",
         "script_group": 0,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -2840,7 +2848,8 @@
         "guid": 530756,
         "tag": "----",
         "script_group": 1,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -2856,7 +2865,8 @@
         "guid": 530757,
         "tag": "----",
         "script_group": 4,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -2872,7 +2882,8 @@
         "guid": 531631,
         "tag": "----",
         "script_group": 5,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -2888,7 +2899,8 @@
         "guid": 530758,
         "tag": "----",
         "script_group": 6,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -2904,7 +2916,8 @@
         "guid": 530759,
         "tag": "----",
         "script_group": 7,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

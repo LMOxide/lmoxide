@@ -1,7 +1,7 @@
 //! LEGO gates (`module_wall_4x4_gate_lego_myth_interactable`) that block until something opens
 //! them, then play their open motion (the interactables' blend setup, mirrors.rs `TURN_PLUS`):
 //!
-//! - Light gates (data/light_gates.json, tools/re/extract_light_gates.py): Medusa's Lair's gates
+//! - Light gates (content/worlds/*/puzzles.json `light_gate`, world_data.rs): Medusa's Lair's gates
 //!   with "mirror light" spots facing them. Each spot gets a mirror buildie ("XX_boss medusa
 //!   mirror buildie"); once built it beams light at the gate, and with every spot of a gate lit
 //!   the gate opens (the user's memory of live).
@@ -57,7 +57,7 @@ struct LightGate {
 
 static DATA: LazyLock<HashMap<u32, Vec<LightGate>>> = LazyLock::new(|| {
     let raw: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/light_gates.json")).expect("light_gates.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::LIGHT_GATES)).expect("light gates");
     raw.into_iter()
         .filter_map(|(pf, v)| Some((pf.parse().ok()?, serde_json::from_value(v).expect("light_gates.json playfield"))))
         .collect()
@@ -72,7 +72,7 @@ static EXIT_GATES: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
         guid: u32,
     }
     let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     let mut m = HashMap::new();
     for w in worlds.values() {
         let pieces: Vec<Piece> = w
@@ -103,7 +103,7 @@ static WALLS: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
         guid: u32,
     }
     let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     let mut m = HashMap::new();
     for w in worlds.values() {
         let pieces: Vec<Piece> = w

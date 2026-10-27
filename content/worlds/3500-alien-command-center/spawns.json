@@ -709,7 +709,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 388082],
-        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8],
+        "look": "alien_props_alarm_a_on_space"
       },
       "source": "client"
     },
@@ -741,7 +742,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 388082],
-        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8],
+        "look": "alien_props_alarm_a_on_space"
       },
       "source": "client"
     },
@@ -757,7 +759,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 388082],
-        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8],
+        "look": "alien_props_alarm_a_on_space"
       },
       "source": "client"
     },
@@ -789,7 +792,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 388082],
-        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8],
+        "look": "alien_props_alarm_a_on_space"
       },
       "source": "client"
     },
@@ -1466,7 +1470,8 @@
         "guid": 595184,
         "tag": "----",
         "script_group": 1,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1482,7 +1487,8 @@
         "guid": 595185,
         "tag": "----",
         "script_group": 3,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

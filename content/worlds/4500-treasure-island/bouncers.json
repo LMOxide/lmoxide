@@ -13,7 +13,8 @@
         "tag": "JUMP",
         "script_group": -1,
         "visual": [1010201, 273496],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_idle"
       },
       "source": "client"
     },
@@ -30,7 +31,8 @@
         "tag": "JUMP",
         "script_group": 416,
         "visual": [1010201, 273496],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_idle"
       },
       "source": "client"
     }

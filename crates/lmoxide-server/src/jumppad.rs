@@ -5,7 +5,7 @@
 //! and drove the whole jump (seen in the recorded session): an effect on the pad, a `StopIIR_c`,
 //! a ballistic `MoveTaskIIR_c` to the landing point and the "jumppad lock" buff, then at the end
 //! a landing effect and a `StopIIR_c` at the landing point. Pads and landing points come from
-//! data/world_content.json (`kind: "jump_pad"`, tools/re/extract_world_content.py); outside
+//! content/worlds/*/bouncers.json (world_data.rs); outside
 //! the recorded worlds the landing points are guesses.
 //!
 //! The world editor's bouncer placements (`kind: "bouncer"`, docs/SURVEY.md) apply on top
@@ -157,10 +157,10 @@ struct World {
     simple_dynels: Vec<serde_json::Value>,
 }
 
-/// The pads of world_content.json.
+/// The pads of the content tree (bouncers.json).
 static BASE: LazyLock<HashMap<u32, Vec<Pad>>> = LazyLock::new(|| {
     let worlds: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
     worlds
         .into_iter()
         .filter_map(|(pf, w)| {

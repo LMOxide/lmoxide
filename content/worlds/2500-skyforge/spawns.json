@@ -607,7 +607,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 483508],
-        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38],
+        "look": "module_wall_portcullis_door_a_myth_interactable"
       },
       "source": "client"
     },
@@ -736,7 +737,8 @@
         "tag": "",
         "script_group": 33,
         "visual": [1010201, 148624],
-        "bounds": [-0.375, 0.001, -0.375, 0.375, 2.053, 0.375]
+        "bounds": [-0.375, 0.001, -0.375, 0.375, 2.053, 0.375],
+        "look": "lightning_rod_a_buildie"
       },
       "source": "client"
     },
@@ -752,7 +754,8 @@
         "tag": "",
         "script_group": 35,
         "visual": [1010201, 148624],
-        "bounds": [-0.375, 0.001, -0.375, 0.375, 2.053, 0.375]
+        "bounds": [-0.375, 0.001, -0.375, 0.375, 2.053, 0.375],
+        "look": "lightning_rod_a_buildie"
       },
       "source": "client"
     },
@@ -962,7 +965,8 @@
         "tag": "OR3H",
         "script_group": -1,
         "visual": [1010201, 152230],
-        "bounds": [-10.0, 0.0, -10.0, 10.0, 20.0, 10.0]
+        "bounds": [-10.0, 0.0, -10.0, 10.0, 20.0, 10.0],
+        "look": "flying_machine_myth_a_buildie"
       },
       "source": "client"
     },
@@ -1028,7 +1032,8 @@
         "guid": 595226,
         "tag": "----",
         "script_group": 15,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -1044,7 +1049,8 @@
         "guid": 595227,
         "tag": "----",
         "script_group": 16,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

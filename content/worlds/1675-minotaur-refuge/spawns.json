@@ -174,7 +174,8 @@
         "guid": 595038,
         "tag": "----",
         "script_group": 15,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     }

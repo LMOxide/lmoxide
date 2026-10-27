@@ -1037,7 +1037,8 @@
         "tag": "PTBB",
         "script_group": -1,
         "visual": [1010201, 538399],
-        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38],
+        "look": "red_button_pedestal"
       },
       "source": "client"
     },
@@ -1053,7 +1054,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client",
       "tags": ["jump-target"]
@@ -1070,7 +1072,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },
@@ -1086,7 +1089,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },
@@ -1102,7 +1106,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },
@@ -1118,7 +1123,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },
@@ -1134,7 +1140,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1246,7 +1253,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 51057],
-        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025],
+        "look": "invisible_monsterdata"
       },
       "source": "client"
     },
@@ -1262,7 +1270,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1278,7 +1287,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1294,7 +1304,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1310,7 +1321,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1326,7 +1338,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1342,7 +1355,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1358,7 +1372,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1374,7 +1389,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1390,7 +1406,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1406,7 +1423,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1422,7 +1440,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1438,7 +1457,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1454,7 +1474,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1470,7 +1491,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1486,7 +1508,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1502,7 +1525,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1518,7 +1542,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1534,7 +1559,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1550,7 +1576,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1566,7 +1593,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1582,7 +1610,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1598,7 +1627,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1614,7 +1644,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1630,7 +1661,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1646,7 +1678,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1662,7 +1695,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1678,7 +1712,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1694,7 +1729,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1710,7 +1746,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 237187],
-        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006],
+        "look": "empty_monsterdata"
       },
       "source": "client"
     },
@@ -1742,7 +1779,8 @@
         "guid": 656807,
         "tag": "----",
         "script_group": 1,
-        "visual": [1010201, 465832]
+        "visual": [1010201, 465832],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },

@@ -13,7 +13,8 @@
         "tag": "JUMP",
         "script_group": 6,
         "visual": [1010201, 273496],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_idle"
       },
       "source": "client"
     },
@@ -30,7 +31,8 @@
         "tag": "JUMP",
         "script_group": 7,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -47,7 +49,8 @@
         "tag": "JUMP",
         "script_group": 8,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -66,7 +69,8 @@
         "tag": "JUMP",
         "script_group": 9,
         "visual": [1010201, 273496],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_idle"
       },
       "source": "client"
     },
@@ -85,7 +89,8 @@
         "tag": "JUMP",
         "script_group": 10,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -104,7 +109,8 @@
         "tag": "JUMP",
         "script_group": 11,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -121,7 +127,8 @@
         "tag": "JUMP",
         "script_group": 15,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -138,7 +145,8 @@
         "tag": "JUMP",
         "script_group": 16,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -155,7 +163,8 @@
         "tag": "JUMP",
         "script_group": 18,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -172,7 +181,8 @@
         "tag": "JUMP",
         "script_group": 21,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -189,7 +199,8 @@
         "tag": "JUMP",
         "script_group": 22,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -206,7 +217,8 @@
         "tag": "JUMP",
         "script_group": 24,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -225,7 +237,8 @@
         "tag": "JUMP",
         "script_group": 27,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     },
@@ -242,7 +255,8 @@
         "tag": "JUMP",
         "script_group": 28,
         "visual": [1010201, 148906],
-        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5],
+        "look": "jump_pad_wind_fan_a_buildie"
       },
       "source": "client"
     }

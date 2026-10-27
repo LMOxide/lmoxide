@@ -1,4 +1,4 @@
-//! Medusa mirror puzzles (Armory 2310, Gauntlet 6300): data/mirror_puzzles.json
+//! Medusa mirror puzzles (Armory 2310, Gauntlet 6300): content/worlds/*/puzzles.json `mirrors`
 //! (tools/re/extract_mirror_puzzles.py). Each mirror turns between two positions when used; in
 //! each it sends the light on to another mirror, a target or a wall. Lighting every target
 //! solves the puzzle: the Armory's pedestal opens the barrier beside it, the Thunderbolt arena's
@@ -85,7 +85,7 @@ struct Puzzle {
 
 static DATA: LazyLock<HashMap<u32, Puzzle>> = LazyLock::new(|| {
     let raw: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/mirror_puzzles.json")).expect("mirror_puzzles.json");
+        serde_json::from_value(serde_json::json!(*crate::world_data::MIRROR_PUZZLES)).expect("mirror puzzles");
     raw.into_iter()
         .filter_map(|(pf, v)| Some((pf.parse().ok()?, serde_json::from_value(v).expect("mirror_puzzles.json puzzle"))))
         .collect()

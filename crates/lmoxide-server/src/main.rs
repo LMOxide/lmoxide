@@ -50,6 +50,7 @@ mod territory;
 mod universe;
 mod walls;
 mod world;
+mod world_data;
 
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 

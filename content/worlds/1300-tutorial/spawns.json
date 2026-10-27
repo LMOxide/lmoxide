@@ -194,7 +194,7 @@
       "name": "XX_Ramp",
       "kind": "buildie",
       "template": "object/xx-ramp",
-      "pos": [215.18, 44.0, 254.55],
+      "pos": [215.17699, 43.99968, 254.55112],
       "rot": [0.0, 0.7071068, 0.0, 0.7071067],
       "client": {
         "cars_group": 1
@@ -206,7 +206,7 @@
       "name": "XX_Wind propeller",
       "kind": "buildie",
       "template": "object/xx-wind-propeller",
-      "pos": [227.91, 43.99, 252.99],
+      "pos": [227.91, 43.9939, 252.986],
       "rot": [0.0, 0.9489633, 0.0, 0.31538662],
       "client": {
         "cars_group": 1
@@ -218,7 +218,7 @@
       "name": "Mortar Buildie",
       "kind": "buildie",
       "template": "object/mortar-buildie",
-      "pos": [242.16, 44.0, 253.88],
+      "pos": [242.16154, 43.9957, 253.88184],
       "rot": [0.0, -0.9986888, 0.0, 0.05119257],
       "client": {
         "cars_group": 1
@@ -452,7 +452,8 @@
         "tag": "28EI",
         "script_group": -1,
         "visual": [1010201, 148860],
-        "bounds": [-0.702, 0.0, -0.356, 0.701, 0.756, 0.356]
+        "bounds": [-0.702, 0.0, -0.356, 0.701, 0.756, 0.356],
+        "look": "lego_chest_small_a_smashie"
       },
       "source": "client"
     },
@@ -483,7 +484,8 @@
         "guid": 635924,
         "tag": "8Y7Q",
         "script_group": 5,
-        "visual": [1010201, 635274]
+        "visual": [1010201, 635274],
+        "look": "crystal_compass"
       },
       "source": "client"
     },

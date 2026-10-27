@@ -625,7 +625,8 @@
         "tag": "RZ7O",
         "script_group": 3,
         "visual": [1010201, 465832],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
@@ -642,7 +643,8 @@
         "tag": "RZ7O",
         "script_group": 6,
         "visual": [1010201, 465832],
-        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "look": "empty_monsterdata_1x1x1"
       },
       "source": "client"
     },
