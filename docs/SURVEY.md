@@ -110,6 +110,27 @@ Files are pretty-printed with a fixed order, so diffs and merges stay readable.
   as the play server's patrols (`world_content.json` `patrol`, `npc.rs` `patrol`): two or more
   points, the last leading back to the first; it starts at the point nearest to where it is.
 
+### Trigger walls
+
+Also in `<playfield>.placements.json`, under `triggers`: walls that do something when a player
+walks through them.
+
+```json
+{ "id": "t-…", "name": "cove entrance", "pos": [300.0, 48.0, 90.0], "heading": 1.57,
+  "size": [6.0, 3.0, 1.0], "color": "red",
+  "action": { "script": { "script": "s-…", "wave": null } }, "once": true, "comment": "…" }
+```
+
+- `pos` is the bottom middle; `size` is width (across), height and depth (along `heading`).
+- `action`: `script` (a script's wave; none: its first), `discover` (a location or achievement
+  name, optional), `dialog` (a dialogue number for `!dialog`, or a name, optional), `message`
+  (`text`), `other` (the comment says what). `once`: only each player's first crossing counts.
+- `color`: how the survey server draws it, from the arena doors and forcefields: `red`, `green`,
+  `shield`, `low shield`, `forcefield` (`GET /v1/survey/wall-looks`). The look is scaled to the
+  height and repeated across the width; crossing is checked against the exact box.
+- In survey mode crossing one shows what it would do: a script's wave pops in (as "Preview"),
+  `dialog` with a number opens it, the others say in chat what happens.
+
 ### Notes (for review)
 
 ```json
@@ -211,6 +232,8 @@ with its `category`.
 | GET | `/players/{account}/state` | | `PlayerState`: playfield, position, heading, selection, hidden ids, `shown_waves` (script id → wave id or `"all"`; a script that isn't there shows its first wave), what they wear, the playfield's `revision` |
 | POST | `/players/{account}/wear` | `{what: Placeable \| null}` | `PlayerState` |
 | POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected; its wave is shown) |
+| POST | `/players/{account}/place-trigger` | `{name, size, color, action, once}` | the new trigger wall as a `SurveyObject` (`kind: "trigger"`, selected) |
+| GET | `/wall-looks` | | `[{color}]`: the looks trigger walls can have |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
 | POST | `/players/{account}/unhide-all` | | `PlayerState` |
@@ -221,7 +244,7 @@ with its `category`.
 | GET | `/playfields/{pf}/notes` | | `{notes, scripts}` |
 | PUT / DELETE | `/playfields/{pf}/notes/{id}` | `Note` | `Note` |
 | PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
-| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn) | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
+| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
 | POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
 | DELETE | `/objects/{id}` | | |
 | GET / PUT | `/set` | `SetInfo` | `SetInfo` |
@@ -246,16 +269,18 @@ Done:
 5. **Notes, scripts and waves** stored and shown per wave; "Preview" spawns a wave again.
 6. **Import / export** with the merge preview.
 7. **Hosting**: `tools/survey-server.sh` next to the LAN server; `lmo <name> <ip>:<port>`.
+8. **Trigger walls**: placed, sized, coloured, moved, deleted and hidden like the rest; crossing
+   one shows its action.
 
 Next:
 
-8. **Buildies and interactables**: placing them (ghosts to wear), editing and hiding them (they
+9. **Buildies and interactables**: placing them (ghosts to wear), editing and hiding them (they
    are buildie.rs / scenery.rs objects, not NPCs).
-9. **Patrol routes in game**: markers at the selected patroller's points.
-10. **Play servers use accepted sets**: a reviewed set (e.g. `data/survey/<set>/`) applied over
+10. **Patrol routes in game**: markers at the selected patroller's points.
+11. **Play servers use accepted sets** (trigger walls too): a reviewed set (e.g. `data/survey/<set>/`) applied over
     the base content at startup with `lmoxide_survey::apply`. Placements with a wave aren't
     spawned until their (reviewed, implemented) trigger.
-11. **docker-compose** service for a survey server.
+12. **docker-compose** service for a survey server.
 
 Open research, separate from the steps: whether the client lets GMs zoom freely (Linux symbols),
 and the client's dimension list as a server picker (not needed now).

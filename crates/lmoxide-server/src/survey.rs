@@ -14,9 +14,10 @@ use std::{
     collections::{BTreeMap, HashMap, HashSet},
     path::PathBuf,
     sync::{
-        LazyLock, Mutex,
-        atomic::{AtomicBool, Ordering},
+        Arc, LazyLock, Mutex,
+        atomic::{AtomicBool, AtomicU32, Ordering},
     },
+    time::Duration,
 };
 
 use axum::{
@@ -28,13 +29,14 @@ use axum::{
 };
 use lmoxide_net::types::Id32;
 use lmoxide_survey::{
-    self as sv, Kind as SKind, Note, Origin, Placement, Script, WaveRef,
+    self as sv, Kind as SKind, Note, Origin, Placement, Script, TriggerWall, WallAction, WaveRef,
     apply::{Base, Category, Spawn},
     ids,
     merge::{self, Prefer, Tolerance},
     set::{Set, SetInfo},
 };
 use serde::{Deserialize, Serialize};
+use tokio::sync::mpsc;
 use tracing::{info, warn};
 
 use crate::{
@@ -96,6 +98,10 @@ struct State {
     revision: HashMap<u32, u64>,
     surveyors: HashMap<Id32, Surveyor>,
     catalog: Vec<(Placeable, SpawnDef)>,
+    /// Trigger walls by id.
+    walls: HashMap<String, Wall>,
+    /// Where each player was at the last wall check (playfield, position).
+    last_pos: HashMap<Id32, (u32, [f32; 3])>,
 }
 
 static STATE: LazyLock<Mutex<Option<State>>> = LazyLock::new(|| Mutex::new(None));
@@ -123,6 +129,8 @@ pub fn init(dir: PathBuf) {
         revision: HashMap::new(),
         surveyors: HashMap::new(),
         catalog: Vec::new(),
+        walls: HashMap::new(),
+        last_pos: HashMap::new(),
     });
 }
 
@@ -234,7 +242,7 @@ impl Object {
     fn view(&self) -> SurveyObject {
         SurveyObject {
             id: self.id.clone(),
-            kind: skind(self.def.kind),
+            kind: skind(self.def.kind).as_str().into(),
             name: self.def.name.clone(),
             monster_data: nonzero(self.def.monster_data),
             template: nonzero(self.def.template),
@@ -247,6 +255,10 @@ impl Object {
             comment: self.comment.clone(),
             author: self.author.clone(),
             updated: self.updated,
+            size: None,
+            color: None,
+            action: None,
+            once: None,
         }
     }
 }
@@ -267,7 +279,8 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     for pf in playfields {
         build_playfield(st, pf);
     }
-    info!(objects = st.objects.len(), "survey: content spawned");
+    info!(objects = st.objects.len(), walls = st.walls.len(), "survey: content spawned");
+    tokio::spawn(watch_walls());
 }
 
 /// Spawns playfield `pf`'s objects from its base content and the set.
@@ -323,6 +336,12 @@ fn build_playfield(st: &mut State, pf: u32) {
             st.by_npc.insert(n, o.id.clone());
         }
         st.objects.insert(o.id.clone(), o);
+    }
+    let walls: Vec<TriggerWall> = st.set.placements.get(&pf).map(|f| f.triggers.iter().filter(|w| !w.removed).cloned().collect()).unwrap_or_default();
+    for def in walls {
+        let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
+        spawn_wall(&st.surveyors, &mut w);
+        st.walls.insert(w.def.id.clone(), w);
     }
 }
 
@@ -495,10 +514,22 @@ fn is_hidden_for(s: &Surveyor, o: &Object, set: &Set) -> bool {
 /// their playfield, spawns ones they show again.
 fn sync_hidden(st: &State, viewer: Id32) {
     let Some(s) = st.surveyors.get(&viewer) else { return };
-    let want: HashSet<Id32> = st.objects.values().filter(|o| is_hidden_for(s, o, &st.set)).filter_map(|o| o.npc).collect();
+    // every spawned id with its playfield and whether the viewer hides it
+    let mut all: HashMap<Id32, (u32, bool)> = HashMap::new();
+    for o in st.objects.values() {
+        if let Some(n) = o.npc {
+            all.insert(n, (o.playfield, is_hidden_for(s, o, &st.set)));
+        }
+    }
+    for w in st.walls.values() {
+        for id in w.ids() {
+            all.insert(id, (w.playfield, s.hidden.contains(&w.def.id)));
+        }
+    }
+    let want: HashSet<Id32> = all.iter().filter(|(_, (_, h))| *h).map(|(id, _)| *id).collect();
     let had = HIDDEN.lock().unwrap().insert(viewer, want.clone()).unwrap_or_default();
     let here = world::whereabouts(viewer).map(|(pf, _)| pf);
-    let on_here = |id: &Id32| st.by_npc.get(id).and_then(|o| st.objects.get(o)).is_some_and(|o| Some(o.playfield) == here);
+    let on_here = |id: &Id32| all.get(id).is_some_and(|(pf, _)| Some(*pf) == here);
     let mut records = Vec::new();
     for id in want.difference(&had).filter(|id| on_here(id)) {
         records.push(crate::game::despawn_record(*id));
@@ -520,7 +551,11 @@ fn sync_all(st: &State) {
 /// Moves the selection marker of `viewer` to their selection (or stops it).
 fn mark(st: &mut State, viewer: Id32) {
     let selected = st.surveyors.get(&viewer).and_then(|s| s.selected.clone());
-    let target = selected.and_then(|id| st.objects.get(&id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos)));
+    // (a trigger wall: a ground marker at its foot, as a smashable's)
+    let target = selected.as_ref().and_then(|id| st.objects.get(id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos))).or_else(|| {
+        let w = st.walls.get(selected.as_ref()?)?;
+        Some((w.pieces.first()?.0, Kind::Smashable, w.def.pos))
+    });
     let Some(s) = st.surveyors.get_mut(&viewer) else { return };
     let mut records = Vec::new();
     if let Some((owner, package, instance)) = s.marker.take() {
@@ -588,7 +623,8 @@ pub struct Placeable {
 #[derive(Serialize)]
 struct SurveyObject {
     id: String,
-    kind: SKind,
+    /// enemy, npc, smashable, ... or "trigger" (a trigger wall)
+    kind: String,
     name: String,
     monster_data: Option<u32>,
     template: Option<u32>,
@@ -601,6 +637,15 @@ struct SurveyObject {
     comment: String,
     author: String,
     updated: u64,
+    /// Trigger walls: width, height, depth; look; what crossing does; only once.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    size: Option<[f32; 3]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    color: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    action: Option<WallAction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    once: Option<bool>,
 }
 
 #[derive(Serialize)]
@@ -642,6 +687,11 @@ struct Changes {
     comment: Option<String>,
     #[serde(default, deserialize_with = "some")]
     wave: Option<Option<WaveRef>>,
+    /// Trigger walls
+    size: Option<[f32; 3]>,
+    color: Option<String>,
+    action: Option<WallAction>,
+    once: Option<bool>,
 }
 
 /// A field that may be given as null (`Some(None)`) or left out (`None`).
@@ -741,6 +791,8 @@ pub fn routes() -> Router {
         .route("/v1/survey/players/{account}/state", get(player_state))
         .route("/v1/survey/players/{account}/wear", post(wear))
         .route("/v1/survey/players/{account}/place", post(place))
+        .route("/v1/survey/players/{account}/place-trigger", post(place_trigger))
+        .route("/v1/survey/wall-looks", get(wall_looks))
         .route("/v1/survey/players/{account}/select", post(select))
         .route("/v1/survey/players/{account}/hide", post(hide))
         .route("/v1/survey/players/{account}/unhide-all", post(unhide_all))
@@ -893,13 +945,11 @@ async fn select(Path(account): Path<u32>, Json(b): Json<SelectBody>) -> R<Player
         let id = if b.nearest {
             let here = world::live_position(player).unwrap_or_default();
             let surveyor = st.surveyors.get(&player);
-            st.objects
-                .values()
-                .filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.set)))
-                .min_by(|a, b| distance(a.def.pos, here).total_cmp(&distance(b.def.pos, here)))
-                .map(|o| o.id.clone())
+            let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.set))).map(|o| (&o.id, o.def.pos));
+            let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (&w.def.id, w.def.pos));
+            objects.chain(walls).min_by(|a, b| distance(a.1, here).total_cmp(&distance(b.1, here))).map(|(id, _)| id.clone())
         } else {
-            if let Some(id) = b.id.as_ref().filter(|id| !st.objects.contains_key(*id)) {
+            if let Some(id) = b.id.as_ref().filter(|id| !st.objects.contains_key(*id) && !st.walls.contains_key(*id)) {
                 return Err(Error::NotFound(format!("no object {id}")));
             }
             b.id
@@ -969,14 +1019,7 @@ struct WaveBody {
 async fn preview_wave(Path(account): Path<u32>, Json(b): Json<WaveBody>) -> R<PlayerState> {
     with(|st| {
         let (player, pf) = player_of(account)?;
-        st.surveyors.entry(player).or_default().shown.insert(b.wave.script.clone(), b.wave.wave.clone());
-        let ids: Vec<String> = st.objects.values().filter(|o| o.wave.as_ref() == Some(&b.wave)).map(|o| o.id.clone()).collect();
-        for id in &ids {
-            respawn(st, id);
-            mark_selecting(st, id);
-        }
-        sync_all(st);
-        bump(st, pf);
+        preview(st, player, pf, &b.wave);
         state_of(st, account)
     })
     .map(Json)
@@ -1007,7 +1050,7 @@ async fn objects(Path(pf): Path<u32>) -> R<ObjectList> {
     with(|st| {
         Ok(Json(ObjectList {
             revision: st.revision.get(&pf).copied().unwrap_or(0),
-            objects: st.objects.values().filter(|o| o.playfield == pf).map(Object::view).collect(),
+            objects: st.objects.values().filter(|o| o.playfield == pf).map(Object::view).chain(st.walls.values().filter(|w| w.playfield == pf).map(Wall::view)).collect(),
         }))
     })
 }
@@ -1139,6 +1182,9 @@ fn store(st: &mut State, id: &str) {
 async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>) -> R<SurveyObject> {
     with(|st| {
         let author = author_of(&headers);
+        if st.walls.contains_key(&id) {
+            return edit_wall(st, &id, c, author);
+        }
         let id = surveyed(st, &id, &author)?;
         let catalog = st.catalog.clone();
         let pf = st.objects[&id].playfield;
@@ -1200,6 +1246,9 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
 
 async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> {
     with(|st| {
+        if st.walls.contains_key(&id) {
+            return Err(Error::Invalid("trigger walls are surveyed already".into()));
+        }
         let author = author_of(&headers);
         let id = surveyed(st, &id, &author)?;
         if let Some(o) = st.objects.get_mut(&id) {
@@ -1219,6 +1268,10 @@ async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> 
 
 async fn remove(Path(id): Path<String>, headers: HeaderMap) -> Result<StatusCode, Error> {
     with(|st| {
+        if st.walls.contains_key(&id) {
+            remove_wall(st, &id, &author_of(&headers));
+            return Ok(StatusCode::NO_CONTENT);
+        }
         let o = st.objects.get(&id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
         if !o.category.editable() {
             return Err(Error::Invalid(format!("{} objects can only be hidden", label(o.category))));
@@ -1340,6 +1393,7 @@ async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
                     despawn(&mut o);
                 }
             }
+            st.walls.retain(|_, w| w.playfield != pf);
             build_playfield(st, pf);
             bump(st, pf);
         }
@@ -1351,4 +1405,330 @@ async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
         info!(added = report.added.len(), near = report.near.len(), conflicts = report.conflicts.len(), "survey: import");
         Ok(Json(report))
     })
+}
+
+/// Shows `player` that wave and spawns its placements again, so they pop in as the trigger would.
+fn preview(st: &mut State, player: Id32, pf: u32, wave: &WaveRef) {
+    st.surveyors.entry(player).or_default().shown.insert(wave.script.clone(), wave.wave.clone());
+    let ids: Vec<String> = st.objects.values().filter(|o| o.wave.as_ref() == Some(wave)).map(|o| o.id.clone()).collect();
+    for id in &ids {
+        respawn(st, id);
+        mark_selecting(st, id);
+    }
+    sync_all(st);
+    bump(st, pf);
+}
+
+// ------------------------------------------------------------------ trigger walls
+
+/// Trigger wall looks: name, [resource type, visual], one piece's x range and height (RDB
+/// bounds). The arena doors' closed (red) and open (green) visuals, and the shield and
+/// forcefield walls of the Shadow Centurion Base and the Sorcerer's Keep.
+const WALL_LOOKS: &[(&str, [u32; 2], [f32; 2], f32)] = &[
+    ("red", [1010030, 155861], [-4.12, 4.12], 3.24),
+    ("green", [1010030, 155858], [-4.12, 4.12], 3.24),
+    ("shield", [1010030, 162353], [-2.5, 2.5], 8.0),
+    ("low shield", [1010030, 351981], [-2.588, 2.588], 3.3),
+    ("forcefield", [1010030, 389644], [-8.0, 0.0], 4.0),
+];
+/// Simple dynel instances of wall pieces (clear of RDB guids and gates.rs's beams).
+static NEXT_PIECE: AtomicU32 = AtomicU32::new(0x00e0_0000);
+/// How often players' moves are checked against the walls.
+const WALL_TICK: Duration = Duration::from_millis(200);
+/// A move longer than this between two checks is a teleport, not a walk through a wall.
+const WALL_JUMP: f32 = 15.0;
+/// A new wall: width, height, depth.
+const WALL_SIZE: [f32; 3] = [6.0, 3.0, 1.0];
+
+struct Wall {
+    def: TriggerWall,
+    playfield: u32,
+    /// The pieces drawing it (dropping them despawns them).
+    pieces: Vec<(Id32, world::Presence)>,
+    /// Players a once-only wall went off for.
+    fired: HashSet<Id32>,
+}
+
+impl Wall {
+    fn ids(&self) -> impl Iterator<Item = Id32> + '_ {
+        self.pieces.iter().map(|(id, _)| *id)
+    }
+
+    fn view(&self) -> SurveyObject {
+        let d = &self.def;
+        SurveyObject {
+            id: d.id.clone(),
+            kind: "trigger".into(),
+            name: if d.name.is_empty() { "Trigger wall".into() } else { d.name.clone() },
+            monster_data: None,
+            template: None,
+            level: None,
+            pos: d.pos,
+            heading: d.heading,
+            category: Category::Surveyed,
+            wave: None,
+            patrol: Vec::new(),
+            comment: d.comment.clone(),
+            author: d.author.clone(),
+            updated: d.updated,
+            size: Some(d.size),
+            color: Some(d.color.clone()),
+            action: Some(d.action.clone()),
+            once: Some(d.once),
+        }
+    }
+}
+
+fn look_of(color: &str) -> &'static (&'static str, [u32; 2], [f32; 2], f32) {
+    WALL_LOOKS.iter().find(|l| l.0 == color).unwrap_or(&WALL_LOOKS[0])
+}
+
+/// Spawns the wall's pieces: its look scaled to its height, side by side across its width.
+/// Surveyors who hide it don't get them.
+fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
+    let (_, visual, [x0, x1], height) = *look_of(&w.def.color);
+    let [width, h, _] = w.def.size;
+    let scale = (h / height).max(0.05);
+    let piece = (x1 - x0) * scale;
+    let n = ((width / piece).ceil() as usize).clamp(1, 64);
+    let step = if n > 1 { (width - piece) / (n - 1) as f32 } else { 0.0 };
+    // the look's own middle (the forcefield's runs from -8 to 0)
+    let offset = (x0 + x1) / 2.0 * scale;
+    let (sin, cos) = w.def.heading.sin_cos();
+    let half = w.def.heading / 2.0;
+    let rot = [0.0, half.sin(), 0.0, half.cos()];
+    let name = format!("[trigger] {}", if w.def.name.is_empty() { "wall" } else { &w.def.name });
+    let hiding: Vec<Id32> = surveyors.iter().filter(|(_, s)| s.hidden.contains(&w.def.id)).map(|(v, _)| *v).collect();
+    for i in 0..n {
+        let across = if n > 1 { -width / 2.0 + piece / 2.0 + step * i as f32 } else { 0.0 } - offset;
+        // across = the wall's own x axis, (cos h, -sin h) in x/z
+        let pos = [w.def.pos[0] + across * cos, w.def.pos[1], w.def.pos[2] - across * sin];
+        let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, NEXT_PIECE.fetch_add(1, Ordering::Relaxed));
+        {
+            let mut hidden = HIDDEN.lock().unwrap();
+            for v in &hiding {
+                hidden.entry(*v).or_default().insert(id);
+            }
+        }
+        let (outbox, mut inbox) = mpsc::unbounded_channel();
+        tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+        let pf = w.playfield;
+        let look = crate::scenery::Look { name: name.clone(), visual, bounds: [x0, 0.0, -0.1, x1, height, 0.1], scale };
+        let presence = world::join(id, pf, Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, pf, pos, rot, &look), outbox);
+        w.pieces.push((id, presence));
+    }
+}
+
+/// Stores the wall in the set (replacing the one with its id).
+fn store_wall(st: &mut State, def: TriggerWall, pf: u32) {
+    let list = &mut st.set.placements_mut(pf).triggers;
+    match list.iter_mut().find(|x| x.id == def.id) {
+        Some(x) => *x = def,
+        None => list.push(def),
+    }
+    save(st);
+}
+
+#[derive(Serialize)]
+struct WallLook {
+    color: &'static str,
+}
+
+/// The looks trigger walls can have (their `color`).
+async fn wall_looks() -> R<Vec<WallLook>> {
+    with(|_| Ok(Json(WALL_LOOKS.iter().map(|l| WallLook { color: l.0 }).collect())))
+}
+
+#[derive(Deserialize, Default)]
+struct PlaceTriggerBody {
+    #[serde(default)]
+    name: String,
+    size: Option<[f32; 3]>,
+    color: Option<String>,
+    action: Option<WallAction>,
+    #[serde(default)]
+    once: bool,
+}
+
+fn checked_size(size: [f32; 3]) -> [f32; 3] {
+    size.map(|v| if v.is_finite() { v.clamp(0.1, 200.0) } else { 1.0 })
+}
+
+fn checked_color(color: Option<String>) -> Result<String, Error> {
+    match color {
+        None => Ok(WALL_LOOKS[0].0.into()),
+        Some(c) if WALL_LOOKS.iter().any(|l| l.0 == c) => Ok(c),
+        Some(c) => Err(Error::Invalid(format!("no wall look {c} (wall-looks lists them)"))),
+    }
+}
+
+/// A trigger wall where the surveyor stands, across their way.
+async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<PlaceTriggerBody>) -> R<SurveyObject> {
+    with(|st| {
+        let (player, pf) = player_of(account)?;
+        let author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or_else(|| crate::sessions::players().into_iter().find(|p| p.account_id == account).map(|p| p.character_name).unwrap_or_default());
+        let def = TriggerWall {
+            id: ids::new_id("t", &author),
+            name: b.name,
+            pos: world::live_position(player).unwrap_or_default(),
+            heading: heading_of(world::facing_of(player).unwrap_or([0.0, 1.0])),
+            size: checked_size(b.size.unwrap_or(WALL_SIZE)),
+            color: checked_color(b.color)?,
+            action: b.action.unwrap_or(WallAction::Other),
+            once: b.once,
+            comment: String::new(),
+            removed: false,
+            author,
+            updated: ids::now(),
+        };
+        store_wall(st, def.clone(), pf);
+        let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
+        spawn_wall(&st.surveyors, &mut w);
+        let view = w.view();
+        let id = w.def.id.clone();
+        st.walls.insert(id.clone(), w);
+        st.surveyors.entry(player).or_default().selected = Some(id);
+        mark(st, player);
+        bump(st, pf);
+        Ok(view)
+    })
+    .map(Json)
+}
+
+fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<SurveyObject, Error> {
+    let color = match c.color {
+        Some(col) => Some(checked_color(Some(col))?),
+        None => None,
+    };
+    let w = st.walls.get_mut(id).expect("checked");
+    let d = &mut w.def;
+    if let Some(p) = c.pos {
+        d.pos = p;
+    }
+    if let Some(h) = c.heading {
+        d.heading = h;
+    }
+    if let Some(size) = c.size {
+        d.size = checked_size(size);
+    }
+    if let Some(col) = color {
+        d.color = col;
+    }
+    if let Some(a) = c.action {
+        d.action = a;
+    }
+    if let Some(o) = c.once {
+        d.once = o;
+        w.fired.clear();
+    }
+    if let Some(n) = c.name {
+        d.name = n;
+    }
+    if let Some(t) = c.comment {
+        d.comment = t;
+    }
+    if !author.is_empty() {
+        d.author = author;
+    }
+    d.updated = ids::now();
+    let (def, pf) = (d.clone(), w.playfield);
+    // drawn again where and as it is now
+    w.pieces.clear();
+    spawn_wall(&st.surveyors, w);
+    store_wall(st, def, pf);
+    mark_selecting(st, id);
+    bump(st, pf);
+    Ok(st.walls[id].view())
+}
+
+fn remove_wall(st: &mut State, id: &str, author: &str) {
+    let Some(w) = st.walls.remove(id) else { return };
+    let mut def = w.def.clone();
+    def.removed = true;
+    def.updated = ids::now();
+    if !author.is_empty() {
+        def.author = author.into();
+    }
+    store_wall(st, def, w.playfield);
+    drop(w); // despawns its pieces
+    let viewers: Vec<Id32> = st.surveyors.iter().filter(|(_, s)| s.selected.as_deref() == Some(id)).map(|(v, _)| *v).collect();
+    for v in viewers {
+        if let Some(s) = st.surveyors.get_mut(&v) {
+            s.selected = None;
+        }
+        mark(st, v);
+    }
+    let pf = st.set.placements.iter().find(|(_, f)| f.triggers.iter().any(|t| t.id == id)).map(|(pf, _)| *pf);
+    if let Some(pf) = pf {
+        bump(st, pf);
+    }
+}
+
+/// Checks every player's moves against the trigger walls of their playfield.
+async fn watch_walls() {
+    let mut tick = tokio::time::interval(WALL_TICK);
+    loop {
+        tick.tick().await;
+        // where the players are (outside the survey lock)
+        let players: Vec<(Id32, u32, [f32; 3])> = crate::sessions::players()
+            .into_iter()
+            .filter_map(|p| {
+                let id = Id32::new(crate::territory::CHARACTER_TYPE, p.character_id);
+                let (pf, _) = world::whereabouts(id)?;
+                Some((id, pf, world::live_position(id)?))
+            })
+            .collect();
+        let mut guard = STATE.lock().unwrap();
+        let Some(st) = guard.as_mut() else { continue };
+        let mut fired = Vec::new();
+        for (player, pf, pos) in players {
+            let Some((last_pf, last)) = st.last_pos.insert(player, (pf, pos)) else { continue };
+            if last_pf != pf || distance(last, pos) > WALL_JUMP || last == pos {
+                continue;
+            }
+            for w in st.walls.values().filter(|w| w.playfield == pf) {
+                if w.def.crossed(last, pos) && !(w.def.once && w.fired.contains(&player)) {
+                    fired.push((w.def.id.clone(), player, pf));
+                }
+            }
+        }
+        for (id, player, pf) in fired {
+            fire(st, &id, player, pf);
+        }
+    }
+}
+
+/// What crossing wall `id` does for `player` (in survey mode: shows it).
+fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
+    let Some(w) = st.walls.get_mut(id) else { return };
+    w.fired.insert(player);
+    let def = w.def.clone();
+    let label = if def.name.is_empty() { "trigger".to_string() } else { format!("trigger {}", def.name) };
+    let say = |text: String| crate::chat::system(player.instance, &format!("[{label}] {text}"));
+    match &def.action {
+        WallAction::Script { script, wave } => {
+            let s = script.as_ref().and_then(|sid| scripts_of(&st.set, pf).iter().find(|s| &s.id == sid)).cloned();
+            match s {
+                Some(s) => {
+                    let w = wave.as_ref().and_then(|wid| s.waves.iter().find(|x| &x.id == wid)).or(s.waves.first()).cloned();
+                    if let Some(w) = w {
+                        say(format!("starts {}: {}", if s.name.is_empty() { "a script" } else { &s.name }, w.name));
+                        preview(st, player, pf, &WaveRef { script: s.id.clone(), wave: w.id.clone() });
+                    }
+                }
+                None => say("starts a script (none chosen yet)".into()),
+            }
+        }
+        WallAction::Discover { name } => say(format!("discovered {}", name.as_deref().unwrap_or("a location"))),
+        WallAction::Dialog { dialog } => match dialog.as_deref() {
+            Some(d) if d.parse::<u32>().is_ok() => {
+                say(format!("opens dialogue {d}"));
+                world::send_to(player, world::Out::Command(format!("!dialog {d}"), None));
+            }
+            Some(d) => say(format!("opens the dialogue \"{d}\"")),
+            None => say("opens a dialogue (none chosen yet)".into()),
+        },
+        WallAction::Message { text } => say(if text.is_empty() { "(a message)".into() } else { text.clone() }),
+        WallAction::Other => say(if def.comment.is_empty() { "crossed".into() } else { def.comment.clone() }),
+    }
 }

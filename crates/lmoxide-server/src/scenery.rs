@@ -140,6 +140,38 @@ pub fn invisible_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4])
     vec![create_game_object(id, playfield, pos), record, int32_stat(id, STAT_CARS_GROUP, CARS_INACTIVE)]
 }
 
+/// How a piece of scenery looks: its name, `[resource type, visual id]`, box and scale.
+pub struct Look {
+    pub name: String,
+    pub visual: [u32; 2],
+    pub bounds: [f32; 6],
+    pub scale: f32,
+}
+
+/// A piece of scenery of any look: not usable, no collision. Survey mode's trigger walls are
+/// made of these.
+pub fn visual_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4], look: &Look) -> Vec<Bytes> {
+    let Look { name, visual, bounds, scale } = look;
+    let dynel = ProtoGameCodeDynelIir {
+        position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
+        rotation: Some(ProtoQuat { x: Some(rot[0]), y: Some(rot[1]), z: Some(rot[2]), w: Some(rot[3]) }),
+        playfield_instance: Some(playfield),
+        running_effects: vec![],
+    };
+    let simple = ProtoSimpleDynelIir {
+        kdtree: Some(0),
+        name: Some(name.clone()),
+        cars_group: Some(CARS_INACTIVE),
+        is_closed: Some(true),
+        ..Default::default()
+    };
+    let record = iir::record("SimpleDynelFullUpdateIIR_c", id, false, |w| {
+        let w = w.proto(&dynel).proto(&simple).u32(visual[1]).u32(visual[0]).u32(0);
+        bounds.iter().fold(w, |w, v| w.f32(*v)).f32(*scale).u32(0).u8(0)
+    });
+    vec![create_game_object(id, playfield, pos), record, int32_stat(id, STAT_CARS_GROUP, CARS_INACTIVE)]
+}
+
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (as for jump pads: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
 fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {

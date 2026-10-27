@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 
 use serde::Serialize;
 
-use crate::{Area, NotesFile, Placement, PlacementsFile, Script, Trigger, Wave, distance, heading_difference, set::Set};
+use crate::{Area, NotesFile, Placement, PlacementsFile, Script, Trigger, TriggerWall, Wave, WallAction, distance, heading_difference, set::Set};
 
 /// How close two records must be to be the same thing.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -97,10 +97,11 @@ pub fn merge(ours: &mut Set, theirs: &Set, opts: &Options) -> Report {
         m.scripts(&mut ours.notes_mut(pf).scripts, &their_n.scripts);
         m.notes(ours.notes_mut(pf), &their_n.notes);
         m.placements(&mut ours.placements_mut(pf).placements, &their_p.placements);
+        m.walls(&mut ours.placements_mut(pf).triggers, &their_p.triggers);
         ours.placements_mut(pf);
         let (Some(n), Some(p)) = (ours.notes.get_mut(&pf), ours.placements.get_mut(&pf)) else { unreachable!() };
-        m.repoint(n, &mut p.placements);
-        if ours.placements[&pf].placements.is_empty() {
+        m.repoint(n, &mut p.placements, &mut p.triggers);
+        if ours.placements[&pf].placements.is_empty() && ours.placements[&pf].triggers.is_empty() {
             ours.placements.remove(&pf);
         }
         if ours.notes[&pf].notes.is_empty() && ours.notes[&pf].scripts.is_empty() {
@@ -295,6 +296,45 @@ impl Merger<'_> {
         }
     }
 
+    /// Trigger walls: the same id is a duplicate or a conflict; a wall doing the same thing
+    /// (action) within the tolerance is a near-duplicate.
+    fn walls(&mut self, ours: &mut Vec<TriggerWall>, theirs: &[TriggerWall]) {
+        let t = self.opts.tolerance;
+        for tw in theirs {
+            let mut tw = tw.clone();
+            if let WallAction::Script { script: Some(s), wave } = &mut tw.action {
+                *s = self.ours(s).to_string();
+                if let Some(w) = wave {
+                    *w = self.ours(w).to_string();
+                }
+            }
+            if let Some(i) = ours.iter().position(|w| w.id == tw.id) {
+                if ours[i].same_content(&tw) {
+                    self.report.duplicates.push(tw.id.clone());
+                } else if self.conflict(&tw.id, &tw.id, ours[i].updated, tw.updated) {
+                    ours[i] = tw;
+                }
+                continue;
+            }
+            let near = (!self.opts.take.contains(&tw.id))
+                .then(|| {
+                    ours.iter()
+                        .filter(|w| w.action == tw.action && w.removed == tw.removed)
+                        .map(|w| (w.id.clone(), distance(w.pos, tw.pos), heading_difference(w.heading, tw.heading)))
+                        .filter(|(_, d, h)| *d <= t.distance && *h <= t.heading)
+                        .min_by(|a, b| a.1.total_cmp(&b.1))
+                })
+                .flatten();
+            match near {
+                Some((id, d, _)) => self.near(&tw.id, &id, d),
+                None => {
+                    self.report.added.push(tw.id.clone());
+                    ours.push(tw);
+                }
+            }
+        }
+    }
+
     fn repoint_placement(&self, p: &mut Placement) {
         if let Some(w) = &mut p.wave {
             w.script = self.ours(&w.script).to_string();
@@ -305,9 +345,17 @@ impl Merger<'_> {
     /// Points everything that names one of their matched records at ours. Only their ids are
     /// in the map, and none of them is one of our ids naming something else, so all of ours can
     /// be rewritten.
-    fn repoint(&self, notes: &mut NotesFile, placements: &mut [Placement]) {
+    fn repoint(&self, notes: &mut NotesFile, placements: &mut [Placement], walls: &mut [TriggerWall]) {
         for p in placements {
             self.repoint_placement(p);
+        }
+        for w in walls {
+            if let WallAction::Script { script: Some(s), wave } = &mut w.action {
+                *s = self.ours(s).to_string();
+                if let Some(wv) = wave {
+                    *wv = self.ours(wv).to_string();
+                }
+            }
         }
         for w in notes.scripts.iter_mut().flat_map(|s| s.waves.iter_mut()) {
             match &mut w.trigger {
@@ -418,6 +466,36 @@ mod tests {
         assert_eq!(r.conflicts[0].kept, Side::Theirs);
         assert_eq!(ids(&ours), ["p-a-1"]);
         assert_eq!(ours.placements[&1200].placements[0].pos, [5.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn trigger_walls() {
+        let wall = |id: &str, x: f32, action: WallAction| TriggerWall {
+            id: id.into(),
+            name: String::new(),
+            pos: [x, 0.0, 0.0],
+            heading: 0.0,
+            size: [4.0, 3.0, 1.0],
+            color: "red".into(),
+            action,
+            once: false,
+            comment: String::new(),
+            removed: false,
+            author: String::new(),
+            updated: 0,
+        };
+        let discover = || WallAction::Discover { name: Some("Treasure Cove".into()) };
+        let mut ours = Set::default();
+        ours.placements_mut(1200).triggers.push(wall("t-a", 0.0, discover()));
+        let mut theirs = Set::default();
+        theirs.placements_mut(1200).triggers = vec![
+            wall("t-a", 0.0, discover()),                                   // duplicate
+            wall("t-b", 0.4, discover()),                                   // the same wall
+            wall("t-c", 0.4, WallAction::Message { text: "hi".into() }), // does something else
+        ];
+        let r = merge(&mut ours, &theirs, &Options::default());
+        assert_eq!((r.duplicates.as_slice(), r.near.len(), r.added.as_slice()), (&["t-a".to_string()][..], 1, &["t-c".to_string()][..]));
+        assert_eq!(ours.placements[&1200].triggers.len(), 2);
     }
 
     #[test]

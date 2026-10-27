@@ -235,6 +235,101 @@ pub struct Script {
     pub updated: u64,
 }
 
+/// What crossing a trigger wall does (what isn't known yet goes in the wall's comment).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum WallAction {
+    /// Starts a script's wave (none: its first).
+    Script {
+        #[serde(default)]
+        script: Option<String>,
+        #[serde(default)]
+        wave: Option<String>,
+    },
+    /// Discovers a location or an achievement (by name, if found).
+    Discover {
+        #[serde(default)]
+        name: Option<String>,
+    },
+    /// Opens a dialogue (by id or name, if found).
+    Dialog {
+        #[serde(default)]
+        dialog: Option<String>,
+    },
+    /// Shows a message.
+    Message {
+        #[serde(default)]
+        text: String,
+    },
+    Other,
+}
+
+/// A trigger wall: an upright box (`size`: width across, height, depth along the facing) standing
+/// on `pos` (its bottom centre), turned by `heading`; a player walking through it sets off
+/// `action`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TriggerWall {
+    pub id: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    pub pos: Vec3,
+    #[serde(default)]
+    pub heading: f32,
+    pub size: Vec3,
+    /// How the survey server draws it ("red", "green", ...; the server's list).
+    #[serde(default = "default_color")]
+    pub color: String,
+    pub action: WallAction,
+    /// Only the first crossing (per player) counts.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub once: bool,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub comment: String,
+    /// Deleted (kept so merging doesn't bring it back).
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub removed: bool,
+    #[serde(default)]
+    pub author: String,
+    #[serde(default)]
+    pub updated: u64,
+}
+
+fn default_color() -> String {
+    "red".into()
+}
+
+impl TriggerWall {
+    pub fn same_content(&self, other: &TriggerWall) -> bool {
+        let strip = |w: &TriggerWall| TriggerWall { author: String::new(), updated: 0, ..w.clone() };
+        strip(self) == strip(other)
+    }
+
+    /// Where `p` is in the wall's own frame: across (x), up (y, from its bottom), along its
+    /// facing (z). Heading h faces (sin h, cos h) in x/z.
+    pub fn local(&self, p: Vec3) -> Vec3 {
+        let (s, c) = self.heading.sin_cos();
+        let d = [p[0] - self.pos[0], p[1] - self.pos[1], p[2] - self.pos[2]];
+        [d[0] * c - d[2] * s, d[1], d[0] * s + d[2] * c]
+    }
+
+    /// Whether moving from `a` to `b` goes through the wall (into its box, or across its middle
+    /// plane within its width and height).
+    pub fn crossed(&self, a: Vec3, b: Vec3) -> bool {
+        let (la, lb) = (self.local(a), self.local(b));
+        let [w, h, d] = self.size;
+        let inside = |l: Vec3| l[0].abs() <= w / 2.0 && (-1.0..=h).contains(&l[1]) && l[2].abs() <= d.max(0.1) / 2.0;
+        if inside(lb) && !inside(la) {
+            return true;
+        }
+        if la[2] * lb[2] < 0.0 {
+            let t = la[2] / (la[2] - lb[2]);
+            let (x, y) = (la[0] + (lb[0] - la[0]) * t, la[1] + (lb[1] - la[1]) * t);
+            return x.abs() <= w / 2.0 && (-1.0..=h).contains(&y);
+        }
+        false
+    }
+}
+
 /// `<playfield>.placements.json`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PlacementsFile {
@@ -242,11 +337,13 @@ pub struct PlacementsFile {
     pub playfield: u32,
     #[serde(default)]
     pub placements: Vec<Placement>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub triggers: Vec<TriggerWall>,
 }
 
 impl PlacementsFile {
     pub fn new(playfield: u32) -> Self {
-        PlacementsFile { format: FORMAT, playfield, placements: Vec::new() }
+        PlacementsFile { format: FORMAT, playfield, placements: Vec::new(), triggers: Vec::new() }
     }
 }
 
@@ -309,6 +406,38 @@ mod tests {
         // round trip
         let again: NotesFile = serde_json::from_str(&serde_json::to_string(&n).unwrap()).unwrap();
         assert_eq!(again, n);
+    }
+
+    #[test]
+    fn crossing_a_wall() {
+        // 4 m wide, facing +z at the origin
+        let w = TriggerWall {
+            id: "t".into(),
+            name: String::new(),
+            pos: [0.0; 3],
+            heading: 0.0,
+            size: [4.0, 3.0, 1.0],
+            color: "red".into(),
+            action: WallAction::Other,
+            once: false,
+            comment: String::new(),
+            removed: false,
+            author: String::new(),
+            updated: 0,
+        };
+        assert!(w.crossed([0.0, 0.0, -3.0], [0.0, 0.0, 3.0]));
+        assert!(w.crossed([1.5, 0.0, -1.0], [1.5, 0.0, 0.2]));
+        assert!(!w.crossed([3.0, 0.0, -3.0], [3.0, 0.0, 3.0])); // beside it
+        assert!(!w.crossed([0.0, 5.0, -3.0], [0.0, 5.0, 3.0])); // over it
+        assert!(!w.crossed([0.0, 0.0, 0.2], [0.0, 0.0, 0.3])); // already inside
+        // turned 90°: its width runs along z
+        let t = TriggerWall { heading: std::f32::consts::FRAC_PI_2, ..w };
+        assert!(t.crossed([-3.0, 0.0, 1.5], [3.0, 0.0, 1.5]));
+        assert!(!t.crossed([0.0, 0.0, -3.0], [0.0, 0.0, -2.5]));
+        let json = serde_json::to_string(&t).unwrap();
+        assert!(json.contains(r#""action":"other""#));
+        let back: TriggerWall = serde_json::from_str(r#"{"id":"x","pos":[0,0,0],"size":[1,2,3],"action":{"script":{"script":"s"}}}"#).unwrap();
+        assert_eq!((back.color.as_str(), back.action), ("red", WallAction::Script { script: Some("s".into()), wave: None }));
     }
 
     #[test]

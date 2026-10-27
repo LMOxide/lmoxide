@@ -73,6 +73,7 @@ impl Set {
         for (pf, f) in &self.placements {
             let mut f = f.clone();
             f.placements.sort_by(|a, b| a.id.cmp(&b.id));
+            f.triggers.sort_by(|a, b| a.id.cmp(&b.id));
             write(&dir.join(format!("{pf}.placements.json")), &f)?;
         }
         for (pf, f) in &self.notes {
