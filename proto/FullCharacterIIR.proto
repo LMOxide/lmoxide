@@ -7,7 +7,7 @@ message ProtoFullCharacterIIR {
     optional uint32 tag_id = 1;
     optional uint32 timestamp = 2;
   }
-  repeated uint32 character_tag = 1;
+  repeated uint32 character_tag = 1 [packed = true];
   optional uint32 free_feat_respecs = 2;
   optional uint32 feat_resets = 3;
   optional uint32 expansion_flags = 4;

@@ -376,9 +376,17 @@ Lore, 2 Achievements, 3 Titles; data/achievements.json from `tools/re/extract_ac
 Node stats: AchievementPoints, AchievementRewardValue with RewardIcon (530321 = stars),
 MinifigureTemplateID, TagCounterStat + TagCounterValue (progress counters). The server grants
 one with `GameCharInterface::AddTag(uint32 tag, uint32 timestamp)` (0x1a; live sent timestamp 0)
-and the client shows the "achievement" pop-up. At login live re-sent AddTag for every earned
-tag right after `FullPlayerCharacterIIR`, before the client's CharInPlay (no pop-ups then), and
-nothing on playfield changes.
+and the client shows the "achievement" pop-up (GetEffectsController.swf, for visible
+achievements and sub-achievements). Every `FullPlayerCharacterIIR` (login and each teleport)
+carries the earned tags in its header protobuf: `ProtoFullCharacterIIR.character_tag` (field 1,
+packed; recorded after the tutorial: 385, 394, 395, 4121, 4221). The client builds its tag list
+anew from it: without them every achievement showed as locked (Total Score 0) after a teleport.
+Live sent no AddTag for the old tags on playfield changes, only for new ones.
+
+The Achievements window reads progress counters from the player's stat (TagCounterStat) or, for
+a minifigure's achievement, from that minifigure item's stat in the team (101) or collection
+(110001) inventory, so every copy of the item (the collection refresh at CharInPlay, team
+refreshes, AddItem) carries its counters.
 
 Recorded per enemy kill: `SetItemStat(ID32 (101, character), team position, 3000112, n)` (the
 active minifigure's InventoryItemGeneric1), `StatIIR_t` 3000116 (TaCoPlayerNPCKills) on the

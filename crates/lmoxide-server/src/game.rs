@@ -2559,7 +2559,8 @@ const FULL_CHARACTER_VERSION: u32 = 24;
 /// Empty 1009-encoded container.
 const EMPTY: u32 = 0x3f1;
 
-/// `FullPlayerCharacterIIR` (the player's own character), minimal: every list empty.
+/// `FullPlayerCharacterIIR` (the player's own character), minimal: every list empty but the
+/// header's tags and inventories.
 /// Header protobuf `ProtoFullCharacterIIR`, then CoreFullPlayerCharacterIIR::ReadSubClass
 /// (0x602ed0) and FullPlayerCharacterIIR's additions (0xe3f9f0):
 ///
@@ -2583,6 +2584,10 @@ const EMPTY: u32 = 0x3f1;
 /// ```
 fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
+        // the earned tags (achievements, tutorial, story): live sent them in every copy (recorded
+        // teleports); the client forgets those it had when the character comes anew, so without
+        // them every achievement looked locked after a teleport
+        character_tag: c.tags.keys().copied().collect(),
         inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.item_state(t)),
         ..Default::default()
     };
@@ -3027,6 +3032,14 @@ mod tests {
         let mut b = head.to_vec();
         values.iter().for_each(|v| b.extend(v.to_be_bytes()));
         b
+    }
+
+    #[test]
+    fn earned_tags_go_with_the_character_as_live_sent_them() {
+        use prost::Message;
+        let proto = ProtoFullCharacterIir { character_tag: vec![385, 394, 395, 4121, 4221], ..Default::default() };
+        // the recorded FullPlayerCharacterIIR after the tutorial (field 1, packed)
+        assert_eq!(crate::conn::hex(&proto.encode_to_vec()), "0a0a81038a038b039920fd20");
     }
 
     #[test]
