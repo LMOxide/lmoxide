@@ -17,14 +17,18 @@
 
 pub mod action;
 pub mod canon;
+pub mod catalog;
 pub mod compat;
+pub mod git;
 pub mod import;
 pub mod load;
+pub mod merge;
 pub mod model;
 pub mod record;
 pub mod schema;
 pub mod tunables;
 pub mod units;
+pub mod work;
 
 pub use action::{Action, Destination, SpawnAt, Target};
 pub use load::{Content, Options, Problem, Severity, load};

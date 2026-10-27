@@ -166,7 +166,7 @@ struct Raw {
     world: Option<String>,
 }
 
-const ROOT_FILES: &[&str] = &["content.json", "tunables.json", "texts.json"];
+pub(crate) const ROOT_FILES: &[&str] = &["content.json", "tunables.json", "texts.json"];
 
 /// Fields whose text is prose, never a reference.
 const PROSE: &[&str] = &[
@@ -500,7 +500,7 @@ fn read_typed<T: DeserializeOwned>(path: &Path) -> Result<T, String> {
     serde_json::from_str(&text).map_err(|e| e.to_string())
 }
 
-fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
+pub(crate) fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };
@@ -519,7 +519,7 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
 }
 
 /// `[features/<feature>/]worlds/<folder>/...` -> `<folder>`.
-fn world_folder(rel: &Path) -> Option<String> {
+pub(crate) fn world_folder(rel: &Path) -> Option<String> {
     let parts: Vec<_> = rel
         .components()
         .map(|c| c.as_os_str().to_string_lossy().into_owned())
@@ -862,7 +862,7 @@ pub fn format_tree(dir: &Path, check_only: bool) -> anyhow::Result<Vec<PathBuf>>
 /// Any record, serialised as its own kind (declared field order).
 #[derive(serde::Serialize)]
 #[serde(untagged)]
-enum AnyRecord {
+pub(crate) enum AnyRecord {
     World(World),
     Spawn(Spawn),
     Portal(Portal),
@@ -885,7 +885,7 @@ enum AnyRecord {
 }
 
 /// A record parsed as its kind (by its id).
-fn typed(value: Value) -> Result<AnyRecord, String> {
+pub(crate) fn typed(value: Value) -> Result<AnyRecord, String> {
     fn via<T: DeserializeOwned>(v: Value, f: fn(T) -> AnyRecord) -> Result<AnyRecord, String> {
         serde_json::from_value(v).map(f).map_err(|e| e.to_string())
     }

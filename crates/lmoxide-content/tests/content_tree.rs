@@ -178,3 +178,28 @@ fn every_reference_is_annotated() {
     }
     assert!(missing.is_empty(), "references in fields without x-lmoxide-ref:\n{}", missing.iter().map(|(k, (n, eg))| format!("{k} ×{n} (e.g. {eg})")).collect::<Vec<_>>().join("\n"));
 }
+
+/// The world editor's working copy reads the whole tree, and knows where records are used.
+#[test]
+fn work_opens_the_tree() {
+    let t = std::time::Instant::now();
+    let work = lmoxide_content::work::Work::open(tree()).unwrap();
+    assert!(work.notes.is_empty(), "{:?}", work.notes);
+    assert_eq!(work.records().count(), raw_records().len());
+    let used = work.used_by("npc/villager");
+    assert!(used.iter().any(|u| u.key.id == "spawn/1200/villager" && u.path == "/template"), "{used:?}");
+    eprintln!("opened in {:?}", t.elapsed());
+}
+
+/// Every client catalog the schemas name has entries, from data/ or the records.
+#[test]
+fn catalogs_have_names() {
+    let work = lmoxide_content::work::Work::open(tree()).unwrap();
+    for name in lmoxide_content::catalog::CATALOGS {
+        let list = lmoxide_content::catalog::catalog(name, &work, &tree().join("../data")).unwrap_or_default();
+        assert!(list.len() > 3, "{name}: {} entries", list.len());
+        eprintln!("{name}: {} entries, e.g. {:?}", list.len(), list[list.len() / 2]);
+    }
+    let lore = lmoxide_content::catalog::catalog("lore", &work, &tree().join("../data")).unwrap();
+    assert!(lore.iter().any(|e| e.id == 4048 && e.name == "12 Days of Winter" && e.record.as_deref() == Some("achievement/12-days-of-winter")));
+}
