@@ -1,5 +1,6 @@
 //! A survey set on disk: a folder with `set.json`, `features.json` (when it has features beyond
-//! the categories) and, per playfield, `<playfield>.placements.json` and `<playfield>.notes.json`.
+//! the categories), `achievements.json` (when it has smash achievement rules) and, per playfield,
+//! `<playfield>.placements.json` and `<playfield>.notes.json`.
 
 use std::{
     collections::BTreeMap,
@@ -8,7 +9,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{NotesFile, PlacementsFile, features::FeaturesFile};
+use crate::{AchievementsFile, FORMAT, NotesFile, PlacementsFile, SmashRule, features::FeaturesFile};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -46,6 +47,8 @@ pub struct Set {
     pub features: FeaturesFile,
     pub placements: BTreeMap<u32, PlacementsFile>,
     pub notes: BTreeMap<u32, NotesFile>,
+    /// Which enemies count toward which achievements (`achievements.json`).
+    pub smash_rules: Vec<SmashRule>,
 }
 
 impl Set {
@@ -64,6 +67,8 @@ impl Set {
                 set.info = read(&path)?;
             } else if name == "features.json" {
                 set.features = read(&path)?;
+            } else if name == "achievements.json" {
+                set.smash_rules = read::<AchievementsFile>(&path)?.smash;
             } else if let Some(pf) = name.strip_suffix(".placements.json").and_then(|n| n.parse().ok()) {
                 let f: PlacementsFile = read(&path)?;
                 check_playfield(&path, pf, f.playfield)?;
@@ -77,13 +82,24 @@ impl Set {
         Ok(set)
     }
 
-    /// Writes every file of the set (records sorted by id, so diffs stay small). Each file is
-    /// written to a temporary file first and renamed over the old one.
+    /// Writes every file of the set (records sorted by id, so diffs stay small); a set without
+    /// smash rules has no `achievements.json`. Each file is written to a temporary file first and
+    /// renamed over the old one.
     pub fn save(&self, dir: &Path) -> Result<(), Error> {
         std::fs::create_dir_all(dir).map_err(|source| Error::Io { path: dir.into(), source })?;
         write(&dir.join("set.json"), &self.info)?;
         if !self.features.features.is_empty() {
             write(&dir.join("features.json"), &self.features)?;
+        }
+        let achievements = dir.join("achievements.json");
+        if self.smash_rules.is_empty() {
+            if achievements.exists() {
+                std::fs::remove_file(&achievements).map_err(|source| Error::Io { path: achievements.clone(), source })?;
+            }
+        } else {
+            let mut smash = self.smash_rules.clone();
+            smash.sort_by(|a, b| a.id.cmp(&b.id));
+            write(&achievements, &AchievementsFile { format: FORMAT, smash })?;
         }
         for (pf, f) in &self.placements {
             let mut f = f.clone();
@@ -101,7 +117,8 @@ impl Set {
     }
 
     /// `save`, and removes the playfield files of `dir` this set has no entry for (a copy built
-    /// from elsewhere, e.g. a play server's approved set rebuilt from its history).
+    /// from elsewhere, e.g. a play server's approved set rebuilt from its history). `save` already
+    /// removes an `achievements.json` the set has no rules for.
     pub fn save_replacing(&self, dir: &Path) -> Result<(), Error> {
         self.save(dir)?;
         let entries = std::fs::read_dir(dir).map_err(|source| Error::Io { path: dir.into(), source })?;
@@ -123,6 +140,11 @@ impl Set {
     /// The placements file of a playfield, made if missing.
     pub fn placements_mut(&mut self, playfield: u32) -> &mut PlacementsFile {
         self.placements.entry(playfield).or_insert_with(|| PlacementsFile::new(playfield))
+    }
+
+    /// The smash achievement rule with that key.
+    pub fn smash_rule(&self, id: &str) -> Option<&SmashRule> {
+        self.smash_rules.iter().find(|r| r.id == id)
     }
 
     /// The notes file of a playfield, made if missing.
@@ -151,7 +173,7 @@ fn write<T: Serialize>(path: &Path, value: &T) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Area, Kind, Note, NoteKind, Placement, Review};
+    use crate::{Area, Kind, Note, NoteKind, Placement, Review, SmashRule};
 
     #[test]
     fn save_and_load() {
@@ -188,9 +210,24 @@ mod tests {
             author: "a".into(),
             updated: 5,
         });
+        set.smash_rules.push(SmashRule {
+            id: "2163".into(),
+            enemies: vec!["Skeleton".into(), "Zombie".into()],
+            comment: String::new(),
+            tags: vec!["todo".into()],
+            feature: crate::features::live(),
+            author: "a".into(),
+            updated: 5,
+        });
         set.save(&dir).unwrap();
+        assert!(dir.join("achievements.json").exists());
         assert_eq!(Set::load(&dir).unwrap(), set);
         assert_eq!(Set::load(&dir.join("missing")).unwrap(), Set::default());
+        // the last rule gone: so is the file
+        set.smash_rules.clear();
+        set.save(&dir).unwrap();
+        assert!(!dir.join("achievements.json").exists());
+        assert_eq!(Set::load(&dir).unwrap(), set);
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }

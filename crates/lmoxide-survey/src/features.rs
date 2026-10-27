@@ -269,7 +269,7 @@ mod tests {
             area: None,
             reference: None,
             comment: String::new(),
-            waves: vec![Wave { id: "w-1".into(), name: String::new(), trigger: None, comment: String::new() }],
+            waves: vec![Wave { id: "w-1".into(), name: String::new(), trigger: None, comment: String::new(), tags: Vec::new() }],
             status: Default::default(),
             tags: Vec::new(),
             feature: "feature/xmas/2026".into(),

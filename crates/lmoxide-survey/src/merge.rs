@@ -4,13 +4,14 @@
 //! anything that names a matched record (a placement's wave, a wave trigger's note, placement or
 //! wave) is pointed at yours. Matched records are either duplicates (same id, same content),
 //! near-duplicates (different ids, the same thing within the [`Tolerance`]) or conflicts (the same
-//! record, or the same replaced guess, saying different things), which [`Prefer`] settles.
+//! record, or the same replaced guess, saying different things), which [`Prefer`] settles. Smash
+//! achievement rules are matched by id (their achievement) alone.
 
 use std::collections::{HashMap, HashSet};
 
 use serde::Serialize;
 
-use crate::{Area, NotesFile, Placement, PlacementsFile, Script, Trigger, TriggerWall, Wave, WallAction, distance, heading_difference, set::Set};
+use crate::{Area, NotesFile, Placement, PlacementsFile, Script, SmashRule, Trigger, TriggerWall, Wave, WallAction, distance, heading_difference, review::ACHIEVEMENTS, set::Set};
 
 /// How close two records must be to be the same thing.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -108,6 +109,8 @@ pub fn merge(ours: &mut Set, theirs: &Set, opts: &Options) -> Report {
             ours.notes.remove(&pf);
         }
     }
+    let mut m = Merger { pf: ACHIEVEMENTS, opts, report: &mut report, map: HashMap::new() };
+    m.smash_rules(&mut ours.smash_rules, &theirs.smash_rules);
     report
 }
 
@@ -335,6 +338,26 @@ impl Merger<'_> {
         }
     }
 
+    /// Smash rules: the same id (achievement) is a duplicate or a conflict, else theirs is added.
+    fn smash_rules(&mut self, ours: &mut Vec<SmashRule>, theirs: &[SmashRule]) {
+        for tr in theirs {
+            match ours.iter().position(|r| r.id == tr.id) {
+                Some(i) => {
+                    let strip = |r: &SmashRule| SmashRule { author: String::new(), updated: 0, ..r.clone() };
+                    if strip(&ours[i]) == strip(tr) {
+                        self.report.duplicates.push(tr.id.clone());
+                    } else if self.conflict(&tr.id, &tr.id, ours[i].updated, tr.updated) {
+                        ours[i] = tr.clone();
+                    }
+                }
+                None => {
+                    self.report.added.push(tr.id.clone());
+                    ours.push(tr.clone());
+                }
+            }
+        }
+    }
+
     fn repoint_placement(&self, p: &mut Placement) {
         if let Some(w) = &mut p.wave {
             w.script = self.ours(&w.script).to_string();
@@ -471,6 +494,30 @@ mod tests {
     }
 
     #[test]
+    fn smash_rules() {
+        let rule = |id: &str, enemies: &[&str], updated| SmashRule {
+            id: id.into(),
+            enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: crate::features::live(),
+            author: String::new(),
+            updated,
+        };
+        let mut ours = Set { smash_rules: vec![rule("2163", &["Skeleton"], 1), rule("2164", &["Zombie"], 5)], ..Default::default() };
+        let theirs = Set { smash_rules: vec![rule("2163", &["Skeleton"], 9), rule("2164", &["Ghost"], 2), rule("847", &["Hades"], 1)], ..Default::default() };
+        let r = merge(&mut ours, &theirs, &Options::default());
+        assert_eq!((r.duplicates.as_slice(), r.added.as_slice()), (&["2163".to_string()][..], &["847".to_string()][..]));
+        assert_eq!((r.conflicts[0].playfield, r.conflicts[0].kept), (ACHIEVEMENTS, Side::Ours), "ours is newer");
+        assert_eq!(ours.smash_rule("2164").unwrap().enemies, ["Zombie"]);
+        let r = merge(&mut ours, &theirs, &Options { prefer: Prefer::Theirs, ..Default::default() });
+        assert_eq!(r.conflicts[0].kept, Side::Theirs);
+        assert_eq!(ours.smash_rule("2164").unwrap().enemies, ["Ghost"]);
+        assert_eq!(ours.smash_rules.len(), 3);
+        assert!(ours.placements.is_empty() && ours.notes.is_empty());
+    }
+
+    #[test]
     fn trigger_walls() {
         let wall = |id: &str, x: f32, action: WallAction| TriggerWall {
             id: id.into(),
@@ -518,7 +565,7 @@ mod tests {
             author: String::new(),
             updated: 0,
         };
-        let wave = |id: &str, name: &str, trigger| Wave { id: id.into(), name: name.into(), trigger, comment: String::new() };
+        let wave = |id: &str, name: &str, trigger| Wave { id: id.into(), name: name.into(), trigger, comment: String::new(), tags: Vec::new() };
         let mut ours = Set::default();
         ours.notes_mut(1200).scripts.push(script("s-a", vec![wave("w-a1", "First skeletons", None)]));
         ours.notes_mut(1200).notes.push(Note {

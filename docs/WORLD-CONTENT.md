@@ -19,7 +19,7 @@ world editor (survey server)              play server (LAN, public, ...)
 
 ## Features
 
-Every record (placement, trigger wall, note, script) names a feature, nested with `/`; the first
+Every record (placement, trigger wall, note, script, smash achievement rule) names a feature, nested with `/`; the first
 part is its category:
 
 | Category | Id | For |
@@ -67,6 +67,15 @@ and author, with each record added, changed or removed and what changed ("moved 
   dialogue (its NPC speaks if it is there), `portal` opens the window (or teleports to `to`'s
   arrival point), `message` shows it in chat. `script` is only logged (waves don't run here yet).
   `once` is per player until the server restarts.
+- **Smash achievement rules** (achievements.rs; docs/SURVEY.md "Smash achievement rules"): for
+  an achievement with an approved, active rule that names enemies, a defeat counts toward it only
+  when the defeated one is named there (no case, a leading "the " ignored) instead of the
+  achievement's own match (`counts.match`) or `defeat` target; a defeat achievement with a rule
+  counts any defeat of those enemies, bosses or not. The global kill and smash counters ("Smash
+  1000 Monsters", "... 10000 ...") are one stat shared by their achievements: a rule on any of
+  them limits that stat to the enemies of all their rules. Rules of discover locations
+  (`find:...`) and without enemies change nothing. Their changes are queued, approved and undone
+  like the others, under playfield 0 ("Achievements"); they take effect at once.
 - Without `--world-editor-set` the approved copy is still applied.
 
 Routes, admin scope, through lmoxide-api (`/v1/content/...`, forwarded to the control interface):
@@ -74,14 +83,14 @@ Routes, admin scope, through lmoxide-api (`/v1/content/...`, forwarded to the co
 | Method | Path | |
 |---|---|---|
 | GET | `/v1/content/state` | source folder and error, rules, revision, pending changes/records, `authors` and `tags` of either set (for suggestions) |
-| GET | `/v1/content/queue` | changes waiting: `{playfield, playfield_name, feature, feature_path, author, active, summary, items: [{kind, id, name, op, details, updated, tags}]}` (details include "tags +todo -approximate") |
+| GET | `/v1/content/queue` | changes waiting: `{playfield, playfield_name, feature, feature_path, author, active, summary, items: [{kind, id, name, op, details, updated, tags}]}` (details include "tags +todo -approximate"; `kind`: `placement`, `trigger`, `note`, `script`, `smash_rule`; smash rules' changes have playfield 0, `playfield_name` "Achievements") |
 | POST | `/v1/content/approve` | `{playfield, feature, author, ids?}` → `{records, revision}` |
 | POST | `/v1/content/reject` | same |
 | POST | `/v1/content/preview` | `{playfield, feature, author, ids?, minutes?}` → `{records, revision, seq, until}` |
 | GET | `/v1/content/history?limit=` | approvals, newest first: `{seq, at, by, playfield, playfield_name, feature, feature_path, author, summary, status: applied\|undone\|preview\|preview_ended, preview_until?, last_action?: [who, when], actions: [undo\|redo\|keep\|revert], edits: [{kind, id, name, op, details, tags}]}` |
 | POST | `/v1/content/history/{seq}/{undo\|redo\|keep\|revert}` | → the entry as above |
 | GET/PUT | `/v1/content/rules` | `{active, auto_features, auto_authors}` (saving approves what the new rules approve and respawns what `active` changes) |
-| GET | `/v1/content/summary?of=approved\|working` | per playfield and feature: placements, deletions, in waves, triggers, notes, scripts, authors, `tags` (tag → records), newest change |
+| GET | `/v1/content/summary?of=approved\|working` | per playfield and feature: placements, deletions, in waves, triggers, notes, scripts, smash rules (playfield 0), authors, `tags` (tag → records), newest change |
 | GET | `/v1/content/features` | categories and the world editor's features (`{id, path, comment, copied_from}`) |
 | POST | `/v1/content/refresh` | read the world editor's set now |
 

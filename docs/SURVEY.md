@@ -75,6 +75,7 @@ One folder per set, with one file per playfield and kind:
 ```
 <set>/
   set.json                 # name, authors, notes about the set
+  achievements.json        # smash achievement rules (only when there are some)
   4600.placements.json     # exact: the server spawns these as they are
   4600.notes.json          # areas, scripts and waves: for someone to review and implement
   published/               # the same files: what editors published (play servers read only this)
@@ -209,6 +210,28 @@ walks through them.
   script's own area), `wave_cleared` (a wave's placements are all defeated), `other`. A script with
   one wave is the simple case.
 - `status`: `unreviewed`, `accepted`, `rejected`. A reviewer sets it.
+- Waves can carry `tags` too.
+
+### Smash achievement rules
+
+```json
+{
+  "format": 1,
+  "smash": [
+    { "id": "minifigure:kills_or_smashes:witch:50", "enemies": ["Witch", "Swamp Hag"],
+      "comment": "…", "tags": ["review"], "author": "…", "updated": 0 },
+    { "id": "find:4200:Achievement_Mermaid", "enemies": [], "tags": ["todo"], "author": "…", "updated": 0 }
+  ]
+}
+```
+
+Which enemies (or smashables, as defeats name them) count toward a smash achievement. `id` is the
+achievement's key (`GET /smash-achievements`): its id, or `minifigure:<what>:<match>:<n>` for
+the per-minifigure copies of one achievement ("Smash 50 Witches as Judge", "… as Cyclops"), which
+share one rule. A key `find:<playfield>:<location>` (a discover location as `trigger-targets`
+names it) holds only tags and a comment, for the editor's tree. Rules have a `feature` (default
+`live`, left out) like every record, and are published and approved like the others: their
+changes go under playfield 0, named "Achievements". On play servers see docs/WORLD-CONTENT.md.
 
 ## Merging
 
@@ -227,6 +250,8 @@ The web UI imports a set (or single files) into yours and shows a preview first:
 - **Scripts**: same name (ignoring case) and area centre within the distance = the same script. Their
   waves are merged into yours by id, then by name, and their placements are pointed at your
   script and wave ids.
+- **Smash rules**: by id (their achievement) only: the same content is a duplicate, else a
+  conflict (playfield 0).
 
 ## Server modes
 
@@ -284,7 +309,11 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | POST | `/players/{account}/place-trigger` | `{name, size, color, action, once, feature?, tags?}` | the new trigger wall as a `SurveyObject` (`kind: "trigger"`, selected) |
 | GET | `/wall-looks` | | `[{color}]`: the looks trigger walls can have |
 | GET | `/trigger-targets` | | `{locations, achievements, dialogs, portals}`: what trigger walls can discover or open |
-| GET | `/tags` | | `[{tag, count, suggested}]`: every tag in the working set, most used first, and the suggested ones |
+| GET | `/tags` | | `[{tag, count, suggested}]`: every tag in the working set (waves' and smash rules' too), most used first, and the suggested ones |
+| GET | `/playfields` | | `[{id, name, base, placements, triggers, scripts, notes}]` by id: every playfield the client names (data/playfields.json) or the set has records for; `base`: base content objects, `placements`: the set's (deletions of guesses left out), `triggers`: trigger walls. Cheap enough to poll |
+| GET | `/smash-achievements` | | `[SmashEntry]`: every kill or smash counter (not builds; the global "Smash 1000 Monsters" ones too) and every defeat achievement: `{key, ids, title, text, group, kind: "counter" \| "defeat", what: "kills" \| "smashes" \| "kills_or_smashes" \| null, match, n, minifigures, rule: SmashRule \| null}`. The per-minifigure copies are one entry: `key` `minifigure:<what>:<match lowercase>:<n>`, `ids` all of them, `title` their shared part ("Witch Hunter"), `text` without " as <minifigure>", `group` "Minifigures", `minifigures` how many. Others: `key` the id, `group` the parent category's title, `minifigures` 0. `match`: what the name must contain, or the defeat target; `n`: the counter's target, 1 for a defeat |
+| PUT / DELETE | `/smash-achievements/{key}` | `{enemies, comment?, tags?, feature?}` | the `SmashEntry` with its rule (404 for an unknown key) / 204. `{key}` may be `find:<playfield>:<location>` (URL-encoded; the location must be one of `trigger-targets`): its rule has no enemies (else 422), and the entry has `kind: "find"`, `ids` the location's achievements, `title` its title, `group` its playfield's name, `match` its name |
+| GET | `/achievement-rules` | | `[SmashRule]`: every rule, discover locations' too |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
 | POST | `/players/{account}/unhide-all` | | `PlayerState` |
@@ -300,10 +329,11 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | DELETE | `/objects/{id}` | | `{id}`: the record that keeps it deleted (a deleted guess's is a new placement) |
 | POST | `/objects/{id}/forget` | | drops a placement's or trigger wall's record entirely (no deletion record stays); a guess it replaced comes back: its `SurveyObject`, else `null`. Undoing a placement, undoing a delete (forget its record), resetting an edited guess |
 | PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`) | makes it exactly so, spawned again; a guess it replaces goes away. Redo, undoing a reset or a delete |
+| POST | `/playfields/{pf}/objects` | a snapshot as for `PUT /objects/{id}` (its `playfield` and `replaces` are ignored) | a new record in `pf` (paste): new id (`t-…` for `kind: "trigger"`, else `p-…`), author from the request, feature checked, a `wave` must be one of `pf`'s (else 422); saved and spawned; nobody's selection changes. The new `SurveyObject` |
 | GET | `/unpublished` | | changes not published yet, the caller's first: `[{playfield, playfield_name, feature, feature_path, author, mine, summary, items: [{kind, id, name, op, details, updated}]}]` |
 | POST | `/publish` | `{playfield?, feature?, author?, ids?}` (author: default the caller, `*` everyone) | `{records, unpublished}` |
 | GET / PUT | `/set` | `SetInfo` | `SetInfo` |
-| GET | `/export[?playfield=]` | | a bundle: `{format, info, playfields: {"<pf>": {placements, notes, scripts}}}` |
+| GET | `/export[?playfield=]` | | a bundle: `{format, info, playfields: {"<pf>": {placements, notes, scripts}}, smash_rules?}` (`smash_rules` with the whole set or `playfield=0`) |
 | POST | `/import` | `{bundle, options: {distance, heading, prefer, take}, dry_run}` | `merge::Report` |
 
 The page polls `state` every second and reloads objects and notes when `revision` or the playfield

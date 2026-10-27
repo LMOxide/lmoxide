@@ -29,7 +29,7 @@ use axum::{
 };
 use lmoxide_net::types::Id32;
 use lmoxide_survey::{
-    self as sv, Kind as SKind, Note, Origin, Placement, Script, TriggerWall, WallAction, WaveRef,
+    self as sv, Kind as SKind, Note, Origin, Placement, Script, SmashRule, TriggerWall, WallAction, WaveRef,
     apply::{Base, Category, Spawn},
     ids,
     merge::{self, Prefer, Tolerance},
@@ -1036,6 +1036,9 @@ struct Bundle {
     #[serde(default)]
     info: SetInfo,
     playfields: BTreeMap<String, BundlePlayfield>,
+    /// Which enemies count toward which achievements (they belong to no playfield).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    smash_rules: Vec<SmashRule>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -1127,13 +1130,17 @@ pub fn routes() -> Router {
         .route("/v1/survey/mark-looks", get(mark_looks))
         .route("/v1/survey/players/{account}/marks", put(set_marks))
         .route("/v1/survey/trigger-targets", get(trigger_targets))
+        .route("/v1/survey/smash-achievements", get(smash_achievements))
+        .route("/v1/survey/smash-achievements/{key}", put(save_smash_rule).delete(delete_smash_rule))
+        .route("/v1/survey/achievement-rules", get(achievement_rules))
         .route("/v1/survey/players/{account}/select", post(select))
         .route("/v1/survey/players/{account}/hide", post(hide))
         .route("/v1/survey/players/{account}/unhide-all", post(unhide_all))
         .route("/v1/survey/players/{account}/shown-wave", post(shown_wave_route))
         .route("/v1/survey/players/{account}/preview-wave", post(preview_wave))
         .route("/v1/survey/players/{account}/teleport", post(teleport))
-        .route("/v1/survey/playfields/{pf}/objects", get(objects))
+        .route("/v1/survey/playfields", get(playfields))
+        .route("/v1/survey/playfields/{pf}/objects", get(objects).post(create_object))
         .route("/v1/survey/playfields/{pf}/notes", get(notes))
         .route("/v1/survey/playfields/{pf}/notes/{id}", put(save_note).delete(delete_note))
         .route("/v1/survey/playfields/{pf}/scripts/{id}", put(save_script).delete(delete_script))
@@ -1472,6 +1479,9 @@ async fn save_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Js
         s.id = id;
         s.feature = checked_feature(&st.set, Some(s.feature))?;
         s.tags = sv::tidy_tags(&s.tags);
+        for w in &mut s.waves {
+            w.tags = sv::tidy_tags(&w.tags);
+        }
         s.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(s.author);
         s.updated = ids::now();
         let scripts = &mut st.set.notes_mut(pf).scripts;
@@ -1775,10 +1785,12 @@ async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
     })
 }
 
-/// An object as a snapshot has it (the world editor's undo and redo).
+/// An object as a snapshot has it (the world editor's undo and redo, copy and paste).
 #[derive(Deserialize)]
 struct Snapshot {
-    playfield: u32,
+    /// (pasting: the path's playfield instead)
+    #[serde(default)]
+    playfield: Option<u32>,
     kind: String,
     #[serde(default)]
     name: String,
@@ -1815,94 +1827,114 @@ struct Snapshot {
 /// Makes `id` exactly as the snapshot has it (spawned again; a guess it replaces goes away).
 async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Snapshot>) -> R<SurveyObject> {
     with(|st| {
+        let pf = b.playfield.ok_or_else(|| Error::Invalid("playfield?".into()))?;
+        put_snapshot(st, id, pf, b, author_of(&headers))
+    })
+    .map(Json)
+}
+
+/// A new record in playfield `pf` from a snapshot (the world editor's paste): a new id, the
+/// feature and wave checked, never replacing a guess; nobody's selection changes.
+async fn create_object(Path(pf): Path<u32>, headers: HeaderMap, Json(mut b): Json<Snapshot>) -> R<SurveyObject> {
+    with(|st| {
         let author = author_of(&headers);
-        let pf = b.playfield;
-        if b.kind == "trigger" {
-            let def = TriggerWall {
-                id: id.clone(),
-                name: b.name,
-                pos: b.pos,
-                heading: b.heading,
-                size: checked_size(b.size.unwrap_or(WALL_SIZE)),
-                radius: checked_radius(b.radius),
-                color: checked_color(b.color, b.radius.is_some())?,
-                action: b.action.unwrap_or(WallAction::Other),
-                once: b.once.unwrap_or(false),
-                comment: b.comment,
-                removed: false,
-                tags: sv::tidy_tags(&b.tags),
-                feature: b.feature,
-                author,
-                updated: ids::now(),
-            };
-            st.walls.remove(&id);
-            store_wall(st, def.clone(), pf);
-            let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
-            spawn_wall(&st.surveyors, &mut w);
-            let view = w.view();
-            st.walls.insert(id.clone(), w);
-            mark_selecting(st, &id);
-            bump(st, pf);
-            return Ok(view);
+        b.feature = checked_feature(&st.set, Some(b.feature))?;
+        if b.wave.as_ref().is_some_and(|w| !has_wave(&st.set, pf, w)) {
+            return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
-        let kind: SKind = serde_json::from_value(serde_json::Value::String(b.kind.clone())).map_err(|_| Error::Invalid(format!("kind {}?", b.kind)))?;
-        let p = Placement {
+        b.replaces = None;
+        let id = ids::new_id(if b.kind == "trigger" { "t" } else { "p" }, &author);
+        put_snapshot(st, id, pf, b, author)
+    })
+    .map(Json)
+}
+
+/// Makes `id` in playfield `pf` exactly as the snapshot has it, saved and spawned (again).
+fn put_snapshot(st: &mut State, id: String, pf: u32, b: Snapshot, author: String) -> Result<SurveyObject, Error> {
+    if b.kind == "trigger" {
+        let def = TriggerWall {
             id: id.clone(),
-            kind,
             name: b.name,
-            monster_data: b.monster_data,
-            template: b.template,
-            level: b.level,
             pos: b.pos,
             heading: b.heading,
-            replaces: b.replaces,
-            removed: false,
-            wave: b.wave,
-            patrol: b.patrol,
+            size: checked_size(b.size.unwrap_or(WALL_SIZE)),
+            radius: checked_radius(b.radius),
+            color: checked_color(b.color, b.radius.is_some())?,
+            action: b.action.unwrap_or(WallAction::Other),
+            once: b.once.unwrap_or(false),
             comment: b.comment,
+            removed: false,
             tags: sv::tidy_tags(&b.tags),
             feature: b.feature,
             author,
             updated: ids::now(),
         };
-        // the guess it replaces goes away again
-        let replaced = p.replaces.as_ref().and_then(|o| base_of(st, pf, o));
-        if let Some((gid, _)) = &replaced
-            && let Some(mut g) = st.objects.remove(gid)
-        {
-            if let Some(n) = g.npc {
-                st.by_npc.remove(&n);
-            }
-            despawn(&mut g);
-            deselect(st, gid);
-        }
-        let mut o = from_placement(&st.catalog, pf, &p, replaced.as_ref().map(|(_, d)| d)).ok_or_else(|| Error::Invalid("that kind can't be placed yet".into()))?;
-        if let Some(mut old) = st.objects.remove(&id) {
-            if let Some(n) = old.npc {
-                st.by_npc.remove(&n);
-            }
-            despawn(&mut old);
-        }
-        o.author = p.author.clone();
-        o.updated = p.updated;
-        let list = &mut st.set.placements_mut(pf).placements;
-        match list.iter_mut().find(|x| x.id == id) {
-            Some(x) => *x = p,
-            None => list.push(p),
-        }
-        save(st);
-        spawn(&st.surveyors, &st.set, &mut o);
-        if let Some(n) = o.npc {
-            st.by_npc.insert(n, id.clone());
-        }
-        let view = o.view();
-        st.objects.insert(id.clone(), o);
-        sync_all(st);
+        st.walls.remove(&id);
+        store_wall(st, def.clone(), pf);
+        let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
+        spawn_wall(&st.surveyors, &mut w);
+        let view = w.view();
+        st.walls.insert(id.clone(), w);
         mark_selecting(st, &id);
         bump(st, pf);
-        Ok(view)
-    })
-    .map(Json)
+        return Ok(view);
+    }
+    let kind: SKind = serde_json::from_value(serde_json::Value::String(b.kind.clone())).map_err(|_| Error::Invalid(format!("kind {}?", b.kind)))?;
+    let p = Placement {
+        id: id.clone(),
+        kind,
+        name: b.name,
+        monster_data: b.monster_data,
+        template: b.template,
+        level: b.level,
+        pos: b.pos,
+        heading: b.heading,
+        replaces: b.replaces,
+        removed: false,
+        wave: b.wave,
+        patrol: b.patrol,
+        comment: b.comment,
+        tags: sv::tidy_tags(&b.tags),
+        feature: b.feature,
+        author,
+        updated: ids::now(),
+    };
+    // the guess it replaces goes away again
+    let replaced = p.replaces.as_ref().and_then(|o| base_of(st, pf, o));
+    if let Some((gid, _)) = &replaced
+        && let Some(mut g) = st.objects.remove(gid)
+    {
+        if let Some(n) = g.npc {
+            st.by_npc.remove(&n);
+        }
+        despawn(&mut g);
+        deselect(st, gid);
+    }
+    let mut o = from_placement(&st.catalog, pf, &p, replaced.as_ref().map(|(_, d)| d)).ok_or_else(|| Error::Invalid("that kind can't be placed yet".into()))?;
+    if let Some(mut old) = st.objects.remove(&id) {
+        if let Some(n) = old.npc {
+            st.by_npc.remove(&n);
+        }
+        despawn(&mut old);
+    }
+    o.author = p.author.clone();
+    o.updated = p.updated;
+    let list = &mut st.set.placements_mut(pf).placements;
+    match list.iter_mut().find(|x| x.id == id) {
+        Some(x) => *x = p,
+        None => list.push(p),
+    }
+    save(st);
+    spawn(&st.surveyors, &st.set, &mut o);
+    if let Some(n) = o.npc {
+        st.by_npc.insert(n, id.clone());
+    }
+    let view = o.view();
+    st.objects.insert(id.clone(), o);
+    sync_all(st);
+    mark_selecting(st, &id);
+    bump(st, pf);
+    Ok(view)
 }
 
 /// Spawns these playfields again from their base content and the set (what changed is easiest
@@ -2078,12 +2110,20 @@ struct Unpublished {
     mine: bool,
 }
 
+/// A playfield's name ("Achievements" for the smash rules' changes, else its number).
+fn playfield_name(pf: u32) -> String {
+    if pf == review::ACHIEVEMENTS {
+        return "Achievements".into();
+    }
+    crate::teleport::destination(pf).map_or_else(|| pf.to_string(), |d| d.name.clone())
+}
+
 /// Every change not published yet, the caller's (`me`) first.
 fn unpublished_of(st: &State, me: &str) -> Vec<Unpublished> {
     let mut list: Vec<Unpublished> = review::changes(&st.set, &st.published)
         .into_iter()
         .map(|c| Unpublished {
-            playfield_name: crate::teleport::destination(c.key.playfield).map_or_else(|| c.key.playfield.to_string(), |d| d.name.clone()),
+            playfield_name: playfield_name(c.key.playfield),
             feature_path: st.set.features.path_title(&c.key.feature),
             mine: c.key.author == me,
             change: c,
@@ -2146,6 +2186,7 @@ struct ExportQuery {
     playfield: Option<u32>,
 }
 
+/// The whole set, or one playfield's records (`?playfield=`; `0`: only the smash rules).
 async fn export(Query(q): Query<ExportQuery>) -> R<Bundle> {
     with(|st| {
         let mut playfields = BTreeMap::new();
@@ -2161,7 +2202,8 @@ async fn export(Query(q): Query<ExportQuery>) -> R<Bundle> {
                 },
             );
         }
-        Ok(Json(Bundle { format: sv::FORMAT, info: st.set.info.clone(), playfields }))
+        let smash_rules = if q.playfield.is_none_or(|pf| pf == review::ACHIEVEMENTS) { st.set.smash_rules.clone() } else { Vec::new() };
+        Ok(Json(Bundle { format: sv::FORMAT, info: st.set.info.clone(), playfields, smash_rules }))
     })
 }
 
@@ -2175,7 +2217,7 @@ struct ImportBody {
 
 async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
     with(|st| {
-        let mut theirs = Set { info: b.bundle.info, ..Default::default() };
+        let mut theirs = Set { info: b.bundle.info, smash_rules: b.bundle.smash_rules, ..Default::default() };
         for (pf, content) in b.bundle.playfields {
             let pf: u32 = pf.parse().map_err(|_| Error::Invalid(format!("playfield {pf}?")))?;
             if !content.placements.is_empty() {
@@ -2389,8 +2431,9 @@ fn tag_uses(set: &Set) -> Vec<TagUse> {
     let mut counts: BTreeMap<&str, usize> = sv::SUGGESTED_TAGS.iter().map(|t| (*t, 0)).collect();
     let placements = set.placements.values().flat_map(|f| f.placements.iter().filter(|p| !p.removed).flat_map(|p| &p.tags));
     let walls = set.placements.values().flat_map(|f| f.triggers.iter().filter(|w| !w.removed).flat_map(|w| &w.tags));
-    let notes = set.notes.values().flat_map(|f| f.notes.iter().flat_map(|n| &n.tags).chain(f.scripts.iter().flat_map(|s| &s.tags)));
-    for t in placements.chain(walls).chain(notes) {
+    let notes = set.notes.values().flat_map(|f| f.notes.iter().flat_map(|n| &n.tags).chain(f.scripts.iter().flat_map(|s| s.tags.iter().chain(s.waves.iter().flat_map(|w| &w.tags)))));
+    let rules = set.smash_rules.iter().flat_map(|r| &r.tags);
+    for t in placements.chain(walls).chain(notes).chain(rules) {
         *counts.entry(t).or_default() += 1;
     }
     let mut out: Vec<TagUse> = counts.into_iter().map(|(t, count)| TagUse { tag: t.into(), count, suggested: sv::SUGGESTED_TAGS.contains(&t) }).collect();
@@ -2848,6 +2891,163 @@ async fn trigger_targets() -> R<&'static Targets> {
     with(|_| Ok(Json(targets())))
 }
 
+// ------------------------------------------------------------------ playfields
+
+#[derive(Serialize)]
+struct PlayfieldView {
+    id: u32,
+    name: String,
+    /// base content objects (live, demo, client and guessed spawns)
+    base: u32,
+    /// the set's placements (deletions of guesses left out)
+    placements: u32,
+    triggers: u32,
+    scripts: u32,
+    notes: u32,
+}
+
+/// The client's playfield names (data/playfields.json).
+fn playfield_names() -> &'static BTreeMap<u32, String> {
+    static NAMES: LazyLock<BTreeMap<u32, String>> = LazyLock::new(|| {
+        #[derive(Deserialize)]
+        struct File {
+            playfields: BTreeMap<String, String>,
+        }
+        let f: File = serde_json::from_str(include_str!("../../../data/playfields.json")).expect("playfields.json");
+        f.playfields.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, v))).collect()
+    });
+    &NAMES
+}
+
+/// Every playfield the client names or the set has records for, with how much is in it.
+async fn playfields() -> R<Vec<PlayfieldView>> {
+    with(|st| {
+        let names = playfield_names();
+        let ids: std::collections::BTreeSet<u32> = names.keys().chain(st.bases.keys()).chain(st.set.placements.keys()).chain(st.set.notes.keys()).copied().collect();
+        let count = |n: usize| n.min(u32::MAX as usize) as u32;
+        Ok(Json(
+            ids.into_iter()
+                .map(|id| {
+                    let p = st.set.placements.get(&id);
+                    let n = st.set.notes.get(&id);
+                    PlayfieldView {
+                        id,
+                        name: names.get(&id).cloned().or_else(|| crate::teleport::destination(id).map(|d| d.name.clone())).unwrap_or_default(),
+                        base: count(st.bases.get(&id).map_or(0, Vec::len)),
+                        placements: count(p.map_or(0, |p| p.placements.iter().filter(|x| !x.removed).count())),
+                        triggers: count(p.map_or(0, |p| p.triggers.iter().filter(|x| !x.removed).count())),
+                        scripts: count(n.map_or(0, |n| n.scripts.len())),
+                        notes: count(n.map_or(0, |n| n.notes.len())),
+                    }
+                })
+                .collect(),
+        ))
+    })
+}
+
+// ------------------------------------------------------------------ smash achievement rules
+
+/// A smash achievement (or a discover location, kind `find`) with its rule.
+#[derive(Serialize)]
+struct SmashEntry {
+    #[serde(flatten)]
+    achievement: crate::achievements::SmashAchievement,
+    rule: Option<SmashRule>,
+}
+
+/// What `key` names: a smash achievement, or a discover location (`find:<playfield>:<name>`,
+/// as trigger-targets names it).
+fn smash_target(key: &str) -> Result<crate::achievements::SmashAchievement, Error> {
+    if let Some(rest) = key.strip_prefix("find:") {
+        let (pf, name) = rest.split_once(':').ok_or_else(|| Error::NotFound(format!("no location {key}")))?;
+        let l = targets()
+            .locations
+            .iter()
+            .find(|l| l.playfield.to_string() == pf && l.name == name)
+            .ok_or_else(|| Error::NotFound(format!("no location {name} in playfield {pf}")))?;
+        return Ok(crate::achievements::SmashAchievement {
+            key: key.into(),
+            ids: l.achievements.clone(),
+            title: l.title.clone().unwrap_or_else(|| l.name.clone()),
+            text: String::new(),
+            group: l.playfield_name.clone(),
+            kind: "find",
+            what: None,
+            matching: Some(l.name.clone()),
+            n: 0,
+            minifigures: 0,
+        });
+    }
+    crate::achievements::smash_achievements().iter().find(|a| a.key == key).cloned().ok_or_else(|| Error::NotFound(format!("no smash achievement {key}")))
+}
+
+/// Every smash achievement (counters of kills or smashes, defeats) with its rule.
+async fn smash_achievements() -> R<Vec<SmashEntry>> {
+    with(|st| {
+        Ok(Json(
+            crate::achievements::smash_achievements()
+                .iter()
+                .map(|a| SmashEntry { rule: st.set.smash_rule(&a.key).cloned(), achievement: a.clone() })
+                .collect(),
+        ))
+    })
+}
+
+/// Every smash rule, discover locations' too.
+async fn achievement_rules() -> R<Vec<SmashRule>> {
+    with(|st| Ok(Json(st.set.smash_rules.clone())))
+}
+
+#[derive(Deserialize)]
+struct SmashRuleBody {
+    #[serde(default)]
+    enemies: Vec<String>,
+    #[serde(default)]
+    comment: String,
+    #[serde(default)]
+    tags: Vec<String>,
+    #[serde(default)]
+    feature: Option<String>,
+}
+
+/// Sets which enemies count toward a smash achievement (a discover location's rule has only
+/// tags and a comment).
+async fn save_smash_rule(Path(key): Path<String>, headers: HeaderMap, Json(b): Json<SmashRuleBody>) -> R<SmashEntry> {
+    let achievement = smash_target(&key)?;
+    with(|st| {
+        let mut enemies: Vec<String> = Vec::new();
+        for e in b.enemies.iter().map(|e| e.trim()).filter(|e| !e.is_empty()) {
+            if !enemies.iter().any(|x| x.eq_ignore_ascii_case(e)) {
+                enemies.push(e.to_string());
+            }
+        }
+        if achievement.kind == "find" && !enemies.is_empty() {
+            return Err(Error::Invalid("a discover location's rule has no enemies".into()));
+        }
+        let rule = SmashRule {
+            id: key.clone(),
+            enemies,
+            comment: b.comment,
+            tags: sv::tidy_tags(&b.tags),
+            feature: checked_feature(&st.set, b.feature)?,
+            author: author_of(&headers),
+            updated: ids::now(),
+        };
+        st.set.smash_rules.retain(|r| r.id != key);
+        st.set.smash_rules.push(rule.clone());
+        save(st);
+        Ok(Json(SmashEntry { achievement, rule: Some(rule) }))
+    })
+}
+
+async fn delete_smash_rule(Path(key): Path<String>) -> Result<StatusCode, Error> {
+    with(|st| {
+        st.set.smash_rules.retain(|r| r.id != key);
+        save(st);
+        Ok(StatusCode::NO_CONTENT)
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2860,6 +3060,17 @@ mod tests {
         let uses = tag_uses(&set);
         assert_eq!(uses[0..2].iter().map(|u| (u.tag.as_str(), u.count, u.suggested)).collect::<Vec<_>>(), [("rough", 1, false), ("todo", 1, true)]);
         assert!(uses.iter().any(|u| u.tag == "approximate" && u.count == 0));
+    }
+
+    #[test]
+    fn smash_targets_and_playfield_names() {
+        assert_eq!(playfield_names().get(&1100).map(String::as_str), Some("PvP - Builder Wars"));
+        let town = smash_target("find:4200:Achievement_PirateTown").unwrap();
+        assert_eq!((town.kind, town.title.as_str()), ("find", "Hidden Pirate Town"));
+        assert!(town.ids.contains(&724));
+        assert!(matches!(smash_target("find:4200:Nowhere"), Err(Error::NotFound(_))));
+        assert_eq!(smash_target("2163").unwrap().title, "Novice Monster Smasher");
+        assert!(matches!(smash_target("1"), Err(Error::NotFound(_))));
     }
 
     #[test]

@@ -228,6 +228,9 @@ pub struct Wave {
     pub trigger: Option<Trigger>,
     #[serde(default)]
     pub comment: String,
+    /// Labels for sorting work out ([`tidy_tags`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
 }
 
 /// A scripted event: its waves spawn the placements that name them.
@@ -377,6 +380,39 @@ impl TriggerWall {
         }
         false
     }
+}
+
+/// Which enemies count toward an achievement (play servers count a defeat toward it only when the
+/// defeated one is named here, instead of the achievement's own match), or, for a discover
+/// location (`find:<playfield>:<location>`), only its tags and comment.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SmashRule {
+    /// The achievement's key: its id, `minifigure:<what>:<match>:<n>` for the per-minifigure
+    /// copies of one achievement, or `find:<playfield>:<location>`.
+    pub id: String,
+    /// Enemy or smashable names as defeats name them.
+    #[serde(default)]
+    pub enemies: Vec<String>,
+    #[serde(default)]
+    pub comment: String,
+    /// Labels for sorting work out ([`tidy_tags`]).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
+    /// The feature it belongs to ([`features`]; `live`: mimicking live).
+    #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
+    pub feature: String,
+    #[serde(default)]
+    pub author: String,
+    #[serde(default)]
+    pub updated: u64,
+}
+
+/// `achievements.json`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AchievementsFile {
+    pub format: u32,
+    #[serde(default)]
+    pub smash: Vec<SmashRule>,
 }
 
 /// `<playfield>.placements.json`.

@@ -14,17 +14,22 @@
 //! inferred from their names. Most exploration, seasonal events and Lost Creations have no rule.
 //! Rewards: AchievementRewardValue stars where the reward icon is the stars icon.
 //!
+//! Which enemies count toward a smash achievement can be set by the world editor's smash rules
+//! (approved world content, [`set_smash_rules`]): a defeat then counts only when the defeated one
+//! is named in the rule, instead of the achievement's own match or target.
+//!
 //! Every event also goes into the character's journal (`defeats`, `visits`, `finds`): what it
 //! defeated and how often, the playfields it entered, the collectibles and places it found.
 
 use std::{
     collections::{BTreeMap, HashMap},
-    sync::LazyLock,
+    sync::{LazyLock, RwLock},
 };
 
 use bytes::Bytes;
 use lmoxide_net::{Endpoint, Writer, methods::game_char_interface, types::Id32};
-use serde::Deserialize;
+use lmoxide_survey::SmashRule;
+use serde::{Deserialize, Serialize};
 use tracing::info;
 
 use crate::store::{Character, Defeat, Visit};
@@ -40,6 +45,10 @@ struct Achievement {
     id: u32,
     parent: u32,
     name: String,
+    #[serde(default)]
+    title: Option<String>,
+    #[serde(default)]
+    text: Option<String>,
     #[serde(default)]
     invisible: bool,
     #[serde(default)]
@@ -107,6 +116,106 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
     );
     Tree { all: data.achievements, by_id, children, playfields }
 });
+
+/// One smash achievement as the world editor lists it (survey.rs): a `counter` of kills or
+/// smashes, or a `defeat`. The per-minifigure copies of one achievement ("Smash 50 Witches as
+/// Judge", "... as Cyclops") are one entry.
+#[derive(Debug, Clone, Serialize)]
+pub struct SmashAchievement {
+    /// Its id, or `minifigure:<what>:<match>:<n>` for the per-minifigure copies.
+    pub key: String,
+    pub ids: Vec<u32>,
+    /// The copies' shared title part ("Witch Hunter").
+    pub title: String,
+    /// The copies' text without " as <minifigure>".
+    pub text: String,
+    /// The parent category's title ("Minifigures" for the per-minifigure copies).
+    pub group: Option<String>,
+    /// counter or defeat
+    pub kind: &'static str,
+    /// kills, smashes or kills_or_smashes (counters)
+    pub what: Option<String>,
+    /// What the defeated one's name must contain (counters), or the defeat target.
+    #[serde(rename = "match")]
+    pub matching: Option<String>,
+    /// How many (1 for a defeat).
+    pub n: u32,
+    /// How many per-minifigure copies (0: not one of those).
+    pub minifigures: u32,
+}
+
+/// Every smash achievement (counters of kills or smashes, defeats), in the data's order.
+pub fn smash_achievements() -> &'static [SmashAchievement] {
+    static LIST: LazyLock<Vec<SmashAchievement>> = LazyLock::new(|| {
+        let title_of = |id: u32| TREE.by_id.get(&id).and_then(|&i| TREE.all[i].title.clone());
+        let mut list: Vec<SmashAchievement> = Vec::new();
+        for a in &TREE.all {
+            let (kind, what, matching, n) = match (a.kind.as_str(), &a.counts, a.counter) {
+                ("counter", Some(k), Some([_, n])) if k.what != "builds" => ("counter", k.what.clone(), k.matching.clone(), n as u32),
+                ("counter", None, Some([stat, n])) if stat == STAT_PLAYER_KILLS as u64 => ("counter", "kills".into(), None, n as u32),
+                ("counter", None, Some([stat, n])) if stat == STAT_PLAYER_SMASHES as u64 => ("counter", "smashes".into(), None, n as u32),
+                ("defeat", _, _) => ("defeat", String::new(), a.target.clone(), 1),
+                _ => continue,
+            };
+            let title = a.title.clone().unwrap_or_else(|| a.name.clone());
+            let text = a.text.clone().unwrap_or_default();
+            let what = (!what.is_empty()).then_some(what);
+            if a.minifigure.is_none() || kind != "counter" {
+                list.push(SmashAchievement { key: a.id.to_string(), ids: vec![a.id], title, text, group: title_of(a.parent), kind, what, matching, n, minifigures: 0 });
+                continue;
+            }
+            let key = format!("minifigure:{}:{}:{n}", what.as_deref().unwrap_or(""), matching.as_deref().unwrap_or("").to_lowercase());
+            if let Some(e) = list.iter_mut().find(|e| e.key == key) {
+                e.ids.push(a.id);
+                e.minifigures += 1;
+                continue;
+            }
+            // "Judge, the Witch Hunter", "Barbarian the Dragontamer"
+            let shared = title.split_once(", ").map(|(_, t)| t).or_else(|| title.rfind(" the ").map(|i| &title[i + 1..])).unwrap_or(&title);
+            let shared = shared.strip_prefix("the ").unwrap_or(shared).to_string();
+            // "Smash 50 Witches as Judge."
+            let text = text.rsplit_once(" as ").map_or(text.clone(), |(t, _)| format!("{t}."));
+            list.push(SmashAchievement { key, ids: vec![a.id], title: shared, text, group: Some("Minifigures".into()), kind, what, matching, n, minifigures: 1 });
+        }
+        list
+    });
+    &LIST
+}
+
+/// Achievement id -> the enemies its approved, active smash rule names (lowercase).
+static RULES: LazyLock<RwLock<HashMap<u32, Vec<String>>>> = LazyLock::new(Default::default);
+
+/// The smash rules to count by (the approved, active ones; content.rs). Rules without enemies,
+/// and those of discover locations, change nothing.
+pub fn set_smash_rules(rules: &[SmashRule]) {
+    let mut by_id = HashMap::new();
+    for r in rules.iter().filter(|r| !r.enemies.is_empty()) {
+        let Some(a) = smash_achievements().iter().find(|a| a.key == r.id) else { continue };
+        let enemies: Vec<String> = r.enemies.iter().map(|e| e.to_lowercase()).collect();
+        for &id in &a.ids {
+            by_id.insert(id, enemies.clone());
+        }
+    }
+    *RULES.write().unwrap() = by_id;
+}
+
+/// Whether achievement `id`'s smash rule names `name` (lowercase); `None`: it has no rule.
+fn rule_names(id: u32, name: &str) -> Option<bool> {
+    RULES.read().unwrap().get(&id).map(|enemies| enemies.iter().any(|e| same_name(e, name)))
+}
+
+/// Whether a kill or smash raises the player's own counter `stat`. The counter is shared by its
+/// achievements ("Smash 1000 Monsters", "... 10000 ..."): when any of them has a smash rule,
+/// only the enemies of their rules count.
+fn player_counts(stat: u32, name: &str) -> bool {
+    let rules: Vec<bool> = TREE
+        .all
+        .iter()
+        .filter(|a| a.kind == "counter" && a.minifigure.is_none() && a.counter.is_some_and(|[s, _]| s == stat as u64))
+        .filter_map(|a| rule_names(a.id, name))
+        .collect();
+    rules.is_empty() || rules.contains(&true)
+}
 
 /// Something a player did that achievements count.
 #[derive(Debug, Clone, PartialEq)]
@@ -262,9 +371,10 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
         Event::Built { name } => (name, "builds"),
         _ => unreachable!(),
     };
+    let lower = name.to_lowercase();
     match kind {
-        "kills" => bump(c, ctx, &mut out, STAT_PLAYER_KILLS, 0, times),
-        "smashes" => bump(c, ctx, &mut out, STAT_PLAYER_SMASHES, 0, times),
+        "kills" if player_counts(STAT_PLAYER_KILLS, &lower) => bump(c, ctx, &mut out, STAT_PLAYER_KILLS, 0, times),
+        "smashes" if player_counts(STAT_PLAYER_SMASHES, &lower) => bump(c, ctx, &mut out, STAT_PLAYER_SMASHES, 0, times),
         _ => {}
     }
     if let Some(active) = ctx.active {
@@ -273,24 +383,26 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
             let counts = TREE.all.iter().any(|a| {
                 a.minifigure == Some(active)
                     && a.counter.is_some_and(|[s, _]| s == stat as u64)
-                    && a.counts.as_ref().is_some_and(|k| counts_event(k, kind, name))
+                    && a.counts.as_ref().is_some_and(|k| counts_event(a.id, k, kind, &lower))
             });
             if counts {
                 bump(c, ctx, &mut out, stat, active, times);
             }
         }
     }
-    if let Event::Defeated { name, boss, champion, playfield, .. } = event
-        && (*boss || *champion)
-    {
-        let name = name.to_lowercase();
-        let dungeon = TREE.playfields.get(playfield).cloned().unwrap_or_default();
+    if let Event::Defeated { boss, champion, playfield, .. } = event {
+        let big = *boss || *champion;
+        let dungeon = if big { TREE.playfields.get(playfield).cloned().unwrap_or_default() } else { String::new() };
+        // a defeat achievement with a smash rule counts the rule's enemies, bosses or not
         let hits: Vec<u32> = TREE
             .all
             .iter()
-            .filter(|a| a.kind == "defeat" && a.target.as_ref().is_some_and(|t| same_name(t, &name)))
+            .filter(|a| {
+                a.kind == "defeat"
+                    && rule_names(a.id, &lower).unwrap_or_else(|| big && a.target.as_ref().is_some_and(|t| same_name(t, &lower)))
+            })
             .map(|a| a.id)
-            .chain(as_minifigure(ctx, &dungeon, &name))
+            .chain(if big { as_minifigure(ctx, &dungeon, &lower) } else { Vec::new() })
             .collect();
         for id in hits {
             grant(c, ctx, &mut out, id);
@@ -315,9 +427,11 @@ fn as_minifigure(ctx: &Ctx, area: &str, name: &str) -> Vec<u32> {
         .collect()
 }
 
-fn counts_event(k: &Counts, kind: &str, name: &str) -> bool {
+/// Whether achievement `id` (counting `k`) counts a `kind` event of `name` (lowercase): by its
+/// smash rule if it has one, else by its match.
+fn counts_event(id: u32, k: &Counts, kind: &str, name: &str) -> bool {
     let kind_ok = k.what == kind || (k.what == "kills_or_smashes" && kind != "builds");
-    kind_ok && k.matching.as_ref().is_none_or(|m| name.to_lowercase().contains(&m.to_lowercase()))
+    kind_ok && rule_names(id, name).unwrap_or_else(|| k.matching.as_ref().is_none_or(|m| name.contains(&m.to_lowercase())))
 }
 
 /// Names compare without case and a leading "the " ("Defeat the Alien Queen").
@@ -642,6 +756,49 @@ mod tests {
         on_event(&mut c, &ctx, &Event::Built { name: "Mythology Statue 3".into() }, 2);
         assert_eq!(item_counters(&c, plumber), vec![(STAT_MINIFIGURE_COUNTER1, 2), (STAT_MINIFIGURE_COUNTER2, 2)]);
         assert_eq!(player_counters(&c), vec![(STAT_PLAYER_KILLS, 3)], "the three bosses");
+    }
+
+    #[test]
+    fn smash_achievements_listed() {
+        let list = smash_achievements();
+        let witches = list.iter().find(|a| a.key == "minifigure:kills_or_smashes:witch:50").unwrap();
+        assert_eq!((witches.title.as_str(), witches.text.as_str(), witches.minifigures as usize), ("Witch Hunter", "Smash 50 Witches.", witches.ids.len()));
+        assert!(witches.ids.contains(&2576) && witches.minifigures > 1);
+        let drakes = list.iter().find(|a| a.key == "minifigure:kills_or_smashes:drake:50").unwrap();
+        assert_eq!(drakes.title, "Dragontamer");
+        let global = list.iter().find(|a| a.key == "2163").unwrap();
+        assert_eq!((global.what.as_deref(), global.n, global.group.as_deref()), (Some("kills"), 1000, Some("Global")));
+        let skram = list.iter().find(|a| a.key == "770").unwrap();
+        assert_eq!((skram.kind, skram.matching.as_deref(), skram.n), ("defeat", Some("Skram Gatecrasher"), 1));
+        assert!(!list.iter().any(|a| a.key.contains("builds") || a.key == "2421"), "no builds or collectibles");
+    }
+
+    #[test]
+    fn smash_rules_choose_the_enemies() {
+        let judge = 41_840;
+        let ctx = Ctx { character: 1, active: Some(judge), locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|t| t == judge };
+        let rule = |id: &str, enemies: &[&str]| SmashRule {
+            id: id.into(),
+            enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: "live".into(),
+            author: String::new(),
+            updated: 0,
+        };
+        set_smash_rules(&[rule("minifigure:kills_or_smashes:witch:50", &["Swamp Hag"]), rule("770", &["Troll"])]);
+        let mut c = character();
+        let defeat = |name: &str| Event::Defeated { id: Id32::new(0, 0), name: name.into(), smashable: false, boss: false, champion: false, level: 1, playfield: 4200 };
+        on_event(&mut c, &ctx, &defeat("Witch"), 1);
+        assert_eq!(counter(&c.counters, STAT_MINIFIGURE_COUNTER2, judge), 0, "not in the rule");
+        on_event(&mut c, &ctx, &defeat("the Swamp Hag"), 49);
+        assert_eq!(counter(&c.counters, STAT_MINIFIGURE_COUNTER2, judge), 49);
+        on_event(&mut c, &ctx, &defeat("swamp hag"), 1);
+        assert!(c.tags.contains_key(&2576), "Judge_Smash 50 Witches");
+        // a defeat achievement counts the rule's enemies (bosses or not), not its target
+        on_event(&mut c, &ctx, &defeat("Troll"), 1);
+        assert!(c.tags.contains_key(&770));
+        set_smash_rules(&[]);
     }
 
     #[test]

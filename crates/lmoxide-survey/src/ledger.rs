@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Note, Placement, Script, TriggerWall,
+    Note, Placement, Script, SmashRule, TriggerWall,
     review::{Change, ChangeKey, RecordKind},
     set::{self, Set},
 };
@@ -45,6 +45,7 @@ pub enum Record {
     Trigger(TriggerWall),
     Note(Note),
     Script(Script),
+    SmashRule(SmashRule),
 }
 
 impl Record {
@@ -54,6 +55,7 @@ impl Record {
             Record::Trigger(x) => &x.tags,
             Record::Note(x) => &x.tags,
             Record::Script(x) => &x.tags,
+            Record::SmashRule(x) => &x.tags,
         }
     }
 }
@@ -206,13 +208,14 @@ impl Ledger {
     }
 }
 
-/// A record of a set, by playfield, kind and id.
+/// A record of a set, by playfield, kind and id (smash rules belong to no playfield).
 pub fn get(set: &Set, pf: u32, kind: RecordKind, id: &str) -> Option<Record> {
     match kind {
         RecordKind::Placement => set.placements.get(&pf)?.placements.iter().find(|x| x.id == id).cloned().map(Record::Placement),
         RecordKind::Trigger => set.placements.get(&pf)?.triggers.iter().find(|x| x.id == id).cloned().map(Record::Trigger),
         RecordKind::Note => set.notes.get(&pf)?.notes.iter().find(|x| x.id == id).cloned().map(Record::Note),
         RecordKind::Script => set.notes.get(&pf)?.scripts.iter().find(|x| x.id == id).cloned().map(Record::Script),
+        RecordKind::SmashRule => set.smash_rule(id).cloned().map(Record::SmashRule),
     }
 }
 
@@ -238,6 +241,10 @@ pub fn put(set: &mut Set, pf: u32, kind: RecordKind, id: &str, record: Option<Re
             let list = &mut set.notes_mut(pf).scripts;
             list.retain(|x| x.id != id);
             list.extend(record.and_then(|r| if let Record::Script(x) = r { Some(x) } else { None }));
+        }
+        RecordKind::SmashRule => {
+            set.smash_rules.retain(|x| x.id != id);
+            set.smash_rules.extend(record.and_then(|r| if let Record::SmashRule(x) = r { Some(x) } else { None }));
         }
     }
 }

@@ -15,7 +15,9 @@
 //! approve are taken, the rest wait in the queue for an admin (`/v1/content` on the control
 //! interface, through lmoxide-api). Playfields whose approved, active content changed are
 //! spawned again (live reload): their base content with the placements applied, as the survey
-//! server shows it (placements of script waves and trigger walls aren't run on play servers yet).
+//! server shows it (placements of script waves aren't run on play servers yet); the approved,
+//! active trigger walls and smash achievement rules (which enemies count toward an achievement,
+//! achievements.rs) take effect at once.
 //!
 //! Locks: `STATE`, then `npc::NPCS` (spawning and despawning).
 
@@ -173,7 +175,9 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
         st.bases.entry(pf).or_default().push(def);
     }
     st.catalog = crate::survey::catalog_of(&st.bases);
-    crate::walls::set(&review::only_features(&st.approved, &st.rules.active));
+    let active = review::only_features(&st.approved, &st.rules.active);
+    crate::walls::set(&active);
+    crate::achievements::set_smash_rules(&active.smash_rules);
     let pfs: BTreeSet<u32> = st.bases.keys().chain(st.approved.placements.keys()).copied().collect();
     for pf in pfs {
         spawn_playfield(st, pf);
@@ -332,6 +336,7 @@ fn respawn_changed(st: &mut State, before: &Set, after: &Set) {
         }
     }
     crate::walls::set(after);
+    crate::achievements::set_smash_rules(&after.smash_rules);
 }
 
 // ------------------------------------------------------------------ control routes
@@ -365,7 +370,11 @@ fn with<T>(f: impl FnOnce(&mut State) -> Result<T, Error>) -> Result<T, Error> {
     f(st)
 }
 
+/// A playfield's name ("Achievements" for the smash rules' changes).
 fn pf_name(pf: u32) -> Option<String> {
+    if pf == review::ACHIEVEMENTS {
+        return Some("Achievements".into());
+    }
     crate::teleport::destination(pf).map(|d| d.name.clone())
 }
 

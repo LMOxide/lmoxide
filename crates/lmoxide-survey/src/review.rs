@@ -6,9 +6,14 @@ use std::collections::{BTreeMap, HashMap};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Note, Placement, Script, TriggerWall, set::Set};
+use crate::{Note, Placement, Script, SmashRule, TriggerWall, set::Set};
 
-/// What is approved together: one author's changes to one feature in one playfield.
+/// The playfield smash achievement rules' changes go under (they belong to no playfield; servers
+/// name it "Achievements").
+pub const ACHIEVEMENTS: u32 = 0;
+
+/// What is approved together: one author's changes to one feature in one playfield
+/// ([`ACHIEVEMENTS`] for smash achievement rules).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ChangeKey {
     pub playfield: u32,
@@ -23,6 +28,7 @@ pub enum RecordKind {
     Trigger,
     Note,
     Script,
+    SmashRule,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,7 +44,8 @@ pub enum Op {
 pub struct Item {
     pub kind: RecordKind,
     pub id: String,
-    /// What it is ("Crate", "Trigger wall", a note's comment, a script's name).
+    /// What it is ("Crate", "Trigger wall", a note's comment, a script's name, a smash rule's
+    /// achievement key and enemies).
     pub name: String,
     pub op: Op,
     /// For placements: what changed ("moved 3.2 m", "level 5 -> 7", "deletes a guess", ...).
@@ -67,6 +74,7 @@ enum Rec<'a> {
     T(&'a TriggerWall),
     N(&'a Note),
     S(&'a Script),
+    R(&'a SmashRule),
 }
 
 impl Rec<'_> {
@@ -76,6 +84,7 @@ impl Rec<'_> {
             Rec::T(x) => &x.feature,
             Rec::N(x) => &x.feature,
             Rec::S(x) => &x.feature,
+            Rec::R(x) => &x.feature,
         }
     }
     fn author(&self) -> &str {
@@ -84,6 +93,7 @@ impl Rec<'_> {
             Rec::T(x) => &x.author,
             Rec::N(x) => &x.author,
             Rec::S(x) => &x.author,
+            Rec::R(x) => &x.author,
         }
     }
     fn tags(&self) -> &[String] {
@@ -92,6 +102,7 @@ impl Rec<'_> {
             Rec::T(x) => &x.tags,
             Rec::N(x) => &x.tags,
             Rec::S(x) => &x.tags,
+            Rec::R(x) => &x.tags,
         }
     }
     fn updated(&self) -> u64 {
@@ -100,6 +111,7 @@ impl Rec<'_> {
             Rec::T(x) => x.updated,
             Rec::N(x) => x.updated,
             Rec::S(x) => x.updated,
+            Rec::R(x) => x.updated,
         }
     }
     /// Deleted (placements and walls keep a removed record).
@@ -121,6 +133,8 @@ impl Rec<'_> {
             Rec::N(x) => format!("{:?} note", x.kind),
             Rec::S(x) if !x.name.is_empty() => x.name.clone(),
             Rec::S(_) => "Script".into(),
+            Rec::R(x) if x.enemies.is_empty() => x.id.clone(),
+            Rec::R(x) => short(&format!("{}: {}", x.id, x.enemies.join(", "))),
         }
     }
     /// Same content, who saved it and when aside.
@@ -130,12 +144,13 @@ impl Rec<'_> {
             (Rec::T(a), Rec::T(b)) => a.same_content(b),
             (Rec::N(a), Rec::N(b)) => Note { author: String::new(), updated: 0, ..(*a).clone() } == Note { author: String::new(), updated: 0, ..(*b).clone() },
             (Rec::S(a), Rec::S(b)) => Script { author: String::new(), updated: 0, ..(*a).clone() } == Script { author: String::new(), updated: 0, ..(*b).clone() },
+            (Rec::R(a), Rec::R(b)) => SmashRule { author: String::new(), updated: 0, ..(*a).clone() } == SmashRule { author: String::new(), updated: 0, ..(*b).clone() },
             _ => false,
         }
     }
 }
 
-/// Every record of a playfield, by kind and id.
+/// Every record of a playfield, by kind and id (the smash rules in [`ACHIEVEMENTS`]).
 fn records(set: &Set, pf: u32) -> HashMap<(RecordKind, &str), Rec<'_>> {
     let mut out = HashMap::new();
     if let Some(f) = set.placements.get(&pf) {
@@ -146,11 +161,17 @@ fn records(set: &Set, pf: u32) -> HashMap<(RecordKind, &str), Rec<'_>> {
         out.extend(f.notes.iter().map(|x| ((RecordKind::Note, x.id.as_str()), Rec::N(x))));
         out.extend(f.scripts.iter().map(|x| ((RecordKind::Script, x.id.as_str()), Rec::S(x))));
     }
+    if pf == ACHIEVEMENTS {
+        out.extend(set.smash_rules.iter().map(|x| ((RecordKind::SmashRule, x.id.as_str()), Rec::R(x))));
+    }
     out
 }
 
 fn playfields(a: &Set, b: &Set) -> Vec<u32> {
     let mut pfs: Vec<u32> = a.placements.keys().chain(a.notes.keys()).chain(b.placements.keys()).chain(b.notes.keys()).copied().collect();
+    if !a.smash_rules.is_empty() || !b.smash_rules.is_empty() {
+        pfs.push(ACHIEVEMENTS);
+    }
     pfs.sort();
     pfs.dedup();
     pfs
@@ -290,6 +311,11 @@ pub fn approve(approved: &mut Set, working: &Set, change: &Change, only: Option<
                 list.retain(|x| x.id != id);
                 list.extend(new);
             }
+            RecordKind::SmashRule => {
+                let new = working.smash_rule(id).cloned();
+                approved.smash_rules.retain(|x| x.id != id);
+                approved.smash_rules.extend(new);
+            }
         }
     }
     approved.features = working.features.clone();
@@ -306,6 +332,8 @@ pub struct Counts {
     pub triggers: usize,
     pub notes: usize,
     pub scripts: usize,
+    #[serde(default)]
+    pub smash_rules: usize,
     pub authors: Vec<String>,
     /// How many records carry each tag.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -322,7 +350,8 @@ pub struct SummaryRow {
     pub counts: Counts,
 }
 
-/// The whole set at a glance: per playfield and feature, what it holds.
+/// The whole set at a glance: per playfield and feature, what it holds (smash rules in
+/// [`ACHIEVEMENTS`]).
 pub fn summary(set: &Set) -> Vec<SummaryRow> {
     let mut rows: BTreeMap<(u32, String), Counts> = BTreeMap::new();
     let mut add = |pf: u32, feature: &str, author: &str, tags: &[String], updated: u64, f: &mut dyn FnMut(&mut Counts)| {
@@ -362,6 +391,9 @@ pub fn summary(set: &Set) -> Vec<SummaryRow> {
             add(*pf, &x.feature, &x.author, &x.tags, x.updated, &mut |c| c.scripts += 1);
         }
     }
+    for x in &set.smash_rules {
+        add(ACHIEVEMENTS, &x.feature, &x.author, &x.tags, x.updated, &mut |c| c.smash_rules += 1);
+    }
     rows.into_iter().map(|((playfield, feature), mut counts)| {
         counts.authors.sort();
         SummaryRow { playfield, feature, counts }
@@ -381,6 +413,7 @@ pub fn only_features(set: &Set, active: &[String]) -> Set {
         f.notes.retain(|x| on(&x.feature));
         f.scripts.retain(|x| on(&x.feature));
     }
+    out.smash_rules.retain(|x| on(&x.feature));
     out
 }
 
@@ -445,6 +478,45 @@ mod tests {
         assert_eq!(s.iter().map(|r| (r.feature.as_str(), r.counts.placements, r.counts.deletions)).collect::<Vec<_>>(), [("feature/xmas/2026", 1, 0), ("live", 1, 1)]);
         let live_only = only_features(&a, &["live".into()]);
         assert_eq!(live_only.placements[&1200].placements.len(), 2);
+    }
+
+    #[test]
+    fn smash_rules() {
+        let rule = |enemies: &[&str], feature: &str, updated| SmashRule {
+            id: "2163".into(),
+            enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            comment: String::new(),
+            tags: Vec::new(),
+            feature: feature.into(),
+            author: "ann".into(),
+            updated,
+        };
+        let mut working = with(vec![crate_at("p-1", 0.0, "live", "ann")]);
+        working.smash_rules.push(rule(&["Skeleton"], "live", 1));
+        let mut approved = Set::default();
+        let ch = changes(&working, &approved);
+        assert_eq!(ch.iter().map(|c| c.key.playfield).collect::<Vec<_>>(), [ACHIEVEMENTS, 1200]);
+        assert_eq!((ch[0].items[0].kind, ch[0].items[0].op, ch[0].items[0].name.as_str()), (RecordKind::SmashRule, Op::Added, "2163: Skeleton"));
+        assert_eq!(serde_json::to_value(ch[0].items[0].kind).unwrap(), "smash_rule");
+        approve(&mut approved, &working, &ch[0], None);
+        assert_eq!(approved.smash_rules, working.smash_rules);
+        assert_eq!(changes(&working, &approved).len(), 1, "the placement is left");
+        // saved again by someone else, same content: no change
+        working.smash_rules[0] = SmashRule { author: "bob".into(), updated: 9, ..working.smash_rules[0].clone() };
+        assert!(changes(&working, &approved).iter().all(|c| c.key.playfield != ACHIEVEMENTS));
+        working.smash_rules[0].enemies.push("Zombie".into());
+        let ch = changes(&working, &approved);
+        assert_eq!((ch[0].key.author.as_str(), ch[0].items[0].op), ("bob", Op::Changed));
+        // dropped: a removal
+        working.smash_rules.clear();
+        let ch = changes(&working, &approved);
+        assert_eq!(ch[0].items[0].op, Op::Removed);
+        approve(&mut approved, &working, &ch[0], None);
+        assert!(approved.smash_rules.is_empty());
+        // counted, and only the active features' rules kept
+        let s = Set { smash_rules: vec![rule(&["Witch"], "feature/halloween", 1), SmashRule { id: "2164".into(), ..rule(&[], "live", 1) }], ..Default::default() };
+        assert_eq!(summary(&s).iter().map(|r| (r.playfield, r.counts.smash_rules)).collect::<Vec<_>>(), [(ACHIEVEMENTS, 1), (ACHIEVEMENTS, 1)]);
+        assert_eq!(only_features(&s, &["live".into()]).smash_rules.len(), 1);
     }
 
     #[test]
