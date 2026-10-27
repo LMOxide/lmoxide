@@ -171,6 +171,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             break;
                         }
                         world::Out::Command(..) => unreachable!(),
+                    world::Out::Window(window) => portals.open_window(&mut conn, character, window).await?,
                     world::Out::Teleport(playfield, at, rot) => {
                         let playfield = playfield.unwrap_or(me.playfield);
                         teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
@@ -1229,31 +1230,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let line = if n == 0 { format!("no enemy or smashable named {name}") } else { format!("{n} x {name} for 15 minutes") };
                             crate::chat::system(character, &line);
                         }
-                        crate::devcmd::Action::Window(window) if let Some(to) = crate::teleport::plain_window_destination(window) => {
-                            // as its portals do: ask Yes/No
-                            let cookie = portals.next_cookie();
-                            portals.prompt = Some((cookie, to));
-                            let args = message_box_args(&crate::teleport::travel_question(to), cookie);
-                            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
-                        }
-                        crate::devcmd::Action::Window(window) => {
-                            // (an open one would stay instead)
-                            conn.send_as(
-                                Some(character),
-                                Endpoint::GameCharInterfaceProject,
-                                game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
-                                Bytes::new(),
-                            )
-                            .await?;
-                            let args = Writer::new().u32(window).i32(0).finish();
-                            conn.send_as(
-                                Some(character),
-                                Endpoint::GameCharInterfaceProject,
-                                game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
-                                args,
-                            )
-                            .await?;
-                        }
+                        crate::devcmd::Action::Window(window) => portals.open_window(&mut conn, character, window).await?,
                         crate::devcmd::Action::Bounce(how) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                             let here = *pos.lock().unwrap();
@@ -1832,6 +1809,22 @@ impl Portals {
     fn next_cookie(&mut self) -> u64 {
         self.cookies += 1;
         self.cookies
+    }
+
+    /// Opens teleport window `window` as a portal would (one that would be empty asks Yes/No).
+    async fn open_window(&mut self, conn: &mut Conn, character: u32, window: u32) -> anyhow::Result<()> {
+        if let Some(to) = crate::teleport::plain_window_destination(window) {
+            let cookie = self.next_cookie();
+            self.prompt = Some((cookie, to));
+            let args = message_box_args(&crate::teleport::travel_question(to), cookie);
+            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
+            return Ok(());
+        }
+        // (an open one would stay instead)
+        conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX, Bytes::new()).await?;
+        let args = Writer::new().u32(window).i32(0).finish();
+        conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX, args).await?;
+        Ok(())
     }
 
     /// The player is at `p` on `playfield`.

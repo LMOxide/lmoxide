@@ -173,6 +173,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
         st.bases.entry(pf).or_default().push(def);
     }
     st.catalog = crate::survey::catalog_of(&st.bases);
+    crate::walls::set(&review::only_features(&st.approved, &st.rules.active));
     let pfs: BTreeSet<u32> = st.bases.keys().chain(st.approved.placements.keys()).copied().collect();
     for pf in pfs {
         spawn_playfield(st, pf);
@@ -330,6 +331,7 @@ fn respawn_changed(st: &mut State, before: &Set, after: &Set) {
             spawn_playfield(st, pf);
         }
     }
+    crate::walls::set(after);
 }
 
 // ------------------------------------------------------------------ control routes

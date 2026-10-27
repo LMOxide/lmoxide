@@ -109,7 +109,7 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
 });
 
 /// Something a player did that achievements count.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     /// Defeated an enemy of `level` (`boss`: a boss, `champion`: a champion) or smashed a
     /// smashable.

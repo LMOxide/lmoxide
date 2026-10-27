@@ -44,6 +44,7 @@ mod tiki;
 mod tutorial;
 mod territory;
 mod universe;
+mod walls;
 mod world;
 
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};

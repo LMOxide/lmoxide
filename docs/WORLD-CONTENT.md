@@ -58,7 +58,15 @@ and author, with each record added, changed or removed and what changed ("moved 
   every player: one only the admin sees would need enemies that fight only some players.
 - **Live reload**: playfields whose approved, active placements change are spawned again (base
   content with the placements applied, as the survey server shows them). Not on play servers yet:
-  placements of script waves, trigger walls, notes (they wait in the approved copy).
+  placements of script waves, notes (they wait in the approved copy).
+- **Trigger walls** (walls.rs): the approved, active walls and radii are checked against the
+  players' moves (every 200 ms, as on the survey server; invisible here). Crossing one:
+  `discover` counts the location found on that playfield, and for an achievement that needs one
+  location that location too (so the wall grants it); an achievement needing several counts only
+  what is found; one with no known location is granted by its id. `dialog` starts the recorded
+  dialogue (its NPC speaks if it is there), `portal` opens the window (or teleports to `to`'s
+  arrival point), `message` shows it in chat. `script` is only logged (waves don't run here yet).
+  `once` is per player until the server restarts.
 - Without `--world-editor-set` the approved copy is still applied.
 
 Routes, admin scope, through lmoxide-api (`/v1/content/...`, forwarded to the control interface):

@@ -2837,6 +2837,13 @@ fn targets() -> &'static Targets {
     &T
 }
 
+/// The locations (playfield, name) achievement `id` (or internal name) needs, if it is a `find`
+/// achievement or all of finds (trigger walls on play servers, walls.rs).
+pub fn achievement_locations(id: &str) -> Option<Vec<(u32, String)>> {
+    let a = targets().achievements.iter().find(|a| a.id.to_string() == id || a.name == id)?;
+    Some(a.locations.iter().map(|l| (l.playfield, l.name.clone())).collect())
+}
+
 async fn trigger_targets() -> R<&'static Targets> {
     with(|_| Ok(Json(targets())))
 }
