@@ -26,6 +26,9 @@ Every enemy, NPC, smashable and buildie a server spawns has a category:
 - **Delete** a guess: it is not spawned any more.
 - **Hide** anything: it isn't rendered for you until you unhide it, or until you use "unhide all" in
   the web UI. Hiding is never saved. It is for objects in the way.
+- **Only this wave**: while you work on one wave of a script, the placements of the script's other
+  waves are hidden for you (wave 3: waves 1, 2, 4, ...). Placements of other scripts and the
+  playfield's start spawns stay.
 
 Confirming, editing and deleting a guess each save a placement record that **replaces** it (a
 deleted guess's record is marked `removed`). The guess itself never changes, so the extractor can
@@ -165,6 +168,41 @@ In survey mode:
   name, Flags stat 0x8000), so the category shows in game.
 - Hides are per surveyor and held in memory.
 
+## API
+
+`lmoxide-debug-browser`'s survey page (`survey.html`, its `src/survey/backend.ts`) uses these
+routes of `lmoxide-api` under `/v1/survey` (admin scope), passed to the survey server's control
+interface. `{account}` is the surveyor: a player online on the survey server. Shapes are the
+crate's (`Placement`, `Note`, `Script`, `merge::Report`, ...); `SurveyObject` is any spawned object
+with its `category`.
+
+| Method | Path | Body | Answer |
+|---|---|---|---|
+| GET | `/surveyors` | | players online: `account_id`, `username`, `character_name`, `playfield` |
+| GET | `/catalog` | | what can be placed: `kind`, `name`, `monster_data`, `template`, `level`, `used` |
+| GET | `/players/{account}/state` | | `PlayerState`: playfield, position, heading, selection, hidden ids, focused wave, what they wear, the playfield's `revision` |
+| POST | `/players/{account}/wear` | `{what: Placeable \| null}` | `PlayerState` |
+| POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected) |
+| POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
+| POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
+| POST | `/players/{account}/unhide-all` | | `PlayerState` (also ends "only this wave") |
+| POST | `/players/{account}/focus` | `{wave: WaveRef \| null}` | `PlayerState` |
+| POST | `/players/{account}/preview-wave` | `{wave}` | |
+| POST | `/players/{account}/teleport` | `{pos}` | `PlayerState` |
+| GET | `/playfields/{pf}/objects` | | `{revision, objects: SurveyObject[]}` |
+| GET | `/playfields/{pf}/notes` | | `{notes, scripts}` |
+| PUT / DELETE | `/playfields/{pf}/notes/{id}` | `Note` | `Note` |
+| PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
+| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
+| POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
+| DELETE | `/objects/{id}` | | |
+| GET / PUT | `/set` | `SetInfo` | `SetInfo` |
+| GET | `/export[?playfield=]` | | a bundle: `{format, info, playfields: {"<pf>": {placements, notes, scripts}}}` |
+| POST | `/import` | `{bundle, options: {distance, heading, prefer, take}, dry_run}` | `merge::Report` |
+
+The page polls `state` every second and reloads objects and notes when `revision` or the playfield
+changes, so changes made in game (a selection by attacking, someone else's edit) show up.
+
 ## Steps
 
 1. **`lmoxide-survey` crate** (no server changes): formats, ids, load/save, merge and its report,
@@ -177,13 +215,12 @@ In survey mode:
    interactables, which can't be worn. Place / confirm / edit / delete. Moving NPCs live;
    simple dynels respawn under a new id (the client needs about 1.5 s before an id can be reused).
    The server saves to the active set as it goes.
-4. **Control routes, API and debug browser**: `/v1/survey/...` on the control interface, proxied
-   by `lmoxide-api` (`openapi.json`). A **Placement** view in `lmoxide-debug-browser`: catalog,
-   this playfield's objects by category, the selection editor (x/y/z/heading, nudge, snap to me,
-   drop to navmesh), hide/unhide all. The server pushes in-game selections to the page as events.
-5. **Notes, scripts and waves** in the web UI. Areas are walked out from the surveyor's positions.
-   "Preview wave" spawns one wave.
-6. **Import / merge UI** with the match distance and angle, and the preview described above.
+4. **Control routes and API**: the routes above on the control interface, proxied by
+   `lmoxide-api` (`openapi.json`). The survey page in `lmoxide-debug-browser` (branch `survey`)
+   is built against them and works with an in-memory mock (`survey.html?mock`) until then.
+5. **Notes, scripts and waves** on the server (the page has them). "Preview wave" spawns one wave;
+   "only this wave" hides the script's other waves.
+6. **Import / merge** routes (the page's preview and import are done).
 7. **Play servers use accepted sets**: `data/survey/<set>/` is applied over the base content at
    startup. Placements with a wave aren't spawned until their (reviewed, implemented) trigger.
 8. **Hosting**: `lan-server.sh --modes play,survey`, docker-compose services per mode.
