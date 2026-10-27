@@ -43,6 +43,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!aura <0-4>` | set the active minifigure's aura tier |
 | `!plates <solve\|reset>` | light every plate of the Gauntlet's plate room (`!test plates`), or none |
 | `!mirrors <solve\|reset>` | turn this playfield's Medusa mirrors (Armory, Gauntlet) to the solution or back to the start (`!test mirrors`, `!test mirrors2` go there) |
+| `!team <name>` | team up with that online character at once (you lead), without the invite window: for testing what teams share |
 | `!revive` | bring every minifigure (team and collection) back from smashed, at full health |
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
 | `!spawn [count] <name>` | spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes, as `!test` does (`!spawn 3 Crate`, `!spawn Captain Dreadleg`) |

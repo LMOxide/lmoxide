@@ -70,6 +70,8 @@ pub enum Action {
     Smash,
     /// bring every minifigure of the player (team and collection) back from smashed, full health
     Revive,
+    /// team up with the online character of this name, without the invite (`!team`)
+    Team(String),
     /// go to the server next to this one (`!server`, switch.rs); empty: tell which this is
     Server(String),
     /// feed achievement events (n times)
@@ -541,6 +543,8 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
         }
         "smash" => Action::Smash,
         "revive" => Action::Revive,
+        "team" if !args.is_empty() => Action::Team(args.join(" ")),
+        "team" => reply(vec!["usage: !team <character name> (online)".into()]),
         "server" => Action::Server(args.join(" ")),
         "smashme" => Action::SmashMe,
         "loot" => match args.first().copied() {

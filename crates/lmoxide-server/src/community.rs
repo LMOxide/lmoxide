@@ -504,6 +504,34 @@ fn accept(character: u32, inviter: u32) {
     info!(team, ?members, "team: joined");
 }
 
+/// `!team <name>`: the online character of that name joins this character's team (made with
+/// this character as the leader) as if it had accepted an invite. Returns its name.
+pub fn team_up(character: u32, name: &str) -> Result<String, String> {
+    let target = {
+        let st = STATE.lock().unwrap();
+        let (&target, o) = st
+            .online
+            .iter()
+            .find(|(c, o)| **c != character && o.name.eq_ignore_ascii_case(name))
+            .ok_or_else(|| format!("no other character named {name} is online"))?;
+        if st.team_of.contains_key(&target) {
+            return Err(format!("{} is in a team already", o.name));
+        }
+        if st.team_of.get(&character).is_some_and(|t| st.teams[t].leader != character) {
+            return Err("only the team's leader can add members".into());
+        }
+        target
+    };
+    invite(character, target);
+    accept(target, character);
+    flush();
+    let st = STATE.lock().unwrap();
+    match st.team_of.get(&target) {
+        Some(_) => Ok(st.online[&target].name.clone()),
+        None => Err("the team is full".into()),
+    }
+}
+
 fn set_leader(st: &State, team: u32, leader: u32) {
     for &m in &st.teams[&team].members {
         let args = ge_args(st, leader).finish();

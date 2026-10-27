@@ -76,6 +76,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     // clearing the playfield in this visit: its own enemies, and those defeated so far
     let mut residents: std::collections::HashSet<Id32> = Default::default();
     let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
+    // the playfield was cleared in this visit (by this player or a teammate here)
+    let mut cleared_here = false;
     // a test setup changed the team (sent again at the next CharInPlay), and the item id salt
     let mut team_changed = false;
     // in play before: a later CharInPlayIIR_t is the arrival after a teleport
@@ -125,14 +127,30 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 .await?;
                         }
                         world::Out::Progress(event) => {
+                            if let crate::achievements::Event::Cleared { playfield } = &event {
+                                // once per visit: both the player's own count and a teammate's
+                                // clear arrive
+                                if *playfield != me.playfield || cleared_here {
+                                    continue;
+                                }
+                                cleared_here = true;
+                            }
                             if let crate::achievements::Event::Defeated { id, smashable: false, playfield, .. } = &event
                                 && *playfield == me.playfield
                                 && residents.contains(id)
                                 && defeated_here.insert(*id)
                                 && defeated_here.len() == residents.len()
                             {
-                                // the last of the playfield's enemies: cleared
-                                let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Cleared { playfield: *playfield }));
+                                // the last of the playfield's enemies: cleared, also for the teammates
+                                // here (one who came in later never saw every defeat)
+                                let cleared = crate::achievements::Event::Cleared { playfield: *playfield };
+                                for mate in crate::community::teammates(character) {
+                                    let mate = Id32::new(crate::territory::CHARACTER_TYPE, mate);
+                                    if world::whereabouts(mate).is_some_and(|(pf, _)| pf == *playfield) {
+                                        world::send_to(mate, world::Out::Progress(cleared.clone()));
+                                    }
+                                }
+                                let _ = outbox.send(world::Out::Progress(cleared));
                             }
                             if let crate::achievements::Event::Built { name } = &event
                                 && name == crate::cannon::BUILDIE
@@ -432,6 +450,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Visited { playfield: me.playfield }));
                             residents = crate::npc::resident_enemies(me.playfield);
                             defeated_here.clear();
+                            cleared_here = false;
                             report_finds(&me, here, &outbox);
                             // encounters: a side dungeon's champion, an area the player arrived in
                             crate::encounter::entered(me.playfield, here, &|n| me.defeats.contains_key(n));
@@ -1335,6 +1354,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 warn!(character, "save failed: {e:#}");
                             }
                             crate::chat::system(character, if limit { "collection limited to the team; relog to see it" } else { "every minifigure owned; relog to see it" });
+                        }
+                        crate::devcmd::Action::Team(name) => {
+                            let answer = match crate::community::team_up(character, &name) {
+                                Ok(mate) => format!("in a team with {mate}"),
+                                Err(e) => e,
+                            };
+                            crate::chat::system(character, &answer);
                         }
                         crate::devcmd::Action::Revive => {
                             // the server's health of each minifigure, then the client's: the
