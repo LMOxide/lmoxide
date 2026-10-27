@@ -137,6 +137,7 @@ mod tests {
             level: None,
             pos,
             heading: 0.0,
+            target: None,
             replaces,
             removed: false,
             wave: None,

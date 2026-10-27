@@ -35,7 +35,7 @@ with the chat server the client logged in through, which passes it on to the oth
 
 ## Content categories
 
-Every enemy, NPC, smashable and buildie a server spawns has a category:
+Every enemy, NPC, smashable, buildie and bouncer a server spawns has a category:
 
 | Category | Where it comes from | In survey mode |
 |---|---|---|
@@ -59,6 +59,13 @@ Every enemy, NPC, smashable and buildie a server spawns has a category:
 Confirming, editing and deleting a guess each save a placement record that **replaces** it (a
 deleted guess's record is marked `removed`). The guess itself never changes, so the extractor can
 keep regenerating the guesses.
+
+**Bouncers** (jump pads: mortars, wind fans, catapults, planes, lilies, invisible jumpers;
+jumppad.rs) are objects too (`kind: "bouncer"`): a pad whose landing point is exact (the recorded
+worlds, `target_by: "demo"`: the Tutorial 1300 and the pirate prison 4600) is **demo**; every
+other pad's landing point was guessed (docs/TUNABLES.md "Landing points"), so the pad is a
+**guess** for an editor to check: confirming or editing it (pos, heading, `target`) makes a
+surveyed placement that replaces it, as for spawns.
 
 ### Guess ids
 
@@ -117,8 +124,18 @@ itself at the first start (it was all visible to play servers already).
 }
 ```
 
-- `kind`: `enemy`, `npc`, `smashable`, `buildie` or `interactable`. The look is `monster_data`
-  and/or `template`.
+- `kind`: `enemy`, `npc`, `smashable`, `buildie`, `interactable` or `bouncer`. The look is
+  `monster_data` and/or `template`.
+- Bouncers: `kind: "bouncer"`, `template` the pad's **visual id** (its look; the catalog's
+  bouncer entries), `target` where it throws you (`[x, y, z]`; left out: not set yet, the pad
+  doesn't launch), e.g. `{"id": "p-…", "kind": "bouncer", "name": "Mortar", "template": 212668,
+  "pos": [329.8, 54.0, 96.7], "heading": 1.2, "target": [331.8, 48.0, 81.8], "replaces": {…}}`.
+  `monster_data`, `level`, `wave` and `patrol` aren't used. A surveyed pad keeps the guid of the
+  pad it replaces (the tutorial's gated pads stay gated); a new one gets a guid from its id. Where
+  a jump goes on from its landing point (pads that throw on: chains, clouds, lilies) isn't
+  stored: it follows from the pads there (`chain` in the object list). In review a moved target
+  is a change ("target moved 3.2 m", "target set", "target cleared"); merging treats two pads
+  as near-duplicates only when their targets are within the distance too.
 - `removed: true` (with `replaces`): the replaced guess isn't spawned. A deleted placement of
   your own stays in the file as a `removed` record, so merging someone's older copy doesn't bring
   it back.
@@ -170,6 +187,12 @@ walks through them.
 - In survey mode crossing one shows what it would do: a script's wave pops in (as "Preview"),
   `dialog` with a number opens it, `portal` opens its window (`!window`; only `to`: `!tp`), the
   others say in chat what happens.
+- `collect` (`{"collect": {"drop": "<key>"}}`): gives the player one collectible: `drop` is a
+  collect achievement's key (its id, e.g. `"2431"` for Cerberus' Collar; `/smash-achievements`
+  `kind: "collect"`) or a `drop:<name>` rule's key. On play servers it raises the achievement's
+  counter by one (a `drop:` key with an `item` drops that item at the player), and a wall counts
+  **at most once per player, ever**, whatever its `once` (remembered in the character's journal
+  finds as `collect:<key>:wall:<wall id>`), so walking back and forth doesn't fill the counter.
 
 ### Notes (for review)
 
@@ -229,7 +252,21 @@ Which enemies (or smashables, as defeats name them) count toward a smash achieve
 achievement's key (`GET /smash-achievements`): its id, or `minifigure:<what>:<match>:<n>` for
 the per-minifigure copies of one achievement ("Smash 50 Witches as Judge", "… as Cyclops"), which
 share one rule. A key `find:<playfield>:<location>` (a discover location as `trigger-targets`
-names it) holds only tags and a comment, for the editor's tree. Rules have a `feature` (default
+names it) holds only tags and a comment, for the editor's tree.
+
+Editors' own records use the same file:
+
+- `category:<name>` (any name): an **enemy category**, a named list of enemies (e.g.
+  `category:Skeletons` with live's skeleton names from `/enemy-names`). A rule's `enemies` may
+  name a category as `@<name>` (`"@Skeletons"`): play servers count every enemy of that category
+  (one level deep: `@` inside a category is ignored; an unknown category counts nothing).
+- `drop:<name>`: a **mission item enemies drop** ("Collect" in the editor): `enemies` drop it
+  (categories allowed), `item` (optional) its item template, `once` (optional) each enemy
+  (name) drops it only once per player.
+- A collect achievement's rule (its id, e.g. `2431`): which enemies give one of its
+  collectibles (`once`: each enemy name only once per player).
+
+`once` (default false) and `item` (default none) are left out when not set. Rules have a `feature` (default
 `live`, left out) like every record, and are published and approved like the others: their
 changes go under playfield 0, named "Achievements". On play servers see docs/WORLD-CONTENT.md.
 
@@ -288,6 +325,12 @@ In survey mode:
   dynels, as the selection's), refreshed after changes and playfield moves; never saved.
 - Hides are per surveyor and held in memory (`HIDDEN` in survey.rs: what isn't sent to them).
 - Edits respawn the object under a new NPC id (the client needs ~1.5 s before an id is reused).
+- Bouncers are the play servers' pads (they launch here too), with the working set's bouncer
+  placements applied at once: an edited pad leaves the world and comes back ~2 s later (the
+  client needs the id free). A selected bouncer gets the selection marker at the pad and a second
+  one at its landing point (both on invisible helpers, shown only to that surveyor). The
+  hops of a chain after the first aren't marked. Interacting with a pad selects it (if the client
+  sends it: pads have no interaction).
 - Not yet: placing, wearing or editing buildies and interactables (they aren't NPCs; the catalog lists
   enemies, NPCs and smashables), showing patrol routes in game, play servers using a set.
 
@@ -302,7 +345,7 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | Method | Path | Body | Answer |
 |---|---|---|---|
 | GET | `/surveyors` | | players online: `account_id`, `username`, `character_name`, `playfield` |
-| GET | `/catalog` | | what can be placed: `kind`, `name`, `monster_data`, `template`, `level`, `used` |
+| GET | `/catalog` | | what can be placed: `kind`, `name`, `monster_data`, `template`, `level`, `used`. Bouncers: one entry per pad look, `{kind: "bouncer", name: "Mortar (a)", monster_data: null, template: <visual id>, level: null, used}`; `place` puts one at the surveyor (facing their way) with no `target` yet |
 | GET | `/players/{account}/state` | | `PlayerState`: playfield, position, heading, selection, hidden ids, `shown_waves` (script id → wave id or `"all"`; a script that isn't there shows its first wave), what they wear, the playfield's `revision` |
 | POST | `/players/{account}/wear` | `{what: Placeable \| null}` | `PlayerState` |
 | POST | `/players/{account}/place` | `{what, wave: WaveRef \| null, feature?, tags?}` | the new `SurveyObject` (selected; its wave is shown) |
@@ -311,24 +354,25 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | GET | `/trigger-targets` | | `{locations, achievements, dialogs, portals}`: what trigger walls can discover or open |
 | GET | `/tags` | | `[{tag, count, suggested}]`: every tag in the working set (waves' and smash rules' too), most used first, and the suggested ones |
 | GET | `/playfields` | | `[{id, name, base, placements, triggers, scripts, notes}]` by id: every playfield the client names (data/playfields.json) or the set has records for; `base`: base content objects, `placements`: the set's (deletions of guesses left out), `triggers`: trigger walls. Cheap enough to poll |
-| GET | `/smash-achievements` | | `[SmashEntry]`: every kill or smash counter (not builds; the global "Smash 1000 Monsters" ones too) and every defeat achievement: `{key, ids, title, text, group, kind: "counter" \| "defeat", what: "kills" \| "smashes" \| "kills_or_smashes" \| null, match, n, minifigures, rule: SmashRule \| null}`. The per-minifigure copies are one entry: `key` `minifigure:<what>:<match lowercase>:<n>`, `ids` all of them, `title` their shared part ("Witch Hunter"), `text` without " as <minifigure>", `group` "Minifigures", `minifigures` how many. Others: `key` the id, `group` the parent category's title, `minifigures` 0. `match`: what the name must contain, or the defeat target; `n`: the counter's target, 1 for a defeat |
-| PUT / DELETE | `/smash-achievements/{key}` | `{enemies, comment?, tags?, feature?}` | the `SmashEntry` with its rule (404 for an unknown key) / 204. `{key}` may be `find:<playfield>:<location>` (URL-encoded; the location must be one of `trigger-targets`): its rule has no enemies (else 422), and the entry has `kind: "find"`, `ids` the location's achievements, `title` its title, `group` its playfield's name, `match` its name |
-| GET | `/achievement-rules` | | `[SmashRule]`: every rule, discover locations' too |
+| GET | `/smash-achievements` | | `[SmashEntry]`: every kill or smash counter (not builds; the global "Smash 1000 Monsters" ones too), every defeat achievement and, last, the collectible counters (`kind: "collect"`: goblets 2421, meteorites 2424, pies 2426, crystal crates 2428, Cerberus' Collar 2431; `key` the id, `n` the counter's target, `what` and `match` null; their rules say which enemies drop them): `{key, ids, title, text, group, kind: "counter" \| "defeat" \| "collect", what: "kills" \| "smashes" \| "kills_or_smashes" \| null, match, n, minifigures, rule: SmashRule \| null}`. The per-minifigure copies are one entry: `key` `minifigure:<what>:<match lowercase>:<n>`, `ids` all of them, `title` their shared part ("Witch Hunter"), `text` without " as <minifigure>", `group` "Minifigures", `minifigures` how many. Others: `key` the id, `group` the parent category's title, `minifigures` 0. `match`: what the name must contain, or the defeat target; `n`: the counter's target, 1 for a defeat |
+| PUT / DELETE | `/smash-achievements/{key}` | `{enemies, comment?, tags?, feature?}` | the `SmashEntry` with its rule (404 for an unknown key) / 204. `{key}` may be `find:<playfield>:<location>` (URL-encoded; the location must be one of `trigger-targets`): its rule has no enemies (else 422), and the entry has `kind: "find"`, `ids` the location's achievements, `title` its title, `group` its playfield's name, `match` its name. `{key}` may be `category:<name>` or `drop:<name>` (URL-encoded, any non-empty name, else 422): the entry has `kind: "category"` / `"drop"`, `title` the name, `text` "", `ids` [], `group`, `what`, `match` null, `n` 0, `minifigures` 0. The body may also have `once` (bool) and `item` (an item template), for any key |
+| GET | `/achievement-rules` | | `[SmashRule]`: every rule, discover locations', categories and drops too |
+| GET | `/enemy-names` | | `[{name, kind: "enemy" \| "smashable" \| "boss" \| "champion", playfields: [u32], source: "live" \| "demo" \| "client" \| "achievement"}]` by name: every enemy and smashable name a defeat can carry: every playfield's base content and the catalog (boss / champion by health over a regular enemy's of its level, as npc.rs ranks them), the encounter champions (named after their achievements' targets, e.g. "Uggluk Gatekeeper", with the side dungeons they appear in) and the targets of defeat and per-minifigure target achievements that aren't places (`source: "achievement"` when nothing else has them). One entry per name: playfields merged, the biggest kind and the best source kept |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
 | POST | `/players/{account}/unhide-all` | | `PlayerState` |
 | POST | `/players/{account}/shown-wave` | `{script, wave: <wave id> \| "all"}` | `PlayerState` |
 | POST | `/players/{account}/preview-wave` | `{wave}` | |
 | POST | `/players/{account}/teleport` | `{pos}` | `PlayerState` |
-| GET | `/playfields/{pf}/objects` | | `{revision, objects: SurveyObject[]}` |
+| GET | `/playfields/{pf}/objects` | | `{revision, objects: SurveyObject[]}`. Bouncers: `kind: "bouncer"`, `template` the visual id, `name` from the look ("Mortar", "Wind fan", "Catapult", "Plane", "Lily pad", "Invisible jumper", else the pad's data name, or a placement's own name), `target: [x,y,z] \| null`, and `chain: [[x,y,z], …]` (left out when empty): the further landing points when the jump goes on through pads that throw on |
 | GET | `/playfields/{pf}/notes` | | `{notes, scripts}` |
 | PUT / DELETE | `/playfields/{pf}/notes/{id}` | `Note` | `Note` |
 | PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
-| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `tags`, `feature`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
+| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `tags`, `feature`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once`; bouncers: `pos`, `heading`, `name`, `comment`, `tags`, `feature`, `target` (`[x,y,z]` or null), `template` (another pad look) | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
 | POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
 | DELETE | `/objects/{id}` | | `{id}`: the record that keeps it deleted (a deleted guess's is a new placement) |
 | POST | `/objects/{id}/forget` | | drops a placement's or trigger wall's record entirely (no deletion record stays); a guess it replaced comes back: its `SurveyObject`, else `null`. Undoing a placement, undoing a delete (forget its record), resetting an edited guess |
-| PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`) | makes it exactly so, spawned again; a guess it replaces goes away. Redo, undoing a reset or a delete |
+| PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`; bouncers: with `template` and `target`) | makes it exactly so, spawned again; a guess it replaces goes away. Redo, undoing a reset or a delete |
 | POST | `/playfields/{pf}/objects` | a snapshot as for `PUT /objects/{id}` (its `playfield` and `replaces` are ignored) | a new record in `pf` (paste): new id (`t-…` for `kind: "trigger"`, else `p-…`), author from the request, feature checked, a `wave` must be one of `pf`'s (else 422); saved and spawned; nobody's selection changes. The new `SurveyObject` |
 | GET | `/unpublished` | | changes not published yet, the caller's first: `[{playfield, playfield_name, feature, feature_path, author, mine, summary, items: [{kind, id, name, op, details, updated}]}]` |
 | POST | `/publish` | `{playfield?, feature?, author?, ids?}` (author: default the caller, `*` everyone) | `{records, unpublished}` |

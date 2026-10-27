@@ -129,6 +129,7 @@ fn fire(w: &TriggerWall, player: Id32, player_name: &str, pf: u32) {
             Err(why) => info!(wall = %w.id, "trigger wall: script not started: {why}"),
         },
         WallAction::Script { script: None, .. } => info!(wall = %w.id, "trigger wall: names no script"),
+        WallAction::Collect { drop } => crate::achievements::wall_collect(player, drop.as_deref(), &w.id),
         WallAction::Portal { .. } | WallAction::Message { .. } | WallAction::Other => {}
     }
 }

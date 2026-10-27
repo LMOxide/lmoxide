@@ -84,7 +84,16 @@ and author, with each record added, changed or removed and what changed ("moved 
   what is found; one with no known location is granted by its id. `dialog` starts the recorded
   dialogue (its NPC speaks if it is there), `portal` opens the window (or teleports to `to`'s
   arrival point), `message` shows it in chat. `script` starts the script (or the wave it names; below).
-  `once` is per player until the server restarts.
+  `collect` gives one collectible: a collect achievement's key raises its counter by one (e.g.
+  TaCo stat 3000122 for Cerberus' Collar, 2431; sent like the other counters), a `drop:<name>`
+  key with an `item` drops that item at the player, anything else is logged. A collect wall
+  counts once per player ever (the journal's finds keep `collect:<key>:wall:<id>`), whatever
+  its `once`. `once` is per player until the server restarts.
+- **Bouncers** (jumppad.rs): the approved, active bouncer placements apply to the jump pads: a
+  surveyed pad replaces the guessed pad it names (same guid, its own position, heading, look and
+  landing point), a new one is added (no landing point: shown, doesn't launch), a deleted one is
+  gone. Changed pads leave the world and come back ~2 s later; the NPCs of the playfield aren't
+  spawned again for a bouncer change. With nothing approved the pads are world_content.json's.
 - **Smash achievement rules** (achievements.rs; docs/SURVEY.md "Smash achievement rules"): for
   an achievement with an approved, active rule that names enemies, a defeat counts toward it only
   when the defeated one is named there (no case, a leading "the " ignored) instead of the
@@ -92,7 +101,17 @@ and author, with each record added, changed or removed and what changed ("moved 
   counts any defeat of those enemies, bosses or not. The global kill and smash counters ("Smash
   1000 Monsters", "... 10000 ...") are one stat shared by their achievements: a rule on any of
   them limits that stat to the enemies of all their rules. Rules of discover locations
-  (`find:...`) and without enemies change nothing. Their changes are queued, approved and undone
+  (`find:...`) and without enemies change nothing. `@<name>` in a rule's enemies counts every
+  enemy of the rule `category:<name>` (one level; an unknown category: nothing); categories
+  themselves count toward nothing.
+  A collect achievement's rule (goblets 2421, meteorites 2424, pies 2426, crystal crates 2428,
+  Cerberus' Collar 2431) gives one collectible per defeat of an enemy it names (raising the
+  achievement's counter; `once`: once per enemy name per player, kept in the journal's finds as
+  `collect:<key>:enemy:<name>`). A `drop:<name>` rule with an `item` drops that item (a loot bag
+  where the enemy stood, for the player who defeated it; `once` as above); picking it up gives
+  nothing yet (there is no mission item inventory: loot.rs's rewards know only tokens, potions,
+  stars, chests and minifigure bags). A `drop:` rule without `item` changes nothing. Removing a
+  collect achievement from a character also resets its counter and what it collected. Their changes are queued, approved and undone
   like the others, under playfield 0 ("Achievements"); they take effect at once.
 - Without `--world-editor-set` the approved copy is still applied.
 

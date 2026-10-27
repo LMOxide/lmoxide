@@ -286,6 +286,7 @@ mod tests {
             level: Some(3),
             pos: [0.0; 3],
             heading: 0.0,
+            target: None,
             replaces: None,
             removed: false,
             wave,

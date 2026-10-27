@@ -2139,6 +2139,12 @@ async fn send_progress(
     if out.stars > 0 {
         send_token(conn, character, TOKEN_STARS, me.stars, 0).await?;
     }
+    // items the world editor's drop rules drop (where the defeated one was, else at the player)
+    for (dropper, item) in out.drops {
+        let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+        let at = world::whereabouts(dropper).map(|(_, p)| p).or_else(|| world::live_position(player)).unwrap_or(me.pos);
+        crate::loot::drop_items(player, me.playfield, at, dropper, vec![item]);
+    }
     // new achievements may change the aura (the reward scripts recast the aura applier)
     if let Some(&(_, template)) = me.team.first() {
         crate::auras::apply(Id32::new(crate::territory::CHARACTER_TYPE, character), template, &me.tags, false);

@@ -263,9 +263,14 @@ impl Merger<'_> {
             let looks_alike = |p: &Placement| {
                 p.kind == tp.kind && p.monster_data == tp.monster_data && p.template == tp.template && p.removed == tp.removed
             };
+            // (bouncers: their landing points must be as close too)
+            let same_target = |p: &Placement| match (p.target, tp.target) {
+                (Some(a), Some(b)) => distance(a, b) <= t.distance,
+                (a, b) => a.is_none() && b.is_none(),
+            };
             let within = |p: &Placement| {
                 let d = distance(p.pos, tp.pos);
-                (d <= t.distance && heading_difference(p.heading, tp.heading) <= t.heading).then_some(d)
+                (d <= t.distance && heading_difference(p.heading, tp.heading) <= t.heading && same_target(p)).then_some(d)
             };
             // the same guess replaced on both sides: the same placement if alike and close
             if let Some(origin) = &tp.replaces
@@ -407,6 +412,7 @@ mod tests {
             level: None,
             pos,
             heading: 0.0,
+            target: None,
             replaces: None,
             removed: false,
             wave: None,
@@ -443,6 +449,24 @@ mod tests {
         assert_eq!(r.near[0].theirs, "p-b-1");
         assert_eq!(r.added, ["p-b-2"]);
         assert_eq!(ids(&ours), ["p-a-1", "p-b-2"]);
+    }
+
+    #[test]
+    fn bouncers_with_other_targets_are_not_near_duplicates() {
+        let pad = |id: &str, target: [f32; 3], updated| Placement { kind: Kind::Bouncer, monster_data: None, template: Some(148906), target: Some(target), ..crate_at(id, [0.0; 3], updated) };
+        let mut ours = set_with(vec![pad("p-a-1", [10.0, 0.0, 0.0], 1)]);
+        let theirs = set_with(vec![
+            pad("p-b-1", [10.3, 0.0, 0.0], 1), // the same pad, nearly the same landing point
+            pad("p-b-2", [20.0, 0.0, 0.0], 1), // the same spot, another landing point
+        ]);
+        let r = merge(&mut ours, &theirs, &Options::default());
+        assert_eq!(r.near.len(), 1);
+        assert_eq!(r.near[0].theirs, "p-b-1");
+        assert_eq!(r.added, ["p-b-2"]);
+        // the same record with a moved target: a conflict, the newer wins
+        let mut ours = set_with(vec![pad("p-a-1", [10.0, 0.0, 0.0], 1)]);
+        merge(&mut ours, &set_with(vec![pad("p-a-1", [12.0, 0.0, 0.0], 5)]), &Options::default());
+        assert_eq!(ours.placements[&1200].placements[0].target, Some([12.0, 0.0, 0.0]));
     }
 
     #[test]
@@ -498,6 +522,8 @@ mod tests {
         let rule = |id: &str, enemies: &[&str], updated| SmashRule {
             id: id.into(),
             enemies: enemies.iter().map(|e| e.to_string()).collect(),
+            once: false,
+            item: None,
             comment: String::new(),
             tags: Vec::new(),
             feature: crate::features::live(),

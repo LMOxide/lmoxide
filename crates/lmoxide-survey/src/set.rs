@@ -188,6 +188,7 @@ mod tests {
             level: None,
             pos: [1.0, 2.0, 3.0],
             heading: 0.5,
+            target: None,
             replaces: None,
             removed: false,
             wave: None,
@@ -213,6 +214,8 @@ mod tests {
         set.smash_rules.push(SmashRule {
             id: "2163".into(),
             enemies: vec!["Skeleton".into(), "Zombie".into()],
+            once: false,
+            item: None,
             comment: String::new(),
             tags: vec!["todo".into()],
             feature: crate::features::live(),

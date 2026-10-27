@@ -264,6 +264,7 @@ mod tests {
             level: None,
             pos: [x, 0.0, 0.0],
             heading: 0.0,
+            target: None,
             replaces: None,
             removed: false,
             wave: None,
