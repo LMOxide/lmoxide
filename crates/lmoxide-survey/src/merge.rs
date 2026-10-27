@@ -339,6 +339,7 @@ mod tests {
             replaces: None,
             removed: false,
             wave: None,
+            patrol: Vec::new(),
             comment: String::new(),
             author: "x".into(),
             updated,

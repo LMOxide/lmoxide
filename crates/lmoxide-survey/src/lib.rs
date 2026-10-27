@@ -91,6 +91,10 @@ pub struct Placement {
     pub removed: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub wave: Option<WaveRef>,
+    /// Enemies and NPCs: the looping route it walks (as `world_content.json` `patrol`; two or
+    /// more points, the last leading back to the first). Empty: it stays where it is placed.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub patrol: Vec<Vec3>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub comment: String,
     #[serde(default)]
@@ -283,10 +287,12 @@ mod tests {
             r#"{"format":1,"playfield":4600,"placements":[{"id":"p-a-1","kind":"enemy","name":"Skeleton Warrior",
             "monster_data":82410,"level":2,"pos":[334.0,48.75,124.0],"heading":1.57,
             "replaces":{"id":"g-1","kind":"enemy","monster_data":82410,"pos":[331.2,48.75,120.0]},
-            "wave":{"script":"s-a-1","wave":"w-a-1"},"comment":"patrols","author":"a","updated":1}]}"#,
+            "wave":{"script":"s-a-1","wave":"w-a-1"},"patrol":[[330.0,48.75,120.0],[340.0,48.75,120.0]],
+            "comment":"patrols","author":"a","updated":1}]}"#,
         )
         .unwrap();
         assert_eq!(p.placements[0].wave.as_ref().unwrap().wave, "w-a-1");
+        assert_eq!(p.placements[0].patrol.len(), 2);
         let n: NotesFile = serde_json::from_str(
             r#"{"format":1,"playfield":4600,
             "notes":[{"id":"n-1","kind":"achievement","area":{"circle":{"center":[300.0,48.0,90.0],"radius":12.0}},

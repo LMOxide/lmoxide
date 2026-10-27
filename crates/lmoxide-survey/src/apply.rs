@@ -140,6 +140,7 @@ mod tests {
             replaces,
             removed: false,
             wave: None,
+            patrol: Vec::new(),
             comment: String::new(),
             author: String::new(),
             updated: 0,

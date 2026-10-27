@@ -22,13 +22,15 @@ Every enemy, NPC, smashable and buildie a server spawns has a category:
 | **surveyed** | placed, confirmed or edited by a surveyor | edit, delete, hide |
 
 - **Confirm** a guess: it is right as it is. It becomes surveyed at the same place.
-- **Edit** a guess (move it, turn it, change its look or level): it becomes surveyed where you left it.
+- **Edit** a guess (move it, turn it, change its level, give it a patrol route, or change it into
+  any other spawn: another enemy, an NPC, a smashable, ...): it becomes surveyed as you left it.
 - **Delete** a guess: it is not spawned any more.
 - **Hide** anything: it isn't rendered for you until you unhide it, or until you use "unhide all" in
   the web UI. Hiding is never saved. It is for objects in the way.
-- **Only this wave**: while you work on one wave of a script, the placements of the script's other
-  waves are hidden for you (wave 3: waves 1, 2, 4, ...). Placements of other scripts and the
-  playfield's start spawns stay.
+- **One wave at a time**: of a script with several waves, only one wave's placements are shown,
+  wave 1 unless you step to another (or choose "all waves"). Each surveyor steps each script on
+  their own. Placing something into a wave shows that wave. Placements of other scripts and the
+  playfield's start spawns aren't affected.
 
 Confirming, editing and deleting a guess each save a placement record that **replaces** it (a
 deleted guess's record is marked `removed`). The guess itself never changes, so the extractor can
@@ -72,6 +74,7 @@ Files are pretty-printed with a fixed order, so diffs and merges stay readable.
       "heading": 1.57,
       "replaces": { "id": "g-6c1e0b5a99f2d317", "kind": "enemy", "monster_data": 82410, "pos": [331.2, 48.75, 120.0] },
       "wave": { "script": "s-hosttemple-…", "wave": "w-hosttemple-…" },
+      "patrol": [[330.0, 48.75, 120.0], [342.0, 48.75, 120.0], [342.0, 48.75, 131.0]],
       "comment": "patrols to the dock",
       "author": "hosttemple",
       "updated": 1793000000
@@ -87,6 +90,9 @@ Files are pretty-printed with a fixed order, so diffs and merges stay readable.
   it back.
 - `wave`: the placement is spawned by that script's wave, not when the playfield starts. It names
   the script **and** the wave, because a world can have several scripts.
+- `patrol` (enemies and NPCs, optional): the looping route it walks while nobody is fighting it,
+  as the play server's patrols (`world_content.json` `patrol`, `npc.rs` `patrol`): two or more
+  points, the last leading back to the first; it starts at the point nearest to where it is.
 
 ### Notes (for review)
 
@@ -180,20 +186,20 @@ with its `category`.
 |---|---|---|---|
 | GET | `/surveyors` | | players online: `account_id`, `username`, `character_name`, `playfield` |
 | GET | `/catalog` | | what can be placed: `kind`, `name`, `monster_data`, `template`, `level`, `used` |
-| GET | `/players/{account}/state` | | `PlayerState`: playfield, position, heading, selection, hidden ids, focused wave, what they wear, the playfield's `revision` |
+| GET | `/players/{account}/state` | | `PlayerState`: playfield, position, heading, selection, hidden ids, `shown_waves` (script id → wave id or `"all"`; a script that isn't there shows its first wave), what they wear, the playfield's `revision` |
 | POST | `/players/{account}/wear` | `{what: Placeable \| null}` | `PlayerState` |
-| POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected) |
+| POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected; its wave is shown) |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
-| POST | `/players/{account}/unhide-all` | | `PlayerState` (also ends "only this wave") |
-| POST | `/players/{account}/focus` | `{wave: WaveRef \| null}` | `PlayerState` |
+| POST | `/players/{account}/unhide-all` | | `PlayerState` |
+| POST | `/players/{account}/shown-wave` | `{script, wave: <wave id> \| "all"}` | `PlayerState` |
 | POST | `/players/{account}/preview-wave` | `{wave}` | |
 | POST | `/players/{account}/teleport` | `{pos}` | `PlayerState` |
 | GET | `/playfields/{pf}/objects` | | `{revision, objects: SurveyObject[]}` |
 | GET | `/playfields/{pf}/notes` | | `{notes, scripts}` |
 | PUT / DELETE | `/playfields/{pf}/notes/{id}` | `Note` | `Note` |
 | PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
-| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
+| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn) | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
 | POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
 | DELETE | `/objects/{id}` | | |
 | GET / PUT | `/set` | `SetInfo` | `SetInfo` |
@@ -219,7 +225,8 @@ changes, so changes made in game (a selection by attacking, someone else's edit)
    `lmoxide-api` (`openapi.json`). The survey page in `lmoxide-debug-browser` (branch `survey`)
    is built against them and works with an in-memory mock (`survey.html?mock`) until then.
 5. **Notes, scripts and waves** on the server (the page has them). "Preview wave" spawns one wave;
-   "only this wave" hides the script's other waves.
+   each surveyor sees one wave of each script at a time. Patrol routes are shown in game while
+   the patroller is selected (markers at the points), and patrol in play servers as now.
 6. **Import / merge** routes (the page's preview and import are done).
 7. **Play servers use accepted sets**: `data/survey/<set>/` is applied over the base content at
    startup. Placements with a wave aren't spawned until their (reviewed, implemented) trigger.
