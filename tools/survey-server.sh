@@ -5,13 +5,13 @@
 #   tools/survey-server.sh [--release] [lan-ip]
 #   tools/survey-server.sh --restart [--release]   (rebuild and restart the game server and API)
 # Ports: TCP 8081 (patch server: clients connect with `lmo <name> <lan-ip>:8081`), 7110-7112
-# (universe, territory, game), 7210 (chat), 8091 (REST API), 5175 (the survey page:
-# http://<lan-ip>:5175/survey.html, from LMOXIDE_SURVEY_WEB_DIR, default the debug browser's
-# `survey` worktree, else the debug browser). The control interface is 127.0.0.1:7310.
+# (universe, territory, game), 7210 (chat), 8091 (REST API), 5175 (the dev UI's world editor:
+# http://<lan-ip>:5175/editor/, from LMOXIDE_SURVEY_WEB_DIR, default ../lmoxide-dev-ui; the LAN
+# server's dev UI on :5174 reaches this server's API too). The control interface is 127.0.0.1:7310.
 # It shares the LAN server's login key and logins (--share-accounts ../var/data/lmoxide.db):
 # clients patched for the LAN server log in here too, with the same usernames and passwords (the
 # web page as well); characters are the survey server's own; every account is a GM (test commands, teleports)
-# and is created on its first login. Every account may use the survey page (the API gives logins
+# and is created on its first login. Every account may use the world editor (the API gives logins
 # the admin scope from GM level 0): keep it to the LAN.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -42,8 +42,7 @@ DATA=${LMOXIDE_SURVEY_DATA_DIR:-$VAR/survey-data}
 SET=${LMOXIDE_SURVEY_SET:-$VAR/survey-set}
 SHARED_DB=${LMOXIDE_SHARE_ACCOUNTS-$VAR/data/lmoxide.db}
 CLIENT=${LMOXIDE_CLIENT_DIR:-$(realpath -m "$MAIN/../clients/windows/LEGO Minifigures Online")}
-WEB_DIR=${LMOXIDE_SURVEY_WEB_DIR:-$(realpath -m "$MAIN/../lmoxide-debug-browser/.claude/worktrees/survey")}
-[[ -f $WEB_DIR/survey.html ]] || WEB_DIR=$(realpath -m "$MAIN/../lmoxide-debug-browser")
+WEB_DIR=${LMOXIDE_SURVEY_WEB_DIR:-$(realpath -m "$MAIN/../lmoxide-dev-ui")}
 # the native Linux client for patchers, as the LAN server offers it (tools/lan-server.sh builds the overlay)
 CLIENTS=$(realpath -m "$MAIN/../clients")
 LINUX_CLIENT=${LMOXIDE_LINUX_CLIENT_DIR-$CLIENTS/linux-stock/LMO_Linux_v1.5.557666}
@@ -104,13 +103,13 @@ echo $API >"$ROOT/logs/survey-api-loop.pid"
 WEB=
 if [[ -f $WEB_DIR/package.json ]]; then
   [[ -d $WEB_DIR/node_modules ]] || pnpm -C "$WEB_DIR" install --frozen-lockfile >"$ROOT/logs/survey-web.log" 2>&1
-  (cd "$WEB_DIR" && LMOXIDE_API=http://127.0.0.1:$API_PORT exec node_modules/.bin/vite --host 0.0.0.0 --port $WEB_PORT --strictPort) \
+  (cd "$WEB_DIR" && LMOXIDE_EDITOR_API=http://127.0.0.1:$API_PORT exec node_modules/.bin/vite --host 0.0.0.0 --port $WEB_PORT --strictPort) \
     >"$ROOT/logs/survey-web.log" 2>&1 &
   WEB=$!
 fi
 echo "survey server ($PROFILE build) on $IP; set: $SET"
 echo "  join:   lmo <name> $IP:$HTTP   (every account is a GM; a new name makes a new survey character)"
-echo "  page:   http://$IP:$WEB_PORT/survey.html   (log in with that account; the lmo launcher's password is x)"
+echo "  editor: http://$IP:$WEB_PORT/editor/   (sign in with that account; the lmo launcher's password is x)"
 echo "  logs:   logs/survey-server.log, logs/survey-api.log, logs/survey-patch-server.log, logs/survey-web.log"
 trap 'kill $PATCH $API ${WEB:-} 2>/dev/null; [[ -s $ROOT/logs/survey-api.pid ]] && kill "$(cat "$ROOT/logs/survey-api.pid")" 2>/dev/null' EXIT
 wait $SERVER

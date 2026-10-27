@@ -6,22 +6,22 @@ edit or delete the guessed content, and mark areas (missions, achievements, dial
 comments) for someone to review later. Each surveyor's work is saved in files that others can
 import and merge.
 
-Status: steps 1–4 work (tested with the Linux client and the survey page). Run one next to the
-LAN server with `tools/survey-server.sh` (ports below); the page is `survey.html` of
-lmoxide-debug-browser (branch `survey`).
+Status: steps 1–4 work (tested with the Linux client and the world editor). Run one next to the
+LAN server with `tools/survey-server.sh` (ports below); the web page is the world editor of
+lmoxide-dev-ui (`/editor/`).
 
 ## Running
 
 `lmoxide-server --mode survey --survey-set <dir>` (default `<data-dir>/survey`): its own data dir,
 so survey characters are separate from play characters; every account is GM; nothing moves or
 attacks. `--share-accounts <play server's database>` gives it the play server's login key and logins, so
-the same patched clients log in with the same usernames and passwords (on the survey page too);
+the same patched clients log in with the same usernames and passwords (in the world editor too);
 characters stay separate.
 
 `tools/survey-server.sh` does all of it next to `tools/lan-server.sh`: game server 7110–7112,
 chat 7210, control 127.0.0.1:7310, patch server 8081 (`lmo <name> <lan-ip>:8081`), API 8091
 (every account gets the admin scope there: keep it to the LAN), the page on 5175
-(`http://<lan-ip>:5175/survey.html`). Data: `var/survey-data`, the set: `var/survey-set`.
+(`http://<lan-ip>:5175/editor/`; the LAN server's dev UI on 5174 reaches it too). Data: `var/survey-data`, the set: `var/survey-set`.
 `tools/survey-server.sh --restart` rebuilds and restarts the game server and API; the set is
 loaded again.
 
@@ -219,7 +219,7 @@ In survey mode:
 
 ## API
 
-`lmoxide-debug-browser`'s survey page (`survey.html`, its `src/survey/backend.ts`) uses these
+lmoxide-dev-ui's world editor (`/editor/`, its `src/editor/backend.ts`) uses these
 routes of `lmoxide-api` under `/v1/survey` (admin scope), passed to the survey server's control
 interface. `{account}` is the surveyor: a player online on the survey server. Shapes are the
 crate's (`Placement`, `Note`, `Script`, `merge::Report`, ...); `SurveyObject` is any spawned object

@@ -15,9 +15,10 @@
 # is started again; the API is started again too. Rebuild and restart both while this runs:
 #   tools/lan-server.sh --restart [--release]
 # Web apps: the dev servers (vite, live reload) of ../lmoxide-webui on :5173 and
-# ../lmoxide-debug-browser on :5174, on all interfaces (this PC and others); their /api goes to
+# ../lmoxide-dev-ui on :5174 (debugger /debugger/, world editor /editor/; the editor reaches a
+# survey server's API on :8091, tools/survey-server.sh), on all interfaces (this PC and others); their /api goes to
 # this API, so they need no CORS setup. One whose port is taken is left as it is (already
-# running). LMOXIDE_WEB_APPS="webui:5173 debug-browser:5174" picks them (empty: none).
+# running). LMOXIDE_WEB_APPS="webui:5173 dev-ui:5174" picks them (empty: none).
 # Map data the clients lack comes from Funcom's CDN through the patch server (LMOXIDE_UPSTREAM);
 # LMOXIDE_LOCAL_CDN=1 uses the local mirror instead (tools/funcom-mirror.py, served on :8070 by
 # tools/funcom-cdn.sh, started here unless already running). Clients see no difference.
@@ -129,7 +130,7 @@ fi
 # the web apps' dev servers (see the top)
 WEB=()
 if [[ -n $API_PORT ]]; then
-  for app in ${LMOXIDE_WEB_APPS-webui:5173 debug-browser:5174}; do
+  for app in ${LMOXIDE_WEB_APPS-webui:5173 dev-ui:5174}; do
     name=${app%:*} port=${app#*:} dir=$(realpath -m "$ROOT/../lmoxide-${app%:*}")
     if [[ ! -f $dir/package.json ]]; then
       echo "$name: not at $dir, skipped"
