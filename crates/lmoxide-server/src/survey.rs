@@ -1703,6 +1703,7 @@ fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
     let Some(w) = st.walls.get_mut(id) else { return };
     w.fired.insert(player);
     let def = w.def.clone();
+    info!(wall = %def.id, name = %def.name, player = player.instance, action = ?def.action, "survey: trigger wall crossed");
     let label = if def.name.is_empty() { "trigger".to_string() } else { format!("trigger {}", def.name) };
     let say = |text: String| crate::chat::system(player.instance, &format!("[{label}] {text}"));
     match &def.action {
