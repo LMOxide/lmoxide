@@ -532,6 +532,9 @@ fn sync_hidden(st: &State, viewer: Id32) {
             all.insert(id, (w.playfield, s.hidden.contains(&w.def.id)));
         }
     }
+    for b in crate::buildie::list(None) {
+        all.insert(b.id, (b.playfield, s.hidden.contains(&buildie_id(&b))));
+    }
     let want: HashSet<Id32> = all.iter().filter(|(_, (_, h))| *h).map(|(id, _)| *id).collect();
     let had = HIDDEN.lock().unwrap().insert(viewer, want.clone()).unwrap_or_default();
     let here = world::whereabouts(viewer).map(|(pf, _)| pf);
@@ -559,10 +562,11 @@ fn mark(st: &mut State, viewer: Id32) {
     let selected = st.surveyors.get(&viewer).and_then(|s| s.selected.clone());
     // (a trigger wall: a ground marker at its foot, as a smashable's)
     // (a trigger wall: as a smashable, at its foot)
+    // (a buildie: as a smashable)
     let target = selected.as_ref().and_then(|id| st.objects.get(id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos, o.playfield))).or_else(|| {
         let w = st.walls.get(selected.as_ref()?)?;
         Some((w.pieces.first()?.0, Kind::Smashable, w.def.pos, w.playfield))
-    });
+    }).or_else(|| buildie(selected.as_ref()?).map(|b| (b.id, Kind::Smashable, b.pos, b.playfield)));
     let Some(s) = st.surveyors.get_mut(&viewer) else { return };
     let mut records = Vec::new();
     if let Some((wearer, instance, helper)) = s.marker.take() {
@@ -627,6 +631,63 @@ pub fn attacked(attacker: Id32, target: Id32) {
     mark(st, attacker);
     if let Some(o) = st.objects.get(&id) {
         crate::chat::system(attacker.instance, &format!("selected [{}] {}", label(o.category), o.def.name));
+    }
+}
+
+/// A player interacted with buildie `target` (survey servers don't build): it becomes their
+/// selection.
+pub fn interacted(player: Id32, target: Id32) {
+    let Some(b) = crate::buildie::list(None).into_iter().find(|b| b.id == target) else { return };
+    let mut guard = STATE.lock().unwrap();
+    let Some(st) = guard.as_mut() else { return };
+    let id = buildie_id(&b);
+    let s = st.surveyors.entry(player).or_default();
+    if s.selected.as_deref() == Some(id.as_str()) {
+        return;
+    }
+    s.selected = Some(id);
+    mark(st, player);
+    crate::chat::system(player.instance, &format!("selected [buildie] {}", b.name));
+}
+
+// ------------------------------------------------------------------ buildies
+
+/// Buildies (buildie.rs) are listed and can be selected, hidden and walked to, but not changed
+/// yet: their survey id is their instance (never saved: selections and hiding aren't).
+fn buildie_id(b: &crate::buildie::Listed) -> String {
+    format!("buildie-{}", b.id.instance)
+}
+
+fn buildie(id: &str) -> Option<crate::buildie::Listed> {
+    let instance: u32 = id.strip_prefix("buildie-")?.parse().ok()?;
+    crate::buildie::list(None).into_iter().find(|b| b.id.instance == instance)
+}
+
+fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
+    // the heading of the rotation quaternion (x, y, z, w) around the vertical axis
+    let heading = 2.0 * b.rot[1].atan2(b.rot[3]);
+    SurveyObject {
+        id: buildie_id(b),
+        kind: SKind::Buildie.as_str().into(),
+        name: b.name.clone(),
+        monster_data: nonzero(b.monster_data),
+        template: nonzero(b.template),
+        level: None,
+        pos: b.pos,
+        heading,
+        // the recorded session's, or a module's from the client data (Medusa's mirrors)
+        category: if b.recorded { Category::Demo } else { Category::Client },
+        wave: None,
+        patrol: Vec::new(),
+        comment: if b.built { "built".into() } else { String::new() },
+        author: String::new(),
+        updated: 0,
+        playfield: b.playfield,
+        replaces: None,
+        size: None,
+        color: None,
+        action: None,
+        once: None,
     }
 }
 
@@ -978,10 +1039,16 @@ async fn select(Path(account): Path<u32>, Json(b): Json<SelectBody>) -> R<Player
             let here = world::live_position(player).unwrap_or_default();
             let surveyor = st.surveyors.get(&player);
             let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.set))).map(|o| (&o.id, o.def.pos));
-            let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (&w.def.id, w.def.pos));
-            objects.chain(walls).min_by(|a, b| distance(a.1, here).total_cmp(&distance(b.1, here))).map(|(id, _)| id.clone())
+            let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (w.def.id.clone(), w.def.pos));
+            let buildies = crate::buildie::list(Some(pf)).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
+            objects
+                .map(|(id, p)| (id.clone(), p))
+                .chain(walls)
+                .chain(buildies)
+                .min_by(|a, b| distance(a.1, here).total_cmp(&distance(b.1, here)))
+                .map(|(id, _)| id)
         } else {
-            if let Some(id) = b.id.as_ref().filter(|id| !st.objects.contains_key(*id) && !st.walls.contains_key(*id)) {
+            if let Some(id) = b.id.as_ref().filter(|id| !st.objects.contains_key(*id) && !st.walls.contains_key(*id) && buildie(id).is_none()) {
                 return Err(Error::NotFound(format!("no object {id}")));
             }
             b.id
@@ -1082,7 +1149,14 @@ async fn objects(Path(pf): Path<u32>) -> R<ObjectList> {
     with(|st| {
         Ok(Json(ObjectList {
             revision: st.revision.get(&pf).copied().unwrap_or(0),
-            objects: st.objects.values().filter(|o| o.playfield == pf).map(Object::view).chain(st.walls.values().filter(|w| w.playfield == pf).map(Wall::view)).collect(),
+            objects: st
+                .objects
+                .values()
+                .filter(|o| o.playfield == pf)
+                .map(Object::view)
+                .chain(st.walls.values().filter(|w| w.playfield == pf).map(Wall::view))
+                .chain(crate::buildie::list(Some(pf)).iter().map(buildie_view))
+                .collect(),
         }))
     })
 }
@@ -1986,6 +2060,23 @@ fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
                 (None, None) => say("opens a dialogue (none chosen yet)".into()),
             }
         }
+        WallAction::Portal { window, to } => {
+            let name = |pf: u32| crate::teleport::destination(pf).map_or_else(|| pf.to_string(), |d| d.name.clone());
+            // a window that leads there, if only the destination is set
+            let window = window.or_else(|| to.and_then(|t| crate::teleport::windows().into_iter().find(|w| w.1 == t).map(|w| w.0)));
+            match (window, *to) {
+                (Some(w), _) => {
+                    let dest = to.or_else(|| crate::teleport::windows().into_iter().find(|x| x.0 == w).map(|x| x.1));
+                    say(format!("opens a portal{}", dest.map_or(String::new(), |d| format!(" to {}", name(d)))));
+                    world::send_to(player, world::Out::Command(format!("!window {w}"), None));
+                }
+                (None, Some(t)) => {
+                    say(format!("a portal to {}", name(t)));
+                    world::send_to(player, world::Out::Command(format!("!tp {t}"), None));
+                }
+                (None, None) => say("opens a portal (none chosen yet)".into()),
+            }
+        }
         WallAction::Message { text } => say(if text.is_empty() { "(a message)".into() } else { text.clone() }),
         WallAction::Other => say(if def.comment.is_empty() { "crossed".into() } else { def.comment.clone() }),
     }
@@ -2030,16 +2121,30 @@ struct TargetDialog {
     line: String,
 }
 
+#[derive(Serialize, Clone)]
+struct TargetPortal {
+    /// the teleport window it opens
+    window: u32,
+    /// where it leads
+    to: u32,
+    to_name: Option<String>,
+    /// asks Yes/No (its window would be empty) instead of showing the window
+    plain: bool,
+    /// the playfields with a portal opening it
+    playfields: Vec<u32>,
+}
+
 #[derive(Serialize)]
 struct Targets {
     locations: Vec<TargetLocation>,
     achievements: Vec<TargetAchievement>,
     dialogs: Vec<TargetDialog>,
+    portals: Vec<TargetPortal>,
 }
 
 /// What trigger walls can discover or open: the exploration areas and `find` achievements
 /// (data/achievements.json; an `all` achievement whose parts are finds needs each of their
-/// locations) and the recorded dialogues.
+/// locations), the recorded dialogues and the portals' teleport windows.
 fn targets() -> &'static Targets {
     static T: LazyLock<Targets> = LazyLock::new(|| {
         #[derive(Deserialize)]
@@ -2103,7 +2208,11 @@ fn targets() -> &'static Targets {
                 Some(TargetDialog { id: d.first_text()?.to_string(), npc: d.npc.clone(), playfield: d.playfield, playfield_name: pf_name(d.playfield), line: d.first_line() })
             })
             .collect();
-        Targets { locations, achievements, dialogs }
+        let portals = crate::teleport::windows()
+            .into_iter()
+            .map(|(window, to, playfields)| TargetPortal { window, to, to_name: pf_name(to), plain: crate::teleport::plain_window(window), playfields })
+            .collect();
+        Targets { locations, achievements, dialogs, portals }
     });
     &T
 }
@@ -2127,5 +2236,8 @@ mod tests {
         assert!(t.achievements.iter().any(|a| a.locations.len() > 1));
         let d = t.dialogs.iter().find(|d| d.npc == "Video Game Guy").unwrap();
         assert!(!d.line.is_empty() && !d.line.contains('{') && !d.line.contains('['), "{}", d.line);
+        // Pirate World's portal asks Yes/No
+        assert!(t.portals.iter().any(|p| p.window == 74 && p.to == 4600 && p.plain), "{:?}", t.portals.iter().map(|p| (p.window, p.to)).collect::<Vec<_>>());
+        assert!(t.portals.iter().any(|p| !p.plain && !p.playfields.is_empty()));
     }
 }

@@ -90,6 +90,8 @@ enum State {
 
 struct Buildie {
     def: Def,
+    /// From the recorded session (data/buildies.json), not added by a module ([`add`]).
+    recorded: bool,
     progress: u32,
     state: State,
     _presence: Option<world::Presence>,
@@ -101,18 +103,18 @@ static BUILDIES: LazyLock<Mutex<HashMap<Id32, Buildie>>> = LazyLock::new(|| Mute
 pub fn start() {
     let defs: Vec<Def> = serde_json::from_str(include_str!("../../../data/buildies.json")).expect("buildies.json");
     for def in defs {
-        insert(def);
+        insert(def, true);
     }
     info!(count = BUILDIES.lock().unwrap().len(), "buildies spawned");
 }
 
 /// Puts a buildie into its world; returns its id.
-fn insert(def: Def) -> Id32 {
+fn insert(def: Def, recorded: bool) -> Id32 {
     // instances clear of the NPC module's destructibles
     let id = Id32::new(DESTRUCTIBLE_TYPE, 0x00b0_0000 + BUILDIES.lock().unwrap().len() as u32);
     let playfield = def.playfield;
     let pos = Arc::new(Mutex::new(def.pos));
-    BUILDIES.lock().unwrap().insert(id, Buildie { def, progress: 0, state: State::Idle, _presence: None });
+    BUILDIES.lock().unwrap().insert(id, Buildie { def, recorded, progress: 0, state: State::Idle, _presence: None });
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let presence = world::join(id, playfield, pos, move || spawn_records(id), outbox);
@@ -142,12 +144,46 @@ pub fn add(name: &str, template: u32, monster_data: u32, playfield: u32, pos: [f
         destructible: (1.0, 0),
         tail: (0, 0.1, 0.0, 0, 1.0),
         built_visual: None,
-    })
+    }, false)
 }
 
 /// Whether buildie `id` is built.
 pub fn built(id: Id32) -> bool {
     BUILDIES.lock().unwrap().get(&id).is_some_and(|b| b.state == State::Built)
+}
+
+/// A buildie as the world editor lists it (survey.rs).
+pub struct Listed {
+    pub id: Id32,
+    pub name: String,
+    pub template: u32,
+    pub monster_data: u32,
+    pub playfield: u32,
+    pub pos: [f32; 3],
+    pub rot: [f32; 4],
+    pub recorded: bool,
+    pub built: bool,
+}
+
+/// Every buildie on `playfield` (all of them: None).
+pub fn list(playfield: Option<u32>) -> Vec<Listed> {
+    BUILDIES
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, b)| playfield.is_none_or(|pf| b.def.playfield == pf))
+        .map(|(id, b)| Listed {
+            id: *id,
+            name: b.def.name.clone(),
+            template: b.def.template,
+            monster_data: b.def.monster_data,
+            playfield: b.def.playfield,
+            pos: b.def.pos,
+            rot: b.def.rot,
+            recorded: b.recorded,
+            built: b.state == State::Built,
+        })
+        .collect()
 }
 
 /// Every buildie, for the test commands (devcmd.rs): (name, playfield, position, state).
@@ -176,6 +212,14 @@ pub fn unbuilt_at(playfield: u32, at: [f32; 3]) -> bool {
 /// success then failure, as live answered repeats).
 pub fn interact(player: Id32, data: &[u8]) -> Option<bool> {
     let target = Id32::new(u32::from_be_bytes(data.get(0..4)?.try_into().ok()?), u32::from_be_bytes(data.get(4..8)?.try_into().ok()?));
+    if crate::survey::enabled() {
+        // survey servers: interacting selects it for the world editor instead of building
+        let known = BUILDIES.lock().unwrap().contains_key(&target);
+        if known {
+            crate::survey::interacted(player, target);
+        }
+        return known.then_some(false);
+    }
     let mut buildies = BUILDIES.lock().unwrap();
     let b = buildies.get_mut(&target)?;
     if b.state != State::Idle {

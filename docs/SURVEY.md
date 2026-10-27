@@ -125,15 +125,19 @@ walks through them.
 - `action`: `script` (a script's wave; none: its first), `discover` (`name`: the exploration
   area found, `achievement`: the id it counts toward; both optional, and some achievements need
   several locations, each its own wall), `dialog` (the dialogue's first text id, which names it,
-  or a description; optional), `message` (`text`), `other` (the comment says what). `once`: only
+  or a description; optional), `portal` (`window`: the teleport window it opens, `to`: where it
+  leads; with only `to`, a trip there), `message` (`text`), `other` (the comment says what). `once`: only
   each player's first crossing counts. `GET /v1/survey/trigger-targets` lists what the world
   editor suggests: the exploration areas (with the achievements each counts toward), the
-  exploration achievements (with every location each needs) and the recorded dialogues.
+  exploration achievements (with every location each needs), the recorded dialogues and the
+  portals' teleport windows (`portals`: window, destination, whether it asks Yes/No, the
+  playfields with such a portal).
 - `color`: how the survey server draws it, from the arena doors and forcefields: `red`, `green`,
   `shield`, `low shield`, `forcefield` (`GET /v1/survey/wall-looks`). The look is scaled to the
   height and repeated across the width; crossing is checked against the exact box.
 - In survey mode crossing one shows what it would do: a script's wave pops in (as "Preview"),
-  `dialog` with a number opens it, the others say in chat what happens.
+  `dialog` with a number opens it, `portal` opens its window (`!window`; only `to`: `!tp`), the
+  others say in chat what happens.
 
 ### Notes (for review)
 
@@ -208,7 +212,11 @@ In survey mode:
 
 - NPC AI doesn't run: no aggro, attacks, walking, respawns, loot or encounters, and gates are open.
   Players take no damage.
-- Attacking an object **selects** it instead of hurting it.
+- Attacking an object **selects** it instead of hurting it; interacting with a buildie selects
+  it instead of building it.
+- Buildies (buildie.rs: the recorded ones are `demo`, Medusa's mirrors `client`) are listed with
+  the objects (`kind: "buildie"`, id `buildie-<instance>`, never saved) and can be selected,
+  hidden and walked to, not changed.
 - The selected NPC shows an aura. A selected smashable or buildie gets a ground effect at its
   position, because simple dynels can't show effects.
 - Guessed objects are named `[guess] <name>` and surveyed ones `[surveyed] <name>` (a custom NPC
@@ -220,7 +228,7 @@ In survey mode:
   spot wearing it.
 - Hides are per surveyor and held in memory (`HIDDEN` in survey.rs: what isn't sent to them).
 - Edits respawn the object under a new NPC id (the client needs ~1.5 s before an id is reused).
-- Not yet: placing or wearing buildies and interactables (they aren't NPCs; the catalog lists
+- Not yet: placing, wearing or editing buildies and interactables (they aren't NPCs; the catalog lists
   enemies, NPCs and smashables), showing patrol routes in game, play servers using a set.
 
 ## API
@@ -240,7 +248,7 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected; its wave is shown) |
 | POST | `/players/{account}/place-trigger` | `{name, size, color, action, once}` | the new trigger wall as a `SurveyObject` (`kind: "trigger"`, selected) |
 | GET | `/wall-looks` | | `[{color}]`: the looks trigger walls can have |
-| GET | `/trigger-targets` | | `{locations, achievements, dialogs}`: what trigger walls can discover or open |
+| GET | `/trigger-targets` | | `{locations, achievements, dialogs, portals}`: what trigger walls can discover or open |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
 | POST | `/players/{account}/unhide-all` | | `PlayerState` |
@@ -283,8 +291,8 @@ Done:
 
 Next:
 
-9. **Buildies and interactables**: placing them (ghosts to wear), editing and hiding them (they
-   are buildie.rs / scenery.rs objects, not NPCs).
+9. **Buildies and interactables**: placing them (ghosts to wear) and editing them (they are
+   buildie.rs / scenery.rs objects, not NPCs); buildies can already be selected and hidden.
 10. **Patrol routes in game**: markers at the selected patroller's points.
 11. **Play servers use accepted sets** (trigger walls too): a reviewed set (e.g. `data/survey/<set>/`) applied over
     the base content at startup with `lmoxide_survey::apply`. Placements with a wave aren't

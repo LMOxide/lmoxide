@@ -112,6 +112,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!move <dx> <dy> <dz>", "move by that much from where you are (y is up: !move 0 1000 0 climbs out of a floor)"),
     ("!list <kind>", "numbered list of a kind of test target"),
     ("!goto <kind> [n]", "go next to target n (default 1) of that kind"),
+    ("!goto player <name>", "go next to a player online (character or account name)"),
     ("!test [n|label]", "list the manual test setups, or set one up (data/test_scenarios.json)"),
     ("!spawn [count] <name>", "spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes"),
     ("!despawn [all]", "remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's"),
@@ -439,6 +440,21 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some((kind, _)) => reply(vec![format!("no {kind} targets")]),
             None => reply(kinds_help()),
         },
+        "goto" if args.first().is_some_and(|k| k.eq_ignore_ascii_case("player")) => {
+            let name = args[1..].join(" ");
+            let players = crate::sessions::players();
+            let found = players.iter().find(|p| p.character_name.eq_ignore_ascii_case(&name) || p.username.eq_ignore_ascii_case(&name));
+            let at = found.and_then(|p| crate::world::whereabouts(lmoxide_net::types::Id32::new(crate::territory::CHARACTER_TYPE, p.character_id)));
+            match (found, at) {
+                (Some(p), Some((pf, pos))) => {
+                    let to = [pos[0] + ARRIVE_OFFSET, pos[1], pos[2]];
+                    Action::Teleport(pf, to, (-ARRIVE_OFFSET).atan2(0.0), format!("going to {} in {}", p.character_name, playfield_name(pf)))
+                }
+                (Some(p), None) => reply(vec![format!("{} is online but not in a world yet", p.character_name)]),
+                (None, _) if name.is_empty() => reply(vec!["usage: !goto player <name>".into()]),
+                (None, _) => reply(vec![format!("nobody named {name} is online")]),
+            }
+        }
         "goto" => {
             let Some((kind, t)) = args.first().and_then(|k| targets(k).map(|t| (k, t))) else {
                 return reply(kinds_help());

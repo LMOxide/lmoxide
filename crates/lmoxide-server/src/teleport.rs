@@ -114,6 +114,28 @@ pub fn travel_question(playfield: u32) -> String {
     format!("Do you want to travel to {name}?")
 }
 
+/// Every teleport window a portal opens: (window, destination, the playfields with such a
+/// portal), by window.
+pub fn windows() -> Vec<(u32, u32, Vec<u32>)> {
+    let mut out: Vec<(u32, u32, Vec<u32>)> = Vec::new();
+    for (k, ps) in &DATA.portals {
+        let Ok(playfield) = k.parse::<u32>() else { continue };
+        for p in ps {
+            let to = if p.to == playfield { HUB } else { p.to };
+            match out.iter_mut().find(|(w, t, _)| *w == p.window && *t == to) {
+                Some((_, _, from)) if !from.contains(&playfield) => from.push(playfield),
+                Some(_) => {}
+                None => out.push((p.window, to, vec![playfield])),
+            }
+        }
+    }
+    for (_, _, from) in &mut out {
+        from.sort();
+    }
+    out.sort();
+    out
+}
+
 /// Every portal, for the test commands: (label, playfield, position), by playfield.
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
     let mut out: Vec<_> = DATA

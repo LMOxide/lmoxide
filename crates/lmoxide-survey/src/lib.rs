@@ -259,6 +259,14 @@ pub enum WallAction {
         #[serde(default)]
         dialog: Option<String>,
     },
+    /// Opens a portal: a teleport window (its id; `to` is where it leads, for reading), or
+    /// with only `to` a trip to that playfield.
+    Portal {
+        #[serde(default)]
+        window: Option<u32>,
+        #[serde(default)]
+        to: Option<u32>,
+    },
     /// Shows a message.
     Message {
         #[serde(default)]
