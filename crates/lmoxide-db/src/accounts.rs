@@ -141,6 +141,39 @@ impl Db {
         )? as u64)
     }
 
+    /// The stored password hash (an argon2 PHC string), to copy a login to another server's
+    /// database ([`Db::import_login`]).
+    pub fn password_hash(&self, id: u32) -> Result<Option<String>> {
+        Ok(self.conn().query_row("SELECT password_hash FROM accounts WHERE id = ?1", [id], |r| r.get(0)).optional()?.flatten())
+    }
+
+    /// Makes `username` log in here as on another server (which has it as account `id`):
+    /// creates the account (with that id when it is free) or gives it that password hash. Its
+    /// characters here stay its own. Whether anything changed.
+    pub fn import_login(&self, id: u32, username: &str, hash: Option<&str>) -> Result<bool> {
+        if let Some(a) = self.account_by_name(username)? {
+            if self.password_hash(a.id)?.as_deref() == hash {
+                return Ok(false);
+            }
+            self.update_account("password_hash = ?2", params![a.id, hash])?;
+            return Ok(true);
+        }
+        validate_username(username)?;
+        let conn = self.conn();
+        let free = conn.query_row("SELECT count(*) FROM accounts WHERE id = ?1", [id], |r| r.get::<_, i64>(0))? == 0;
+        let id = if free { id } else { loop {
+            let id = rand::random_range(16_000_001..0x7fff_ffffu32);
+            if conn.query_row("SELECT count(*) FROM accounts WHERE id = ?1", [id], |r| r.get::<_, i64>(0))? == 0 {
+                break id;
+            }
+        } };
+        conn.execute(
+            "INSERT INTO accounts (id, username, password_hash, gm_level, created_at) VALUES (?1, ?2, ?3, 0, ?4)",
+            params![id, username, hash, now()],
+        )?;
+        Ok(true)
+    }
+
     /// Checks a password against the stored hash. False when the account has none.
     pub fn verify_password(&self, id: u32, password: &str) -> Result<bool> {
         let hash: Option<String> = self
@@ -206,6 +239,24 @@ impl Db {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn imported_logins() {
+        let (play, survey) = (Db::open_in_memory().unwrap(), Db::open_in_memory().unwrap());
+        let a = play.create_account("player2", Some("hunter22"), 2).unwrap();
+        let hash = play.password_hash(a.id).unwrap();
+        assert!(survey.import_login(a.id, "player2", hash.as_deref()).unwrap());
+        let b = survey.account_by_name("PLAYER2").unwrap().unwrap();
+        assert_eq!((b.id, b.gm_level), (a.id, 0));
+        assert!(survey.verify_password(b.id, "hunter22").unwrap());
+        assert!(!survey.import_login(a.id, "player2", hash.as_deref()).unwrap());
+        // a new password there follows; an id already taken here gets another
+        play.set_password(a.id, Some("new password")).unwrap();
+        assert!(survey.import_login(a.id, "player2", play.password_hash(a.id).unwrap().as_deref()).unwrap());
+        assert!(survey.verify_password(b.id, "new password").unwrap());
+        assert!(survey.import_login(a.id, "someone", None).unwrap());
+        assert_ne!(survey.account_by_name("someone").unwrap().unwrap().id, a.id);
+    }
 
     #[test]
     fn accounts() {

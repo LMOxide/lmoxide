@@ -14,8 +14,9 @@ lmoxide-debug-browser (branch `survey`).
 
 `lmoxide-server --mode survey --survey-set <dir>` (default `<data-dir>/survey`): its own data dir,
 so survey characters are separate from play characters; every account is GM; nothing moves or
-attacks. `--share-login-key <play server's database>` gives it the play server's login key, so
-the same patched clients log in.
+attacks. `--share-accounts <play server's database>` gives it the play server's login key and logins, so
+the same patched clients log in with the same usernames and passwords (on the survey page too);
+characters stay separate.
 
 `tools/survey-server.sh` does all of it next to `tools/lan-server.sh`: game server 7110–7112,
 chat 7210, control 127.0.0.1:7310, patch server 8081 (`lmo <name> <lan-ip>:8081`), API 8091
@@ -238,7 +239,7 @@ Done:
    content + sets → what to spawn, with categories; what waves spawn). Unit tests.
 2. **Survey mode in the server** (`survey.rs`, hooks in `npc.rs` and `world.rs`): `--mode`,
    frozen AI, no damage, maxed survey characters, GM, categories in names, select by attack,
-   selection markers, per-surveyor hiding and shown waves, `--share-login-key`.
+   selection markers, per-surveyor hiding and shown waves, `--share-accounts`.
 3. **Placing**: wear a look (`!skin`), place, confirm, edit (position, heading, level, name,
    comment, wave, patrol, change into another spawn), delete; the set is saved as it goes.
 4. **Control routes and API**: the routes above (survey.rs `routes`), passed on by `lmoxide-api`.

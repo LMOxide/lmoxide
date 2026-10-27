@@ -157,6 +157,35 @@ fn read_password() -> anyhow::Result<String> {
 const LOGIN_KEY_SETTING: &str = "login_private_key";
 
 /// The server's login key, created and stored in the database on first use.
+/// Copies the logins (usernames and password hashes) of `from` into `db`; `only`: just that
+/// username. GM levels, bans and characters stay `db`'s own. How many changed.
+pub fn share_accounts(from: &Db, db: &Db, only: Option<&str>) -> anyhow::Result<usize> {
+    let accounts = match only {
+        Some(name) => from.account_by_name(name)?.into_iter().collect(),
+        None => {
+            let mut all = Vec::new();
+            loop {
+                let page = from.list_accounts(None, all.len() as u32, 500)?;
+                let done = page.len() < 500;
+                all.extend(page);
+                if done {
+                    break all;
+                }
+            }
+        }
+    };
+    let mut changed = 0;
+    for a in accounts {
+        let hash = from.password_hash(a.id)?;
+        match db.import_login(a.id, &a.username, hash.as_deref()) {
+            Ok(true) => changed += 1,
+            Ok(false) => {}
+            Err(e) => tracing::warn!(username = %a.username, "shared account not copied: {e}"),
+        }
+    }
+    Ok(changed)
+}
+
 /// Gives `db` the login key of `from` (creating one there if it has none).
 pub fn share_login_key(from: &Db, db: &Db) -> anyhow::Result<()> {
     let key = login_key(from, false)?;

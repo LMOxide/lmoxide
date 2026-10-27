@@ -8,8 +8,9 @@
 # (universe, territory, game), 7210 (chat), 8091 (REST API), 5175 (the survey page:
 # http://<lan-ip>:5175/survey.html, from LMOXIDE_SURVEY_WEB_DIR, default the debug browser's
 # `survey` worktree, else the debug browser). The control interface is 127.0.0.1:7310.
-# It shares the LAN server's login key (--share-login-key ../var/data/lmoxide.db), so clients
-# patched for the LAN server log in here too; every account is a GM (test commands, teleports)
+# It shares the LAN server's login key and logins (--share-accounts ../var/data/lmoxide.db):
+# clients patched for the LAN server log in here too, with the same usernames and passwords (the
+# web page as well); characters are the survey server's own; every account is a GM (test commands, teleports)
 # and is created on its first login. Every account may use the survey page (the API gives logins
 # the admin scope from GM level 0): keep it to the LAN.
 set -euo pipefail
@@ -39,10 +40,19 @@ MAIN=$(cd "$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)/.
 VAR=$(realpath -m "$MAIN/../var")
 DATA=${LMOXIDE_SURVEY_DATA_DIR:-$VAR/survey-data}
 SET=${LMOXIDE_SURVEY_SET:-$VAR/survey-set}
-SHARED_DB=${LMOXIDE_SHARE_LOGIN_KEY-$VAR/data/lmoxide.db}
+SHARED_DB=${LMOXIDE_SHARE_ACCOUNTS-$VAR/data/lmoxide.db}
 CLIENT=${LMOXIDE_CLIENT_DIR:-$(realpath -m "$MAIN/../clients/windows/LEGO Minifigures Online")}
 WEB_DIR=${LMOXIDE_SURVEY_WEB_DIR:-$(realpath -m "$MAIN/../lmoxide-debug-browser/.claude/worktrees/survey")}
 [[ -f $WEB_DIR/survey.html ]] || WEB_DIR=$(realpath -m "$MAIN/../lmoxide-debug-browser")
+# the native Linux client for patchers, as the LAN server offers it (tools/lan-server.sh builds the overlay)
+CLIENTS=$(realpath -m "$MAIN/../clients")
+LINUX_CLIENT=${LMOXIDE_LINUX_CLIENT_DIR-$CLIENTS/linux-stock/LMO_Linux_v1.5.557666}
+LINUX_ARGS=()
+if [[ -n $LINUX_CLIENT && -x $LINUX_CLIENT/LMO && -f $CLIENTS/linux-overlay/liblmofixes.so ]]; then
+  LINUX_ARGS=(--linux-client-dir "$LINUX_CLIENT" --linux-overlay-dir "$CLIENTS/linux-overlay")
+else
+  echo "no Linux client (run tools/lan-server.sh once): patchers get Windows only"
+fi
 HTTP=8081 UNIVERSE=7110 TERRITORY=7111 GAME=7112 CHAT=7210 CONTROL=7310 API_PORT=8091 WEB_PORT=5175
 # a survey server already running: its supervisors first (else they start the servers again)
 [[ -s $ROOT/logs/survey-holder.pid ]] && { kill "$(cat "$ROOT/logs/survey-holder.pid")" 2>/dev/null || true; sleep 2; }
@@ -57,10 +67,14 @@ export RUST_LOG=${RUST_LOG:-info}
 [[ -s $DATA/control_token ]] || { head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' >"$DATA/control_token"; chmod 600 "$DATA/control_token"; }
 SHARE=()
 if [[ -n $SHARED_DB && -f $SHARED_DB ]]; then
-  SHARE=(--share-login-key "$SHARED_DB")
+  SHARE=(--share-accounts "$SHARED_DB")
 else
-  echo "no $SHARED_DB: the survey server has its own login key (clients need patching for it)"
+  echo "no $SHARED_DB: the survey server has its own login key and accounts (clients need patching for it)"
 fi
+# the LAN patch server's manifest key: patchers trust both alike (one install, two server profiles)
+mkdir -p "$VAR/patch-data-survey"
+[[ -f $VAR/patch-data/manifest-signing.key ]] && ! cmp -s "$VAR/patch-data/manifest-signing.key" "$VAR/patch-data-survey/manifest-signing.key" \
+  && cp "$VAR/patch-data/manifest-signing.key" "$VAR/patch-data-survey/manifest-signing.key"
 rm -f "$ROOT/logs/survey-server.log"
 python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports "$UNIVERSE,$TERRITORY,$GAME,$CHAT" \
   --pidfile "$ROOT/logs/survey-server.pid" --holder-pidfile "$ROOT/logs/survey-holder.pid" -- \
@@ -74,7 +88,7 @@ for _ in $(seq 150); do grep -qs "control interface listening" "$ROOT/logs/surve
 "$BIN/lmoxide-patch-server" --bind 0.0.0.0 --public-host "$IP" --http-port $HTTP --universe-port $UNIVERSE \
   --client-dir "$CLIENT" --data-dir "$VAR/patch-data-survey" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}" --cache-dir "$VAR/rdb-cache" \
-  ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/survey-patch-server.log" 2>&1 &
+  "${LINUX_ARGS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/survey-patch-server.log" 2>&1 &
 PATCH=$!
 (
   while true; do

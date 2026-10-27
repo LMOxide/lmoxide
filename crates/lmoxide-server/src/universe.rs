@@ -115,6 +115,12 @@ fn authenticate(cfg: &Config, conn: &Conn, username: &str, challenge: &str, answ
         error!("database: login: {e}");
         LoginStatus::SystemError
     };
+    // a server sharing another's logins takes that one's password (and new accounts) first
+    if let Some(shared) = state::shared_accounts()
+        && let Err(e) = crate::admin::share_accounts(shared, db, Some(username))
+    {
+        warn!(%username, "shared account: {e:#}");
+    }
     let account = match db.account_by_name(username).map_err(internal)? {
         Some(a) if a.has_password => {
             if !db.verify_password(a.id, &password).map_err(internal)? {

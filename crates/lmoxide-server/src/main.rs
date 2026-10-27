@@ -165,11 +165,12 @@ pub struct Config {
     /// clients (default <data-dir>/login-public-key.txt).
     #[arg(long, env = "LMOXIDE_LOGIN_PUBLIC_KEY_FILE")]
     pub login_public_key_file: Option<PathBuf>,
-    /// Use the login key of another server's database (e.g. the play server's, for a survey
-    /// server next to it), so clients patched for that server log in here too. Copied into
-    /// this server's database at startup.
-    #[arg(long, env = "LMOXIDE_SHARE_LOGIN_KEY")]
-    pub share_login_key: Option<PathBuf>,
+    /// Use the login key and the logins (usernames, passwords) of another server's database,
+    /// e.g. the play server's for a survey server next to it: clients patched for that server log
+    /// in here too, with the same accounts. Characters, GM levels and bans stay this server's
+    /// own. Logins are copied at startup, every minute and when someone logs in.
+    #[arg(long, env = "LMOXIDE_SHARE_ACCOUNTS")]
+    pub share_accounts: Option<PathBuf>,
     /// Add a server-side character that walks around the start position (for testing what
     /// other players look like).
     #[arg(long, env = "LMOXIDE_BOT")]
@@ -206,9 +207,12 @@ fn main() -> anyhow::Result<()> {
 
 async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     let db = Arc::new(storage.open()?);
-    if let Some(path) = &cfg.share_login_key {
+    if let Some(path) = &cfg.share_accounts {
         let other = lmoxide_db::Db::open(path).map_err(|e| anyhow::anyhow!("opening {}: {e}", path.display()))?;
         admin::share_login_key(&other, &db)?;
+        let n = admin::share_accounts(&other, &db, None)?;
+        info!(from = %path.display(), changed = n, "shared accounts");
+        state::set_shared_accounts(other);
     }
     let key = admin::login_key(&db, false)?;
     let key_file = cfg.login_public_key_file.clone().unwrap_or_else(|| storage.data_dir.join("login-public-key.txt"));
