@@ -53,6 +53,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
+| `!unach <id ...>` / `!unach all` | take achievements away to earn them again (the "all of" ones above go too; `all` also clears the journal and counters); story and tutorial progress stays |
 | `!count <kills\|smashes\|builds> [n] [name]` | count n defeats, smashes or builds for achievements (e.g. `!count kills 1000`, `!count kills 50 Witch`) |
 | `!xp [n]` | gain n XP (with `--progression`) and show level and XP |
 | `!stars <n>` | gain n stars (to rank minifigures up with `--progression`) |

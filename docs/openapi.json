@@ -841,6 +841,57 @@
         }
       }
     },
+    "/v1/characters/{id}/achievements/remove": {
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Take achievements away from a character (to earn them again, or to fix a mistake): some by\nid, or all of them. A removed exploration or collectible achievement's finds go too. Through\nthe game server: at once in game when the character is online, else in the database.\nScope: admin.",
+        "operationId": "remove_achievements",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveAchievementsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemovedAchievements"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/config": {
       "get": {
         "tags": [
@@ -1962,6 +2013,12 @@
             "format": "int64",
             "description": "Unix time it was earned."
           },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "integer",
             "format": "int32",
@@ -1970,13 +2027,26 @@
           },
           "name": {
             "type": "string",
-            "description": "Its name in the client data, e.g. \"Global_Smash 1000 Monsters\" (empty if unknown)."
+            "description": "Its name in the client data, e.g. \"Global_Smash 1000 Monsters\" (empty: not an\nachievement, story or tutorial progress)."
           },
           "points": {
             "type": "integer",
             "format": "int32",
             "description": "Achievement points.",
             "minimum": 0
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "As the game shows it: its title (\"Fiery Explorer\"), the title of the achievement it is\npart of (\"Paleontologist\") and its text (\"Find the Volcano Summit in Dinosaur Rise.\")."
           }
         }
       },
@@ -2663,6 +2733,47 @@
             "format": "int32",
             "description": "Playfield id; `null` while loading.",
             "minimum": 0
+          }
+        }
+      },
+      "RemoveAchievementsRequest": {
+        "type": "object",
+        "description": "Achievements to take away: `ids`, or with `all` every one.",
+        "properties": {
+          "all": {
+            "type": "boolean",
+            "description": "Remove every achievement, and the journal (finds, defeats, visits) and achievement\ncounters, so they can be earned again. Story and tutorial progress (tags that aren't\nachievements), stars and XP stay."
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "description": "Achievement ids (tags) to remove; the earned \"all of\" achievements above them go too."
+          }
+        }
+      },
+      "RemovedAchievements": {
+        "type": "object",
+        "required": [
+          "removed",
+          "online"
+        ],
+        "properties": {
+          "online": {
+            "type": "boolean",
+            "description": "The character was online: its client was updated at once (counters show again after\nits next login)."
+          },
+          "removed": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            },
+            "description": "The achievement ids removed."
           }
         }
       },

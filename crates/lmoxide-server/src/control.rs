@@ -31,6 +31,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .route("/v1/players/{account}/kick", post(kick))
         .route("/v1/players/{account}/command", post(command))
         .route("/v1/test-commands", get(test_commands))
+        .route("/v1/characters/{character}/achievements/remove", post(remove_achievements))
         .route("/v1/broadcast", post(broadcast))
         .route("/v1/maintenance", post(maintenance))
         .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
@@ -105,6 +106,25 @@ async fn command(Path(account): Path<u32>, Json(c): Json<Command>) -> Result<Jso
     }
     info!(account, command = %c.command, affected, "control: command");
     Ok(Json(CommandDone { affected, replies }))
+}
+
+/// Takes achievements away from a character: through its connection when it is online (its
+/// client sees it at once), else in the database.
+async fn remove_achievements(Path(character): Path<u32>, Json(r): Json<lmoxide_control::RemoveAchievements>) -> Result<Json<lmoxide_control::RemovedAchievements>, (StatusCode, String)> {
+    if !r.all && r.ids.is_empty() {
+        return Err((StatusCode::UNPROCESSABLE_ENTITY, "name the achievements (ids) or all".into()));
+    }
+    let which = (!r.all).then_some(r.ids);
+    if let Some(answer) = crate::sessions::remove_achievements(character, which.clone()) {
+        let removed = tokio::time::timeout(COMMAND_WAIT, answer).await.map_err(|_| (StatusCode::GATEWAY_TIMEOUT, "the character's connection didn't answer".to_string()))?.unwrap_or_default();
+        return Ok(Json(lmoxide_control::RemovedAchievements { removed, online: true }));
+    }
+    let store = crate::store::Store;
+    let mut c = store.load(character).ok_or((StatusCode::NOT_FOUND, format!("no character {character}")))?;
+    let (removed, _) = crate::achievements::remove(&mut c, which.as_deref());
+    store.save(character, &c).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("{e:#}")))?;
+    info!(character, ?removed, "control: achievements removed (offline)");
+    Ok(Json(lmoxide_control::RemovedAchievements { removed, online: false }))
 }
 
 async fn test_commands() -> Json<TestCatalog> {

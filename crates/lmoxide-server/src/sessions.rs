@@ -156,6 +156,16 @@ pub fn command(account: u32, text: &str) -> Vec<(u32, tokio::sync::oneshot::Rece
     sent
 }
 
+/// Asks `character`'s connection to take achievements away (`None`: all); `None` if it isn't
+/// online.
+pub fn remove_achievements(character: u32, which: Option<Vec<u32>>) -> Option<tokio::sync::oneshot::Receiver<Vec<u32>>> {
+    let online = ONLINE.lock().unwrap();
+    let o = online.get(&character)?;
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    o.outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(Some(tx))))).ok()?;
+    Some(rx)
+}
+
 /// The account's characters online (usually one).
 pub fn characters_of(account: u32) -> Vec<u32> {
     ONLINE.lock().unwrap().iter().filter(|(_, o)| o.account == account).map(|(&c, _)| c).collect()

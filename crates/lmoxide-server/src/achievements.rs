@@ -352,6 +352,65 @@ fn add_tag(tag: u32) -> (Endpoint, u32, Bytes) {
     (Endpoint::GameCharInterface, game_char_interface::ADD_TAG, Writer::new().u32(tag).u32(0).finish())
 }
 
+fn remove_tag(tag: u32) -> (Endpoint, u32, Bytes) {
+    (Endpoint::GameCharInterface, game_char_interface::REMOVE_TAG, Writer::new().u32(tag).finish())
+}
+
+/// Whether tag `id` is an achievement (other tags are story and tutorial progress).
+pub fn is_achievement(id: u32) -> bool {
+    TREE.by_id.contains_key(&id)
+}
+
+/// Takes achievements away (testing, or a moderator's fix): `which` (none: all of them), and the
+/// earned "all of" achievements above them. Other tags (story and tutorial progress) stay, and so
+/// do stars and XP already given. So that the next event doesn't give them straight back, a
+/// removed `find` achievement's finds go too, and removing all clears the journal (finds,
+/// defeats, visits) and the achievement counters. Returns the removed ids and the RemoveTag RPCs
+/// for a character online (counters show again after its next login).
+pub fn remove(c: &mut Character, which: Option<&[u32]>) -> (Vec<u32>, Vec<(Endpoint, u32, Bytes)>) {
+    let mut gone: Vec<u32> = match which {
+        None => c.tags.keys().copied().filter(|t| is_achievement(*t)).collect(),
+        Some(ids) => ids.iter().copied().filter(|t| is_achievement(*t) && c.tags.contains_key(t)).collect(),
+    };
+    if which.is_some() {
+        // the earned "all of" achievements above them aren't done any more
+        let mut i = 0;
+        while i < gone.len() {
+            let parent = TREE.all[TREE.by_id[&gone[i]]].parent;
+            if let Some(&p) = TREE.by_id.get(&parent)
+                && TREE.all[p].kind == "all"
+                && c.tags.contains_key(&parent)
+                && !gone.contains(&parent)
+            {
+                gone.push(parent);
+            }
+            i += 1;
+        }
+    }
+    for id in &gone {
+        c.tags.remove(id);
+        let a = &TREE.all[TREE.by_id[id]];
+        if a.kind == "find"
+            && let Some(name) = &a.find
+        {
+            c.finds.retain(|key, _| match (a.playfield, key.split_once(':')) {
+                (Some(pf), Some((kpf, kname))) => !(kname == name && kpf == pf.to_string()),
+                (None, Some((_, kname))) => kname != name,
+                _ => true,
+            });
+        }
+    }
+    if which.is_none() {
+        c.finds.clear();
+        c.defeats.clear();
+        c.visits.clear();
+        c.counters.clear();
+    }
+    gone.sort();
+    let rpcs = gone.iter().map(|&id| remove_tag(id)).collect();
+    (gone, rpcs)
+}
+
 fn grant(c: &mut Character, _ctx: &Ctx, out: &mut Output, id: u32) {
     if c.tags.contains_key(&id) {
         return;
@@ -499,6 +558,29 @@ mod tests {
             smashed: Default::default(),
             collection: None,
         }
+    }
+
+    #[test]
+    fn removing() {
+        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| false };
+        let mut c = character();
+        for name in ["Achievement_Volcano", "Achievement_Swamp", "Achievement_Tarpit"] {
+            on_event(&mut c, &ctx, &Event::Found { playfield: 6200, name: name.into() }, 1);
+        }
+        assert!(c.tags.contains_key(&1613) && c.tags.contains_key(&1539), "Fiery Explorer, and all of Dinosaur Rise");
+        c.tags.insert(4121, 0); // story progress (the tutorial's end), not an achievement
+        // one: it, the "all of" above it, and its find (so it can be earned again)
+        let (gone, rpcs) = remove(&mut c, Some(&[1613]));
+        assert_eq!(gone, [1539, 1613]);
+        assert_eq!(rpcs.len(), 2);
+        assert!(!c.finds.contains_key("6200:Achievement_Volcano") && c.finds.contains_key("6200:Achievement_Swamp"));
+        on_event(&mut c, &ctx, &Event::Found { playfield: 6200, name: "Achievement_Volcano".into() }, 1);
+        assert!(c.tags.contains_key(&1613) && c.tags.contains_key(&1539), "earned again");
+        // all: every achievement and the journal; other tags stay
+        let (gone, _) = remove(&mut c, None);
+        assert!(gone.contains(&1611) && gone.contains(&1613));
+        assert!(c.tags.keys().eq([&4121]) && c.finds.is_empty());
+        assert!(remove(&mut c, Some(&[4121])).0.is_empty(), "not an achievement");
     }
 
     #[test]

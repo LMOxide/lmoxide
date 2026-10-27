@@ -37,6 +37,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(players))
         .routes(routes!(kick))
         .routes(routes!(player_command))
+        .routes(routes!(remove_achievements))
         .routes(routes!(test_commands))
         .merge(crate::catalog::router())
         .routes(routes!(broadcast))
@@ -205,8 +206,14 @@ pub struct VisitCount {
 pub struct EarnedAchievement {
     /// Lore tree tag id.
     pub id: u32,
-    /// Its name in the client data, e.g. "Global_Smash 1000 Monsters" (empty if unknown).
+    /// Its name in the client data, e.g. "Global_Smash 1000 Monsters" (empty: not an
+    /// achievement, story or tutorial progress).
     pub name: String,
+    /// As the game shows it: its title ("Fiery Explorer"), the title of the achievement it is
+    /// part of ("Paleontologist") and its text ("Find the Volcano Summit in Dinosaur Rise.").
+    pub title: Option<String>,
+    pub group: Option<String>,
+    pub text: Option<String>,
     /// Achievement points.
     pub points: u32,
     /// Unix time it was earned.
@@ -300,6 +307,28 @@ pub struct BanRequest {
 pub struct CommandRequest {
     /// A test command as typed in chat, e.g. `!fx 163540`, `!skin 2212`, `!state 29`.
     pub command: String,
+}
+
+/// Achievements to take away: `ids`, or with `all` every one.
+#[derive(Deserialize, ToSchema, Default)]
+pub struct RemoveAchievementsRequest {
+    /// Achievement ids (tags) to remove; the earned "all of" achievements above them go too.
+    #[serde(default)]
+    pub ids: Vec<u32>,
+    /// Remove every achievement, and the journal (finds, defeats, visits) and achievement
+    /// counters, so they can be earned again. Story and tutorial progress (tags that aren't
+    /// achievements), stars and XP stay.
+    #[serde(default)]
+    pub all: bool,
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct RemovedAchievements {
+    /// The achievement ids removed.
+    pub removed: Vec<u32>,
+    /// The character was online: its client was updated at once (counters show again after
+    /// its next login).
+    pub online: bool,
 }
 
 #[derive(Deserialize, ToSchema, Default)]
@@ -1110,6 +1139,33 @@ async fn player_command(
     Ok(Json(CommandResult { affected: done.affected, replies: done.replies }))
 }
 
+/// Take achievements away from a character (to earn them again, or to fix a mistake): some by
+/// id, or all of them. A removed exploration or collectible achievement's finds go too. Through
+/// the game server: at once in game when the character is online, else in the database.
+/// Scope: admin.
+#[utoipa::path(post, path = "/v1/characters/{id}/achievements/remove", tag = "accounts", request_body = RemoveAchievementsRequest,
+    params(("id" = u32, Path)), responses((status = OK, body = RemovedAchievements), (status = NOT_FOUND, body = ErrorBody)))]
+async fn remove_achievements(
+    State(state): State<Arc<AppState>>,
+    auth: Auth,
+    Path(id): Path<u32>,
+    Json(r): Json<RemoveAchievementsRequest>,
+) -> ApiResult<Json<RemovedAchievements>> {
+    auth.require(Scope::Admin)?;
+    if !r.all && r.ids.is_empty() {
+        return Err(ApiError::invalid("name the achievements (ids) or set all"));
+    }
+    if blocking(&state, move |db| Ok(db.load_character(id)?.is_none())).await? {
+        return Err(ApiError::not_found("character"));
+    }
+    let req = lmoxide_control::RemoveAchievements { ids: r.ids, all: r.all };
+    let done = control(&state)?.remove_achievements(id, &req).await.map_err(ApiError::game_server)?;
+    let details = format!("character {id}: {} ({})", if req.all { "all".into() } else { format!("{:?}", done.removed) }, done.removed.len());
+    let actor = auth.actor.clone();
+    let _ = blocking(&state, move |db| Ok(db.audit(&actor, "achievements-remove", Some(&id.to_string()), Some(&details))?)).await;
+    Ok(Json(RemovedAchievements { removed: done.removed, online: done.online }))
+}
+
 /// What the test commands accept: commands with usage, target kinds with their numbered targets,
 /// test scenarios, dialogues, loot kinds, spawnable enemies and smashables, and monster data
 /// looks (the game server's devcmd.rs). For tools that offer them as choices. Scope: read.
@@ -1339,8 +1395,8 @@ async fn get_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id):
                 .tags
                 .into_iter()
                 .map(|(id, achieved_at)| {
-                    let (name, points) = achievement_info(id);
-                    EarnedAchievement { id, name, points, achieved_at }
+                    let a = achievement_info(id);
+                    EarnedAchievement { id, name: a.name, title: a.title, group: a.group, text: a.text, points: a.points, achieved_at }
                 })
                 .collect(),
             counters: c.counters,
@@ -1360,22 +1416,38 @@ async fn get_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id):
     .await
 }
 
-/// Name and points of an achievement tag (data/achievements.json).
-fn achievement_info(id: u32) -> (String, u32) {
-    static NAMES: std::sync::LazyLock<std::collections::HashMap<u32, (String, u32)>> = std::sync::LazyLock::new(|| {
+#[derive(Clone, Default)]
+struct AchievementInfo {
+    name: String,
+    title: Option<String>,
+    group: Option<String>,
+    text: Option<String>,
+    points: u32,
+}
+
+/// Names and points of an achievement tag (data/achievements.json; unknown: empty).
+fn achievement_info(id: u32) -> AchievementInfo {
+    static INFO: std::sync::LazyLock<std::collections::HashMap<u32, AchievementInfo>> = std::sync::LazyLock::new(|| {
         let doc: serde_json::Value =
             serde_json::from_str(include_str!("../../../data/achievements.json")).expect("achievements.json");
-        doc["achievements"]
-            .as_array()
-            .into_iter()
-            .flatten()
+        let all = doc["achievements"].as_array().cloned().unwrap_or_default();
+        let s = |v: &serde_json::Value| v.as_str().map(str::to_string);
+        let titles: std::collections::HashMap<u64, String> = all.iter().filter_map(|a| Some((a["id"].as_u64()?, s(&a["title"])?))).collect();
+        all.iter()
             .filter_map(|a| {
-                let id = a["id"].as_u64()? as u32;
-                Some((id, (a["name"].as_str()?.to_string(), a["points"].as_u64().unwrap_or(0) as u32)))
+                let id = a["id"].as_u64()?;
+                let info = AchievementInfo {
+                    name: s(&a["name"])?,
+                    title: s(&a["title"]),
+                    group: a["parent"].as_u64().and_then(|p| titles.get(&p).cloned()),
+                    text: s(&a["text"]),
+                    points: a["points"].as_u64().unwrap_or(0) as u32,
+                };
+                Some((id as u32, info))
             })
             .collect()
     });
-    NAMES.get(&id).cloned().unwrap_or_default()
+    INFO.get(&id).cloned().unwrap_or_default()
 }
 
 // ------------------------------------------------------------------ API keys, audit

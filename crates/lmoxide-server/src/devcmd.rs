@@ -60,6 +60,8 @@ pub enum Action {
     Teleport(u32, [f32; 3], f32, String),
     /// show the achievement summary
     Achievements,
+    /// Take achievements away (`None`: all of them).
+    RemoveAchievements(Option<Vec<u32>>),
     /// smash the nearest smashable (or defeat the nearest enemy) as if the player hit it
     Smash,
     /// bring every minifigure of the player (team and collection) back from smashed, full health
@@ -129,6 +131,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!xp [n]", "gain n XP (with --progression), show level and XP"),
     ("!stars <n>", "gain n stars (minifigure XP for ranking up)"),
     ("!ach", "achievements earned, kill and smash counters"),
+    ("!unach <id ...>|all", "take achievements away (and the \"all of\" ones above them; all: also the journal and counters), to earn them again; story and tutorial progress stays"),
     ("!count <kills|smashes|builds> [n] [name]", "count n (default 1) defeats or builds for achievements"),
     ("!defeat <boss name>", "count a boss defeat (boss achievements, the active minifigure's)"),
     ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (achievements only; the Lost Creations don't run yet)"),
@@ -481,6 +484,13 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             None => reply(vec!["usage: !aura <0-4> (none, Disciple, Master, Grandmaster, Superachiever)".into()]),
         },
         "ach" | "achievements" => Action::Achievements,
+        "unach" => match args.first().copied() {
+            Some("all") => Action::RemoveAchievements(None),
+            _ => match args.iter().map(|a| a.trim_matches(|c| c == '[' || c == ']').parse::<u32>()).collect::<Result<Vec<_>, _>>() {
+                Ok(ids) if !ids.is_empty() => Action::RemoveAchievements(Some(ids)),
+                _ => Action::Reply(vec!["!unach <achievement id ...> | all (the ids are in the web UI and the world editor: [1613])".into()]),
+            },
+        },
         "xp" => Action::Xp(args.first().and_then(|n| n.parse().ok()).unwrap_or(0).min(10_000_000)),
         "stars" => match args.first().and_then(|n| n.parse::<u64>().ok()) {
             Some(n) => Action::Stars(n.min(10_000_000)),

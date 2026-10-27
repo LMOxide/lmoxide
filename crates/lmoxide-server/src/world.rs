@@ -35,6 +35,8 @@ pub enum Out {
     /// Teleport the player (a server script, e.g. an NPC dialogue): playfield (`None`: the
     /// current one), position, facing.
     Teleport(Option<u32>, [f32; 3], f32),
+    /// Take achievements away (`None`: all; achievements::remove), answering what was removed.
+    RemoveAchievements(Option<Vec<u32>>, Reply<Vec<u32>>),
     /// Open teleport window `n` for the player, as a portal would (a trigger wall, walls.rs).
     Window(u32),
     /// The player's minifigure (item template) was smashed (smash.rs).
@@ -44,6 +46,9 @@ pub enum Out {
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;
+
+/// Where a connection sends an answer (once; `Out` is cloned, the sender isn't).
+pub type Reply<T> = std::sync::Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<T>>>>;
 pub type Position = Arc<Mutex<[f32; 3]>>;
 
 struct Member {

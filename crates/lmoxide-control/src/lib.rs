@@ -63,6 +63,24 @@ pub struct Command {
     pub command: String,
 }
 
+/// Achievements to take away from a character: `ids`, or with `all` every one (other tags, the
+/// story and tutorial progress, stay).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct RemoveAchievements {
+    #[serde(default)]
+    pub ids: Vec<u32>,
+    #[serde(default)]
+    pub all: bool,
+}
+
+/// What was taken away (with the earned "all of" achievements above them), and whether the
+/// character was online (then its client was updated at once).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemovedAchievements {
+    pub removed: Vec<u32>,
+    pub online: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Maintenance {
     pub enabled: bool,
@@ -230,6 +248,10 @@ impl Client {
     pub async fn command(&self, account: u32, command: &str) -> Result<CommandDone, Error> {
         self.send(self.http.post(format!("{}/v1/players/{account}/command", self.base)).json(&Command { command: command.into() }))
             .await
+    }
+
+    pub async fn remove_achievements(&self, character: u32, r: &RemoveAchievements) -> Result<RemovedAchievements, Error> {
+        self.send(self.http.post(format!("{}/v1/characters/{character}/achievements/remove", self.base)).json(r)).await
     }
 
     pub async fn test_catalog(&self) -> Result<TestCatalog, Error> {

@@ -172,6 +172,27 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         world::Out::Command(..) => unreachable!(),
                     world::Out::Window(window) => portals.open_window(&mut conn, character, window).await?,
+                    world::Out::RemoveAchievements(which, reply) => {
+                        let (gone, rpcs) = crate::achievements::remove(&mut me, which.as_deref());
+                        info!(character, removed = ?gone, all = which.is_none(), "achievements removed");
+                        for (endpoint, method, args) in rpcs {
+                            conn.send_as(Some(character), endpoint, method, args).await?;
+                        }
+                        if let Some(&(_, template)) = me.team.first() {
+                            crate::auras::apply(Id32::new(crate::territory::CHARACTER_TYPE, character), template, &me.tags, false);
+                        }
+                        if let Err(e) = store.save(character, &me) {
+                            warn!(character, "saving character failed: {e:#}");
+                        }
+                        let tx = reply.lock().unwrap().take();
+                        match tx {
+                            Some(tx) => {
+                                let _ = tx.send(gone);
+                            }
+                            // (!unach)
+                            None => crate::chat::system(character, &format!("{} achievements removed{}", gone.len(), if which.is_none() { ", and the journal and counters (they show again after logging in)" } else { "" })),
+                        }
+                    }
                     world::Out::Teleport(playfield, at, rot) => {
                         let playfield = playfield.unwrap_or(me.playfield);
                         teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
@@ -1349,6 +1370,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             info!(character, minifigures = n, "dev revive");
                             crate::chat::system(character, &format!("{n} minifigures revived"));
+                        }
+                        crate::devcmd::Action::RemoveAchievements(which) => {
+                            let _ = outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(None))));
                         }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);
