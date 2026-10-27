@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-house-of-silk",
-  "name": "House of Silk",
-  "nano": 517103,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

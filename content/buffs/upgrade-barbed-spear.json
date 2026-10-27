@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-barbed-spear",
-  "name": "Barbed Spear",
-  "nano": 482201,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

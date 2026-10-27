@@ -1,8 +1,0 @@
-{
-  "id": "achievement/space-story",
-  "lore": 844,
-  "parent": "achievement/space-world",
-  "client_name": "Space_Story",
-  "kind": "category",
-  "source": "client"
-}

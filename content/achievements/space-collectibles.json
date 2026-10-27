@@ -1,8 +1,0 @@
-{
-  "id": "achievement/space-collectibles",
-  "lore": 2423,
-  "parent": "achievement/space-world",
-  "client_name": "Space_Collectibles",
-  "kind": "category",
-  "source": "client"
-}

@@ -1,8 +1,0 @@
-{
-  "id": "achievement/mythology-story",
-  "lore": 846,
-  "parent": "achievement/mythology-world",
-  "client_name": "Mythology_Story",
-  "kind": "category",
-  "source": "client"
-}

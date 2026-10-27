@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-jury-rigging",
-  "name": "Upgrade: Jury Rigging",
-  "nano": 421239,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

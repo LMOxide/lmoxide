@@ -1,9 +1,0 @@
-{
-  "id": "achievement/medieval-world",
-  "lore": 742,
-  "parent_lore": 2,
-  "client_name": "Achievements_Medieval World",
-  "title": "Medieval World",
-  "kind": "category",
-  "source": "client"
-}

@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-trick-shot",
-  "name": "Upgrade: Trick Shot",
-  "nano": 448001,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-crowd-control",
-  "name": "Upgrade: Crowd Control",
-  "nano": 445653,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

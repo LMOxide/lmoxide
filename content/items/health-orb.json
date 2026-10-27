@@ -1,7 +1,0 @@
-{
-  "id": "item/health-orb",
-  "name": "Health Orb",
-  "kind": "health_orb",
-  "template": 20908,
-  "source": "server"
-}

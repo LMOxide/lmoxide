@@ -1,8 +1,0 @@
-{
-  "id": "skill/passive-undertow-marker-buff",
-  "name": "Passive undertow marker buff",
-  "client": {
-    "spell": 447043
-  },
-  "source": "client"
-}

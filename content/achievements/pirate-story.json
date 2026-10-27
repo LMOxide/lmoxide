@@ -1,8 +1,0 @@
-{
-  "id": "achievement/pirate-story",
-  "lore": 835,
-  "parent": "achievement/pirate-world",
-  "client_name": "Pirate_Story",
-  "kind": "category",
-  "source": "client"
-}

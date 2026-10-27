@@ -1,9 +1,0 @@
-{
-  "id": "achievement/global",
-  "lore": 746,
-  "parent_lore": 2,
-  "client_name": "Achievements_Global",
-  "title": "Global",
-  "kind": "category",
-  "source": "client"
-}

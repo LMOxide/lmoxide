@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-slippery-creativity",
-  "name": "Upgrade: Slippery Creativity",
-  "nano": 531638,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

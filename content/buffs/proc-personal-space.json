@@ -1,8 +1,0 @@
-{
-  "id": "buff/proc-personal-space",
-  "name": "Personal Space",
-  "nano": 531687,
-  "duration": "3s",
-  "source": "server",
-  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
-}

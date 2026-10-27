@@ -1,8 +1,0 @@
-{
-  "id": "skill/main-fortune1-buffcounter",
-  "name": "main fortune1 buffcounter",
-  "client": {
-    "spell": 238244
-  },
-  "source": "client"
-}

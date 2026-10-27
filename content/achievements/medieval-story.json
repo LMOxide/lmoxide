@@ -1,8 +1,0 @@
-{
-  "id": "achievement/medieval-story",
-  "lore": 842,
-  "parent": "achievement/medieval-world",
-  "client_name": "Medieval_Story",
-  "kind": "category",
-  "source": "client"
-}

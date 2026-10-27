@@ -1,8 +1,0 @@
-{
-  "id": "achievement/space-exploration",
-  "lore": 837,
-  "parent": "achievement/space-world",
-  "client_name": "Space_Exploration",
-  "kind": "category",
-  "source": "client"
-}

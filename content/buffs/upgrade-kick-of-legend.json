@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-kick-of-legend",
-  "name": "Kick of Legend",
-  "nano": 597873,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

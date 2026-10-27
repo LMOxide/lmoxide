@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-lotus-dash",
-  "name": "Lotus Dash",
-  "nano": 597720,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

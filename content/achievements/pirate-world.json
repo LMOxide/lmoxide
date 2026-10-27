@@ -1,9 +1,0 @@
-{
-  "id": "achievement/pirate-world",
-  "lore": 704,
-  "parent_lore": 2,
-  "client_name": "Achievements_Pirate World",
-  "title": "Pirate World",
-  "kind": "category",
-  "source": "client"
-}

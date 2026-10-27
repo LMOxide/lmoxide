@@ -1,8 +1,0 @@
-{
-  "id": "achievement/space-combat",
-  "lore": 836,
-  "parent": "achievement/space-world",
-  "client_name": "Space_Combat",
-  "kind": "category",
-  "source": "client"
-}

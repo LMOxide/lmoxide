@@ -1,6 +1,8 @@
 # Content: the game's data in one editable tree
 
-Everything the server needs to know about the game lives in `content/`: worlds and what's in them,
+Everything the server needs to know about the game lives in `content/`, a git submodule: the
+repository [LMOxide/lmoxide-content](https://github.com/LMOxide/lmoxide-content) (private for
+now; its license isn't decided yet). Worlds and what's in them,
 NPCs and enemies, objects, skills, buffs, loot tables, items, minifigures, dialogues and
 achievements. It is plain JSON, one record per file for definitions and one file per section for
 a world. The crate `lmoxide-content` loads it, checks it, and gives the server typed templates,
@@ -49,6 +51,19 @@ The client catalogs that are references rather than content stay generated in `d
 never edited: `monster_data.json` (looks), `effect_catalog.json` / `effect_package_ids.json`,
 `animations.json`, `stats*.json`, `bcc_states.json`, `iir_types.json`, `rpc_methods.json`,
 `gameaction_types.txt`, and `data/live-capture/` (the evidence).
+
+## The content repository
+
+`content/` is a checkout of LMOxide/lmoxide-content; this repository records which of its commits
+it was tested with. To change content: commit and push in `content/` (or open a pull request
+there), then commit the new `content` pointer here (`git add content`) when the code should run
+with it. Pull-requests in the content repository run its `check` workflow (lmoxide-content `check`
+and `fmt --check`; it needs the `LMOXIDE_READ_TOKEN` secret while lmoxide is private).
+
+Planned: approvals in the web UI make the server commit to the content repository's `main`,
+authored as the editor, with `Content-Author:`, `Approved-By:` and `Lmoxide-Change:` lines (its
+README); play servers pull `main` and reload. The GitHub token stays on the server, never in the
+web UI.
 
 ## Commands
 

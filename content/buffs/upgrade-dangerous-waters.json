@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-dangerous-waters",
-  "name": "Upgrade: Dangerous Waters",
-  "nano": 421251,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

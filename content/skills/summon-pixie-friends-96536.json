@@ -1,8 +1,0 @@
-{
-  "id": "skill/summon-pixie-friends-96536",
-  "name": "Summon Pixie Friends",
-  "client": {
-    "spell": 96536
-  },
-  "source": "client"
-}

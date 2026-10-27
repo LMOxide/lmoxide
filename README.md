@@ -99,6 +99,11 @@ You need an extracted copy of the LMO client on the server. The patch server bui
 installs from it. The native Linux client is downloaded automatically by
 `patches/linux-client/install.sh`.
 
+The game's data (worlds, NPCs, skills, loot, minifigures, achievements) is its own repository,
+[LMOxide/lmoxide-content](https://github.com/LMOxide/lmoxide-content), checked out at
+`content/` as a git submodule ([docs/CONTENT.md](docs/CONTENT.md)). Clone with
+`git clone --recurse-submodules`, or run `git submodule update --init` in an existing clone.
+
 ### Docker
 
 ```sh

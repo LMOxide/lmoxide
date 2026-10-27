@@ -1,8 +1,0 @@
-{
-  "id": "buff/upgrade-steely-ice-pick",
-  "name": "Steely Ice Pick",
-  "nano": 484691,
-  "source": "client",
-  "tags": ["todo"],
-  "comment": "No client-side game actions: the effect was server script, not known yet."
-}

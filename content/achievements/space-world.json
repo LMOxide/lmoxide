@@ -1,9 +1,0 @@
-{
-  "id": "achievement/space-world",
-  "lore": 743,
-  "parent_lore": 2,
-  "client_name": "Achievements_Space World",
-  "title": "Space World",
-  "kind": "category",
-  "source": "client"
-}
