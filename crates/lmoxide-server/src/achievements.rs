@@ -388,10 +388,10 @@ fn evaluate(c: &mut Character, ctx: &Ctx, out: &mut Output) {
                 // "Get the third <minifigure> upgrade"
                 "upgrade" => a.minifigure.is_some_and(|t| (ctx.owned)(t) && (ctx.upgrades)(t) >= a.n),
                 "series" => series_complete(a.series, ctx),
+                // the other "Complete Any" ones count too: "Complete Any 10" says "any 11", which
+                // is 10 others and "Complete Any 5"
                 "any" => {
-                    let siblings = TREE.children.get(&a.parent).map_or(0, |s| {
-                        s.iter().filter(|&&s| s != a.id && kind_of(s) != "any" && c.tags.contains_key(&s)).count()
-                    });
+                    let siblings = TREE.children.get(&a.parent).map_or(0, |s| s.iter().filter(|&&s| s != a.id && c.tags.contains_key(&s)).count());
                     siblings >= a.n as usize
                 }
                 "all" => !a.children.is_empty() && a.children.iter().all(|ch| c.tags.contains_key(ch)),
@@ -547,10 +547,19 @@ mod tests {
         assert!(c.tags.contains_key(&2514), "Plumber_Minotaur Refuge");
         assert!(c.tags.contains_key(&2526), "Plumber_Complete Any 5");
         assert!(!c.tags.contains_key(&2527), "Complete Any 10 needs 11");
+        // 10 others and "Complete Any 5" make 11
+        on_event(&mut c, &ctx, &Event::LostCreations { level: 15 }, 1);
+        for boss in ["Bishop, Master Technician", "Megamind", "Beastmaster Wulfgar"] {
+            let ev = Event::Defeated { id: Id32::new(0, 0), name: boss.into(), smashable: false, boss: true, champion: false, level: 1, playfield: 0 };
+            on_event(&mut c, &ctx, &ev, 1);
+        }
+        assert!(!c.tags.contains_key(&2527), "9 others and Complete Any 5");
+        on_event(&mut c, &ctx, &Event::Cleared { playfield: 4500 }, 1);
+        assert!(c.tags.contains_key(&2527), "10 others and Complete Any 5");
         // the counters every copy of the item carries
         on_event(&mut c, &ctx, &Event::Built { name: "Mythology Statue 3".into() }, 2);
         assert_eq!(item_counters(&c, plumber), vec![(STAT_MINIFIGURE_COUNTER1, 2), (STAT_MINIFIGURE_COUNTER2, 2)]);
-        assert!(player_counters(&c).is_empty());
+        assert_eq!(player_counters(&c), vec![(STAT_PLAYER_KILLS, 3)], "the three bosses");
     }
 
     #[test]

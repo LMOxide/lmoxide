@@ -48813,7 +48813,7 @@
   ],
   "enemies": [
    {
-    "name": "Alien Saucer",
+    "name": "Alien Commander",
     "monster_data": 387585,
     "level": 18,
     "health": 3300,

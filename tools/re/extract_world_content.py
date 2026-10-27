@@ -569,7 +569,7 @@ BOSSES = {  # playfield: [(monsterdata, name, bounded area pattern placing it, e
     2500: [(2254, "Cyclops", r"^Res_Boss$"), (82601, "Harpy Queen", r"Res_HarpyBoss")],
     3300: [(267321, "Evil Mech", r"BossEncounter_Start_Mech|Res_Boss")],
     3310: [(369478, "Alien Queen", r"BossEncounter_Start_AlienQueen|Res_Boss")],
-    3500: [(387585, "Alien Saucer", r"BossEncounter_Start_Saucer|^BossEncounter_Start")],
+    3500: [(387585, "Alien Commander", r"BossEncounter_Start_Saucer|^BossEncounter_Start")],
     4300: [(192820, "Captain Pete", r"Res_Boss")],
     4310: [(190679, "Captain Blackheart", r"BossEncounter_Start_Blackheart|res_boss")],
     4500: [(191640, "Crikey the Kraken", r"BossEncounter_Start_CrikeyTheKraken|res_boss")],
