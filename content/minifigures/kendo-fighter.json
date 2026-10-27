@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Two Swords as One",
     "skill": "skill/two-swords-as-one",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Unseen Step",
     "skill": "skill/unseen-step",
     "hits": [
       {

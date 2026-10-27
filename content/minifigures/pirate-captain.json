@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Pirate Sword",
     "skill": "skill/pirate-sword",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Cross Bomb",
     "skill": "skill/cross-bomb",
     "hits": [
       {

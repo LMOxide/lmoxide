@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Aerial",
     "skill": "skill/aerial",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Scratch Spin",
     "skill": "skill/scratch-spin",
     "hits": [
       {

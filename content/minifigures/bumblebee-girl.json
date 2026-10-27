@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Plan Bee",
     "skill": "skill/plan-bee",
     "hits": [
       {
@@ -35,6 +36,7 @@
     ]
   },
   "special": {
+    "name": "Honey Pot ",
     "skill": "skill/honey-pot",
     "hits": [
       {

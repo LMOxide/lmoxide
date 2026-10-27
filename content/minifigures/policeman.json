@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Long Arm of the Law",
     "skill": "skill/long-arm-of-the-law",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Halt!",
     "skill": "skill/halt",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Regal Strike",
     "skill": "skill/regal-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Queen's Guard",
     "skill": "skill/queen-s-guard"
   },
   "click_spells": [663958, 663959],

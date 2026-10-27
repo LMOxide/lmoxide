@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Rattle your Chain",
     "skill": "skill/rattle-your-chain",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Spectral Realm",
     "skill": "skill/spectral-realm",
     "hits": [
       {

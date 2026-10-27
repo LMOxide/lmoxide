@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Triple Shot",
     "skill": "skill/triple-shot-595634",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Elven Defense",
     "skill": "skill/elven-defense",
     "hits": [
       {

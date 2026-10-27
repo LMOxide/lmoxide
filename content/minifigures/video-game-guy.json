@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Arcade Classics",
     "skill": "skill/arcade-classics",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Pixel Fire",
     "skill": "skill/pixel-fire",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "You shoot at your enemies.",
     "skill": "skill/you-shoot-at-your-enemies",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Jail House",
     "skill": "skill/jail-house",
     "hits": [
       {

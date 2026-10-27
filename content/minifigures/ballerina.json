@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Graceful Strike",
     "skill": "skill/graceful-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Swan Spin",
     "skill": "skill/swan-spin",
     "hits": [
       {

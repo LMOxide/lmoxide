@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Back in Style",
     "skill": "skill/back-in-style",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Disco Party",
     "skill": "skill/disco-party",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Fin Slash",
     "skill": "skill/fin-slash",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Submerge",
     "skill": "skill/submerge",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Sword Swings",
     "skill": "skill/sword-swings",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Spin Slash",
     "skill": "skill/spin-slash",
     "hits": [
       {

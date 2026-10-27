@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Ball of Yarn",
     "skill": "skill/ball-of-yarn",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Cats out the Bag",
     "skill": "skill/cats-out-the-bag",
     "hits": [
       {

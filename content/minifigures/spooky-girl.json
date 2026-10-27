@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Desolation",
     "skill": "skill/desolation",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Anansi Girl",
     "skill": "skill/anansi-girl"
   },
   "click_spells": [500485, 500486],

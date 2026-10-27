@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Fastball",
     "skill": "skill/fastball",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Wind Up",
     "skill": "skill/spell-317733",
     "hits": [
       {

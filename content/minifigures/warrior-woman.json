@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Spear Throw",
     "skill": "skill/spear-throw-317687",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Mystical Shield",
     "skill": "skill/mystical-shield",
     "hits": [
       {

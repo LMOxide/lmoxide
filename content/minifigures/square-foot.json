@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Quick Picture",
     "skill": "skill/quick-picture",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Say Cheese!",
     "skill": "skill/say-cheese",
     "hits": [
       {

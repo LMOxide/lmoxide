@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Hunting Axe",
     "skill": "skill/hunting-axe",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Hunters Dash",
     "skill": "skill/hunters-dash",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Redtail Feathers",
     "skill": "skill/redtail-feathers",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Host Drum",
     "skill": "skill/host-drum",
     "hits": [
       {

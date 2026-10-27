@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Flash Kick",
     "skill": "skill/flash-kick",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Grappling Hook",
     "skill": "skill/grappling-hook",
     "hits": [
       {

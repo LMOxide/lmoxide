@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Psychlops",
     "skill": "skill/psychlops-32478",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Laser Eye",
     "skill": "skill/laser-eye",
     "hits": [
       {

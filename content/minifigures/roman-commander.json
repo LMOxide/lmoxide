@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Gladius Slash",
     "skill": "skill/gladius-slash",
     "hits": [
       {
@@ -42,6 +43,7 @@
     ]
   },
   "special": {
+    "name": "For Rome!",
     "skill": "skill/for-rome",
     "hits": [
       {

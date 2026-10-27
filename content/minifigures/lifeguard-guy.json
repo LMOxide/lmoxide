@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Lifesaver",
     "skill": "skill/lifesaver",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Sparkling Whirlpool",
     "skill": "skill/sparkling-whirlpool",
     "hits": [
       {

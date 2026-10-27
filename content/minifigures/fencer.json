@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Engage",
     "skill": "skill/engage",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Disengage",
     "skill": "skill/disengage",
     "hits": [
       {

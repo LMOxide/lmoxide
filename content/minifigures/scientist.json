@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Blue Potion",
     "skill": "skill/blue-potion",
     "hits": [
       {
@@ -56,6 +57,7 @@
     ]
   },
   "special": {
+    "name": "Yellow Potion",
     "skill": "skill/yellow-potion",
     "hits": [
       {

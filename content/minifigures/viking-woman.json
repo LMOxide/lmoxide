@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Sword Strike",
     "skill": "skill/sword-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Battle Crescendo",
     "skill": "skill/battle-crescendo"
   },
   "click_spells": [13932, 13966],

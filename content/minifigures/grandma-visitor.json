@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Bountiful Basket",
     "skill": "skill/bountiful-basket",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Big Bad Wolf",
     "skill": "skill/big-bad-wolf"
   },
   "click_spells": [15427, 15791],

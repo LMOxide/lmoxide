@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Snake Wave",
     "skill": "skill/snake-wave",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Petrifying Gaze",
     "skill": "skill/petrifying-gaze",
     "hits": [
       {

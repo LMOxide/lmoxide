@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Double Blasters",
     "skill": "skill/double-blasters",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Blaster Storm",
     "skill": "skill/blaster-storm",
     "hits": [
       {

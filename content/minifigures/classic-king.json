@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Sword of the King",
     "skill": "skill/sword-of-the-king",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Royal Steed",
     "skill": "skill/royal-steed"
   },
   "click_spells": [577182, 577183],

@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Biohazard!",
     "skill": "skill/biohazard",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Gigantuan",
     "skill": "skill/gigantuan"
   },
   "click_spells": [641604, 641620],

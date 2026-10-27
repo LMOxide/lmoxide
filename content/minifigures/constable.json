@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Baton",
     "skill": "skill/baton",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Oi!",
     "skill": "skill/oi",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "True Aim",
     "skill": "skill/true-aim",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Nap Time",
     "skill": "skill/nap-time"
   },
   "click_spells": [500461, 500462],

@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Your Order",
     "skill": "skill/your-order",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Full House",
     "skill": "skill/full-house",
     "hits": [
       {

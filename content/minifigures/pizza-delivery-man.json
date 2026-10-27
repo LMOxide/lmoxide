@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Pie Toss",
     "skill": "skill/pie-toss",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Special Delivery",
     "skill": "skill/special-delivery",
     "hits": [
       {

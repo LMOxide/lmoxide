@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Pow Pow Pow!",
     "skill": "skill/pow-pow-pow",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Catch Me!",
     "skill": "skill/catch-me",
     "hits": [
       {

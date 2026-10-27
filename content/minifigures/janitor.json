@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Wet Mop",
     "skill": "skill/wet-mop",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Mop Slide",
     "skill": "skill/mop-slide",
     "hits": [
       {

@@ -248,6 +248,12 @@ fn bag_action(a: &Value) -> GameAction {
     }
 }
 
+/// A minifigure's name from its head part's ("DJ Head" -> "DJ").
+fn head_name(parts_entry: &Value) -> Option<String> {
+    let head = parts_entry["parts"].as_array()?.iter().find(|p| p["location"] == "Head")?;
+    Some(head["part_name"].as_str()?.strip_suffix(" Head")?.to_string())
+}
+
 fn minifigure_names(data: &dyn Fn(&str) -> Result<Value>) -> Result<BTreeMap<u32, String>> {
     let stats = data("minifigure_stats.json")?;
     let parts = data("minifig_parts.json")?;
@@ -256,6 +262,12 @@ fn minifigure_names(data: &dyn Fn(&str) -> Result<Value>) -> Result<BTreeMap<u32
     for m in parts["minifigures"].as_array().into_iter().flatten() {
         if let (Some(t), Some(n)) = (u32_of(&m["minifigure_template_id"]), m["name"].as_str()) {
             names.insert(t, n.to_string());
+        }
+    }
+    // the client data has no name for some (the DJ, 1922): their head part's ("DJ Head")
+    for m in parts["minifigures"].as_array().into_iter().flatten() {
+        if let (Some(t), Some(n)) = (u32_of(&m["minifigure_template_id"]), head_name(m)) {
+            names.entry(t).or_insert(n);
         }
     }
     for m in drops["minifigures"].as_array().into_iter().flatten() {
@@ -1050,7 +1062,7 @@ pub fn minifigures(
                     .collect(),
             })
             .collect();
-        Attack { skill, hits }
+        Attack { name: a["name"].as_str().map(str::to_string).unwrap_or_default(), skill, hits }
     };
 
     let mut templates: Vec<u32> = entries(&stats["minifigures"])
@@ -1172,8 +1184,9 @@ fn id_name(id: &str, m: &Value, p: Option<&&Value>, d: Option<&&Value>) -> Strin
     m["name"]
         .as_str()
         .or_else(|| p.and_then(|p| p["name"].as_str()))
-        .or_else(|| d.and_then(|d| d["name"].as_str()))
         .map(str::to_string)
+        .or_else(|| p.and_then(|p| head_name(p)))
+        .or_else(|| d.and_then(|d| d["name"].as_str()).map(str::to_string))
         .unwrap_or_else(|| id.to_string())
 }
 

@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Furious Strikes",
     "skill": "skill/furious-strikes",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Elbow Press Drop",
     "skill": "skill/elbow-press-drop"
   },
   "click_spells": [663964, 663965],

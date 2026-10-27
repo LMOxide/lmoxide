@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Crutch-Fu",
     "skill": "skill/crutch-fu",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Peels of Fury",
     "skill": "skill/peels-of-fury",
     "hits": [
       {

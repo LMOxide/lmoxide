@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Paint Roll",
     "skill": "skill/paint-roll",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Bucket Art",
     "skill": "skill/bucket-art",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Rainbow",
     "skill": "skill/rainbow",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "End of the Rainbow",
     "skill": "skill/end-of-the-rainbow",
     "hits": [
       {

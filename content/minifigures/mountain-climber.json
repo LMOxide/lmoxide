@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Ice Pick",
     "skill": "skill/ice-pick",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Rope Swing",
     "skill": "skill/rope-swing",
     "hits": [
       {

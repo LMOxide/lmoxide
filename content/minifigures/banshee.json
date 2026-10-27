@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Incorporeal Might",
     "skill": "skill/incorporeal-might",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Banshee's Wail",
     "skill": "skill/banshee-s-wail",
     "hits": [
       {

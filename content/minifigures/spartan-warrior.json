@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Spear and Shield",
     "skill": "skill/spear-and-shield",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Might of Sparta",
     "skill": "skill/might-of-sparta",
     "hits": [
       {

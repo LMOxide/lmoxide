@@ -16,9 +16,11 @@
     "element": 4
   },
   "normal": {
+    "name": "Shooting Stars",
     "skill": "skill/shooting-stars"
   },
   "special": {
+    "name": "Summon Pixie Friends",
     "skill": "skill/summon-pixie-friends"
   },
   "click_spells": [16195, 16196],

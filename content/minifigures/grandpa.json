@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Paper Plane",
     "skill": "skill/paper-plane",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Back to Basics",
     "skill": "skill/back-to-basics",
     "hits": [
       {

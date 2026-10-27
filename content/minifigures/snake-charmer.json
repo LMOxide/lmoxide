@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Ground Crawler",
     "skill": "skill/ground-crawler",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Snakes Everywhere",
     "skill": "skill/snakes-everywhere",
     "hits": [
       {

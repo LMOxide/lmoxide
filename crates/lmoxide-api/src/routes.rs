@@ -728,30 +728,26 @@ pub struct Playfield {
 #[utoipa::path(get, path = "/v1/playfields", tag = "public",
     responses((status = OK, body = [Playfield])), security(()))]
 async fn playfields() -> impl axum::response::IntoResponse {
-    #[derive(Deserialize)]
-    struct Destinations {
-        destinations: BTreeMap<u32, Dest>,
-    }
-    #[derive(Deserialize)]
-    struct Dest {
-        name: String,
-    }
-    #[derive(Deserialize)]
-    struct Names {
-        playfields: BTreeMap<u32, String>,
-    }
+    (STATIC_DATA, Json(playfield_list().iter().map(|p| Playfield { id: p.id, name: p.name.clone(), teleport: p.teleport }).collect::<Vec<_>>()))
+}
+
+/// The worlds of the content tree: teleport destinations by their own (player-facing) display
+/// name, the rest by the client's playfield name.
+fn playfield_list() -> &'static [Playfield] {
     static LIST: std::sync::LazyLock<Vec<Playfield>> = std::sync::LazyLock::new(|| {
-        let d: Destinations = serde_json::from_str(include_str!("../../../data/destinations.json")).expect("destinations.json");
-        let n: Names = serde_json::from_str(include_str!("../../../data/playfields.json")).expect("playfields.json");
-        let mut all: BTreeMap<u32, Playfield> =
-            n.playfields.into_iter().map(|(id, name)| (id, Playfield { id, name: decode_entities(&name), teleport: false })).collect();
-        // the teleport destinations keep their own (player-facing) names
-        for (id, dest) in d.destinations {
-            all.insert(id, Playfield { id, name: decode_entities(&dest.name), teleport: true });
-        }
-        all.into_values().collect()
+        let mut all: Vec<Playfield> = game_content()
+            .worlds
+            .values()
+            .map(|w| {
+                let teleport = w.arrival.is_some();
+                let name = if teleport { w.display_name.as_ref().unwrap_or(&w.name) } else { &w.name };
+                Playfield { id: w.playfield, name: decode_entities(name), teleport }
+            })
+            .collect();
+        all.sort_by_key(|p| p.id);
+        all
     });
-    (STATIC_DATA, Json(LIST.iter().map(|p| Playfield { id: p.id, name: p.name.clone(), teleport: p.teleport }).collect::<Vec<_>>()))
+    &LIST
 }
 
 /// Decodes the XML character entities the game data keeps in names (`Natives&apos; Hollow`).
@@ -833,82 +829,51 @@ pub struct Token {
     pub location: String,
 }
 
-/// The game's minifigures (from data/minifig_parts.json and data/minifigure_stats.json).
+/// The game's content tree (docs/CONTENT.md): `LMOXIDE_CONTENT_DIR`, else the checkout's.
+fn game_content() -> &'static lmoxide_content::Content {
+    static CONTENT: std::sync::LazyLock<lmoxide_content::Content> = std::sync::LazyLock::new(|| {
+        let dir = std::env::var_os("LMOXIDE_CONTENT_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../content")).to_path_buf());
+        let options = lmoxide_content::Options { check_client_ids: false, ..Default::default() };
+        let (content, problems) = lmoxide_content::load(&dir, &options);
+        for p in problems.iter().filter(|p| p.severity == lmoxide_content::Severity::Error).take(20) {
+            tracing::error!("content: {p}");
+        }
+        content
+    });
+    &CONTENT
+}
+
+/// The game's minifigures (content/minifigures, their upgrades' buffs and parts' items).
 fn minifigure_list() -> &'static [Minifigure] {
-    #[derive(Deserialize)]
-    struct Parts {
-        minifigures: Vec<PartsEntry>,
-    }
-    #[derive(Deserialize)]
-    struct PartsEntry {
-        minifigure_template_id: u32,
-        name: Option<String>,
-        series: u32,
-        parts: Vec<Part>,
-    }
-    #[derive(Deserialize)]
-    struct Part {
-        location: String,
-        part_token_id: u32,
-        part_name: String,
-    }
-    #[derive(Deserialize)]
-    struct Stats {
-        minifigures: BTreeMap<u32, StatsEntry>,
-    }
-    #[derive(Deserialize)]
-    struct StatsEntry {
-        normal: Option<Attack>,
-        special: Option<Attack>,
-        #[serde(default)]
-        upgrades: Vec<Upgrade>,
-    }
-    #[derive(Deserialize)]
-    struct Attack {
-        name: Option<String>,
-    }
-    #[derive(Deserialize)]
-    struct Upgrade {
-        bit: u32,
-        name: String,
-    }
     static LIST: std::sync::LazyLock<Vec<Minifigure>> = std::sync::LazyLock::new(|| {
-        let parts: Parts = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
-        let mut stats: Stats =
-            serde_json::from_str(include_str!("../../../data/minifigure_stats.json")).expect("minifigure_stats.json");
-        let mut list: Vec<Minifigure> = parts
+        let c = game_content();
+        let mut list: Vec<Minifigure> = c
             .minifigures
-            .into_iter()
+            .values()
             .map(|m| {
-                let st = stats.minifigures.remove(&m.minifigure_template_id);
-                let attack = |a: Option<Attack>| a.and_then(|a| a.name).map(|n| decode_entities(&n));
-                let (normal, special, upgrades) = match st {
-                    Some(s) => (s.normal, s.special, s.upgrades),
-                    None => (None, None, Vec::new()),
-                };
-                // the client data has no name for the DJ (1922); its parts are "DJ Head" etc.
-                let name = m.name.or_else(|| {
-                    let head = m.parts.iter().find(|p| p.location == "Head")?;
-                    Some(head.part_name.strip_suffix(" Head")?.to_string())
-                });
+                let attack = |a: &lmoxide_content::Attack| (!a.name.is_empty()).then(|| decode_entities(&a.name));
                 Minifigure {
-                    id: m.minifigure_template_id,
-                    name: decode_entities(&name.unwrap_or_default()),
+                    id: m.template,
+                    name: decode_entities(&m.name),
                     series: m.series,
-                    normal_attack: attack(normal),
-                    special_attack: attack(special),
-                    upgrades: upgrades
-                        .into_iter()
-                        .filter(|u| u.name != "No upgrade available")
-                        .map(|u| MinifigureUpgrade {
-                            bit: u.bit,
-                            name: decode_entities(u.name.strip_prefix("Upgrade: ").unwrap_or(&u.name)),
-                        })
+                    normal_attack: attack(&m.normal),
+                    special_attack: attack(&m.special),
+                    upgrades: m
+                        .upgrades
+                        .iter()
+                        .filter_map(|u| Some((u.bit, &c.buffs.get(&u.buff)?.name)))
+                        .filter(|(_, name)| name.as_str() != "No upgrade available")
+                        .map(|(bit, name)| MinifigureUpgrade { bit, name: decode_entities(name.strip_prefix("Upgrade: ").unwrap_or(name)) })
                         .collect(),
                     parts: m
                         .parts
-                        .into_iter()
-                        .map(|p| MinifigurePart { token: p.part_token_id, location: p.location, name: decode_entities(&p.part_name) })
+                        .iter()
+                        .filter_map(|p| {
+                            let item = c.items.get(&p.item)?;
+                            Some(MinifigurePart { token: item.tokens.first()?.token, location: p.location.clone(), name: decode_entities(&item.name) })
+                        })
                         .collect(),
                 }
             })
@@ -1531,5 +1496,130 @@ mod tests {
         assert_eq!(dj.upgrades[0].name, "Fast");
         assert_eq!(dj.parts.len(), 3);
         assert!(figs.iter().all(|m| !m.name.is_empty()));
+    }
+}
+
+#[cfg(test)]
+mod content_tests {
+    use super::*;
+
+    /// The list as built from data/minifig_parts.json and data/minifigure_stats.json before the
+    /// content tree (to compare with).
+    fn old_minifigure_list() -> &'static [Minifigure] {
+        #[derive(Deserialize)]
+        struct Parts {
+            minifigures: Vec<PartsEntry>,
+        }
+        #[derive(Deserialize)]
+        struct PartsEntry {
+            minifigure_template_id: u32,
+            name: Option<String>,
+            series: u32,
+            parts: Vec<Part>,
+        }
+        #[derive(Deserialize)]
+        struct Part {
+            location: String,
+            part_token_id: u32,
+            part_name: String,
+        }
+        #[derive(Deserialize)]
+        struct Stats {
+            minifigures: BTreeMap<u32, StatsEntry>,
+        }
+        #[derive(Deserialize)]
+        struct StatsEntry {
+            normal: Option<Attack>,
+            special: Option<Attack>,
+            #[serde(default)]
+            upgrades: Vec<Upgrade>,
+        }
+        #[derive(Deserialize)]
+        struct Attack {
+            name: Option<String>,
+        }
+        #[derive(Deserialize)]
+        struct Upgrade {
+            bit: u32,
+            name: String,
+        }
+        static LIST: std::sync::LazyLock<Vec<Minifigure>> = std::sync::LazyLock::new(|| {
+            let parts: Parts = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
+            let mut stats: Stats =
+                serde_json::from_str(include_str!("../../../data/minifigure_stats.json")).expect("minifigure_stats.json");
+            let mut list: Vec<Minifigure> = parts
+                .minifigures
+                .into_iter()
+                .map(|m| {
+                    let st = stats.minifigures.remove(&m.minifigure_template_id);
+                    let attack = |a: Option<Attack>| a.and_then(|a| a.name).map(|n| decode_entities(&n));
+                    let (normal, special, upgrades) = match st {
+                        Some(s) => (s.normal, s.special, s.upgrades),
+                        None => (None, None, Vec::new()),
+                    };
+                    // the client data has no name for the DJ (1922); its parts are "DJ Head" etc.
+                    let name = m.name.or_else(|| {
+                        let head = m.parts.iter().find(|p| p.location == "Head")?;
+                        Some(head.part_name.strip_suffix(" Head")?.to_string())
+                    });
+                    Minifigure {
+                        id: m.minifigure_template_id,
+                        name: decode_entities(&name.unwrap_or_default()),
+                        series: m.series,
+                        normal_attack: attack(normal),
+                        special_attack: attack(special),
+                        upgrades: upgrades
+                            .into_iter()
+                            .filter(|u| u.name != "No upgrade available")
+                            .map(|u| MinifigureUpgrade {
+                                bit: u.bit,
+                                name: decode_entities(u.name.strip_prefix("Upgrade: ").unwrap_or(&u.name)),
+                            })
+                            .collect(),
+                        parts: m
+                            .parts
+                            .into_iter()
+                            .map(|p| MinifigurePart { token: p.part_token_id, location: p.location, name: decode_entities(&p.part_name) })
+                            .collect(),
+                    }
+                })
+                .collect();
+            list.sort_by_key(|m| m.id);
+            list
+        });
+        &LIST
+    }
+
+    #[test]
+    fn playfields_same_as_the_old_files() {
+        #[derive(Deserialize)]
+        struct Destinations {
+            destinations: BTreeMap<u32, Dest>,
+        }
+        #[derive(Deserialize)]
+        struct Dest {
+            name: String,
+        }
+        #[derive(Deserialize)]
+        struct Names {
+            playfields: BTreeMap<u32, String>,
+        }
+        let d: Destinations = serde_json::from_str(include_str!("../../../data/destinations.json")).unwrap();
+        let n: Names = serde_json::from_str(include_str!("../../../data/playfields.json")).unwrap();
+        let mut old: BTreeMap<u32, (String, bool)> = n.playfields.into_iter().map(|(id, name)| (id, (decode_entities(&name), false))).collect();
+        for (id, dest) in d.destinations {
+            old.insert(id, (decode_entities(&dest.name), true));
+        }
+        let new: BTreeMap<u32, (String, bool)> = playfield_list().iter().map(|p| (p.id, (p.name.clone(), p.teleport))).collect();
+        assert_eq!(old, new);
+    }
+
+    #[test]
+    fn minifigures_same_as_the_old_files() {
+        let (old, new) = (old_minifigure_list(), minifigure_list());
+        assert_eq!(old.len(), new.len());
+        for (o, n) in old.iter().zip(new) {
+            assert_eq!(serde_json::to_value(o).unwrap(), serde_json::to_value(n).unwrap(), "{}", o.name);
+        }
     }
 }

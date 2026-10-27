@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Bebop",
     "skill": "skill/bebop",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Improvised Groove",
     "skill": "skill/improvised-groove",
     "hits": [
       {

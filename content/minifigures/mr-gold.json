@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Diamond Focus",
     "skill": "skill/diamond-focus",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Touch of Midas",
     "skill": "skill/touch-of-midas",
     "hits": [
       {

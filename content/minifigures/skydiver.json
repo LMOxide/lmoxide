@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Bash",
     "skill": "skill/bash-301743",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Skydive",
     "skill": "skill/skydive",
     "hits": [
       {

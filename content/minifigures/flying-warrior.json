@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Golden Spear",
     "skill": "skill/golden-spear",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Wings of Divinity",
     "skill": "skill/wings-of-divinity",
     "hits": [
       {

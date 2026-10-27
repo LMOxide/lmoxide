@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Haymaker",
     "skill": "skill/haymaker",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Combine Harvester",
     "skill": "skill/combine-harvester",
     "hits": [
       {

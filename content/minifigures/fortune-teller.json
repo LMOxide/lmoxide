@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Tarot Fling Tower",
     "skill": "skill/tarot-fling-tower",
     "hits": [
       {
@@ -35,6 +36,7 @@
     ]
   },
   "special": {
+    "name": "Wheel of Fortune",
     "skill": "skill/wheel-of-fortune",
     "hits": [
       {

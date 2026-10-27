@@ -1,6 +1,6 @@
 {
-  "id": "minifig/minifigure-1922",
-  "name": "minifig/minifigure-1922",
+  "id": "minifig/dj",
+  "name": "DJ",
   "template": 1922,
   "series": 8,
   "series_index": 0,
@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Throw Record",
     "skill": "skill/throw-record",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Bass Drop",
     "skill": "skill/bass-drop",
     "hits": [
       {

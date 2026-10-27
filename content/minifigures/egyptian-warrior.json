@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Ancient Guardian",
     "skill": "skill/ancient-guardian",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Sand Storm",
     "skill": "skill/sand-storm",
     "hits": [
       {

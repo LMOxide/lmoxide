@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Chomp",
     "skill": "skill/chomp",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "RAWR",
     "skill": "skill/rawr",
     "hits": [
       {

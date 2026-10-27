@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Zombie Cheers",
     "skill": "skill/zombie-cheers",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Team Zombie",
     "skill": "skill/team-zombie"
   },
   "click_spells": [641617, 641633],

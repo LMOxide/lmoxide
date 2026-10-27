@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Skate Trick",
     "skill": "skill/skate-trick",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Air Time",
     "skill": "skill/air-time"
   },
   "click_spells": [595461, 595462],

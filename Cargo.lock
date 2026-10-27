@@ -1241,6 +1241,7 @@ dependencies = [
  "axum",
  "axum-server",
  "clap",
+ "lmoxide-content",
  "lmoxide-control",
  "lmoxide-db",
  "rand 0.9.5",

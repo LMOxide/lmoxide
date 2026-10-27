@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Spook",
     "skill": "skill/spook",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Trick or Treat",
     "skill": "skill/trick-or-treat",
     "hits": [
       {

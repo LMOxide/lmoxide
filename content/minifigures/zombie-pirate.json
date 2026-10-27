@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Rusty Cutlass",
     "skill": "skill/rusty-cutlass",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Shark! Shark!",
     "skill": "skill/shark-shark"
   },
   "click_spells": [641618, 641634],

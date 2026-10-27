@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Aimed Shot",
     "skill": "skill/aimed-shot",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Extra Magnetic Grenade",
     "skill": "skill/extra-magnetic-grenade",
     "hits": [
       {

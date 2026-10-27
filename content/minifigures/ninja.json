@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Ninja Technique",
     "skill": "skill/ninja-technique",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Smoke Bomb",
     "skill": "skill/smoke-bomb",
     "hits": [
       {

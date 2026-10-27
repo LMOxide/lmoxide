@@ -2721,15 +2721,12 @@ fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> by
 const START_HEALTH: u32 = 100;
 
 /// MonsterData (body and costume, RDB 1010514) for a minifigure item template, from
-/// data/minifigure_monster_data.json (tools/re/extract_minifig_monster_data.py: each template's
+/// content/minifigures `render.monster_data` (tools/re/extract_minifig_monster_data.py: each template's
 /// SetStatGameAction on stat 359). 2212, the value in the templates' own stat block, is only the
 /// generic body ("Aztec_Warrior"). `CoreCharacterFullUpdateIIR::Transfer` applies
 /// `stats.monster_data` before building the animated mesh; without it characters are invisible.
 fn monster_data_for(template: u32) -> u32 {
-    static TABLE: std::sync::LazyLock<HashMap<String, u32>> = std::sync::LazyLock::new(|| {
-        serde_json::from_str(include_str!("../../../data/minifigure_monster_data.json")).expect("minifigure_monster_data.json")
-    });
-    TABLE.get(&template.to_string()).copied().unwrap_or(2212)
+    crate::minifigs::monster_data(template).unwrap_or(2212)
 }
 
 /// Engine stat ids (data/stats.json, from the client's stat table at 0x1607bd0).

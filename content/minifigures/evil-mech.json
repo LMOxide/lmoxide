@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Rapid Fire",
     "skill": "skill/rapid-fire",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Evasive Maneuvers",
     "skill": "skill/evasive-maneuvers",
     "hits": [
       {

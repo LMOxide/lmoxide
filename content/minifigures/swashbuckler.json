@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Dazzling Strike",
     "skill": "skill/dazzling-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Dazzling Swing",
     "skill": "skill/dazzling-swing",
     "hits": [
       {

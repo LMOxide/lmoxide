@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Last Minute Task",
     "skill": "skill/last-minute-task",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Zombie Project Management",
     "skill": "skill/zombie-project-management",
     "hits": [
       {

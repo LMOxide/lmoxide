@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Dwarven Battle Brawling",
     "skill": "skill/dwarven-battle-brawling",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Skyward Smash",
     "skill": "skill/skyward-smash"
   },
   "click_spells": [595405, 595406],

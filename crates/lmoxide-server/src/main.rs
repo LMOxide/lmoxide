@@ -23,6 +23,7 @@ mod gates;
 mod jumppad;
 mod knubot;
 mod loot;
+mod minifigs;
 mod mirrors;
 mod npc;
 mod npc_spells;

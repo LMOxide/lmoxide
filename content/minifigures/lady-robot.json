@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Come Dance With Me",
     "skill": "skill/come-dance-with-me",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Robo-Popping",
     "skill": "skill/robo-popping",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Strike Gold",
     "skill": "skill/strike-gold",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Gold Crush",
     "skill": "skill/gold-crush",
     "hits": [
       {

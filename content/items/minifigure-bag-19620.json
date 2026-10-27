@@ -3,7 +3,7 @@
   "name": "Minifigure Bag",
   "kind": "minifig_bag",
   "template": 19620,
-  "minifigure": "minifig/minifigure-1922",
+  "minifigure": "minifig/dj",
   "controlled_loot_type": 3,
   "actions": [
     {

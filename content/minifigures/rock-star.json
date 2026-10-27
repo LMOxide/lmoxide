@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Power Chord",
     "skill": "skill/power-chord",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Rock the House!",
     "skill": "skill/rock-the-house",
     "hits": [
       {

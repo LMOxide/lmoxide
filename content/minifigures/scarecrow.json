@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Crow",
     "skill": "skill/crow",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Flock of Birds",
     "skill": "skill/flock-of-birds",
     "hits": [
       {

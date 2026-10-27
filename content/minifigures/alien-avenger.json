@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Blaster Shot",
     "skill": "skill/blaster-shot",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Big Blast",
     "skill": "skill/spell-31414",
     "hits": [
       {

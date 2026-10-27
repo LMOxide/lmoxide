@@ -5,10 +5,9 @@
 //! inventory 101 (positions 6, 8 and 20 are the three team slots), and the collection,
 //! inventory 110001 (storage). Each minifigure item carries its level (item stat 3000058, max 10),
 //! XP (52) and upgrade bitmasks (3000098 active, 3000106 purchased). Bit `n` is the minifigure's
-//! upgrade ability at `ability_list` position `n` (data/minifigure_abilities.json); bits 0..11
+//! upgrade ability at `ability_list` position `n` (content/minifigures `upgrades`); bits 0..11
 //! form 8 tiers, four of them choose-one pairs (1,2), (4,5), (7,8), (10,11).
 
-use std::{collections::HashMap, sync::LazyLock};
 
 use lmoxide_net::proto::{
     ProtoId32, ProtoInventoryGame, ProtoInventoryGameEntry,
@@ -43,22 +42,14 @@ pub const DEFAULT_ACTIVE: u32 = 0x6db;
 /// Upgrade bits that exclude each other.
 const PAIRS: [(u32, u32); 4] = [(1, 2), (4, 5), (7, 8), (10, 11)];
 
-static SPELLS: LazyLock<HashMap<String, Vec<u32>>> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/minifigure_spells.json")).expect("minifigure_spells.json"));
-static ABILITIES: LazyLock<HashMap<String, Vec<(u32, u32, i32)>>> = LazyLock::new(|| {
-    serde_json::from_str(include_str!("../../../data/minifigure_abilities.json")).expect("minifigure_abilities.json")
-});
-
 /// Every minifigure item template, in order.
 pub fn all_minifigures() -> Vec<u32> {
-    let mut all: Vec<u32> = SPELLS.keys().filter_map(|k| k.parse().ok()).collect();
-    all.sort_unstable();
-    all
+    crate::minifigs::all()
 }
 
 /// Left- and right-click (normal and special) spells of a minifigure.
 pub fn spells(template: u32) -> Vec<u32> {
-    SPELLS.get(&template.to_string()).cloned().unwrap_or_default()
+    crate::minifigs::spells(template)
 }
 
 /// Everything a minifigure can cast or apply, to learn before it is used: its normal and
@@ -69,9 +60,7 @@ pub fn spells_to_learn(template: u32) -> Vec<u32> {
     let mut all = spells(template);
     // (castable steps have an attack time; the hits' nanos don't)
     all.extend(crate::combat::combo_steps(template).into_iter().filter(|s| crate::actions::hit_delay(*s).is_some()));
-    if let Some(list) = ABILITIES.get(&template.to_string()) {
-        all.extend(list.iter().map(|&(_, ability, _)| ability));
-    }
+    all.extend(crate::minifigs::abilities(template).into_iter().map(|(_, ability)| ability));
     all.extend(crate::actions::override_targets(&all));
     let mut seen = std::collections::HashSet::new();
     all.retain(|s| seen.insert(*s));
@@ -91,23 +80,9 @@ pub fn activate(active: u32, position: u32) -> u32 {
     active
 }
 
-/// A minifigure's item template by its name (case-insensitive, data/minifig_parts.json).
+/// A minifigure's item template by its name (case-insensitive).
 pub fn template_by_name(name: &str) -> Option<u32> {
-    #[derive(serde::Deserialize)]
-    struct Parts {
-        minifigures: Vec<Entry>,
-    }
-    #[derive(serde::Deserialize)]
-    struct Entry {
-        minifigure_template_id: u32,
-        name: Option<String>,
-    }
-    static NAMES: LazyLock<Vec<(String, u32)>> = LazyLock::new(|| {
-        let parts: Parts = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
-        parts.minifigures.into_iter().filter_map(|m| Some((m.name?.to_ascii_lowercase(), m.minifigure_template_id))).collect()
-    });
-    let wanted = name.to_ascii_lowercase();
-    NAMES.iter().find(|(n, _)| *n == wanted).map(|&(_, t)| t)
+    crate::minifigs::by_name(name)
 }
 
 /// The owned minifigures outside the team (inventory 110001), by position. Positions change as

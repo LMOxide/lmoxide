@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Huge Choppa",
     "skill": "skill/huge-choppa",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Bag of Bricks",
     "skill": "skill/bag-of-bricks",
     "hits": [
       {

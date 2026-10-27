@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Hot Dog Smash",
     "skill": "skill/hot-dog-smash",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Hot Dog Roll",
     "skill": "skill/hot-dog-roll",
     "hits": [
       {

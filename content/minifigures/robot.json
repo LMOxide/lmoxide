@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Clank",
     "skill": "skill/clank",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Tesla Tower",
     "skill": "skill/tesla-tower",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Bonk ",
     "skill": "skill/bonk",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Walk of Fame",
     "skill": "skill/walk-of-fame",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Monster Bass",
     "skill": "skill/monster-bass",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Static Discharge",
     "skill": "skill/static-discharge",
     "hits": [
       {

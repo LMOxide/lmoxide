@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Bag of Gifts",
     "skill": "skill/bag-of-gifts",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Holiday Tree",
     "skill": "skill/holiday-tree",
     "hits": [
       {

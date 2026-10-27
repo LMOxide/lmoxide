@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Ultra Strike",
     "skill": "skill/ultra-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Ultra Super Gigaton Slash",
     "skill": "skill/ultra-super-gigaton-slash",
     "hits": [
       {

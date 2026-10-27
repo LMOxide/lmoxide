@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Ribbit",
     "skill": "skill/ribbit",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Frognado",
     "skill": "skill/frognado",
     "hits": [
       {

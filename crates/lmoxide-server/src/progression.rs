@@ -45,8 +45,11 @@ struct Data {
     rank_player_level: Vec<u32>,
 }
 
-static DATA: LazyLock<Data> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/progression.json")).expect("progression.json"));
+/// tunables.json `progression`.
+static DATA: LazyLock<Data> = LazyLock::new(|| {
+    let p = &crate::gamedata::get().tunables.progression;
+    Data { minifigure_xp: p.minifigure_xp.iter().map(|(k, v)| (k.clone(), u64::from(*v))).collect(), rank_player_level: p.rank_player_level.clone() }
+});
 
 /// Total XP a character needs for `level + 1` (NextXP); the recorded level 1 needed 200.
 /// Assumed curve: each level takes 100 × (level + 1) more.

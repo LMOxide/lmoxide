@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Blow Torch",
     "skill": "skill/blow-torch",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Flame Spitter",
     "skill": "skill/flame-spitter",
     "hits": [
       {

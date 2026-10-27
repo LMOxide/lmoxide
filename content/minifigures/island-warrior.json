@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Poke Poke",
     "skill": "skill/poke-poke",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Ancient Bolas",
     "skill": "skill/ancient-bolas",
     "hits": [
       {

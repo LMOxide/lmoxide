@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Wild Swing",
     "skill": "skill/wild-swing-500467",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Mount Up!",
     "skill": "skill/mount-up"
   },
   "click_spells": [500467, 500468],

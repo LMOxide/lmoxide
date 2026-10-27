@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Gale of Steel",
     "skill": "skill/gale-of-steel",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Hurricane Step",
     "skill": "skill/hurricane-step",
     "hits": [
       {

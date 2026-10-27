@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Racket Swing",
     "skill": "skill/racket-swing",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Serve",
     "skill": "skill/spell-1571",
     "hits": [
       {

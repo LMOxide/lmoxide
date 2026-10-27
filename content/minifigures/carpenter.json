@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Plank",
     "skill": "skill/plank",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Carpenters Craft",
     "skill": "skill/carpenters-craft"
   },
   "click_spells": [562572, 563103],

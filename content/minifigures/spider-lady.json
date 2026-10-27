@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Vampire Gestures",
     "skill": "skill/vampire-gestures",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Spider Friends",
     "skill": "skill/spider-friends",
     "hits": [
       {

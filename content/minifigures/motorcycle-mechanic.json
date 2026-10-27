@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "I'll fix this!",
     "skill": "skill/i-ll-fix-this",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Custom Job",
     "skill": "skill/custom-job",
     "hits": [
       {

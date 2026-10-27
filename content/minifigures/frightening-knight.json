@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Dreadful Strike",
     "skill": "skill/dreadful-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Sundering Smash",
     "skill": "skill/sundering-smash",
     "hits": [
       {

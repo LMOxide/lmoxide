@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Lightning Blast",
     "skill": "skill/lightning-blast",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Star Fall",
     "skill": "skill/star-fall",
     "hits": [
       {

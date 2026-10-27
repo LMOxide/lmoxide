@@ -1346,6 +1346,9 @@ pub struct Hit {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Attack {
+    /// The name the game shows for it ("Throw Record").
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
     pub skill: Ref,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub hits: Vec<Hit>,

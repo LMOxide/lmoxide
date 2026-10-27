@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Rocket Combo 1",
     "skill": "skill/rocket-combo-1",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Death From Above",
     "skill": "skill/death-from-above",
     "hits": [
       {

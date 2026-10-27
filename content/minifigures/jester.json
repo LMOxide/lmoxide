@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Wildcard",
     "skill": "skill/wildcard",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Shadow Puppet",
     "skill": "skill/shadow-puppet"
   },
   "click_spells": [500459, 500460],

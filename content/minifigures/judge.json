@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Order!",
     "skill": "skill/order",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "The Weight of the Law",
     "skill": "skill/the-weight-of-the-law",
     "hits": [
       {

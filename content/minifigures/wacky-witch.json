@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Wacky Magic",
     "skill": "skill/wacky-magic",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Frog Hex",
     "skill": "skill/frog-hex",
     "hits": [
       {

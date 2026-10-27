@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "Net Gain",
     "skill": "skill/net-gain",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Bio-Weapon",
     "skill": "skill/bio-weapon",
     "hits": [
       {

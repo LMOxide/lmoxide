@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Paint Shot",
     "skill": "skill/paint-shot",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Combat Roll",
     "skill": "skill/combat-roll"
   },
   "click_spells": [196054, 196055],

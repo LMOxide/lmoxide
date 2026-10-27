@@ -16,9 +16,11 @@
     "element": 4
   },
   "normal": {
+    "name": "Mythic Song",
     "skill": "skill/mythic-song"
   },
   "special": {
+    "name": "Healing Song",
     "skill": "skill/healing-song"
   },
   "click_spells": [663944, 663945],

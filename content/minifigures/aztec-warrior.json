@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Fast Strike",
     "skill": "skill/fast-strike",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Shield of the Golden Eagle",
     "skill": "skill/shield-of-the-golden-eagle",
     "hits": [
       {

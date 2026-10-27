@@ -16,6 +16,7 @@
     "element": 5
   },
   "normal": {
+    "name": "The Whip",
     "skill": "skill/the-whip-37825",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Walling Up",
     "skill": "skill/walling-up",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Wave Blaster",
     "skill": "skill/wave-blaster",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "UFO",
     "skill": "skill/ufo",
     "hits": [
       {

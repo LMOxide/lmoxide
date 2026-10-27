@@ -25,11 +25,9 @@ const SUPERACHIEVER: u32 = 540_569;
 /// The auras' TimeExist (999999 cs, as the recorded buffs' durations were their TimeExist).
 const AURA_TIME: Duration = Duration::from_millis(9_999_990);
 
-static TAGS: LazyLock<HashMap<u32, [u32; 4]>> = LazyLock::new(|| {
-    let raw: HashMap<String, serde_json::Value> =
-        serde_json::from_str(include_str!("../../../data/minifigure_auras.json")).expect("minifigure_auras.json");
-    raw.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, serde_json::from_value(v).ok()?))).collect()
-});
+/// The minifigures' aura tags (content/minifigures `aura_tags`).
+static TAGS: LazyLock<HashMap<u32, [u32; 4]>> =
+    LazyLock::new(|| crate::minifigs::all().into_iter().filter_map(|t| Some((t, crate::minifigs::aura_tags(t)?))).collect());
 
 /// The aura each player shows.
 static SHOWN: LazyLock<Mutex<HashMap<Id32, u32>>> = LazyLock::new(|| Mutex::new(HashMap::new()));

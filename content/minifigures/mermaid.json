@@ -16,6 +16,7 @@
     "element": 4
   },
   "normal": {
+    "name": "Starfish",
     "skill": "skill/starfish",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Tidal Wave",
     "skill": "skill/tidal-wave",
     "hits": [
       {

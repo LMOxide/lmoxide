@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Sword and Shield",
     "skill": "skill/sword-and-shield-585557",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Vladek's Champion",
     "skill": "skill/vladek-s-champion",
     "hits": [
       {

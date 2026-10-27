@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Six Shooters",
     "skill": "skill/six-shooters",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Wild Ride",
     "skill": "skill/wild-ride",
     "hits": [
       {

@@ -16,6 +16,7 @@
     "element": 2
   },
   "normal": {
+    "name": "Bitter Tears",
     "skill": "skill/bitter-tears",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "From Bad to Worse",
     "skill": "skill/from-bad-to-worse",
     "hits": [
       {

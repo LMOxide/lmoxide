@@ -16,6 +16,7 @@
     "element": 3
   },
   "normal": {
+    "name": "Power Drill",
     "skill": "skill/power-drill",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Turbo Drill",
     "skill": "skill/turbo-drill",
     "hits": [
       {

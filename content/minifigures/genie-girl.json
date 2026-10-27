@@ -16,6 +16,7 @@
     "element": 1
   },
   "normal": {
+    "name": "Wispy Wishes",
     "skill": "skill/wispy-wishes",
     "hits": [
       {
@@ -28,6 +29,7 @@
     ]
   },
   "special": {
+    "name": "Ingenius Retreat",
     "skill": "skill/ingenius-retreat",
     "hits": [
       {

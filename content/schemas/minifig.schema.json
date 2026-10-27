@@ -9,6 +9,10 @@
           },
           "type": "array"
         },
+        "name": {
+          "description": "The name the game shows for it (\"Throw Record\").",
+          "type": "string"
+        },
         "skill": {
           "type": "string"
         }
