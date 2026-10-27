@@ -69,9 +69,18 @@ One folder per set, with one file per playfield and kind:
   set.json                 # name, authors, notes about the set
   4600.placements.json     # exact: the server spawns these as they are
   4600.notes.json          # areas, scripts and waves: for someone to review and implement
+  published/               # the same files: what editors published (play servers read only this)
 ```
 
 Files are pretty-printed with a fixed order, so diffs and merges stay readable.
+
+**Saving and publishing.** The set is the working copy: every edit is applied at once (in game
+too) and written to disk once edits pause for 3 s (at most 30 s after the first unsaved one, and
+at shutdown), not on every keystroke, so a crash of the page, the game or the server loses at
+most a few seconds. Nothing reaches play servers until it is **published**: `published/` takes
+the working version of the chosen changes (the world editor's Publish dialog: all of yours, or one
+playfield + feature + author group). A set from before publishing gets `published/` as a copy of
+itself at the first start (it was all visible to play servers already).
 
 ### Placements (exact)
 
@@ -273,6 +282,8 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 | DELETE | `/objects/{id}` | | `{id}`: the record that keeps it deleted (a deleted guess's is a new placement) |
 | POST | `/objects/{id}/forget` | | drops a placement's or trigger wall's record entirely (no deletion record stays); a guess it replaced comes back: its `SurveyObject`, else `null`. Undoing a placement, undoing a delete (forget its record), resetting an edited guess |
 | PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`) | makes it exactly so, spawned again; a guess it replaces goes away. Redo, undoing a reset or a delete |
+| GET | `/unpublished` | | changes not published yet, the caller's first: `[{playfield, playfield_name, feature, feature_path, author, mine, summary, items: [{kind, id, name, op, details, updated}]}]` |
+| POST | `/publish` | `{playfield?, feature?, author?, ids?}` (author: default the caller, `*` everyone) | `{records, unpublished}` |
 | GET / PUT | `/set` | `SetInfo` | `SetInfo` |
 | GET | `/export[?playfield=]` | | a bundle: `{format, info, playfields: {"<pf>": {placements, notes, scripts}}}` |
 | POST | `/import` | `{bundle, options: {distance, heading, prefer, take}, dry_run}` | `merge::Report` |

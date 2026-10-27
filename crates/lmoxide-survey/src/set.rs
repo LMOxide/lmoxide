@@ -20,6 +20,15 @@ pub enum Error {
     Playfield { path: PathBuf, named: u32, found: u32 },
 }
 
+/// The folder in a set's folder that holds its published copy: what editors chose to publish
+/// (play servers read it); the set itself is the working copy, saved as editors work.
+pub const PUBLISHED: &str = "published";
+
+/// The published copy of the set in `dir`.
+pub fn published_dir(dir: &Path) -> PathBuf {
+    dir.join(PUBLISHED)
+}
+
 /// `set.json`.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SetInfo {

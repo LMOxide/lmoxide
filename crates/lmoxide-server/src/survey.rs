@@ -17,7 +17,7 @@ use std::{
         Arc, LazyLock, Mutex,
         atomic::{AtomicBool, AtomicU32, Ordering},
     },
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use axum::{
@@ -33,6 +33,7 @@ use lmoxide_survey::{
     apply::{Base, Category, Spawn},
     ids,
     merge::{self, Prefer, Tolerance},
+    review::{self, Change},
     set::{Set, SetInfo},
 };
 use serde::{Deserialize, Serialize};
@@ -101,7 +102,10 @@ struct Surveyor {
 
 struct State {
     dir: PathBuf,
+    /// The working copy: every editor's work as they make it (saved to `dir`).
     set: Set,
+    /// What editors published (`<dir>/published`, what play servers read).
+    published: Set,
     /// The base content of each playfield (what `npc::start` spawns elsewhere).
     bases: BTreeMap<u32, Vec<SpawnDef>>,
     objects: HashMap<String, Object>,
@@ -129,11 +133,25 @@ pub fn init(dir: PathBuf) {
         }
     };
     let placements: usize = set.placements.values().map(|f| f.placements.len()).sum();
-    info!(dir = %dir.display(), placements, "survey mode");
+    let published_dir = sv::set::published_dir(&dir);
+    let published = if published_dir.exists() {
+        Set::load(&published_dir).unwrap_or_else(|e| {
+            warn!("survey set {}: published copy: {e}; publishing starts from the working copy", dir.display());
+            set.clone()
+        })
+    } else {
+        // (a set from before publishing: everything in it was already seen by play servers)
+        if let Err(e) = set.save(&published_dir) {
+            warn!("survey set {}: published copy not made: {e}", dir.display());
+        }
+        set.clone()
+    };
+    info!(dir = %dir.display(), placements, unpublished = review::changes(&set, &published).len(), "survey mode");
     ENABLED.store(true, Ordering::Relaxed);
     *STATE.lock().unwrap() = Some(State {
         dir,
         set,
+        published,
         bases: BTreeMap::new(),
         objects: HashMap::new(),
         by_npc: HashMap::new(),
@@ -297,6 +315,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     }
     info!(objects = st.objects.len(), walls = st.walls.len(), "survey: content spawned");
     tokio::spawn(watch_walls());
+    tokio::spawn(autosave());
 }
 
 fn bases_of(defs: &[SpawnDef]) -> Vec<Base<SpawnDef>> {
@@ -515,9 +534,42 @@ fn bump(st: &mut State, pf: u32) {
     *st.revision.entry(pf).or_default() += 1;
 }
 
-fn save(st: &State) {
-    if let Err(e) = st.set.save(&st.dir) {
-        warn!("survey set {}: not saved: {e}", st.dir.display());
+/// Changes to the working copy are written once editors pause (`SAVE_QUIET`), or `SAVE_LATEST`
+/// after the first unsaved one, not on every keystroke: (first unsaved change, latest one).
+static UNSAVED: Mutex<Option<(Instant, Instant)>> = Mutex::new(None);
+const SAVE_QUIET: Duration = Duration::from_secs(3);
+const SAVE_LATEST: Duration = Duration::from_secs(30);
+
+/// Notes that the working copy changed; `autosave` writes it.
+fn save(_st: &State) {
+    let now = Instant::now();
+    let mut u = UNSAVED.lock().unwrap();
+    *u = Some((u.map_or(now, |(first, _)| first), now));
+}
+
+async fn autosave() {
+    loop {
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        let due = UNSAVED.lock().unwrap().is_some_and(|(first, last)| last.elapsed() >= SAVE_QUIET || first.elapsed() >= SAVE_LATEST);
+        if due {
+            tokio::task::spawn_blocking(flush).await.ok();
+        }
+    }
+}
+
+/// Writes the working copy now if it has unsaved changes (also at shutdown).
+pub fn flush() {
+    let snapshot = {
+        let guard = STATE.lock().unwrap();
+        let Some(st) = guard.as_ref() else { return };
+        if UNSAVED.lock().unwrap().take().is_none() {
+            return;
+        }
+        (st.set.clone(), st.dir.clone())
+    };
+    let (set, dir) = snapshot;
+    if let Err(e) = set.save(&dir) {
+        warn!("survey set {}: not saved: {e}", dir.display());
     }
 }
 
@@ -1078,6 +1130,8 @@ pub fn routes() -> Router {
         .route("/v1/survey/set", get(set_info).put(save_set_info))
         .route("/v1/survey/features", get(features).post(create_feature))
         .route("/v1/survey/features/copy", post(copy_feature))
+        .route("/v1/survey/unpublished", get(unpublished))
+        .route("/v1/survey/publish", post(publish))
         .route("/v1/survey/export", get(export))
         .route("/v1/survey/import", post(import))
 }
@@ -1983,6 +2037,82 @@ async fn save_set_info(Json(info): Json<SetInfo>) -> R<SetInfo> {
         save(st);
         Ok(Json(info))
     })
+}
+
+// ------------------------------------------------------------------ publishing
+
+/// One editor's changes to one feature in one playfield that aren't published yet.
+#[derive(Serialize)]
+struct Unpublished {
+    #[serde(flatten)]
+    change: Change,
+    playfield_name: String,
+    feature_path: String,
+    /// The caller's own changes.
+    mine: bool,
+}
+
+/// Every change not published yet, the caller's (`me`) first.
+fn unpublished_of(st: &State, me: &str) -> Vec<Unpublished> {
+    let mut list: Vec<Unpublished> = review::changes(&st.set, &st.published)
+        .into_iter()
+        .map(|c| Unpublished {
+            playfield_name: crate::teleport::destination(c.key.playfield).map_or_else(|| c.key.playfield.to_string(), |d| d.name.clone()),
+            feature_path: st.set.features.path_title(&c.key.feature),
+            mine: c.key.author == me,
+            change: c,
+        })
+        .collect();
+    list.sort_by_key(|u| !u.mine);
+    list
+}
+
+/// Every change not published yet (every author's, the caller's first).
+async fn unpublished(headers: HeaderMap) -> R<Vec<Unpublished>> {
+    let me = author_of(&headers);
+    with(|st| Ok(Json(unpublished_of(st, &me))))
+}
+
+#[derive(Deserialize)]
+struct PublishRequest {
+    /// Only this playfield's changes.
+    playfield: Option<u32>,
+    /// Only this feature's changes.
+    feature: Option<String>,
+    /// Whose changes: default the caller's; `*`: everyone's.
+    author: Option<String>,
+    /// Only these records.
+    ids: Option<Vec<String>>,
+}
+
+#[derive(Serialize)]
+struct Published {
+    records: usize,
+    /// What is still unpublished.
+    unpublished: Vec<Unpublished>,
+}
+
+/// Publishes changes: the published copy (what play servers read) takes their working version.
+async fn publish(headers: HeaderMap, Json(r): Json<PublishRequest>) -> R<Published> {
+    let me = author_of(&headers);
+    let author = r.author.unwrap_or(me.clone());
+    let (published, dir, records) = with(|st| {
+        let chosen: Vec<Change> = review::changes(&st.set, &st.published)
+            .into_iter()
+            .filter(|c| r.playfield.is_none_or(|p| c.key.playfield == p) && r.feature.as_ref().is_none_or(|f| &c.key.feature == f) && (author == "*" || c.key.author == author))
+            .collect();
+        let mut records = 0;
+        for c in &chosen {
+            records += review::approve(&mut st.published, &st.set, c, r.ids.as_deref());
+        }
+        st.published.info = st.set.info.clone();
+        Ok((st.published.clone(), st.dir.clone(), records))
+    })?;
+    if records > 0 {
+        published.save(&sv::set::published_dir(&dir)).map_err(|e| Error::Invalid(format!("published copy not saved: {e}")))?;
+        info!(by = %me, author = %author, records, "survey: published");
+    }
+    with(|st| Ok(Json(Published { records, unpublished: unpublished_of(st, &me) })))
 }
 
 #[derive(Deserialize)]

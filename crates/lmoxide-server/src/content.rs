@@ -1,5 +1,5 @@
-//! World content on play servers (docs/WORLD-CONTENT.md): what the world editor's survey server
-//! made (the working set, `--world-editor-set`) becomes part of this server's worlds once it is
+//! World content on play servers (docs/WORLD-CONTENT.md): what the world editor's editors
+//! published (`<--world-editor-set>/published`; the working set beside it isn't read) becomes part of this server's worlds once it is
 //! approved. This server keeps its own approved copy and rules in `<data-dir>/world-content/`:
 //!
 //! - `approved/`: the approved set (a survey set folder);
@@ -211,7 +211,8 @@ async fn watch() {
 fn check() {
     let mut guard = STATE.lock().unwrap();
     let Some(st) = guard.as_mut() else { return };
-    let Some(source) = st.source.clone() else { return };
+    // only what the world editor's editors published
+    let Some(source) = st.source.as_deref().map(lmoxide_survey::set::published_dir) else { return };
     let stamp = match stamp_of(&source) {
         Ok(s) => s,
         Err(e) => {

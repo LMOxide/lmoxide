@@ -1,15 +1,18 @@
 # World content: from the world editor to the game servers
 
 Contributors only need the game client and a browser: they edit worlds on the world editor's
-survey server (docs/SURVEY.md, the dev UI's world editor), and play servers take their work in
-once it is approved. No exports, imports or files to pass around.
+survey server (docs/SURVEY.md, the dev UI's world editor), publish what is ready, and play
+servers take it in once it is approved. No exports, imports or files to pass around.
 
 ```
-world editor (survey server)            play server (LAN, public, ...)
-  var/survey-set/  = the working copy  ──►  <data-dir>/world-content/
-  (every editor's records, saved as         approved/      the approved copy
-   they work, each with author + feature)    rules.json     active features, auto-approval
-                                              rejected.json  rejected versions
+world editor (survey server)              play server (LAN, public, ...)
+  var/survey-set/  = the working copy
+  (every editor's records, autosaved
+   as they work, author + feature)
+  var/survey-set/published/  ──────────►  <data-dir>/world-content/
+  (what editors published)                  approved/      the approved copy
+                                            rules.json     active features, auto-approval
+                                            rejected.json  rejected versions
 ```
 
 ## Features
@@ -32,8 +35,9 @@ as 2026 and then differ. Placing, place-trigger, edits and snapshots take a `fea
 ## Play servers
 
 `lmoxide-server --world-editor-set <survey set folder>` (tools/lan-server.sh passes
-`../var/survey-set`): every 10 s the folder is read again when a file in it changed. The
-difference between it and the approved copy is the **queue**: one entry per playfield, feature
+`../var/survey-set`): every 10 s its `published/` folder is read again when a file in it changed
+(the working copy beside it is never read: unpublished work stays on the editor's server). The
+difference between the published set and the approved copy is the **queue**: one entry per playfield, feature
 and author, with each record added, changed or removed and what changed ("moved 3.2 m",
 "deletes a guess", "level 5 -> 7").
 
