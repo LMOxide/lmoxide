@@ -208,6 +208,11 @@ pub fn whereabouts(id: Id32) -> Option<(u32, [f32; 3])> {
     MEMBERS.lock().unwrap().get(&id).map(|m| (m.playfield, *m.pos.lock().unwrap()))
 }
 
+/// Every member with its playfield.
+pub fn members() -> Vec<(Id32, u32)> {
+    MEMBERS.lock().unwrap().iter().map(|(id, m)| (*id, m.playfield)).collect()
+}
+
 /// Every character on `playfield` with its position.
 pub fn positions(playfield: u32) -> Vec<(Id32, [f32; 3])> {
     let members = MEMBERS.lock().unwrap();

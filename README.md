@@ -119,7 +119,10 @@ Needs Rust and `protoc`. The scripts expect the client at
 `../clients/windows/LEGO Minifigures Online`; set `LMOXIDE_CLIENT_DIR` to use another folder.
 
 ```sh
-tools/lan-server.sh --release           # game server, patch server and API on this PC's LAN address
+tools/servers.sh                        # play + world editor servers in the background, opens the debugger and editor
+tools/servers.sh up play                # only the play server (progression); `up editor` only the world editor's
+tools/servers.sh status | restart | down
+tools/lan-server.sh --release           # the play server in the foreground (game, patch server, API)
 ```
 
 Accounts are created at first login (`--auto-register`), and every account gets GM level 1 for

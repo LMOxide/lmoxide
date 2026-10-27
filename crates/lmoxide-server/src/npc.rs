@@ -52,6 +52,10 @@ const DESTRUCTIBLE_TYPE: u32 = 51321;
 /// and did nothing) instead of an attack.
 const CARS_DESTRUCTIBLES: u32 = 3;
 const TICK: Duration = Duration::from_millis(250);
+/// A playfield without players is asleep: its NPCs don't move or fight (the AI skips it). One
+/// empty this long is put back as it was loaded (`unload`), so a teleport within it or a quick
+/// trip out doesn't undo a fight.
+const UNLOAD_AFTER: Duration = Duration::from_secs(10);
 /// A walking NPC gets a new path when its goal moved this far from the current path's end.
 const REPATH: f32 = 1.5;
 /// Patrols (`SpawnDef::patrol`): the live server re-sent a patrolling NPC's route about every
@@ -1580,12 +1584,12 @@ fn strike(id: Id32, target: Id32, spell: u32, playfield: u32) {
 
 /// Friendly fighters: attack the nearest enemy near their post (FIGHTER_AGGRO from them, at most
 /// FIGHTER_LEASH from home), otherwise walk back to their post.
-fn fighters_tick() {
+fn fighters_tick(awake: &std::collections::HashSet<u32>) {
     let fighters: Vec<(Id32, u32, [f32; 3], f32)> = NPCS
         .lock()
         .unwrap()
         .iter()
-        .filter(|(_, n)| n.def.fights() && n.presence.is_some() && n.health > 0)
+        .filter(|(_, n)| awake.contains(&n.playfield) && n.def.fights() && n.presence.is_some() && n.health > 0)
         .map(|(id, n)| (*id, n.playfield, n.def.pos, keep_distance(&spells_for(&n.def))))
         .collect();
     for (id, playfield, home, keep) in fighters {
@@ -1710,15 +1714,34 @@ type Fighter = (Id32, u32, [f32; 3], Option<f32>, f32, Option<Id32>, Option<u32>
 /// Chase the nearest player in range and fight it; walk home when there is none or it ran too far.
 async fn ai() {
     let mut tick = tokio::time::interval(TICK);
+    // playfields that emptied and when, until they are unloaded
+    let mut emptied: HashMap<u32, std::time::Instant> = HashMap::new();
+    let mut awake: std::collections::HashSet<u32> = Default::default();
     loop {
         tick.tick().await;
         if crate::survey::enabled() {
             continue; // nothing moves or attacks
         }
+        // only playfields with players run (others' fights went on with nobody watching)
+        let occupied = occupied_playfields();
+        let now = std::time::Instant::now();
+        for pf in awake.difference(&occupied) {
+            emptied.insert(*pf, now);
+        }
+        emptied.retain(|pf, since| {
+            let keep = !occupied.contains(pf) && since.elapsed() < UNLOAD_AFTER;
+            if !keep && !occupied.contains(pf) {
+                unload(*pf);
+            }
+            keep
+        });
+        awake = occupied;
+        let awake = &awake;
         let live: Vec<Fighter> = NPCS
             .lock()
             .unwrap()
             .iter()
+            .filter(|(_, n)| awake.contains(&n.playfield))
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
             .map(|(id, n)| {
                 let threat = n.threat.filter(|(_, t)| t.elapsed() < THREAT_MEMORY).map(|(p, _)| p);
@@ -1730,11 +1753,11 @@ async fn ai() {
             .lock()
             .unwrap()
             .iter()
-            .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
+            .filter(|(_, n)| awake.contains(&n.playfield) && n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
             .filter_map(|(id, n)| Some((*id, n.playfield, n.def.faction?, *n.pos.lock().unwrap())))
             .collect();
         pets_tick();
-        fighters_tick();
+        fighters_tick(awake);
         // players and friendly fighters per playfield, collected once per tick (most
         // playfields have none)
         let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
@@ -1808,7 +1831,7 @@ async fn ai() {
             .lock()
             .unwrap()
             .iter()
-            .filter(|(_, n)| n.def.kind == Kind::Npc && !n.def.patrol.is_empty() && n.presence.is_some())
+            .filter(|(_, n)| awake.contains(&n.playfield) && n.def.kind == Kind::Npc && !n.def.patrol.is_empty() && n.presence.is_some())
             .map(|(id, _)| *id)
             .collect();
         for id in walkers {
@@ -1817,6 +1840,32 @@ async fn ai() {
             }
         }
     }
+}
+
+/// The playfields players are on.
+fn occupied_playfields() -> std::collections::HashSet<u32> {
+    // world::members first: is_player locks NPCS, which mustn't be taken under MEMBERS
+    world::members().into_iter().filter(|(id, _)| is_player(*id)).map(|(_, pf)| pf).collect()
+}
+
+/// Puts the NPCs of a playfield nobody is on back as they were loaded: at home, full health,
+/// not walking or fighting (pets and the dead, waiting to respawn, are left alone). Nobody sees
+/// it happen; whoever comes next is sent them so (their spawn records read health and position).
+fn unload(playfield: u32) {
+    let mut npcs = NPCS.lock().unwrap();
+    let mut count = 0;
+    for npc in npcs.values_mut().filter(|n| n.playfield == playfield && n.owner.is_none() && n.presence.is_some() && n.health > 0) {
+        npc.health = npc.def.health;
+        npc.walk = None;
+        npc.patrol = None;
+        npc.threat = None;
+        npc.busy_until = None;
+        npc.last_attack = None;
+        npc.cooldowns.clear();
+        *npc.pos.lock().unwrap() = npc.def.pos;
+        count += 1;
+    }
+    info!(playfield, count, "playfield empty: NPCs reset, asleep until a player comes");
 }
 
 /// Whether NPC `id` has a patrol route.

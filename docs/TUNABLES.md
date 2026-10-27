@@ -121,6 +121,7 @@ playfield resources) aren't listed; neither are protocol constants.
 | Start position / team | `game.rs` `START_POS` / `START_TEAM` | hub plaza; Astronaut, Ballerina, Farmer | Chosen. |
 | Collection | `collection.rs` | all 133 minifigures, level 10, every upgrade purchased | Chosen (requested). |
 | Default upgrade selection | `collection.rs` `DEFAULT_ACTIVE` | one of each choice pair | Chosen. |
+| Sleeping playfields | `npc.rs` `ai`, `unload`, `UNLOAD_AFTER` | NPCs on a playfield without players don't move, patrol or fight (enemies, fighters, rivals); 10 s after the last player left, its living NPCs are put back home at full health, not walking or fighting (pets and the dead waiting to respawn are left) | NPC fights went on in worlds nobody was in. Live ran playfields as their own processes (pocket worlds per visit); whether empty open worlds ran on is unknown. The 10 s keep a teleport within the world or a quick trip out from undoing a fight. |
 | Save interval | `game.rs` `SAVE_INTERVAL` | 10 s while moving | Implementation choice. |
 | Teleport spots | `teleport.rs` `spots` | every resurrection point shown and unlocked | Chosen (requested). Live, players discovered them. |
 
