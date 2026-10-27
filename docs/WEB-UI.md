@@ -68,6 +68,9 @@ server (`active`) and which are approved without asking, by feature/category (`a
 e.g. `live` = "mimic live") or by author (`auto_authors`); pick features from
 `GET /v1/content/features` (show `path`, e.g. "New content > Christmas Event > 2026"); and a
 summary of the whole approved (and working) content (`GET /v1/content/summary?of=approved|working`).
+Also Preview on a waiting change (`POST /v1/content/preview`: in the game for everyone for a
+while) and the history of approvals (`GET /v1/content/history`) with each entry's `actions`
+(undo, redo, keep, revert: `POST /v1/content/history/{seq}/{action}`).
 `GET /v1/content/state` gives the badge count (`pending`) and the source folder's error, if any.
 
 Moderators get 403 when they kick or ban staff (accounts with a GM level); only admins can.

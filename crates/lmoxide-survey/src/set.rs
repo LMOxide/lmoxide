@@ -100,6 +100,26 @@ impl Set {
         Ok(())
     }
 
+    /// `save`, and removes the playfield files of `dir` this set has no entry for (a copy built
+    /// from elsewhere, e.g. a play server's approved set rebuilt from its history).
+    pub fn save_replacing(&self, dir: &Path) -> Result<(), Error> {
+        self.save(dir)?;
+        let entries = std::fs::read_dir(dir).map_err(|source| Error::Io { path: dir.into(), source })?;
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let Some(name) = path.file_name().and_then(|n| n.to_str()) else { continue };
+            let stale = match (name.strip_suffix(".placements.json"), name.strip_suffix(".notes.json")) {
+                (Some(pf), _) => pf.parse().is_ok_and(|pf: u32| !self.placements.contains_key(&pf)),
+                (_, Some(pf)) => pf.parse().is_ok_and(|pf: u32| !self.notes.contains_key(&pf)),
+                _ => false,
+            };
+            if stale {
+                std::fs::remove_file(&path).map_err(|source| Error::Io { path: path.clone(), source })?;
+            }
+        }
+        Ok(())
+    }
+
     /// The placements file of a playfield, made if missing.
     pub fn placements_mut(&mut self, playfield: u32) -> &mut PlacementsFile {
         self.placements.entry(playfield).or_insert_with(|| PlacementsFile::new(playfield))

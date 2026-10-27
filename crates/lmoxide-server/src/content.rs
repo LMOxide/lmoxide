@@ -2,7 +2,10 @@
 //! published (`<--world-editor-set>/published`; the working set beside it isn't read) becomes part of this server's worlds once it is
 //! approved. This server keeps its own approved copy and rules in `<data-dir>/world-content/`:
 //!
-//! - `approved/`: the approved set (a survey set folder);
+//! - `baseline/` and `changes/`: the approved content's history (`lmoxide_survey::ledger`): every
+//!   approval is a change file with the records before and after, so it can be undone and redone;
+//!   a preview is an approval that ends by itself (or is kept or reverted);
+//! - `approved/`: the approved set built from them (a survey set folder);
 //! - `rules.json`: which features are active (spawned) and which changes are approved without
 //!   asking (by feature or category, and by author);
 //! - `rejected.json`: changes an admin rejected (by record id and its version), kept out of the
@@ -28,15 +31,16 @@ use std::{
 
 use axum::{
     Json, Router,
-    extract::Query,
-    http::StatusCode,
+    extract::{Path as UrlPath, Query},
+    http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
 };
 use lmoxide_net::types::Id32;
 use lmoxide_survey::{
     features,
-    review::{self, Change, ChangeKey, SummaryRow},
+    ledger::{Entry, Ledger, Status},
+    review::{self, Change, ChangeKey, Op, RecordKind, SummaryRow},
     set::Set,
 };
 use serde::{Deserialize, Serialize};
@@ -49,6 +53,8 @@ static STATE: LazyLock<Mutex<Option<State>>> = LazyLock::new(|| Mutex::new(None)
 
 /// How often the working set's folder is checked for changes.
 const POLL: Duration = Duration::from_secs(10);
+/// How long a preview lasts when the admin doesn't say.
+const PREVIEW_MINUTES: u64 = 15;
 
 /// Which approved content is spawned, and which changes are approved without an admin.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -90,6 +96,8 @@ struct State {
     /// Newest modification time seen in the source folder (to notice changes).
     stamp: Option<std::time::SystemTime>,
     approved: Set,
+    /// The approved set's history (the approved set is built from it).
+    ledger: Ledger,
     rules: Rules,
     /// record id -> the `updated` of the rejected version
     rejected: HashMap<String, u64>,
@@ -111,10 +119,14 @@ pub fn enabled() -> bool {
 /// Content from `<data_dir>/world-content`, with the world editor's set `source` if given.
 pub fn init(data_dir: &Path, source: Option<PathBuf>) {
     let dir = data_dir.join("world-content");
-    let approved = Set::load(&dir.join("approved")).unwrap_or_else(|e| {
-        warn!("world content: approved set: {e}; starting empty");
-        Set::default()
+    let ledger = Ledger::open(&dir, &dir.join("approved")).unwrap_or_else(|e| {
+        warn!("world content: history: {e}; starting from the approved set alone");
+        Ledger::empty(&dir, Set::load(&dir.join("approved")).unwrap_or_default())
     });
+    let mut approved = ledger.build();
+    if let Ok(old) = Set::load(&dir.join("approved")) {
+        approved.features = old.features;
+    }
     let rules: Rules = read_json(&dir.join("rules.json")).unwrap_or_default();
     let rejected = read_json(&dir.join("rejected.json")).unwrap_or_default();
     info!(dir = %dir.display(), source = ?source, active = ?rules.active, "world content");
@@ -125,6 +137,7 @@ pub fn init(data_dir: &Path, source: Option<PathBuf>) {
         working: Set::default(),
         stamp: None,
         approved,
+        ledger,
         rules,
         rejected,
         bases: BTreeMap::new(),
@@ -211,6 +224,16 @@ async fn watch() {
 fn check() {
     let mut guard = STATE.lock().unwrap();
     let Some(st) = guard.as_mut() else { return };
+    let expired = st.ledger.expired_previews(now());
+    if !expired.is_empty() {
+        for seq in &expired {
+            if let Err(e) = st.ledger.set_status(*seq, Status::PreviewEnded, "time", now()) {
+                warn!("world content: preview {seq}: {e}");
+            }
+        }
+        info!(changes = ?expired, "world content: previews ended");
+        rebuild(st);
+    }
     // only what the world editor's editors published
     let Some(source) = st.source.as_deref().map(lmoxide_survey::set::published_dir) else { return };
     let stamp = match stamp_of(&source) {
@@ -240,36 +263,61 @@ fn check() {
     if !auto.is_empty() {
         let n: usize = auto.iter().map(|c| c.items.len()).sum();
         info!(changes = auto.len(), records = n, "world content: approved by the rules");
-        approve(st, &auto, None);
+        approve(st, &auto, None, "rules", Status::Applied, None);
     }
 }
 
-/// The working set's changes waiting for approval (rejected versions left out).
+/// The working set's changes waiting for approval (rejected and undone versions left out).
 fn queue(st: &State) -> Vec<Change> {
+    let undone: std::collections::HashSet<(&str, u64)> = st.ledger.undone_versions().collect();
     review::changes(&st.working, &st.approved)
         .into_iter()
         .filter_map(|mut c| {
-            c.items.retain(|i| st.rejected.get(&i.id) != Some(&i.updated));
+            c.items.retain(|i| st.rejected.get(&i.id) != Some(&i.updated) && !undone.contains(&(i.id.as_str(), i.updated)));
             (!c.items.is_empty()).then_some(c)
         })
         .collect()
 }
 
-/// Takes these changes (only the records `only` names, if given) into the approved set, saves
-/// it and spawns the playfields again whose active content changed.
-fn approve(st: &mut State, changes: &[Change], only: Option<&[String]>) -> usize {
+fn now() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs())
+}
+
+/// Takes these changes (only the records `only` names, if given) into the approved set, each as
+/// a history entry (`status` Applied, or Preview until `preview_until`), saves it and spawns the
+/// playfields again whose active content changed. How many records.
+fn approve(st: &mut State, changes: &[Change], only: Option<&[String]>, by: &str, status: Status, preview_until: Option<u64>) -> usize {
     let before = review::only_features(&st.approved, &st.rules.active);
     let mut n = 0;
     for c in changes {
-        n += review::approve(&mut st.approved, &st.working, c, only);
+        match st.ledger.record(&mut st.approved, &st.working, c, only, by, status, now(), preview_until) {
+            Ok(e) => n += e.edits.len(),
+            Err(e) => warn!("world content: change not recorded: {e}"),
+        }
     }
-    if let Err(e) = st.approved.save(&st.dir.join("approved")) {
-        warn!("world content: approved set not saved: {e}");
-    }
-    st.revision += 1;
+    save_approved(st);
     let after = review::only_features(&st.approved, &st.rules.active);
     respawn_changed(st, &before, &after);
     n
+}
+
+fn save_approved(st: &mut State) {
+    if let Err(e) = st.approved.save_replacing(&st.dir.join("approved")) {
+        warn!("world content: approved set not saved: {e}");
+    }
+    st.revision += 1;
+}
+
+/// Builds the approved set again from its history (after an undo, redo or preview ending), saves
+/// it and spawns the playfields again whose active content changed.
+fn rebuild(st: &mut State) {
+    let before = review::only_features(&st.approved, &st.rules.active);
+    let features = std::mem::take(&mut st.approved.features);
+    st.approved = st.ledger.build();
+    st.approved.features = features;
+    save_approved(st);
+    let after = review::only_features(&st.approved, &st.rules.active);
+    respawn_changed(st, &before, &after);
 }
 
 /// Spawns again the playfields whose placements differ between `before` and `after`.
@@ -296,6 +344,9 @@ pub fn routes() -> Router {
         .route("/v1/content/summary", get(summary))
         .route("/v1/content/features", get(features_route))
         .route("/v1/content/refresh", post(refresh))
+        .route("/v1/content/preview", post(preview_route))
+        .route("/v1/content/history", get(history))
+        .route("/v1/content/history/{seq}/{action}", post(history_action))
 }
 
 struct Error(StatusCode, String);
@@ -387,10 +438,16 @@ fn find(st: &State, key: &ChangeKey) -> Result<Change, Error> {
     queue(st).into_iter().find(|c| &c.key == key).ok_or_else(|| Error(StatusCode::NOT_FOUND, "no such change waiting (approved or changed meanwhile?)".into()))
 }
 
-async fn approve_route(Json(d): Json<Decision>) -> Result<Json<Decided>, Error> {
+/// Who is acting (lmoxide-api passes the admin's username).
+fn actor(headers: &HeaderMap) -> String {
+    headers.get("x-lmoxide-actor").and_then(|v| v.to_str().ok()).filter(|a| !a.is_empty()).unwrap_or("admin").to_string()
+}
+
+async fn approve_route(headers: HeaderMap, Json(d): Json<Decision>) -> Result<Json<Decided>, Error> {
+    let by = actor(&headers);
     with(|st| {
         let c = find(st, &d.key)?;
-        let n = approve(st, std::slice::from_ref(&c), d.ids.as_deref());
+        let n = approve(st, std::slice::from_ref(&c), d.ids.as_deref(), &by, Status::Applied, None);
         info!(playfield = d.key.playfield, feature = %d.key.feature, author = %d.key.author, records = n, "world content: approved");
         Ok(Json(Decided { records: n, revision: st.revision }))
     })
@@ -431,7 +488,7 @@ async fn save_rules(Json(r): Json<Rules>) -> Result<Json<Rules>, Error> {
         respawn_changed(st, &before, &after);
         let auto: Vec<Change> = queue(st).into_iter().filter(|c| st.rules.approves(&c.key)).collect();
         if !auto.is_empty() {
-            approve(st, &auto, None);
+            approve(st, &auto, None, "rules", Status::Applied, None);
         }
         st.revision += 1;
         Ok(Json(st.rules.clone()))
@@ -502,4 +559,141 @@ async fn refresh() -> Result<Json<StateView>, Error> {
     })?;
     tokio::task::spawn_blocking(check).await.ok();
     state().await
+}
+
+#[derive(Deserialize)]
+struct PreviewRequest {
+    #[serde(flatten)]
+    key: ChangeKey,
+    #[serde(default)]
+    ids: Option<Vec<String>>,
+    /// How long (default 15)
+    #[serde(default)]
+    minutes: Option<u64>,
+}
+
+#[derive(Serialize)]
+struct Previewed {
+    records: usize,
+    revision: u64,
+    /// the history entry: keep or revert it (`/v1/content/history/{seq}/keep|revert`)
+    seq: u64,
+    until: u64,
+}
+
+/// Applies a waiting change for everyone for a while: a history entry in preview, ended by
+/// keep (approved), revert or its time (back in the queue either way but keep).
+async fn preview_route(headers: HeaderMap, Json(p): Json<PreviewRequest>) -> Result<Json<Previewed>, Error> {
+    let by = actor(&headers);
+    with(|st| {
+        let c = find(st, &p.key)?;
+        let until = now() + p.minutes.unwrap_or(PREVIEW_MINUTES).clamp(1, 24 * 60) * 60;
+        let n = approve(st, std::slice::from_ref(&c), p.ids.as_deref(), &by, Status::Preview, Some(until));
+        let seq = st.ledger.entries.last().map_or(0, |e| e.seq);
+        info!(playfield = p.key.playfield, feature = %p.key.feature, author = %p.key.author, records = n, seq, until, "world content: preview");
+        Ok(Json(Previewed { records: n, revision: st.revision, seq, until }))
+    })
+}
+
+#[derive(Deserialize)]
+struct HistoryQuery {
+    /// Newest first, at most this many (default 200).
+    #[serde(default)]
+    limit: Option<usize>,
+}
+
+#[derive(Serialize)]
+struct EditView {
+    kind: RecordKind,
+    id: String,
+    name: String,
+    op: Op,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    details: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct EntryView {
+    seq: u64,
+    at: u64,
+    by: String,
+    #[serde(flatten)]
+    key: ChangeKey,
+    playfield_name: Option<String>,
+    feature_path: String,
+    summary: String,
+    status: Status,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preview_until: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_action: Option<(String, u64)>,
+    /// what can be done now: undo, redo, keep, revert
+    actions: Vec<&'static str>,
+    edits: Vec<EditView>,
+}
+
+fn actions(status: Status) -> Vec<&'static str> {
+    match status {
+        Status::Applied => vec!["undo"],
+        Status::Undone | Status::PreviewEnded => vec!["redo"],
+        Status::Preview => vec!["keep", "revert"],
+    }
+}
+
+fn entry_view(st: &State, e: &Entry) -> EntryView {
+    EntryView {
+        seq: e.seq,
+        at: e.at,
+        by: e.by.clone(),
+        key: e.key.clone(),
+        playfield_name: pf_name(e.key.playfield),
+        feature_path: st.working.features.path_title(&e.key.feature),
+        summary: e.summary.clone(),
+        status: e.status,
+        preview_until: e.preview_until,
+        last_action: e.last_action.clone(),
+        actions: actions(e.status),
+        edits: e
+            .edits
+            .iter()
+            .map(|x| EditView {
+                kind: x.kind,
+                id: x.id.clone(),
+                name: x.name.clone(),
+                op: match (&x.before, &x.after) {
+                    (None, _) => Op::Added,
+                    (_, None) => Op::Removed,
+                    _ => Op::Changed,
+                },
+                details: x.details.clone(),
+            })
+            .collect(),
+    }
+}
+
+/// The approved content's history, newest first.
+async fn history(Query(q): Query<HistoryQuery>) -> Result<Json<Vec<EntryView>>, Error> {
+    with(|st| Ok(Json(st.ledger.entries.iter().rev().take(q.limit.unwrap_or(200)).map(|e| entry_view(st, e)).collect())))
+}
+
+/// `undo`, `redo` (also of an ended preview), `keep` (a preview stays, approved) or `revert` (a
+/// preview ends now): the approved set is built again and changed playfields spawned again.
+async fn history_action(headers: HeaderMap, UrlPath((seq, action)): UrlPath<(u64, String)>) -> Result<Json<EntryView>, Error> {
+    let by = actor(&headers);
+    with(|st| {
+        let entry = st.ledger.entries.iter().find(|e| e.seq == seq).ok_or_else(|| Error(StatusCode::NOT_FOUND, format!("no change {seq}")))?;
+        if !actions(entry.status).contains(&action.as_str()) {
+            return Err(Error(StatusCode::CONFLICT, format!("change {seq} is {:?}: can't {action} it", entry.status)));
+        }
+        let to = match action.as_str() {
+            "undo" => Status::Undone,
+            "redo" | "keep" => Status::Applied,
+            _ => Status::PreviewEnded,
+        };
+        st.ledger.set_status(seq, to, &by, now()).map_err(|e| Error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+        info!(seq, %action, %by, "world content: history");
+        rebuild(st);
+        let e = st.ledger.entries.iter().find(|e| e.seq == seq).expect("found above");
+        Ok(Json(entry_view(st, e)))
+    })
 }
