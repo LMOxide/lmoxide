@@ -1,162 +1,103 @@
 //! Upgrade procs: minifigure upgrades whose effect was server script ("After you smash an
-//! enemy, ...", "Every fifth attack ..."). Their numbers come from the "XX_passive generic ..."
-//! nanos in the client's spell data (RDB 1000621): the buff each one applies, its stat change
-//! and duration (TimeExist). The server shows that buff on the player (`MagicBuffIIR_c`; the
-//! client applies its client-side Modify actions itself, so speed boosts move the player
-//! faster) and applies damage and defense changes where it computes damage (npc.rs). Values
-//! the data doesn't give (heal amounts, durations of buffs without TimeExist) are assumptions,
+//! enemy, ...", "Every fifth attack ..."). They are content: each active upgrade's buff
+//! (content/buffs/upgrade-*.json) lists `proc` effects (when: `on`, `every`, `chance`, `below`,
+//! `lockout`, `channelling`; what: `then`, actions) and stat effects (`orb_chance`). The buffs
+//! the procs apply (content/buffs/proc-*.json) carry the client nano shown on the player
+//! (`MagicBuffIIR_c`; the client applies its client-side Modify actions itself, so speed boosts
+//! move the player faster), their time, `ends_on` (used up by the next hit or hit taken) and
+//! the stats the server applies where it computes damage (npc.rs): `damage`
+//! (FinalDamageMultiplier), `defense` (FinalDefenseMultiplier), `mitigation`. Values the client
+//! data doesn't give (heal amounts, durations of buffs without TimeExist) are assumptions,
 //! listed in docs/TUNABLES.md.
+//!
+//! Actions procs run: `apply_buff`, `heal`, `knockback` (this attack's hits), `drop` (at the
+//! smashed enemy), and the commands `upgrade.damage_field`, `upgrade.charge_up_add`,
+//! `upgrade.charge_up_release`. `not_hit_for` procs are conditions, not events: while the
+//! holder hasn't been hit for `after`, their buffs' stats count (not shown).
 //!
 //! Not done: pulls and the special attacks' own knockbacks (Harpoon, Crowd Control, Equalizing
 //! Burst, Vortex), cooldown changes (Specialist, Technician: the client keeps the recharge
 //! times), Elemental Affinity (location elements).
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     sync::{LazyLock, Mutex},
     time::{Duration, Instant},
 };
 
 use bytes::Bytes;
+use lmoxide_content::{Action, BuffEffect, Proc, ProcOn, Stacking};
 use lmoxide_net::types::Id32;
+use serde_json::Value;
 use tracing::debug;
 
 use crate::{effects, world};
 
-// Upgrade abilities (minifigure_stats.json `ability`).
-const LIONHEARTED: u32 = 421_224;
-const BLOCK: u32 = 421_250;
-const SMASH_AND_DASH: u32 = 421_249;
-const HUNTER: u32 = 421_238;
-const BERSERKER: u32 = 421_231;
-const BRUTE_FORCE: u32 = 421_217;
-const BOOST_SHIELD: u32 = 531_640;
-const HARDEN_UP: u32 = 447_636;
-const POWERED_BARRIER: u32 = 531_121;
-const LEFT_HOOK: u32 = 421_171;
-const SLIPPERY_POWER: u32 = 531_629;
-const SLIPPERY_DEFENSE: u32 = 531_635;
-const MELTDOWN: u32 = 421_178;
-const PERSONAL_SPACE: u32 = 531_682;
-const RECONSTRUCT: u32 = 421_222;
-const SPONGE: u32 = 421_243;
-const SECOND_WIND: u32 = 464_965;
-const TRUE_GRIT: u32 = 380_599;
-const ESCAPE_ARTIST: u32 = 465_317;
-const SKIRMISHER: u32 = 481_806;
-const REGENERATE: u32 = 421_240;
-const SHIELDS_UP: u32 = 443_935;
-const CHARGE_UP: u32 = 443_056;
-const RESOURCEFUL: [u32; 2] = [421_226, 461_237];
-const PROFESSIONAL: u32 = 421_221;
-/// Resourceful: extra health orb chance per enemy (percentage points; the orb chance is 35%).
-const RESOURCEFUL_ORB_BONUS: u64 = 15;
-/// Professional: chance of a health orb when the special attack smashes an enemy.
-const PROFESSIONAL_ORB_CHANCE: u64 = 25;
-const KNOCKBACK: u32 = 421_161;
-
-// Their buffs (nano, duration).
-/// "warriordiscipline": FinalDamageMultiplier +0.1, 3 s (taken as Lionhearted's).
-const LIONHEARTED_BUFF: (u32, f32, Duration) = (429_771, 0.1, Duration::from_secs(3));
-/// MitigationOverrideFlat +0.1, 3 s.
-const BLOCK_BUFF: (u32, f32, Duration) = (429_698, 0.1, Duration::from_secs(3));
-/// "sprint": MovementMultiplier +50, 2 s.
-const SPRINT_BUFF: (u32, Duration) = (428_731, Duration::from_secs(2));
-/// "speedonkill": MovementMultiplier +50, 2 s.
-const HUNTER_BUFF: (u32, Duration) = (423_293, Duration::from_secs(2));
-/// FinalDamageMultiplier +1.0 on the 5th attack.
-const BERSERKER_BUFF: (u32, f32) = (423_317, 1.0);
-const BERSERKER_EVERY: u32 = 5;
-/// How long "this attack" lasts for its hits (an area attack hits several enemies).
-const THIS_ATTACK: Duration = Duration::from_millis(1000);
-/// FinalDamageMultiplier +0.33 for the next attack.
-const BRUTE_FORCE_BUFF: (u32, f32) = (423_295, 0.33);
-/// FinalDefenseMultiplier +0.33 against the next hit.
-const BOOST_SHIELD_BUFF: (u32, f32) = (531_641, 0.33);
-/// FinalDefenseMultiplier +0.1, 3 s, every 3rd normal attack.
-const HARDEN_UP_BUFF: (u32, f32, Duration) = (447_637, 0.1, Duration::from_secs(3));
-const HARDEN_UP_EVERY: u32 = 3;
-/// FinalDefenseMultiplier +1.0 against the next hit, every 5th attack.
-const POWERED_BARRIER_BUFF: (u32, f32) = (531_119, 1.0);
-const POWERED_BARRIER_EVERY: u32 = 5;
-/// "beatup": FinalDamageMultiplier +0.1 every 3rd normal attack; how long is assumed.
-const LEFT_HOOK_BUFF: (u32, f32, Duration) = (526_233, 0.1, Duration::from_secs(3));
-const LEFT_HOOK_EVERY: u32 = 3;
-/// +0.2 damage / defense while not hit for 5 s.
-const SLIPPERY_POWER_BUFF: (u32, f32) = (531_630, 0.2);
-const SLIPPERY_DEFENSE_BUFF: (u32, f32) = (531_633, 0.2);
-const SLIPPERY_AFTER: Duration = Duration::from_secs(5);
-/// Meltdown's ground effect (442041) and its pulses: radius 3, AbilityMod 0.05.
-const MELTDOWN_EFFECT: u32 = 442_041;
-const MELTDOWN_RADIUS: f32 = 3.0;
-const MELTDOWN_MOD: f32 = 0.05;
-const MELTDOWN_PULSES: u32 = 5;
-/// Personal Space: 3 s, a pulse every 0.25 s, radius 3, AbilityMod 0.05, at the smashed enemy.
-const PERSONAL_SPACE_BUFF: u32 = 531_687;
-const PERSONAL_SPACE_PULSE: Duration = Duration::from_millis(250);
-const PERSONAL_SPACE_FOR: Duration = Duration::from_secs(3);
-/// True Grit: MitigationOverrideFlat +0.9 for 5 s below 20% health, once per 5 minutes.
-const TRUE_GRIT_BUFF: (u32, f32, Duration) = (380_600, 0.9, Duration::from_secs(5));
-const TRUE_GRIT_LOCKOUT: Duration = Duration::from_secs(300);
-/// Escape Artist: speed and walking through enemies below 20% health (465318), once per 5
-/// minutes (lockout nano 523058, 300 s).
-const ESCAPE_ARTIST_BUFF: (u32, Duration) = (465_318, Duration::from_secs(3));
-const ESCAPE_ARTIST_LOCKOUT: Duration = Duration::from_secs(300);
-/// Second Wind: a heal below 20% health, once per 10 minutes (lockout nano 464971, 600 s).
-const SECOND_WIND_LOCKOUT: Duration = Duration::from_secs(600);
-/// Skirmisher: MovementMultiplier +50 after a normal attack hits.
-const SKIRMISHER_BUFF: (u32, Duration) = (481_807, Duration::from_secs(2));
-const LOW_HEALTH: f32 = 0.2;
-// Heal amounts (shares of maximum health): not in the data.
-const RECONSTRUCT_HEAL: f32 = 0.05;
-const SPONGE_HEAL: f32 = 0.01;
-const SECOND_WIND_HEAL: f32 = 0.5;
-const REGENERATE_HEAL: f32 = 0.02;
-/// Shields Up: the stance's defense boost (Fortify's 446818 values: +0.02 a hit, at most 5).
-const SHIELDS_UP_STEP: f32 = 0.02;
-const SHIELDS_UP_MAX: f32 = 0.1;
-/// Charge Up: each normal attack adds a charge (at most 5, gone after 5 s: the stack buffs
-/// 663890..663894, TimeExist 5 s); the special releases them around the player (radius 3,
-/// AbilityMod 0.5 .. 1.5 by charges: nanos 527014..527010; effect 663901, 663889 at 5).
-const CHARGE_UP_STACKS: [u32; 5] = [663_890, 663_891, 663_892, 663_893, 663_894];
-const CHARGE_UP_MODS: [f32; 5] = [0.5, 0.75, 1.0, 1.25, 1.5];
-const CHARGE_UP_FOR: Duration = Duration::from_secs(5);
-const CHARGE_UP_RADIUS: f32 = 3.0;
-const CHARGE_UP_EFFECT: u32 = 663_901;
-const CHARGE_UP_EFFECT_FULL: u32 = 663_889;
-/// Knockback: every 3rd normal attack knocks the enemies it hits 4 m away (423323 Knockaway
-/// distance 4).
-const KNOCKBACK_EVERY: u32 = 3;
-const KNOCKBACK_DISTANCE: f32 = 4.0;
+/// A proc of an active upgrade: its key (for counters and lockouts) and definition.
+struct Active {
+    key: String,
+    proc: &'static Proc,
+}
 
 #[derive(Default)]
 struct State {
     template: u32,
     upgrades: u32,
     level: u32,
-    abilities: HashSet<u32>,
+    procs: Vec<Active>,
+    /// Extra health orb chance in percent (`orb_chance`).
+    orb_bonus: u64,
     normal: u32,
     special: u32,
-    attacks: u32,
-    normal_attacks: u32,
+    /// Events counted per proc (for `every`).
+    counts: HashMap<String, u32>,
     /// Damage bonuses: (bonus, until; `None` = the next hit only).
     damage: Vec<(f32, Option<Instant>, u32)>,
     /// Defense: (FinalDefenseMultiplier bonus, flat mitigation, until; `None` = the next hit).
     defense: Vec<(f32, f32, Option<Instant>, u32)>,
     last_hit_taken: Option<Instant>,
-    lockouts: HashMap<u32, Instant>,
+    lockouts: HashMap<String, Instant>,
     /// Charge Up: charges and when they expire.
     charges: u32,
     charges_until: Option<Instant>,
-    /// Knockback: this attack's hits push enemies away until then.
-    knockback_until: Option<Instant>,
+    /// Knockback: this attack's hits push enemies away until then, this far.
+    knockback_until: Option<(Instant, f32)>,
 }
 
 static PLAYERS: LazyLock<Mutex<HashMap<Id32, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
+/// What a proc does after the players' lock is released.
+enum Later {
+    Heal(f32),
+    Drop(String),
+    /// upgrade.damage_field: around the player or the smashed enemy
+    Field { at_target: bool, effect: Option<u32>, radius: f32, ability_mod: f32, pulses: u32, every: Duration },
+    /// upgrade.charge_up_release
+    Release { radius: f32, ability_mod: f32 },
+}
+
+/// Where a proc fires: the player's attack, its kill, ...
+#[derive(Clone, Copy)]
+struct Event {
+    spell: u32,
+    playfield: u32,
+    at: [f32; 3],
+    target: Id32,
+}
+
 /// The player's active minifigure changed (or its upgrades).
 pub fn set_active(player: Id32, template: u32, upgrades: u32, level: u32) {
-    let abilities = crate::combat::active_abilities(template, upgrades);
+    let mut procs = Vec::new();
+    let mut orb_bonus = 0.0;
+    for b in crate::combat::active_upgrade_buffs(template, upgrades) {
+        for (i, e) in b.effects.iter().enumerate() {
+            match e {
+                BuffEffect::Proc(p) => procs.push(Active { key: format!("{}#{i}", b.id), proc: p }),
+                BuffEffect::Stat { stat, value, .. } if stat.as_str() == Some("orb_chance") => orb_bonus += share(value) * 100.0,
+                _ => {}
+            }
+        }
+    }
     let spells = crate::collection::spells(template);
     let mut players = PLAYERS.lock().unwrap();
     let s = players.entry(player).or_default();
@@ -164,13 +105,27 @@ pub fn set_active(player: Id32, template: u32, upgrades: u32, level: u32) {
         template,
         upgrades,
         level,
-        abilities,
+        procs,
+        orb_bonus: orb_bonus.round() as u64,
         normal: spells.first().copied().unwrap_or(0),
         special: spells.get(1).copied().unwrap_or(0),
         lockouts: std::mem::take(&mut s.lockouts),
         last_hit_taken: s.last_hit_taken,
         ..Default::default()
     };
+}
+
+/// A number or a share ("15%") as a fraction.
+fn share(v: &Value) -> f64 {
+    serde_json::from_value::<lmoxide_content::Ratio>(v.clone()).map_or(0.0, |r| r.fraction())
+}
+
+fn duration(v: &Value) -> Option<Duration> {
+    serde_json::from_value::<lmoxide_content::Duration>(v.clone()).ok().map(|d| d.to_std())
+}
+
+fn this_attack() -> Duration {
+    crate::gamedata::get().tunables.combat.this_attack.to_std()
 }
 
 pub fn left(player: Id32) {
@@ -193,283 +148,330 @@ fn unbuff(player: Id32, nano: u32) -> Bytes {
     effects::buff_remove(player, nano, player)
 }
 
+/// Runs the procs of `s` that go off on `on` (`channelling`: during a channelled special),
+/// counting them for `every` and checking `chance` and `lockout`.
+fn fire(s: &mut State, player: Id32, on: &[ProcOn], channelling: bool, records: &mut Vec<Bytes>, later: &mut Vec<Later>) {
+    let now = Instant::now();
+    let due: Vec<&'static Proc> = s
+        .procs
+        .iter()
+        .filter(|a| on.contains(&a.proc.on) && (!a.proc.channelling || channelling))
+        .map(|a| (a.key.clone(), a.proc))
+        .collect::<Vec<_>>()
+        .into_iter()
+        .filter(|(key, p)| {
+            if let Some(n) = p.every {
+                let c = s.counts.entry(key.clone()).or_default();
+                *c += 1;
+                if *c % n != 0 {
+                    return false;
+                }
+            }
+            if p.chance.is_some_and(|c| !crate::loot::chance((c.fraction() * 100.0).round() as u64)) {
+                return false;
+            }
+            if let Some(lockout) = p.lockout {
+                if s.lockouts.get(key).is_some_and(|t| *t > now) {
+                    return false;
+                }
+                s.lockouts.insert(key.clone(), now + lockout.to_std());
+            }
+            true
+        })
+        .map(|(_, p)| p)
+        .collect();
+    for p in due {
+        for action in &p.then {
+            run(s, player, action, now, records, later);
+        }
+    }
+}
+
+/// One proc action.
+fn run(s: &mut State, player: Id32, action: &Action, now: Instant, records: &mut Vec<Bytes>, later: &mut Vec<Later>) {
+    match action {
+        Action::ApplyBuff { buff: id, duration: d, .. } => {
+            let Some(b) = crate::gamedata::get().buffs.get(id) else { return debug!(buff = id, "proc: no such buff") };
+            let Some(nano) = b.nano else { return debug!(buff = id, "proc: buff without a nano") };
+            let until_used = b.ends_on.is_some();
+            let d = d.or(b.duration).map(|d| d.to_std());
+            let until = if until_used { None } else { d.map(|d| now + d) };
+            let (mut damage, mut defense, mut mitigation) = (0.0, 0.0, 0.0);
+            for e in &b.effects {
+                if let BuffEffect::Stat { stat, value, .. } = e {
+                    match stat.as_str() {
+                        Some("damage") => damage += share(value) as f32,
+                        Some("defense") => defense += share(value) as f32,
+                        Some("mitigation") => mitigation += share(value) as f32,
+                        _ => {}
+                    }
+                }
+            }
+            let stacks = s.defense.iter().filter(|d| d.3 == nano).count() + s.damage.iter().filter(|d| d.2 == nano).count();
+            let room = b.stacking != Stacking::Stack || b.max_stacks.is_none_or(|m| stacks < m as usize);
+            if room {
+                if damage != 0.0 {
+                    s.damage.push((damage, until, nano));
+                }
+                if defense != 0.0 || mitigation != 0.0 {
+                    s.defense.push((defense, mitigation, until, nano));
+                }
+            }
+            records.extend(buff(player, nano, if until_used { None } else { d }));
+        }
+        Action::Heal { amount, .. } => later.push(Later::Heal(amount.fraction() as f32)),
+        Action::Knockback { distance, .. } => s.knockback_until = Some((now + this_attack(), *distance)),
+        Action::Drop { loot } => later.push(Later::Drop(loot.clone())),
+        Action::Command { name, args } => match name.as_str() {
+            "upgrade.damage_field" => {
+                let f = |k: &str| args.get(k).and_then(Value::as_f64).unwrap_or(0.0) as f32;
+                let every = args.get("every").and_then(duration).unwrap_or(Duration::from_secs(1));
+                let pulses = match args.get("for").and_then(duration) {
+                    Some(total) => (total.as_secs_f32() / every.as_secs_f32()).ceil() as u32,
+                    None => args.get("pulses").and_then(Value::as_u64).unwrap_or(1) as u32,
+                };
+                later.push(Later::Field {
+                    at_target: args.get("at").and_then(Value::as_str) == Some("target"),
+                    effect: args.get("effect_package").and_then(Value::as_u64).map(|e| e as u32),
+                    radius: f("radius"),
+                    ability_mod: f("ability_mod"),
+                    pulses,
+                    every,
+                });
+            }
+            "upgrade.charge_up_add" => {
+                let stacks = u32_list(args.get("stacks"));
+                let for_ = args.get("for").and_then(duration).unwrap_or(Duration::from_secs(5));
+                if stacks.is_empty() {
+                    return;
+                }
+                if s.charges > 0 {
+                    records.push(unbuff(player, stacks[s.charges as usize - 1]));
+                }
+                s.charges = (s.charges + 1).min(stacks.len() as u32);
+                s.charges_until = Some(now + for_);
+                records.extend(buff(player, stacks[s.charges as usize - 1], Some(for_)));
+            }
+            "upgrade.charge_up_release" => {
+                let stacks = u32_list(args.get("stacks"));
+                let mods: Vec<f32> = args.get("ability_mods").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_f64).map(|m| m as f32).collect();
+                if s.charges == 0 || stacks.is_empty() {
+                    return;
+                }
+                let n = (s.charges as usize).min(stacks.len());
+                s.charges = 0;
+                records.push(unbuff(player, stacks[n - 1]));
+                let full = n == stacks.len();
+                let effect = args.get(if full { "effect_package_full" } else { "effect_package" }).and_then(Value::as_u64);
+                if let Some(effect) = effect {
+                    records.push(effects::effect_package(player, effect as u32));
+                }
+                let radius = args.get("radius").and_then(Value::as_f64).unwrap_or(3.0) as f32;
+                later.push(Later::Release { radius, ability_mod: mods.get(n - 1).copied().unwrap_or(1.0) });
+            }
+            other => debug!(command = other, "proc: unknown command"),
+        },
+        other => debug!(?other, "proc: action not run by procs"),
+    }
+}
+
+fn u32_list(v: Option<&Value>) -> Vec<u32> {
+    v.and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_u64).map(|n| n as u32).collect()
+}
+
+/// Runs what `fire` left for after the lock: heals, drops, damage fields, Charge Up releases.
+fn finish(player: Id32, event: Option<Event>, later: Vec<Later>) {
+    for l in later {
+        match l {
+            Later::Heal(share) => heal_share(player, share),
+            Later::Drop(table) => {
+                let Some(e) = event else { continue };
+                let mut items = Vec::new();
+                crate::loot::roll_table_into(&table, orb_bonus(player), e.playfield, &mut items);
+                crate::loot::drop_items(player, e.playfield, e.at, e.target, items);
+            }
+            Later::Field { at_target, effect, radius, ability_mod, pulses, every } => {
+                let (Some(e), Some((template, upgrades, level))) = (event, active_of(player)) else { continue };
+                let damage = crate::combat::damage_with_mod(template, upgrades, e.spell, ability_mod, level);
+                let (playfield, spell) = (e.playfield, e.spell);
+                let here = if at_target { e.at } else { world::position_of(player).unwrap_or(e.at) };
+                if let Some(effect) = effect {
+                    show(player, vec![effects::effect_package_at(player, effect, here)]);
+                }
+                tokio::spawn(async move {
+                    for _ in 0..pulses {
+                        let center = if at_target { here } else { world::position_of(player).unwrap_or(here) };
+                        crate::npc::hit_area(player, playfield, center, radius, spell, damage);
+                        tokio::time::sleep(every).await;
+                    }
+                });
+            }
+            Later::Release { radius, ability_mod } => {
+                let (Some(e), Some((template, upgrades, level))) = (event, active_of(player)) else { continue };
+                if let Some((playfield, here)) = world::whereabouts(player) {
+                    // Charge Up: the charges go off around the player
+                    let damage = crate::combat::damage_with_mod(template, upgrades, e.spell, ability_mod, level);
+                    crate::npc::hit_area(player, playfield, here, radius, e.spell, damage);
+                }
+            }
+        }
+    }
+}
+
+fn active_of(player: Id32) -> Option<(u32, u32, u32)> {
+    PLAYERS.lock().unwrap().get(&player).map(|s| (s.template, s.upgrades, s.level))
+}
+
 /// `player` casts `spell` (any MagicCommand): counts attacks for "every n-th attack" procs and
-/// runs the special attack's procs.
+/// runs the attack procs.
 pub fn cast(player: Id32, spell: u32) {
     let mut records = Vec::new();
-    let mut release = None;
+    let mut later = Vec::new();
     {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&player) else { return };
-        let now = Instant::now();
         let normal = spell == s.normal;
         if !normal && spell != s.special {
             return;
         }
-        s.attacks += 1;
-        if normal {
-            s.normal_attacks += 1;
-        }
-        if s.abilities.contains(&BERSERKER) && s.attacks % BERSERKER_EVERY == 0 {
-            // this attack's hits
-            s.damage.push((BERSERKER_BUFF.1, Some(now + THIS_ATTACK), BERSERKER_BUFF.0));
-            records.extend(buff(player, BERSERKER_BUFF.0, Some(THIS_ATTACK)));
-        }
-        if s.abilities.contains(&POWERED_BARRIER) && s.attacks % POWERED_BARRIER_EVERY == 0 {
-            s.defense.push((POWERED_BARRIER_BUFF.1, 0.0, None, POWERED_BARRIER_BUFF.0));
-            records.extend(buff(player, POWERED_BARRIER_BUFF.0, None));
-        }
-        if normal && s.abilities.contains(&LEFT_HOOK) && s.normal_attacks % LEFT_HOOK_EVERY == 0 {
-            let (nano, bonus, d) = LEFT_HOOK_BUFF;
-            s.damage.push((bonus, Some(now + d), nano));
-            records.extend(buff(player, nano, Some(d)));
-        }
-        if normal && s.abilities.contains(&HARDEN_UP) && s.normal_attacks % HARDEN_UP_EVERY == 0 {
-            let (nano, bonus, d) = HARDEN_UP_BUFF;
-            s.defense.push((bonus, 0.0, Some(now + d), nano));
-            records.extend(buff(player, nano, Some(d)));
-        }
-        if normal && s.abilities.contains(&KNOCKBACK) && s.normal_attacks % KNOCKBACK_EVERY == 0 {
-            s.knockback_until = Some(now + THIS_ATTACK);
-        }
-        if s.charges_until.is_some_and(|t| t <= now) {
+        if s.charges_until.is_some_and(|t| t <= Instant::now()) {
             s.charges = 0;
         }
-        if normal && s.abilities.contains(&CHARGE_UP) {
-            if s.charges > 0 {
-                records.push(unbuff(player, CHARGE_UP_STACKS[s.charges as usize - 1]));
-            }
-            s.charges = (s.charges + 1).min(CHARGE_UP_STACKS.len() as u32);
-            s.charges_until = Some(now + CHARGE_UP_FOR);
-            records.extend(buff(player, CHARGE_UP_STACKS[s.charges as usize - 1], Some(CHARGE_UP_FOR)));
-        }
-        if !normal && s.abilities.contains(&CHARGE_UP) && s.charges > 0 {
-            let n = s.charges as usize;
-            s.charges = 0;
-            records.push(unbuff(player, CHARGE_UP_STACKS[n - 1]));
-            let effect = if n == CHARGE_UP_STACKS.len() { CHARGE_UP_EFFECT_FULL } else { CHARGE_UP_EFFECT };
-            records.push(effects::effect_package(player, effect));
-            release = Some((s.template, s.upgrades, s.level, spell, CHARGE_UP_MODS[n - 1]));
-        }
-        if !normal {
-            if s.abilities.contains(&LIONHEARTED) {
-                let (nano, bonus, d) = LIONHEARTED_BUFF;
-                s.damage.push((bonus, Some(now + d), nano));
-                records.extend(buff(player, nano, Some(d)));
-            }
-            if s.abilities.contains(&BLOCK) {
-                let (nano, mitigation, d) = BLOCK_BUFF;
-                s.defense.push((0.0, mitigation, Some(now + d), nano));
-                records.extend(buff(player, nano, Some(d)));
-            }
-            if s.abilities.contains(&SMASH_AND_DASH) {
-                records.extend(buff(player, SPRINT_BUFF.0, Some(SPRINT_BUFF.1)));
-            }
-        }
+        let which = if normal { ProcOn::NormalAttack } else { ProcOn::SpecialAttack };
+        fire(s, player, &[ProcOn::Attack, which], false, &mut records, &mut later);
     }
     if !records.is_empty() {
         debug!(?player, spell, "attack procs");
         show(player, records);
     }
-    if let Some((template, upgrades, level, spell, ability_mod)) = release
-        && let Some((playfield, here)) = world::whereabouts(player)
-    {
-        // Charge Up: the charges go off around the player
-        let damage = crate::combat::damage_with_mod(template, upgrades, spell, ability_mod, level);
-        crate::npc::hit_area(player, playfield, here, CHARGE_UP_RADIUS, spell, damage);
-    }
+    finish(player, Some(Event { spell, playfield: 0, at: [0.0; 3], target: player }), later);
 }
 
 /// Whether `attacker`'s current attack knocks the enemies it hits away (Knockback), and how far.
 pub fn knockback(attacker: Id32) -> Option<f32> {
     let players = PLAYERS.lock().unwrap();
-    players.get(&attacker)?.knockback_until.filter(|t| *t > Instant::now()).map(|_| KNOCKBACK_DISTANCE)
+    players.get(&attacker)?.knockback_until.filter(|(t, _)| *t > Instant::now()).map(|(_, d)| d)
+}
+
+/// The stats of the `not_hit_for` procs' buffs that count now (`stat`: "damage" or "defense").
+fn while_not_hit(s: &State, stat: &str) -> f32 {
+    let buffs = &crate::gamedata::get().buffs;
+    s.procs
+        .iter()
+        .filter(|a| a.proc.on == ProcOn::NotHitFor)
+        .filter(|a| s.last_hit_taken.is_none_or(|t| a.proc.after.is_none_or(|after| t.elapsed() >= after.to_std())))
+        .flat_map(|a| &a.proc.then)
+        .filter_map(|action| match action {
+            Action::ApplyBuff { buff, .. } => buffs.get(buff),
+            _ => None,
+        })
+        .flat_map(|b| &b.effects)
+        .filter_map(|e| match e {
+            BuffEffect::Stat { stat: name, value, .. } if name.as_str() == Some(stat) => Some(share(value) as f32),
+            _ => None,
+        })
+        .sum()
 }
 
 /// `attacker` hits with `spell` for `damage`: returns the damage with the attacker's proc
 /// bonuses (one-hit bonuses are used up), and runs the per-hit procs.
 pub fn outgoing(attacker: Id32, spell: u32, damage: u32) -> u32 {
     let mut records = Vec::new();
-    let mut heal = 0.0;
+    let mut later = Vec::new();
     let factor = {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&attacker) else { return damage };
         let now = Instant::now();
-        if spell == s.normal && s.abilities.contains(&SKIRMISHER) {
-            records.extend(buff(attacker, SKIRMISHER_BUFF.0, Some(SKIRMISHER_BUFF.1)));
-        }
-        if s.abilities.contains(&SPONGE) {
-            heal += SPONGE_HEAL;
-        }
+        let which = if spell == s.normal { ProcOn::NormalHit } else { ProcOn::SpecialHit };
+        fire(s, attacker, &[ProcOn::Hit, which], false, &mut records, &mut later);
         s.damage.retain(|&(_, until, _)| until.is_none_or(|u| u > now));
-        let mut bonus: f32 = s.damage.iter().map(|&(b, _, _)| b).sum();
-        if s.abilities.contains(&SLIPPERY_POWER) && s.last_hit_taken.is_none_or(|t| t.elapsed() >= SLIPPERY_AFTER) {
-            bonus += SLIPPERY_POWER_BUFF.1;
-        }
+        let bonus: f32 = s.damage.iter().map(|&(b, _, _)| b).sum::<f32>() + while_not_hit(s, "damage");
         for (_, _, nano) in s.damage.iter().filter(|(_, until, _)| until.is_none()) {
             records.push(unbuff(attacker, *nano));
         }
         s.damage.retain(|&(_, until, _)| until.is_some());
         1.0 + bonus
     };
-    if heal > 0.0 {
-        heal_share(attacker, heal);
-    }
     if !records.is_empty() {
         show(attacker, records);
     }
+    finish(attacker, None, later);
     ((damage as f32) * factor).round() as u32
 }
 
-/// Extra health orb chance (percent) for `player`'s loot (Resourceful).
+/// Extra health orb chance (percent) for `player`'s loot (`orb_chance`: Resourceful).
 pub fn orb_bonus(player: Id32) -> u64 {
-    let players = PLAYERS.lock().unwrap();
-    players.get(&player).filter(|s| RESOURCEFUL.iter().any(|a| s.abilities.contains(a))).map_or(0, |_| RESOURCEFUL_ORB_BONUS)
+    PLAYERS.lock().unwrap().get(&player).map_or(0, |s| s.orb_bonus)
 }
 
 /// `attacker` defeated enemy `target` with `spell` at `at` on `playfield`.
 pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: u32, at: [f32; 3]) {
     let mut records = Vec::new();
-    let mut heal = 0.0;
-    let mut power_up = false;
-    let (template, upgrades, level, special_kill, meltdown, personal_space) = {
+    let mut later = Vec::new();
+    {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&attacker) else { return };
-        if s.abilities.contains(&HUNTER) {
-            records.extend(buff(attacker, HUNTER_BUFF.0, Some(HUNTER_BUFF.1)));
-        }
-        if s.abilities.contains(&BRUTE_FORCE) {
-            s.damage.push((BRUTE_FORCE_BUFF.1, None, BRUTE_FORCE_BUFF.0));
-            records.extend(buff(attacker, BRUTE_FORCE_BUFF.0, None));
-        }
-        if s.abilities.contains(&BOOST_SHIELD) {
-            s.defense.push((BOOST_SHIELD_BUFF.1, 0.0, None, BOOST_SHIELD_BUFF.0));
-            records.extend(buff(attacker, BOOST_SHIELD_BUFF.0, None));
-        }
-        if s.abilities.contains(&RECONSTRUCT) {
-            heal += RECONSTRUCT_HEAL;
-        }
-        let special = spell != s.normal;
-        if special && s.abilities.contains(&PROFESSIONAL) && crate::loot::chance(PROFESSIONAL_ORB_CHANCE) {
-            power_up = true;
-        }
-        (s.template, s.upgrades, s.level, special, s.abilities.contains(&MELTDOWN), s.abilities.contains(&PERSONAL_SPACE))
-    };
-    if power_up {
-        crate::loot::drop_items(attacker, playfield, at, target, vec![crate::loot::health_orb_item()]);
-    }
-    if heal > 0.0 {
-        heal_share(attacker, heal);
+        let on: &[ProcOn] = if spell != s.normal { &[ProcOn::Kill, ProcOn::SpecialKill] } else { &[ProcOn::Kill] };
+        fire(s, attacker, on, false, &mut records, &mut later);
     }
     if !records.is_empty() {
         show(attacker, records);
     }
-    if special_kill && (meltdown || personal_space) {
-        let damage = crate::combat::damage_with_mod(template, upgrades, spell, MELTDOWN_MOD, level);
-        if meltdown {
-            // a field around the player: an impact, then a pulse a second
-            let here = world::position_of(attacker).unwrap_or(at);
-            show(attacker, vec![effects::effect_package_at(attacker, MELTDOWN_EFFECT, here)]);
-            tokio::spawn(async move {
-                for _ in 0..=MELTDOWN_PULSES {
-                    let here = world::position_of(attacker).unwrap_or(here);
-                    crate::npc::hit_area(attacker, playfield, here, MELTDOWN_RADIUS, spell, damage);
-                    tokio::time::sleep(Duration::from_secs(1)).await;
-                }
-            });
-        }
-        if personal_space {
-            // a damaging field where the enemy was smashed
-            show(attacker, buff(attacker, PERSONAL_SPACE_BUFF, Some(PERSONAL_SPACE_FOR)));
-            tokio::spawn(async move {
-                let until = Instant::now() + PERSONAL_SPACE_FOR;
-                while Instant::now() < until {
-                    crate::npc::hit_area(attacker, playfield, at, MELTDOWN_RADIUS, spell, damage);
-                    tokio::time::sleep(PERSONAL_SPACE_PULSE).await;
-                }
-            });
-        }
-    }
+    finish(attacker, Some(Event { spell, playfield, at, target }), later);
 }
 
 /// `player` is hit for `damage` (before mitigation): returns it with the defense procs (and
 /// uses up one-hit shields); `channelling` = during a channelled special.
 pub fn incoming(player: Id32, damage: u32, channelling: bool) -> u32 {
     let mut records = Vec::new();
-    let mut heal = 0.0;
+    let mut later = Vec::new();
     let damage = {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&player) else { return damage };
         let now = Instant::now();
-        let slippery = s.abilities.contains(&SLIPPERY_DEFENSE) && s.last_hit_taken.is_none_or(|t| t.elapsed() >= SLIPPERY_AFTER);
+        let not_hit = while_not_hit(s, "defense");
         s.last_hit_taken = Some(now);
-        if channelling && s.abilities.contains(&REGENERATE) {
-            heal += REGENERATE_HEAL;
-        }
-        if channelling && s.abilities.contains(&SHIELDS_UP) {
-            let stacked: f32 = s.defense.iter().filter(|d| d.3 == 446_818).map(|d| d.0).sum();
-            if stacked < SHIELDS_UP_MAX {
-                s.defense.push((SHIELDS_UP_STEP, 0.0, Some(now + Duration::from_millis(1500)), 446_818));
-            }
-            records.extend(buff(player, 446_818, Some(Duration::from_millis(1500))));
-        }
+        fire(s, player, &[ProcOn::Damaged], channelling, &mut records, &mut later);
         s.defense.retain(|&(_, _, until, _)| until.is_none_or(|u| u > now));
-        let mut defense: f32 = s.defense.iter().map(|d| d.0).sum();
+        let defense: f32 = s.defense.iter().map(|d| d.0).sum::<f32>() + not_hit;
         let mitigation: f32 = s.defense.iter().map(|d| d.1).sum();
-        if slippery {
-            defense += SLIPPERY_DEFENSE_BUFF.1;
-        }
         for (_, _, _, nano) in s.defense.iter().filter(|d| d.2.is_none()) {
             records.push(unbuff(player, *nano));
         }
         s.defense.retain(|d| d.2.is_some());
         ((damage as f32) * (1.0 - mitigation.min(0.9)) / (1.0 + defense)).round().max(1.0) as u32
     };
-    if heal > 0.0 {
-        heal_share(player, heal);
-    }
     if !records.is_empty() {
         show(player, records);
     }
+    finish(player, None, later);
     damage
 }
 
-/// After `player` took damage: the low-health procs (Second Wind, True Grit, Escape Artist).
+/// After `player` took damage: the low-health procs (`health_below`: Second Wind, True Grit,
+/// Escape Artist).
 pub fn after_damage(player: Id32, health: u32, max: u32) {
-    if health == 0 || max == 0 || (health as f32) >= max as f32 * LOW_HEALTH {
+    if health == 0 || max == 0 {
         return;
     }
     let mut records = Vec::new();
-    let mut heal = 0.0;
+    let mut later = Vec::new();
     {
         let mut players = PLAYERS.lock().unwrap();
         let Some(s) = players.get_mut(&player) else { return };
-        let now = Instant::now();
-        let ready = |ability: u32, lockout: Duration, s: &mut State| {
-            let ok = s.abilities.contains(&ability) && s.lockouts.get(&ability).is_none_or(|t| *t <= now);
-            if ok {
-                s.lockouts.insert(ability, now + lockout);
-            }
-            ok
-        };
-        if ready(SECOND_WIND, SECOND_WIND_LOCKOUT, s) {
-            heal += SECOND_WIND_HEAL;
-        }
-        if ready(TRUE_GRIT, TRUE_GRIT_LOCKOUT, s) {
-            let (nano, mitigation, d) = TRUE_GRIT_BUFF;
-            s.defense.push((0.0, mitigation, Some(now + d), nano));
-            records.extend(buff(player, nano, Some(d)));
-        }
-        if ready(ESCAPE_ARTIST, ESCAPE_ARTIST_LOCKOUT, s) {
-            records.extend(buff(player, ESCAPE_ARTIST_BUFF.0, Some(ESCAPE_ARTIST_BUFF.1)));
-        }
-    }
-    if heal > 0.0 {
-        heal_share(player, heal);
+        let share = health as f64 / max as f64;
+        // only the procs whose threshold the health is under
+        let procs = std::mem::take(&mut s.procs);
+        let (low, rest): (Vec<Active>, Vec<Active>) =
+            procs.into_iter().partition(|a| a.proc.on == ProcOn::HealthBelow && a.proc.below.is_some_and(|b| share < b.fraction()));
+        s.procs = low;
+        fire(s, player, &[ProcOn::HealthBelow], false, &mut records, &mut later);
+        s.procs.extend(rest);
     }
     if !records.is_empty() {
         show(player, records);
     }
+    finish(player, None, later);
 }
 
 fn heal_share(player: Id32, share: f32) {
@@ -491,7 +493,7 @@ mod tests {
         // the Alien Avenger has Berserker among its upgrades; activate every bit
         let alien_avenger = 41_754;
         set_active(p, alien_avenger, 0xfff, 30);
-        let has = PLAYERS.lock().unwrap()[&p].abilities.contains(&BERSERKER);
+        let has = PLAYERS.lock().unwrap()[&p].procs.iter().any(|a| a.key.starts_with("buff/upgrade-berserker"));
         if has {
             let normal = PLAYERS.lock().unwrap()[&p].normal;
             let hits: Vec<u32> = (0..5)
@@ -503,6 +505,23 @@ mod tests {
             assert!(hits[4] >= 200, "{hits:?}");
             assert!(hits[0] < 200, "{hits:?}");
         }
+        left(p);
+    }
+
+    #[test]
+    fn shields_up_stacks_five_times() {
+        let c = crate::gamedata::get();
+        let (template, bit) = c
+            .minifigures
+            .values()
+            .find_map(|m| m.upgrades.iter().find(|u| u.buff.starts_with("buff/upgrade-shields-up")).map(|u| (m.template, u.bit)))
+            .expect("a minifigure with Shields Up");
+        let p = Id32::new(50_000, 2);
+        set_active(p, template, 1 << bit, 30);
+        let hits: Vec<u32> = (0..8).map(|_| incoming(p, 100, true)).collect();
+        // +2% defense a hit while channelling, at most 5 (10%): 100 / 1.1
+        assert_eq!(hits[7], 91, "{hits:?}");
+        assert_eq!(incoming(p, 100, false), 91);
         left(p);
     }
 }

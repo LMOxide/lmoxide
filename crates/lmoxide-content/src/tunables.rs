@@ -53,8 +53,9 @@ pub struct Combat {
     pub power_rating_all: f32,
     /// Damage varies by this share either way.
     pub variance: Ratio,
-    /// Damage of normals while empowered.
-    pub empowered_normals: f32,
+    /// How long "this attack" lasts for procs that change an attack's hits (an area attack
+    /// hits several enemies): Berserker's strike, Knockback.
+    pub this_attack: Duration,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

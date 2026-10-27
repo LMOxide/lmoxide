@@ -8,9 +8,12 @@
         "on": "normal_attack",
         "then": [
           {
-            "apply_buff": {
-              "buff": "buff/proc-charge-up",
-              "target": "self"
+            "command": {
+              "name": "upgrade.charge_up_add",
+              "args": {
+                "for": "5s",
+                "stacks": [663890, 663891, 663892, 663893, 663894]
+              }
             }
           }
         ]

@@ -3,6 +3,8 @@
   "name": "Fortify",
   "nano": 446818,
   "duration": "1.5s",
+  "stacking": "stack",
+  "max_stacks": 5,
   "effects": [
     {
       "stat": {

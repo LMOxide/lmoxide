@@ -564,8 +564,8 @@ pub fn buffs(tree: &mut Tree, ctx: &mut Ctx, data: &dyn Fn(&str) -> Result<Value
             423_317,
             "Berserker Strike",
             vec![stat("damage", StatOp::Add, json!(1.0))],
+            Some(1.0),
             None,
-            Some(ProcOn::Hit),
         ),
         pb(
             423_295,
@@ -645,8 +645,8 @@ pub fn buffs(tree: &mut Tree, ctx: &mut Ctx, data: &dyn Fn(&str) -> Result<Value
             Some(1.5),
             None,
         ),
-        pb(663_890, "Charge Up", vec![], Some(5.0), None),
     ];
+    // Fortify (Shields Up): at most 5 stacks
     proc_buffs.last_mut().expect("listed").max_stacks = Some(5);
     let mut by_nano = HashMap::new();
     for p in proc_buffs {
@@ -858,7 +858,16 @@ pub fn buffs(tree: &mut Tree, ctx: &mut Ctx, data: &dyn Fn(&str) -> Result<Value
         (
             443_056, // Charge Up: normals charge (5 at most, 5 s), the special releases them around the player
             vec![
-                BuffEffect::Proc(proc_(ProcOn::NormalAttack, vec![apply(&b(663_890), None)])),
+                BuffEffect::Proc(proc_(
+                    ProcOn::NormalAttack,
+                    vec![Action::Command {
+                        name: "upgrade.charge_up_add".into(),
+                        args: [("stacks", json!([663_890, 663_891, 663_892, 663_893, 663_894])), ("for", json!("5s"))]
+                            .into_iter()
+                            .map(|(k, v)| (k.to_string(), v))
+                            .collect(),
+                    }],
+                )),
                 BuffEffect::Proc(proc_(
                     ProcOn::SpecialAttack,
                     vec![Action::Command {
@@ -879,6 +888,11 @@ pub fn buffs(tree: &mut Tree, ctx: &mut Ctx, data: &dyn Fn(&str) -> Result<Value
                     }],
                 )),
             ],
+        ),
+        // Empowered Normals: the client raises the normal's AbilityMod by 1.2 (ModifyGameAction)
+        (
+            531_727,
+            vec![BuffEffect::SkillMod { skill: "normal".into(), projectiles: None, cooldown: None, ability_mod: Some(Ratio(1.2)) }],
         ),
         (421_226, vec![stat("orb_chance", StatOp::Add, json!("15%"))]), // Resourceful
         (461_237, vec![stat("orb_chance", StatOp::Add, json!("15%"))]),
@@ -1415,7 +1429,7 @@ pub fn loot_and_tunables(
             star_factor: 3.0,
             power_rating_all: 50.0,
             variance: Ratio(0.1),
-            empowered_normals: 1.2,
+            this_attack: Duration(1.0),
         },
         loot: Loot {
             share_range: 60.0,

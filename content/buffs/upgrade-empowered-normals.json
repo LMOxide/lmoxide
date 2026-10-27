@@ -15,7 +15,14 @@
           "stat_name": "AbilityMod"
         }
       }
+    },
+    {
+      "skill_mod": {
+        "skill": "normal",
+        "ability_mod": "120%"
+      }
     }
   ],
-  "source": "client"
+  "source": "server",
+  "comment": "The client's ModifyGameAction raises the normal attack's AbilityMod by 1.2; skill_mod says the same for the server's damage."
 }

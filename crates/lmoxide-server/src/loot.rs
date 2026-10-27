@@ -192,11 +192,6 @@ pub fn all_part_tokens() -> impl Iterator<Item = (u32, u32)> {
     TABLES.minifigure_parts.iter().flat_map(|(&m, tokens)| tokens.iter().map(move |&t| (m, t)))
 }
 
-/// The health orb item (tunables `loot.items.health_orb`).
-pub fn health_orb_item() -> u32 {
-    TABLES.health_orb
-}
-
 /// What picking up an item gives.
 pub enum Reward {
     Stars(u64),
@@ -350,6 +345,12 @@ pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
         None => tracing::warn!(source = source.key(), "tunables.json loot.tables names no table"),
     }
     items
+}
+
+/// Rolls loot table `id` (`loot/...`) for a bag in `playfield` into `out` (upgrade procs'
+/// `drop`).
+pub fn roll_table_into(id: &str, orb_bonus: u64, playfield: u32, out: &mut Vec<u32>) {
+    roll_table(id, orb_bonus, playfield, 0, out);
 }
 
 /// Rolls loot table `id` into `out`: entries in order; those with a `chance` roll on their own,

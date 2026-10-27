@@ -15,6 +15,7 @@ to it one system at a time:
 | System | Reads from content | Still from `data/` or code |
 |---|---|---|
 | Loot (loot.rs) | loot tables, `tunables.loot`, items (stars, orbs, potions, parts, bags, chests), minifigures' parts, bags, `obtain` (regions, rarity), `tunables.rarity` | which source a kill is (enemy/champion/boss by health rank, npc.rs); Resourceful/Professional (procs.rs) |
+| Upgrades and procs (procs.rs, combat.rs) | minifigures' stats, attacks (AbilityMods, combo steps) and upgrades; the upgrades' buffs: stat effects (`Life`, `FinalDamageMultiplier`, `MitigationOverrideFlat`, `orb_chance`), `skill_mod` (Empowered Normals), `proc`s and the buffs they apply; `tunables.combat` | `LEVEL` (a constant other constants use); the nanos' client-side Modify actions (the client runs them) |
 | Everything else | | `data/*.json` and constants in the code |
 
 Edits to what the server doesn't read yet have no effect in game. Running the importer again
@@ -174,7 +175,7 @@ script completion all run the same actions, written `{ "<action>": { ... } }`:
 
 Most take a `target`: the action's own target (default), `"self"`, `"trigger_player"`, `"team"`,
 `"all_in_area"`, `{ "placement": "spawn/..." }` or `{ "tag": "..." }`. `command` runs server
-logic by name with arguments (`upgrade.damage_field`, `upgrade.charge_up_release`,
+logic by name with arguments (`upgrade.damage_field`, `upgrade.charge_up_add`, `upgrade.charge_up_release`,
 `lost_creations.advance` ...); the server will list the commands it knows. `other` is a
 placeholder whose `comment` says what it should do.
 
@@ -203,7 +204,10 @@ their procs, e.g. Berserker:
 
 Proc triggers: `hit`, `normal_hit`, `special_hit`, `attack`, `normal_attack`, `special_attack`,
 `damaged`, `kill`, `special_kill`, `health_below` (`below`), `not_hit_for` (`after`),
-`interval`, `smash`, `build`; with `every`, `chance`, `lockout`, `channelling`. Upgrades whose
+`interval`, `smash`, `build`; with `every`, `chance`, `lockout`, `channelling`. A `not_hit_for`
+proc is a condition: while it holds, the stats of the buffs it applies count (nothing is shown).
+The server applies the buff stats `damage`, `defense` and `mitigation`; client stat names
+(`MovementMultiplier` ...) are the client's to apply through the buff's nano. Upgrades whose
 server effect isn't known are tagged `todo`.
 
 ### Loot
@@ -269,7 +273,8 @@ isn't playable (it never drops; picking one up now gives nothing instead of that
 
 1. The server reads `content/` instead of `data/*.json`, one system at a time, each giving the
    same results first (loot: same tables, and the same drop rates over 200,000 bags per source):
-   loot (done), upgrades and procs, skills, NPCs and spawns (then each enemy's own `loot` table),
+   loot (done), upgrades and procs (done: same health, damage and mitigation for every minifigure
+   and upgrade, the same procs in scripted attack/kill/hit sequences), skills, NPCs and spawns (then each enemy's own `loot` table),
    worlds (portals, bouncers, areas, puzzles), minifigures, achievements. Reloading on change comes
    with the world editor switch.
 2. The world editor reads and writes records of this format (forms from `content/schemas`), with

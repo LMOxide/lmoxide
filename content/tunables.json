@@ -5,7 +5,7 @@
     "star_factor": 3.0,
     "power_rating_all": 50.0,
     "variance": "10%",
-    "empowered_normals": 1.2
+    "this_attack": "1s"
   },
   "loot": {
     "share_range": 60.0,
