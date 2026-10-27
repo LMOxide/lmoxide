@@ -268,7 +268,9 @@ async fn build(id: Id32, player: Id32) {
         if done {
             b.state = State::Built;
             info!(?player, buildie = %b.def.name, "built");
-            world::send_to(player, world::Out::Progress(crate::achievements::Event::Built { name: b.def.name.clone() }));
+            let event = crate::achievements::Event::Built { name: b.def.name.clone() };
+            crate::community::share(player.instance, b.def.playfield, &event);
+            world::send_to(player, world::Out::Progress(event));
             records.extend(built_records(id, &b.def));
             // the builder stops building (BCCState back to normal, as recorded)
             records.push(stat_record(player, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL));

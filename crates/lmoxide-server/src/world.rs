@@ -27,6 +27,9 @@ pub enum Out {
     Kick(Option<String>),
     /// Something the player did that achievements (and XP) count.
     Progress(crate::achievements::Event),
+    /// What a teammate on the same playfield did that counts for the player too
+    /// (community::share): as `Progress`, without the doer's own consequences (the cannon).
+    TeamProgress(crate::achievements::Event),
     /// Development tour: teleport next to (playfield, position), announcing `label`.
     DevTeleport(u32, [f32; 3], String),
     /// A test command (devcmd.rs) typed into a chat-server channel (e.g. the Global tab) or sent

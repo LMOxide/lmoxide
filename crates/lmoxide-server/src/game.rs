@@ -113,6 +113,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     let agent = Endpoint::GameCharAgent.proto(None);
                     lmoxide_net::rpc::Rpc::new(agent.clone(), agent, game_char_agent::VICINITY_CHAT_MESSAGE, args)
                 } else {
+                    // a teammate's progress counts as the player's own, minus its consequences
+                    let (out, shared) = match out {
+                        world::Out::TeamProgress(event) => (world::Out::Progress(event), true),
+                        out => (out, false),
+                    };
                     match out {
                         world::Out::Records(records) => {
                             let blob = iir::pass_blob(&records);
@@ -144,15 +149,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 // the last of the playfield's enemies: cleared, also for the teammates
                                 // here (one who came in later never saw every defeat)
                                 let cleared = crate::achievements::Event::Cleared { playfield: *playfield };
-                                for mate in crate::community::teammates(character) {
-                                    let mate = Id32::new(crate::territory::CHARACTER_TYPE, mate);
-                                    if world::whereabouts(mate).is_some_and(|(pf, _)| pf == *playfield) {
-                                        world::send_to(mate, world::Out::Progress(cleared.clone()));
-                                    }
-                                }
+                                crate::community::share(character, *playfield, &cleared);
                                 let _ = outbox.send(world::Out::Progress(cleared));
                             }
                             if let crate::achievements::Event::Built { name } = &event
+                                && !shared
                                 && name == crate::cannon::BUILDIE
                                 && me.playfield == crate::cannon::PLAYFIELD
                             {
@@ -188,7 +189,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             break;
                         }
-                        world::Out::Command(..) => unreachable!(),
+                        world::Out::Command(..) | world::Out::TeamProgress(_) => unreachable!(),
                     world::Out::Window(window) => portals.open_window(&mut conn, character, window).await?,
                     world::Out::RemoveAchievements(which, reply) => {
                         let (gone, rpcs) = crate::achievements::remove(&mut me, which.as_deref());

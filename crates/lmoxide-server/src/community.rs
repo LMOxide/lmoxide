@@ -504,6 +504,18 @@ fn accept(character: u32, inviter: u32) {
     info!(team, ?members, "team: joined");
 }
 
+/// What a player did on `playfield` that counts for the teammates there too (any distance):
+/// defeats (kill XP, counters, named enemies and bosses), smashes, builds and a pocket world's
+/// clear. Visits and finds (location discovery) aren't shared.
+pub fn share(player: u32, playfield: u32, event: &crate::achievements::Event) {
+    for mate in teammates(player) {
+        let mate = Id32::new(CHARACTER_TYPE, mate);
+        if world::whereabouts(mate).is_some_and(|(pf, _)| pf == playfield) {
+            world::send_to(mate, world::Out::TeamProgress(event.clone()));
+        }
+    }
+}
+
 /// `!team <name>`: the online character of that name joins this character's team (made with
 /// this character as the leader) as if it had accepted an invite. Returns its name.
 pub fn team_up(character: u32, name: &str) -> Result<String, String> {

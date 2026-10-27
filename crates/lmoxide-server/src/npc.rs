@@ -1045,9 +1045,8 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             if kind == Kind::Enemy && by_player {
                 crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
             }
-            // achievements (and XP) of the player who defeated it; an enemy counts for the
-            // teammates on its playfield too (kill XP, defeat counts, named enemies and bosses,
-            // and so a dungeon's clear), smashables only for the player who smashed them
+            // achievements (and XP) of the player who defeated it, and of the teammates on its
+            // playfield (community::share)
             let event = crate::achievements::Event::Defeated {
                 id: target,
                 name: npc.def.name.clone(),
@@ -1057,13 +1056,8 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
                 level: npc.def.level,
                 playfield: npc.playfield,
             };
-            if kind == Kind::Enemy && by_player {
-                for mate in crate::community::teammates(attacker.instance) {
-                    let mate = Id32::new(attacker.kind, mate);
-                    if world::whereabouts(mate).is_some_and(|(playfield, _)| playfield == npc.playfield) {
-                        world::send_to(mate, world::Out::Progress(event.clone()));
-                    }
-                }
+            if by_player {
+                crate::community::share(attacker.instance, npc.playfield, &event);
             }
             world::send_to(attacker, world::Out::Progress(event));
         }
