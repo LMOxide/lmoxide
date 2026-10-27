@@ -1,0 +1,513 @@
+{
+  "capture": "LMOp1-lmo-exe.cap",
+  "capture_start": "2016-09-29T13:32:08.690000",
+  "capture_start_note": "local time of the capture PC (NetMon SYSTEMTIME, no zone)",
+  "frames_total": 21026,
+  "funcom_tcp_frames": 20284,
+  "funcom_endpoints": [
+    "37.18.192.52",
+    "37.18.192.72",
+    "37.18.192.73",
+    "37.18.192.78",
+    "37.18.193.16",
+    "69.16.175.42"
+  ],
+  "totals": {
+    "CS_rpc": 11693,
+    "CS_bytes": 1117757,
+    "SC_rpc": 39,
+    "SC_bytes": 1347269,
+    "zlib_streams_broken": 2
+  },
+  "client_to_server": "fully decoded: plain LMO framing, CRC-verified; holes resynced by CRC scan",
+  "server_to_client": "main game stream 37.18.193.16:7112 is zlib-compressed; it breaks at the first hole in the capture, so only its first bytes decode. Other server streams have holes in the same way.",
+  "playfields_from_analytics": {
+    "4200": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "1200": [
+      "exit_splashscreen"
+    ],
+    "8060": [
+      "exit_splashscreen"
+    ],
+    "8030": [
+      "exit_splashscreen"
+    ],
+    "-1": [
+      "enter_splashscreen"
+    ],
+    "4610": [
+      "exit_splashscreen"
+    ]
+  },
+  "analytics_events": [
+    {
+      "t": 16.348,
+      "frame": 52,
+      "category": "client",
+      "platform": "pc",
+      "action": "login_window",
+      "value": "login_ok"
+    },
+    {
+      "t": 25.213,
+      "frame": 196,
+      "category": "client",
+      "platform": "pc",
+      "action": "login",
+      "value": "ok"
+    },
+    {
+      "t": 28.088,
+      "frame": 396,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 53.591,
+      "frame": 2476,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 55.858,
+      "frame": 2557,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "shop",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 58.804,
+      "frame": 2692,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 83.881,
+      "frame": 4145,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:8060"
+    },
+    {
+      "t": 111.699,
+      "frame": 7061,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:8030"
+    },
+    {
+      "t": 141.667,
+      "frame": 9325,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 143.469,
+      "frame": 9389,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 176.483,
+      "frame": 9799,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 177.878,
+      "frame": 9891,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 240.96,
+      "frame": 10508,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:-1"
+    },
+    {
+      "t": 245.374,
+      "frame": 10521,
+      "category": "client",
+      "platform": "pc",
+      "action": "rendering",
+      "value": "start"
+    },
+    {
+      "t": 256.877,
+      "frame": 10886,
+      "category": "client",
+      "platform": "pc",
+      "action": "minifigures",
+      "value": "2"
+    },
+    {
+      "t": 301.819,
+      "frame": 13799,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 301.859,
+      "frame": 13804,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4610"
+    },
+    {
+      "t": 308.946,
+      "frame": 14343,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 337.734,
+      "frame": 16692,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewcategory",
+      "value": "Global",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 358.23,
+      "frame": 18521,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewitem",
+      "value": "194",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 378.426,
+      "frame": 20946,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    }
+  ],
+  "flows": {
+    "C->S 37.18.192.73:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 153,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.72:443": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 568,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.78:443": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1342,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 69.16.175.42:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 131,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.52:7100": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 822,
+      "mode": "plain",
+      "rpc": 2
+    },
+    "C->S 37.18.192.52:7101": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 315,
+      "mode": "plain",
+      "rpc": 5
+    },
+    "C->S 37.18.193.16:7102": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1497,
+      "mode": "plain",
+      "rpc": 30
+    },
+    "C->S 37.18.192.52:7001": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 317,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.193.16:7106": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 48026,
+      "mode": "plain",
+      "rpc": 505
+    },
+    "C->S 37.18.193.16:7113": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 9735,
+      "mode": "plain",
+      "rpc": 107
+    },
+    "C->S 37.18.193.16:7115": {
+      "runs": 5,
+      "gaps": 4,
+      "retransmits": 0,
+      "bytes": 239999,
+      "mode": "plain",
+      "rpc": 2705
+    },
+    "C->S 37.18.193.16:7114": {
+      "runs": 6,
+      "gaps": 5,
+      "retransmits": 0,
+      "bytes": 146866,
+      "mode": "plain",
+      "rpc": 1633
+    },
+    "C->S 37.18.193.16:7118": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 48767,
+      "mode": "plain",
+      "rpc": 492
+    },
+    "C->S 37.18.193.16:7119": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1496,
+      "mode": "plain",
+      "rpc": 31
+    },
+    "C->S 37.18.193.16:7103": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 674,
+      "mode": "plain",
+      "rpc": 14
+    },
+    "C->S 37.18.193.16:7111": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 49247,
+      "mode": "plain",
+      "rpc": 495
+    },
+    "C->S 37.18.193.16:7117": {
+      "runs": 2,
+      "gaps": 1,
+      "retransmits": 0,
+      "bytes": 35402,
+      "mode": "plain",
+      "rpc": 368
+    },
+    "C->S 37.18.193.16:7112": {
+      "runs": 4,
+      "gaps": 3,
+      "retransmits": 0,
+      "bytes": 298823,
+      "mode": "plain",
+      "rpc": 2916
+    },
+    "S->C 37.18.192.52:7001": {
+      "runs": 10,
+      "gaps": 9,
+      "retransmits": 0,
+      "bytes": 1274,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.52:7100": {
+      "runs": 0,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 0,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.52:7101": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 312,
+      "mode": "plain",
+      "rpc": 4
+    },
+    "S->C 37.18.192.72:443": {
+      "runs": 0,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 0,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.73:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 364,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.78:443": {
+      "runs": 0,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 0,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7102": {
+      "runs": 13,
+      "gaps": 12,
+      "retransmits": 0,
+      "bytes": 277,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7103": {
+      "runs": 2,
+      "gaps": 1,
+      "retransmits": 0,
+      "bytes": 159,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7106": {
+      "runs": 104,
+      "gaps": 103,
+      "retransmits": 0,
+      "bytes": 14593,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7111": {
+      "runs": 106,
+      "gaps": 105,
+      "retransmits": 0,
+      "bytes": 17129,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7112": {
+      "runs": 988,
+      "gaps": 987,
+      "retransmits": 0,
+      "bytes": 162481,
+      "mode": "zlib",
+      "zlib_runs_lost": 987,
+      "rpc": 29
+    },
+    "S->C 37.18.193.16:7113": {
+      "runs": 15,
+      "gaps": 14,
+      "retransmits": 0,
+      "bytes": 1992,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7114": {
+      "runs": 186,
+      "gaps": 185,
+      "retransmits": 0,
+      "bytes": 34451,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7115": {
+      "runs": 264,
+      "gaps": 263,
+      "retransmits": 0,
+      "bytes": 20587,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7117": {
+      "runs": 65,
+      "gaps": 64,
+      "retransmits": 0,
+      "bytes": 6839,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7118": {
+      "runs": 172,
+      "gaps": 171,
+      "retransmits": 0,
+      "bytes": 26484,
+      "mode": "zlib",
+      "zlib_runs_lost": 171,
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7119": {
+      "runs": 5,
+      "gaps": 4,
+      "retransmits": 0,
+      "bytes": 208,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 69.16.175.42:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 513674,
+      "mode": "plain",
+      "rpc": 0
+    }
+  }
+}

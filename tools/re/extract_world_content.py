@@ -11,6 +11,12 @@ Sources (all local; nothing is downloaded):
   u32 len + bytes; 1/2 u8 stream; 3 (sent) / 4 (received) u8 stream + u32 len + one RPC message
   (u32be hlen, RpcHeader, args); 5 u32; 6 8 bytes; 9 none; 100: 17, 101: 4, 102: 28 bytes.
   Stream 3 is the game server; GameserverToClientRPC::PassBlob carries the IIR records.
+* ../LMO_Captures.cap ($LMO_LIVE_CAPTURE) -- a Network Monitor capture of the live server
+  (2016-09-29, tools/re/livecap.py): 21 zone visits over 13 playfields, the same IIR records.
+  Playfields it has and the demo doesn't get the live server's spawns ("source": "live"),
+  proposed ones only where the player never came near (live_seen); summoned or respawned
+  characters go to "live_dynamic" (live_resident).  The player's path is the client's own
+  CharDCMoveIIR_t / MoveTaskIIR_c.
 * RDB 1000057 PlayfieldSimpleDynels_c (GameData::PlayfieldSimpleDynels_c::ReadData): u32 n, then
   n x { u32 version (4), str name, vec3 pos, quat rot (x,y,z,w), f32 scale, i32 script_group,
   ResourceId visual (u32 type, u32 id: 1010201 = monsterdata look in RDB 1010514, 1010030 =
@@ -407,7 +413,7 @@ def demo_blobs():
         if struct.unpack("<I", ep[1])[0] != g2c or h.get(4) != 0:
             continue  # only PassBlob
         n = struct.unpack_from(">I", p, 4 + hl)[0]
-        out.append(p[8 + hl : 8 + hl + n])
+        out.append((p[8 + hl : 8 + hl + n], None, None))
     return out
 
 
@@ -430,12 +436,95 @@ def demo_jump(b, o):
     return dict(start=rnd(start), end=rnd(end), duration=round(dur, 3), apex=round(apex, 2))
 
 
-def demo_records():
-    """Initial state of every dynel the demo's server spawned, per playfield id.  Records are
-    found by scanning the PassBlobs for the IIR type ids (records have no length prefix) and
-    validated by parsing their protobufs."""
+# ---------------------------------------------------------------- live capture
+
+# A capture of the live server (Network Monitor, 2016-09-29; tools/re/livecap.py): 21 zone visits
+# over 13 playfields.  Its server streams carry the same IIR records as the demo.
+LIVE_CAPTURE = os.environ.get("LMO_LIVE_CAPTURE") or os.path.join(ROOT, "../LMO_Captures.cap")
+VISITS = []  # zone visits seen by demo_records: {visit, playfield, t, flow}
+# The live server sent dynels as the player came near (median 40 m, 90% within 65 m of the
+# player when they arrived); the capture is taken to show everything within this distance (x, z)
+# of the player's path.
+LIVE_SEEN = 40.0
+# A character the server created closer than this to the player, after the zone's first
+# records, was summoned or respawned there (Spiderlings, Summoned Wolves, Monster Laboratory
+# waves), not a resident spawn.
+LIVE_SUMMONED = 25.0
+LIVE_BURST = 3.0  # seconds after a visit's first records: the zone's initial dynels
+G2C_PORTS = range(7102, 7120)  # the game servers' ports (37.18.193.16)
+IIR_CHAR_MOVE, IIR_MOVE_TASK = 0x4517AA81, 0x96C46740
+
+
+def live_messages():
+    """(direction, port, t seconds, PassBlob args) of the game-server PassBlobs in the live
+    capture, each connection in arrival order."""
+    if not os.path.exists(LIVE_CAPTURE):
+        return []
+    import livecap
+    dirs, _ = livecap.build_directions(LIVE_CAPTURE)
+    tables = livecap.load_method_names()
+    out = []
+    for key, d in sorted(dirs.items()):
+        direction, frames, _ = livecap.flow_messages(d)
+        port = key[3] if direction == "C->S" else key[1]
+        if port not in G2C_PORTS:
+            continue
+        for _, ctl, body, _, _, ts in frames:
+            if ctl:
+                continue
+            try:
+                hdr, args = livecap.parse_rpc_header(body)
+            except Exception:
+                continue
+            m = hdr["method"]
+            m = int.from_bytes(m, "big") if isinstance(m, (bytes, bytearray)) else m
+            sig = livecap.method_signature(tables, direction, livecap.endpoint_name(hdr["endpoint"]), m) or ""
+            if sig.startswith(("PassBlob(", "SignalPassBlob(")) and len(args) > 30:  # u32 length + IIR records
+                out.append((direction, port, ts / 1e7 if ts is not None else None, args[4:4 + struct.unpack_from(">I", args, 0)[0]]))
+    return out
+
+
+def live_records():
+    """demo_records of the live capture's server streams, and the player's path per visit:
+    {visit: [(t, pos)]} from the client's own CharDCMoveIIR_t / MoveTaskIIR_c."""
+    msgs = live_messages()
+    VISITS.clear()
+    per = demo_records([(b, t, port) for d, port, t, b in msgs if d == "S->C"])
+    paths = defaultdict(list)
+    for d, port, t, b in msgs:
+        if d != "C->S" or struct.unpack_from(">I", b, 0)[0] not in (IIR_CHAR_MOVE, IIR_MOVE_TASK):
+            continue
+        if struct.unpack_from(">I", b, 8)[0] <= 16_000_000:
+            continue  # not the player (a pet)
+        v = [v for v in VISITS if v["flow"] == port and v["t"] is not None and v["t"] <= t]
+        if v:
+            paths[v[-1]["visit"]].append((t, list(struct.unpack_from(">3f", b, 14))))
+    return per, paths
+
+
+def live_resident(rec, paths, first_t):
+    """Whether a live character spawn is a resident one (see LIVE_SUMMONED): it came with the
+    zone, or the player was far from it when it appeared (where they last reported being)."""
+    if rec["t"] - first_t.get(rec["visit"], rec["t"]) < LIVE_BURST:
+        return True
+    before = [p for t, p in paths.get(rec["visit"], []) if t <= rec["t"]]
+    return not before or math.dist(before[-1][::2], rec["pos"][::2]) >= LIVE_SUMMONED
+
+
+def live_seen(pos, paths, visits):
+    """Whether pos was within LIVE_SEEN (x, z) of the player on one of these visits."""
+    return any(math.dist(p[::2], pos[::2]) < LIVE_SEEN for v in visits for _, p in paths.get(v, []))
+
+
+def demo_records(blobs=None):
+    """Initial state of every dynel the server spawned, per playfield id, from the demo's
+    PassBlobs or `blobs` ((blob, t, flow) in arrival order: live_blobs).  Records are found by
+    scanning the PassBlobs for the IIR type ids (records have no length prefix) and validated
+    by parsing their protobufs.  Each record keeps its arrival time t and flow (None in the
+    demo) and the zone visit (`visit`, the PlayfieldFIIR_t's index)."""
     per = defaultdict(dict)
     pf = None
+    visit = -1
 
     def msg(b, o):
         n = struct.unpack_from(">I", b, o)[0]
@@ -443,7 +532,10 @@ def demo_records():
             raise ValueError
         return pb(b[o + 4 : o + 4 + n]), o + 4 + n
 
-    for blob in demo_blobs():
+    last_flow = None
+    for blob, t, flow in demo_blobs() if blobs is None else blobs:
+        if flow != last_flow:  # a new game-server connection: its zone comes with its PlayfieldFIIR_t
+            pf, last_flow = None, flow
         for k in range(len(blob) - 13):
             kind = KIND.get(struct.unpack_from(">I", blob, k)[0])
             if not kind or blob[k + 12] > 1:
@@ -456,6 +548,8 @@ def demo_records():
                     j = blob.find(b"\x12\x07\x08\x9c\x8f\x03\x10", o, o + 64)
                     if j > 0:
                         pf = varint(blob, j + 7)[0]
+                        visit += 1
+                        VISITS.append(dict(visit=visit, playfield=pf, t=t, flow=flow))
                     continue
                 if kind == "MoveTaskIIR_c":
                     j = demo_jump(blob, o)
@@ -470,7 +564,8 @@ def demo_records():
                                                             actor_alias=m.get(6, b"").decode(), cinematic=bool(m.get(7)))
                     continue
                 h, o = msg(blob, o)
-                rec = dict(kind=kind, id=[typ, inst], pos=pvec(h[1]) if 1 in h else None, rot=yaw(pvec(h[2], 4)) if 2 in h else 0.0)
+                rec = dict(kind=kind, id=[typ, inst], pos=pvec(h[1]) if 1 in h else None, rot=yaw(pvec(h[2], 4)) if 2 in h else 0.0,
+                           t=t, flow=flow, visit=visit)
                 if kind == "SimpleCharFullUpdateIIR_t":
                     if inst > 16_000_000:
                         continue  # a player
@@ -824,14 +919,73 @@ def proposals(pf, dest, res, points, portals_here, parents, dungeon):
 
 # ---------------------------------------------------------------- main
 
+def add_recorded(w, recs, source):
+    """Add a recorded session's spawns (demo_records) to the playfield entry w."""
+    w[source + "_dynels"] = []
+    w["client_npcs"] = []
+    for rec in recs:
+        k = rec["kind"]
+        if k == "client_npc":
+            rec = {x: y for x, y in rec.items() if x != "kind"}
+            w["client_npcs"].append(dict(rec, name=item_name(rec["item_template"]) if rec["item_template"] else None))
+        elif k == "SimpleCharFullUpdateIIR_t":
+            base = dict(name=rec["name"], monster_data=rec["monster_data"], look=MD.get(rec["monster_data"]), level=rec["level"],
+                        health=rec["health"], pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"],
+                        npc_template=rec["npc_template"], source=source)
+            if rec.get("dynamic"):
+                w.setdefault("live_dynamic", []).append(dict(base, t=rec["t"]))
+            elif rec["cars_group"] == 3:
+                w["enemies"].append(dict(base, spell=spell_for(rec["monster_data"])))
+            elif rec["monster_data"] == 51057:  # invisible_monsterdata: cinematic / quest triggers
+                w.setdefault("triggers", []).append(base)
+            else:
+                w["npcs"].append(base)
+        elif k == "DestructibleFullUpdateIIR_c":
+            d = dict(name=rec["name"], template=rec["template"], monster_data=rec["visual"][1], look=MD.get(rec["visual"][1]),
+                     level=1, health=20, pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"], source=source)
+            (w["smashables"] if rec["cars_group"] == 3 else w.setdefault("buildies", [])).append(d)
+        else:
+            w[source + "_dynels"].append(dict(type={"SimpleDynelFullUpdateIIR_c": 51320, "DoorFullUpdateIIR_c": 51016}[k],
+                                              name=rec["name"], template=rec["template"], visual=rec["visual"],
+                                              look=MD.get(rec["visual"][1]) if rec["visual"][0] == 1010201 else None,
+                                              pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"],
+                                              flags=rec["flags"], is_hidden=rec["is_hidden"], interaction_radius=rec["interaction_radius"]))
+
+
+LIVE_SAME = 3.0  # m: the same spawn seen again (another visit, or respawned)
+
+
+def live_unique(recs, paths, first_t):
+    """Live records once per spawn: each zone visit (and each respawn) brings new instance
+    ids, so a record of the same kind, name and look within LIVE_SAME (x, z) of an earlier one
+    is the same spawn.  Characters that weren't resident (live_resident) are marked dynamic."""
+    out = []
+    for rec in sorted(recs, key=lambda r: (r.get("t") is None, r.get("t") or 0)):
+        if rec["kind"] == "client_npc":
+            if not any(o["kind"] == "client_npc" and (o["item_template"], o["ai_point"]) == (rec["item_template"], rec["ai_point"]) for o in out):
+                out.append(rec)
+            continue
+        if rec.get("pos") is None:
+            continue
+        look_id = rec.get("monster_data", rec.get("template"))
+        if any(o["kind"] == rec["kind"] and o.get("name") == rec.get("name") and o.get("monster_data", o.get("template")) == look_id
+               and math.dist(o["pos"][::2], rec["pos"][::2]) < LIVE_SAME for o in out if o.get("pos")):
+            continue
+        if rec["kind"] == "SimpleCharFullUpdateIIR_t" and not live_resident(rec, paths, first_t):
+            rec = dict(rec, dynamic=True)
+        out.append(rec)
+    return out
+
+
 def main():
     global SMASHIE_TEMPLATE
     SMASHIE_TEMPLATE = destructible_templates()
     dest = json.load(open(os.path.join(ROOT, "data/destinations.json")))["destinations"]
     port = portals()
     demo = demo_records()
+    live, live_paths = live_records()
     world = {}
-    pfs = sorted(set(MAIN) | {p for p in demo if p and p != 4000} | set(port) | DESTINATIONS)
+    pfs = sorted(set(MAIN) | {p for p in demo if p and p != 4000} | {p for p in live if p and p != 4000} | set(port) | DESTINATIONS)
     parents = defaultdict(set)  # playfield -> playfields with a portal into it
     for src, ps in port.items():
         for p in ps:
@@ -842,7 +996,7 @@ def main():
         sd, dr = simple_dynels(pf), doors(pf)
         res = xml_points(1000090, pf, "resurrectionpoint")
         pts = xml_points(1000103, pf, "NamedPoint")
-        if pf not in MAIN and pf not in demo and pf not in DESTINATIONS:
+        if pf not in MAIN and pf not in demo and pf not in live and pf not in DESTINATIONS:
             if w["portals"]:
                 world[str(pf)] = dict(portals=w["portals"])
             continue
@@ -863,33 +1017,27 @@ def main():
         w["static_points"] = pts or []
         if pf in demo:
             w["source"] = "demo"
-            w["demo_dynels"] = []
-            w["client_npcs"] = []
-            for rec in demo[pf].values():
-                k = rec["kind"]
-                if k == "client_npc":
-                    rec.pop("kind")
-                    w["client_npcs"].append(dict(rec, name=item_name(rec["item_template"]) if rec["item_template"] else None))
-                elif k == "SimpleCharFullUpdateIIR_t":
-                    base = dict(name=rec["name"], monster_data=rec["monster_data"], look=MD.get(rec["monster_data"]), level=rec["level"],
-                                health=rec["health"], pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"],
-                                npc_template=rec["npc_template"], source="demo")
-                    if rec["cars_group"] == 3:
-                        w["enemies"].append(dict(base, spell=spell_for(rec["monster_data"])))
-                    elif rec["monster_data"] == 51057:  # invisible_monsterdata: cinematic / quest triggers
-                        w.setdefault("triggers", []).append(base)
-                    else:
-                        w["npcs"].append(base)
-                elif k == "DestructibleFullUpdateIIR_c":
-                    d = dict(name=rec["name"], template=rec["template"], monster_data=rec["visual"][1], look=MD.get(rec["visual"][1]),
-                             level=1, health=20, pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"], source="demo")
-                    (w["smashables"] if rec["cars_group"] == 3 else w.setdefault("buildies", [])).append(d)
-                else:
-                    w["demo_dynels"].append(dict(type={"SimpleDynelFullUpdateIIR_c": 51320, "DoorFullUpdateIIR_c": 51016}[k],
-                                                 name=rec["name"], template=rec["template"], visual=rec["visual"],
-                                                 look=MD.get(rec["visual"][1]) if rec["visual"][0] == 1010201 else None,
-                                                 pos=rec["pos"], rot=rec["rot"], cars_group=rec["cars_group"],
-                                                 flags=rec["flags"], is_hidden=rec["is_hidden"], interaction_radius=rec["interaction_radius"]))
+            add_recorded(w, demo[pf].values(), "demo")
+        elif pf in live:
+            # the live server's own spawns, plus proposed ones where the player never went
+            recs = live[pf]
+            first_t = {}
+            for r in recs.values():
+                if r.get("t") is not None:
+                    first_t[r["visit"]] = min(first_t.get(r["visit"], r["t"]), r["t"])
+            visits = {v["visit"] for v in VISITS if v["playfield"] == pf}
+            add_recorded(w, live_unique(recs.values(), live_paths, first_t), "live")
+            p = proposals(pf, dest.get(str(pf)), res or [], pts, w["portals"], parents, pf not in MAIN)
+            dropped = 0
+            for k in ("enemies", "smashables", "npcs"):
+                keep = [e for e in p[k] if not live_seen(e["pos"], live_paths, visits)]
+                dropped += len(p[k]) - len(keep)
+                w[k] += keep
+            w["source"] = "live"
+            w["live"] = dict(visits=len(visits), proposed_kept=sum(1 for k in ("enemies", "smashables", "npcs") for e in w[k] if e.get("source") == "proposed"),
+                             proposed_dropped=dropped, seen_radius=LIVE_SEEN,
+                             note="spawns the live server sent (tools/re/live_playfield.py); proposed ones only where the "
+                                  f"player never came within {LIVE_SEEN:.0f} m")
         else:
             p = proposals(pf, dest.get(str(pf)), res or [], pts, w["portals"], parents, pf not in MAIN)
             w["source"] = "proposed" if p["enemies"] else "rdb"

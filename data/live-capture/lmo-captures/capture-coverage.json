@@ -1,0 +1,1587 @@
+{
+  "capture": "LMO_Captures.cap",
+  "capture_start": "2016-09-29T13:32:06.352000",
+  "capture_start_note": "local time of the capture PC (NetMon SYSTEMTIME, no zone)",
+  "frames_total": 77965,
+  "funcom_tcp_frames": 76663,
+  "funcom_endpoints": [
+    "37.18.192.154",
+    "37.18.192.52",
+    "37.18.192.72",
+    "37.18.192.73",
+    "37.18.192.78",
+    "37.18.193.16",
+    "69.16.175.10",
+    "69.16.175.42"
+  ],
+  "totals": {
+    "CS_rpc": 11705,
+    "CS_bytes": 1159348,
+    "SC_rpc": 88885,
+    "SC_bytes": 4401811,
+    "zlib_streams_broken": 3
+  },
+  "client_to_server": "fully decoded: plain LMO framing, CRC-verified; holes resynced by CRC scan",
+  "server_to_client": "main game stream 37.18.193.16:7112 is zlib-compressed; it breaks at the first hole in the capture, so only its first bytes decode. Other server streams have holes in the same way.",
+  "playfields_from_analytics": {
+    "4200": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "1640": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "1200": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "8000": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "8060": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "8030": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "6200": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "2210": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "-1": [
+      "enter_splashscreen"
+    ],
+    "1300": [
+      "exit_splashscreen"
+    ],
+    "4600": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "4610": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ],
+    "1643": [
+      "enter_splashscreen",
+      "exit_splashscreen"
+    ]
+  },
+  "analytics_events": [
+    {
+      "t": 0.028,
+      "frame": 4,
+      "category": "launcher",
+      "action": "start",
+      "platform": "pc"
+    },
+    {
+      "t": 0.21,
+      "frame": 19,
+      "category": "launcher",
+      "action": "launchgame",
+      "platform": "pc"
+    },
+    {
+      "t": 0.829,
+      "frame": 27,
+      "category": "client",
+      "platform": "pc",
+      "action": "started"
+    },
+    {
+      "t": 1.598,
+      "frame": 31,
+      "category": "client",
+      "platform": "pc",
+      "action": "rendering",
+      "value": "start"
+    },
+    {
+      "t": 15.645,
+      "frame": 41,
+      "category": "client",
+      "platform": "pc",
+      "action": "rendering",
+      "value": "success"
+    },
+    {
+      "t": 15.819,
+      "frame": 45,
+      "category": "client",
+      "platform": "pc",
+      "action": "patching",
+      "value": "start"
+    },
+    {
+      "t": 15.855,
+      "frame": 51,
+      "category": "client",
+      "platform": "pc",
+      "action": "login_window",
+      "value": "open"
+    },
+    {
+      "t": 16.582,
+      "frame": 263,
+      "category": "client",
+      "platform": "pc",
+      "action": "login_window",
+      "value": "login_ok"
+    },
+    {
+      "t": 22.504,
+      "frame": 801,
+      "category": "client",
+      "platform": "pc",
+      "action": "patching",
+      "value": "done"
+    },
+    {
+      "t": 23.728,
+      "frame": 829,
+      "category": "client",
+      "platform": "pc",
+      "action": "showplay"
+    },
+    {
+      "t": 25.436,
+      "frame": 863,
+      "category": "client",
+      "platform": "pc",
+      "action": "clickplay"
+    },
+    {
+      "t": 25.441,
+      "frame": 866,
+      "category": "client",
+      "platform": "pc",
+      "action": "login",
+      "value": "start"
+    },
+    {
+      "t": 25.446,
+      "frame": 869,
+      "category": "client",
+      "platform": "pc",
+      "action": "login",
+      "value": "ok"
+    },
+    {
+      "t": 28.217,
+      "frame": 1120,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 28.316,
+      "frame": 1138,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 28.321,
+      "frame": 1141,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 31.26,
+      "frame": 1615,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 31.264,
+      "frame": 1617,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 31.326,
+      "frame": 1620,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 34.263,
+      "frame": 3369,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewcategory",
+      "value": "Global",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 35.29,
+      "frame": 3471,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 45.111,
+      "frame": 6077,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1640"
+    },
+    {
+      "t": 45.573,
+      "frame": 6158,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 45.577,
+      "frame": 6160,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 45.609,
+      "frame": 6163,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1640"
+    },
+    {
+      "t": 52.733,
+      "frame": 7753,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewcategory",
+      "value": "Global",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 53.801,
+      "frame": 7772,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1640"
+    },
+    {
+      "t": 53.825,
+      "frame": 7776,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 53.853,
+      "frame": 7779,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1640"
+    },
+    {
+      "t": 54.417,
+      "frame": 7857,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 55.18,
+      "frame": 8113,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 55.185,
+      "frame": 8116,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 55.221,
+      "frame": 8129,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 55.673,
+      "frame": 8151,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 55.947,
+      "frame": 8166,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 56.092,
+      "frame": 8175,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "shop",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 56.747,
+      "frame": 8199,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 56.802,
+      "frame": 8202,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 57.357,
+      "frame": 8237,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 59.002,
+      "frame": 8816,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 59.009,
+      "frame": 8823,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 59.038,
+      "frame": 8836,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 61.084,
+      "frame": 9688,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:8000"
+    },
+    {
+      "t": 70.186,
+      "frame": 16804,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 71.541,
+      "frame": 17907,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:8000"
+    },
+    {
+      "t": 72.455,
+      "frame": 18025,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 72.462,
+      "frame": 18037,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 72.495,
+      "frame": 18042,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:8000"
+    },
+    {
+      "t": 83.336,
+      "frame": 20946,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:8060"
+    },
+    {
+      "t": 84.078,
+      "frame": 21027,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 84.083,
+      "frame": 21039,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 84.115,
+      "frame": 21043,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:8060"
+    },
+    {
+      "t": 111.458,
+      "frame": 35290,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:8030"
+    },
+    {
+      "t": 111.894,
+      "frame": 35599,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 111.902,
+      "frame": 35612,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 111.933,
+      "frame": 35617,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:8030"
+    },
+    {
+      "t": 141.901,
+      "frame": 47861,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 143.702,
+      "frame": 48139,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 144.325,
+      "frame": 48175,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 144.977,
+      "frame": 48690,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 144.983,
+      "frame": 48699,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 145.014,
+      "frame": 48725,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 145.376,
+      "frame": 49056,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewcategory",
+      "value": "Global",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 147.409,
+      "frame": 49779,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:6200"
+    },
+    {
+      "t": 148.861,
+      "frame": 49896,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 148.868,
+      "frame": 49900,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 148.931,
+      "frame": 49914,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:6200"
+    },
+    {
+      "t": 176.374,
+      "frame": 50035,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 176.676,
+      "frame": 50288,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 176.683,
+      "frame": 50302,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 176.717,
+      "frame": 50333,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 178.04,
+      "frame": 50896,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 178.07,
+      "frame": 50899,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 178.112,
+      "frame": 50902,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 178.582,
+      "frame": 50936,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:6200"
+    },
+    {
+      "t": 178.875,
+      "frame": 51079,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 178.882,
+      "frame": 51085,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 178.934,
+      "frame": 51104,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:6200"
+    },
+    {
+      "t": 180.203,
+      "frame": 51437,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 180.459,
+      "frame": 51558,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 180.462,
+      "frame": 51564,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 180.494,
+      "frame": 51574,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1200"
+    },
+    {
+      "t": 182.663,
+      "frame": 52061,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:2210"
+    },
+    {
+      "t": 183.98,
+      "frame": 52164,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 183.985,
+      "frame": 52166,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 184.015,
+      "frame": 52170,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:2210"
+    },
+    {
+      "t": 186.655,
+      "frame": 52219,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:6200"
+    },
+    {
+      "t": 186.907,
+      "frame": 52368,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 186.915,
+      "frame": 52377,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 186.921,
+      "frame": 52381,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:6200"
+    },
+    {
+      "t": 241.193,
+      "frame": 53439,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:-1"
+    },
+    {
+      "t": 243.944,
+      "frame": 53496,
+      "category": "launcher",
+      "action": "start",
+      "platform": "pc"
+    },
+    {
+      "t": 244.855,
+      "frame": 53514,
+      "category": "launcher",
+      "action": "launchgame",
+      "platform": "pc"
+    },
+    {
+      "t": 245.237,
+      "frame": 53521,
+      "category": "client",
+      "platform": "pc",
+      "action": "started"
+    },
+    {
+      "t": 245.608,
+      "frame": 53525,
+      "category": "client",
+      "platform": "pc",
+      "action": "rendering",
+      "value": "start"
+    },
+    {
+      "t": 246.011,
+      "frame": 53528,
+      "category": "client",
+      "platform": "pc",
+      "action": "rendering",
+      "value": "success"
+    },
+    {
+      "t": 246.262,
+      "frame": 53531,
+      "category": "client",
+      "platform": "pc",
+      "action": "patching",
+      "value": "start"
+    },
+    {
+      "t": 246.421,
+      "frame": 53537,
+      "category": "client",
+      "platform": "pc",
+      "action": "login_window",
+      "value": "open"
+    },
+    {
+      "t": 253.108,
+      "frame": 55043,
+      "category": "client",
+      "platform": "pc",
+      "action": "login_window",
+      "value": "login_ok"
+    },
+    {
+      "t": 254.111,
+      "frame": 55091,
+      "category": "client",
+      "platform": "pc",
+      "action": "patching",
+      "value": "done"
+    },
+    {
+      "t": 255.424,
+      "frame": 55104,
+      "category": "client",
+      "platform": "pc",
+      "action": "showplay"
+    },
+    {
+      "t": 256.396,
+      "frame": 55114,
+      "category": "client",
+      "platform": "pc",
+      "action": "clickstart"
+    },
+    {
+      "t": 257.111,
+      "frame": 55125,
+      "category": "client",
+      "platform": "pc",
+      "action": "minifigures",
+      "value": "2"
+    },
+    {
+      "t": 261.225,
+      "frame": 55169,
+      "category": "client",
+      "platform": "pc",
+      "action": "login",
+      "value": "start"
+    },
+    {
+      "t": 261.229,
+      "frame": 55172,
+      "category": "client",
+      "platform": "pc",
+      "action": "login",
+      "value": "ok"
+    },
+    {
+      "t": 261.502,
+      "frame": 55323,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 261.553,
+      "frame": 55341,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 262.255,
+      "frame": 55443,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 262.314,
+      "frame": 55462,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 262.328,
+      "frame": 55466,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1300"
+    },
+    {
+      "t": 283.304,
+      "frame": 57816,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 287.147,
+      "frame": 58275,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4600"
+    },
+    {
+      "t": 287.702,
+      "frame": 58364,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 287.709,
+      "frame": 58370,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 287.79,
+      "frame": 58382,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4600"
+    },
+    {
+      "t": 301.751,
+      "frame": 60615,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4610"
+    },
+    {
+      "t": 302.046,
+      "frame": 60673,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 302.053,
+      "frame": 60680,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 302.093,
+      "frame": 60687,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4610"
+    },
+    {
+      "t": 309.179,
+      "frame": 61935,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 310.708,
+      "frame": 62028,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 310.714,
+      "frame": 62034,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 310.746,
+      "frame": 62040,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 319.664,
+      "frame": 63728,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:1643"
+    },
+    {
+      "t": 319.96,
+      "frame": 63786,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 319.966,
+      "frame": 63796,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 319.997,
+      "frame": 63799,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:1643"
+    },
+    {
+      "t": 329.512,
+      "frame": 66063,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 329.822,
+      "frame": 66105,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "sending_inplay"
+    },
+    {
+      "t": 329.828,
+      "frame": 66110,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_game",
+      "value": "inplay"
+    },
+    {
+      "t": 329.86,
+      "frame": 66114,
+      "category": "client",
+      "platform": "pc",
+      "action": "exit_splashscreen",
+      "value": "51100:4200"
+    },
+    {
+      "t": 337.968,
+      "frame": 66598,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewcategory",
+      "value": "Global",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 339.059,
+      "frame": 66726,
+      "category": "client",
+      "platform": "pc",
+      "action": "hudbutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 339.162,
+      "frame": 66737,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 339.395,
+      "frame": 66755,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewcategory",
+      "value": "Global",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 345.537,
+      "frame": 67431,
+      "category": "client",
+      "platform": "pc",
+      "action": "hudbutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 346.057,
+      "frame": 67458,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewitem",
+      "value": "194",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 346.122,
+      "frame": 67461,
+      "category": "client",
+      "platform": "pc",
+      "action": "buyitem",
+      "value": "194",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 346.207,
+      "frame": 67474,
+      "category": "client",
+      "platform": "pc",
+      "action": "confirmitem",
+      "value": "194",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 358.464,
+      "frame": 71322,
+      "category": "client",
+      "platform": "pc",
+      "action": "viewitem",
+      "value": "194",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 378.659,
+      "frame": 77811,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "crafting",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 378.837,
+      "frame": 77830,
+      "category": "client",
+      "platform": "pc",
+      "action": "guibutton",
+      "value": "collection",
+      "subscription_id": "1503870845"
+    },
+    {
+      "t": 380.699,
+      "frame": 77952,
+      "category": "client",
+      "platform": "pc",
+      "action": "enter_splashscreen",
+      "value": "51100:-1"
+    }
+  ],
+  "flows": {
+    "C->S 37.18.192.73:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 443,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.154:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 318,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.72:443": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 568,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.78:443": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 1,
+      "bytes": 1342,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 69.16.175.42:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 131,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.192.52:7100": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 822,
+      "mode": "plain",
+      "rpc": 2
+    },
+    "C->S 37.18.192.52:7101": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 315,
+      "mode": "plain",
+      "rpc": 5
+    },
+    "C->S 37.18.192.78:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 439,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 69.16.175.10:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 131,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.193.16:7102": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1497,
+      "mode": "plain",
+      "rpc": 30
+    },
+    "C->S 37.18.192.52:7001": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 317,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "C->S 37.18.193.16:7106": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 48026,
+      "mode": "plain",
+      "rpc": 505
+    },
+    "C->S 37.18.193.16:7113": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 9735,
+      "mode": "plain",
+      "rpc": 107
+    },
+    "C->S 37.18.193.16:7115": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 240363,
+      "mode": "plain",
+      "rpc": 2709
+    },
+    "C->S 37.18.193.16:7114": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 147303,
+      "mode": "plain",
+      "rpc": 1638
+    },
+    "C->S 37.18.193.16:7118": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 48767,
+      "mode": "plain",
+      "rpc": 492
+    },
+    "C->S 37.18.193.16:7119": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1496,
+      "mode": "plain",
+      "rpc": 31
+    },
+    "C->S 37.18.193.16:7103": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 674,
+      "mode": "plain",
+      "rpc": 14
+    },
+    "C->S 37.18.193.16:7111": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 49247,
+      "mode": "plain",
+      "rpc": 495
+    },
+    "C->S 37.18.193.16:7117": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 35524,
+      "mode": "plain",
+      "rpc": 369
+    },
+    "C->S 37.18.193.16:7112": {
+      "runs": 2,
+      "gaps": 1,
+      "retransmits": 0,
+      "bytes": 298963,
+      "mode": "plain",
+      "rpc": 2918
+    },
+    "S->C 37.18.192.154:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 3625,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.52:7001": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 2976,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.52:7100": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 161,
+      "mode": "plain",
+      "rpc": 2
+    },
+    "S->C 37.18.192.52:7101": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 808,
+      "mode": "plain",
+      "rpc": 10
+    },
+    "S->C 37.18.192.72:443": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 137,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.73:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1092,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.78:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 1069,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.192.78:443": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 6360,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 37.18.193.16:7102": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 36998,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 1132
+    },
+    "S->C 37.18.193.16:7103": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 4803,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 53
+    },
+    "S->C 37.18.193.16:7106": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 80870,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 2195
+    },
+    "S->C 37.18.193.16:7111": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 76298,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 1813
+    },
+    "S->C 37.18.193.16:7112": {
+      "runs": 2,
+      "gaps": 1,
+      "retransmits": 1,
+      "bytes": 661909,
+      "mode": "zlib",
+      "zlib_runs_lost": 1,
+      "rpc": 2857
+    },
+    "S->C 37.18.193.16:7113": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 52738,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 683
+    },
+    "S->C 37.18.193.16:7114": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 387346,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 19357
+    },
+    "S->C 37.18.193.16:7115": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 671145,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 27558
+    },
+    "S->C 37.18.193.16:7117": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 49727,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 1361
+    },
+    "S->C 37.18.193.16:7118": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 87967,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 1975
+    },
+    "S->C 37.18.193.16:7119": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 29790,
+      "mode": "zlib",
+      "zlib_runs_lost": 0,
+      "rpc": 115
+    },
+    "S->C 69.16.175.10:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 186263,
+      "mode": "plain",
+      "rpc": 0
+    },
+    "S->C 69.16.175.42:80": {
+      "runs": 1,
+      "gaps": 0,
+      "retransmits": 0,
+      "bytes": 513674,
+      "mode": "plain",
+      "rpc": 0
+    }
+  }
+}
