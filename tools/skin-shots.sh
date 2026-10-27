@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 # Preview pictures of every look (monster data, data/monster_data.json: enemies, NPCs, smashables,
 # buildies, minifigure bodies...): the Linux test client (account tester) logs in to the running LAN
-# server (tools/lan-server.sh), parks somewhere quiet, zooms in (Z, once), and for each look wears
-# it (!skin <id>), turns to face the camera (a tap of S) and saves a square crop of the window.
+# server (tools/lan-server.sh), goes to a playfield with a clear view, zooms in (Z, once) and turns
+# to face the camera (a tap of S: it walks toward the camera). Then, standing there, it wears each
+# look (!skin <id>, which keeps the heading) and saves a square crop of the window. A look the
+# client can't put on a player shows nothing: the invisible look is worn just before each one, so
+# no picture shows a look left over.
 #   tools/skin-shots.sh [out dir=../var/skin-shots] [id or name filter (regex)]
-# Env: SKIN_PARK (playfield to park in, default 1337 XX_GM Island), SKIN_WAIT (seconds for a look
-# to load, default 3), SKIN_CROP (square side as a share of the window height, default 0.8),
+# Env: SKIN_PARK (playfield, default 1100 PvP - Builder Wars, its arrival point), SKIN_WAIT (seconds for a look to load, default 3), SKIN_CROP (square
+# side as a share of the window height, default 0.45; the square sits 5% above the middle),
 # SKIN_SKIP_EXISTING=1 (keep pictures already taken), LMO_CLIENT_DIR (default the Linux test copy).
 # Writes <id>-<name>.png and index.tsv (id, name, file, what uses it); the client is closed after.
 set -uo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT=$(realpath -m "${1:-$ROOT/../var/skin-shots}")
 FILTER=${2:-}
-PARK=${SKIN_PARK:-1337}
+PARK=${SKIN_PARK:-1100}
 WAIT=${SKIN_WAIT:-3}
-CROP=${SKIN_CROP:-0.8}
+CROP=${SKIN_CROP:-0.45}
+# monster data with no mesh (the survey server's invisible helper)
+INVISIBLE=51057
 CLIENT=$(realpath "${LMO_CLIENT_DIR:-$ROOT/../clients/linux/LEGO Minifigures Online}")
 CONTROL=${LMOXIDE_CONTROL:-http://127.0.0.1:7300}
 TOKEN=$(cat "${LMOXIDE_CONTROL_TOKEN_FILE:-$ROOT/../var/data/control_token}") || exit 1
@@ -64,10 +69,12 @@ if [[ $(me playfield) != "$PARK" ]]; then
   for _ in $(seq 60); do [[ $(me playfield) == "$PARK" ]] && break; sleep 1; done
 fi
 sleep 8 # the playfield loads
-POS=$(me position)
-echo "parked in $PARK at $POS"
+echo "parked in $PARK at $(me position)"
 key key z
 sleep 1
+# the minifigure's own look turns (some looks can't walk)
+key hold s 0.3
+sleep 1.5
 
 python3 - "$ROOT/data/monster_data.json" "$FILTER" >"$OUT/.todo" <<'EOF' || exit 1
 import json, re, sys
@@ -86,17 +93,15 @@ while IFS=$'\t' read -r id file name users; do
   n=$((n + 1))
   [[ -n ${SKIN_SKIP_EXISTING:-} && -s $OUT/$file ]] && continue
   [[ -n $(me position) ]] || { echo "$USER_NAME left the game" >&2; exit 1; }
-  # back to the same spot (the S tap walks a little), the look, then face the camera
-  cmd "!moveto $POS"
+  cmd "!skin $INVISIBLE"
+  sleep 0.5
   cmd "!skin $id"
   sleep "$WAIT"
-  key hold s 0.15
-  sleep 1.5
   raw=$OUT/.raw.ppm
   if timeout 10 grim -T "$SHOT_ID" -t ppm "$raw"; then
     # a centred square, SKIN_CROP of the window height
-    side=$(magick identify -format "%h" "$raw" | awk -v c="$CROP" '{ printf "%d", $1 * c }')
-    magick "$raw" -gravity center -crop "${side}x${side}+0+0" +repage "$OUT/$file"
+    read -r side up < <(magick identify -format "%h" "$raw" | awk -v c="$CROP" '{ printf "%d %d", $1 * c, $1 * 0.05 }')
+    magick "$raw" -gravity center -crop "${side}x${side}+0-${up}" +repage "$OUT/$file"
     grep -q "^$id	" "$OUT/index.tsv" || printf '%s\t%s\t%s\t%s\n' "$id" "$name" "$file" "$users" >>"$OUT/index.tsv"
     echo "[$n/$total] $file"
   else
