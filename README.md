@@ -53,7 +53,7 @@ with `!aim`.
 - **`lmoxide-patch-server`** serves what the client needs before it connects: its configuration,
   the login page, the chat filter, and complete client installs already patched for this server.
 - **`lmoxide-patcher`** installs and updates a client from a patch server. A
-  [GUI patcher](https://github.com/LMOxide/lmoxide-patcher-gui) is built on the same library.
+  [GUI patcher](https://github.com/LMOxide/lmoxide-patcher) is built on the same library.
 - **`lmoxide-api`** is a REST API for administration and status. The web UI and the Discord bot
   use it ([lmoxide-webui](https://github.com/LMOxide/lmoxide-webui)).
 
