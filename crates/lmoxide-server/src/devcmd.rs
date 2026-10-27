@@ -5,6 +5,9 @@
 //!   !help                     the commands
 //!   !where                    current playfield and position
 //!   !tp <playfield|name>      go to a playfield's arrival point (number or part of its name)
+//!   !moveto <x> <y> <z>       go to a position in this playfield
+//!   !move <dx> <dy> <dz>      move by that much from where you are (`!move 0 1000 0`: up out of
+//!                             a test map's floor)
 //!   !list <kind>              numbered list of a kind of test target (see KINDS)
 //!   !goto <kind> [n]          go next to target n (default 1) of that kind
 //!   !ach                      achievements earned, kill and smash counters
@@ -53,7 +56,7 @@ use crate::teleport;
 /// What the game connection should do for a command.
 pub enum Action {
     Reply(Vec<String>),
-    /// teleport to (playfield, position, facing), with a reply
+    /// teleport to (playfield, position, facing; NaN: as the player faces now), with a reply
     Teleport(u32, [f32; 3], f32, String),
     /// show the achievement summary
     Achievements,
@@ -105,6 +108,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!help", "the commands"),
     ("!where", "current playfield and position"),
     ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
+    ("!moveto <x> <y> <z>", "go to a position in this playfield"),
+    ("!move <dx> <dy> <dz>", "move by that much from where you are (y is up: !move 0 1000 0 climbs out of a floor)"),
     ("!list <kind>", "numbered list of a kind of test target"),
     ("!goto <kind> [n]", "go next to target n (default 1) of that kind"),
     ("!test [n|label]", "list the manual test setups, or set one up (data/test_scenarios.json)"),
@@ -398,6 +403,14 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
     let reply = |lines: Vec<String>| Action::Reply(lines);
     match cmd.as_str() {
         "where" => reply(vec![format!("{}: {:.1} {:.1} {:.1}", playfield_name(playfield), pos[0], pos[1], pos[2])]),
+        "moveto" | "move" => {
+            let n: Vec<f32> = args.iter().filter_map(|a| a.trim_end_matches(',').parse::<f32>().ok()).filter(|v| v.is_finite()).collect();
+            if n.len() != 3 || args.len() != 3 {
+                return reply(vec![format!("usage: !{cmd} <{0}x> <{0}y> <{0}z> (y is up)", if cmd == "move" { "d" } else { "" })]);
+            }
+            let to = if cmd == "move" { [pos[0] + n[0], pos[1] + n[1], pos[2] + n[2]] } else { [n[0], n[1], n[2]] };
+            Action::Teleport(playfield, to, f32::NAN, format!("going to {:.1}, {:.1}, {:.1}", to[0], to[1], to[2]))
+        }
         "tp" => {
             let query = args.join(" ");
             if query.is_empty() {
@@ -619,6 +632,9 @@ mod tests {
         assert!(matches!(run("!tp isle of yarr", 1200, [0.0; 3]), Action::Teleport(4200, ..)));
         assert!(matches!(run("/tp 5200", 1200, [0.0; 3]), Action::Teleport(5200, ..)));
         assert!(matches!(run("!tp nowhere", 1200, [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!moveto 1 2 3", 1200, [9.0; 3]), Action::Teleport(1200, [1.0, 2.0, 3.0], r, _) if r.is_nan()));
+        assert!(matches!(run("!move 0 1000 -1", 1200, [5.0, -900.0, 5.0]), Action::Teleport(1200, [5.0, 100.0, 4.0], ..)));
+        assert!(matches!(run("!move 0 1000", 1200, [0.0; 3]), Action::Reply(_)));
     }
 
     #[test]

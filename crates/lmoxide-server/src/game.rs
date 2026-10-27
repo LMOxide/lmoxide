@@ -1352,6 +1352,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
                             crate::chat::system(character, &line);
+                            // (!move, !moveto: keep facing the way the player does)
+                            let rot = if rot.is_nan() { heading[0].atan2(heading[1]) } else { rot };
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
                                 .await?;
                         }
