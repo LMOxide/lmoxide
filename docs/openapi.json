@@ -2607,6 +2607,17 @@
             "format": "int32",
             "minimum": 0
           },
+          "position": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "Where the character is now (x, y up, z); `null` until it is in play."
+          },
           "username": {
             "type": "string"
           }

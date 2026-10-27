@@ -165,14 +165,18 @@ pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {
     let online = ONLINE.lock().unwrap();
     let mut list: Vec<_> = online
         .iter()
-        .map(|(&character, o)| lmoxide_control::OnlinePlayer {
-            account_id: o.account,
-            username: o.username.clone(),
-            character_id: character,
-            character_name: o.character_name.clone(),
-            playfield: world::whereabouts(Id32::new(crate::territory::CHARACTER_TYPE, character)).map(|(pf, _)| pf),
-            gm_level: o.gm_level,
-            logged_in_at: o.logged_in_at,
+        .map(|(&character, o)| {
+            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+            lmoxide_control::OnlinePlayer {
+                account_id: o.account,
+                username: o.username.clone(),
+                character_id: character,
+                character_name: o.character_name.clone(),
+                playfield: world::whereabouts(id).map(|(pf, _)| pf),
+                position: world::live_position(id),
+                gm_level: o.gm_level,
+                logged_in_at: o.logged_in_at,
+            }
         })
         .collect();
     list.sort_by(|a, b| a.character_name.cmp(&b.character_name));

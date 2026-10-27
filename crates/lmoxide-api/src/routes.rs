@@ -110,6 +110,8 @@ pub struct Player {
     pub character_id: u32,
     pub character_name: String,
     pub playfield: Option<u32>,
+    /// Where the character is now (x, y up, z); `null` until it is in play.
+    pub position: Option<[f32; 3]>,
     pub gm_level: u32,
     /// Unix time.
     pub logged_in_at: i64,
@@ -1066,6 +1068,7 @@ async fn players(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Js
                 character_id: p.character_id,
                 character_name: p.character_name,
                 playfield: p.playfield,
+                position: p.position,
                 gm_level: p.gm_level,
                 logged_in_at: p.logged_in_at,
             })

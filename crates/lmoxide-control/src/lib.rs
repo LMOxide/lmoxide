@@ -37,6 +37,9 @@ pub struct OnlinePlayer {
     pub character_name: String,
     /// `None` until the character is in play.
     pub playfield: Option<u32>,
+    /// Where the character is now (x, y up, z); `None` until it is in play.
+    #[serde(default)]
+    pub position: Option<[f32; 3]>,
     pub gm_level: u32,
     /// Unix time of the login.
     pub logged_in_at: i64,
