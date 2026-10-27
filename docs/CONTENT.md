@@ -8,9 +8,17 @@ so the server doesn't hard-code values.
 
 **Status (2026-10-27):** the tree was converted from `data/*.json`, the values hard-coded in
 `loot.rs`/`procs.rs`/`combat.rs`/`npc.rs`, and the world editor's published set
-(`var/survey-set/published`). **The server doesn't read it yet:** it still reads `data/`. Until
-it switches (see "Next" at the end), edits here have no effect in game, and running the importer
-again overwrites the whole tree.
+(`var/survey-set/published`). The server loads it at start (`--content-dir`, env
+`LMOXIDE_CONTENT_DIR`; default the checkout's `content/`; errors stop the server) and is moving
+to it one system at a time:
+
+| System | Reads from content | Still from `data/` or code |
+|---|---|---|
+| Loot (loot.rs) | loot tables, `tunables.loot`, items (stars, orbs, potions, parts, bags, chests), minifigures' parts, bags, `obtain` (regions, rarity), `tunables.rarity` | which source a kill is (enemy/champion/boss by health rank, npc.rs); Resourceful/Professional (procs.rs) |
+| Everything else | | `data/*.json` and constants in the code |
+
+Edits to what the server doesn't read yet have no effect in game. Running the importer again
+overwrites the whole tree, edits included: don't, once the tree is edited by hand.
 
 ```
 content/
@@ -253,15 +261,17 @@ Not content (stay as they are): `test_scenarios.json` (dev), `login.html`, `Patc
 the reference catalogs above.
 
 Things the import found: one minifigure bag (598526, Lady Liberty) is for a minifigure that
-isn't playable; 30 enemy attack spells have no definition in the client's data
+isn't playable (it never drops; picking one up now gives nothing instead of that minifigure); 30 enemy attack spells have no definition in the client's data
 (`tags: ["no-client-definition"]`); client game actions keep their `criteria` (e.g. "has upgrade
 448001").
 
 ## Next
 
-1. The server loads `content/` at start (and on change) instead of `data/*.json`, one system at a
-   time, each giving the same results before its old file goes: loot, upgrades and procs, skills,
-   NPCs and spawns, worlds (portals, bouncers, areas, puzzles), minifigures, achievements.
+1. The server reads `content/` instead of `data/*.json`, one system at a time, each giving the
+   same results first (loot: same tables, and the same drop rates over 200,000 bags per source):
+   loot (done), upgrades and procs, skills, NPCs and spawns (then each enemy's own `loot` table),
+   worlds (portals, bouncers, areas, puzzles), minifigures, achievements. Reloading on change comes
+   with the world editor switch.
 2. The world editor reads and writes records of this format (forms from `content/schemas`), with
    `rev` merging; its survey set becomes records in `content/` (or a feature folder) instead of a
    separate format.

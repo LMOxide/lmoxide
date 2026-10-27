@@ -30,8 +30,9 @@ RUN apt-get update \
  && chown lmoxide:lmoxide /data /patch-data
 COPY --from=build /out/bin/ /usr/local/bin/
 COPY --from=build /out/linux-overlay/ /usr/local/share/lmoxide/linux-overlay/
+COPY --from=build /src/content/ /usr/local/share/lmoxide/content/
 USER lmoxide
 WORKDIR /data
-ENV LMOXIDE_DATA_DIR=/data RUST_LOG=info
+ENV LMOXIDE_DATA_DIR=/data LMOXIDE_CONTENT_DIR=/usr/local/share/lmoxide/content RUST_LOG=info
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["lmoxide-server"]

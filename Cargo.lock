@@ -1375,6 +1375,7 @@ dependencies = [
  "bytes",
  "clap",
  "futures",
+ "lmoxide-content",
  "lmoxide-control",
  "lmoxide-db",
  "lmoxide-net",

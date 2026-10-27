@@ -8,9 +8,10 @@
 //! with `LootRemoveItemsIIR_c`.
 //!
 //! Only the bag's owner sees its items (`ProjectLootBag::OnEnteringPlayfield`), so team loot is
-//! a bag per member. Minifigure parts (tokens), minifigure bags and chests: data/minifig_parts.json,
-//! data/loot_items.json (tools/re/extract_minifig_parts.py, extract_loot_items.py); the drop
-//! tables were server-side, the rates here are proposals (docs/TUNABLES.md).
+//! a bag per member. What drops is content (docs/CONTENT.md): the loot tables in content/loot
+//! (which table each source rolls: tunables.json `loot.tables`), the items they name, the
+//! minifigures' parts, bags and where they drop (regions, rarity). The drop tables were
+//! server-side on live; the rates are proposals (docs/TUNABLES.md).
 
 use std::{
     collections::HashMap,
@@ -19,6 +20,7 @@ use std::{
 };
 
 use bytes::Bytes;
+use lmoxide_content::{LootBundle, LootEntry, MinifigureDrop, MinifigureSource, Range};
 use lmoxide_net::{
     iir,
     proto::{
@@ -27,7 +29,6 @@ use lmoxide_net::{
     },
     types::Id32,
 };
-use serde::Deserialize;
 use tracing::info;
 
 use crate::{
@@ -35,30 +36,12 @@ use crate::{
     world,
 };
 
-const LOOT_BAG_TYPE: u32 = 51322;
-/// The recorded bags' template ("XX_Loot Bag"), name text and interaction radius.
-const BAG_TEMPLATE: u32 = 1209;
+/// The recorded bags' name text (of template `loot.bag_template`, "XX_Loot Bag").
 const BAG_DISPLAY_NAME: &str = r#"<remoteformat id="1209" category="50200" key="S2L)UkVW7#3EI46]q1Bq" knubot="0"  ></remoteformat>"#;
-const BAG_INTERACTION_RADIUS: u32 = 50;
-/// "XX_Minifigure XP": one star (GameAction token 100, amount 1).
-pub const STAR_ITEM: u32 = 20634;
 /// Stars ("minifigure XP").
 const STAR_TOKEN: u32 = 100;
-/// "Health Orb": heals the active minifigure.
-pub const HEALTH_ORB_ITEM: u32 = 20908;
-/// "XX_25_Minifigure XP": 25 stars (a recorded quest reward).
-pub const STARS_25_ITEM: u32 = 386269;
-/// "XX_100_Minifigure XP": 100 stars.
-pub const STARS_100_ITEM: u32 = 386270;
-/// "XX_250_Minifigure XP" and "XX_1000_Minifigure XP".
-const STARS_250_ITEM: u32 = 386271;
-const STARS_1000_ITEM: u32 = 386272;
-/// "Health Potion": one potion (token 150).
-pub const HEALTH_POTION_ITEM: u32 = 399661;
-/// Bags nobody empties disappear after this long.
-const BAG_LIFETIME: Duration = Duration::from_secs(60);
-/// Teammates within this distance of a kill get their own bag.
-const SHARE_RANGE: f32 = 60.0;
+/// Loot tables name others at most this deep.
+const MAX_DEPTH: u32 = 8;
 
 struct Bag {
     owner: Id32,
@@ -66,68 +49,6 @@ struct Bag {
     pos: [f32; 3],
     /// Item template per position; `None` once looted.
     items: Vec<Option<u32>>,
-}
-
-#[derive(Deserialize)]
-struct PartsFile {
-    minifigures: Vec<MinifigureParts>,
-}
-
-#[derive(Deserialize)]
-struct MinifigureParts {
-    minifigure_template_id: u32,
-    parts: Vec<Part>,
-}
-
-#[derive(Deserialize)]
-struct Part {
-    location: String,
-    part_template_id: u32,
-    part_token_id: u32,
-}
-
-#[derive(Deserialize)]
-struct DropsFile {
-    worlds: HashMap<String, Vec<u32>>,
-    minifigures: Vec<DropDef>,
-}
-
-#[derive(Deserialize)]
-struct DropDef {
-    template: u32,
-    name: Option<String>,
-    source: String,
-    #[serde(default)]
-    worlds: Vec<String>,
-    achievement: Option<u32>,
-}
-
-#[derive(Deserialize)]
-struct RarityFile {
-    tiers: HashMap<String, u32>,
-    default: String,
-    minifigures: HashMap<String, String>,
-    part_locations: HashMap<String, u32>,
-}
-
-#[derive(Deserialize)]
-struct LootItemsFile {
-    minifigure_bags: Vec<BagDef>,
-    chests: Vec<ChestDef>,
-}
-
-#[derive(Deserialize)]
-struct BagDef {
-    bag_template: u32,
-    minifigure_template: Option<u32>,
-    controlled_loot_type: Option<u32>,
-}
-
-#[derive(Deserialize)]
-struct ChestDef {
-    template: u32,
-    loot_type: Option<u32>,
-    name: String,
 }
 
 struct Tables {
@@ -154,27 +75,25 @@ struct Tables {
     /// minifigures given for an achievement (lore tag) and to members
     achievement_minifigures: HashMap<u32, u32>,
     membership_minifigures: Vec<u32>,
+    /// the items the loot rules name (tunables `loot.items`)
+    star: u32,
+    health_orb: u32,
+    potion: u32,
 }
 
-#[derive(Deserialize)]
-struct TokenItem {
-    template: u32,
-    token: u32,
-    /// (negative for items that take tokens)
-    amount: Option<i64>,
+/// An item's client template by its id (`item/...`).
+fn template_of(id: &str) -> Option<u32> {
+    crate::gamedata::get().items.get(id).and_then(|i| i.template)
 }
 
 static TABLES: LazyLock<Tables> = LazyLock::new(|| {
-    #[derive(Deserialize)]
-    struct Tokens {
-        token_items: Vec<TokenItem>,
-    }
-    let parts: PartsFile = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
-    let items: LootItemsFile = serde_json::from_str(include_str!("../../../data/loot_items.json")).expect("loot_items.json");
-    let tokens: Tokens = serde_json::from_str(include_str!("../../../data/loot_items.json")).expect("loot_items.json");
-    let drops: DropsFile = serde_json::from_str(include_str!("../../../data/minifigure_drops.json")).expect("minifigure_drops.json");
-    let rarity: RarityFile =
-        serde_json::from_str(include_str!("../../../data/minifigure_rarity.json")).expect("minifigure_rarity.json");
+    use lmoxide_content::ItemKind;
+    let c = crate::gamedata::get();
+    let tunables = &c.tunables;
+    let named = |key: &str| {
+        let id = tunables.loot.items.get(key).unwrap_or_else(|| panic!("tunables.json loot.items has no {key:?}"));
+        template_of(id).unwrap_or_else(|| panic!("tunables.json loot.items.{key}: {id} has no template"))
+    };
     let mut t = Tables {
         part_token: HashMap::new(),
         part_items: HashMap::new(),
@@ -188,55 +107,68 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
         star_items: HashMap::new(),
         achievement_minifigures: HashMap::new(),
         membership_minifigures: Vec::new(),
+        star: named("star"),
+        health_orb: named("health_orb"),
+        potion: named("potion"),
     };
-    for m in parts.minifigures {
+    for item in c.items.values() {
+        let Some(template) = item.template else { continue };
+        let gives = |token: u32| item.tokens.iter().filter(move |g| g.token == token);
+        match item.kind {
+            // ControlledLootType 3: the regular bags (4/5 are the tutorial's)
+            ItemKind::MinifigBag if item.controlled_loot_type == Some(3) => {
+                if let Some(m) = item.minifigure.as_ref().and_then(|m| c.minifigures.get(m)) {
+                    t.bag_minifigure.insert(template, m.template);
+                }
+            }
+            ItemKind::Chest => match item.chest.as_ref().filter(|ch| !ch.unused).and_then(|ch| ch.loot_type) {
+                Some(1) => t.chests.push(template),
+                Some(2) => t.member_chests.push(template),
+                _ => {}
+            },
+            _ => {}
+        }
+        if let Some(g) = gives(crate::game::TOKEN_HEALTH_POTIONS).find(|g| g.amount.unwrap_or(1) > 0) {
+            t.potion_items.insert(template, g.amount.unwrap_or(1) as u64);
+        }
+        if let Some(n) = gives(STAR_TOKEN).find_map(|g| g.amount.filter(|a| *a > 0)) {
+            t.star_items.insert(template, n as u64);
+        }
+    }
+    let rarity = &tunables.rarity;
+    for m in c.minifigures.values() {
+        let mut tokens = Vec::new();
         for p in &m.parts {
-            t.part_token.insert(p.part_template_id, p.part_token_id);
+            let Some(item) = c.items.get(&p.item) else { continue };
+            let (Some(template), Some(token)) = (item.template, item.tokens.first()) else { continue };
             let weight = rarity.part_locations.get(&p.location).copied().unwrap_or(1);
-            t.part_items.entry(m.minifigure_template_id).or_default().push((weight, p.part_template_id));
+            t.part_items.entry(m.template).or_default().push((weight, template));
+            t.part_token.insert(template, token.token);
+            tokens.push(token.token);
         }
-        t.minifigure_parts.insert(m.minifigure_template_id, m.parts.iter().map(|p| p.part_token_id).collect());
-    }
-    // ControlledLootType 3: the regular bags (4/5 are the tutorial's)
-    for b in items.minifigure_bags.iter().filter(|b| b.controlled_loot_type == Some(3)) {
-        if let Some(m) = b.minifigure_template {
-            t.bag_minifigure.insert(b.bag_template, m);
-            t.minifigure_bag.entry(m).or_insert(b.bag_template);
+        t.minifigure_parts.insert(m.template, tokens);
+        if let Some(bag) = m.bag.as_deref().and_then(template_of) {
+            t.minifigure_bag.insert(m.template, bag);
         }
-    }
-    for d in &drops.minifigures {
-        match d.source.as_str() {
+        let Some(o) = &m.obtain else { continue };
+        match o.source.as_str() {
             "world" => {
-                let tier = d.name.as_ref().and_then(|n| rarity.minifigures.get(n)).unwrap_or(&rarity.default);
-                let weight = *rarity.tiers.get(tier).unwrap_or_else(|| panic!("minifigure_rarity.json: unknown tier {tier}"));
-                for playfield in d.worlds.iter().flat_map(|w| drops.worlds.get(w).into_iter().flatten()) {
-                    t.world_minifigures.entry(*playfield).or_default().push((weight, d.template));
+                let tier = o.rarity.as_ref().unwrap_or(&rarity.default);
+                let weight = *rarity.tiers.get(tier).unwrap_or_else(|| panic!("{}: unknown rarity tier {tier}", m.id));
+                let playfields = o.regions.iter().filter_map(|r| c.regions.get(r)).flat_map(|r| &r.worlds).filter_map(|w| c.worlds.get(w)).map(|w| w.playfield);
+                for playfield in playfields {
+                    t.world_minifigures.entry(playfield).or_default().push((weight, m.template));
                 }
             }
             "achievement" => {
-                if let Some(tag) = d.achievement {
-                    t.achievement_minifigures.insert(tag, d.template);
+                if let Some(tag) = o.achievement {
+                    t.achievement_minifigures.insert(tag, m.template);
                 }
             }
-            "membership" => t.membership_minifigures.push(d.template),
+            "membership" => t.membership_minifigures.push(m.template),
             _ => {}
         }
     }
-    let usable = |c: &&ChestDef| !c.name.contains("Endless");
-    t.chests = items.chests.iter().filter(usable).filter(|c| c.loot_type == Some(1)).map(|c| c.template).collect();
-    t.member_chests = items.chests.iter().filter(usable).filter(|c| c.loot_type == Some(2)).map(|c| c.template).collect();
-    t.potion_items = tokens
-        .token_items
-        .iter()
-        .filter(|i| i.token == crate::game::TOKEN_HEALTH_POTIONS && i.amount.unwrap_or(1) > 0)
-        .map(|i| (i.template, i.amount.unwrap_or(1) as u64))
-        .collect();
-    t.star_items = tokens
-        .token_items
-        .iter()
-        .filter(|i| i.token == STAR_TOKEN && i.amount.is_some_and(|a| a > 0))
-        .map(|i| (i.template, i.amount.unwrap_or(1) as u64))
-        .collect();
     t
 });
 
@@ -260,6 +192,11 @@ pub fn all_part_tokens() -> impl Iterator<Item = (u32, u32)> {
     TABLES.minifigure_parts.iter().flat_map(|(&m, tokens)| tokens.iter().map(move |&t| (m, t)))
 }
 
+/// The health orb item (tunables `loot.items.health_orb`).
+pub fn health_orb_item() -> u32 {
+    TABLES.health_orb
+}
+
 /// What picking up an item gives.
 pub enum Reward {
     Stars(u64),
@@ -278,7 +215,7 @@ pub enum Reward {
 pub fn reward(template: u32) -> Reward {
     let t = &*TABLES;
     match template {
-        HEALTH_ORB_ITEM => Reward::HealthOrb,
+        template if template == t.health_orb => Reward::HealthOrb,
         template => {
             if let Some(&n) = t.star_items.get(&template) {
                 Reward::Stars(n)
@@ -310,6 +247,20 @@ pub enum Source {
     MemberChest,
 }
 
+impl Source {
+    /// Its key in tunables `loot.tables`.
+    fn key(self) -> &'static str {
+        match self {
+            Source::Smashable => "smashable",
+            Source::Enemy => "enemy",
+            Source::Champion => "champion",
+            Source::Boss => "boss",
+            Source::Chest => "chest",
+            Source::MemberChest => "member_chest",
+        }
+    }
+}
+
 static RNG: Mutex<u64> = Mutex::new(0);
 
 fn random() -> u64 {
@@ -326,6 +277,16 @@ fn random() -> u64 {
 
 pub fn chance(percent: u64) -> bool {
     random() % 100 < percent
+}
+
+/// True with probability `p` (0..1).
+fn chance_of(p: f64) -> bool {
+    (random() % 1_000_000) < (p * 1_000_000.0).round().max(0.0) as u64
+}
+
+/// A number in `r`.
+fn in_range(r: Range) -> u32 {
+    r.min + (random() % u64::from(r.max - r.min + 1)) as u32
 }
 
 fn pick(items: &[u32]) -> Option<u32> {
@@ -348,8 +309,8 @@ fn pick_weighted(items: &[(u32, u32)]) -> Option<u32> {
     None
 }
 
-/// A minifigure dropped in `playfield`: one of its world's (data/minifigure_drops.json), by
-/// rarity (data/minifigure_rarity.json); none where no minifigure drops (the hub).
+/// A minifigure dropped in `playfield`: one of its region's (minifigures' `obtain.regions`), by
+/// rarity (`obtain.rarity`, tunables `rarity.tiers`); none where no minifigure drops (the hub).
 fn pick_minifigure(playfield: u32) -> Option<u32> {
     TABLES.world_minifigures.get(&playfield).and_then(|m| pick_weighted(m))
 }
@@ -366,51 +327,106 @@ fn pick_bag(playfield: u32) -> Option<u32> {
     TABLES.minifigure_bag.get(&minifigure).copied()
 }
 
-/// One bag's contents in `playfield`. Stars as recorded (smashables 1-2, enemies 3); everything
-/// else proposed (docs/TUNABLES.md). `orb_bonus`: extra health orb chance in percent (the
-/// Resourceful upgrade).
+/// A minifigure from a loot entry's `from`: the world's, or one of those listed.
+fn pick_from(from: &MinifigureSource, playfield: u32) -> Option<u32> {
+    match from {
+        MinifigureSource::World(_) => pick_minifigure(playfield),
+        MinifigureSource::Some(list) => {
+            let c = crate::gamedata::get();
+            let templates: Vec<u32> = list.iter().filter_map(|m| c.minifigures.get(m)).map(|m| m.template).collect();
+            pick(&templates)
+        }
+    }
+}
+
+/// One bag's contents in `playfield`: the loot table of `source` (tunables `loot.tables`).
+/// `orb_bonus`: extra chance in percent for entries raised by `orb_chance` (the Resourceful
+/// upgrade).
 pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
-    let t = &*TABLES;
-    // (stars, guaranteed bundle, orb %, potion %, part %, parts, bag %, chests)
-    let (stars, bundle, orb, potion, part_chance, parts, bag_chance, chests) = match source {
-        Source::Smashable => (1 + random() as usize % 2, None, 0, 3, 4, 1, 0, false),
-        Source::Enemy => (3, None, 35, 5, 6, 1, 1, false),
-        Source::Champion => (6, Some(STARS_25_ITEM), 100, 50, 100, 1, 15, false),
-        Source::Boss => (10, Some(STARS_100_ITEM), 100, 100, 100, 2, 40, true),
-        Source::Chest => (5, Some(STARS_25_ITEM), 0, 100, 100, 2, 25, false),
-        Source::MemberChest => (5, Some(STARS_100_ITEM), 0, 100, 100, 3, 50, false),
-    };
-    let mut items = vec![STAR_ITEM; stars];
-    items.extend(bundle);
-    // bigger star bundles now and then (per mille)
-    let bundles: &[(u32, u64)] = match source {
-        Source::Smashable => &[(STARS_25_ITEM, 20)],
-        Source::Enemy => &[(STARS_25_ITEM, 30), (STARS_100_ITEM, 5)],
-        Source::Champion => &[(STARS_100_ITEM, 200)],
-        Source::Boss => &[(STARS_250_ITEM, 250), (STARS_1000_ITEM, 50)],
-        Source::Chest => &[(STARS_100_ITEM, 200)],
-        Source::MemberChest => &[(STARS_250_ITEM, 300), (STARS_1000_ITEM, 50)],
-    };
-    items.extend(bundles.iter().filter(|&&(_, per_mille)| random() % 1000 < per_mille).map(|&(item, _)| item));
-    if orb > 0 && chance(orb + orb_bonus) {
-        items.push(HEALTH_ORB_ITEM);
-    }
-    if chance(potion) {
-        items.push(HEALTH_POTION_ITEM);
-    }
-    if chance(part_chance) {
-        items.extend((0..parts).filter_map(|_| pick_part(playfield)));
-    }
-    if chance(bag_chance) {
-        items.extend(pick_bag(playfield));
-    }
-    if chests {
-        // a free and a member chest side by side, as live placed them (LootFreeChestRotation,
-        // LootMemberChestRotation and their offsets)
-        items.extend(pick(&t.chests));
-        items.extend(pick(&t.member_chests));
+    let c = crate::gamedata::get();
+    let mut items = Vec::new();
+    match c.tunables.loot.tables.get(source.key()) {
+        Some(table) => roll_table(table, orb_bonus, playfield, 0, &mut items),
+        None => tracing::warn!(source = source.key(), "tunables.json loot.tables names no table"),
     }
     items
+}
+
+/// Rolls loot table `id` into `out`: entries in order; those with a `chance` roll on their own,
+/// those without `chance` or `weight` always drop, and the weighted ones (`rolls` times, one each)
+/// where the first of them is listed.
+fn roll_table(id: &str, orb_bonus: u64, playfield: u32, depth: u32, out: &mut Vec<u32>) {
+    let c = crate::gamedata::get();
+    let Some(table) = c.loot.get(id) else {
+        tracing::warn!(table = id, "no such loot table");
+        return;
+    };
+    if depth > MAX_DEPTH {
+        tracing::warn!(table = id, "loot tables nest too deep");
+        return;
+    }
+    let applies = |e: &LootEntry| {
+        let Some(w) = &e.when else { return true };
+        // everyone is a member here; once_per_player isn't kept yet
+        w.worlds.is_empty() || w.worlds.iter().filter_map(|w| c.worlds.get(w)).any(|w| w.playfield == playfield)
+    };
+    let weighted: Vec<&LootEntry> = table.entries.iter().filter(|e| e.weight.is_some() && applies(e)).collect();
+    let mut weighted_done = false;
+    for e in &table.entries {
+        if e.weight.is_some() {
+            if !weighted_done {
+                weighted_done = true;
+                let choices: Vec<(u32, u32)> = weighted.iter().enumerate().map(|(i, e)| (e.weight.unwrap_or(0), i as u32)).collect();
+                for _ in 0..table.rolls {
+                    if let Some(i) = pick_weighted(&choices) {
+                        give(&weighted[i as usize].drop, orb_bonus, playfield, depth, out);
+                    }
+                }
+            }
+            continue;
+        }
+        if !applies(e) {
+            continue;
+        }
+        let drops = match e.chance {
+            None => true,
+            Some(p) => {
+                let bonus = e.when.as_ref().and_then(|w| w.bonus_stat.as_deref()) == Some("orb_chance");
+                chance_of(p.fraction() + if bonus { orb_bonus as f64 / 100.0 } else { 0.0 })
+            }
+        };
+        if drops {
+            give(&e.drop, orb_bonus, playfield, depth, out);
+        }
+    }
+}
+
+/// The items of one loot bundle.
+fn give(b: &LootBundle, orb_bonus: u64, playfield: u32, depth: u32, out: &mut Vec<u32>) {
+    let t = &*TABLES;
+    let times = |r: Option<Range>| r.map_or(0, in_range) as usize;
+    out.extend(std::iter::repeat_n(t.star, times(b.stars)));
+    out.extend(std::iter::repeat_n(t.health_orb, times(b.hearts)));
+    out.extend(std::iter::repeat_n(t.potion, times(b.potions)));
+    let minifigures = |d: &MinifigureDrop, out: &mut Vec<u32>, of: fn(u32) -> Option<u32>| {
+        for _ in 0..in_range(d.count) {
+            out.extend(pick_from(&d.from, playfield).and_then(of));
+        }
+    };
+    if let Some(d) = &b.minifig_parts {
+        minifigures(d, out, |m| TABLES.part_items.get(&m).and_then(|p| pick_weighted(p)));
+    }
+    if let Some(d) = &b.minifig_bags {
+        minifigures(d, out, |m| TABLES.minifigure_bag.get(&m).copied());
+    }
+    if !b.chest.is_empty() {
+        let chests: Vec<u32> = b.chest.iter().filter_map(|c| template_of(c)).collect();
+        out.extend(pick(&chests));
+    }
+    out.extend(b.items.iter().filter_map(|i| template_of(i)));
+    if let Some(table) = &b.table {
+        roll_table(table, orb_bonus, playfield, depth + 1, out);
+    }
 }
 
 /// `!loot` kinds.
@@ -420,7 +436,7 @@ pub const TEST_KINDS: &[&str] = &["potion", "part", "bag", "chest", "memberchest
 pub fn test_items(kind: &str, playfield: u32) -> Vec<u32> {
     let t = &*TABLES;
     match kind {
-        "potion" => vec![HEALTH_POTION_ITEM],
+        "potion" => vec![t.potion],
         "part" => pick_part(playfield).into_iter().collect(),
         "bag" => pick_bag(playfield).into_iter().collect(),
         "chest" => pick(&t.chests).into_iter().collect(),
@@ -437,7 +453,7 @@ pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, sou
     let mut owners = vec![killer];
     for mate in crate::community::teammates(killer.instance) {
         let id = Id32::new(killer.kind, mate);
-        if world::whereabouts(id).is_some_and(|(pf, p)| pf == playfield && distance(p, pos) <= SHARE_RANGE) {
+        if world::whereabouts(id).is_some_and(|(pf, p)| pf == playfield && distance(p, pos) <= crate::gamedata::get().tunables.loot.share_range) {
             owners.push(id);
         }
     }
@@ -464,7 +480,7 @@ pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, ite
     if items.is_empty() {
         return;
     }
-    let id = Id32::new(LOOT_BAG_TYPE, NEXT_BAG.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
+    let id = Id32::new(crate::gamedata::get().tunables.loot.bag_dynel_type, NEXT_BAG.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     info!(?owner, ?id, ?items, "loot dropped");
     let records = vec![
         create_game_object(id, playfield, pos),
@@ -475,7 +491,7 @@ pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, ite
     BAGS.lock().unwrap().insert(id, Bag { owner, playfield, pos, items: items.into_iter().map(Some).collect() });
     world::send_to(owner, world::Out::Records(records));
     tokio::spawn(async move {
-        tokio::time::sleep(BAG_LIFETIME).await;
+        tokio::time::sleep(crate::gamedata::get().tunables.loot.bag_lifetime.to_std()).await;
         remove(id);
     });
 }
@@ -533,9 +549,9 @@ fn bag_dynel() -> ProtoSimpleDynelIir {
         name: Some("XX_Loot Bag".into()),
         display_name: Some(BAG_DISPLAY_NAME.into()),
         cars_group: Some(0),
-        template_item_id: Some(BAG_TEMPLATE),
+        template_item_id: Some(crate::gamedata::get().tunables.loot.bag_template),
         is_closed: Some(true),
-        interaction_radius: Some(BAG_INTERACTION_RADIUS),
+        interaction_radius: Some(crate::gamedata::get().tunables.loot.bag_interaction_radius),
         ..Default::default()
     }
 }
@@ -602,9 +618,9 @@ mod tests {
 
     #[test]
     fn rewards_of_new_items() {
-        assert!(matches!(reward(HEALTH_POTION_ITEM), Reward::Potions(1)));
-        assert!(matches!(reward(STAR_ITEM), Reward::Stars(1)));
-        assert!(matches!(reward(STARS_1000_ITEM), Reward::Stars(1000)));
+        assert!(matches!(reward(399_661), Reward::Potions(1)));
+        assert!(matches!(reward(20_634), Reward::Stars(1)));
+        assert!(matches!(reward(386_272), Reward::Stars(1000)));
         assert!(matches!(reward(465_756), Reward::Stars(250)));
         assert!(matches!(reward(464_407), Reward::Potions(10)));
         assert!(matches!(reward(580_943), Reward::Chest { member: true }));

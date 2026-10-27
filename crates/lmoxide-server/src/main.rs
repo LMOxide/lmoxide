@@ -18,6 +18,7 @@ mod discovery;
 mod effects;
 mod encounter;
 mod game;
+mod gamedata;
 mod gates;
 mod jumppad;
 mod knubot;
@@ -148,6 +149,9 @@ pub struct Config {
     /// approved content and rules are kept in <data-dir>/world-content).
     #[arg(long, env = "LMOXIDE_WORLD_EDITOR_SET")]
     pub world_editor_set: Option<PathBuf>,
+    /// The game's content tree (docs/CONTENT.md; default: the source checkout's content/).
+    #[arg(long, env = "LMOXIDE_CONTENT_DIR")]
+    pub content_dir: Option<PathBuf>,
     /// How players' straight shots are aimed at the enemy they target: where it is when the
     /// shot leaves (`current`), or where it will be when the shot gets there (`lead`).
     #[arg(long, env = "LMOXIDE_SHOT_AIM", value_enum, default_value_t = projectile::Aim::Current)]
@@ -227,6 +231,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
+    gamedata::init(cfg.content_dir.clone())?;
     let db = Arc::new(storage.open()?);
     if let Some(path) = &cfg.share_accounts {
         let other = lmoxide_db::Db::open(path).map_err(|e| anyhow::anyhow!("opening {}: {e}", path.display()))?;

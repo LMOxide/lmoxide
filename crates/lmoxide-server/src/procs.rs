@@ -356,7 +356,7 @@ pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: u32, at: [f32
         (s.template, s.upgrades, s.level, special, s.abilities.contains(&MELTDOWN), s.abilities.contains(&PERSONAL_SPACE))
     };
     if power_up {
-        crate::loot::drop_items(attacker, playfield, at, target, vec![crate::loot::HEALTH_ORB_ITEM]);
+        crate::loot::drop_items(attacker, playfield, at, target, vec![crate::loot::health_orb_item()]);
     }
     if heal > 0.0 {
         heal_share(attacker, heal);
