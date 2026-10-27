@@ -227,6 +227,10 @@ In survey mode:
   surveyor who selected it. Smashables and trigger walls can't show effects themselves: an
   invisible character ("invisible_monsterdata" 51057, sent only to that surveyor) stands at their
   spot wearing it.
+- Marks (`PUT /v1/survey/players/{account}/marks`, `[{by: author|feature, value, look}]`; looks
+  from `GET /v1/survey/mark-looks`: achievement auras, champion icons): an effect on every object
+  an author changed last or a feature holds, shown only to that surveyor (helpers for simple
+  dynels, as the selection's), refreshed after changes and playfield moves; never saved.
 - Hides are per surveyor and held in memory (`HIDDEN` in survey.rs: what isn't sent to them).
 - Edits respawn the object under a new NPC id (the client needs ~1.5 s before an id is reused).
 - Not yet: placing, wearing or editing buildies and interactables (they aren't NPCs; the catalog lists

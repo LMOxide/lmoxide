@@ -92,6 +92,11 @@ struct Surveyor {
     /// The running selection marker: the character wearing it (the helper's, if one was
     /// spawned for this surveyor) and the effect instance.
     marker: Option<(Id32, u32, bool)>,
+    /// Their marks on groups of objects ([`show_marks`]), the running mark effects (wearer,
+    /// package, instance, a helper?) and the playfield and revision they show.
+    marks: Vec<Mark>,
+    mark_effects: Vec<(Id32, u32, u32, bool)>,
+    marks_at: Option<(u32, u64)>,
 }
 
 struct State {
@@ -607,23 +612,8 @@ fn mark(st: &mut State, viewer: Id32) {
     if let Some((npc, kind, pos, playfield)) = target {
         let instance = crate::effects::new_instance();
         let wearer = if kind == Kind::Smashable {
-            let helper = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_HELPER.fetch_add(1, Ordering::Relaxed));
-            records.extend(crate::game::remote_spawn_records(
-                helper,
-                &crate::game::CharSpec {
-                    name: "",
-                    playfield,
-                    pos,
-                    monster_data: INVISIBLE_LOOK,
-                    level: 1,
-                    health: 1,
-                    max_health: 1,
-                    // nobody can target it (attacks select what is under it)
-                    cars_group: 5,
-                    npc: Some(lmoxide_net::proto::proto_core_character_iir::NpcStats { template_id: Some(INVISIBLE_LOOK), ..Default::default() }),
-                    speeds: &[],
-                },
-            ));
+            let (helper, spawn) = helper_at(playfield, pos);
+            records.extend(spawn);
             helper
         } else {
             npc
@@ -634,6 +624,147 @@ fn mark(st: &mut State, viewer: Id32) {
     if !records.is_empty() {
         world::send_to(viewer, world::Out::Records(records));
     }
+}
+
+/// An invisible character at `pos` (sent only to one viewer) to wear an effect for a simple
+/// dynel (smashable, wall piece, buildie), which shows none itself: its id and spawn records.
+fn helper_at(playfield: u32, pos: [f32; 3]) -> (Id32, Vec<bytes::Bytes>) {
+    let helper = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_HELPER.fetch_add(1, Ordering::Relaxed));
+    let records = crate::game::remote_spawn_records(
+        helper,
+        &crate::game::CharSpec {
+            name: "",
+            playfield,
+            pos,
+            monster_data: INVISIBLE_LOOK,
+            level: 1,
+            health: 1,
+            max_health: 1,
+            // nobody can target it (attacks select what is under it)
+            cars_group: 5,
+            npc: Some(lmoxide_net::proto::proto_core_character_iir::NpcStats { template_id: Some(INVISIBLE_LOOK), ..Default::default() }),
+            speeds: &[],
+        },
+    );
+    (helper, records)
+}
+
+// ------------------------------------------------------------------ marks
+
+/// Looks an editor can mark objects with (looping effect packages; the selection has the
+/// champions' feet aura): the achievement auras and the champion aura icons.
+const MARK_LOOKS: &[(&str, u32)] = &[
+    ("achievement aura 1", 529173),
+    ("achievement aura 2", 529182),
+    ("achievement aura 3", 529183),
+    ("achievement aura 4", 529186),
+    ("nature icon", 586093),
+    ("magic icon", 586094),
+    ("tech icon", 586095),
+    ("light icon", 586096),
+    ("shadow icon", 586097),
+];
+
+/// What a mark picks: the objects one author changed last, or those of a feature (and what is
+/// nested under it).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MarkBy {
+    Author,
+    Feature,
+}
+
+/// An editor's own marker on a group of objects (never saved, like hiding).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Mark {
+    pub by: MarkBy,
+    pub value: String,
+    /// one of MARK_LOOKS
+    pub look: String,
+}
+
+impl Mark {
+    fn matches(&self, author: &str, feature: &str) -> bool {
+        match self.by {
+            MarkBy::Author => author.eq_ignore_ascii_case(&self.value),
+            MarkBy::Feature => sv::features::within(feature, &self.value),
+        }
+    }
+}
+
+/// Shows `viewer` their marks on what they see in their playfield (again: after changes there
+/// or a move to another playfield, see `watch_walls`).
+fn show_marks(st: &mut State, viewer: Id32) {
+    let Some(pf) = world::whereabouts(viewer).map(|(pf, _)| pf) else { return };
+    let revision = st.revision.get(&pf).copied().unwrap_or(0);
+    let Some(s) = st.surveyors.get(&viewer) else { return };
+    let mut records = Vec::new();
+    let mut running = Vec::new();
+    // (what to mark: the wearer if it is a character, else where a helper stands)
+    let mut targets: Vec<(Option<Id32>, [f32; 3], u32)> = Vec::new();
+    let look = |m: &Mark| MARK_LOOKS.iter().find(|l| l.0 == m.look).map(|l| l.1);
+    if !s.marks.is_empty() {
+        for o in st.objects.values().filter(|o| o.playfield == pf && !is_hidden_for(s, o, &st.set)) {
+            let Some(npc) = o.npc else { continue };
+            if let Some(pkg) = s.marks.iter().find(|m| m.matches(&o.author, &o.feature)).and_then(look) {
+                targets.push(((o.def.kind != Kind::Smashable).then_some(npc), o.def.pos, pkg));
+            }
+        }
+        for w in st.walls.values().filter(|w| w.playfield == pf && !s.hidden.contains(&w.def.id)) {
+            if let Some(pkg) = s.marks.iter().find(|m| m.matches(&w.def.author, &w.def.feature)).and_then(look) {
+                targets.push((None, w.def.pos, pkg));
+            }
+        }
+    }
+    let s = st.surveyors.get_mut(&viewer).expect("checked");
+    for (wearer, pkg, instance, helper) in s.mark_effects.drain(..) {
+        records.push(crate::effects::stop_effect_package(wearer, pkg, 0, instance));
+        if helper {
+            records.push(crate::game::despawn_record(wearer));
+        }
+    }
+    for (npc, pos, pkg) in targets {
+        let wearer = match npc {
+            Some(n) => n,
+            None => {
+                let (h, spawn) = helper_at(pf, pos);
+                records.extend(spawn);
+                h
+            }
+        };
+        let instance = crate::effects::new_instance();
+        records.push(crate::effects::effect_package_hook(wearer, pkg, "", "", 0.0, 0, instance));
+        running.push((wearer, pkg, instance, npc.is_none()));
+    }
+    s.mark_effects = running;
+    s.marks_at = Some((pf, revision));
+    if !records.is_empty() {
+        world::send_to(viewer, world::Out::Records(records));
+    }
+}
+
+#[derive(Serialize)]
+struct MarkLook {
+    look: &'static str,
+    effect: u32,
+}
+
+async fn mark_looks() -> R<Vec<MarkLook>> {
+    with(|_| Ok(Json(MARK_LOOKS.iter().map(|l| MarkLook { look: l.0, effect: l.1 }).collect())))
+}
+
+/// An editor's marks (replacing the ones they had).
+async fn set_marks(Path(account): Path<u32>, Json(marks): Json<Vec<Mark>>) -> R<PlayerState> {
+    with(|st| {
+        if let Some(m) = marks.iter().find(|m| !MARK_LOOKS.iter().any(|l| l.0 == m.look)) {
+            return Err(Error::Invalid(format!("no mark look {} (mark-looks lists them)", m.look)));
+        }
+        let (player, _) = player_of(account)?;
+        st.surveyors.entry(player).or_default().marks = marks;
+        show_marks(st, player);
+        state_of(st, account)
+    })
+    .map(Json)
 }
 
 /// Everyone whose selection is `id` (to move their markers after a respawn).
@@ -783,6 +914,8 @@ struct PlayerState {
     hidden: Vec<String>,
     shown_waves: HashMap<String, String>,
     wearing: Option<Placeable>,
+    /// their marks on groups of objects
+    marks: Vec<Mark>,
     revision: u64,
 }
 
@@ -918,6 +1051,8 @@ pub fn routes() -> Router {
         .route("/v1/survey/players/{account}/place", post(place))
         .route("/v1/survey/players/{account}/place-trigger", post(place_trigger))
         .route("/v1/survey/wall-looks", get(wall_looks))
+        .route("/v1/survey/mark-looks", get(mark_looks))
+        .route("/v1/survey/players/{account}/marks", put(set_marks))
         .route("/v1/survey/trigger-targets", get(trigger_targets))
         .route("/v1/survey/players/{account}/select", post(select))
         .route("/v1/survey/players/{account}/hide", post(hide))
@@ -968,6 +1103,7 @@ fn state_of(st: &mut State, account: u32) -> Result<PlayerState, Error> {
         hidden: s.hidden.iter().cloned().collect(),
         shown_waves: s.shown.clone(),
         wearing: s.wearing.clone(),
+        marks: s.marks.clone(),
         revision: st.revision.get(&pf).copied().unwrap_or(0),
     })
 }
@@ -2215,6 +2351,20 @@ async fn watch_walls() {
         }
         for (id, player, pf) in fired {
             fire(st, &id, player, pf);
+        }
+        // marks follow changes and moves to another playfield
+        let stale: Vec<Id32> = st
+            .surveyors
+            .iter()
+            .filter(|(_, s)| !s.marks.is_empty() || !s.mark_effects.is_empty())
+            .filter(|(v, s)| {
+                let pf = st.last_pos.get(v).map(|(pf, _)| *pf);
+                pf.is_some_and(|pf| s.marks_at != Some((pf, st.revision.get(&pf).copied().unwrap_or(0))))
+            })
+            .map(|(v, _)| *v)
+            .collect();
+        for v in stale {
+            show_marks(st, v);
         }
     }
 }
