@@ -152,31 +152,42 @@ impl Collection {
 /// A minifigure item of `rank` (its tiers purchased) with `active` upgrades selected: `life` =
 /// (its own life, its full health). The client adds level x HealthPerLevel to its own life
 /// (SimpleChar_t::CalculateLife), so the full health counted it already.
-fn entry(template: u32, active: u32, (rank, purchased): (u32, u32), life: (u32, u32), id_salt: u64) -> ProtoInventoryGameEntry {
+/// What a minifigure item carries for one character.
+pub struct ItemState {
+    /// Active upgrade bitmask.
+    pub active: u32,
+    /// (rank, purchased upgrades)
+    pub rank: (u32, u32),
+    /// (max life, health)
+    pub life: (u32, u32),
+    /// Achievement counters (item stat, value): the Achievements window reads a minifigure's
+    /// progress from its item, so every copy of the item must carry them.
+    pub counters: Vec<(u32, u32)>,
+}
+
+fn entry(template: u32, state: &ItemState, id_salt: u64) -> ProtoInventoryGameEntry {
     let stat = |stat, value| StatValue { stat: Some(stat), value: Some(value) };
+    let (rank, purchased) = state.rank;
     let level = if crate::progression::enabled() { rank } else { MAX_LEVEL };
-    ProtoInventoryGameEntry {
-        item_id: Some(u64::from(template) | id_salt),
-        item_data: Some(acg_item(template, level.max(1))),
-        stat_list: vec![
-            stat(STAT_MINIFIGURE_LEVEL, level),
-            stat(STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank).unwrap_or(0) as u32),
-            stat(STAT_ACTIVE_UPGRADES, active),
-            stat(STAT_PURCHASED_UPGRADES, purchased),
-            // the client takes a minifigure's health from these when it switches to it (also
-            // on its own after a minifigure is smashed): unset, they read 0, so each switch
-            // flashed low health and a smashed minifigure's teammates were smashed in turn
-            stat(STAT_MINIFIGURE_LIFE, life.0),
-            stat(STAT_MINIFIGURE_HEALTH, life.1),
-            stat(STAT_MINIFIGURE_HEALTH_SHARE, 100),
-        ],
-        ..Default::default()
-    }
+    let mut stat_list = vec![
+        stat(STAT_MINIFIGURE_LEVEL, level),
+        stat(STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank).unwrap_or(0) as u32),
+        stat(STAT_ACTIVE_UPGRADES, state.active),
+        stat(STAT_PURCHASED_UPGRADES, purchased),
+        // the client takes a minifigure's health from these when it switches to it (also
+        // on its own after a minifigure is smashed): unset, they read 0, so each switch
+        // flashed low health and a smashed minifigure's teammates were smashed in turn
+        stat(STAT_MINIFIGURE_LIFE, state.life.0),
+        stat(STAT_MINIFIGURE_HEALTH, state.life.1),
+        stat(STAT_MINIFIGURE_HEALTH_SHARE, 100),
+    ];
+    stat_list.extend(state.counters.iter().map(|&(s, v)| stat(s, v)));
+    ProtoInventoryGameEntry { item_id: Some(u64::from(template) | id_salt), item_data: Some(acg_item(template, level.max(1))), stat_list, ..Default::default() }
 }
 
 /// A minifigure item to add to the collection (AddItem), as `entry`.
-pub fn new_item(template: u32, active: u32, rank: (u32, u32), life: (u32, u32)) -> ProtoInventoryGameEntry {
-    entry(template, active, rank, life, 0)
+pub fn new_item(template: u32, state: &ItemState) -> ProtoInventoryGameEntry {
+    entry(template, state, 0)
 }
 
 /// The character's inventories for FullPlayerCharacterIIR, collection (110001) and team (101) first:
@@ -187,15 +198,13 @@ pub fn inventories(
     character: u32,
     team: &[(u32, u32)],
     collection: &Collection,
-    upgrades: &impl Fn(u32) -> u32,
-    ranks: &impl Fn(u32) -> (u32, u32),
-    lives: &impl Fn(u32) -> (u32, u32),
+    state: &impl Fn(u32) -> ItemState,
 ) -> Vec<ProtoInventoryGame> {
     let inventory = |kind, max_size, items: Vec<(u32, u32)>| ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(kind), instance: Some(character) },
         max_size: Some(max_size),
         disabled_slots_count: None,
-        items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), ranks(t), lives(t), 0) }).collect(),
+        items: items.into_iter().map(|(pos, t)| InventoryListEntry { pos, item: entry(t, &state(t), 0) }).collect(),
     };
     let stored = collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (p as u32, t))).collect();
     // The rest as live sent them (empty, live sizes). The client refuses to loot an item when
@@ -218,16 +227,14 @@ pub fn inventories(
 pub fn team_refresh(
     character: u32,
     team: &[(u32, u32)],
-    upgrades: &impl Fn(u32) -> u32,
-    ranks: &impl Fn(u32) -> (u32, u32),
-    lives: &impl Fn(u32) -> (u32, u32),
+    state: &impl Fn(u32) -> ItemState,
     salt: u64,
 ) -> ProtoInventoryGame {
     ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(TEAM_INVENTORY), instance: Some(character) },
         max_size: Some(64),
         disabled_slots_count: None,
-        items: team.iter().map(|&(pos, t)| InventoryListEntry { pos, item: entry(t, upgrades(t), ranks(t), lives(t), salt) }).collect(),
+        items: team.iter().map(|&(pos, t)| InventoryListEntry { pos, item: entry(t, &state(t), salt) }).collect(),
     }
 }
 
@@ -238,9 +245,7 @@ pub fn team_refresh(
 pub fn collection_refresh(
     character: u32,
     collection: &Collection,
-    upgrades: &impl Fn(u32) -> u32,
-    ranks: &impl Fn(u32) -> (u32, u32),
-    lives: &impl Fn(u32) -> (u32, u32),
+    state: &impl Fn(u32) -> ItemState,
 ) -> ProtoInventoryGame {
     ProtoInventoryGame {
         inventory_id: ProtoId32 { r#type: Some(COLLECTION_INVENTORY), instance: Some(character) },
@@ -250,7 +255,7 @@ pub fn collection_refresh(
             .slots
             .iter()
             .enumerate()
-            .filter_map(|(p, t)| t.map(|t| InventoryListEntry { pos: p as u32, item: entry(t, upgrades(t), ranks(t), lives(t), 1 << 32) }))
+            .filter_map(|(p, t)| t.map(|t| InventoryListEntry { pos: p as u32, item: entry(t, &state(t), 1 << 32) }))
             .collect(),
     }
 }

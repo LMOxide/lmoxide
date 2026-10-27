@@ -46,13 +46,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut collection = Collection::new(&me.team, me.collection.as_ref());
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
-    let mut shown_portal: Option<u32> = None;
-    // the open portal message box (plain windows): its cookie and where it leads
-    let mut portal_prompt: Option<(u64, u32)> = None;
-    let mut next_prompt_cookie = 1u64;
-    // portals open only once the player has been clear of them since arriving (login, teleport)
-    let mut portals_armed = false;
-    let mut portals_playfield = 0;
+    let mut portals = Portals::default();
+    // between movement reports: a player walking a path reaches portals the reports don't show
+    let mut portal_tick = tokio::time::interval(PORTAL_TICK);
+    portal_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     // direction of the player's last movement (aims projectiles cast without a target)
     let mut heading = [0.0f32, 1.0];
     // the same, shared with tasks that fire later (held charges)
@@ -97,6 +94,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 Some(rpc) => rpc,
                 None => break,
             },
+            _ = portal_tick.tick() => {
+                if presence.is_some() {
+                    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                    let here = world::live_position(id).unwrap_or_else(|| *pos.lock().unwrap());
+                    portals.check(&mut conn, character, me.playfield, here).await?;
+                }
+                continue;
+            }
             Some(out) = inbox.recv() => {
                 if let world::Out::Command(text, done) = out {
                     _command_done = done;
@@ -294,7 +299,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
                         records.push(crate::teleport::journal_record(h.identity));
-                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()));
+                        let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.item_state(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         // a test setup changed the team, or a teleport moved the active minifigure
                         // to the first position (active_at_first_position): the HUD shows the
@@ -306,7 +311,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         if std::mem::take(&mut team_changed) | std::mem::replace(&mut was_in_play, true) {
                             team_salt += 1 << 33;
-                            let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                            let team = crate::collection::team_refresh(character, &me.team, &|t| me.item_state(t), team_salt);
                             records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&team)));
                         }
                         if let Some(&(slot, template)) = me.team.first() {
@@ -448,68 +453,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }
-                            // Hub portals: the client sends nothing, so offer the destination's
-                            // teleport window when the player steps into one (once per visit), or
-                            // teleport directly if it has none.
-                            // Portals: the client sends nothing, so open the portal's teleport
-                            // window when the player steps in (once per visit), and close it when
-                            // they step out again (live, server scripts did this)
-                            // (not right after arriving: login or teleport, maybe next to one)
-                            if me.playfield != portals_playfield || crate::teleport::take_arrival(character) {
-                                portals_armed = false;
-                                portals_playfield = me.playfield;
-                                debug!(?p, "portals wait until the player is clear of them");
-                            }
-                            if !portals_armed && crate::teleport::clear_of_portals(me.playfield, p) {
-                                portals_armed = true;
-                                debug!(?p, "portals open again");
-                            }
-                            match crate::teleport::portal_at(me.playfield, p).filter(|_| portals_armed) {
-                                Some((to, window)) if shown_portal != Some(to) => {
-                                    shown_portal = Some(to);
-                                    info!(to, window, "portal");
-                                    if crate::teleport::plain_window(window) {
-                                        // its window would be empty: ask Yes/No instead
-                                        let cookie = next_prompt_cookie;
-                                        next_prompt_cookie += 1;
-                                        portal_prompt = Some((cookie, to));
-                                        conn.send_as(
-                                            Some(character),
-                                            Endpoint::GameCharInterface,
-                                            game_char_interface::SCRY_SHOW_MESSAGE_BOX,
-                                            message_box_args(&crate::teleport::travel_question(to), cookie),
-                                        )
-                                        .await?;
-                                    } else {
-                                        let args = Writer::new().u32(window).i32(0).finish();
-                                        conn.send_as(
-                                            Some(character),
-                                            Endpoint::GameCharInterfaceProject,
-                                            game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX,
-                                            args,
-                                        )
-                                        .await?;
-                                    }
-                                }
-                                Some(_) => {}
-                                None if shown_portal.is_some() => {
-                                    shown_portal = None;
-                                    if let Some((cookie, _)) = portal_prompt.take() {
-                                        let args = Writer::new().u64(cookie).finish();
-                                        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_CLOSE_MESSAGE_BOX, args)
-                                            .await?;
-                                    } else {
-                                        conn.send_as(
-                                            Some(character),
-                                            Endpoint::GameCharInterfaceProject,
-                                            game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
-                                            Bytes::new(),
-                                        )
-                                        .await?;
-                                    }
-                                }
-                                None => {}
-                            }
+                            // portals: where the player is now (a click-to-move report gives the path's end)
+                            let here = world::live_position(h.identity).unwrap_or(p);
+                            portals.check(&mut conn, character, me.playfield, here).await?;
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
                                 me.pos = p;
@@ -976,10 +922,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let _ctx = r.i32()?;
                 let cookie = r.u64()?;
                 info!(answer, cookie, "message box answer");
-                if let Some((asked, to)) = portal_prompt
+                if let Some((asked, to)) = portals.prompt
                     && asked == cookie
                 {
-                    portal_prompt = None;
+                    portals.prompt = None;
                     if answer == 1 {
                         teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, None, None).await?;
                     }
@@ -1262,9 +1208,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Window(window) if let Some(to) = crate::teleport::plain_window_destination(window) => {
                             // as its portals do: ask Yes/No
-                            let cookie = next_prompt_cookie;
-                            next_prompt_cookie += 1;
-                            portal_prompt = Some((cookie, to));
+                            let cookie = portals.next_cookie();
+                            portals.prompt = Some((cookie, to));
                             let args = message_box_args(&crate::teleport::travel_question(to), cookie);
                             conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
                         }
@@ -1456,7 +1401,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                                 team_salt += 1 << 33;
                                 let joined: Vec<(u32, u32)> = me.team.iter().copied().filter(|e| !old.contains(e)).collect();
-                                let team = crate::collection::team_refresh(character, &joined, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                                let team = crate::collection::team_refresh(character, &joined, &|t| me.item_state(t), team_salt);
                                 for e in &team.items {
                                     let args = inventory.write(Writer::new()).i32(e.pos as i32).proto(&e.item).u8(0).finish();
                                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
@@ -1640,7 +1585,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     // the minifigure into the team, as live: AddItem(ID32 inventory, i32 pos, entry,
                     // u8 split), which also gives the HUD its portrait
                     team_salt += 1 << 33;
-                    let team = crate::collection::team_refresh(character, &me.team, &|t| me.upgrade(t), &|t| (me.rank(t), me.purchased(t)), &|t| crate::combat::item_life(t, me.upgrade(t), me.combat_level()), team_salt);
+                    let team = crate::collection::team_refresh(character, &me.team, &|t| me.item_state(t), team_salt);
                     for e in &team.items {
                         let args = Id32::new(crate::collection::TEAM_INVENTORY, character).write(Writer::new()).i32(e.pos as i32).proto(&e.item).u8(0).finish();
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
@@ -1808,6 +1753,81 @@ fn reported_facing(rest: &[u8]) -> Option<[f32; 2]> {
 /// position, rotation (2 floats if flags & 0x10, else 4), u8 alignment, then the velocity unless
 /// flags & 0x04), or a click-to-move path (`MoveTaskIIR_c`: from the start along the waypoints, at
 /// the players' run speed, as `PLAYER_SPEEDS` makes the client walk it).
+/// How often the portals are checked between movement reports.
+const PORTAL_TICK: std::time::Duration = std::time::Duration::from_millis(250);
+
+/// Portals: the client sends nothing when the player steps into one, so the server opens the
+/// portal's teleport window then (once per visit, live's server scripts did this), or asks
+/// Yes/No for a portal whose window would be empty, and closes it when they step out again.
+/// Not right after arriving (login, teleport, maybe next to one): portals open once the player
+/// has been clear of them.
+#[derive(Default)]
+struct Portals {
+    /// the destination whose window is open
+    shown: Option<u32>,
+    /// the open message box (plain windows): its cookie and where it leads
+    prompt: Option<(u64, u32)>,
+    cookies: u64,
+    armed: bool,
+    playfield: u32,
+}
+
+impl Portals {
+    fn next_cookie(&mut self) -> u64 {
+        self.cookies += 1;
+        self.cookies
+    }
+
+    /// The player is at `p` on `playfield`.
+    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: u32, p: [f32; 3]) -> anyhow::Result<()> {
+        let arrived = crate::teleport::take_arrival(character);
+        if playfield != self.playfield || arrived {
+            self.armed = false;
+            self.playfield = playfield;
+            info!(?p, "portals wait until the player is clear of them");
+        }
+        if !self.armed && crate::teleport::clear_of_portals(playfield, p) {
+            self.armed = true;
+            info!(?p, "portals open again");
+        }
+        match crate::teleport::portal_at(playfield, p).filter(|_| self.armed) {
+            Some((to, window)) if self.shown != Some(to) => {
+                self.shown = Some(to);
+                info!(to, window, "portal");
+                if crate::teleport::plain_window(window) {
+                    // its window would be empty: ask Yes/No instead
+                    let cookie = self.next_cookie();
+                    self.prompt = Some((cookie, to));
+                    let args = message_box_args(&crate::teleport::travel_question(to), cookie);
+                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
+                } else {
+                    let args = Writer::new().u32(window).i32(0).finish();
+                    conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX, args)
+                        .await?;
+                }
+            }
+            Some(_) => {}
+            None if self.shown.is_some() => {
+                self.shown = None;
+                if let Some((cookie, _)) = self.prompt.take() {
+                    let args = Writer::new().u64(cookie).finish();
+                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_CLOSE_MESSAGE_BOX, args).await?;
+                } else {
+                    conn.send_as(
+                        Some(character),
+                        Endpoint::GameCharInterfaceProject,
+                        game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
+                        Bytes::new(),
+                    )
+                    .await?;
+                }
+            }
+            None => {}
+        }
+        Ok(())
+    }
+}
+
 fn reported_motion(kind: &str, rest: &[u8]) -> Option<world::Motion> {
     let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
     let at = |i: usize| Some([f(i)?, f(i + 4)?, f(i + 8)?]);
@@ -1890,6 +1910,8 @@ async fn send_world(
         records.push(int32_stat(id, STAT_GM_LEVEL, gm_level));
     }
     records.extend(xp_records(id, me));
+    // the player's achievement counters (kills, smashes): the character is new to the client
+    records.extend(crate::achievements::player_counters(me).into_iter().map(|(stat, value)| stat_record(id, stat, value)));
     // every player is a member (member chests, the member smash timer)
     records.push(int32_stat(id, crate::smash::STAT_SUBSCRIPTION_FLAGS, crate::smash::MEMBER_FLAGS));
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
@@ -2006,8 +2028,8 @@ fn progress(
 ) -> crate::achievements::Output {
     let team = me.team.clone();
     let slots = collection.slots.clone();
-    let ranks: HashMap<u32, u32> = crate::collection::all_minifigures().into_iter().map(|t| (t, me.rank(t))).collect();
-    let rank_of = move |t: u32| ranks.get(&t).copied().unwrap_or(0);
+    let bought: HashMap<u32, u32> = crate::collection::all_minifigures().into_iter().map(|t| (t, me.purchased(t).count_ones())).collect();
+    let bought = move |t: u32| bought.get(&t).copied().unwrap_or(0);
     let locate = move |t: u32| match team.iter().find(|&&(_, x)| x == t) {
         Some(&(slot, _)) => (crate::collection::TEAM_INVENTORY, slot),
         None => (crate::collection::COLLECTION_INVENTORY, slots.iter().position(|s| *s == Some(t)).unwrap_or(0) as u32),
@@ -2018,7 +2040,7 @@ fn progress(
         character,
         active: me.team.first().map(|&(_, t)| t),
         locate: &locate,
-        level: &|t| rank_of(t),
+        upgrades: &bought,
         owned: &owned,
     };
     match event {
@@ -2068,12 +2090,7 @@ async fn grant_minifigure(conn: &mut Conn, character: u32, me: &mut Character, c
     owned.insert(template, crate::smash::now_ms() / 1000);
     let pos = collection.free_position();
     collection.put(pos, template);
-    let item = crate::collection::new_item(
-        template,
-        me.upgrade(template),
-        (me.rank(template), me.purchased(template)),
-        crate::combat::item_life(template, me.upgrade(template), me.combat_level()),
-    );
+    let item = crate::collection::new_item(template, &me.item_state(template));
     let args = Id32::new(crate::collection::COLLECTION_INVENTORY, character).write(Writer::new()).i32(pos as i32).proto(&item).u8(0).finish();
     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
     info!(character, template, pos, "minifigure obtained");
@@ -2566,7 +2583,7 @@ const EMPTY: u32 = 0x3f1;
 /// ```
 fn full_player_character(id: Id32, c: &Character, collection: &Collection) -> bytes::Bytes {
     let proto = ProtoFullCharacterIir {
-        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.upgrade(t), &|t| (c.rank(t), c.purchased(t)), &|t| crate::combat::item_life(t, c.upgrade(t), c.combat_level())),
+        inventory: crate::collection::inventories(id.instance, &c.team, collection, &|t| c.item_state(t)),
         ..Default::default()
     };
     iir::record("FullPlayerCharacterIIR", id, false, |w| {
@@ -2791,6 +2808,8 @@ pub trait CharacterExt {
     /// The upgrades bought for a minifigure (item stat PurchasedUpgrades): all without
     /// progression; older saves without purchases have their rank's tiers.
     fn purchased(&self, template: u32) -> u32;
+    /// What the minifigure's item carries (upgrades, rank, life, achievement counters).
+    fn item_state(&self, template: u32) -> crate::collection::ItemState;
     fn spec(&self) -> CharSpec<'_>;
 }
 
@@ -2821,6 +2840,15 @@ impl CharacterExt for Character {
             self.purchased_upgrades.get(&template).copied().unwrap_or_else(|| crate::progression::unlocked_upgrades(self.rank(template)))
         } else {
             crate::progression::unlocked_upgrades(crate::progression::MAX_RANK)
+        }
+    }
+
+    fn item_state(&self, template: u32) -> crate::collection::ItemState {
+        crate::collection::ItemState {
+            active: self.upgrade(template),
+            rank: (self.rank(template), self.purchased(template)),
+            life: crate::combat::item_life(template, self.upgrade(template), self.combat_level()),
+            counters: crate::achievements::item_counters(self, template),
         }
     }
 

@@ -79,13 +79,16 @@ struct Counts {
 #[derive(Deserialize)]
 struct Data {
     achievements: Vec<Achievement>,
+    /// The client's playfield names (TDB 52000).
+    playfields: HashMap<u32, String>,
 }
 
 struct Tree {
     all: Vec<Achievement>,
     by_id: HashMap<u32, usize>,
     children: HashMap<u32, Vec<u32>>,
-    /// Playfield names (world_content.json) for dungeon targets, lowercase.
+    /// Playfield names for dungeon targets, lowercase: world_content.json's, else the client's
+    /// (world_content.json has none for some dungeons, e.g. Siege Command Room).
     playfields: HashMap<u32, String>,
 }
 
@@ -98,10 +101,10 @@ static TREE: LazyLock<Tree> = LazyLock::new(|| {
     }
     let worlds: HashMap<String, serde_json::Value> =
         serde_json::from_str(include_str!("../../../data/world_content.json")).expect("world_content.json");
-    let playfields = worlds
-        .iter()
-        .filter_map(|(k, v)| Some((k.parse().ok()?, v.get("name")?.as_str()?.replace("&apos;", "'").to_lowercase())))
-        .collect();
+    let mut playfields: HashMap<u32, String> = data.playfields.iter().map(|(&k, v)| (k, v.to_lowercase())).collect();
+    playfields.extend(
+        worlds.iter().filter_map(|(k, v)| Some((k.parse().ok()?, v.get("name")?.as_str()?.replace("&apos;", "'").to_lowercase()))),
+    );
     Tree { all: data.achievements, by_id, children, playfields }
 });
 
@@ -121,6 +124,9 @@ pub enum Event {
     Found { playfield: u32, name: String },
     /// Defeated every enemy of a dungeon in one visit.
     Cleared { playfield: u32 },
+    /// Completed level `level` of the Lost Creations (stub: the Lost Creations don't run yet,
+    /// only the test command sends it).
+    LostCreations { level: u32 },
 }
 
 /// What the session must send after an update.
@@ -141,8 +147,8 @@ pub struct Ctx<'a> {
     pub active: Option<u32>,
     /// Where a minifigure item is (inventory, position), for SetItemStat.
     pub locate: &'a dyn Fn(u32) -> (u32, u32),
-    /// A minifigure's level.
-    pub level: &'a dyn Fn(u32) -> u32,
+    /// How many upgrades were bought for a minifigure.
+    pub upgrades: &'a dyn Fn(u32) -> u32,
     /// Whether a minifigure is owned.
     pub owned: &'a dyn Fn(u32) -> bool,
 }
@@ -216,6 +222,22 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
                 .filter(|a| a.kind == "clear" && a.target.as_ref().is_some_and(|t| !area.is_empty() && same_name(t, &area)))
                 .map(|a| a.id)
                 .collect();
+            // "Conquer the <dungeon> as <minifigure>"
+            let hits = hits.into_iter().chain(as_minifigure(ctx, &area, ""));
+            for id in hits.collect::<Vec<_>>() {
+                grant(c, ctx, &mut out, id);
+            }
+            evaluate(c, ctx, &mut out);
+            return out;
+        }
+        Event::LostCreations { level } => {
+            info!(character = ctx.character, level, minifigure = ?ctx.active, "lost creations level");
+            let hits: Vec<u32> = TREE
+                .all
+                .iter()
+                .filter(|a| a.kind == "lost_creations" && a.minifigure.is_some() && a.minifigure == ctx.active && a.n <= *level)
+                .map(|a| a.id)
+                .collect();
             for id in hits {
                 grant(c, ctx, &mut out, id);
             }
@@ -266,14 +288,9 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
         let hits: Vec<u32> = TREE
             .all
             .iter()
-            .filter(|a| match (a.kind.as_str(), &a.target) {
-                ("defeat", Some(t)) => same_name(t, &name),
-                ("target", Some(t)) => {
-                    a.minifigure == ctx.active && (same_name(t, &name) || (!dungeon.is_empty() && same_name(t, &dungeon)))
-                }
-                _ => false,
-            })
+            .filter(|a| a.kind == "defeat" && a.target.as_ref().is_some_and(|t| same_name(t, &name)))
             .map(|a| a.id)
+            .chain(as_minifigure(ctx, &dungeon, &name))
             .collect();
         for id in hits {
             grant(c, ctx, &mut out, id);
@@ -281,6 +298,21 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
     }
     evaluate(c, ctx, &mut out);
     out
+}
+
+/// The active minifigure's "<minifigure>_<target>" achievements for the dungeon `area` or the
+/// boss `name` (either may be empty).
+fn as_minifigure(ctx: &Ctx, area: &str, name: &str) -> Vec<u32> {
+    let Some(active) = ctx.active else { return vec![] };
+    TREE.all
+        .iter()
+        .filter(|a| {
+            a.kind == "target"
+                && a.minifigure == Some(active)
+                && a.target.as_ref().is_some_and(|t| (!name.is_empty() && same_name(t, name)) || (!area.is_empty() && same_name(t, area)))
+        })
+        .map(|a| a.id)
+        .collect()
 }
 
 fn counts_event(k: &Counts, kind: &str, name: &str) -> bool {
@@ -353,7 +385,8 @@ fn evaluate(c: &mut Character, ctx: &Ctx, out: &mut Output) {
                     };
                     counter(&c.counters, stat as u32, template) >= target
                 }),
-                "upgrade" => a.minifigure.is_some_and(|t| (ctx.owned)(t) && (ctx.level)(t) >= a.n),
+                // "Get the third <minifigure> upgrade"
+                "upgrade" => a.minifigure.is_some_and(|t| (ctx.owned)(t) && (ctx.upgrades)(t) >= a.n),
                 "series" => series_complete(a.series, ctx),
                 "any" => {
                     let siblings = TREE.children.get(&a.parent).map_or(0, |s| {
@@ -417,6 +450,24 @@ pub fn champions_for(playfield: u32) -> Vec<String> {
     TREE.all.iter().filter(|a| a.name.starts_with(&prefix)).filter_map(|a| a.target.clone()).collect()
 }
 
+/// A minifigure item's achievement counters (item stat, value), for every copy of the item.
+pub fn item_counters(c: &Character, template: u32) -> Vec<(u32, u32)> {
+    [STAT_MINIFIGURE_COUNTER1, STAT_MINIFIGURE_COUNTER2]
+        .into_iter()
+        .map(|stat| (stat, counter(&c.counters, stat, template)))
+        .filter(|&(_, v)| v > 0)
+        .map(|(stat, v)| (stat, v.min(i32::MAX as u64) as u32))
+        .collect()
+}
+
+/// The player's own achievement counters (stat, value), sent with the character.
+pub fn player_counters(c: &Character) -> Vec<(u32, u32)> {
+    c.counters
+        .iter()
+        .filter_map(|(&stat, m)| Some((stat, (*m.get(&0)?).min(i32::MAX as u64) as u32)))
+        .collect()
+}
+
 /// Earned achievement points and count (for the test command).
 pub fn summary(c: &Character) -> (usize, usize) {
     let earned = c.tags.keys().filter(|t| TREE.by_id.contains_key(t)).count();
@@ -460,7 +511,7 @@ mod tests {
     #[test]
     fn kills_count_and_complete() {
         let cyclops = 41_757;
-        let ctx = Ctx { character: 1, active: Some(cyclops), locate: &|_| (101, 6), level: &|_| 1, owned: &|t| t == cyclops };
+        let ctx = Ctx { character: 1, active: Some(cyclops), locate: &|_| (101, 6), upgrades: &|_| 1, owned: &|t| t == cyclops };
         let mut c = character();
         let ev = Event::Defeated { id: Id32::new(0, 0), name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
         for _ in 0..999 {
@@ -480,8 +531,31 @@ mod tests {
     }
 
     #[test]
+    fn minifigure_achievements() {
+        let plumber = 50_715;
+        let ctx = Ctx { character: 1, active: Some(plumber), locate: &|_| (101, 6), upgrades: &|_| 3, owned: &|t| t == plumber };
+        let mut c = character();
+        check(&mut c, &ctx);
+        assert!(c.tags.contains_key(&2519) && !c.tags.contains_key(&2520), "Plumber_Upgrade 3, not 7");
+        on_event(&mut c, &ctx, &Event::LostCreations { level: 10 }, 1);
+        assert!(c.tags.contains_key(&2522) && c.tags.contains_key(&2523) && !c.tags.contains_key(&2529), "Lost Creations 5 and 10");
+        // pocket adventures as Plumber: Siege Command Room has no name in world_content.json
+        on_event(&mut c, &ctx, &Event::Cleared { playfield: 1673 }, 1);
+        assert!(c.tags.contains_key(&2513), "Plumber_Siege Command Room");
+        assert!(!c.tags.contains_key(&2526));
+        on_event(&mut c, &ctx, &Event::Cleared { playfield: 1675 }, 1);
+        assert!(c.tags.contains_key(&2514), "Plumber_Minotaur Refuge");
+        assert!(c.tags.contains_key(&2526), "Plumber_Complete Any 5");
+        assert!(!c.tags.contains_key(&2527), "Complete Any 10 needs 11");
+        // the counters every copy of the item carries
+        on_event(&mut c, &ctx, &Event::Built { name: "Mythology Statue 3".into() }, 2);
+        assert_eq!(item_counters(&c, plumber), vec![(STAT_MINIFIGURE_COUNTER1, 2), (STAT_MINIFIGURE_COUNTER2, 2)]);
+        assert!(player_counters(&c).is_empty());
+    }
+
+    #[test]
     fn journal_finds_and_clears() {
-        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), level: &|_| 1, owned: &|_| false };
+        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), upgrades: &|_| 1, owned: &|_| false };
         let mut c = character();
         let skeleton = Event::Defeated { id: Id32::new(0, 0), name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
         on_event(&mut c, &ctx, &skeleton, 2);

@@ -10,9 +10,12 @@ minifigure it belongs to (MinifigureTemplateID) and, for counters, the stat coun
   counter   TagCounterStat reaches TagCounterValue; `counts` says what raises it for the
             minifigure item counters (InventoryItemGeneric1/2: kills, smashes or builds while
             the minifigure is active, optionally only of things whose name contains `match`)
-  any       "Complete Any N": N of the parent's other achievements
+  any       "Complete Any N": N of the parent's other achievements (N from the description,
+            text category 55700: "Complete Any 10" says "Complete any 11")
   all       a parent: all its visible children
-  upgrade   "<Minifigure>_Upgrade N": the minifigure reaches level N
+  upgrade   "<Minifigure>_Upgrade N": "Get the Nth upgrade": N upgrades bought for the minifigure
+  lost_creations  "<Minifigure>_Lost Creations_Get to Level N": level N of the Lost Creations
+            completed with that minifigure
   series    "Global_Minifigures_Series N" / "_All": every minifigure of the series (all) owned
   defeat    "..._Defeat <name>": a boss of that name defeated
   target    "<Minifigure>_<name>": with that minifigure active, defeat the boss <name> or the
@@ -23,12 +26,13 @@ minifigure it belongs to (MinifigureTemplateID) and, for counters, the stat coun
   find      "..._Collectibles_<x>" / "[<world>] Boombox": the world object `find` (in
             `playfield`, when given) found: collectibles are clicked, boomboxes walked up to;
             exploration ("..._Exploration_<x>", EXPLORE): the bounded area `find` walked into
-  manual    no rule (exploration, events, Lost Creations, ...)
+  manual    no rule (some exploration, events, global Lost Creations, ...)
 
 Usage: tools/re/py extract_achievements.py"""
 import json, os, re, sys
 
 import rdb
+import tdc
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "demo"))
 from pblib import parse, varint  # noqa: E402
@@ -38,6 +42,9 @@ STATS = json.load(open(os.path.join(ROOT, "data/stats.json")))
 STATS.update(json.load(open(os.path.join(ROOT, "data/stats_linux.json"))))
 STAT_ID = {v: int(k) for k, v in STATS.items()}
 ACHIEVEMENTS_ROOT = 2
+# TDB category of the achievements' descriptions (keyed by tag id)
+ACHIEVEMENT_TEXTS = 55700
+PLAYFIELD_NAMES = 52000
 STARS_ICON = 530321
 GENERIC1, GENERIC2 = STAT_ID["InventoryItemGeneric1"], STAT_ID["InventoryItemGeneric2"]
 
@@ -160,6 +167,7 @@ def main():
         i = todo.pop()
         keep.add(i)
         todo.extend(c for c in nodes[i]["children"] if c in nodes)
+    texts = tdc.texts(ACHIEVEMENT_TEXTS)
     out = []
     for i in sorted(keep - {ACHIEVEMENTS_ROOT}):
         n = nodes[i]
@@ -186,7 +194,10 @@ def main():
                 else:
                     a["kind"] = "manual"
         elif m := re.search(r"Complete Any (\d+)$", name):
-            a["kind"], a["n"] = "any", int(m.group(1))
+            d = re.search(r"Complete any (\d+)", texts.get(i, ""), re.I)
+            a["kind"], a["n"] = "any", int((d or m).group(1))
+        elif (m := re.search(r"_Lost Creations_Get to [Ll]evel (\d+)$", name)) and "minifigure" in a:
+            a["kind"], a["n"] = "lost_creations", int(m.group(1))
         elif m := re.search(r"_Upgrade (\d+)$", name):
             a["kind"], a["n"] = "upgrade", int(m.group(1))
         elif m := re.match(r"Global_Minifigures_(Series (\d+)|All)$", name):
@@ -215,7 +226,10 @@ def main():
         else:
             a["kind"] = "manual"
         out.append(a)
-    doc = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), "achievements": out}
+    # playfield names (TDB 52000) for the dungeon targets: world_content.json lacks some
+    # ("Siege Command Room", "Spider's Nest")
+    names = {str(k): v for k, v in sorted(tdc.texts(PLAYFIELD_NAMES).items())}
+    doc = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), "achievements": out, "playfields": names}
     path = os.path.join(ROOT, "data/achievements.json")
     json.dump(doc, open(path, "w"), indent=0)
     kinds = {}

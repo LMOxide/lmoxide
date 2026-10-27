@@ -57,6 +57,8 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!xp [n]` | gain n XP (with `--progression`) and show level and XP |
 | `!stars <n>` | gain n stars (to rank minifigures up with `--progression`) |
 | `!defeat <boss name>` | count a boss defeat (`!defeat Hades`) for the boss and the active minifigure's achievements |
+| `!lc <level>` | complete Lost Creations level `<level>` with the active minifigure (its "Lost Creations_Get to Level 5/10/15" achievements; a stub until the Lost Creations run) |
+| `!cleared` | count this playfield as cleared, as when its last enemy falls (pocket adventure achievements, also the active minifigure's "Conquer the X as Y") |
 
 New features add their targets to `devcmd.rs` `targets`, and new commands to `COMMANDS` (`!help`,
 and `GET /v1/catalog/test-commands` for tools such as the effect browser).

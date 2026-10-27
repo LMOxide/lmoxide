@@ -10,6 +10,8 @@
 //!   !ach                      achievements earned, kill and smash counters
 //!   !count <kills|smashes|builds> [n] [name]   count n (default 1) defeats/builds for achievements
 //!   !defeat <boss name>       count a boss defeat (boss achievements, the active minifigure's)
+//!   !lc <level>               complete Lost Creations level <level> with the active minifigure (stub)
+//!   !cleared                  count this playfield as cleared (pocket adventure achievements)
 //!   !xp [n]                   gain n XP (with --progression), show level and XP
 //!   !stars <n>                gain n stars (minifigure XP for ranking up)
 //!   !test [n|label]           list the manual test setups, or set one up (data/test_scenarios.json)
@@ -120,6 +122,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!ach", "achievements earned, kill and smash counters"),
     ("!count <kills|smashes|builds> [n] [name]", "count n (default 1) defeats or builds for achievements"),
     ("!defeat <boss name>", "count a boss defeat (boss achievements, the active minifigure's)"),
+    ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (achievements only; the Lost Creations don't run yet)"),
+    ("!cleared", "count this playfield as cleared, as when its last enemy falls (pocket adventure achievements)"),
     ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
@@ -564,6 +568,11 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some(how @ ("solve" | "reset")) => Action::Mirrors(how == "solve"),
             _ => reply(vec!["usage: !mirrors <solve|reset>".into()]),
         },
+        "lc" => match args.first().and_then(|n| n.parse::<u32>().ok()) {
+            Some(level) => Action::Progress(crate::achievements::Event::LostCreations { level }, 1),
+            None => reply(vec!["usage: !lc <level>".into()]),
+        },
+        "cleared" => Action::Progress(crate::achievements::Event::Cleared { playfield }, 1),
         "defeat" if !args.is_empty() => {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
         }
