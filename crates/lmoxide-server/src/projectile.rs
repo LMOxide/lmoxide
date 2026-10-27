@@ -3,7 +3,7 @@
 //!
 //! The client's Projectile GameAction does nothing by itself: the server creates the projectile
 //! dynel (type 51341) with UpdateMessage + `CoreProjectileFullUpdateIIR`, from the spell's
-//! parameters (data/projectiles.json, tools/re/extract_projectiles.py). Every client then moves
+//! parameters (content/skills `projectile`, skills.rs). Every client then moves
 //! it and plays its effects; the caster's client reports what it hit with `CoreProjectileIIR`
 //! (u32 action, ID32 projectile, then 1 HitTarget: ID32 target + position; 2 HitPosition: two
 //! positions; 6 DestroyOnPosition: position), and clients never remove it themselves.
@@ -12,7 +12,7 @@
 //! moves them (ProjectileStraightLineMoveTask: from the start towards the end point at the
 //! speed, until the maximum distance; the target is only used when there is no end point): the
 //! first enemy (players' shots) or player (enemies' shots) whose centre comes within the shot's
-//! radius (data/projectile_sizes.json) plus the character's is hit (TryHitDynels). So a shot
+//! radius (content/items `radius`) plus the character's is hit (TryHitDynels). So a shot
 //! aimed where its target was misses if the target stepped sideways out of its line, or was out
 //! of range, but not if it ran towards it or away along it. The caster's reports only end a
 //! player's shot early (it hit a wall); the server's hit is the one that counts.
@@ -92,32 +92,24 @@ impl Params {
     }
 }
 
-static PARAMS: LazyLock<HashMap<String, Params>> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/projectiles.json")).expect("projectiles.json"));
+static PARAMS: LazyLock<HashMap<u32, Params>> =
+    LazyLock::new(|| crate::skills::projectiles().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("projectile"))).collect());
 
-/// data/projectile_sizes.json (tools/re/extract_projectile_sizes.py): hit radius (m) by
-/// projectile item, range (m) by spell.
-#[derive(Deserialize)]
-struct Sizes {
-    items: HashMap<String, f32>,
-    spells: HashMap<String, f32>,
-}
-
-static SIZES: LazyLock<Sizes> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/projectile_sizes.json")).expect("projectile_sizes.json"));
+/// Hit radius (m) by projectile item.
+static RADII: LazyLock<HashMap<u32, f32>> = LazyLock::new(crate::skills::projectile_radii);
 
 /// The hit radius of projectile `item` (m).
 pub fn radius_of(item: u32) -> f32 {
-    SIZES.items.get(&item.to_string()).copied().unwrap_or(MIN_RADIUS)
+    RADII.get(&item).copied().unwrap_or(MIN_RADIUS)
 }
 
 /// How far a shot of `spell` flies: the Projectile action's AttackRange (`action`, 0: none),
-/// else the spell's, else `DEFAULT_RANGE`.
+/// else the skill's range (its AttackRange), else `DEFAULT_RANGE`.
 fn range_of(spell: u32, action: f32) -> f32 {
     if action > 0.0 {
         return action;
     }
-    SIZES.spells.get(&spell.to_string()).copied().unwrap_or(DEFAULT_RANGE)
+    crate::skills::range(spell).unwrap_or(DEFAULT_RANGE)
 }
 
 /// How players' shots are aimed at the enemy they target: straight shots and lobbed ones each
@@ -201,7 +193,7 @@ pub fn aim_at(target: Id32, from: [f32; 3], speed: f32, shots: Shots) -> Option<
     }
 }
 
-/// `aim_at` for a shot of `spell` with its own projectile parameters (data/projectiles.json).
+/// `aim_at` for a shot of `spell` with its own projectile parameters (content/skills `projectile`).
 pub fn aim_for(spell: u32, target: Id32, from: [f32; 3]) -> Option<[f32; 3]> {
     let Some(p) = params(spell) else { return crate::npc::position(target) };
     aim_at(target, from, p.speed, if p.move_type == BALLISTIC { Shots::Lobbed } else { Shots::Straight })
@@ -313,7 +305,7 @@ static NEXT: AtomicU32 = AtomicU32::new(1);
 
 /// The projectile parameters of `spell`, if it shoots one.
 pub fn params(spell: u32) -> Option<&'static Params> {
-    PARAMS.get(&spell.to_string())
+    PARAMS.get(&spell)
 }
 
 /// `caster` shoots `spell` from `from` towards `towards` (a target position, or a point ahead).

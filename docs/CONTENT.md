@@ -16,6 +16,7 @@ to it one system at a time:
 |---|---|---|
 | Loot (loot.rs) | loot tables, `tunables.loot`, items (stars, orbs, potions, parts, bags, chests), minifigures' parts, bags, `obtain` (regions, rarity), `tunables.rarity` | which source a kill is (enemy/champion/boss by health rank, npc.rs); Resourceful/Professional (procs.rs) |
 | Upgrades and procs (procs.rs, combat.rs) | minifigures' stats, attacks (AbilityMods, combo steps) and upgrades; the upgrades' buffs: stat effects (`Life`, `FinalDamageMultiplier`, `MitigationOverrideFlat`, `orb_chance`), `skill_mod` (Empowered Normals), `proc`s and the buffs they apply; `tunables.combat` | `LEVEL` (a constant other constants use); the nanos' client-side Modify actions (the client runs them) |
+| Skills (actions.rs, npc_spells.rs, projectile.rs, dash.rs, summons in npc.rs; through skills.rs) | skills' client spells (stats, game action lists), projectiles, dashes, summons and summoned NPCs, ranges; projectile items' on-hit actions and radii; the spells each enemy look casts (its NPC templates' `skills`) | the action types' behaviour (code) |
 | Everything else | | `data/*.json` and constants in the code |
 
 Edits to what the server doesn't read yet have no effect in game. Running the importer again
@@ -274,7 +275,8 @@ isn't playable (it never drops; picking one up now gives nothing instead of that
 1. The server reads `content/` instead of `data/*.json`, one system at a time, each giving the
    same results first (loot: same tables, and the same drop rates over 200,000 bags per source):
    loot (done), upgrades and procs (done: same health, damage and mitigation for every minifigure
-   and upgrade, the same procs in scripted attack/kill/hit sequences), skills, NPCs and spawns (then each enemy's own `loot` table),
+   and upgrade, the same procs in scripted attack/kill/hit sequences), skills (done: every spell,
+   projectile, dash, summon and enemy spell list as the old files had them), NPCs and spawns (then each enemy's own `loot` table),
    worlds (portals, bouncers, areas, puzzles), minifigures, achievements. Reloading on change comes
    with the world editor switch.
 2. The world editor reads and writes records of this format (forms from `content/schemas`), with

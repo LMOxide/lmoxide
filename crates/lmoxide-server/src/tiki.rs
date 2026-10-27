@@ -41,7 +41,7 @@ const FORCEFIELD: u32 = 412053;
 const STATUE_GLOW: u32 = 532195;
 /// Ground fire along the coming fireballs' lines (effect package of the monkeys' ground fire).
 const WARNING: u32 = 241037;
-/// The skull's fireball: projectile item (its hit radius: data/projectile_sizes.json), speed,
+/// The skull's fireball: projectile item (its hit radius: content/items `radius`), speed,
 /// reach and damage (nano 519853).
 const FIREBALL: u32 = 519852;
 const FIREBALL_SPEED: f32 = 10.0;

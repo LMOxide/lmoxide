@@ -6,7 +6,7 @@
 //! the command's success, a `MoveTaskIIR_c` list task (a fast path to the end, then a 0.1 s
 //! wait), BCC enter substate 200 ("Charging", blocks other commands), the dash's effect package
 //! at its "charge" hook; at the end BCC exit substate 200, the package's "execute" hook and a
-//! `StopIIR_c` at the end point. Spell data: data/dashes.json (tools/re/extract_dashes.py).
+//! `StopIIR_c` at the end point. Spell data: content/skills `dash` (skills.rs).
 
 use std::{collections::HashMap, sync::LazyLock, time::Duration};
 
@@ -20,7 +20,9 @@ use crate::{effects, world};
 #[derive(Debug, Clone, Deserialize)]
 pub struct Dash {
     distance: f32,
+    #[serde(default)]
     radius: f32,
+    #[serde(default)]
     backwards: bool,
     effect: u32,
     path_mod: Option<f32>,
@@ -34,8 +36,8 @@ pub struct Dash {
     arrival_visuals: Vec<(u32, u32, Option<u32>)>,
 }
 
-static DASHES: LazyLock<HashMap<String, Dash>> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/dashes.json")).expect("dashes.json"));
+static DASHES: LazyLock<HashMap<u32, Dash>> =
+    LazyLock::new(|| crate::skills::dashes().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("dash"))).collect());
 
 /// Dash speed: the player's MovementChargeSpeed stat (1400), 37.5 in the recorded session (see
 /// game::PLAYER_SPEEDS); the path's speed-up mode 2 makes the client use it.
@@ -48,7 +50,7 @@ const BCC_EXIT_SUBSTATE: u8 = 12;
 const SETTLE: f32 = 0.1;
 
 pub fn params(spell: u32) -> Option<&'static Dash> {
-    DASHES.get(&spell.to_string())
+    DASHES.get(&spell)
 }
 
 impl Dash {

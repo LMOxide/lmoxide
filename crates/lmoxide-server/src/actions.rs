@@ -1,6 +1,6 @@
 //! Channelled abilities (held specials: the Barbarian's Spin Slash, the Cyclops' Laser Eye, the
 //! Samurai Warrior's stance, ...). The server runs the server-only actions of the spell's game
-//! action lists (data/spell_actions.json, tools/re/extract_spell_actions.py) while the client runs
+//! action lists (content/skills `client`, skills.rs) while the client runs
 //! the client-side ones of its own spell itself:
 //!
 //! - press: PreUse (list 39), OnUse (0) and the channel start (35);
@@ -19,10 +19,14 @@
 //! Blink (a leap to the target, then its nano where it lands), Chain (a nano jumping from enemy
 //! to enemy, shown with `ChainSpellIIR_t`) and Projectile: a client action the server carries
 //! out (the client's does nothing by itself), creating the shot (projectile.rs) whose item's
-//! actions run on what it hits or where it lands (data/spell_actions.json `items`). Area
+//! actions run on what it hits or where it lands (content/items projectile `actions`). Area
 //! formulas with an Interval and a Duration pulse (-1: for as long as the buff holding them).
 //! Crowd control (snares, knockbacks, stuns), diminishing returns and resistances are only shown
-//! as the buffs' visuals. Timings the client data doesn't give are in docs/TUNABLES.md.
+//! as the buffs' visuals, except on enemies: their movement is the server's, so a player's slow
+//! (AddSnare), stun (Stun) and knockback or pull (Knockaway, AreaKnockaway), client actions the
+//! client only shows, are done to them here (npc.rs `snare`, `stun`, `knock`), for the nano's
+//! TimeExist and shortened by diminishing returns (AddDiminishingReturn). Timings the client
+//! data doesn't give are in docs/TUNABLES.md.
 
 use std::{
     collections::HashMap,
@@ -155,14 +159,8 @@ const STANDING_STILL: f32 = 0.3;
 /// Shots within about 15° of the facing don't turn the caster (cos 15°).
 const FACING_ALREADY: f32 = 0.966;
 
-static RAW: LazyLock<HashMap<String, serde_json::Value>> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/spell_actions.json")).expect("spell_actions.json"));
-
-static SPELLS: LazyLock<HashMap<u32, Spell>> = LazyLock::new(|| {
-    RAW.iter()
-        .filter_map(|(k, v)| Some((k.parse().ok()?, serde_json::from_value(v.clone()).expect("spell_actions.json entry"))))
-        .collect()
-});
+static SPELLS: LazyLock<HashMap<u32, Spell>> =
+    LazyLock::new(|| crate::skills::spells().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("skill"))).collect());
 
 /// A projectile item: what it does where it hits or lands.
 #[derive(Debug, Deserialize)]
@@ -171,10 +169,8 @@ struct Item {
     actions: Vec<Action>,
 }
 
-static ITEMS: LazyLock<HashMap<u32, Item>> = LazyLock::new(|| {
-    let items: HashMap<String, Item> = RAW.get("items").map(|v| serde_json::from_value(v.clone()).expect("spell_actions.json items")).unwrap_or_default();
-    items.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, v))).collect()
-});
+static ITEMS: LazyLock<HashMap<u32, Item>> =
+    LazyLock::new(|| crate::skills::projectile_items().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("projectile item"))).collect());
 
 /// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
 /// plain press (`cast`): it has server-side PreUse or OnUse actions.
@@ -561,14 +557,74 @@ fn criteria_met(run: &Run, a: &Action) -> bool {
     })
 }
 
-/// Runs the server actions of `spell`'s list `event` with `target` as the current target.
+/// Runs the server actions of `spell`'s list `event` with `target` as the current target, and
+/// the crowd control its client actions do to an enemy.
 fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32) {
     let Some(s) = SPELLS.get(&spell) else { return };
     let Some(list) = s.lists.get(event) else { return };
-    for a in list.iter().filter(|a| a.on_server()) {
+    for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str())) {
         if criteria_met(run, a) {
-            act(run, spell, a, target, depth);
+            if a.on_server() {
+                act(run, spell, a, target, depth);
+            } else {
+                crowd_control(run, spell, a, target);
+            }
         }
+    }
+}
+
+/// Client actions that move or hold a character: the client does them to players itself, the
+/// server to enemies.
+const CROWD_CONTROL: &[&str] = &["AddSnare", "Stun", "Knockaway", "AreaKnockaway"];
+/// How long a slow or stun without TimeExist lasts (assumed).
+const DEFAULT_CROWD_CONTROL: Duration = Duration::from_secs(2);
+/// Knockback speed when the action has none (m/s; the data says 25-50).
+const DEFAULT_KNOCK_SPEED: f32 = 25.0;
+
+/// `spell`'s crowd control action `a` on an enemy `target` (the caster's own slows are its
+/// client's).
+fn crowd_control(run: &Arc<Run>, spell: u32, a: &Action, target: Target) {
+    let caster = run.caster.id;
+    if a.on_caster() {
+        return;
+    }
+    let duration = SPELLS.get(&spell).and_then(|s| s.stats.time_exist).map_or(DEFAULT_CROWD_CONTROL, |cs| Duration::from_millis(10 * u64::from(cs)));
+    let speed = a.f("Speed").unwrap_or(DEFAULT_KNOCK_SPEED);
+    let enemy = target.id.filter(|id| *id != caster && crate::npc::is_enemy(*id));
+    match a.kind.as_str() {
+        "AddSnare" => {
+            if let Some(id) = enemy {
+                let got = crate::npc::snare(id, a.f("FloatMultiplier").unwrap_or(1.0), duration);
+                debug!(?caster, spell, enemy = ?id, ?got, "snare");
+            }
+        }
+        "Stun" => {
+            if let Some(id) = enemy {
+                let got = crate::npc::stun(id, duration);
+                debug!(?caster, spell, enemy = ?id, ?got, "stun");
+            }
+        }
+        "Knockaway" => {
+            if let Some(id) = enemy {
+                let from = here(run);
+                // the data names pulls ("knocktowards", "darkpull", "pull"); the rest push away
+                let name = SPELLS.get(&spell).map(|s| s.name.to_lowercase()).unwrap_or_default();
+                let towards = name.contains("pull") || name.contains("towards");
+                crate::npc::knock(id, from, a.f("Distance").unwrap_or(0.0), towards, speed);
+            }
+        }
+        "AreaKnockaway" => {
+            let Some((playfield, _)) = world::whereabouts(caster) else { return };
+            let center = target.pos;
+            let radius = a.f("Radius").unwrap_or(2.0);
+            let distance = a.f("Distance").unwrap_or(0.0);
+            for (id, _) in crate::npc::targets_where(playfield, |p| (p[0] - center[0]).hypot(p[2] - center[2]) <= radius) {
+                if crate::npc::is_enemy(id) {
+                    crate::npc::knock(id, center, distance, false, speed);
+                }
+            }
+        }
+        _ => {}
     }
 }
 
@@ -597,6 +653,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
                 }
                 shortcuts::clear(id, buff);
                 show(run, vec![effects::buff_remove(id, buff, caster)]);
+            }
+        }
+        "AddDiminishingReturn" => {
+            if let Some(id) = who.id.filter(|id| *id != caster && crate::npc::is_enemy(*id)) {
+                let window = Duration::from_millis(10 * u64::from(a.u("Value").unwrap_or(1000)));
+                crate::npc::diminish(id, a.u("Type").unwrap_or(0), window, a.f("FloatValue1").unwrap_or(0.0));
             }
         }
         "AddBuffCounter" => {
@@ -1082,6 +1144,59 @@ mod tests {
         let blocks = |spell: u32| SPELLS[&spell].stats.more_flags.unwrap_or(0) & MORE_FLAG_BLOCKS_TURNING != 0;
         assert!(blocks(195_930) && blocks(465_035) && blocks(465_036));
         assert!(!blocks(550_766));
+    }
+
+    fn test_run(caster: Id32) -> Arc<Run> {
+        Arc::new(Run {
+            caster: Caster {
+                id: caster,
+                playfield: 9999,
+                pos: Arc::new(Mutex::new([0.0; 3])),
+                facing: Arc::new(Mutex::new([0.0, 1.0])),
+                template: 0,
+                upgrades: 0,
+                level: 30,
+                target: None,
+                ground: None,
+            },
+            spell: 0,
+            started: Instant::now(),
+            length: Duration::ZERO,
+            released: AtomicBool::new(true),
+            counters: Mutex::new(HashMap::new()),
+            mitigation_buffs: Mutex::new(Vec::new()),
+            ends_when_hit: false,
+            aim: Mutex::new(None),
+            end_record: Bytes::new(),
+            shot_from: Mutex::new(None),
+            target: Mutex::new(None),
+            locked: Mutex::new(None),
+        })
+    }
+
+    /// Players' slows, stuns and knockbacks act on enemies (the client only shows them).
+    #[tokio::test]
+    async fn crowd_control_on_enemies() {
+        let run = test_run(Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_777));
+        let at = |id| Target { id: Some(id), pos: crate::npc::crowd_state(id).2 };
+        // Banshee's slow (60% speed, 3 s, diminishing returns first)
+        let e = crate::npc::test_enemy(11, [5.0, 0.0, 0.0], [50.0, 0.0, 0.0]);
+        cast_nano(&run, 641_764, at(e), 0);
+        assert!((crate::npc::crowd_state(e).0 - 0.6).abs() < 1e-4, "{:?}", crate::npc::crowd_state(e));
+        // Petrifying Gaze: a stun without diminishing returns
+        let s = crate::npc::test_enemy(12, [5.0, 0.0, 0.0], [50.0, 0.0, 0.0]);
+        cast_nano(&run, 16_090, at(s), 0);
+        assert!(crate::npc::crowd_state(s).1);
+        // the Barbarian's knockaway pushes 1 m away from the caster; its knocktowards pulls
+        let k = crate::npc::test_enemy(13, [5.0, 0.0, 0.0], [5.0, 0.0, 0.0]);
+        cast_nano(&run, 459_329, at(k), 0);
+        assert!((crate::npc::crowd_state(k).2[0] - 6.0).abs() < 1e-3, "{:?}", crate::npc::crowd_state(k));
+        cast_nano(&run, 388_455, at(k), 0);
+        // (5 m towards the caster, stopping at melee range)
+        assert!((crate::npc::crowd_state(k).2[0] - 1.8).abs() < 1e-3, "{:?}", crate::npc::crowd_state(k));
+        for id in [e, s, k] {
+            crate::npc::remove_test_enemy(id);
+        }
     }
 
     #[test]

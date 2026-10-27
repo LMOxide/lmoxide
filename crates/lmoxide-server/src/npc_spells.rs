@@ -1,6 +1,7 @@
-//! Enemy abilities: the spells each enemy casts at players and what they do, from
-//! data/npc_spells.json (tools/re/extract_npc_spells.py: the recorded session's enemies' spells,
-//! others matched to their monster by the spells' names).
+//! Enemy abilities: the spells each enemy casts at players and what they do, from the content
+//! tree (skills.rs: the NPC templates' `skills` by look, first from tools/re/extract_npc_spells.py:
+//! the recorded session's enemies' spells, others matched to their monster by the spells' names;
+//! the skills' client spells; projectile items).
 //!
 //! A cast is shown as the original server showed the recorded enemies' casts: a MagicCommand
 //! on the enemy (BehaviorControlCenterIIR_c, `npc::observed_cast`), with the player as target
@@ -39,16 +40,10 @@ use tracing::{debug, info};
 
 use crate::{effects, world};
 
-#[derive(Deserialize)]
 struct Data {
-    monsters: HashMap<String, Monster>,
-    spells: HashMap<String, Spell>,
-    items: HashMap<String, Item>,
-}
-
-#[derive(Deserialize)]
-struct Monster {
-    spells: Vec<u32>,
+    monsters: HashMap<u32, Vec<u32>>,
+    spells: HashMap<u32, Spell>,
+    items: HashMap<u32, Item>,
 }
 
 #[derive(Deserialize)]
@@ -112,7 +107,11 @@ struct Item {
     actions: Vec<Action>,
 }
 
-static DATA: LazyLock<Data> = LazyLock::new(|| serde_json::from_str(include_str!("../../../data/npc_spells.json")).expect("npc_spells.json"));
+static DATA: LazyLock<Data> = LazyLock::new(|| Data {
+    monsters: crate::skills::monster_spells(),
+    spells: crate::skills::spells().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("skill"))).collect(),
+    items: crate::skills::projectile_items().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("projectile item"))).collect(),
+});
 
 const ON_USE: &str = "0";
 const ON_CHANNELING: &str = "33";
@@ -139,12 +138,12 @@ const TRAP_RADIUS: f32 = 2.0;
 const TRAP_POLL: Duration = Duration::from_millis(250);
 
 fn spell(id: u32) -> Option<&'static Spell> {
-    DATA.spells.get(&id.to_string())
+    DATA.spells.get(&id)
 }
 
 /// The spells enemies of monsterdata `monster_data` cast, if known.
 pub fn spells_of(monster_data: u32) -> Option<&'static [u32]> {
-    DATA.monsters.get(&monster_data.to_string()).map(|m| m.spells.as_slice())
+    DATA.monsters.get(&monster_data).map(Vec::as_slice)
 }
 
 /// Whether this module runs `spell` (otherwise it's a plain hit, npc.rs `attack`).
@@ -531,7 +530,7 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
 
 /// A projectile item's actions where it arrived.
 fn impact(run: &Arc<Run>, item: u32, target: Target, depth: u32) {
-    let Some(i) = DATA.items.get(&item.to_string()) else { return };
+    let Some(i) = DATA.items.get(&item) else { return };
     for a in i.actions.iter().filter(|a| !a.client) {
         act(run, run.spell, a, target, depth + 1);
     }
@@ -595,7 +594,7 @@ mod tests {
         // every projectile item the spells shoot is there
         for s in DATA.spells.values() {
             for a in s.lists.values().flatten().filter(|a| a.kind == "Projectile") {
-                assert!(DATA.items.contains_key(&a.u("ItemInstance").unwrap().to_string()), "{}", s.name);
+                assert!(DATA.items.contains_key(&a.u("ItemInstance").unwrap()), "{}", s.name);
             }
         }
     }

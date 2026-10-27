@@ -335,6 +335,13 @@ struct Npc {
     /// Walking its patrol route: the route point it is heading for, and when the route was
     /// last sent.
     patrol: Option<(usize, std::time::Instant)>,
+    /// Slowed by players' abilities: (speed multiplier, until); the strongest counts.
+    snares: Vec<(f32, std::time::Instant)>,
+    /// The speed multiplier its current path was made with.
+    speed_factor: f32,
+    /// Diminishing returns: when each crowd control of a kind (802 snare, 804 stun) it got
+    /// stops counting, and how much each counted one shortens the next.
+    diminishing: HashMap<u32, (Vec<std::time::Instant>, f32)>,
 }
 
 impl Npc {
@@ -358,6 +365,9 @@ impl Npc {
             cooldowns: HashMap::new(),
             busy_until: None,
             threat: None,
+            snares: Vec::new(),
+            speed_factor: 1.0,
+            diminishing: HashMap::new(),
             patrol: None,
         }
     }
@@ -765,8 +775,8 @@ struct PetProjectile {
     speed: f32,
 }
 
-static SUMMONS: LazyLock<HashMap<String, serde_json::Value>> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/summons.json")).expect("summons.json"));
+/// Summons by spell (content/skills `summon` and the summoned NPCs, skills.rs).
+static SUMMONS: LazyLock<HashMap<u32, serde_json::Value>> = LazyLock::new(crate::skills::summons);
 
 /// What `spawn_test_enemies` can spawn (devcmd `!spawn`) and the looks of everything placed
 /// in the world (`!skin`), for the control interface's test command catalog.
@@ -910,14 +920,14 @@ pub fn despawn(id: Id32) {
 /// How far from the player test enemies appear.
 const TEST_SPAWN_RING: f32 = 7.0;
 
-/// Whether `spell` summons a pet (data/summons.json).
+/// Whether `spell` summons a pet.
 pub fn is_summon(spell: u32) -> bool {
-    SUMMONS.contains_key(&spell.to_string())
+    SUMMONS.contains_key(&spell)
 }
 
 /// `owner` casts summon `spell` at `pos`: a pet that follows them and fights for a while.
 pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
-    let Some(def) = SUMMONS.get(&spell.to_string()).and_then(|v| serde_json::from_value::<SummonDef>(v.clone()).ok()) else {
+    let Some(def) = SUMMONS.get(&spell).and_then(|v| serde_json::from_value::<SummonDef>(v.clone()).ok()) else {
         return;
     };
     let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
@@ -1273,7 +1283,7 @@ fn steer(id: Id32, here: [f32; 3], goal: [f32; 3], face: Option<[f32; 3]>) {
                 stop_record(id, here, dir)
             })
         } else if npc.walk.is_none_or(|w| distance(w.to, goal) > REPATH) {
-            npc.walk = Some(Walk { from: here, to: goal, since: now, speed: run_speed(&npc.def) });
+            npc.walk = Some(Walk { from: here, to: goal, since: now, speed: run_speed(&npc.def) * npc.speed_factor });
             Some(path_record(id, here, goal))
         } else {
             None
@@ -1297,7 +1307,7 @@ fn patrol(id: Id32, here: [f32; 3]) {
         if route.len() < 2 {
             return;
         }
-        let speed = PATROL_SPEED * speeds(&npc.def).iter().find(|(stat, _)| *stat == WALK_SPEED).map_or(2.1, |&(_, v)| v);
+        let speed = npc.speed_factor * PATROL_SPEED * speeds(&npc.def).iter().find(|(stat, _)| *stat == WALK_SPEED).map_or(2.1, |&(_, v)| v);
         let resend = match npc.patrol {
             None => {
                 let next = (0..route.len()).min_by(|&a, &b| distance(route[a], here).total_cmp(&distance(route[b], here))).unwrap_or(0);
@@ -1501,6 +1511,135 @@ pub fn set_busy(id: Id32, duration: Duration) {
     }
 }
 
+/// Crowd control kinds (the client's diminishing return types).
+pub const CC_SNARE: u32 = 802;
+pub const CC_STUN: u32 = 804;
+
+/// Whether `id` is a live enemy (players' crowd control acts on these).
+pub fn is_enemy(id: Id32) -> bool {
+    NPCS.lock().unwrap().get(&id).is_some_and(|n| n.def.kind == Kind::Enemy && n.health > 0)
+}
+
+/// AddDiminishingReturn on enemy `id`: a crowd control of `kind` counts for `window`, and each
+/// one counting shortens the next of that kind by `step` (0.34: full, 66%, 32%, then immune).
+pub fn diminish(id: Id32, kind: u32, window: Duration, step: f32) {
+    if let Some(npc) = NPCS.lock().unwrap().get_mut(&id) {
+        let now = std::time::Instant::now();
+        let (list, s) = npc.diminishing.entry(kind).or_default();
+        list.retain(|t| *t > now);
+        list.push(now + window);
+        *s = step;
+    }
+}
+
+/// How much of a crowd control of `kind` enemy `id` takes now: 1 minus `step` for every one
+/// still counting before this one (the newest is this one's own, registered just before it).
+fn diminished(npc: &mut Npc, kind: u32) -> f32 {
+    let now = std::time::Instant::now();
+    let Some((list, step)) = npc.diminishing.get_mut(&kind) else { return 1.0 };
+    list.retain(|t| *t > now);
+    (1.0 - *step * list.len().saturating_sub(1) as f32).max(0.0)
+}
+
+/// `d` × `factor`, in whole milliseconds.
+fn scaled(d: Duration, factor: f32) -> Duration {
+    Duration::from_millis((d.as_secs_f64() * 1000.0 * f64::from(factor)).round() as u64)
+}
+
+/// The path speed multiplier of `npc` now (the strongest active snare).
+fn snare_factor(npc: &mut Npc, now: std::time::Instant) -> f32 {
+    npc.snares.retain(|(_, until)| *until > now);
+    npc.snares.iter().map(|(m, _)| *m).fold(1.0, f32::min)
+}
+
+/// Makes `npc`'s current path go at the speed its snares allow from now on (the clients slow
+/// it themselves when they get the snare's buff, AddSnareGameAction: the server keeps up).
+fn apply_speed(npc: &mut Npc, now: std::time::Instant) {
+    let factor = snare_factor(npc, now);
+    if (factor - npc.speed_factor).abs() < f32::EPSILON {
+        return;
+    }
+    if let Some(w) = npc.walk {
+        let (here, _) = w.at(now);
+        npc.walk = Some(Walk { from: here, to: w.to, since: now, speed: w.speed / npc.speed_factor.max(0.01) * factor });
+    }
+    npc.speed_factor = factor;
+}
+
+/// A player's ability slows enemy `id` to `multiplier` of its speed for `duration`
+/// (diminished by recent snares). Returns the duration it got.
+pub fn snare(id: Id32, multiplier: f32, duration: Duration) -> Option<Duration> {
+    let now = std::time::Instant::now();
+    let duration = {
+        let mut npcs = NPCS.lock().unwrap();
+        let npc = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0)?;
+        let duration = scaled(duration, diminished(npc, CC_SNARE));
+        if duration.is_zero() {
+            return None;
+        }
+        npc.snares.push((multiplier.clamp(0.0, 1.0), now + duration));
+        apply_speed(npc, now);
+        duration
+    };
+    tokio::spawn(async move {
+        tokio::time::sleep(duration).await;
+        if let Some(npc) = NPCS.lock().unwrap().get_mut(&id) {
+            apply_speed(npc, std::time::Instant::now());
+        }
+    });
+    Some(duration)
+}
+
+/// A player's ability stuns enemy `id` for `duration` (diminished by recent stuns): it stops
+/// where it is and does nothing until then. Returns the duration it got.
+pub fn stun(id: Id32, duration: Duration) -> Option<Duration> {
+    let now = std::time::Instant::now();
+    let (duration, stop) = {
+        let mut npcs = NPCS.lock().unwrap();
+        let npc = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0)?;
+        let duration = scaled(duration, diminished(npc, CC_STUN));
+        if duration.is_zero() {
+            return None;
+        }
+        let until = now + duration;
+        npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
+        // it stops where it is (facing the way it went)
+        let stop = npc.walk.take().map(|w| {
+            let (here, _) = w.at(now);
+            *npc.pos.lock().unwrap() = here;
+            let (dx, dz) = (w.to[0] - here[0], w.to[2] - here[2]);
+            let d = dx.hypot(dz);
+            stop_record(id, here, if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] })
+        });
+        (duration, stop)
+    };
+    if let Some(record) = stop {
+        world::broadcast(id, vec![record]);
+    }
+    Some(duration)
+}
+
+/// A player's ability knocks enemy `id` `distance` m away from `from` (`towards`: pulls it
+/// that far towards `from`, stopping short of it) at `speed` m/s; it stands still meanwhile.
+pub fn knock(id: Id32, from: [f32; 3], distance: f32, towards: bool, speed: f32) -> bool {
+    let now = std::time::Instant::now();
+    let (here, to) = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0) else { return false };
+        let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(now).0);
+        let (dx, dz) = (here[0] - from[0], here[2] - from[2]);
+        let d = dx.hypot(dz).max(0.1);
+        let step = if towards { -distance.min((d - MELEE_RANGE).max(0.0)) } else { distance };
+        let to = [here[0] + dx / d * step, here[1], here[2] + dz / d * step];
+        *npc.pos.lock().unwrap() = to;
+        let until = now + Duration::from_secs_f32(step.abs() / speed.max(1.0));
+        npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
+        (here, to)
+    };
+    world::send_playfield(id, false, world::Out::Records(vec![crate::game::move_task_record(id, here, to)]));
+    true
+}
+
 fn is_busy(id: Id32) -> bool {
     NPCS.lock().unwrap().get(&id).and_then(|n| n.busy_until).is_some_and(|t| t > std::time::Instant::now())
 }
@@ -1521,7 +1660,7 @@ fn keep_distance(spells: &[u32]) -> f32 {
     (ranges.iter().copied().fold(f32::MAX, f32::min) * 0.8).clamp(MELEE_RANGE, AGGRO_RANGE - 1.0)
 }
 
-/// The spells NPC `def` fights with: its monster's (data/npc_spells.json), else its own.
+/// The spells NPC `def` fights with: its monster's (the NPC templates' `skills`, skills.rs), else its own.
 fn spells_for(def: &SpawnDef) -> Vec<u32> {
     crate::npc_spells::spells_of(def.monster_data).map_or_else(|| vec![def.spell], <[u32]>::to_vec)
 }
@@ -1896,6 +2035,32 @@ fn end_patrol(id: Id32) {
     }
 }
 
+/// An enemy at `pos` walking towards `to` (no world presence), for crowd control tests.
+#[cfg(test)]
+pub fn test_enemy(n: u32, pos: [f32; 3], to: [f32; 3]) -> Id32 {
+    let mut def: SpawnDef = serde_json::from_value(serde_json::json!({ "name": "Test Enemy", "monster_data": 82410, "level": 1, "health": 100, "pos": pos })).unwrap();
+    def.kind = Kind::Enemy;
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, 900_000 + n);
+    let mut npc = Npc::new(def, 9999, None, None);
+    npc.walk = Some(Walk { from: pos, to, since: std::time::Instant::now(), speed: 4.0 });
+    NPCS.lock().unwrap().insert(id, npc);
+    id
+}
+
+/// A test enemy's crowd control state: (path speed multiplier, stunned or busy, position).
+#[cfg(test)]
+pub fn crowd_state(id: Id32) -> (f32, bool, [f32; 3]) {
+    let busy = is_busy(id);
+    let npcs = NPCS.lock().unwrap();
+    let n = &npcs[&id];
+    (n.speed_factor, busy, *n.pos.lock().unwrap())
+}
+
+#[cfg(test)]
+pub fn remove_test_enemy(id: Id32) {
+    NPCS.lock().unwrap().remove(&id);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2047,5 +2212,45 @@ mod tests {
         // about 1/FIGHT_SHARE hits to defeat, at most a third more or less
         let hits = 1.0 / (FIGHT_SHARE * (1.0 + FIGHT_SPREAD));
         assert!(hits >= 15.0, "{hits}");
+    }
+
+    use super::test_enemy as walking_enemy;
+
+    #[tokio::test]
+    async fn snares_slow_the_path_and_wear_off() {
+        let id = walking_enemy(1, [0.0; 3], [100.0, 0.0, 0.0]);
+        assert_eq!(snare(id, 0.5, Duration::from_millis(200)), Some(Duration::from_millis(200)));
+        let speed = |id| NPCS.lock().unwrap()[&id].walk.unwrap().speed;
+        assert_eq!(speed(id), 2.0);
+        tokio::time::sleep(Duration::from_millis(300)).await;
+        assert_eq!(speed(id), 4.0);
+        NPCS.lock().unwrap().remove(&id);
+    }
+
+    #[test]
+    fn stuns_stop_and_diminish() {
+        let id = walking_enemy(2, [0.0; 3], [100.0, 0.0, 0.0]);
+        // as the client data registers it before each stun: 10 s window, 0.34 a stun
+        let mut got = Vec::new();
+        for _ in 0..4 {
+            diminish(id, CC_STUN, Duration::from_secs(10), 0.34);
+            got.push(stun(id, Duration::from_secs(2)).map(|d| d.as_millis()));
+        }
+        assert_eq!(got, vec![Some(2000), Some(1320), Some(640), None]);
+        assert!(NPCS.lock().unwrap()[&id].walk.is_none());
+        assert!(is_busy(id));
+        NPCS.lock().unwrap().remove(&id);
+    }
+
+    #[test]
+    fn knockbacks_push_and_pulls_pull() {
+        let id = walking_enemy(3, [10.0, 0.0, 0.0], [10.0, 0.0, 0.0]);
+        let at = |id| *NPCS.lock().unwrap()[&id].pos.lock().unwrap();
+        assert!(knock(id, [0.0; 3], 5.0, false, 25.0));
+        assert!((at(id)[0] - 15.0).abs() < 1e-4, "{:?}", at(id));
+        assert!(knock(id, [0.0; 3], 20.0, true, 25.0));
+        // pulled up to melee range, not through the caster
+        assert!((at(id)[0] - MELEE_RANGE).abs() < 1e-4, "{:?}", at(id));
+        NPCS.lock().unwrap().remove(&id);
     }
 }

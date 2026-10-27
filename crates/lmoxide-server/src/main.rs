@@ -36,6 +36,7 @@ mod scripts;
 mod security;
 mod sessions;
 mod shop;
+mod skills;
 mod smash;
 mod state;
 mod store;
