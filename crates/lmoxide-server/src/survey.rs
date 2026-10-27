@@ -271,6 +271,7 @@ impl Object {
             playfield: self.playfield,
             replaces: self.replaces.clone(),
             size: None,
+            radius: None,
             color: None,
             action: None,
             once: None,
@@ -846,6 +847,7 @@ fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
         playfield: b.playfield,
         replaces: None,
         size: None,
+        radius: None,
         color: None,
         action: None,
         once: None,
@@ -894,6 +896,9 @@ struct SurveyObject {
     /// Trigger walls: width, height, depth; look; what crossing does; only once.
     #[serde(skip_serializing_if = "Option::is_none")]
     size: Option<[f32; 3]>,
+    /// Trigger radii: the radius (m)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    radius: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     color: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -947,6 +952,9 @@ struct Changes {
     feature: Option<String>,
     /// Trigger walls
     size: Option<[f32; 3]>,
+    /// a trigger radius (m); null: a wall
+    #[serde(default, deserialize_with = "some")]
+    radius: Option<Option<f32>>,
     color: Option<String>,
     action: Option<WallAction>,
     once: Option<bool>,
@@ -1718,6 +1726,8 @@ struct Snapshot {
     #[serde(default = "sv::features::live")]
     feature: String,
     size: Option<[f32; 3]>,
+    #[serde(default)]
+    radius: Option<f32>,
     color: Option<String>,
     action: Option<WallAction>,
     #[serde(default)]
@@ -1736,7 +1746,8 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
                 pos: b.pos,
                 heading: b.heading,
                 size: checked_size(b.size.unwrap_or(WALL_SIZE)),
-                color: checked_color(b.color)?,
+                radius: checked_radius(b.radius),
+                color: checked_color(b.color, b.radius.is_some())?,
                 action: b.action.unwrap_or(WallAction::Other),
                 once: b.once.unwrap_or(false),
                 comment: b.comment,
@@ -2067,6 +2078,12 @@ const WALL_LOOKS: &[(&str, [u32; 2], [f32; 2], f32)] = &[
     ("low shield", [1010030, 351981], [-2.588, 2.588], 3.3),
     ("forcefield", [1010030, 389644], [-8.0, 0.0], 4.0),
 ];
+/// Looks of trigger radii: the Ruined Fort's pressure plates (round, 2.5 m across, 0.39 m high),
+/// scaled to the radius and sunk so a thin disc shows on the ground.
+const CIRCLE_LOOKS: &[(&str, [u32; 2])] = &[("green plate", [1010030, 346169]), ("yellow plate", [1010030, 346161]), ("red plate", [1010030, 346166])];
+const PLATE_BOUNDS: [f32; 6] = [-1.25, 0.0, -1.25, 1.25, 0.387, 1.25];
+/// How far a trigger radius's disc stands above the ground.
+const PLATE_SHOWN: f32 = 0.12;
 /// Simple dynel instances of wall pieces (clear of RDB guids and gates.rs's beams).
 static NEXT_PIECE: AtomicU32 = AtomicU32::new(0x00e0_0000);
 /// How often players' moves are checked against the walls.
@@ -2111,6 +2128,7 @@ impl Wall {
             playfield: self.playfield,
             replaces: None,
             size: Some(d.size),
+            radius: d.radius,
             color: Some(d.color.clone()),
             action: Some(d.action.clone()),
             once: Some(d.once),
@@ -2125,6 +2143,29 @@ fn look_of(color: &str) -> &'static (&'static str, [u32; 2], [f32; 2], f32) {
 /// Spawns the wall's pieces: its look scaled to its height, side by side across its width.
 /// Surveyors who hide it don't get them.
 fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
+    if let Some(r) = w.def.radius {
+        // one plate, scaled to the radius, its top just above the ground
+        let visual = CIRCLE_LOOKS.iter().find(|l| l.0 == w.def.color).unwrap_or(&CIRCLE_LOOKS[0]).1;
+        let scale = (r / PLATE_BOUNDS[3]).max(0.05);
+        let pos = [w.def.pos[0], w.def.pos[1] - PLATE_BOUNDS[4] * scale + PLATE_SHOWN, w.def.pos[2]];
+        let half = w.def.heading / 2.0;
+        let rot = [0.0, half.sin(), 0.0, half.cos()];
+        let name = format!("[trigger] {}", if w.def.name.is_empty() { "radius" } else { &w.def.name });
+        let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, NEXT_PIECE.fetch_add(1, Ordering::Relaxed));
+        {
+            let mut hidden = HIDDEN.lock().unwrap();
+            for (v, _) in surveyors.iter().filter(|(_, s)| s.hidden.contains(&w.def.id)) {
+                hidden.entry(*v).or_default().insert(id);
+            }
+        }
+        let (outbox, mut inbox) = mpsc::unbounded_channel();
+        tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+        let pf = w.playfield;
+        let look = crate::scenery::Look { name, visual, bounds: PLATE_BOUNDS, scale };
+        let presence = world::join(id, pf, Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, pf, pos, rot, &look), outbox);
+        w.pieces.push((id, presence));
+        return;
+    }
     let (_, visual, [x0, x1], height) = *look_of(&w.def.color);
     let [width, h, _] = w.def.size;
     let scale = (h / height).max(0.05);
@@ -2171,11 +2212,15 @@ fn store_wall(st: &mut State, def: TriggerWall, pf: u32) {
 #[derive(Serialize)]
 struct WallLook {
     color: &'static str,
+    /// `wall` or `radius`: which shape it draws
+    shape: &'static str,
 }
 
-/// The looks trigger walls can have (their `color`).
+/// The looks trigger walls and radii can have (their `color`).
 async fn wall_looks() -> R<Vec<WallLook>> {
-    with(|_| Ok(Json(WALL_LOOKS.iter().map(|l| WallLook { color: l.0 }).collect())))
+    let walls = WALL_LOOKS.iter().map(|l| WallLook { color: l.0, shape: "wall" });
+    let circles = CIRCLE_LOOKS.iter().map(|l| WallLook { color: l.0, shape: "radius" });
+    with(|_| Ok(Json(walls.chain(circles).collect())))
 }
 
 #[derive(Deserialize, Default)]
@@ -2190,6 +2235,9 @@ struct PlaceTriggerBody {
     /// The feature it belongs to (default live).
     #[serde(default)]
     feature: Option<String>,
+    /// A trigger radius (m) instead of a wall.
+    #[serde(default)]
+    radius: Option<f32>,
 }
 
 /// A feature a record may name: a category or one of the set's features (none: live).
@@ -2205,14 +2253,24 @@ fn checked_size(size: [f32; 3]) -> [f32; 3] {
     size.map(|v| if v.is_finite() { v.clamp(0.1, 200.0) } else { 1.0 })
 }
 
-fn checked_color(color: Option<String>) -> Result<String, Error> {
+/// A look for a wall, or with `circle` for a trigger radius (a look of the other shape becomes
+/// this shape's default, so switching shape keeps working).
+fn checked_color(color: Option<String>, circle: bool) -> Result<String, Error> {
+    let default = if circle { CIRCLE_LOOKS[0].0 } else { WALL_LOOKS[0].0 };
+    let of_shape = |c: &str| if circle { CIRCLE_LOOKS.iter().any(|l| l.0 == c) } else { WALL_LOOKS.iter().any(|l| l.0 == c) };
+    let other_shape = |c: &str| c == "red" || WALL_LOOKS.iter().any(|l| l.0 == c) || CIRCLE_LOOKS.iter().any(|l| l.0 == c);
     match color {
-        None => Ok(WALL_LOOKS[0].0.into()),
-        // the red arena gate is gone (solid): its walls become green
-        Some(c) if c == "red" => Ok(WALL_LOOKS[0].0.into()),
-        Some(c) if WALL_LOOKS.iter().any(|l| l.0 == c) => Ok(c),
+        None => Ok(default.into()),
+        Some(c) if of_shape(&c) => Ok(c),
+        // (the red arena gate is gone, solid: its walls become green)
+        Some(c) if other_shape(&c) => Ok(default.into()),
         Some(c) => Err(Error::Invalid(format!("no wall look {c} (wall-looks lists them)"))),
     }
+}
+
+/// A trigger radius: at least half a metre, at most 100.
+fn checked_radius(r: Option<f32>) -> Option<f32> {
+    r.map(|r| if r.is_finite() { r.clamp(0.5, 100.0) } else { 5.0 })
 }
 
 /// A trigger wall where the surveyor stands, across their way.
@@ -2226,7 +2284,8 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
             pos: world::live_position(player).unwrap_or_default(),
             heading: heading_of(world::facing_of(player).unwrap_or([0.0, 1.0])),
             size: checked_size(b.size.unwrap_or(WALL_SIZE)),
-            color: checked_color(b.color)?,
+            radius: checked_radius(b.radius),
+            color: checked_color(b.color, b.radius.is_some())?,
             action: b.action.unwrap_or(WallAction::Other),
             once: b.once,
             comment: String::new(),
@@ -2250,12 +2309,15 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
 }
 
 fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<SurveyObject, Error> {
-    let color = match c.color {
-        Some(col) => Some(checked_color(Some(col))?),
-        None => None,
-    };
+    let circle = c.radius.map_or_else(|| st.walls[id].def.radius.is_some(), |r| r.is_some());
+    // (a change of shape keeps a look of that shape)
+    let color = checked_color(Some(c.color.clone().unwrap_or_else(|| st.walls[id].def.color.clone())), circle)?;
     let w = st.walls.get_mut(id).expect("checked");
     let d = &mut w.def;
+    if let Some(r) = c.radius {
+        d.radius = checked_radius(r);
+    }
+    d.color = color;
     if let Some(p) = c.pos {
         d.pos = p;
     }
@@ -2264,9 +2326,6 @@ fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<Sur
     }
     if let Some(size) = c.size {
         d.size = checked_size(size);
-    }
-    if let Some(col) = color {
-        d.color = col;
     }
     if let Some(a) = c.action {
         d.action = a;

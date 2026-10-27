@@ -300,6 +300,10 @@ pub struct TriggerWall {
     #[serde(default)]
     pub heading: f32,
     pub size: Vec3,
+    /// A trigger radius instead of a wall: a cylinder of this radius (m) and `size`'s height
+    /// around `pos`; walking into it sets it off (the width and depth are unused).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub radius: Option<f32>,
     /// How the survey server draws it ("green", "shield", ...; the server's list).
     #[serde(default = "default_color")]
     pub color: String,
@@ -342,6 +346,11 @@ impl TriggerWall {
     /// Whether moving from `a` to `b` goes through the wall (into its box, or across its middle
     /// plane within its width and height).
     pub fn crossed(&self, a: Vec3, b: Vec3) -> bool {
+        if let Some(r) = self.radius {
+            let h = self.size[1];
+            let inside = |p: Vec3| (p[0] - self.pos[0]).hypot(p[2] - self.pos[2]) <= r && (-1.0..=h).contains(&(p[1] - self.pos[1]));
+            return inside(b) && !inside(a);
+        }
         let (la, lb) = (self.local(a), self.local(b));
         let [w, h, d] = self.size;
         let inside = |l: Vec3| l[0].abs() <= w / 2.0 && (-1.0..=h).contains(&l[1]) && l[2].abs() <= d.max(0.1) / 2.0;
@@ -444,6 +453,7 @@ mod tests {
             pos: [0.0; 3],
             heading: 0.0,
             size: [4.0, 3.0, 1.0],
+            radius: None,
             color: "red".into(),
             action: WallAction::Other,
             once: false,
@@ -459,6 +469,10 @@ mod tests {
         assert!(!w.crossed([0.0, 5.0, -3.0], [0.0, 5.0, 3.0])); // over it
         assert!(!w.crossed([0.0, 0.0, 0.2], [0.0, 0.0, 0.3])); // already inside
         // turned 90°: its width runs along z
+        // a trigger radius goes off on walking into it, from any side
+        let c = TriggerWall { radius: Some(3.0), ..w.clone() };
+        assert!(c.crossed([5.0, 0.0, 0.0], [2.5, 0.0, 0.0]) && c.crossed([0.0, 0.0, -4.0], [0.0, 0.0, -2.9]));
+        assert!(!c.crossed([1.0, 0.0, 0.0], [2.0, 0.0, 0.0]) && !c.crossed([2.0, 0.0, 0.0], [5.0, 0.0, 0.0]));
         let t = TriggerWall { heading: std::f32::consts::FRAC_PI_2, ..w };
         assert!(t.crossed([-3.0, 0.0, 1.5], [3.0, 0.0, 1.5]));
         assert!(!t.crossed([0.0, 0.0, -3.0], [0.0, 0.0, -2.5]));

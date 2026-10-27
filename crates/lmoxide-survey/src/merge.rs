@@ -477,6 +477,7 @@ mod tests {
             pos: [x, 0.0, 0.0],
             heading: 0.0,
             size: [4.0, 3.0, 1.0],
+            radius: None,
             color: "red".into(),
             action,
             once: false,
