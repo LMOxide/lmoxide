@@ -246,12 +246,15 @@ pub enum WallAction {
         #[serde(default)]
         wave: Option<String>,
     },
-    /// Discovers a location or an achievement (by name, if found).
+    /// Discovers a location (an exploration area's name, if found), counting toward an
+    /// achievement (its id, if known; some need several locations).
     Discover {
         #[serde(default)]
         name: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        achievement: Option<String>,
     },
-    /// Opens a dialogue (by id or name, if found).
+    /// Opens a dialogue (its first text's id, which names it, if found; or a description).
     Dialog {
         #[serde(default)]
         dialog: Option<String>,

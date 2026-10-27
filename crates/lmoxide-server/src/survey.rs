@@ -817,6 +817,7 @@ pub fn routes() -> Router {
         .route("/v1/survey/players/{account}/place", post(place))
         .route("/v1/survey/players/{account}/place-trigger", post(place_trigger))
         .route("/v1/survey/wall-looks", get(wall_looks))
+        .route("/v1/survey/trigger-targets", get(trigger_targets))
         .route("/v1/survey/players/{account}/select", post(select))
         .route("/v1/survey/players/{account}/hide", post(hide))
         .route("/v1/survey/players/{account}/unhide-all", post(unhide_all))
@@ -1744,16 +1745,166 @@ fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
                 None => say("starts a script (none chosen yet)".into()),
             }
         }
-        WallAction::Discover { name } => say(format!("discovered {}", name.as_deref().unwrap_or("a location"))),
-        WallAction::Dialog { dialog } => match dialog.as_deref() {
-            Some(d) if d.parse::<u32>().is_ok() => {
-                say(format!("opens dialogue {d}"));
-                world::send_to(player, world::Out::Command(format!("!dialog {d}"), None));
+        WallAction::Discover { name, achievement } => {
+            let ach = achievement.as_deref().and_then(|a| targets().achievements.iter().find(|x| x.id.to_string() == a || x.name == a));
+            let toward = ach.map_or(String::new(), |a| {
+                if a.locations.len() > 1 { format!(" (toward {}: one of {} locations)", a.name, a.locations.len()) } else { format!(" ({})", a.name) }
+            });
+            say(format!("discovered {}{toward}", name.as_deref().unwrap_or("a location")))
+        }
+        WallAction::Dialog { dialog } => {
+            // by its first text (`knubot::starting_with`): !dialog's number for it
+            let n = dialog.as_deref().and_then(|d| d.parse::<u32>().ok()).and_then(|first| crate::knubot::dialogues().iter().position(|x| x.first_text() == Some(first)));
+            match (n, dialog.as_deref()) {
+                (Some(i), _) => {
+                    let d = &crate::knubot::dialogues()[i];
+                    say(format!("opens {}'s dialogue", d.npc));
+                    world::send_to(player, world::Out::Command(format!("!dialog {}", i + 1), None));
+                }
+                (None, Some(d)) => say(format!("opens the dialogue \"{d}\"")),
+                (None, None) => say("opens a dialogue (none chosen yet)".into()),
             }
-            Some(d) => say(format!("opens the dialogue \"{d}\"")),
-            None => say("opens a dialogue (none chosen yet)".into()),
-        },
+        }
         WallAction::Message { text } => say(if text.is_empty() { "(a message)".into() } else { text.clone() }),
         WallAction::Other => say(if def.comment.is_empty() { "crossed".into() } else { def.comment.clone() }),
+    }
+}
+
+// ------------------------------------------------------------------ trigger wall targets
+
+#[derive(Serialize, Clone)]
+struct TargetLocation {
+    name: String,
+    playfield: u32,
+    playfield_name: Option<String>,
+    /// where it is (an exploration area's middle), if known
+    pos: Option<[f32; 3]>,
+    /// achievement ids it counts toward
+    achievements: Vec<u32>,
+}
+
+#[derive(Serialize, Clone)]
+struct TargetAchievement {
+    id: u32,
+    name: String,
+    /// the achievement's group ("Pirate Exploration")
+    category: String,
+    /// the locations it needs (all of them)
+    locations: Vec<TargetLocationRef>,
+}
+
+#[derive(Serialize, Clone)]
+struct TargetLocationRef {
+    name: String,
+    playfield: u32,
+}
+
+#[derive(Serialize, Clone)]
+struct TargetDialog {
+    /// its first text's id (what a wall's `dialog` stores)
+    id: String,
+    npc: String,
+    playfield: u32,
+    playfield_name: Option<String>,
+    line: String,
+}
+
+#[derive(Serialize)]
+struct Targets {
+    locations: Vec<TargetLocation>,
+    achievements: Vec<TargetAchievement>,
+    dialogs: Vec<TargetDialog>,
+}
+
+/// What trigger walls can discover or open: the exploration areas and `find` achievements
+/// (data/achievements.json; an `all` achievement whose parts are finds needs each of their
+/// locations) and the recorded dialogues.
+fn targets() -> &'static Targets {
+    static T: LazyLock<Targets> = LazyLock::new(|| {
+        #[derive(Deserialize)]
+        struct Ach {
+            id: u32,
+            name: String,
+            kind: String,
+            #[serde(default)]
+            playfield: Option<u32>,
+            #[serde(default)]
+            find: Option<String>,
+            #[serde(default)]
+            children: Vec<u32>,
+        }
+        #[derive(Deserialize)]
+        struct File {
+            achievements: Vec<Ach>,
+        }
+        let file: File = serde_json::from_str(include_str!("../../../data/achievements.json")).expect("achievements.json");
+        let pf_name = |pf: u32| crate::teleport::destination(pf).map(|d| d.name.clone());
+        // "Pirate_Exploration_The Sirens" -> ("The Sirens", "Pirate Exploration")
+        let split = |n: &str| match n.rsplit_once('_') {
+            Some((cat, name)) => (name.to_string(), cat.replace('_', " ")),
+            None => (n.to_string(), String::new()),
+        };
+        let finds: HashMap<u32, TargetLocationRef> = file
+            .achievements
+            .iter()
+            .filter_map(|a| Some((a.id, TargetLocationRef { name: a.find.clone()?, playfield: a.playfield? })))
+            .collect();
+        let mut achievements = Vec::new();
+        for a in &file.achievements {
+            let locations: Vec<TargetLocationRef> = match a.kind.as_str() {
+                "find" => finds.get(&a.id).cloned().into_iter().collect(),
+                "all" if !a.children.is_empty() && a.children.iter().all(|c| finds.contains_key(c)) => a.children.iter().map(|c| finds[c].clone()).collect(),
+                _ => continue,
+            };
+            if locations.is_empty() {
+                continue;
+            }
+            let (name, category) = split(&a.name);
+            achievements.push(TargetAchievement { id: a.id, name, category, locations });
+        }
+        // the exploration areas, and the found places that aren't areas
+        let mut locations: Vec<TargetLocation> = crate::encounter::explore_areas()
+            .into_iter()
+            .map(|(pf, name, pos)| TargetLocation { name: name.into(), playfield: pf, playfield_name: pf_name(pf), pos: Some(pos), achievements: Vec::new() })
+            .collect();
+        for f in finds.values() {
+            if !locations.iter().any(|l| l.name == f.name && l.playfield == f.playfield) {
+                locations.push(TargetLocation { name: f.name.clone(), playfield: f.playfield, playfield_name: pf_name(f.playfield), pos: None, achievements: Vec::new() });
+            }
+        }
+        for l in &mut locations {
+            l.achievements = achievements.iter().filter(|a| a.locations.iter().any(|r| r.name == l.name && r.playfield == l.playfield)).map(|a| a.id).collect();
+        }
+        locations.sort_by(|a, b| (a.playfield, &a.name).cmp(&(b.playfield, &b.name)));
+        let dialogs = crate::knubot::dialogues()
+            .iter()
+            .filter_map(|d| {
+                Some(TargetDialog { id: d.first_text()?.to_string(), npc: d.npc.clone(), playfield: d.playfield, playfield_name: pf_name(d.playfield), line: d.first_line() })
+            })
+            .collect();
+        Targets { locations, achievements, dialogs }
+    });
+    &T
+}
+
+async fn trigger_targets() -> R<&'static Targets> {
+    with(|_| Ok(Json(targets())))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trigger_targets() {
+        let t = targets();
+        let town = t.locations.iter().find(|l| l.playfield == 4200 && l.name == "Achievement_PirateTown").expect("Hidden Pirate Town");
+        assert!(town.achievements.contains(&724), "{:?}", town.achievements);
+        let a = t.achievements.iter().find(|a| a.id == 724).unwrap();
+        assert_eq!((a.name.as_str(), a.category.as_str()), ("Find the Hidden Pirate Town", "Pirate Exploration"));
+        // some need several locations
+        assert!(t.achievements.iter().any(|a| a.locations.len() > 1));
+        let d = t.dialogs.iter().find(|d| d.npc == "Video Game Guy").unwrap();
+        assert!(!d.line.is_empty() && !d.line.contains('{') && !d.line.contains('['), "{}", d.line);
     }
 }

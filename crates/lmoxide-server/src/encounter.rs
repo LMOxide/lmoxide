@@ -230,6 +230,17 @@ pub fn pocket(playfield: u32) -> bool {
 }
 
 /// The exploration areas the player at `pos` is in.
+/// Every exploration area (the Achievement_* / BA_Explore_* areas a player discovers by walking
+/// in): playfield, name and the middle of its floor.
+pub fn explore_areas() -> Vec<(u32, &'static str, [f32; 3])> {
+    let mut v: Vec<_> = DATA
+        .iter()
+        .flat_map(|(&pf, def)| def.explore.iter().map(move |a| (pf, a.name.as_str(), [a.centre()[0], a.heights[0], a.centre()[1]])))
+        .collect();
+    v.sort_by(|a, b| (a.0, a.1).cmp(&(b.0, b.1)));
+    v
+}
+
 pub fn explored(playfield: u32, pos: [f32; 3]) -> Vec<&'static str> {
     let Some(def) = DATA.get(&playfield) else { return vec![] };
     def.explore.iter().filter(|a| a.contains(pos)).map(|a| a.name.as_str()).collect()

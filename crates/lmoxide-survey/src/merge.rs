@@ -484,7 +484,7 @@ mod tests {
             author: String::new(),
             updated: 0,
         };
-        let discover = || WallAction::Discover { name: Some("Treasure Cove".into()) };
+        let discover = || WallAction::Discover { name: Some("Treasure Cove".into()), achievement: None };
         let mut ours = Set::default();
         ours.placements_mut(1200).triggers.push(wall("t-a", 0.0, discover()));
         let mut theirs = Set::default();

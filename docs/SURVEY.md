@@ -122,9 +122,13 @@ walks through them.
 ```
 
 - `pos` is the bottom middle; `size` is width (across), height and depth (along `heading`).
-- `action`: `script` (a script's wave; none: its first), `discover` (a location or achievement
-  name, optional), `dialog` (a dialogue number for `!dialog`, or a name, optional), `message`
-  (`text`), `other` (the comment says what). `once`: only each player's first crossing counts.
+- `action`: `script` (a script's wave; none: its first), `discover` (`name`: the exploration
+  area found, `achievement`: the id it counts toward; both optional, and some achievements need
+  several locations, each its own wall), `dialog` (the dialogue's first text id, which names it,
+  or a description; optional), `message` (`text`), `other` (the comment says what). `once`: only
+  each player's first crossing counts. `GET /v1/survey/trigger-targets` lists what the world
+  editor suggests: the exploration areas (with the achievements each counts toward), the
+  exploration achievements (with every location each needs) and the recorded dialogues.
 - `color`: how the survey server draws it, from the arena doors and forcefields: `red`, `green`,
   `shield`, `low shield`, `forcefield` (`GET /v1/survey/wall-looks`). The look is scaled to the
   height and repeated across the width; crossing is checked against the exact box.
@@ -236,6 +240,7 @@ with its `category`.
 | POST | `/players/{account}/place` | `{what, wave: WaveRef \| null}` | the new `SurveyObject` (selected; its wave is shown) |
 | POST | `/players/{account}/place-trigger` | `{name, size, color, action, once}` | the new trigger wall as a `SurveyObject` (`kind: "trigger"`, selected) |
 | GET | `/wall-looks` | | `[{color}]`: the looks trigger walls can have |
+| GET | `/trigger-targets` | | `{locations, achievements, dialogs}`: what trigger walls can discover or open |
 | POST | `/players/{account}/select` | `{id}` or `{nearest: true}` | `PlayerState` |
 | POST | `/players/{account}/hide` | `{ids, hidden}` | `PlayerState` |
 | POST | `/players/{account}/unhide-all` | | `PlayerState` |

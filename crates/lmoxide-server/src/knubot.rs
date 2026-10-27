@@ -101,6 +101,29 @@ pub fn dialogues() -> &'static [Dialogue] {
     &DATA.dialogues
 }
 
+impl Dialogue {
+    /// Its first text: what names it (`starting_with`).
+    pub fn first_text(&self) -> Option<u32> {
+        self.texts.first().copied()
+    }
+
+    /// Its first line as the player reads it (camera tags and the speaker's name left out).
+    pub fn first_line(&self) -> String {
+        let text = self.first_text().and_then(|t| DATA.texts.get(&t.to_string())).map_or("", String::as_str);
+        let mut out = String::new();
+        let mut depth = 0;
+        for c in text.chars() {
+            match c {
+                '{' | '[' => depth += 1,
+                '}' | ']' => depth = (depth - 1).max(0),
+                _ if depth == 0 => out.push(c),
+                _ => {}
+            }
+        }
+        out.split_whitespace().collect::<Vec<_>>().join(" ")
+    }
+}
+
 /// The recorded dialogue that starts with text `first`.
 pub fn starting_with(first: u32) -> Option<Dialogue> {
     DATA.dialogues.iter().find(|d| d.texts.first() == Some(&first)).cloned()
