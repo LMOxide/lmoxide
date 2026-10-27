@@ -229,7 +229,7 @@ lmoxide-dev-ui's world editor (`/editor/`, its `src/editor/backend.ts`) uses the
 routes of `lmoxide-api` under `/v1/survey` (admin scope), passed to the survey server's control
 interface. `{account}` is the surveyor: a player online on the survey server. Shapes are the
 crate's (`Placement`, `Note`, `Script`, `merge::Report`, ...); `SurveyObject` is any spawned object
-with its `category`.
+with its `category`, `playfield` and, for a placement replacing a guess, `replaces`.
 
 | Method | Path | Body | Answer |
 |---|---|---|---|
@@ -253,7 +253,9 @@ with its `category`.
 | PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
 | PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once` | the `SurveyObject` (a guess comes back surveyed, under a new id, still selected) |
 | POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
-| DELETE | `/objects/{id}` | | |
+| DELETE | `/objects/{id}` | | `{id}`: the record that keeps it deleted (a deleted guess's is a new placement) |
+| POST | `/objects/{id}/forget` | | drops a placement's or trigger wall's record entirely (no deletion record stays); a guess it replaced comes back: its `SurveyObject`, else `null`. Undoing a placement, undoing a delete (forget its record), resetting an edited guess |
+| PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`) | makes it exactly so, spawned again; a guess it replaces goes away. Redo, undoing a reset or a delete |
 | GET / PUT | `/set` | `SetInfo` | `SetInfo` |
 | GET | `/export[?playfield=]` | | a bundle: `{format, info, playfields: {"<pf>": {placements, notes, scripts}}}` |
 | POST | `/import` | `{bundle, options: {distance, heading, prefer, take}, dry_run}` | `merge::Report` |

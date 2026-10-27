@@ -259,6 +259,8 @@ impl Object {
             comment: self.comment.clone(),
             author: self.author.clone(),
             updated: self.updated,
+            playfield: self.playfield,
+            replaces: self.replaces.clone(),
             size: None,
             color: None,
             action: None,
@@ -661,6 +663,10 @@ struct SurveyObject {
     comment: String,
     author: String,
     updated: u64,
+    playfield: u32,
+    /// The guess it replaces (confirmed or edited), which Reset brings back.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    replaces: Option<Origin>,
     /// Trigger walls: width, height, depth; look; what crossing does; only once.
     #[serde(skip_serializing_if = "Option::is_none")]
     size: Option<[f32; 3]>,
@@ -828,8 +834,9 @@ pub fn routes() -> Router {
         .route("/v1/survey/playfields/{pf}/notes", get(notes))
         .route("/v1/survey/playfields/{pf}/notes/{id}", put(save_note).delete(delete_note))
         .route("/v1/survey/playfields/{pf}/scripts/{id}", put(save_script).delete(delete_script))
-        .route("/v1/survey/objects/{id}", axum::routing::patch(edit).delete(remove))
+        .route("/v1/survey/objects/{id}", axum::routing::patch(edit).delete(remove).put(put_object))
         .route("/v1/survey/objects/{id}/confirm", post(confirm))
+        .route("/v1/survey/objects/{id}/forget", post(forget))
         .route("/v1/survey/set", get(set_info).put(save_set_info))
         .route("/v1/survey/export", get(export))
         .route("/v1/survey/import", post(import))
@@ -1291,11 +1298,18 @@ async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> 
     .map(Json)
 }
 
-async fn remove(Path(id): Path<String>, headers: HeaderMap) -> Result<StatusCode, Error> {
+#[derive(Serialize)]
+struct Removed {
+    /// The record that keeps it deleted (a deleted guess's is a new placement): `forget` it to
+    /// undo the delete.
+    id: String,
+}
+
+async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
     with(|st| {
         if st.walls.contains_key(&id) {
             remove_wall(st, &id, &author_of(&headers));
-            return Ok(StatusCode::NO_CONTENT);
+            return Ok(Json(Removed { id }));
         }
         let o = st.objects.get(&id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
         if !o.category.editable() {
@@ -1329,8 +1343,213 @@ async fn remove(Path(id): Path<String>, headers: HeaderMap) -> Result<StatusCode
             mark(st, v);
         }
         bump(st, o.playfield);
-        Ok(StatusCode::NO_CONTENT)
+        Ok(Json(Removed { id }))
     })
+}
+
+/// Nobody has `id` selected any more.
+fn deselect(st: &mut State, id: &str) {
+    let viewers: Vec<Id32> = st.surveyors.iter().filter(|(_, s)| s.selected.as_deref() == Some(id)).map(|(v, _)| *v).collect();
+    for v in viewers {
+        if let Some(s) = st.surveyors.get_mut(&v) {
+            s.selected = None;
+        }
+        mark(st, v);
+    }
+}
+
+/// The base spawn a placement's `origin` names (by id, else as `apply` finds a moved guess).
+fn base_of(st: &State, pf: u32, origin: &Origin) -> Option<(String, SpawnDef)> {
+    let defs = st.bases.get(&pf)?;
+    let id_of = |d: &SpawnDef| ids::base_id(pf, skind(d.kind), nonzero(d.monster_data), nonzero(d.template), d.pos);
+    defs.iter().find(|d| id_of(d) == origin.id).or_else(|| {
+        defs.iter()
+            .filter(|d| skind(d.kind) == origin.kind && nonzero(d.monster_data) == origin.monster_data && nonzero(d.template) == origin.template)
+            .map(|d| (d, distance(d.pos, origin.pos)))
+            .filter(|(_, dist)| *dist <= MATCH_DISTANCE)
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(d, _)| d)
+    })
+    .map(|d| (id_of(d), d.clone()))
+}
+
+/// Spawns the guess `origin` names again (its placement is gone): its view.
+fn bring_back(st: &mut State, pf: u32, origin: &Origin) -> Option<SurveyObject> {
+    let (id, def) = base_of(st, pf, origin)?;
+    if st.objects.contains_key(&id) {
+        return st.objects.get(&id).map(Object::view);
+    }
+    let mut o = Object {
+        id: id.clone(),
+        playfield: pf,
+        category: Category::from_source(def.source.as_deref()),
+        def,
+        wave: None,
+        replaces: None,
+        comment: String::new(),
+        author: String::new(),
+        updated: 0,
+        npc: None,
+    };
+    spawn(&st.surveyors, &st.set, &mut o);
+    if let Some(n) = o.npc {
+        st.by_npc.insert(n, id.clone());
+    }
+    let view = o.view();
+    st.objects.insert(id, o);
+    Some(view)
+}
+
+/// Drops a placement or trigger wall record entirely (no deletion record stays): undoing a
+/// placement, or resetting an edited guess (the guess comes back, its view is the answer).
+async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
+    with(|st| {
+        if let Some(pf) = st.set.placements.iter().find(|(_, f)| f.triggers.iter().any(|t| t.id == id)).map(|(pf, _)| *pf) {
+            st.walls.remove(&id); // despawns its pieces
+            st.set.placements_mut(pf).triggers.retain(|t| t.id != id);
+            save(st);
+            deselect(st, &id);
+            bump(st, pf);
+            return Ok(Json(None));
+        }
+        let (pf, record) = st
+            .set
+            .placements
+            .iter()
+            .find_map(|(pf, f)| f.placements.iter().find(|p| p.id == id).map(|p| (*pf, p.clone())))
+            .ok_or_else(|| Error::NotFound(format!("no placement {id}")))?;
+        st.set.placements_mut(pf).placements.retain(|p| p.id != id);
+        save(st);
+        if let Some(mut o) = st.objects.remove(&id) {
+            if let Some(n) = o.npc {
+                st.by_npc.remove(&n);
+            }
+            despawn(&mut o);
+        }
+        deselect(st, &id);
+        let guess = record.replaces.as_ref().and_then(|origin| bring_back(st, pf, origin));
+        bump(st, pf);
+        Ok(Json(guess))
+    })
+}
+
+/// An object as a snapshot has it (the world editor's undo and redo).
+#[derive(Deserialize)]
+struct Snapshot {
+    playfield: u32,
+    kind: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    monster_data: Option<u32>,
+    #[serde(default)]
+    template: Option<u32>,
+    #[serde(default)]
+    level: Option<u32>,
+    pos: [f32; 3],
+    #[serde(default)]
+    heading: f32,
+    #[serde(default)]
+    wave: Option<WaveRef>,
+    #[serde(default)]
+    patrol: Vec<[f32; 3]>,
+    #[serde(default)]
+    comment: String,
+    #[serde(default)]
+    replaces: Option<Origin>,
+    size: Option<[f32; 3]>,
+    color: Option<String>,
+    action: Option<WallAction>,
+    #[serde(default)]
+    once: Option<bool>,
+}
+
+/// Makes `id` exactly as the snapshot has it (spawned again; a guess it replaces goes away).
+async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Snapshot>) -> R<SurveyObject> {
+    with(|st| {
+        let author = author_of(&headers);
+        let pf = b.playfield;
+        if b.kind == "trigger" {
+            let def = TriggerWall {
+                id: id.clone(),
+                name: b.name,
+                pos: b.pos,
+                heading: b.heading,
+                size: checked_size(b.size.unwrap_or(WALL_SIZE)),
+                color: checked_color(b.color)?,
+                action: b.action.unwrap_or(WallAction::Other),
+                once: b.once.unwrap_or(false),
+                comment: b.comment,
+                removed: false,
+                author,
+                updated: ids::now(),
+            };
+            st.walls.remove(&id);
+            store_wall(st, def.clone(), pf);
+            let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
+            spawn_wall(&st.surveyors, &mut w);
+            let view = w.view();
+            st.walls.insert(id.clone(), w);
+            mark_selecting(st, &id);
+            bump(st, pf);
+            return Ok(view);
+        }
+        let kind: SKind = serde_json::from_value(serde_json::Value::String(b.kind.clone())).map_err(|_| Error::Invalid(format!("kind {}?", b.kind)))?;
+        let p = Placement {
+            id: id.clone(),
+            kind,
+            name: b.name,
+            monster_data: b.monster_data,
+            template: b.template,
+            level: b.level,
+            pos: b.pos,
+            heading: b.heading,
+            replaces: b.replaces,
+            removed: false,
+            wave: b.wave,
+            patrol: b.patrol,
+            comment: b.comment,
+            author,
+            updated: ids::now(),
+        };
+        // the guess it replaces goes away again
+        let replaced = p.replaces.as_ref().and_then(|o| base_of(st, pf, o));
+        if let Some((gid, _)) = &replaced
+            && let Some(mut g) = st.objects.remove(gid)
+        {
+            if let Some(n) = g.npc {
+                st.by_npc.remove(&n);
+            }
+            despawn(&mut g);
+            deselect(st, gid);
+        }
+        let mut o = from_placement(&st.catalog, pf, &p, replaced.as_ref().map(|(_, d)| d)).ok_or_else(|| Error::Invalid("that kind can't be placed yet".into()))?;
+        if let Some(mut old) = st.objects.remove(&id) {
+            if let Some(n) = old.npc {
+                st.by_npc.remove(&n);
+            }
+            despawn(&mut old);
+        }
+        o.author = p.author.clone();
+        o.updated = p.updated;
+        let list = &mut st.set.placements_mut(pf).placements;
+        match list.iter_mut().find(|x| x.id == id) {
+            Some(x) => *x = p,
+            None => list.push(p),
+        }
+        save(st);
+        spawn(&st.surveyors, &st.set, &mut o);
+        if let Some(n) = o.npc {
+            st.by_npc.insert(n, id.clone());
+        }
+        let view = o.view();
+        st.objects.insert(id.clone(), o);
+        sync_all(st);
+        mark_selecting(st, &id);
+        bump(st, pf);
+        Ok(view)
+    })
+    .map(Json)
 }
 
 async fn set_info() -> R<SetInfo> {
@@ -1496,6 +1715,8 @@ impl Wall {
             comment: d.comment.clone(),
             author: d.author.clone(),
             updated: d.updated,
+            playfield: self.playfield,
+            replaces: None,
             size: Some(d.size),
             color: Some(d.color.clone()),
             action: Some(d.action.clone()),
