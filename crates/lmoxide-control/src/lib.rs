@@ -273,6 +273,12 @@ impl Client {
         self.forward("content", method, path_and_query, actor, body).await
     }
 
+    /// A survey server's content editing routes (`/v1/editor/...`, the world editor's forms),
+    /// forwarded as `survey` is.
+    pub async fn editor(&self, method: &str, path_and_query: &str, actor: &str, body: Vec<u8>) -> Result<(u16, Option<String>, Vec<u8>), Error> {
+        self.forward("editor", method, path_and_query, actor, body).await
+    }
+
     async fn forward(&self, area: &str, method: &str, path_and_query: &str, actor: &str, body: Vec<u8>) -> Result<(u16, Option<String>, Vec<u8>), Error> {
         let method = reqwest::Method::from_bytes(method.as_bytes()).unwrap_or(reqwest::Method::GET);
         let mut req = self.http.request(method, format!("{}/v1/{area}/{}", self.base, path_and_query.trim_start_matches('/')));

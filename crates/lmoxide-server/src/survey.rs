@@ -166,6 +166,11 @@ pub fn init(dir: PathBuf) {
     });
 }
 
+/// Content records the world editor saved, created or deleted (crate::editor).
+pub fn content_changed(keys: &[lmoxide_content::work::Key]) {
+    tracing::debug!(records = keys.len(), "content changed");
+}
+
 /// Whether `thing` isn't sent to `viewer` (what they hid).
 pub fn hides(viewer: Id32, thing: Id32) -> bool {
     enabled() && HIDDEN.lock().unwrap().get(&viewer).is_some_and(|h| h.contains(&thing))
@@ -1291,7 +1296,7 @@ fn player_of(account: u32) -> Result<(Id32, u32), Error> {
 }
 
 /// Who made the request (lmoxide-api's actor: "account:<name>" or "key:<name>"): the name.
-fn author_of(headers: &HeaderMap) -> String {
+pub(crate) fn author_of(headers: &HeaderMap) -> String {
     let actor = headers.get("x-lmoxide-actor").and_then(|v| v.to_str().ok()).unwrap_or("");
     let name = actor.split_once(':').map_or(actor, |(_, n)| n);
     name.chars().take(64).collect()

@@ -14,6 +14,11 @@ fn built_in_dir() -> PathBuf {
     Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../content")).to_path_buf()
 }
 
+/// The content folder: `dir`, or the checkout's `content/`.
+pub fn dir(dir: Option<PathBuf>) -> PathBuf {
+    dir.unwrap_or_else(built_in_dir)
+}
+
 /// Loads the content from `dir` (default: the checkout's `content/`). Errors stop the server:
 /// a template with a broken reference or a misspelled field would fail later, in play.
 pub fn init(dir: Option<PathBuf>) -> anyhow::Result<()> {

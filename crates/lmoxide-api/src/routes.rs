@@ -593,6 +593,32 @@ pub async fn survey(
     Ok(resp)
 }
 
+/// `/v1/editor/{*path}`: a survey server's content editing routes (docs/WORLD-EDITOR-CONTENT.md:
+/// records, schemas, catalogs, changes, history), passed on like [`survey`] with the caller as
+/// the author. Admin only (every account is an admin on a survey server's API).
+pub async fn editor(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    auth: Auth,
+    method: axum::http::Method,
+    axum::extract::Path(path): axum::extract::Path<String>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    body: axum::body::Bytes,
+) -> ApiResult<axum::response::Response> {
+    use axum::response::IntoResponse;
+    auth.require(Scope::Admin)?;
+    let target = match query {
+        Some(q) => format!("{path}?{q}"),
+        None => path,
+    };
+    let (status, content_type, body) = control(&state)?.editor(method.as_str(), &target, &auth.actor, body.to_vec()).await.map_err(ApiError::game_server)?;
+    let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
+    let mut resp = (status, body).into_response();
+    if let Some(ct) = content_type.and_then(|c| axum::http::HeaderValue::from_str(&c).ok()) {
+        resp.headers_mut().insert(axum::http::header::CONTENT_TYPE, ct);
+    }
+    Ok(resp)
+}
+
 /// A play server's world content (docs/WORLD-CONTENT.md: the approval queue, rules, summaries),
 /// forwarded to its control interface like [`survey`]. Admin only.
 pub async fn content(

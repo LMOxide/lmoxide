@@ -14,6 +14,7 @@ mod conn;
 mod control;
 mod devcmd;
 mod dash;
+mod editor;
 mod discovery;
 mod effects;
 mod encounter;
@@ -266,6 +267,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         cfg.default_gm_level = cfg.default_gm_level.max(cfg.devcmd_gm_level).max(1);
         let dir = cfg.survey_set.clone().unwrap_or_else(|| storage.data_dir.join("survey"));
         survey::init(dir);
+        editor::init(&gamedata::dir(cfg.content_dir.clone()));
     } else {
         content::init(&storage.data_dir, cfg.world_editor_set.clone());
     }

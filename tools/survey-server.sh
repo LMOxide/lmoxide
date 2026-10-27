@@ -41,6 +41,14 @@ MAIN=$(cd "$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)/.
 VAR=$(realpath -m "$MAIN/../var")
 DATA=${LMOXIDE_SURVEY_DATA_DIR:-$VAR/survey-data}
 SET=${LMOXIDE_SURVEY_SET:-$VAR/survey-set}
+# the content the world editor edits: a git checkout of lmoxide-content (docs/WORLD-EDITOR-CONTENT.md),
+# made from content/ the first time, its origin the content repository
+WORK=${LMOXIDE_CONTENT_WORK:-$VAR/content-work}
+if [[ ! -d $WORK/.git ]]; then
+  git clone -q "$MAIN/content" "$WORK"
+  git -C "$WORK" remote set-url origin "$(git -C "$MAIN/content" remote get-url origin)"
+  echo "content working copy: $WORK (cloned from content/)"
+fi
 SHARED_DB=${LMOXIDE_SHARE_ACCOUNTS-$VAR/data/lmoxide.db}
 CLIENT=${LMOXIDE_CLIENT_DIR:-$(realpath -m "$MAIN/../clients/windows/LEGO Minifigures Online")}
 WEB_DIR=${LMOXIDE_SURVEY_WEB_DIR:-$(realpath -m "$MAIN/../lmoxide-dev-ui")}
@@ -78,7 +86,7 @@ mkdir -p "$VAR/patch-data-survey"
 rm -f "$ROOT/logs/survey-server.log"
 python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports "$UNIVERSE,$TERRITORY,$GAME,$CHAT" \
   --pidfile "$ROOT/logs/survey-server.pid" --holder-pidfile "$ROOT/logs/survey-holder.pid" -- \
-  "$BIN/lmoxide-server" --mode survey --data-dir "$DATA" --survey-set "$SET" --bind 0.0.0.0 --public-host "$IP" \
+  "$BIN/lmoxide-server" --mode survey --data-dir "$DATA" --survey-set "$SET" --content-dir "$WORK" --bind 0.0.0.0 --public-host "$IP" \
   --universe-port $UNIVERSE --territory-port $TERRITORY --game-port $GAME --chat-port $CHAT \
   --control-bind 127.0.0.1:$CONTROL --control-token-file "$DATA/control_token" --auto-register "${SHARE[@]}" \
   --peer-name play --peer-data-dir "$VAR/data" --peer-game-addr "$IP:7102" --peer-chat-addr "$IP:7200" \

@@ -383,6 +383,29 @@ with its `category`, `playfield` and, for a placement replacing a guess, `replac
 The page polls `state` every second and reloads objects and notes when `revision` or the playfield
 changes, so changes made in game (a selection by attacking, someone else's edit) show up.
 
+## Content editing API
+
+Survey servers also edit the content tree itself (docs/WORLD-EDITOR-CONTENT.md): a git checkout
+of lmoxide-content, `var/content-work` (`--content-dir`; `tools/survey-server.sh` clones it from
+`content/` the first time, its `origin` the content repository). Saves write the record's file
+at once (canonical form); nothing is committed here. Routes under `/v1/editor` on the control
+interface, passed on by lmoxide-api like `/v1/survey` (admin; the caller is the author).
+Records are named by query (`?id=npc/pirate&feature=live`; ids hold slashes).
+
+| Route | |
+|---|---|
+| `GET /v1/editor/kinds` | `index` (schemas/index.json) and every kind's `schemas` |
+| `GET /v1/editor/records?kind=&world=&feature=&tag=&source=&author=&q=&changed=true&problems=true&limit=&offset=` | `{ total, records: [{ id, feature, kind, name, world, file, source, tags, author, rev, fields, problems, changed }] }` (`fields`: the kind's list fields) |
+| `POST /v1/editor/records` | create: `{ kind, name, world (playfield), feature, fields }` or `{ kind, copy_of: { id, feature }, name? }`; the id comes from the name (numbered when taken) |
+| `GET /v1/editor/record?id=&feature=&with=` | `record` (as written), `resolved` (features in `with`, `extends`) with `origin` per field, a spawn's `template` (overrides applied), `problems`, `used_by`, `versions` (its features), `committed` (at the last commit), `changed` |
+| `PUT /v1/editor/record?id=&feature=` | `{ record, base }`: `base` is the version the edit started from; saved since, the two merge field by field. 409 `conflict` with `conflicts: [{ path, base, ours, theirs }]` (nothing saved), 422 `invalid` with `problems` (doesn't parse, references missing or of the wrong kind) |
+| `DELETE /v1/editor/record?id=&feature=&replace_with=` | 409 `referenced` with `used_by` while others name it, unless `replace_with` (they're changed to name it) |
+| `GET /v1/editor/history?id=&feature=&limit=` | commits that changed it: `hash`, `date`, `author` (`Content-Author:`), `approved_by`, `subject`, `before`, `after` |
+| `GET /v1/editor/problems` | the whole tree's check |
+| `GET /v1/editor/changes?author=` | records changed since the last commit: `change` (added, changed, removed), `author`, `before`, `after` |
+| `GET /v1/editor/catalog/{name}?q=&ids=&limit=` | client ids with names (`monster_data`, `effect_package`, `spell`, `nano`, `item`, `text`, `lore`, `playfield`, `window`, `npc_template`, `stat`); `record` names the content record it belongs to |
+| `POST /v1/editor/reload` | reads the working copy again (after a pull or an edit by hand) |
+
 ## Steps
 
 Done:

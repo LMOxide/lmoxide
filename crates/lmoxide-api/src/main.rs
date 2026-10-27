@@ -263,6 +263,10 @@ async fn serve(cfg: Config, db: Arc<Db>) -> anyhow::Result<()> {
             "/v1/survey/{*path}",
             axum::routing::any(routes::survey).layer(axum::extract::DefaultBodyLimit::max(routes::SURVEY_BODY_LIMIT)),
         )
+        .route(
+            "/v1/editor/{*path}",
+            axum::routing::any(routes::editor).layer(axum::extract::DefaultBodyLimit::max(routes::SURVEY_BODY_LIMIT)),
+        )
         .route("/v1/content/{*path}", axum::routing::any(routes::content))
         .layer(axum::middleware::from_fn_with_state(state.clone(), auth::rate_limit))
         .with_state(state)

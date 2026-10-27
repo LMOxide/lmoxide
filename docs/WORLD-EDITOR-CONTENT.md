@@ -86,6 +86,12 @@ history on play servers), `crates/lmoxide-content/src/model.rs` (every record ty
   `lmoxide_content::schema` (`Walker` finds references and client ids by schema; the loader
   checks reference kinds with it), schema and annotation-coverage tests. docs/CONTENT.md
   "What the schemas say for editors".
+- Phase 2, editing API (lmoxide 670ac72 + this): `lmoxide_content::{work, merge, git, catalog}`,
+  `lmoxide-server/src/editor.rs`, `/v1/editor/*` (docs/SURVEY.md "Content editing API"),
+  `tools/survey-server.sh` clones `var/content-work`. Deviation: PUT takes `{record, base}` (the
+  version edited from) rather than `base_rev`, so the server keeps no old versions. Not yet: the
+  in-game routes writing content records (`survey::content_changed` is the hook), publish (with
+  phase 3), loot simulation (with the loot view, phase 5).
 
 ## Phases
 
