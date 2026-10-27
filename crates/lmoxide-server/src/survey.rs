@@ -335,9 +335,9 @@ fn bases_of(defs: &[SpawnDef]) -> Vec<Base<SpawnDef>> {
 }
 
 /// What a play server spawns in playfield `pf` (content.rs): its base content with the
-/// placements applied (guesses they replace or delete left out), without the placements of
-/// script waves (play servers don't run scripts yet); also how many of those were left out.
-pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement], catalog: &[(Placeable, SpawnDef)]) -> (Vec<SpawnDef>, usize) {
+/// placements applied (guesses they replace or delete left out); apart, the placements of script
+/// waves with what they spawn (scripts.rs spawns them when their wave starts).
+pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement], catalog: &[(Placeable, SpawnDef)]) -> (Vec<SpawnDef>, Vec<(Placement, SpawnDef)>) {
     let bases = bases_of(defs);
     let applied = sv::apply::apply(pf, &bases, placements, MATCH_DISTANCE);
     for p in &applied.orphans {
@@ -351,7 +351,8 @@ pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement],
             Spawn::Surveyed { placement, replaced } => from_placement(catalog, pf, placement, replaced).map(|o| o.def),
         })
         .collect();
-    (out, applied.waves.len())
+    let waves = applied.waves.into_iter().filter_map(|p| from_placement(catalog, pf, p, None).map(|o| (p.clone(), o.def))).collect();
+    (out, waves)
 }
 
 /// Spawns playfield `pf`'s objects from its base content and the set.

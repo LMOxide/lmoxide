@@ -15,11 +15,12 @@
 //! approve are taken, the rest wait in the queue for an admin (`/v1/content` on the control
 //! interface, through lmoxide-api). Playfields whose approved, active content changed are
 //! spawned again (live reload): their base content with the placements applied, as the survey
-//! server shows it (placements of script waves aren't run on play servers yet); the approved,
-//! active trigger walls and smash achievement rules (which enemies count toward an achievement,
+//! server shows it, without the placements of script waves: those, with the playfield's scripts
+//! and notes, go to scripts.rs, which spawns them when their wave starts. The approved, active
+//! trigger walls and smash achievement rules (which enemies count toward an achievement,
 //! achievements.rs) take effect at once.
 //!
-//! Locks: `STATE`, then `npc::NPCS` (spawning and despawning).
+//! Locks: `STATE`, then `scripts::STATE`, then `npc::NPCS` (spawning and despawning).
 
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -107,6 +108,8 @@ struct State {
     catalog: Vec<(crate::survey::Placeable, SpawnDef)>,
     /// What this module spawned in each playfield (to spawn it again).
     spawned: HashMap<u32, Vec<Id32>>,
+    /// The placements of script waves in each playfield, with what they spawn (scripts.rs).
+    waves: HashMap<u32, Vec<(lmoxide_survey::Placement, SpawnDef)>>,
     /// Bumped whenever the queue or the approved set changes.
     revision: u64,
     /// The last error reading the source, for the admin page.
@@ -145,6 +148,7 @@ pub fn init(data_dir: &Path, source: Option<PathBuf>) {
         bases: BTreeMap::new(),
         catalog: Vec::new(),
         spawned: HashMap::new(),
+        waves: HashMap::new(),
         revision: 1,
         source_error: None,
     });
@@ -182,6 +186,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     for pf in pfs {
         spawn_playfield(st, pf);
     }
+    set_scripts(st, &active);
     drop(guard);
     tokio::spawn(watch());
 }
@@ -196,9 +201,10 @@ fn spawn_playfield(st: &mut State, pf: u32) {
     let placements = active.placements.get(&pf).map(|f| f.placements.clone()).unwrap_or_default();
     let empty = Vec::new();
     let (defs, waves) = crate::survey::applied_defs(pf, st.bases.get(&pf).unwrap_or(&empty), &placements, &st.catalog);
-    if waves > 0 {
-        info!(playfield = pf, waves, "world content: placements of script waves aren't spawned on play servers yet");
+    if !waves.is_empty() {
+        info!(playfield = pf, placements = waves.len(), "world content: placements of script waves wait for their wave");
     }
+    st.waves.insert(pf, waves);
     let mut ids = Vec::with_capacity(defs.len());
     for def in defs {
         let id = npc::new_id(&def);
@@ -206,6 +212,25 @@ fn spawn_playfield(st: &mut State, pf: u32) {
         ids.push(id);
     }
     st.spawned.insert(pf, ids);
+}
+
+/// The scripts (and notes, for their areas) of `active` with the wave placements spawned last,
+/// for scripts.rs.
+fn set_scripts(st: &State, active: &Set) {
+    let pfs: BTreeSet<u32> = active.notes.keys().chain(st.waves.keys()).copied().collect();
+    let playfields = pfs
+        .into_iter()
+        .map(|pf| {
+            let notes = active.notes.get(&pf);
+            let p = crate::scripts::Playfield {
+                scripts: notes.map(|n| n.scripts.clone()).unwrap_or_default(),
+                notes: notes.map(|n| n.notes.clone()).unwrap_or_default(),
+                spawns: st.waves.get(&pf).cloned().unwrap_or_default(),
+            };
+            (pf, p)
+        })
+        .collect();
+    crate::scripts::set(playfields);
 }
 
 /// The newest modification time of the files in `dir`.
@@ -337,6 +362,7 @@ fn respawn_changed(st: &mut State, before: &Set, after: &Set) {
     }
     crate::walls::set(after);
     crate::achievements::set_smash_rules(&after.smash_rules);
+    set_scripts(st, after);
 }
 
 // ------------------------------------------------------------------ control routes

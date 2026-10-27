@@ -31,6 +31,7 @@ mod procs;
 mod progression;
 mod projectile;
 mod scenery;
+mod scripts;
 mod security;
 mod sessions;
 mod shop;

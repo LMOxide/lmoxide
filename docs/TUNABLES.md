@@ -259,3 +259,20 @@ server-side, so all of it is inferred; the data file's comment lists the client 
 | Levers, gates, pressure plates | `scenery.rs` | spawned as scenery: CARS group 5 (not usable), gates `is_closed` false, no collision (kdtree 0); empty RDB bounds replaced by an 8×6×8 m box | Their behaviour (lever→gate links, plate puzzles) was server script data with no surviving trace (user's choice 2026-10-23: show them, block nothing, invent no logic). Whether a gate looks open depends on how the client picks its motion (`anim_1` = open state), which isn't known. |
 | Re-trigger | `jumppad.rs` `State::on` | a pad fires again only after stepping off | Assumed. |
 
+## Script waves (`scripts.rs`)
+
+The world editor's scripts are its own (live's server scripts are lost), so these are rules chosen
+for them, not live values.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Starting | `scripts.rs` `start` | a `script` wall, a player entering the first wave's `enter_area`, or `!script start`; the wave named (none: the first) spawns at once, except a first wave with `after` when none is named (it waits that long); waves before the started one are skipped | Chosen. |
+| Running twice | `scripts.rs` `start` | one run per script and playfield; starting it again does nothing, but naming a wave that is still waiting starts it | Chosen (so a second wall can start a later wave). |
+| `after` | `scripts.rs` `after_ready` | from the previous wave's start (first wave, or after a skipped one: the script's start); not while the previous wave waits | The editor's definition. |
+| `health_below` | `scripts.rs` `check` | that placement's spawn (none: the script's strongest spawn so far) below the share of its full health; a defeated one counts | Chosen. |
+| `enter_area` | `scripts.rs` `contains`, `POINT_RADIUS` | while a player is in the note's (none: the script's) area, seen from above (heights ignored); a point area is a 5 m circle; starting a script needs a player to step in (not one standing there when it ended) | Chosen. |
+| No trigger / `other` | `scripts.rs` `check` | never by itself (logged once per run) | Chosen. |
+| Spawns | `npc.rs` `spawn_once` | normal enemies/NPCs from the placement (fight, loot, achievements); no respawn, gone 3 s after defeat; not the playfield's own (`resident_enemies`: clearing, encounters) | Chosen. |
+| Over | `scripts.rs` `can_still_start` | every spawn defeated and no waiting wave can start by itself (`after`, `enter_area`, `wave_cleared` of a wave that can, `health_below` of a placement still to spawn) | Chosen; a wave without a trigger doesn't keep a script running. |
+| Reset | `npc.rs` `ai` → `scripts::playfield_emptied` | when the empty playfield's NPCs reset, running scripts end and their spawns go | Chosen. |
+| Trigger check | `scripts.rs` `TICK` | 0.5 s | Assumed. |

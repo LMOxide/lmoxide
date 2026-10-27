@@ -57,15 +57,33 @@ and author, with each record added, changed or removed and what changed ("moved 
   approves it, **revert** or its time ends it and it waits in the queue again. Previews are seen by
   every player: one only the admin sees would need enemies that fight only some players.
 - **Live reload**: playfields whose approved, active placements change are spawned again (base
-  content with the placements applied, as the survey server shows them). Not on play servers yet:
-  placements of script waves, notes (they wait in the approved copy).
+  content with the placements applied, as the survey server shows them). Placements of script
+  waves wait for their wave (below); notes are used only for their areas (`enter_area` triggers).
+  A running script whose script or wave placements change ends (its spawns go).
+- **Scripts and waves** (scripts.rs): an approved, active script starts from a `script` trigger
+  wall, from a player entering the area its first wave's `enter_area` trigger names, or from
+  `!script start`. It spawns its first wave (or the wave named) at once, except a first wave with
+  `after` when none is named, which waits that long. The later waves follow their triggers:
+  `after` counts from the previous wave's start (the first wave: the script's start),
+  `wave_cleared` waits until every spawn of that wave is defeated, `health_below` until that
+  placement (none: the script's strongest spawn) is below that share of its health (defeated
+  counts), `enter_area` until a player is in that note's area (none: the script's own area); a
+  wave without a trigger (or `other`) starts only from a wall or `!script start` naming it (this
+  is logged once). Waves listed before the one a script was started at are skipped. Spawns are
+  normal enemies and NPCs (they fight, drop loot, count for achievements) that don't respawn and
+  aren't the playfield's own (they don't count toward clearing it). A script runs once at a time
+  per playfield: starting it again while it runs does nothing, except a wall or command naming a
+  wave that is still waiting starts that wave. It is over when every spawn is defeated and no
+  waiting wave can still start by itself; then it can be started again. When the playfield
+  empties and its NPCs reset, running scripts end and their spawns go. Rules chosen:
+  docs/TUNABLES.md "Script waves".
 - **Trigger walls** (walls.rs): the approved, active walls and radii are checked against the
   players' moves (every 200 ms, as on the survey server; invisible here). Crossing one:
   `discover` counts the location found on that playfield, and for an achievement that needs one
   location that location too (so the wall grants it); an achievement needing several counts only
   what is found; one with no known location is granted by its id. `dialog` starts the recorded
   dialogue (its NPC speaks if it is there), `portal` opens the window (or teleports to `to`'s
-  arrival point), `message` shows it in chat. `script` is only logged (waves don't run here yet).
+  arrival point), `message` shows it in chat. `script` starts the script (or the wave it names; below).
   `once` is per player until the server restarts.
 - **Smash achievement rules** (achievements.rs; docs/SURVEY.md "Smash achievement rules"): for
   an achievement with an approved, active rule that names enemies, a defeat counts toward it only

@@ -40,6 +40,10 @@
 //!   !spawn [count] <name>     spawn count (default 1, at most 30) of an enemy or smashable around you
 //!                             for 15 minutes, as !test does
 //!   !despawn [all]            remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's
+//!   !script [list]            this playfield's approved, active scripts (world editor) and their waves
+//!   !script start <script> [wave]  start a script (name, part of it, id or number), at a wave
+//!                             (name, id or number; default its first), as a trigger wall does
+//!   !script stop [script]     end this playfield's running scripts (or that one); their spawns go
 //!   !bounce [bounce|spin|<kb> <launched> <dir>]  throw yourself 6 m as a bouncer / cannon does
 //!   !aim [shots|lobs] [current|lead|homing]  how players' straight and lobbed shots are aimed
 //!                             at their enemy (projectile.rs), for everyone; without a mode: the
@@ -144,6 +148,9 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!fx next|prev|stop", "step through every effect package, or end the current one"),
     ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
     ("!state <n>", "set your BCCState (1 normal, 29 Limbo/smashed, 104 building, ...)"),
+    ("!script [list]", "this playfield's approved, active scripts (world editor) with their waves, triggers and what is running"),
+    ("!script start <script> [wave]", "start a script (name, part of it, id or number from !script list) at a wave (name, id or number; default its first), as a trigger wall does"),
+    ("!script stop [script]", "end this playfield's running scripts (or that one); their spawns go"),
     ("!window <id>", "open teleport window <id> (RDB 1000644), as a portal would"),
     ("!bounce [bounce|spin|<knockback 0/1> <launched 0/1> <direction>]", "throw yourself 6 m along +x as a bouncer (default) or a cannon/piston does, or with raw animation settings"),
     ("!aim [shots|lobs] [current|lead|homing]", "how players' straight shots and lobbed ones (both without shots|lobs) are aimed at their enemy, for everyone (without a mode: the current ones)"),
@@ -354,6 +361,7 @@ const KINDS: &[(&str, &str)] = &[
     ("fighter", "friendly NPCs fighting enemies (npc_fights.json)"),
     ("patrol", "NPCs that walk a patrol route (the live capture's: Musketeers, Jungle Tricksters, Vespids, ...); arrives 14 m off, out of their notice"),
     ("smashable", "smashables"),
+    ("script", "the world editor's approved, active scripts (at their area, else their first placement)"),
 ];
 
 /// How far from a target to arrive (so as not to stand inside it or on a pad).
@@ -361,6 +369,29 @@ const ARRIVE_OFFSET: f32 = 3.0;
 /// `!goto patrol`: how far from the patroller's home to arrive, so it keeps walking its route
 /// (enemies notice players 8 m away; routes reach a few metres from home).
 const PATROL_WATCH: f32 = 14.0;
+
+/// `!script list | start <script> [wave] | stop [script]`. The script's name may have spaces: the
+/// whole rest first, else its last word is the wave.
+fn script(args: &[&str], playfield: u32) -> Vec<String> {
+    match args.first().map(|a| a.to_ascii_lowercase()).as_deref() {
+        None | Some("list") => crate::scripts::list(playfield),
+        Some("start") if args.len() > 1 => {
+            let whole = args[1..].join(" ");
+            let r = crate::scripts::start(playfield, &whole, None);
+            let r = match r {
+                // no script by the whole name: the last word may be the wave
+                Err(e) if args.len() > 2 && e.starts_with("no script") => {
+                    let (name, wave) = (args[1..args.len() - 1].join(" "), args[args.len() - 1]);
+                    crate::scripts::start(playfield, &name, Some(wave)).or(Err(e))
+                }
+                r => r,
+            };
+            vec![r.unwrap_or_else(|e| e)]
+        }
+        Some("stop") => crate::scripts::stop(playfield, (args.len() > 1).then(|| args[1..].join(" ")).as_deref()),
+        _ => vec!["usage: !script [list] | start <script> [wave] | stop [script]".into()],
+    }
+}
 
 /// Whether a chat line is a command.
 pub fn is_command(message: &str) -> bool {
@@ -383,6 +414,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
+        "script" => crate::scripts::points(),
         _ => return None,
     })
 }
@@ -584,6 +616,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some(how @ ("limit" | "all")) => Action::LimitCollection(how == "limit"),
             _ => reply(vec!["usage: !collection <limit|all>".into()]),
         },
+        "script" | "scripts" => reply(script(&args, playfield)),
         "plates" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => {
                 crate::plates::set_all(how == "solve");

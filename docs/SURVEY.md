@@ -363,8 +363,8 @@ Next:
    buildie.rs / scenery.rs objects, not NPCs); buildies can already be selected and hidden.
 10. **Patrol routes in game**: markers at the selected patroller's points.
 11. **Play servers use accepted sets**: done for placements without a wave (docs/WORLD-CONTENT.md:
-    approval queue, rules, features, live reload). Still to do there: trigger walls, and placements
-    with a wave once their (reviewed, implemented) trigger runs.
+    approval queue, rules, features, live reload), trigger walls (walls.rs) and script waves
+    (scripts.rs).
 12. **docker-compose** service for a survey server.
 
 Open research, separate from the steps: whether the client lets GMs zoom freely (Linux symbols),

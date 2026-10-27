@@ -2,7 +2,7 @@
 //! active here (content.rs), checked against the players' moves like the survey server does.
 //! Crossing one does what it says: discovers a location (and the achievement it counts toward),
 //! opens a recorded dialogue or a portal, or shows a message. Here they are invisible, as live's
-//! trigger areas were; script waves don't run on play servers yet (logged).
+//! trigger areas were. A script wall starts the script (or the wave it names; scripts.rs).
 
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -124,7 +124,11 @@ fn fire(w: &TriggerWall, player: Id32, player_name: &str, pf: u32) {
             None => info!(wall = %w.id, to, "trigger wall: no arrival point for that playfield"),
         },
         WallAction::Message { text } if !text.is_empty() => crate::chat::system(player.instance, text),
-        WallAction::Script { .. } => info!(wall = %w.id, "trigger wall: script waves don't run on play servers yet"),
+        WallAction::Script { script: Some(script), wave } => match crate::scripts::start(pf, script, wave.as_deref()) {
+            Ok(what) => info!(wall = %w.id, "trigger wall: {what}"),
+            Err(why) => info!(wall = %w.id, "trigger wall: script not started: {why}"),
+        },
+        WallAction::Script { script: None, .. } => info!(wall = %w.id, "trigger wall: names no script"),
         WallAction::Portal { .. } | WallAction::Message { .. } | WallAction::Other => {}
     }
 }

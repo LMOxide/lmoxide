@@ -322,6 +322,8 @@ struct Npc {
     walk: Option<Walk>,
     /// Spawned by a test scenario: doesn't respawn, and is gone at that time.
     temporary: Option<std::time::Instant>,
+    /// Spawned by a script wave (scripts.rs): doesn't respawn once defeated.
+    once: bool,
     /// Spawned by a test command (`!spawn`, `!test`): `!despawn` removes it.
     test_spawn: bool,
     /// When each of its spells can be cast again (npc_spells.rs).
@@ -351,6 +353,7 @@ impl Npc {
             summon: None,
             walk: None,
             temporary,
+            once: false,
             test_spawn: false,
             cooldowns: HashMap::new(),
             busy_until: None,
@@ -445,7 +448,7 @@ pub fn resident_enemies(playfield: u32) -> std::collections::HashSet<Id32> {
     NPCS.lock()
         .unwrap()
         .iter()
-        .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && n.owner.is_none())
+        .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && !n.once && n.owner.is_none())
         .map(|(id, _)| *id)
         .collect()
 }
@@ -485,7 +488,7 @@ pub fn boss_near(playfield: u32, at: [f32; 2], radius: f32) -> Option<Id32> {
     NPCS.lock()
         .unwrap()
         .iter()
-        .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && n.owner.is_none())
+        .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && !n.once && n.owner.is_none())
         .filter(|(_, n)| rank_of(&n.def) >= BOSS_RANK && (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[1]) <= radius)
         .max_by_key(|(_, n)| n.def.health)
         .map(|(id, _)| *id)
@@ -513,7 +516,7 @@ pub fn regulars_near(playfield: u32, at: [f32; 2], radius: f32, n: usize) -> Vec
     let npcs = NPCS.lock().unwrap();
     let mut v: Vec<&SpawnDef> = npcs
         .values()
-        .filter(|x| x.playfield == playfield && x.def.kind == Kind::Enemy && x.temporary.is_none() && x.owner.is_none())
+        .filter(|x| x.playfield == playfield && x.def.kind == Kind::Enemy && x.temporary.is_none() && !x.once && x.owner.is_none())
         .map(|x| &x.def)
         .filter(|d| rank_of(d) < CHAMPION_RANK && (d.pos[0] - at[0]).hypot(d.pos[2] - at[1]) <= radius)
         .collect();
@@ -601,6 +604,14 @@ pub fn new_id(def: &SpawnDef) -> Id32 {
 /// Spawns a resident NPC or smashable under `id` (from `new_id`).
 pub fn spawn_as(id: Id32, def: SpawnDef, playfield: u32) {
     NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
+    appear(id);
+}
+
+/// Spawns an NPC or smashable for a script wave (scripts.rs) under `id` (from `new_id`): it
+/// fights, drops loot and counts like a resident, but doesn't respawn once defeated (it is gone
+/// 3 s after) and isn't one of the playfield's own (`resident_enemies`).
+pub fn spawn_once(id: Id32, def: SpawnDef, playfield: u32) {
+    NPCS.lock().unwrap().insert(id, Npc { once: true, ..Npc::new(def, playfield, None, None) });
     appear(id);
 }
 
@@ -1050,7 +1061,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         }
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
-        let temporary = npc.temporary.is_some();
+        let temporary = npc.temporary.is_some() || npc.once;
         let home = npc.playfield;
         let respawn = crate::cannon::respawn(home, &npc.def.name).unwrap_or(RESPAWN);
         drop(npcs);
@@ -1732,6 +1743,7 @@ async fn ai() {
             let keep = !occupied.contains(pf) && since.elapsed() < UNLOAD_AFTER;
             if !keep && !occupied.contains(pf) {
                 unload(*pf);
+                crate::scripts::playfield_emptied(*pf);
             }
             keep
         });
