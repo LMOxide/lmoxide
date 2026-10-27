@@ -273,7 +273,7 @@ pub fn entered(playfield: u32, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
     let fresh: Vec<&String> = names.iter().filter(|n| !defeated(n)).collect();
     let name = fresh.choose(&mut rand::rng()).copied().or_else(|| names.choose(&mut rand::rng())).cloned().unwrap_or_default();
     let at = spot.map_or([base.pos[0] + 2.0, base.pos[1], base.pos[2]], |s| [s[0], base.pos[1], s[1]]);
-    let def = SpawnDef { name: name.clone(), health: (60 + 15 * base.level) * CHAMPION_HEALTH, pos: at, ..base.clone() };
+    let def = SpawnDef { name: name.clone(), health: crate::npc::regular_life(base.level) * CHAMPION_HEALTH, pos: at, ..base.clone() };
     let id = crate::npc::spawn_temporary(def, playfield, SPAWN_LIFETIME);
     info!(playfield, %name, ?at, "champion");
     STATE.lock().unwrap().champions.insert(playfield, (Some(id), Instant::now()));

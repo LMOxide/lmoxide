@@ -74,8 +74,11 @@ const ENEMY_MITIGATION: f32 = 0.2;
 const BOSS_MITIGATION: f32 = 0.4;
 /// Cap on a player's total damage mitigation (upgrades plus buffs).
 const MAX_MITIGATION: f32 = 0.9;
-/// Enemies with more health than this count as bosses.
-const BOSS_HEALTH: u32 = 500;
+/// Ranks of enemies by their health over a regular enemy's of their level (`rank_of`): the live
+/// server's bosses had 7.5–11.25 times it, its champions (Gargantuan, Banshee, T.E.S.L.A)
+/// 4.25–6 (data/npc_life.json); proposed bosses get 10, champions 4.
+const BOSS_RANK: u32 = 7;
+const CHAMPION_RANK: u32 = 4;
 /// NPC-against-NPC fights (friendly fighters and enemies, data/npc_fights.json): one hit takes
 /// this share of the target's maximum health (± FIGHT_SPREAD), so a fight lasts about a minute.
 const FIGHT_SHARE: f32 = 0.04;
@@ -361,8 +364,8 @@ fn run_speed(def: &SpawnDef) -> f32 {
 
 static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-/// NPCs for test commands: enemies of a rank, "boss" (≥ 8 × a regular enemy's health of their
-/// level), "champion" (≥ 4 ×) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
+/// NPCs for test commands: enemies of a rank, "boss" (`BOSS_RANK`), "champion"
+/// (`CHAMPION_RANK`) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
 /// fighters) or "smashable":
 /// (label, playfield, home position), by playfield.
 pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
@@ -372,10 +375,10 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
         .values()
         .filter(|n| n.owner.is_none())
         .filter(|n| {
-            let regular = 60 + 15 * n.def.level;
+            let r = rank_of(&n.def);
             match rank {
-                "boss" => n.def.kind == Kind::Enemy && n.def.health >= regular * 8,
-                "champion" => n.def.kind == Kind::Enemy && n.def.health >= regular * 4 && n.def.health < regular * 8,
+                "boss" => n.def.kind == Kind::Enemy && r >= BOSS_RANK,
+                "champion" => n.def.kind == Kind::Enemy && (CHAMPION_RANK..BOSS_RANK).contains(&r),
                 "npc" => n.def.kind == Kind::Npc,
                 "fighter" => n.def.fights(),
                 "smashable" => n.def.kind == Kind::Smashable,
@@ -414,10 +417,34 @@ pub fn resident_enemies(playfield: u32) -> std::collections::HashSet<Id32> {
         .collect()
 }
 
-/// How a resident enemy ranks by its health over a regular enemy's of its level (proposed
-/// content: champions 4x, bosses 8x and more).
+/// How a resident enemy ranks by its health over a regular enemy's of its level (see
+/// `BOSS_RANK`).
 fn rank_of(def: &SpawnDef) -> u32 {
-    def.health / (60 + 15 * def.level)
+    def.health / regular_life(def.level)
+}
+
+/// data/npc_life.json (tools/re/live_npc_life.py): the life of a regular (1x) NPC per level, as
+/// the live server gave it.
+static LIFE: LazyLock<Vec<(u32, f32)>> = LazyLock::new(|| {
+    let data: serde_json::Value = serde_json::from_str(include_str!("../../../data/npc_life.json")).expect("npc_life.json");
+    let mut v: Vec<(u32, f32)> = data["base"]
+        .as_object()
+        .expect("npc_life.json base")
+        .iter()
+        .map(|(level, life)| (level.parse().expect("npc_life.json level"), life.as_f64().expect("npc_life.json life") as f32))
+        .collect();
+    v.sort_by_key(|p| p.0);
+    v
+});
+
+/// A regular enemy's life at `level`: npc_life.json's, linear between its levels and beyond its
+/// ends (as tools/re/live_npc_life.py `base_life`).
+pub fn regular_life(level: u32) -> u32 {
+    let pts = &*LIFE;
+    let i = pts.partition_point(|p| p.0 < level).clamp(1, pts.len() - 1);
+    let (a, b) = (pts[i - 1], pts[i]);
+    let life = if a.0 == level { a.1 } else if b.0 == level { b.1 } else { a.1 + (b.1 - a.1) * (level as f32 - a.0 as f32) / (b.0 - a.0) as f32 };
+    (life.round() as u32).max(1)
 }
 
 /// The strongest of the playfield's own bosses within `radius` of `at` (x, z).
@@ -426,7 +453,7 @@ pub fn boss_near(playfield: u32, at: [f32; 2], radius: f32) -> Option<Id32> {
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && n.owner.is_none())
-        .filter(|(_, n)| rank_of(&n.def) >= 8 && (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[1]) <= radius)
+        .filter(|(_, n)| rank_of(&n.def) >= BOSS_RANK && (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[1]) <= radius)
         .max_by_key(|(_, n)| n.def.health)
         .map(|(id, _)| *id)
 }
@@ -455,7 +482,7 @@ pub fn regulars_near(playfield: u32, at: [f32; 2], radius: f32, n: usize) -> Vec
         .values()
         .filter(|x| x.playfield == playfield && x.def.kind == Kind::Enemy && x.temporary.is_none() && x.owner.is_none())
         .map(|x| &x.def)
-        .filter(|d| rank_of(d) < 4 && (d.pos[0] - at[0]).hypot(d.pos[2] - at[1]) <= radius)
+        .filter(|d| rank_of(d) < CHAMPION_RANK && (d.pos[0] - at[0]).hypot(d.pos[2] - at[1]) <= radius)
         .collect();
     v.sort_by(|a, b| (a.pos[0] - at[0]).hypot(a.pos[2] - at[1]).total_cmp(&(b.pos[0] - at[0]).hypot(b.pos[2] - at[1])));
     let mut out: Vec<SpawnDef> = Vec::new();
@@ -876,7 +903,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     let mitigation = if by_npc {
         0.0
     } else if npc.def.kind == Kind::Enemy {
-        if npc.def.health > BOSS_HEALTH { BOSS_MITIGATION } else { ENEMY_MITIGATION }
+        if rank_of(&npc.def) >= BOSS_RANK { BOSS_MITIGATION } else { ENEMY_MITIGATION }
     } else {
         0.0
     };
@@ -920,13 +947,11 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     }
     world::send_playfield(target, true, world::Out::Records(records));
     if health == 0 {
-        // champions and bosses by their health over a regular enemy's of that level (proposed
-        // content: 4x and 10x; recorded bosses have more)
-        let regular = 60 + 15 * npc.def.level;
+        // champions and bosses by their health over a regular enemy's of that level (rank_of)
         let source = match kind {
             Kind::Smashable => crate::loot::Source::Smashable,
-            _ if npc.def.health >= regular * 8 => crate::loot::Source::Boss,
-            _ if npc.def.health >= regular * 4 => crate::loot::Source::Champion,
+            _ if rank_of(&npc.def) >= BOSS_RANK => crate::loot::Source::Boss,
+            _ if rank_of(&npc.def) >= CHAMPION_RANK => crate::loot::Source::Champion,
             _ => crate::loot::Source::Enemy,
         };
         // a scripted shot (Pirate World's cannon, cannon.rs) drops no loot and earns nothing,
@@ -1647,6 +1672,36 @@ mod tests {
         let body = "0000002e0a2a0a0708d0860310e80e120708f9900310a7141a120d0000803f10e807180020002800380048002089d2241000";
         let hex = crate::conn::hex(&rec);
         assert!(hex.ends_with(body), "{hex}");
+    }
+
+    #[test]
+    fn regular_life_is_the_live_servers() {
+        // recorded levels, between them (5 and 7 recorded: 168, 282; 8 = a third of the way
+        // to 10's 538) and past the last (74: 24298, 71: 21526)
+        assert_eq!([1, 4, 15, 26].map(regular_life), [62, 132, 1314, 3854]);
+        assert_eq!(regular_life(8), 367);
+        assert_eq!(regular_life(77), 27070);
+        // the live bosses rank as bosses, its champions as champions, Mantis Nymphs as regulars
+        let enemy = |level, health| SpawnDef {
+            kind: Kind::Enemy,
+            template: 0,
+            name: "Enemy".into(),
+            monster_data: 1,
+            level,
+            health,
+            pos: [0.0; 3],
+            spell: default_spell(),
+            cars_group: None,
+            npc_template: None,
+            reach: None,
+            anchor: None,
+            fights: false,
+            faction: None,
+        };
+        assert!(rank_of(&enemy(3, 855)) >= BOSS_RANK); // Monkey Kong, 7.5x
+        assert!(rank_of(&enemy(15, 14782)) >= BOSS_RANK); // Monster Scientist, 11.25x
+        assert!((CHAMPION_RANK..BOSS_RANK).contains(&rank_of(&enemy(15, 6652)))); // Gargantuan
+        assert!(rank_of(&enemy(15, 657)) < CHAMPION_RANK);
     }
 
     #[test]

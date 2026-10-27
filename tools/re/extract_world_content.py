@@ -792,9 +792,21 @@ def theme_of(pf, parents, seen=()):
     return None
 
 
+NPC_LIFE = json.load(open(os.path.join(ROOT, "data/npc_life.json")))  # tools/re/live_npc_life.py
+
+
+def npc_life(level, health_scale=1):
+    """Life of an enemy as the live server gave it (data/npc_life.json): the regular (1x) life of
+    its level, times health_scale for champions and bosses.  The live per-monster factors
+    (npc_life.json "monsters") aren't used: they belong to NPC templates, not looks (the ghost
+    pirates' looks are the tutorial's Scallywags', 0.5x and 2.25x)."""
+    from live_npc_life import base_life
+    return max(1, round(base_life(level, {int(k): v for k, v in NPC_LIFE["base"].items()}) * health_scale))
+
+
 def enemy(md, level, pos, health_scale=1, name=None, anchor=None):
     return dict(name=name or MD.get(md, str(md)).replace("_", " ").title(), monster_data=md, level=level,
-                health=(60 + 15 * level) * health_scale, pos=pos, spell=spell_for(md), anchor=anchor, source="proposed")
+                health=npc_life(level, health_scale), pos=pos, spell=spell_for(md), anchor=anchor, source="proposed")
 
 
 def proposals(pf, dest, res, points, portals_here, parents, dungeon):

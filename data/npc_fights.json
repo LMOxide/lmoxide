@@ -6,13 +6,13 @@
     "rivals_about": "ghost pirates (skeleton_pirate_1/2) and the hostile Jackets (red coats: pirate_musketeer, pirate_medic, pirate_officer) attack each other wherever they meet; a ghost group is added next to the Jackets (a Dragoon, two Musketeers) the live server had at (111, 101) near Res_JacketBridge (10-11 m away) so they meet there",
     "rivals": [[207001, 207030], [192826, 192825, 192827]],
     "enemies": [
-      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [88.0, 70.36, 77.5]},
-      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 120, "pos": [90.2, 70.36, 78.7]},
-      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [86.2, 70.36, 79.1]},
-      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 120, "pos": [88.6, 70.36, 75.3]},
-      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [120.0, 70.7, 106.0], "anchor": "Res_JacketBridge"},
-      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 120, "pos": [122.2, 70.75, 107.2], "anchor": "Res_JacketBridge"},
-      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 120, "pos": [121.0, 70.75, 104.0], "anchor": "Res_JacketBridge"}
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 132, "pos": [88.0, 70.36, 77.5]},
+      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 132, "pos": [90.2, 70.36, 78.7]},
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 132, "pos": [86.2, 70.36, 79.1]},
+      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 132, "pos": [88.6, 70.36, 75.3]},
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 132, "pos": [120.0, 70.7, 106.0], "anchor": "Res_JacketBridge"},
+      {"name": "Pirate Specter", "monster_data": 207030, "npc_template": 934, "level": 4, "health": 132, "pos": [122.2, 70.75, 107.2], "anchor": "Res_JacketBridge"},
+      {"name": "Pirate Specter", "monster_data": 207001, "npc_template": 933, "level": 4, "health": 132, "pos": [121.0, 70.75, 104.0], "anchor": "Res_JacketBridge"}
     ],
     "fighters": [
       {"name": "Commodore Moksey", "monster_data": 192827, "npc_template": 901, "level": 4, "health": 120, "pos": [97.0, 70.35, 75.5]},

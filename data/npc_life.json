@@ -1,0 +1,815 @@
+{
+ "_comment": "NPC life on the live server (tools/re/live_npc_life.py, from LMO_Captures.cap): life = base[level] x the monster's factor. Proposed enemies use it (extract_world_content.py), the server ranks enemies by it (npc.rs).",
+ "interpolation": "linear between the listed levels, and beyond the first two / last two",
+ "base": {
+  "1": 62,
+  "2": 90,
+  "3": 114,
+  "4": 132,
+  "5": 168,
+  "6": 234,
+  "7": 282,
+  "10": 538,
+  "12": 750,
+  "14": 1002,
+  "15": 1314,
+  "19": 2362,
+  "20": 2618,
+  "23": 3024,
+  "26": 3854,
+  "27": 4020,
+  "28": 4190,
+  "32": 5878,
+  "43": 8412,
+  "46": 9230,
+  "48": 9818,
+  "55": 12230,
+  "56": 12632,
+  "60": 14416,
+  "62": 15438,
+  "66": 17800,
+  "68": 19172,
+  "71": 21526,
+  "74": 24298
+ },
+ "monsters": {
+  "32338": {
+   "name": "Corrupted Chicken Suit Guy",
+   "factor": 1.0,
+   "samples": 47,
+   "levels": [
+    15
+   ]
+  },
+  "34262": {
+   "name": "Mermaid",
+   "factor": 1.0,
+   "samples": 1,
+   "levels": [
+    20
+   ]
+  },
+  "76081": {
+   "name": "Harpy Raider",
+   "factor": 1.0,
+   "samples": 6,
+   "levels": [
+    15
+   ]
+  },
+  "82410": {
+   "name": "Skeleton Axeman",
+   "factor": 0.8,
+   "samples": 3,
+   "levels": [
+    15
+   ]
+  },
+  "82601": {
+   "name": "Harpy Sentinel",
+   "factor": 1.0,
+   "samples": 3,
+   "levels": [
+    15
+   ]
+  },
+  "157082": {
+   "name": "Crooked Tooth Brute",
+   "factor": 1.85,
+   "samples": 2,
+   "levels": [
+    15
+   ]
+  },
+  "192742": {
+   "name": "Desperado",
+   "factor": 1.0,
+   "samples": 6,
+   "levels": [
+    6
+   ]
+  },
+  "192821": {
+   "name": "Grenadier",
+   "factor": 0.75,
+   "samples": 6,
+   "levels": [
+    6
+   ]
+  },
+  "192825": {
+   "name": "Medic",
+   "factor": 0.75,
+   "samples": 3,
+   "levels": [
+    4
+   ]
+  },
+  "192826": {
+   "name": "Musketeer",
+   "factor": 1.0,
+   "samples": 70,
+   "levels": [
+    2,
+    3,
+    4
+   ]
+  },
+  "192827": {
+   "name": "Dragoon",
+   "factor": 1.5,
+   "samples": 22,
+   "levels": [
+    2,
+    3,
+    4
+   ]
+  },
+  "192828": {
+   "name": "Scallywag",
+   "factor": 1.0,
+   "samples": 6,
+   "levels": [
+    6
+   ]
+  },
+  "192880": {
+   "name": "Corsair",
+   "factor": 1.2,
+   "samples": 6,
+   "levels": [
+    6
+   ]
+  },
+  "195759": {
+   "name": "Cannon",
+   "factor": 1.0,
+   "samples": 3,
+   "levels": [
+    3,
+    4
+   ]
+  },
+  "201477": {
+   "name": "Hunter",
+   "factor": 1.0,
+   "samples": 48,
+   "levels": [
+    4
+   ]
+  },
+  "201478": {
+   "name": "Scout",
+   "factor": 1.0,
+   "samples": 47,
+   "levels": [
+    4
+   ]
+  },
+  "201479": {
+   "name": "Witch doctor",
+   "factor": 1.5,
+   "samples": 14,
+   "levels": [
+    4
+   ]
+  },
+  "207001": {
+   "name": "Scallywag",
+   "factor": 0.5,
+   "samples": 6,
+   "levels": [
+    1
+   ]
+  },
+  "207030": {
+   "name": "Scallywag",
+   "factor": 2.25,
+   "samples": 1,
+   "levels": [
+    1
+   ]
+  },
+  "212584": {
+   "name": "Spiderling",
+   "factor": 0.2,
+   "samples": 17,
+   "levels": [
+    4,
+    15
+   ]
+  },
+  "220120": {
+   "name": "Jungle Trickster",
+   "factor": 1.0,
+   "samples": 65,
+   "levels": [
+    2,
+    3,
+    4,
+    6
+   ]
+  },
+  "231991": {
+   "name": "The Weaver",
+   "factor": 9.0,
+   "samples": 7,
+   "levels": [
+    4,
+    15
+   ]
+  },
+  "236397": {
+   "name": "Skeleton Fighter",
+   "factor": 0.8,
+   "samples": 3,
+   "levels": [
+    15
+   ]
+  },
+  "237267": {
+   "name": "Spider egg",
+   "factor": 0.8,
+   "samples": 123,
+   "levels": [
+    4
+   ]
+  },
+  "238248": {
+   "name": "Combat Dummy",
+   "factor": 0.1,
+   "samples": 3,
+   "levels": [
+    12
+   ]
+  },
+  "239402": {
+   "name": "Tavern Pirate",
+   "factor": 1.0,
+   "samples": 10,
+   "levels": [
+    1,
+    56
+   ]
+  },
+  "239403": {
+   "name": "Tavern Pirate",
+   "factor": 1.0,
+   "samples": 3,
+   "levels": [
+    68
+   ]
+  },
+  "239404": {
+   "name": "Tavern Pirate",
+   "factor": 1.0,
+   "samples": 3,
+   "levels": [
+    1
+   ]
+  },
+  "241332": {
+   "name": "Tavern Pirate",
+   "factor": 1.0,
+   "samples": 71,
+   "levels": [
+    1,
+    2,
+    5,
+    6,
+    23,
+    32,
+    46,
+    55,
+    60,
+    66,
+    71,
+    74
+   ]
+  },
+  "241333": {
+   "name": "Tavern Pirate",
+   "factor": 1.0,
+   "samples": 42,
+   "levels": [
+    1,
+    2,
+    4,
+    7,
+    10,
+    14,
+    48
+   ]
+  },
+  "241334": {
+   "name": "Tavern Pirate",
+   "factor": 1.0,
+   "samples": 35,
+   "levels": [
+    1,
+    2,
+    6,
+    19,
+    27,
+    28,
+    43,
+    62,
+    74
+   ]
+  },
+  "245481": {
+   "name": "Pirate",
+   "factor": 1.0,
+   "samples": 12,
+   "levels": [
+    2,
+    15
+   ]
+  },
+  "245482": {
+   "name": "Pirate",
+   "factor": 1.0,
+   "samples": 10,
+   "levels": [
+    2,
+    12,
+    15
+   ]
+  },
+  "276493": {
+   "name": "Diner Waitress",
+   "factor": 1.0,
+   "samples": 5,
+   "levels": [
+    1
+   ]
+  },
+  "288617": {
+   "name": "Dancing Pirate",
+   "factor": 1.0,
+   "samples": 5,
+   "levels": [
+    1
+   ]
+  },
+  "288620": {
+   "name": "Pete's Daughter",
+   "factor": 1.0,
+   "samples": 5,
+   "levels": [
+    1
+   ]
+  },
+  "331182": {
+   "name": "Crooked Tooth Shaman",
+   "factor": 1.1,
+   "samples": 3,
+   "levels": [
+    15
+   ]
+  },
+  "337763": {
+   "name": "Forest Treeman",
+   "factor": 2.25,
+   "samples": 16,
+   "levels": [
+    15
+   ]
+  },
+  "344222": {
+   "name": "Small Spider Mound",
+   "factor": 0.8,
+   "samples": 9,
+   "levels": [
+    26
+   ]
+  },
+  "344488": {
+   "name": "Crooked Tooth Ruffian",
+   "factor": 0.4,
+   "samples": 2,
+   "levels": [
+    15
+   ]
+  },
+  "346165": {
+   "name": "Hophop Shroom",
+   "factor": 0.5,
+   "samples": 9,
+   "levels": [
+    26
+   ]
+  },
+  "349923": {
+   "name": "Boom Shroom",
+   "factor": 1.0,
+   "samples": 9,
+   "levels": [
+    26
+   ]
+  },
+  "349939": {
+   "name": "Spore Shroom",
+   "factor": 1.2,
+   "samples": 9,
+   "levels": [
+    26
+   ]
+  },
+  "350740": {
+   "name": "Forest Leafling",
+   "factor": 1.1,
+   "samples": 24,
+   "levels": [
+    15
+   ]
+  },
+  "350950": {
+   "name": "Summoned Wolf",
+   "factor": 1.0,
+   "samples": 10,
+   "levels": [
+    15
+   ]
+  },
+  "352446": {
+   "name": "Queen's Guard",
+   "factor": 0.15,
+   "samples": 12,
+   "levels": [
+    1,
+    30
+   ]
+  },
+  "352593": {
+   "name": "Village Female",
+   "factor": 1.0,
+   "samples": 9,
+   "levels": [
+    1
+   ]
+  },
+  "352595": {
+   "name": "Village Female",
+   "factor": 1.0,
+   "samples": 1,
+   "levels": [
+    1
+   ]
+  },
+  "368330": {
+   "name": "Mantis Nymph",
+   "factor": 0.5,
+   "samples": 113,
+   "levels": [
+    15
+   ]
+  },
+  "387952": {
+   "name": "Alien Pod",
+   "factor": 1.0,
+   "samples": 19,
+   "levels": [
+    15
+   ]
+  },
+  "388218": {
+   "name": "Slime Spore",
+   "factor": 1.0,
+   "samples": 2,
+   "levels": [
+    26
+   ]
+  },
+  "390750": {
+   "name": "Vespid",
+   "factor": 0.25,
+   "samples": 34,
+   "levels": [
+    26,
+    27
+   ]
+  },
+  "406840": {
+   "name": "Soldier",
+   "factor": 1.0,
+   "samples": 2,
+   "levels": [
+    1
+   ]
+  },
+  "411399": {
+   "name": "Miner",
+   "factor": 1.0,
+   "samples": 10,
+   "levels": [
+    1
+   ]
+  },
+  "416520": {
+   "name": "Ember Hatchling",
+   "factor": 1.0,
+   "samples": 8,
+   "levels": [
+    15
+   ]
+  },
+  "417030": {
+   "name": "Moon Gazer",
+   "factor": 1.0,
+   "samples": 8,
+   "levels": [
+    15
+   ]
+  },
+  "436742": {
+   "name": "Swashbuckler",
+   "factor": 1.35,
+   "samples": 4,
+   "levels": [
+    3,
+    30
+   ]
+  },
+  "436747": {
+   "name": "Video Game Guy",
+   "factor": 1.35,
+   "samples": 5,
+   "levels": [
+    1,
+    3,
+    30
+   ]
+  },
+  "458318": {
+   "name": "Crimson Leg Crawler",
+   "factor": 0.8,
+   "samples": 2,
+   "levels": [
+    15
+   ]
+  },
+  "460065": {
+   "name": "Villager",
+   "factor": 1.0,
+   "samples": 8,
+   "levels": [
+    1
+   ]
+  },
+  "464159": {
+   "name": "Villager",
+   "factor": 1.0,
+   "samples": 4,
+   "levels": [
+    1
+   ]
+  },
+  "464417": {
+   "name": "Monkey Kong",
+   "factor": 7.5,
+   "samples": 1,
+   "levels": [
+    3
+   ]
+  },
+  "474978": {
+   "name": "Sylph",
+   "factor": 1.0,
+   "samples": 1,
+   "levels": [
+    15
+   ]
+  },
+  "476021": {
+   "name": "Shade",
+   "factor": 1.0,
+   "samples": 4,
+   "levels": [
+    15
+   ]
+  },
+  "485883": {
+   "name": "Commoner",
+   "factor": 1.0,
+   "samples": 8,
+   "levels": [
+    1,
+    20
+   ]
+  },
+  "485884": {
+   "name": "Commoner",
+   "factor": 1.0,
+   "samples": 6,
+   "levels": [
+    1,
+    20
+   ]
+  },
+  "486269": {
+   "name": "Spartan Warrior",
+   "factor": 1.0,
+   "samples": 9,
+   "levels": [
+    1,
+    20
+   ]
+  },
+  "486295": {
+   "name": "Zeus",
+   "factor": 1.5,
+   "samples": 1,
+   "levels": [
+    20
+   ]
+  },
+  "486951": {
+   "name": "Commoner",
+   "factor": 1.0,
+   "samples": 5,
+   "levels": [
+    1,
+    20
+   ]
+  },
+  "486956": {
+   "name": "Commoner",
+   "factor": 1.0,
+   "samples": 4,
+   "levels": [
+    1,
+    20
+   ]
+  },
+  "486957": {
+   "name": "Artemis",
+   "factor": 1.0,
+   "samples": 1,
+   "levels": [
+    20
+   ]
+  },
+  "487202": {
+   "name": "Commoner",
+   "factor": 1.0,
+   "samples": 5,
+   "levels": [
+    1,
+    20
+   ]
+  },
+  "487224": {
+   "name": "Siren",
+   "factor": 1.0,
+   "samples": 4,
+   "levels": [
+    20
+   ]
+  },
+  "521911": {
+   "name": "Rascal Compy",
+   "factor": 0.75,
+   "samples": 29,
+   "levels": [
+    26
+   ]
+  },
+  "521920": {
+   "name": "Raptor Bruiser",
+   "factor": 1.0,
+   "samples": 1,
+   "levels": [
+    26
+   ]
+  },
+  "522161": {
+   "name": "Pilot",
+   "factor": 1.5,
+   "samples": 3,
+   "levels": [
+    26
+   ]
+  },
+  "527027": {
+   "name": "Scientist",
+   "factor": 1.0,
+   "samples": 4,
+   "levels": [
+    1
+   ]
+  },
+  "527144": {
+   "name": "Scientist",
+   "factor": 1.0,
+   "samples": 19,
+   "levels": [
+    1
+   ]
+  },
+  "630454": {
+   "name": "Monster Scientist",
+   "factor": 1.35,
+   "samples": 4,
+   "levels": [
+    30
+   ]
+  },
+  "634824": {
+   "name": "Captain Dreadleg",
+   "factor": 11.25,
+   "samples": 2,
+   "levels": [
+    3
+   ]
+  },
+  "636609": {
+   "name": "Fire Spirit",
+   "factor": 0.25,
+   "samples": 4,
+   "levels": [
+    15
+   ]
+  },
+  "657055": {
+   "name": "Gargantuan",
+   "factor": 5.05,
+   "samples": 2,
+   "levels": [
+    15
+   ]
+  },
+  "659668": {
+   "name": "T.E.S.L.A v2.0",
+   "factor": 6.0,
+   "samples": 1,
+   "levels": [
+    15
+   ]
+  },
+  "660084": {
+   "name": "Banshee",
+   "factor": 4.25,
+   "samples": 2,
+   "levels": [
+    15
+   ]
+  },
+  "660085": {
+   "name": "Gargoyle",
+   "factor": 1.0,
+   "samples": 8,
+   "levels": [
+    15
+   ]
+  },
+  "660086": {
+   "name": "Monster Scientist",
+   "factor": 11.25,
+   "samples": 1,
+   "levels": [
+    15
+   ]
+  },
+  "660087": {
+   "name": "Plant Monster",
+   "factor": 1.0,
+   "samples": 32,
+   "levels": [
+    15
+   ]
+  },
+  "660088": {
+   "name": "Spectre",
+   "factor": 1.0,
+   "samples": 3,
+   "levels": [
+    15
+   ]
+  },
+  "660089": {
+   "name": "Witch",
+   "factor": 1.0,
+   "samples": 3,
+   "levels": [
+    15
+   ]
+  },
+  "660090": {
+   "name": "Werewolf",
+   "factor": 1.0,
+   "samples": 5,
+   "levels": [
+    15
+   ]
+  },
+  "663788": {
+   "name": "XX_Monster Scientist",
+   "factor": 7.5,
+   "samples": 1,
+   "levels": [
+    15
+   ]
+  }
+ }
+}
