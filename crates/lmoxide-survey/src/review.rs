@@ -1,0 +1,422 @@
+//! A working set (what editors made, on the world editor's server) against an approved one (what
+//! a game server applies): the changes waiting for approval, grouped by playfield, feature and
+//! author, approving them, and summaries of either set (docs/WORLD-CONTENT.md).
+
+use std::collections::{BTreeMap, HashMap};
+
+use serde::{Deserialize, Serialize};
+
+use crate::{Note, Placement, Script, TriggerWall, set::Set};
+
+/// What is approved together: one author's changes to one feature in one playfield.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ChangeKey {
+    pub playfield: u32,
+    pub feature: String,
+    pub author: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecordKind {
+    Placement,
+    Trigger,
+    Note,
+    Script,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Op {
+    Added,
+    Changed,
+    Removed,
+}
+
+/// One record that differs.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Item {
+    pub kind: RecordKind,
+    pub id: String,
+    /// What it is ("Crate", "Trigger wall", a note's comment, a script's name).
+    pub name: String,
+    pub op: Op,
+    /// For placements: what changed ("moved 3.2 m", "level 5 -> 7", "deletes a guess", ...).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub details: Vec<String>,
+    /// The working record's last change (unix seconds; removals: the approved record's).
+    pub updated: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Change {
+    #[serde(flatten)]
+    pub key: ChangeKey,
+    pub items: Vec<Item>,
+    /// "2 added, 1 moved, 1 removed".
+    pub summary: String,
+}
+
+/// A record of either set, by kind.
+#[derive(Clone)]
+enum Rec<'a> {
+    P(&'a Placement),
+    T(&'a TriggerWall),
+    N(&'a Note),
+    S(&'a Script),
+}
+
+impl Rec<'_> {
+    fn feature(&self) -> &str {
+        match self {
+            Rec::P(x) => &x.feature,
+            Rec::T(x) => &x.feature,
+            Rec::N(x) => &x.feature,
+            Rec::S(x) => &x.feature,
+        }
+    }
+    fn author(&self) -> &str {
+        match self {
+            Rec::P(x) => &x.author,
+            Rec::T(x) => &x.author,
+            Rec::N(x) => &x.author,
+            Rec::S(x) => &x.author,
+        }
+    }
+    fn updated(&self) -> u64 {
+        match self {
+            Rec::P(x) => x.updated,
+            Rec::T(x) => x.updated,
+            Rec::N(x) => x.updated,
+            Rec::S(x) => x.updated,
+        }
+    }
+    /// Deleted (placements and walls keep a removed record).
+    fn removed(&self) -> bool {
+        match self {
+            Rec::P(x) => x.removed,
+            Rec::T(x) => x.removed,
+            _ => false,
+        }
+    }
+    fn name(&self) -> String {
+        let short = |s: &str| if s.chars().count() > 60 { format!("{}…", s.chars().take(60).collect::<String>()) } else { s.to_string() };
+        match self {
+            Rec::P(x) if !x.name.is_empty() => x.name.clone(),
+            Rec::P(x) => format!("{} {}", x.kind.as_str(), x.monster_data.or(x.template).unwrap_or(0)),
+            Rec::T(x) if !x.name.is_empty() => x.name.clone(),
+            Rec::T(_) => "Trigger wall".into(),
+            Rec::N(x) if !x.comment.is_empty() => short(&x.comment),
+            Rec::N(x) => format!("{:?} note", x.kind),
+            Rec::S(x) if !x.name.is_empty() => x.name.clone(),
+            Rec::S(_) => "Script".into(),
+        }
+    }
+    /// Same content, who saved it and when aside.
+    fn same(&self, other: &Rec) -> bool {
+        match (self, other) {
+            (Rec::P(a), Rec::P(b)) => a.same_content(b),
+            (Rec::T(a), Rec::T(b)) => a.same_content(b),
+            (Rec::N(a), Rec::N(b)) => Note { author: String::new(), updated: 0, ..(*a).clone() } == Note { author: String::new(), updated: 0, ..(*b).clone() },
+            (Rec::S(a), Rec::S(b)) => Script { author: String::new(), updated: 0, ..(*a).clone() } == Script { author: String::new(), updated: 0, ..(*b).clone() },
+            _ => false,
+        }
+    }
+}
+
+/// Every record of a playfield, by kind and id.
+fn records(set: &Set, pf: u32) -> HashMap<(RecordKind, &str), Rec<'_>> {
+    let mut out = HashMap::new();
+    if let Some(f) = set.placements.get(&pf) {
+        out.extend(f.placements.iter().map(|x| ((RecordKind::Placement, x.id.as_str()), Rec::P(x))));
+        out.extend(f.triggers.iter().map(|x| ((RecordKind::Trigger, x.id.as_str()), Rec::T(x))));
+    }
+    if let Some(f) = set.notes.get(&pf) {
+        out.extend(f.notes.iter().map(|x| ((RecordKind::Note, x.id.as_str()), Rec::N(x))));
+        out.extend(f.scripts.iter().map(|x| ((RecordKind::Script, x.id.as_str()), Rec::S(x))));
+    }
+    out
+}
+
+fn playfields(a: &Set, b: &Set) -> Vec<u32> {
+    let mut pfs: Vec<u32> = a.placements.keys().chain(a.notes.keys()).chain(b.placements.keys()).chain(b.notes.keys()).copied().collect();
+    pfs.sort();
+    pfs.dedup();
+    pfs
+}
+
+/// What changed in a placement, in words.
+fn placement_details(new: &Placement, old: Option<&Placement>) -> Vec<String> {
+    let mut d = Vec::new();
+    match old {
+        None if new.removed && new.replaces.is_some() => d.push("deletes a guess".into()),
+        None if new.replaces.is_some() => d.push("confirms or edits a guess".into()),
+        None => {}
+        Some(o) => {
+            let moved = crate::distance(o.pos, new.pos);
+            if moved >= 0.05 {
+                d.push(format!("moved {moved:.1} m"));
+            }
+            if (o.heading - new.heading).abs() > 0.01 {
+                d.push("turned".into());
+            }
+            if o.level != new.level {
+                d.push(format!("level {} -> {}", o.level.map_or("-".into(), |l| l.to_string()), new.level.map_or("-".into(), |l| l.to_string())));
+            }
+            if o.monster_data != new.monster_data || o.template != new.template || o.kind != new.kind {
+                d.push("changed into another spawn".into());
+            }
+            if o.wave != new.wave {
+                d.push("wave changed".into());
+            }
+            if o.patrol != new.patrol {
+                d.push("patrol changed".into());
+            }
+            if o.feature != new.feature {
+                d.push(format!("moved from feature {}", o.feature));
+            }
+            if !o.removed && new.removed {
+                d.push("deleted".into());
+            }
+        }
+    }
+    d
+}
+
+/// The changes of `working` that `approved` doesn't have yet, by playfield, feature and author
+/// (a removal is the remover's when the working set keeps a removed record, else the approved
+/// record's author's).
+pub fn changes(working: &Set, approved: &Set) -> Vec<Change> {
+    let mut by_key: BTreeMap<ChangeKey, Vec<Item>> = BTreeMap::new();
+    for pf in playfields(working, approved) {
+        let (w, a) = (records(working, pf), records(approved, pf));
+        for (k, rec) in &w {
+            let old = a.get(k);
+            if old.is_some_and(|o| o.same(rec)) {
+                continue;
+            }
+            // a removed record the approved set never had changes nothing
+            if old.is_none() && rec.removed() && !matches!(rec, Rec::P(p) if p.replaces.is_some()) {
+                continue;
+            }
+            let op = match old {
+                None => Op::Added,
+                Some(o) if rec.removed() && !o.removed() => Op::Removed,
+                Some(_) => Op::Changed,
+            };
+            let op = if old.is_none() && rec.removed() { Op::Removed } else { op };
+            let details = match (rec, old) {
+                (Rec::P(p), Some(Rec::P(o))) => placement_details(p, Some(o)),
+                (Rec::P(p), _) => placement_details(p, None),
+                _ => Vec::new(),
+            };
+            let key = ChangeKey { playfield: pf, feature: rec.feature().to_string(), author: rec.author().to_string() };
+            by_key.entry(key).or_default().push(Item { kind: k.0, id: k.1.to_string(), name: rec.name(), op, details, updated: rec.updated() });
+        }
+        for (k, old) in &a {
+            if w.contains_key(k) {
+                continue;
+            }
+            let key = ChangeKey { playfield: pf, feature: old.feature().to_string(), author: old.author().to_string() };
+            by_key.entry(key).or_default().push(Item { kind: k.0, id: k.1.to_string(), name: old.name(), op: Op::Removed, details: Vec::new(), updated: old.updated() });
+        }
+    }
+    by_key
+        .into_iter()
+        .map(|(key, mut items)| {
+            items.sort_by(|a, b| (a.kind, &a.name, &a.id).cmp(&(b.kind, &b.name, &b.id)));
+            let count = |op: Op| items.iter().filter(|i| i.op == op).count();
+            let parts: Vec<String> = [(Op::Added, "added"), (Op::Changed, "changed"), (Op::Removed, "removed")]
+                .into_iter()
+                .filter(|(op, _)| count(*op) > 0)
+                .map(|(op, w)| format!("{} {w}", count(op)))
+                .collect();
+            Change { key, summary: parts.join(", "), items }
+        })
+        .collect()
+}
+
+/// Takes the working set's version of the given records (`None`: every record of the change)
+/// into the approved set; records the working set no longer has are removed. The working set's
+/// features registry comes along. Returns how many records changed.
+pub fn approve(approved: &mut Set, working: &Set, change: &Change, only: Option<&[String]>) -> usize {
+    let pf = change.key.playfield;
+    let mut n = 0;
+    for item in change.items.iter().filter(|i| only.is_none_or(|o| o.contains(&i.id))) {
+        n += 1;
+        let id = item.id.as_str();
+        match item.kind {
+            RecordKind::Placement => {
+                let new = working.placements.get(&pf).and_then(|f| f.placements.iter().find(|x| x.id == id)).cloned();
+                let list = &mut approved.placements_mut(pf).placements;
+                list.retain(|x| x.id != id);
+                list.extend(new);
+            }
+            RecordKind::Trigger => {
+                let new = working.placements.get(&pf).and_then(|f| f.triggers.iter().find(|x| x.id == id)).cloned();
+                let list = &mut approved.placements_mut(pf).triggers;
+                list.retain(|x| x.id != id);
+                list.extend(new);
+            }
+            RecordKind::Note => {
+                let new = working.notes.get(&pf).and_then(|f| f.notes.iter().find(|x| x.id == id)).cloned();
+                let list = &mut approved.notes_mut(pf).notes;
+                list.retain(|x| x.id != id);
+                list.extend(new);
+            }
+            RecordKind::Script => {
+                let new = working.notes.get(&pf).and_then(|f| f.scripts.iter().find(|x| x.id == id)).cloned();
+                let list = &mut approved.notes_mut(pf).scripts;
+                list.retain(|x| x.id != id);
+                list.extend(new);
+            }
+        }
+    }
+    approved.features = working.features.clone();
+    n
+}
+
+/// How much a set holds for one feature in one playfield.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Counts {
+    pub placements: usize,
+    /// placements that delete a guess
+    pub deletions: usize,
+    pub in_waves: usize,
+    pub triggers: usize,
+    pub notes: usize,
+    pub scripts: usize,
+    pub authors: Vec<String>,
+    /// unix seconds of the newest change
+    pub updated: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SummaryRow {
+    pub playfield: u32,
+    pub feature: String,
+    #[serde(flatten)]
+    pub counts: Counts,
+}
+
+/// The whole set at a glance: per playfield and feature, what it holds.
+pub fn summary(set: &Set) -> Vec<SummaryRow> {
+    let mut rows: BTreeMap<(u32, String), Counts> = BTreeMap::new();
+    let mut add = |pf: u32, feature: &str, author: &str, updated: u64, f: &mut dyn FnMut(&mut Counts)| {
+        let c = rows.entry((pf, feature.to_string())).or_default();
+        f(c);
+        if !author.is_empty() && !c.authors.iter().any(|a| a == author) {
+            c.authors.push(author.into());
+        }
+        c.updated = c.updated.max(updated);
+    };
+    for (pf, file) in &set.placements {
+        for p in &file.placements {
+            if p.removed && p.replaces.is_none() {
+                continue;
+            }
+            add(*pf, &p.feature, &p.author, p.updated, &mut |c| {
+                if p.removed {
+                    c.deletions += 1;
+                } else {
+                    c.placements += 1;
+                    c.in_waves += p.wave.is_some() as usize;
+                }
+            });
+        }
+        for t in file.triggers.iter().filter(|t| !t.removed) {
+            add(*pf, &t.feature, &t.author, t.updated, &mut |c| c.triggers += 1);
+        }
+    }
+    for (pf, file) in &set.notes {
+        for x in &file.notes {
+            add(*pf, &x.feature, &x.author, x.updated, &mut |c| c.notes += 1);
+        }
+        for x in &file.scripts {
+            add(*pf, &x.feature, &x.author, x.updated, &mut |c| c.scripts += 1);
+        }
+    }
+    rows.into_iter().map(|((playfield, feature), mut counts)| {
+        counts.authors.sort();
+        SummaryRow { playfield, feature, counts }
+    }).collect()
+}
+
+/// Keeps only the records of features `active` selects (a feature is active when it or one of
+/// its ancestors is listed), for a game server to apply.
+pub fn only_features(set: &Set, active: &[String]) -> Set {
+    let on = |f: &str| active.iter().any(|a| crate::features::within(f, a));
+    let mut out = set.clone();
+    for f in out.placements.values_mut() {
+        f.placements.retain(|x| on(&x.feature));
+        f.triggers.retain(|x| on(&x.feature));
+    }
+    for f in out.notes.values_mut() {
+        f.notes.retain(|x| on(&x.feature));
+        f.scripts.retain(|x| on(&x.feature));
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Kind, Origin, PlacementsFile};
+
+    fn crate_at(id: &str, x: f32, feature: &str, author: &str) -> Placement {
+        Placement {
+            id: id.into(),
+            kind: Kind::Smashable,
+            name: "Crate".into(),
+            monster_data: Some(1),
+            template: Some(2),
+            level: None,
+            pos: [x, 0.0, 0.0],
+            heading: 0.0,
+            replaces: None,
+            removed: false,
+            wave: None,
+            patrol: Vec::new(),
+            comment: String::new(),
+            feature: feature.into(),
+            author: author.into(),
+            updated: 1,
+        }
+    }
+
+    fn with(placements: Vec<Placement>) -> Set {
+        let mut s = Set::default();
+        s.placements.insert(1200, PlacementsFile { placements, ..PlacementsFile::new(1200) });
+        s
+    }
+
+    #[test]
+    fn changes_and_approval() {
+        let approved = with(vec![crate_at("p-1", 0.0, "live", "ann"), crate_at("p-2", 5.0, "live", "ann")]);
+        let mut moved = crate_at("p-1", 3.0, "live", "bob");
+        moved.updated = 2;
+        let mut gone = crate_at("g-9", 9.0, "live", "bob");
+        gone.removed = true;
+        gone.replaces = Some(Origin { id: "g-9".into(), kind: Kind::Smashable, monster_data: Some(1), template: Some(2), pos: [9.0, 0.0, 0.0] });
+        let working = with(vec![moved, crate_at("p-3", 7.0, "feature/xmas/2026", "bob"), gone]);
+        let ch = changes(&working, &approved);
+        let keys: Vec<(&str, &str)> = ch.iter().map(|c| (c.key.feature.as_str(), c.key.author.as_str())).collect();
+        assert_eq!(keys, [("feature/xmas/2026", "bob"), ("live", "ann"), ("live", "bob")]);
+        let live_bob = &ch[2];
+        assert_eq!(live_bob.summary, "1 changed, 1 removed");
+        assert!(live_bob.items.iter().any(|i| i.id == "p-1" && i.details == ["moved 3.0 m"]));
+        assert!(live_bob.items.iter().any(|i| i.id == "g-9" && i.op == Op::Removed && i.details == ["deletes a guess"]));
+        // p-2 is gone from the working set: a removal, ann's
+        assert_eq!(ch[1].items[0].op, Op::Removed);
+
+        let mut a = approved.clone();
+        for c in &ch {
+            approve(&mut a, &working, c, None);
+        }
+        assert!(changes(&working, &a).is_empty(), "everything approved");
+        let s = summary(&a);
+        assert_eq!(s.iter().map(|r| (r.feature.as_str(), r.counts.placements, r.counts.deletions)).collect::<Vec<_>>(), [("feature/xmas/2026", 1, 0), ("live", 1, 1)]);
+        let live_only = only_features(&a, &["live".into()]);
+        assert_eq!(live_only.placements[&1200].placements.len(), 2);
+    }
+}

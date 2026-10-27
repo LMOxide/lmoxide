@@ -6,10 +6,14 @@
 //! - [`ids`]: ids of new records and the stable ids of the base content (guesses included).
 //! - [`merge`]: importing someone else's set into yours, skipping duplicates and near-duplicates.
 //! - [`apply`]: base content + placements → what a playfield spawns, with each object's category.
+//! - [`features`]: what each record is for (mimic live, new content, ...), nested and copyable.
+//! - [`review`]: a working set against an approved one: the changes to approve, and summaries.
 
 pub mod apply;
+pub mod features;
 pub mod ids;
 pub mod merge;
+pub mod review;
 pub mod set;
 
 use serde::{Deserialize, Serialize};
@@ -97,6 +101,9 @@ pub struct Placement {
     pub patrol: Vec<Vec3>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub comment: String,
+    /// The feature it belongs to ([`features`]; `live`: mimicking live).
+    #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
+    pub feature: String,
     #[serde(default)]
     pub author: String,
     /// Unix seconds of the last change.
@@ -174,6 +181,9 @@ pub struct Note {
     pub comment: String,
     #[serde(default)]
     pub status: Review,
+    /// The feature it belongs to ([`features`]; `live`: mimicking live).
+    #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
+    pub feature: String,
     #[serde(default)]
     pub author: String,
     #[serde(default)]
@@ -229,6 +239,9 @@ pub struct Script {
     pub waves: Vec<Wave>,
     #[serde(default)]
     pub status: Review,
+    /// The feature it belongs to ([`features`]; `live`: mimicking live).
+    #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
+    pub feature: String,
     #[serde(default)]
     pub author: String,
     #[serde(default)]
@@ -299,6 +312,9 @@ pub struct TriggerWall {
     /// Deleted (kept so merging doesn't bring it back).
     #[serde(default, skip_serializing_if = "is_false")]
     pub removed: bool,
+    /// The feature it belongs to ([`features`]; `live`: mimicking live).
+    #[serde(default = "features::live", skip_serializing_if = "features::is_live")]
+    pub feature: String,
     #[serde(default)]
     pub author: String,
     #[serde(default)]
@@ -433,6 +449,7 @@ mod tests {
             once: false,
             comment: String::new(),
             removed: false,
+            feature: crate::features::live(),
             author: String::new(),
             updated: 0,
         };

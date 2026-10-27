@@ -142,6 +142,7 @@ mod tests {
             wave: None,
             patrol: Vec::new(),
             comment: String::new(),
+            feature: crate::features::live(),
             author: String::new(),
             updated: 0,
         }

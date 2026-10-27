@@ -389,6 +389,7 @@ mod tests {
             wave: None,
             patrol: Vec::new(),
             comment: String::new(),
+            feature: crate::features::live(),
             author: "x".into(),
             updated,
         }
@@ -481,6 +482,7 @@ mod tests {
             once: false,
             comment: String::new(),
             removed: false,
+            feature: crate::features::live(),
             author: String::new(),
             updated: 0,
         };
@@ -508,6 +510,7 @@ mod tests {
             comment: String::new(),
             waves,
             status: Review::Unreviewed,
+            feature: crate::features::live(),
             author: String::new(),
             updated: 0,
         };
@@ -521,6 +524,7 @@ mod tests {
             reference: None,
             comment: "dock".into(),
             status: Review::Unreviewed,
+            feature: crate::features::live(),
             author: String::new(),
             updated: 0,
         });

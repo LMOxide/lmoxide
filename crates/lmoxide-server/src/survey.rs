@@ -75,6 +75,8 @@ struct Object {
     wave: Option<WaveRef>,
     replaces: Option<Origin>,
     comment: String,
+    /// lmoxide_survey::features (base objects: live)
+    feature: String,
     author: String,
     updated: u64,
     npc: Option<Id32>,
@@ -225,6 +227,7 @@ impl Object {
             wave: self.wave.clone(),
             patrol: self.def.patrol.clone(),
             comment: self.comment.clone(),
+            feature: self.feature.clone(),
             author: self.author.clone(),
             updated: self.updated,
         }
@@ -257,6 +260,7 @@ impl Object {
             wave: self.wave.clone(),
             patrol: self.def.patrol.clone(),
             comment: self.comment.clone(),
+            feature: self.feature.clone(),
             author: self.author.clone(),
             updated: self.updated,
             playfield: self.playfield,
@@ -320,6 +324,7 @@ fn build_playfield(st: &mut State, pf: u32) {
                 wave: None,
                 replaces: None,
                 comment: String::new(),
+                feature: sv::features::live(),
                 author: String::new(),
                 updated: 0,
                 npc: None,
@@ -392,6 +397,7 @@ fn from_placement(catalog: &[(Placeable, SpawnDef)], pf: u32, p: &Placement, rep
         wave: p.wave.clone(),
         replaces: p.replaces.clone(),
         comment: p.comment.clone(),
+        feature: p.feature.clone(),
         author: p.author.clone(),
         updated: p.updated,
         npc: None,
@@ -680,6 +686,7 @@ fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
         wave: None,
         patrol: Vec::new(),
         comment: if b.built { "built".into() } else { String::new() },
+        feature: sv::features::live(),
         author: String::new(),
         updated: 0,
         playfield: b.playfield,
@@ -722,6 +729,8 @@ struct SurveyObject {
     wave: Option<WaveRef>,
     patrol: Vec<[f32; 3]>,
     comment: String,
+    /// lmoxide_survey::features
+    feature: String,
     author: String,
     updated: u64,
     playfield: u32,
@@ -778,6 +787,8 @@ struct Changes {
     comment: Option<String>,
     #[serde(default, deserialize_with = "some")]
     wave: Option<Option<WaveRef>>,
+    /// lmoxide_survey::features: moves it to another feature
+    feature: Option<String>,
     /// Trigger walls
     size: Option<[f32; 3]>,
     color: Option<String>,
@@ -899,6 +910,8 @@ pub fn routes() -> Router {
         .route("/v1/survey/objects/{id}/confirm", post(confirm))
         .route("/v1/survey/objects/{id}/forget", post(forget))
         .route("/v1/survey/set", get(set_info).put(save_set_info))
+        .route("/v1/survey/features", get(features).post(create_feature))
+        .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/export", get(export))
         .route("/v1/survey/import", post(import))
 }
@@ -967,6 +980,9 @@ struct PlaceBody {
     what: Placeable,
     #[serde(default)]
     wave: Option<WaveRef>,
+    /// The feature it belongs to (default live).
+    #[serde(default)]
+    feature: Option<String>,
 }
 
 async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<PlaceBody>) -> R<SurveyObject> {
@@ -989,6 +1005,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
         if b.wave.as_ref().is_some_and(|w| !has_wave(&st.set, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
+        let feature = checked_feature(&st.set, b.feature)?;
         let mut o = Object {
             id: ids::new_id("p", &author),
             playfield: pf,
@@ -997,6 +1014,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
             wave: b.wave.clone(),
             replaces: None,
             comment: String::new(),
+            feature,
             author,
             updated: ids::now(),
             npc: None,
@@ -1183,6 +1201,7 @@ fn tidy_notes(st: &mut State, pf: u32) {
 async fn save_note(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Json(mut n): Json<Note>) -> R<Note> {
     with(|st| {
         n.id = id;
+        n.feature = checked_feature(&st.set, Some(n.feature))?;
         n.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(n.author);
         n.updated = ids::now();
         let notes = &mut st.set.notes_mut(pf).notes;
@@ -1213,6 +1232,7 @@ async fn save_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Js
             return Err(Error::Invalid("a script has at least one wave".into()));
         }
         s.id = id;
+        s.feature = checked_feature(&st.set, Some(s.feature))?;
         s.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(s.author);
         s.updated = ids::now();
         let scripts = &mut st.set.notes_mut(pf).scripts;
@@ -1291,6 +1311,7 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         if st.walls.contains_key(&id) {
             return edit_wall(st, &id, c, author);
         }
+        let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
         let id = surveyed(st, &id, &author)?;
         let catalog = st.catalog.clone();
         let pf = st.objects[&id].playfield;
@@ -1329,6 +1350,9 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         }
         if let Some(t) = c.comment {
             o.comment = t;
+        }
+        if let Some(f) = feature {
+            o.feature = f;
         }
         if let Some(w) = c.wave {
             o.wave = w;
@@ -1461,6 +1485,7 @@ fn bring_back(st: &mut State, pf: u32, origin: &Origin) -> Option<SurveyObject> 
         wave: None,
         replaces: None,
         comment: String::new(),
+        feature: sv::features::live(),
         author: String::new(),
         updated: 0,
         npc: None,
@@ -1531,6 +1556,8 @@ struct Snapshot {
     comment: String,
     #[serde(default)]
     replaces: Option<Origin>,
+    #[serde(default = "sv::features::live")]
+    feature: String,
     size: Option<[f32; 3]>,
     color: Option<String>,
     action: Option<WallAction>,
@@ -1555,6 +1582,7 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
                 once: b.once.unwrap_or(false),
                 comment: b.comment,
                 removed: false,
+                feature: b.feature,
                 author,
                 updated: ids::now(),
             };
@@ -1583,6 +1611,7 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
             wave: b.wave,
             patrol: b.patrol,
             comment: b.comment,
+            feature: b.feature,
             author,
             updated: ids::now(),
         };
@@ -1624,6 +1653,154 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
         Ok(view)
     })
     .map(Json)
+}
+
+/// Spawns these playfields again from their base content and the set (what changed is easiest
+/// seen that way).
+fn rebuild(st: &mut State, pfs: impl IntoIterator<Item = u32>) {
+    for pf in pfs.into_iter().collect::<std::collections::BTreeSet<_>>() {
+        let ids: Vec<String> = st.objects.values().filter(|o| o.playfield == pf).map(|o| o.id.clone()).collect();
+        for id in ids {
+            if let Some(mut o) = st.objects.remove(&id) {
+                if let Some(n) = o.npc {
+                    st.by_npc.remove(&n);
+                }
+                despawn(&mut o);
+            }
+        }
+        st.walls.retain(|_, w| w.playfield != pf);
+        build_playfield(st, pf);
+        bump(st, pf);
+    }
+    sync_all(st);
+    let viewers: Vec<Id32> = st.surveyors.keys().copied().collect();
+    for v in viewers {
+        mark(st, v);
+    }
+}
+
+// ------------------------------------------------------------------ features
+
+#[derive(Serialize)]
+struct FeatureView {
+    id: String,
+    title: String,
+    /// "New content > Christmas Event > 2026"
+    path: String,
+    category: String,
+    comment: String,
+    copied_from: Option<String>,
+    author: String,
+    updated: u64,
+}
+
+#[derive(Serialize)]
+struct FeaturesView {
+    /// the features' first level: live (mimic live), feature (new content), other
+    categories: Vec<FeatureView>,
+    features: Vec<FeatureView>,
+}
+
+fn features_view(set: &Set) -> FeaturesView {
+    let f = &set.features;
+    let cat = |(id, title): &(&str, &str)| FeatureView {
+        id: id.to_string(),
+        title: title.to_string(),
+        path: title.to_string(),
+        category: id.to_string(),
+        comment: String::new(),
+        copied_from: None,
+        author: String::new(),
+        updated: 0,
+    };
+    FeaturesView {
+        categories: sv::features::CATEGORIES.iter().map(cat).collect(),
+        features: f
+            .features
+            .iter()
+            .map(|x| FeatureView {
+                id: x.id.clone(),
+                title: x.title.clone(),
+                path: f.path_title(&x.id),
+                category: sv::features::category(&x.id).to_string(),
+                comment: x.comment.clone(),
+                copied_from: x.copied_from.clone(),
+                author: x.author.clone(),
+                updated: x.updated,
+            })
+            .collect(),
+    }
+}
+
+async fn features() -> R<FeaturesView> {
+    with(|st| Ok(Json(features_view(&st.set))))
+}
+
+#[derive(Deserialize)]
+struct NewFeature {
+    /// a category (`live`, `feature`, `other`) or a feature to nest under
+    parent: String,
+    title: String,
+    #[serde(default)]
+    comment: String,
+}
+
+fn new_feature(set: &Set, parent: &str, title: &str, comment: String, author: String) -> Result<sv::features::Feature, Error> {
+    if !set.features.known(parent) {
+        return Err(Error::Invalid(format!("no feature {parent}")));
+    }
+    let slug = sv::features::slug(title);
+    if slug.is_empty() {
+        return Err(Error::Invalid("a feature needs a title with letters or digits".into()));
+    }
+    Ok(sv::features::Feature { id: format!("{parent}/{slug}"), title: title.trim().into(), comment, copied_from: None, author, updated: ids::now() })
+}
+
+async fn create_feature(headers: HeaderMap, Json(b): Json<NewFeature>) -> R<FeaturesView> {
+    with(|st| {
+        let f = new_feature(&st.set, &b.parent, &b.title, b.comment, author_of(&headers))?;
+        st.set.features.add(f).map_err(|e| Error::Invalid(e.to_string()))?;
+        save(st);
+        Ok(Json(features_view(&st.set)))
+    })
+}
+
+#[derive(Deserialize)]
+struct CopyFeature {
+    from: String,
+    parent: String,
+    title: String,
+    #[serde(default)]
+    comment: String,
+}
+
+#[derive(Serialize)]
+struct Copied {
+    id: String,
+    records: usize,
+    features: FeaturesView,
+}
+
+/// Copies a feature with everything in it (its placements, walls, notes and scripts), so next
+/// year's event starts as this year's (the copies are spawned too).
+async fn copy_feature(headers: HeaderMap, Json(b): Json<CopyFeature>) -> R<Copied> {
+    with(|st| {
+        let author = author_of(&headers);
+        let mut f = new_feature(&st.set, &b.parent, &b.title, b.comment, author.clone())?;
+        if sv::features::within(&f.id, &b.from) {
+            return Err(Error::Invalid("a feature can't be copied into itself".into()));
+        }
+        f.copied_from = Some(b.from.clone());
+        let id = f.id.clone();
+        let records = sv::features::copy(&mut st.set, &b.from, f, &author).map_err(|e| Error::Invalid(e.to_string()))?;
+        save(st);
+        let pfs: Vec<u32> = st.set.placements.keys().chain(st.set.notes.keys()).copied().collect();
+        if records > 0 {
+            rebuild(st, pfs);
+        }
+        info!(from = %b.from, to = %id, records, "survey: feature copied");
+        Ok(Json(Copied { id, records, features: features_view(&st.set) }))
+    })
 }
 
 async fn set_info() -> R<SetInfo> {
@@ -1699,27 +1876,8 @@ async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
         }
         let report = merge::merge(&mut st.set, &theirs, &opts);
         save(st);
-        // what changed is easiest seen by spawning the playfields again
-        let pfs: Vec<u32> = theirs.placements.keys().chain(theirs.notes.keys()).copied().collect::<std::collections::BTreeSet<_>>().into_iter().collect();
-        for pf in pfs {
-            let ids: Vec<String> = st.objects.values().filter(|o| o.playfield == pf).map(|o| o.id.clone()).collect();
-            for id in ids {
-                if let Some(mut o) = st.objects.remove(&id) {
-                    if let Some(n) = o.npc {
-                        st.by_npc.remove(&n);
-                    }
-                    despawn(&mut o);
-                }
-            }
-            st.walls.retain(|_, w| w.playfield != pf);
-            build_playfield(st, pf);
-            bump(st, pf);
-        }
-        sync_all(st);
-        let viewers: Vec<Id32> = st.surveyors.keys().copied().collect();
-        for v in viewers {
-            mark(st, v);
-        }
+        let pfs: Vec<u32> = theirs.placements.keys().chain(theirs.notes.keys()).copied().collect();
+        rebuild(st, pfs);
         info!(added = report.added.len(), near = report.near.len(), conflicts = report.conflicts.len(), "survey: import");
         Ok(Json(report))
     })
@@ -1787,6 +1945,7 @@ impl Wall {
             wave: None,
             patrol: Vec::new(),
             comment: d.comment.clone(),
+            feature: d.feature.clone(),
             author: d.author.clone(),
             updated: d.updated,
             playfield: self.playfield,
@@ -1868,6 +2027,18 @@ struct PlaceTriggerBody {
     action: Option<WallAction>,
     #[serde(default)]
     once: bool,
+    /// The feature it belongs to (default live).
+    #[serde(default)]
+    feature: Option<String>,
+}
+
+/// A feature a record may name: a category or one of the set's features (none: live).
+fn checked_feature(set: &Set, feature: Option<String>) -> Result<String, Error> {
+    match feature {
+        None => Ok(sv::features::live()),
+        Some(f) if set.features.known(&f) => Ok(f),
+        Some(f) => Err(Error::Invalid(format!("no feature {f} (create it first)"))),
+    }
 }
 
 fn checked_size(size: [f32; 3]) -> [f32; 3] {
@@ -1898,6 +2069,7 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
             once: b.once,
             comment: String::new(),
             removed: false,
+            feature: checked_feature(&st.set, b.feature)?,
             author,
             updated: ids::now(),
         };
@@ -1943,6 +2115,9 @@ fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<Sur
     }
     if let Some(n) = c.name {
         d.name = n;
+    }
+    if let Some(f) = c.feature {
+        d.feature = checked_feature(&st.set, Some(f))?;
     }
     if let Some(t) = c.comment {
         d.comment = t;

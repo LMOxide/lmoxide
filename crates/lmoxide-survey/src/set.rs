@@ -1,5 +1,5 @@
-//! A survey set on disk: a folder with `set.json` and, per playfield,
-//! `<playfield>.placements.json` and `<playfield>.notes.json`.
+//! A survey set on disk: a folder with `set.json`, `features.json` (when it has features beyond
+//! the categories) and, per playfield, `<playfield>.placements.json` and `<playfield>.notes.json`.
 
 use std::{
     collections::BTreeMap,
@@ -8,7 +8,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{NotesFile, PlacementsFile};
+use crate::{NotesFile, PlacementsFile, features::FeaturesFile};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -34,6 +34,7 @@ pub struct SetInfo {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Set {
     pub info: SetInfo,
+    pub features: FeaturesFile,
     pub placements: BTreeMap<u32, PlacementsFile>,
     pub notes: BTreeMap<u32, NotesFile>,
 }
@@ -52,6 +53,8 @@ impl Set {
             let Some(name) = path.file_name().and_then(|n| n.to_str()) else { continue };
             if name == "set.json" {
                 set.info = read(&path)?;
+            } else if name == "features.json" {
+                set.features = read(&path)?;
             } else if let Some(pf) = name.strip_suffix(".placements.json").and_then(|n| n.parse().ok()) {
                 let f: PlacementsFile = read(&path)?;
                 check_playfield(&path, pf, f.playfield)?;
@@ -70,6 +73,9 @@ impl Set {
     pub fn save(&self, dir: &Path) -> Result<(), Error> {
         std::fs::create_dir_all(dir).map_err(|source| Error::Io { path: dir.into(), source })?;
         write(&dir.join("set.json"), &self.info)?;
+        if !self.features.features.is_empty() {
+            write(&dir.join("features.json"), &self.features)?;
+        }
         for (pf, f) in &self.placements {
             let mut f = f.clone();
             f.placements.sort_by(|a, b| a.id.cmp(&b.id));
@@ -136,6 +142,7 @@ mod tests {
             wave: None,
             patrol: Vec::new(),
             comment: String::new(),
+            feature: crate::features::live(),
             author: "a".into(),
             updated: 5,
         });
@@ -146,6 +153,7 @@ mod tests {
             reference: None,
             comment: "the parrot talks here".into(),
             status: Review::Unreviewed,
+            feature: crate::features::live(),
             author: "a".into(),
             updated: 5,
         });

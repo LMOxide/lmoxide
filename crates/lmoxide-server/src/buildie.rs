@@ -433,7 +433,7 @@ mod tests {
         let mut def = defs.into_iter().find(|d| d.name == "XX_Ramp").unwrap();
         def.playfield = 33597962; // the recorded instance
         let id = Id32::new(51321, 2606);
-        BUILDIES.lock().unwrap().insert(id, Buildie { def, progress: 0, state: State::Idle, _presence: None });
+        BUILDIES.lock().unwrap().insert(id, Buildie { def, recorded: true, progress: 0, state: State::Idle, _presence: None });
         let records = spawn_records(id);
         assert!(crate::conn::hex(&records[1]).ends_with(body), "{}", crate::conn::hex(&records[1]));
     }
