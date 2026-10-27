@@ -67,22 +67,25 @@ history on play servers), `crates/lmoxide-content/src/model.rs` (every record ty
 - The user wants shadcn components in the editor, not hand-written ones, and testing with as few
   screenshots as possible.
 
-## Ask the user before starting (with a recommendation each)
+## Decided before starting (2026-10-27)
 
-1. **Where unpublished edits live.** Recommended: the survey server keeps a git working copy
-   of `lmoxide-content` (`var/content-work`), autosaved as editors work (as the survey set is
-   today). "Publish" turns an editor's changed records into a queue entry; approval commits
-   exactly those records. Alternative: a git branch per editor.
-2. **Play servers taking new content.** Recommended first step: they `git pull` and restart
-   their content-dependent state with the existing "playfields respawn" path (spawns, walls,
-   scripts, bouncers reload live today through `content.rs`); everything else on restart. A
-   full live reload of skills, loot, buffs etc. is a later step (phase 6).
-3. **Who may edit definitions** (NPCs, skills, buffs, loot, items, minifigures, tunables) as
-   opposed to world records. Recommended: every editor proposes; only admins approve, as now.
-4. **Deleting a record others refer to.** Recommended: refuse, listing the references, with a
-   "replace references with …" action.
-5. **The play servers' preview** ("try this change for 15 minutes", WORLD-CONTENT.md). Keep it
-   (the server applies the proposed records in memory) or drop it.
+1. **Unpublished edits** live in a shared git working copy of `lmoxide-content` on the survey
+   server (`var/content-work`), autosaved as editors work. "Publish" turns an editor's changed
+   records into a queue entry; approval commits exactly those records.
+2. **Play servers** take approved content with `git pull` and the existing playfield-respawn
+   path (spawns, walls, scripts, bouncers live); everything else on restart until phase 6.
+3. **Definitions** (NPCs, skills, buffs, loot, items, minifigures, tunables): every editor
+   proposes, only admins approve (as now). Not asked; the recommendation was taken.
+4. **Deleting a referenced record** is refused, listing the references, with a "replace
+   references with ..." action.
+5. **The play servers' preview** ("try this change for 15 minutes") stays.
+
+## Progress
+
+- Phase 1 done (lmoxide 5b10259, lmoxide-content df7aa16): annotations, `index.json`,
+  `lmoxide_content::schema` (`Walker` finds references and client ids by schema; the loader
+  checks reference kinds with it), schema and annotation-coverage tests. docs/CONTENT.md
+  "What the schemas say for editors".
 
 ## Phases
 
