@@ -472,6 +472,12 @@ pub fn position(id: Id32) -> Option<[f32; 3]> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| n.now_at(std::time::Instant::now()))
 }
 
+/// Where a live NPC will be `after` from now if it keeps on along its walk (it stops at the
+/// walk's end), for leading shots at it.
+pub fn position_after(id: Id32, after: Duration) -> Option<[f32; 3]> {
+    NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some()).map(|n| n.now_at(std::time::Instant::now() + after))
+}
+
 impl Npc {
     /// Where it is at `now`: along its walk, else where it stands.
     fn now_at(&self, now: std::time::Instant) -> [f32; 3] {
@@ -487,6 +493,11 @@ pub fn is_player(id: Id32) -> bool {
 
 pub fn is_npc(id: Id32) -> bool {
     NPCS.lock().unwrap().contains_key(&id)
+}
+
+/// Whether `id` is a smashable (a breakable object, no character).
+pub fn is_smashable(id: Id32) -> bool {
+    NPCS.lock().unwrap().get(&id).is_some_and(|n| n.def.kind == Kind::Smashable)
 }
 
 /// Spawns every NPC in data/spawns.json and starts their AI.

@@ -762,6 +762,12 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
     // (a shortcut override is what a buff does, not a hit)
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.on_server() && a.kind != "OverrideShortcut"));
     let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
+    // a smashable takes no buffs: it isn't a character, and the clients crashed on one with a
+    // client action (Chicken Suit Guy's egg splash snares, AddSnare, on a Broken Wagon)
+    if is_buff && target.id.is_some_and(crate::npc::is_smashable) {
+        run_list(run, nano, ON_USE, target, depth);
+        return;
+    }
     if !is_buff
         && own_effect
         && let (Some(id), Some(package)) = (target.id, n.stats.effect_package)
@@ -848,10 +854,13 @@ fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], depth: u32
 fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u32) {
     let Some(item) = a.u("ItemInstance") else { return };
     let caster = run.caster.id;
-    // an enemy is aimed at as every player's shot is (`projectile::aim_at`)
-    let aim = target.id.filter(|t| *t != caster && crate::npc::is_npc(*t)).and_then(crate::projectile::aim_at);
-    let target = Target { pos: aim.unwrap_or(target.pos), ..target };
     let from = here(run);
+    let (move_type, speed) = (a.u("ProjectileType").unwrap_or(1), a.f("Speed").unwrap_or(1000.0) / 100.0);
+    let shots = if move_type == crate::projectile::BALLISTIC { crate::projectile::Shots::Lobbed } else { crate::projectile::Shots::Straight };
+    // an enemy is aimed at as every player's shot is (`projectile::aim_at`); one that is no
+    // longer there (smashed, defeated) isn't, and isn't named to the clients either
+    let aim = target.id.filter(|t| *t != caster && crate::npc::is_npc(*t)).and_then(|t| crate::projectile::aim_at(t, from, speed, shots));
+    let target = Target { pos: aim.unwrap_or(target.pos), id: target.id.filter(|t| *t == caster || aim.is_some() || !crate::npc::is_npc(*t)) };
     let facing = *run.caster.facing.lock().unwrap();
     let at_self = target.id == Some(caster);
     let (dx, dz) = (target.pos[0] - from[0], target.pos[2] - from[2]);
@@ -876,8 +885,8 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
     let volley = LINE_SHOT_ITEMS.contains(&item);
     let shot = crate::projectile::Shot {
         item,
-        move_type: a.u("ProjectileType").unwrap_or(1),
-        speed: a.f("Speed").unwrap_or(1000.0) / 100.0,
+        move_type,
+        speed,
         attractor: a.u("AttractorID").unwrap_or(0),
         ricochets: a.u("MaxRicochets").unwrap_or(0),
         range: a.f("AttackRange").map_or(0.0, |r| r / 100.0),

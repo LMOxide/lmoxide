@@ -103,6 +103,11 @@ impl Pad {
         self.tag.as_deref() == Some("JUMP")
     }
 
+    /// Cannons (mortars) spin you; every other bouncer bounces you.
+    fn tumble(&self) -> Tumble {
+        if self.look.as_deref().is_some_and(|l| l.contains("mortar")) { Tumble::SPIN } else { Tumble::BOUNCE }
+    }
+
     fn effect(&self) -> u32 {
         if self.look.as_deref().is_some_and(|l| l.contains("fan")) { FAN_EFFECT } else { MORTAR_EFFECT }
     }
@@ -328,26 +333,65 @@ async fn launch(player: Id32, playfield: u32, mut pad: &'static Pad, pos: world:
 /// above the higher of start and end; T = time up + time down. Returns where it landed.
 async fn hop(player: Id32, pad: &'static Pad, pos: &world::Position) -> [f32; 3] {
     info!(?player, pad = pad.guid, end = ?pad.target, "jump pad");
-    fly(player, pos, pad.target, pad.apex.unwrap_or(DEFAULT_APEX), Some(effects::effect_package(pad.id(), pad.effect()))).await
+    let how = pad.tumble();
+    world::send_playfield(player, true, world::Out::Records(how.start_records(player)));
+    let end = fly(player, pos, pad.target, pad.apex.unwrap_or(DEFAULT_APEX), Some(effects::effect_package(pad.id(), pad.effect())), how.direction).await;
+    world::send_playfield(player, true, world::Out::Records(how.end_records(player)));
+    end
 }
 
 /// Throws `player` (as a jump pad does, without a pad: pistons.rs) to `end`, arcing `apex` m
-/// above the higher end; returns when they land. The lock buff is the caller's to remove.
+/// above the higher end, spinning as a cannon throws; returns when they land. The lock buff is
+/// the caller's to remove.
 pub async fn throw(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32) {
-    // the BCT substate "Knockbacked" (24): the minifigure's graph plays its `launch` (tumbling)
-    // motion while it lasts (client: EmotionFXCharacter::SetBCTSubstate sets `knockback`)
-    // (and `launched`, which the graph also tumbles on: effect package 623093; the landing
-    // effect 102632 clears it)
-    let records = vec![knockback_record(player, BCC_ENTER_SUBSTATE), effects::effect_package(player, LAUNCHED_EFFECT)];
-    world::send_playfield(player, true, world::Out::Records(records));
-    fly(player, pos, end, apex, None).await;
-    world::send_playfield(player, true, world::Out::Records(vec![knockback_record(player, BCC_EXIT_SUBSTATE)]));
+    throw_as(player, pos, end, apex, Tumble::SPIN).await
+}
+
+/// How a thrown character moves in the air: the BCT substate "Knockbacked" (24) sets the
+/// minifigure graph's `knockback` (its `launch` motion, spinning; client: EmotionFXCharacter::
+/// SetBCTSubstate), effect package 623093 its `launched` flag (the bounce; the landing effect
+/// 102632 clears it), and `direction` is the flight's KnockawayDirection. Both at once made
+/// the graph restart the motion over and over.
+#[derive(Clone, Copy, Debug)]
+pub struct Tumble {
+    pub knockback: bool,
+    pub launched: bool,
+    pub direction: u8,
+}
+
+impl Tumble {
+    /// Bouncers (the user, 2026-10-26).
+    pub const BOUNCE: Tumble = Tumble { knockback: false, launched: true, direction: 0 };
+    /// Cannons (the mortar pads) and the Gauntlet's pistons.
+    pub const SPIN: Tumble = Tumble { knockback: true, launched: false, direction: 0 };
+
+    fn start_records(self, player: Id32) -> Vec<Bytes> {
+        let mut records = Vec::new();
+        if self.knockback {
+            records.push(knockback_record(player, BCC_ENTER_SUBSTATE));
+        }
+        if self.launched {
+            records.push(effects::effect_package(player, LAUNCHED_EFFECT));
+        }
+        records
+    }
+
+    fn end_records(self, player: Id32) -> Vec<Bytes> {
+        if self.knockback { vec![knockback_record(player, BCC_EXIT_SUBSTATE)] } else { Vec::new() }
+    }
+}
+
+/// `throw` with the animation `how` (`!bounce`).
+pub async fn throw_as(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32, how: Tumble) {
+    world::send_playfield(player, true, world::Out::Records(how.start_records(player)));
+    fly(player, pos, end, apex, None, how.direction).await;
+    world::send_playfield(player, true, world::Out::Records(how.end_records(player)));
     tokio::time::sleep(Duration::from_millis(300)).await;
     world::send_playfield(player, true, world::Out::Records(vec![effects::buff_remove(player, LOCK_BUFF, Id32::default())]));
 }
 
 /// The flight: arc maths from the recorded jumps; `launch` is the pad's launch effect.
-async fn fly(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32, launch: Option<Bytes>) -> [f32; 3] {
+async fn fly(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32, launch: Option<Bytes>, direction: u8) -> [f32; 3] {
     let start = *pos.lock().unwrap();
     let top = start[1].max(end[1]) + apex;
     let up = (2.0 * (top - start[1]) / GRAVITY).sqrt();
@@ -367,7 +411,7 @@ async fn fly(player: Id32, pos: &world::Position, end: [f32; 3], apex: f32, laun
     let flight = iir::record("MoveTaskIIR_c", player, false, |w| {
         let w = w.u8(0).f32(start[0]).f32(start[1]).f32(start[2]).u8(12).u8(0).f32(t).f32(t).f32(0.0);
         let w = [start, end, [dir[0], 0.0, dir[1]]].iter().flatten().fold(w, |w, v| w.f32(*v));
-        w.u8(0).u8(0).f32(h / t).f32(vy).u8(1).u8(1)
+        w.u8(0).u8(direction).f32(h / t).f32(vy).u8(1).u8(1)
     });
     let mut records: Vec<Bytes> = launch.into_iter().collect();
     records.extend([stop_record(player, start, dir), flight, effects::buff_add(player, LOCK_BUFF, Id32::default(), 1500)]);

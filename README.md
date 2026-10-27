@@ -27,6 +27,17 @@ level 1, earn XP from defeated enemies and rank minifigures up with stars. `tool
 turns it on.
 </details>
 
+<details>
+<summary>Aiming at moving enemies</summary>
+
+When a player attacks an enemy, the server aims the shot. `--lob-aim` (`LMOXIDE_LOB_AIM`) sets
+this for thrown attacks that land where they were aimed (bombs, eggs). `lead` (the default) aims
+where the enemy will be when the shot lands. `current` aims where the enemy was at the throw,
+which misses an enemy running at you. `--shot-aim` (`LMOXIDE_SHOT_AIM`) does the same for
+straight shots: `current` (the default) or `lead`. A GM can change both while the server runs
+with `!aim`.
+</details>
+
 ## How it works
 
 ```

@@ -127,6 +127,15 @@ pub struct Config {
     /// character is at the level cap with every minifigure fully ranked.
     #[arg(long, env = "LMOXIDE_PROGRESSION")]
     pub progression: bool,
+    /// How players' straight shots are aimed at the enemy they target: where it is when the
+    /// shot leaves (`current`), or where it will be when the shot gets there (`lead`).
+    #[arg(long, env = "LMOXIDE_SHOT_AIM", value_enum, default_value_t = projectile::Aim::Current)]
+    pub shot_aim: projectile::Aim,
+    /// How players' lobbed shots (thrown bombs, eggs, ...), which land where they were thrown,
+    /// are aimed at the enemy they target: `lead` lands them where an enemy running along its
+    /// path will be by then, `current` where it was at the throw.
+    #[arg(long, env = "LMOXIDE_LOB_AIM", value_enum, default_value_t = projectile::Aim::Lead)]
+    pub lob_aim: projectile::Aim,
     /// Most simultaneous connections from one IP address (per listener).
     #[arg(long, env = "LMOXIDE_MAX_CONNECTIONS_PER_IP", default_value_t = 8)]
     pub max_connections_per_ip: u32,
@@ -186,6 +195,9 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     state::init(db, key);
     state::set_data_dir(storage.data_dir.clone());
     progression::set_enabled(cfg.progression);
+    for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {
+        anyhow::ensure!(projectile::set_player_aim(shots, aim), "aim {} isn't implemented yet", aim.name());
+    }
     let cfg = Arc::new(cfg);
 
     let control_token = match (&cfg.control_token, &cfg.control_token_file) {

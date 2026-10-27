@@ -35,8 +35,10 @@
 //!   !spawn [count] <name>     spawn count (default 1, at most 30) of an enemy or smashable around you
 //!                             for 15 minutes, as !test does
 //!   !despawn [all]            remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's
-//!   !aim [current|lead|homing]  how players' shots are aimed at their enemy (projectile.rs), for
-//!                             everyone; without a mode: the current one
+//!   !bounce [bounce|spin|<kb> <launched> <dir>]  throw yourself 6 m as a bouncer / cannon does
+//!   !aim [shots|lobs] [current|lead|homing]  how players' straight and lobbed shots are aimed
+//!                             at their enemy (projectile.rs), for everyone; without a mode: the
+//!                             current ones (start values: --shot-aim, --lob-aim)
 //!
 //! `COMMANDS` lists them for `!help` and for the control interface's catalog (`catalog`).
 //!
@@ -91,6 +93,8 @@ pub enum Action {
     Despawn(bool),
     /// open a teleport window by id, as a portal would (`!window`)
     Window(u32),
+    /// throw the player 6 m ahead (`!bounce`)
+    Bounce(crate::jumppad::Tumble),
 }
 
 /// Every command with its usage and what it does (`!help`, and tools through `catalog`).
@@ -125,7 +129,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
     ("!state <n>", "set your BCCState (1 normal, 29 Limbo/smashed, 104 building, ...)"),
     ("!window <id>", "open teleport window <id> (RDB 1000644), as a portal would"),
-    ("!aim [current|lead|homing]", "how players' shots are aimed at their enemy, for everyone (without a mode: the current one)"),
+    ("!bounce [bounce|spin|<knockback 0/1> <launched 0/1> <direction>]", "throw yourself 6 m along +x as a bouncer (default) or a cannon/piston does, or with raw animation settings"),
+    ("!aim [shots|lobs] [current|lead|homing]", "how players' straight shots and lobbed ones (both without shots|lobs) are aimed at their enemy, for everyone (without a mode: the current ones)"),
 ];
 
 /// Most a `!spawn` brings at once.
@@ -492,6 +497,15 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some(n) => Action::State(n),
             None => reply(vec!["usage: !state <BCCState number> (1 normal, 29 Limbo)".into()]),
         },
+        "bounce" => {
+            use crate::jumppad::Tumble;
+            let n = |i: usize| args.get(i).and_then(|a| a.parse::<u8>().ok()).unwrap_or(0);
+            match args.first().copied() {
+                None | Some("bounce") => Action::Bounce(Tumble::BOUNCE),
+                Some("spin") => Action::Bounce(Tumble::SPIN),
+                Some(_) => Action::Bounce(Tumble { knockback: n(0) != 0, launched: n(1) != 0, direction: n(2) }),
+            }
+        }
         "window" => match args.first().and_then(|n| n.parse().ok()) {
             Some(n) => Action::Window(n),
             None => reply(vec!["usage: !window <teleport window id>".into()]),
@@ -524,13 +538,26 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             _ => reply(vec!["usage: !plates <solve|reset>".into()]),
         },
         "aim" => {
-            use crate::projectile::{Aim, player_aim, set_player_aim};
+            use crate::projectile::{Aim, Shots, player_aim, set_player_aim};
             let modes = Aim::ALL.map(Aim::name).join("|");
-            match args.first().map(|m| Aim::ALL.into_iter().find(|a| a.name() == *m)) {
-                None => reply(vec![format!("players aim: {} (!aim <{modes}>)", player_aim().name())]),
-                Some(None) => reply(vec![format!("usage: !aim <{modes}>")]),
-                Some(Some(aim)) if set_player_aim(aim) => reply(vec![format!("players aim: {}", aim.name())]),
-                Some(Some(aim)) => reply(vec![format!("aim {} isn't implemented yet; players aim: {}", aim.name(), player_aim().name())]),
+            let now = || format!("players aim: shots {}, lobs {}", player_aim(Shots::Straight).name(), player_aim(Shots::Lobbed).name());
+            let (which, mode) = match args.as_slice() {
+                [] => (None, None),
+                ["shots", mode] => (Some(vec![Shots::Straight]), Some(*mode)),
+                ["lobs", mode] => (Some(vec![Shots::Lobbed]), Some(*mode)),
+                [mode] => (Some(vec![Shots::Straight, Shots::Lobbed]), Some(*mode)),
+                _ => (Some(vec![]), None),
+            };
+            match (which, mode.map(|m| Aim::ALL.into_iter().find(|a| a.name() == m))) {
+                (None, _) => reply(vec![format!("{} (!aim [shots|lobs] <{modes}>)", now())]),
+                (Some(which), Some(Some(aim))) if !which.is_empty() => {
+                    if which.into_iter().all(|shots| set_player_aim(shots, aim)) {
+                        reply(vec![now()])
+                    } else {
+                        reply(vec![format!("aim {} isn't implemented yet; {}", aim.name(), now())])
+                    }
+                }
+                _ => reply(vec![format!("usage: !aim [shots|lobs] <{modes}>")]),
             }
         }
         "mirrors" => match args.first().copied() {

@@ -120,13 +120,14 @@ fn range_of(spell: u32, action: f32) -> f32 {
     SIZES.spells.get(&spell.to_string()).copied().unwrap_or(DEFAULT_RANGE)
 }
 
-/// How players' shots are aimed at the enemy they target (`!aim`). Enemies always shoot at
-/// where the player is.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// How players' shots are aimed at the enemy they target: straight shots and lobbed ones each
+/// have their own (`--shot-aim`, `--lob-aim`, `!aim`). Enemies always shoot at where the player is.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
 pub enum Aim {
-    /// At where the enemy is when the shot leaves: an enemy that moves on sideways may escape it.
+    /// At where the enemy is when the shot leaves: an enemy that moves on sideways (a straight
+    /// shot), or at all (a lobbed one, which lands where it was thrown), may escape it.
     Current,
-    /// At where the enemy will be when the shot gets there, if it keeps moving as it does.
+    /// At where the enemy will be when the shot gets there, if it keeps on along its path.
     Lead,
     /// The shot follows the enemy (the server's flight; the client still draws it straight).
     Homing,
@@ -143,33 +144,75 @@ impl Aim {
         }
     }
 
-    /// Only `Current` is implemented so far.
+    /// `Homing` isn't implemented yet.
     pub fn implemented(self) -> bool {
-        self == Aim::Current
+        self != Aim::Homing
     }
 }
 
-static PLAYER_AIM: AtomicU8 = AtomicU8::new(0);
-
-/// How players' shots are aimed now.
-pub fn player_aim() -> Aim {
-    Aim::ALL[PLAYER_AIM.load(Ordering::Relaxed) as usize]
+/// Which shots an aim applies to.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Shots {
+    Straight,
+    Lobbed,
 }
 
-/// Changes how players' shots are aimed; false (and no change) if `aim` isn't implemented yet.
-pub fn set_player_aim(aim: Aim) -> bool {
+static PLAYER_AIM: AtomicU8 = AtomicU8::new(0);
+static LOB_AIM: AtomicU8 = AtomicU8::new(1);
+
+fn aim_setting(shots: Shots) -> &'static AtomicU8 {
+    match shots {
+        Shots::Straight => &PLAYER_AIM,
+        Shots::Lobbed => &LOB_AIM,
+    }
+}
+
+/// How players' `shots` are aimed now.
+pub fn player_aim(shots: Shots) -> Aim {
+    Aim::ALL[aim_setting(shots).load(Ordering::Relaxed) as usize]
+}
+
+/// Changes how players' `shots` are aimed; false (and no change) if `aim` isn't implemented yet.
+pub fn set_player_aim(shots: Shots, aim: Aim) -> bool {
     if aim.implemented() {
-        PLAYER_AIM.store(Aim::ALL.iter().position(|a| *a == aim).unwrap_or(0) as u8, Ordering::Relaxed);
+        aim_setting(shots).store(Aim::ALL.iter().position(|a| *a == aim).unwrap_or(0) as u8, Ordering::Relaxed);
     }
     aim.implemented()
 }
 
-/// Where a player's shot at the enemy `target` is aimed (`player_aim`), if it is alive.
-pub fn aim_at(target: Id32) -> Option<[f32; 3]> {
-    match player_aim() {
-        // Lead and Homing would change this (and `fly`); `set_player_aim` refuses them for now
-        Aim::Current | Aim::Lead | Aim::Homing => crate::npc::position(target),
+/// Where a player's shot from `from` at `speed` (m/s) at the enemy `target` is aimed
+/// (`player_aim`), if it is alive: where it is, or (`Lead`) where it will be when the shot
+/// gets there, following its path (`npc::position_after`; one that stands still stays put).
+pub fn aim_at(target: Id32, from: [f32; 3], speed: f32, shots: Shots) -> Option<[f32; 3]> {
+    let now = crate::npc::position(target)?;
+    match player_aim(shots) {
+        // (Homing is refused by `set_player_aim`)
+        Aim::Current | Aim::Homing => Some(now),
+        Aim::Lead => {
+            // the flight time to where it will be then, a few times over (it converges fast
+            // unless the enemy is about as fast as the shot)
+            let mut at = now;
+            for _ in 0..LEAD_ROUNDS {
+                let t = (horizontal(from, at) / speed.max(0.1)).min(MAX_LEAD);
+                at = crate::npc::position_after(target, Duration::from_secs_f32(t))?;
+            }
+            Some(at)
+        }
     }
+}
+
+/// `aim_at` for a shot of `spell` with its own projectile parameters (data/projectiles.json).
+pub fn aim_for(spell: u32, target: Id32, from: [f32; 3]) -> Option<[f32; 3]> {
+    let Some(p) = params(spell) else { return crate::npc::position(target) };
+    aim_at(target, from, p.speed, if p.move_type == BALLISTIC { Shots::Lobbed } else { Shots::Straight })
+}
+
+/// Lead aim: how often the flight time is refined, and the most it looks ahead (s).
+const LEAD_ROUNDS: usize = 4;
+const MAX_LEAD: f32 = 3.0;
+
+fn horizontal(a: [f32; 3], b: [f32; 3]) -> f32 {
+    (a[0] - b[0]).hypot(a[2] - b[2])
 }
 
 /// What a projectile does to what it hits: plain damage, or a callback with the target hit (if
@@ -263,7 +306,7 @@ pub struct Shot {
     pub piercing: bool,
 }
 
-const BALLISTIC: u32 = 2;
+pub const BALLISTIC: u32 = 2;
 
 static LIVE: LazyLock<Mutex<HashMap<Id32, Live>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static NEXT: AtomicU32 = AtomicU32::new(1);
@@ -727,10 +770,13 @@ mod tests {
 
     #[test]
     fn aim_modes() {
-        assert_eq!(player_aim(), Aim::Current);
-        assert!(!set_player_aim(Aim::Lead));
-        assert!(!set_player_aim(Aim::Homing));
-        assert_eq!(player_aim(), Aim::Current);
-        assert!(set_player_aim(Aim::Current));
+        assert_eq!(player_aim(Shots::Straight), Aim::Current);
+        assert_eq!(player_aim(Shots::Lobbed), Aim::Lead);
+        assert!(!set_player_aim(Shots::Straight, Aim::Homing));
+        assert_eq!(player_aim(Shots::Straight), Aim::Current);
+        assert!(set_player_aim(Shots::Lobbed, Aim::Current));
+        assert_eq!(player_aim(Shots::Lobbed), Aim::Current);
+        assert_eq!(player_aim(Shots::Straight), Aim::Current);
+        assert!(set_player_aim(Shots::Lobbed, Aim::Lead));
     }
 }

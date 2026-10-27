@@ -328,6 +328,25 @@
       ]
     },
     {
+      "label": "eggs",
+      "about": "Chicken Suit Guy, Galaxy Patrol and Pirate Captain with 3 Broken Wagons and 4 Pirate Corsairs (eggs and bombs at smashables, also at one just smashed; lobs at enemies running at you: !aim lob current|lead)",
+      "team": [
+        "Chicken Suit Guy",
+        "Galaxy Patrol",
+        "Pirate Captain"
+      ],
+      "spawn": [
+        {
+          "name": "Broken Wagon",
+          "count": 3
+        },
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
+    },
+    {
       "label": "pulses",
       "about": "Wizard, Cowboy and Lifeguard Guy with 6 Pirate Corsairs (Lightning Blast chains to nearby enemies, Wild Ride shoots the nearest enemy every tick, Sparkling Whirlpool hurts around you for 3 s)",
       "team": [

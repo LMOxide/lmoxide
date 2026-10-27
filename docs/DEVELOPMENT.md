@@ -48,7 +48,8 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!anim <attribute>` | play an animation attribute (`limbostart`, `chainattack`, `get_hit`, ...: data/animations.json picks a package that sets it) |
 | `!skin <monster data\|reset>` | look like any monster data (data/monster_data.json), or your minifigure again |
 | `!state <n>` | set your character state (stat 20: 1 Idle, 4 Fighting, 7 Flying, 29 Limbo, 69 Evade, 104 Building; data/bcc_states.json) |
-| `!aim [current\|lead\|homing]` | how players' shots are aimed at the enemy they target, for everyone: `current` (where it is at the shot); `lead` and `homing` are designed but not implemented yet. Without a mode: the current one |
+| `!aim [shots\|lobs] [current\|lead\|homing]` | how players' straight shots and lobbed shots (both without `shots`/`lobs`) are aimed at the enemy they target, for everyone: `current` (where it is at the shot) or `lead` (where it will be when the shot gets there); `homing` isn't implemented. Start values: `--shot-aim` (current), `--lob-aim` (lead). Without a mode: the current ones |
+| `!bounce [bounce\|spin\|<knockback 0/1> <launched 0/1> <direction>]` | throw yourself 6 m along +x as a bouncer (default) or a cannon/piston does, or with raw animation settings |
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |

@@ -758,7 +758,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let here = *pos.lock().unwrap();
                                         let npc_target = target_id.filter(|t| *t != h.identity && crate::npc::is_npc(*t));
                                         let towards = npc_target
-                                            .and_then(crate::projectile::aim_at)
+                                            .and_then(|t| crate::projectile::aim_for(spell, t, here))
                                             .or(ground)
                                             .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
                                         crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
@@ -1285,6 +1285,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 args,
                             )
                             .await?;
+                        }
+                        crate::devcmd::Action::Bounce(how) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let here = *pos.lock().unwrap();
+                            let handle = pos.clone();
+                            crate::chat::system(character, &format!("bounce {how:?}"));
+                            tokio::spawn(async move { crate::jumppad::throw_as(id, &handle, [here[0] + 6.0, here[1], here[2]], 2.0, how).await });
                         }
                         crate::devcmd::Action::State(state) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
@@ -2156,7 +2163,7 @@ fn run_charge(
             // held too long: fire at full charge, in the direction faced now
             let here = *pos.lock().unwrap();
             let f = *facing.lock().unwrap();
-            let towards = target.and_then(crate::projectile::aim_at).unwrap_or([here[0] + f[0], here[1], here[2] + f[1]]);
+            let towards = target.and_then(|t| crate::projectile::aim_for(spell, t, here)).unwrap_or([here[0] + f[0], here[1], here[2] + f[1]]);
             info!(spell, "charge fired automatically");
             crate::projectile::launch(caster, playfield, spell, full_item, here, towards, target, full_damage);
             *auto_fired.lock().unwrap() = Some((spell, std::time::Instant::now()));
@@ -2188,7 +2195,7 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     // The release resends the press-time command, so its point is where the player aimed when
     // they started charging; aim with the facing they have now instead (the client keeps
     // reporting it while they turn). A targeted cast still goes to its target.
-    let towards = c.target.and_then(crate::projectile::aim_at).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
+    let towards = c.target.and_then(|t| crate::projectile::aim_for(c.spell, t, here)).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
     info!(spell = c.spell, held, item, "charge released");
     crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, damage);
 }
