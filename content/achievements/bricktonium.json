@@ -1,0 +1,12 @@
+{
+  "id": "achievement/bricktonium",
+  "lore": 2424,
+  "parent": "achievement/dino-collectibles",
+  "client_name": "Dino_Collectibles_Meteorite",
+  "title": "Bricktonium?!",
+  "text": "Find three rare meteorite rocks in the Dino World.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000123, 3],
+  "source": "client"
+}

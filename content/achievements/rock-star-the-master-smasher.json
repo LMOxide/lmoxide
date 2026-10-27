@@ -1,0 +1,16 @@
+{
+  "id": "achievement/rock-star-the-master-smasher",
+  "lore": 3240,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Smash 5000 Smashies",
+  "title": "Rock Star, the Master Smasher",
+  "text": "Smash 5000 smashies as Rock Star.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/rock-star",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

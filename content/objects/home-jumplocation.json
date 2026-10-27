@@ -1,0 +1,10 @@
+{
+  "id": "object/home-jumplocation",
+  "name": "Home_JumpLocation",
+  "kind": "scenery",
+  "render": {
+    "look": "Home_JumpLocation",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

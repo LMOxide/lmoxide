@@ -1,0 +1,16 @@
+{
+  "id": "achievement/carpenter-the-builder",
+  "lore": 3789,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Build 100 buildies",
+  "title": "Carpenter, the Builder",
+  "text": "Build 100 buildies as Carpenter.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/carpenter",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

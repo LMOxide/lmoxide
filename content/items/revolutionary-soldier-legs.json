@@ -1,0 +1,16 @@
+{
+  "id": "item/revolutionary-soldier-legs",
+  "name": "Revolutionary Soldier Legs",
+  "kind": "part",
+  "template": 483681,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31009,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/revolutionary-soldier",
+  "location": "Legs",
+  "source": "client"
+}

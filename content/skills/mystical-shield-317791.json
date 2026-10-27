@@ -1,0 +1,102 @@
+{
+  "id": "skill/mystical-shield-317791",
+  "name": "Mystical Shield",
+  "client": {
+    "spell": 317791,
+    "stats": {
+      "EffectPackage": 318726,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 317790,
+            "ProjectileType": 1,
+            "Speed": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [580938, 1, 166]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 636694,
+            "ProjectileType": 1,
+            "Speed": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [580938, 2, 166]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 636695,
+            "ProjectileType": 1,
+            "Speed": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [580938, 3, 166]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 636696,
+            "ProjectileType": 1,
+            "Speed": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [580938, 4, 166]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 636697,
+            "ProjectileType": 1,
+            "Speed": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [580938, 5, 166]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 636707,
+            "ProjectileType": 1,
+            "Speed": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [580938, 6, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Warrior Woman: Mystical Shield",
+  "range": 15.0,
+  "source": "client"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-s15-clumsyguy2-projectile",
+  "name": "main s15 clumsyguy2 projectile",
+  "client": {
+    "spell": 668593,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 668592,
+            "ProjectileType": 2,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Clumsy Guy: Peels of Fury",
+  "range": 15.0,
+  "source": "client"
+}

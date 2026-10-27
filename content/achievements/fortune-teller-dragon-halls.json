@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fortune-teller-dragon-halls",
+  "lore": 2617,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Dragon Halls",
+  "title": "Fortune Teller: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Fortune Teller.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/fortune-teller",
+  "source": "client"
+}

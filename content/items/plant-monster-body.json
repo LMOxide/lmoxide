@@ -1,0 +1,16 @@
+{
+  "id": "item/plant-monster-body",
+  "name": "Plant Monster Body",
+  "kind": "part",
+  "template": 662074,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21406,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/plant-monster",
+  "location": "Torso",
+  "source": "client"
+}

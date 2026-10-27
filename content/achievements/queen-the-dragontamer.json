@@ -1,0 +1,17 @@
+{
+  "id": "achievement/queen-the-dragontamer",
+  "lore": 5279,
+  "parent": "achievement/queen",
+  "client_name": "Queen_Smash 50 Drakes",
+  "title": "Queen the Dragontamer",
+  "text": "Smash 50 Drakes as Queen.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/queen",
+  "counts": {
+    "match": "Drake",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

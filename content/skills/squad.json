@@ -1,0 +1,64 @@
+{
+  "id": "skill/squad",
+  "name": "Squad",
+  "client": {
+    "spell": 195930,
+    "stats": {
+      "ChannelingInterval": 100,
+      "ChannelingTicks": 9,
+      "EffectPackage": 209025,
+      "ItemDelay": 100,
+      "MoreFlags": 536870914,
+      "RechargeDelay": 50,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 234947,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 234947,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 195930
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Revolutionary Soldier: Squad",
+  "range": 15.0,
+  "projectile": {
+    "item": 234947,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

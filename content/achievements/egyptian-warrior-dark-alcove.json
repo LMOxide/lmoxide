@@ -1,0 +1,13 @@
+{
+  "id": "achievement/egyptian-warrior-dark-alcove",
+  "lore": 4017,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Dark Alcove",
+  "title": "Egyptian Warrior: Dark Alcove",
+  "text": "Conquer the Dark Alcove as Egyptian Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Dark Alcove",
+  "minifigure": "minifig/egyptian-warrior",
+  "source": "client"
+}

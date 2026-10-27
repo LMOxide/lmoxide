@@ -1,0 +1,10 @@
+{
+  "id": "object/altar3-center",
+  "name": "altar3 center",
+  "kind": "scenery",
+  "render": {
+    "look": "altar3 center",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

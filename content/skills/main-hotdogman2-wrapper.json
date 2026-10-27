@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-hotdogman2-wrapper",
+  "name": "main hotdogman2 wrapper",
+  "client": {
+    "spell": 578908,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 564124
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 578909
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Hot Dog Man: Hot Dog Roll",
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/gargoyle",
+  "lore": 4392,
+  "parent": "achievement/series-14",
+  "client_name": "Gargoyle",
+  "title": "Gargoyle",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-gargoyle",
+    "achievement/legendary-gargoyle",
+    "achievement/gargoyle-cave-of-the-exiled",
+    "achievement/gargoyle-mysterious-crystal-cave",
+    "achievement/gargoyle-alien-command-center",
+    "achievement/gargoyle-umad-thundercrusher",
+    "achievement/gargoyle-chlora-the-fungomancer",
+    "achievement/gargoyle-morduk-the-underhanded",
+    "achievement/novice-gargoyle",
+    "achievement/expert-gargoyle",
+    "achievement/gargoyle-the-lost-challenger",
+    "achievement/gargoyle-the-lost-warrior",
+    "achievement/gargoyle-the-lost-champion",
+    "achievement/gargoyle-the-smasher",
+    "achievement/gargoyle-the-master-smasher",
+    "achievement/gargoyle-the-sweet"
+  ],
+  "minifigure": "minifig/gargoyle",
+  "source": "client"
+}

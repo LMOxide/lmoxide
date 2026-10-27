@@ -1,0 +1,13 @@
+{
+  "id": "achievement/kendo-fighter-alien-command-center",
+  "lore": 5236,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Alien Command Center",
+  "title": "Kendo Fighter: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Kendo Fighter.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/kendo-fighter",
+  "source": "client"
+}

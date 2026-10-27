@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-zombie-businessman",
+  "lore": 4664,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Upgrade 3",
+  "title": "Novice Zombie Businessman",
+  "text": "Get the third Zombie Businessman upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/zombie-businessman",
+  "n": 3,
+  "source": "client"
+}

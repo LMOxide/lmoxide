@@ -1,0 +1,86 @@
+{
+  "id": "loot/boss",
+  "name": "Boss",
+  "rolls": 1,
+  "entries": [
+    {
+      "drop": {
+        "stars": 10
+      }
+    },
+    {
+      "drop": {
+        "items": ["item/100-minifigure-xp"]
+      }
+    },
+    {
+      "chance": "25%",
+      "drop": {
+        "items": ["item/250-minifigure-xp"]
+      }
+    },
+    {
+      "chance": "5%",
+      "drop": {
+        "items": ["item/1000-minifigure-xp"]
+      }
+    },
+    {
+      "chance": "100%",
+      "drop": {
+        "hearts": 1
+      },
+      "when": {
+        "bonus_stat": "orb_chance"
+      }
+    },
+    {
+      "chance": "100%",
+      "drop": {
+        "potions": 1
+      }
+    },
+    {
+      "chance": "100%",
+      "drop": {
+        "minifig_parts": {
+          "from": "world",
+          "count": 2
+        }
+      }
+    },
+    {
+      "chance": "40%",
+      "drop": {
+        "minifig_bags": {
+          "from": "world",
+          "count": 1
+        }
+      }
+    },
+    {
+      "drop": {
+        "chest": [
+          "item/super-chest",
+          "item/super-chest-482443",
+          "item/super-chest-482473",
+          "item/super-chest-482566",
+          "item/super-chest-482632",
+          "item/super-chest-486341",
+          "item/super-chest-580944"
+        ]
+      },
+      "comment": "a free and a member chest side by side, as live placed them"
+    },
+    {
+      "drop": {
+        "chest": ["item/member-super-chest"]
+      },
+      "when": {
+        "members_only": true
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "loot.rs roll(): stars as recorded (smashables 1-2, enemies 3), the rest proposed (docs/TUNABLES.md)."
+}

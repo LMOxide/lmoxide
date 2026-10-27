@@ -1,0 +1,13 @@
+{
+  "id": "achievement/janitor-megamind",
+  "lore": 5206,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Megamind",
+  "title": "Janitor: Megamind",
+  "text": "Defeat Megamind as Janitor.",
+  "points": 25,
+  "kind": "target",
+  "target": "Megamind",
+  "minifigure": "minifig/janitor",
+  "source": "client"
+}

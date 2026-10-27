@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-skydiver2-wrapper",
+  "name": "main skydiver2 wrapper",
+  "client": {
+    "spell": 301783,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 302136
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 302137
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Skydiver: Skydive",
+  "source": "client"
+}

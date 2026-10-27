@@ -1,0 +1,34 @@
+{
+  "id": "skill/custom-job-345999",
+  "name": "Custom Job",
+  "client": {
+    "spell": 345999,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 365804
+          }
+        },
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Arg2": 4,
+            "Distance": 2,
+            "PowerRating": 9001,
+            "Speed": 25
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

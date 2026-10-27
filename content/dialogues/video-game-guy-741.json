@@ -1,0 +1,10 @@
+{
+  "id": "dialogue/video-game-guy-741",
+  "name": "Video Game Guy",
+  "texts": [741, 743, 753, 742],
+  "world": "world/tutorial",
+  "npc_name": 2621,
+  "npc": "Video Game Guy",
+  "seen_live": true,
+  "source": "demo"
+}

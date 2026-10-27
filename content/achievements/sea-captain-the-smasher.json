@@ -1,0 +1,16 @@
+{
+  "id": "achievement/sea-captain-the-smasher",
+  "lore": 3542,
+  "parent": "achievement/sea-captain",
+  "client_name": "Sea Captain_Smash 500 Smashies",
+  "title": "Sea Captain, the Smasher",
+  "text": "Smash 500 smashies as Sea Captain.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/sea-captain",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

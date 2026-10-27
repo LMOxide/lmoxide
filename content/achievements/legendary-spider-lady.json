@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-spider-lady",
+  "lore": 4470,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Complete Any 10",
+  "title": "Legendary Spider Lady",
+  "text": "Complete any 11 Spider Lady achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/spider-lady",
+  "n": 11,
+  "source": "client"
+}

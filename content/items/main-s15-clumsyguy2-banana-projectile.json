@@ -1,0 +1,17 @@
+{
+  "id": "item/main-s15-clumsyguy2-banana-projectile",
+  "name": "main s15 clumsyguy2 banana projectile",
+  "kind": "projectile",
+  "template": 668592,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 668596
+      }
+    }
+  ],
+  "source": "client"
+}

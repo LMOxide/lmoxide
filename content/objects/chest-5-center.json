@@ -1,0 +1,10 @@
+{
+  "id": "object/chest-5-center",
+  "name": "chest 5 center",
+  "kind": "scenery",
+  "render": {
+    "look": "chest 5 center",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

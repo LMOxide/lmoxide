@@ -1,0 +1,15 @@
+{
+  "id": "object/xx-banana-crate-2",
+  "name": "XX_Banana Crate",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 197958,
+    "template": 241236,
+    "look": "banana_crate_a_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "source": "client"
+}

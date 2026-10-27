@@ -1,0 +1,16 @@
+{
+  "id": "item/baseball-fielder-head",
+  "name": "Baseball Fielder Head",
+  "kind": "part",
+  "template": 483574,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11001,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/baseball-fielder",
+  "location": "Head",
+  "source": "client"
+}

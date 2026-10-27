@@ -1,0 +1,11 @@
+{
+  "id": "achievement/the-chicken-or-the-egg",
+  "lore": 1903,
+  "parent": "achievement/legend-of-the-chicken-suit-guy",
+  "client_name": "Global_Dino_Chicken Suit Guy",
+  "title": "The Chicken or the Egg?",
+  "text": "Find the Chicken Suit Guy in the Dino World.",
+  "points": 25,
+  "kind": "manual",
+  "source": "client"
+}

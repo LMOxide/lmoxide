@@ -1,0 +1,58 @@
+{
+  "id": "skill/say-cheese",
+  "name": "Say Cheese!",
+  "client": {
+    "spell": 641628,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 5,
+      "EffectPackage": 647116,
+      "ItemDelay": 25,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 25
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 180,
+            "AngleStart": -90,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642244,
+            "Radius": 4
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 180,
+            "AngleStart": -90,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642244,
+            "Radius": 4
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641628,
+            "Value": 600
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Square Foot: Say Cheese!",
+  "source": "client"
+}

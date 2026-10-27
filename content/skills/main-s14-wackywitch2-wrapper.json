@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-s14-wackywitch2-wrapper",
+  "name": "main s14 wackywitch2 wrapper",
+  "client": {
+    "spell": 642233,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642234
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642235
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Wacky Witch: Frog Hex",
+  "source": "client"
+}

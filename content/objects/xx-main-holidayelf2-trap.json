@@ -1,0 +1,15 @@
+{
+  "id": "object/xx-main-holidayelf2-trap",
+  "name": "XX_main holidayelf2 trap",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 51057,
+    "template": 465879,
+    "look": "invisible_monsterdata",
+    "cars_group": 5
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "source": "client"
+}

@@ -1,0 +1,39 @@
+{
+  "id": "skill/extra-toppings",
+  "name": "Extra Toppings",
+  "client": {
+    "spell": 516672,
+    "stats": {
+      "EffectPackage": 509396,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 516526,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pizza Delivery Man: Extra Toppings",
+  "range": 12.5,
+  "projectile": {
+    "item": 516526,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

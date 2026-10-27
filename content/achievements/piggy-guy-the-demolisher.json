@@ -1,0 +1,17 @@
+{
+  "id": "achievement/piggy-guy-the-demolisher",
+  "lore": 3188,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Smash 25 Minotaur Statues",
+  "title": "Piggy Guy, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Piggy Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/piggy-guy",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

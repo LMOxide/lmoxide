@@ -1,0 +1,29 @@
+{
+  "id": "world/forgotten-ruins",
+  "name": "Forgotten Ruins",
+  "playfield": 1652,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [235.15, 18.49, 258.59],
+    "rot": 4.71
+  },
+  "arrival_guid": 441532,
+  "arrival_from": {
+    "world/kingdom": {
+      "pos": [242.32, 20.51, 237.51],
+      "rot": 0.0
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 441532,
+      "pos": [235.15, 18.49, 258.59],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "world/xx-tommyr-encounters",
+  "name": "XX_TommyR_Encounters",
+  "playfield": 30063,
+  "kind": "other",
+  "arrival": {
+    "pos": [242.0, 113.75, 54.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

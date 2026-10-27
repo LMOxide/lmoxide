@@ -1,0 +1,16 @@
+{
+  "id": "achievement/revolutionary-soldier-the-master-striker",
+  "lore": 3580,
+  "parent": "achievement/revolutionary-soldier",
+  "client_name": "Revolutionary Soldier_Smash 10000 Monsters",
+  "title": "Revolutionary Soldier, the Master Striker",
+  "text": "Smash 10000 monsters as Revolutionary Soldier.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/revolutionary-soldier",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

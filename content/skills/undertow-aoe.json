@@ -1,0 +1,27 @@
+{
+  "id": "skill/undertow-aoe",
+  "name": "Undertow aoe",
+  "client": {
+    "spell": 446979,
+    "stats": {
+      "EffectPackage": 116274,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 446977,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

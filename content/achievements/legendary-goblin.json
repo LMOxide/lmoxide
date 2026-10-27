@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-goblin",
+  "lore": 3878,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Complete Any 10",
+  "title": "Legendary Goblin",
+  "text": "Complete any 11 Goblin achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/goblin",
+  "n": 11,
+  "source": "client"
+}

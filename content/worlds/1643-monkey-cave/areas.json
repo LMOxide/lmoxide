@@ -1,0 +1,145 @@
+{
+  "areas": [
+    {
+      "id": "area/1643/cine-islandwarriorspawn1",
+      "name": "Cine_IslandWarriorSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [329.02, 19.54, 278.49],
+          "rot": 2.954
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-islandwarriorgoto1",
+      "name": "Cine_IslandWarriorGoTo1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [330.45, 18.63, 275.08],
+          "rot": -2.933
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-islandwarriorgoto2",
+      "name": "Cine_IslandWarriorGoTo2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [342.17, 18.18, 279.79],
+          "rot": 0.864
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-player1",
+      "name": "Cine_Player1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [329.82, 18.6, 272.55],
+          "rot": 0.761
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-camerapos1",
+      "name": "Cine_CameraPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [329.39, 18.62, 276.5],
+          "rot": -2.933
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-swashbuckler2",
+      "name": "Cine_Swashbuckler2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [331.55, 18.6, 273.65],
+          "rot": -0.703
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-swashbuckler1",
+      "name": "Cine_Swashbuckler1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [329.85, 18.71, 272.54],
+          "rot": 0.829
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/cine-swashbuckler3",
+      "name": "Cine_Swashbuckler3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [342.48, 18.25, 278.56],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/ba-ambush",
+      "name": "BA_Ambush",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [282.22, 245.32],
+            [300.24, 256.56],
+            [287.72, 250.18]
+          ],
+          "heights": [16.699854, 26.699854]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/ba-ambush2",
+      "name": "BA_Ambush2",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [317.62, 262.4],
+            [326.29, 263.13],
+            [331.2, 260.66],
+            [345.84, 272.04],
+            [317.4, 267.66]
+          ],
+          "heights": [16.699854, 26.699854]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/1643/champion",
+      "name": "Champion",
+      "role": "champion",
+      "shape": {
+        "ground": {
+          "at": [312.36, 266.82]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

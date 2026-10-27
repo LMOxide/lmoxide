@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gargoyle-mysterious-crystal-cave",
+  "lore": 4523,
+  "parent": "achievement/gargoyle",
+  "client_name": "Gargoyle_Mysterious Crystal Cave",
+  "title": "Gargoyle: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Gargoyle.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/gargoyle",
+  "source": "client"
+}

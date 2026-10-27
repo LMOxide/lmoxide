@@ -1,0 +1,32 @@
+{
+  "id": "skill/hog-wack",
+  "name": "Hog Wack",
+  "client": {
+    "spell": 500473,
+    "stats": {
+      "EffectPackage": 507815,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 504810,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Piggy Guy: Hog Wack",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spider-lady-infested-keep",
+  "lore": 4472,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Infested Keep",
+  "title": "Spider Lady: Infested Keep",
+  "text": "Conquer the Infested Keep as Spider Lady.",
+  "points": 25,
+  "kind": "target",
+  "target": "Infested Keep",
+  "minifigure": "minifig/spider-lady",
+  "source": "client"
+}

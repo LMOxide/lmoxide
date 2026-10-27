@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-tiki",
+  "name": "BossExitVisualClosed_Tiki",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Tiki",
+    "visual": [1010030, 244044]
+  },
+  "source": "client"
+}

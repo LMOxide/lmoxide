@@ -1,0 +1,22 @@
+{
+  "id": "skill/spell-1571",
+  "name": "spell 1571",
+  "client": {
+    "spell": 1571
+  },
+  "range": 15.0,
+  "projectile": {
+    "item": 202301,
+    "speed": 17.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0,
+    "channel_interval": 0.33,
+    "charge_items": [202301, 636391, 636392, 636393],
+    "counter_buff": 636386
+  },
+  "source": "client",
+  "tags": ["no-client-definition"]
+}

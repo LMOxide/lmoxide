@@ -1,0 +1,14 @@
+{
+  "id": "achievement/dark-paradise",
+  "lore": 947,
+  "parent": "achievement/did-i-mention-paradise",
+  "client_name": "[Planet's Dark Side] Boombox",
+  "title": "Dark Paradise",
+  "text": "Get your groove on at the Planet's Dark Side.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/planet-s-dark-side",
+  "find": "boombox 1",
+  "place": "Boombox",
+  "source": "client"
+}

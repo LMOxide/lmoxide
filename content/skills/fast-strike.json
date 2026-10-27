@@ -1,0 +1,31 @@
+{
+  "id": "skill/fast-strike",
+  "name": "Fast Strike",
+  "client": {
+    "spell": 1526,
+    "stats": {
+      "EffectPackage": 1762,
+      "ItemDelay": 32,
+      "MoreFlags": 536872960,
+      "RechargeDelay": 16
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 99063,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Aztec Warrior: Fast Strike",
+  "source": "client"
+}

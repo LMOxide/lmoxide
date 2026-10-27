@@ -1,0 +1,16 @@
+{
+  "id": "item/alien-avenger-head",
+  "name": "Alien Avenger Head",
+  "kind": "part",
+  "template": 483590,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10901,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/alien-avenger",
+  "location": "Head",
+  "source": "client"
+}

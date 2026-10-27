@@ -1,0 +1,89 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/1690/jump-pad-catapult-a-buildie",
+      "name": "jump_pad_catapult_a_buildie",
+      "template": "object/jump-pad-catapult-a-buildie",
+      "pos": [351.62, 40.0, 103.65],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [363.93, 73.0, 126.2],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 471867,
+        "tag": "JUMP",
+        "script_group": 72,
+        "visual": [1010201, 280812],
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1690/jump-pad-catapult-a-buildie-2",
+      "name": "jump_pad_catapult_a_buildie",
+      "template": "object/jump-pad-catapult-a-buildie",
+      "pos": [344.0, 64.0, 104.0],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [338.99, 72.0, 111.58],
+      "target_by": "onward",
+      "client": {
+        "guid": 471877,
+        "tag": "JUMP",
+        "script_group": 74,
+        "visual": [1010201, 280812],
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1690/jump-pad-catapult-a-buildie-3",
+      "name": "jump_pad_catapult_a_buildie",
+      "template": "object/jump-pad-catapult-a-buildie",
+      "pos": [336.0, 52.0, 104.0],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "target": [344.0, 64.0, 104.0],
+      "target_by": "onward",
+      "client": {
+        "guid": 471878,
+        "tag": "JUMP",
+        "script_group": 75,
+        "visual": [1010201, 280812],
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1690/jump-pad-catapult-a-buildie-2-2",
+      "name": "jump_pad_catapult_a_buildie_2",
+      "template": "object/jump-pad-catapult-a-buildie",
+      "pos": [360.0, 72.0, 176.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [343.75, 40.0, 176.96],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 474485,
+        "tag": "JUMP",
+        "script_group": 77,
+        "visual": [1010201, 280812],
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1690/jump-pad-catapult-a-buildie-4",
+      "name": "jump_pad_catapult_a_buildie",
+      "template": "object/jump-pad-catapult-a-buildie",
+      "pos": [352.0, 72.0, 138.0],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "target": [352.0, 72.0, 158.0],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 471875,
+        "tag": "JUMP",
+        "script_group": 79,
+        "visual": [1010201, 280812],
+        "bounds": [-1.25, -0.0, -0.8, 1.25, 1.6, 0.8]
+      },
+      "source": "client"
+    }
+  ]
+}

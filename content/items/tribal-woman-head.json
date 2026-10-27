@@ -1,0 +1,16 @@
+{
+  "id": "item/tribal-woman-head",
+  "name": "Tribal Woman Head",
+  "kind": "part",
+  "template": 668674,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11515,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/tribal-woman",
+  "location": "Head",
+  "source": "client"
+}

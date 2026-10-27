@@ -1,0 +1,251 @@
+{
+  "$defs": {
+    "Combat": {
+      "additionalProperties": false,
+      "properties": {
+        "empowered_normals": {
+          "description": "Damage of normals while empowered.",
+          "format": "float",
+          "type": "number"
+        },
+        "health_per_level": {
+          "format": "float",
+          "type": "number"
+        },
+        "level": {
+          "description": "Players' level (all minifigures fight at this level without --progression).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "power_rating_all": {
+          "format": "float",
+          "type": "number"
+        },
+        "star_factor": {
+          "format": "float",
+          "type": "number"
+        },
+        "variance": {
+          "$ref": "#/$defs/Ratio",
+          "description": "Damage varies by this share either way."
+        }
+      },
+      "required": ["level", "health_per_level", "star_factor", "power_rating_all", "variance", "empowered_normals"],
+      "type": "object"
+    },
+    "Duration": {
+      "anyOf": [
+        {
+          "pattern": "^\\s*-?[0-9.]+\\s*(ms|s|m|h)?\\s*$",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "A length of time: \"1.5s\", \"200ms\", \"2m\", \"1h\", or a number of seconds"
+    },
+    "Loot": {
+      "additionalProperties": false,
+      "properties": {
+        "bag_dynel_type": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "bag_interaction_radius": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "bag_lifetime": {
+          "$ref": "#/$defs/Duration"
+        },
+        "bag_template": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "items": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Items the loot rules name (`star`, `health_orb`, `potion`, `stars_25`, ...).",
+          "type": "object"
+        },
+        "share_range": {
+          "description": "Teammates within this distance of a kill get their own bag (m).",
+          "format": "float",
+          "type": "number"
+        },
+        "tables": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Which loot table each source rolls (`smashable`, `enemy`, `champion`, `boss`, `chest`,\n`member_chest`).",
+          "type": "object"
+        }
+      },
+      "required": [
+        "share_range",
+        "bag_lifetime",
+        "bag_template",
+        "bag_dynel_type",
+        "bag_interaction_radius",
+        "tables",
+        "items"
+      ],
+      "type": "object"
+    },
+    "NpcLife": {
+      "additionalProperties": false,
+      "description": "NPC life on the live server: life = base[level] x the template's life factor.",
+      "properties": {
+        "base": {
+          "additionalProperties": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "interpolation": {
+          "type": "string"
+        }
+      },
+      "required": ["interpolation", "base"],
+      "type": "object"
+    },
+    "NpcTunables": {
+      "additionalProperties": false,
+      "properties": {
+        "regen_delay": {
+          "$ref": "#/$defs/Duration",
+          "description": "Out of combat for this long before health comes back."
+        },
+        "regen_share": {
+          "$ref": "#/$defs/Ratio",
+          "description": "Share of maximum health per tick."
+        },
+        "regen_tick": {
+          "$ref": "#/$defs/Duration"
+        }
+      },
+      "required": ["regen_delay", "regen_tick", "regen_share"],
+      "type": "object"
+    },
+    "Progression": {
+      "additionalProperties": false,
+      "properties": {
+        "minifigure_xp": {
+          "additionalProperties": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "description": "Minifigure rank -> stars needed.",
+          "type": "object"
+        },
+        "rank_player_level": {
+          "description": "Player level needed per minifigure rank.",
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["minifigure_xp", "rank_player_level"],
+      "type": "object"
+    },
+    "Rarity": {
+      "additionalProperties": false,
+      "description": "How rare each minifigure's bag and parts are.",
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "part_locations": {
+          "additionalProperties": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "description": "Part location -> weight.",
+          "type": "object"
+        },
+        "tiers": {
+          "additionalProperties": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "description": "Tier -> weight.",
+          "type": "object"
+        }
+      },
+      "required": ["tiers", "default", "part_locations"],
+      "type": "object"
+    },
+    "Ratio": {
+      "anyOf": [
+        {
+          "pattern": "^\\s*-?[0-9.]+\\s*%\\s*$",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "A share: \"20%\" or a fraction (0.2)"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "`tunables.json`: every global number the server uses.",
+  "properties": {
+    "combat": {
+      "$ref": "#/$defs/Combat"
+    },
+    "loot": {
+      "$ref": "#/$defs/Loot"
+    },
+    "minifigure_model": {
+      "description": "The client's minifigure stat model (SimpleChar_t::CalculateLife, AttackUtils): tweaks,\nplayer defaults, formulas."
+    },
+    "more": {
+      "additionalProperties": true,
+      "description": "Anything else, by name (`section.name`).",
+      "type": "object"
+    },
+    "npc": {
+      "$ref": "#/$defs/NpcTunables"
+    },
+    "npc_life": {
+      "$ref": "#/$defs/NpcLife"
+    },
+    "progression": {
+      "$ref": "#/$defs/Progression"
+    },
+    "rarity": {
+      "$ref": "#/$defs/Rarity"
+    },
+    "story_quests": {
+      "additionalProperties": {
+        "items": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": "array"
+      },
+      "description": "Main quest giver -> its quests, marked completed for everyone (the client's teleport\nwindows and map markers need them).",
+      "type": "object"
+    }
+  },
+  "required": ["combat", "loot", "npc", "progression", "npc_life", "rarity", "minifigure_model", "story_quests"],
+  "title": "Tunables",
+  "type": "object"
+}

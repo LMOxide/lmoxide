@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-first-encounter",
+  "name": "BossExitVisualClosed_First_Encounter",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_First_Encounter",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

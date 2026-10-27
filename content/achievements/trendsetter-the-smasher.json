@@ -1,0 +1,16 @@
+{
+  "id": "achievement/trendsetter-the-smasher",
+  "lore": 3508,
+  "parent": "achievement/trendsetter",
+  "client_name": "Trendsetter_Smash 500 Smashies",
+  "title": "Trendsetter, the Smasher",
+  "text": "Smash 500 smashies as Trendsetter.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/trendsetter",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

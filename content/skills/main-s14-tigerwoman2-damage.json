@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-s14-tigerwoman2-damage",
+  "name": "main s14 tigerwoman2 damage",
+  "client": {
+    "spell": 641795,
+    "stats": {
+      "EffectPackage": 657332,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.75,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

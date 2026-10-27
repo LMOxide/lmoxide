@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-alien-avenger",
+  "lore": 2706,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Upgrade 3",
+  "title": "Novice Alien Avenger",
+  "text": "Get the third Alien Avenger upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/alien-avenger",
+  "n": 3,
+  "source": "client"
+}

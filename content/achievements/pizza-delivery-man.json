@@ -1,0 +1,29 @@
+{
+  "id": "achievement/pizza-delivery-man",
+  "lore": 2505,
+  "parent": "achievement/series-12",
+  "client_name": "Pizza Delivery Man",
+  "title": "Pizza Delivery Man",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-pizza-delivery-man",
+    "achievement/legendary-pizza-delivery-man",
+    "achievement/novice-pizza-delivery-man",
+    "achievement/expert-pizza-delivery-man",
+    "achievement/pizza-delivery-man-natives-hollow",
+    "achievement/pizza-delivery-man-ancient-ruins",
+    "achievement/pizza-delivery-man-treasure-island",
+    "achievement/pizza-delivery-man-karna-itta",
+    "achievement/pizza-delivery-man-megamind",
+    "achievement/pizza-delivery-man-lord-minos-the-lich",
+    "achievement/pizza-delivery-man-the-striker",
+    "achievement/pizza-delivery-man-the-master-striker",
+    "achievement/pizza-delivery-man-the-gardener",
+    "achievement/pizza-delivery-man-the-lost-challenger",
+    "achievement/pizza-delivery-man-the-lost-warrior",
+    "achievement/pizza-delivery-man-the-lost-champion"
+  ],
+  "minifigure": "minifig/pizza-delivery-man",
+  "source": "client"
+}

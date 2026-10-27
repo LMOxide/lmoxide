@@ -1,0 +1,13 @@
+{
+  "id": "achievement/evil-mech-minotaur-refuge",
+  "lore": 3007,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Minotaur Refuge",
+  "title": "Evil Mech: Minotaur Refuge",
+  "text": "Conquer the Minotaur Refuge as Evil Mech.",
+  "points": 50,
+  "kind": "target",
+  "target": "Minotaur Refuge",
+  "minifigure": "minifig/evil-mech",
+  "source": "client"
+}

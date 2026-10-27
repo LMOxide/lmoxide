@@ -1,0 +1,134 @@
+{
+  "id": "minifig/animal-control",
+  "name": "Animal Control",
+  "template": 663918,
+  "series": 15,
+  "series_index": 0,
+  "render": {
+    "monster_data": 663902
+  },
+  "stats": {
+    "life": 250,
+    "power": 8,
+    "defense": 3,
+    "creativity": 5,
+    "role": 1,
+    "element": 5
+  },
+  "normal": {
+    "skill": "skill/net-gain",
+    "hits": [
+      {
+        "skill": "skill/main-s15-animalcontrol1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [663934]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/bio-weapon",
+    "hits": [
+      {
+        "skill": "skill/main-s15-animalcontrol2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.7,
+        "damage_type": 1000,
+        "via": [663935, 667254, 667253]
+      }
+    ]
+  },
+  "click_spells": [663934, 663935],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-left-hook"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530254"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-personal-space"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [5074, 5057, 5328, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/animal-control-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/animal-control-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/animal-control-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-animal-control",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-genie-girl",
+  "lore": 3114,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Upgrade 3",
+  "title": "Novice Genie Girl",
+  "text": "Get the third Genie Girl upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/genie-girl",
+  "n": 3,
+  "source": "client"
+}

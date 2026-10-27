@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roller-derby-girl-big-bad-wolf",
+  "lore": 2755,
+  "parent": "achievement/roller-derby-girl",
+  "client_name": "Roller Derby Girl_Big Bad Wolf",
+  "title": "Roller Derby Girl: Big Bad Wolf",
+  "text": "Defeat Big Bad Wolf as Roller Derby Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Big Bad Wolf",
+  "minifigure": "minifig/roller-derby-girl",
+  "source": "client"
+}

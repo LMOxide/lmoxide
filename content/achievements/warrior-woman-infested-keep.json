@@ -1,0 +1,13 @@
+{
+  "id": "achievement/warrior-woman-infested-keep",
+  "lore": 3344,
+  "parent": "achievement/warrior-woman",
+  "client_name": "Warrior Woman_Infested Keep",
+  "title": "Warrior Woman: Infested Keep",
+  "text": "Conquer the Infested Keep as Warrior Woman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Infested Keep",
+  "minifigure": "minifig/warrior-woman",
+  "source": "client"
+}

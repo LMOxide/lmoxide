@@ -1,0 +1,17 @@
+{
+  "id": "npc/dancing-pirate",
+  "name": "Dancing Pirate",
+  "kind": "npc",
+  "render": {
+    "monster_data": 288617,
+    "npc_template": 1092,
+    "look": "pirate_good_a_runningman",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

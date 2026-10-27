@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-s15-janitor2-wrapper",
+  "name": "main s15 janitor2 wrapper",
+  "client": {
+    "spell": 668605,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 668606
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 668607
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Janitor: Mop Slide",
+  "source": "client"
+}

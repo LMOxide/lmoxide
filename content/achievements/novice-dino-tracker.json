@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-dino-tracker",
+  "lore": 3080,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Upgrade 3",
+  "title": "Novice Dino Tracker",
+  "text": "Get the third Dino Tracker upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/dino-tracker",
+  "n": 3,
+  "source": "client"
+}

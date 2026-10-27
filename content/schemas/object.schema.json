@@ -1,0 +1,1019 @@
+{
+  "$defs": {
+    "Action": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "spawn": {
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "$ref": "#/$defs/SpawnAt",
+                  "default": "on_self"
+                },
+                "count": {
+                  "default": 1,
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "lifetime": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Duration"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Gone after this long."
+                },
+                "overrides": {
+                  "description": "Partial template fields for these spawns."
+                },
+                "radius": {
+                  "description": "Spread around the spawn point (m).",
+                  "format": "float",
+                  "type": ["number", "null"]
+                },
+                "template": {
+                  "description": "`npc/...` or `object/...`.",
+                  "type": "string"
+                }
+              },
+              "required": ["template"],
+              "type": "object"
+            }
+          },
+          "required": ["spawn"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "despawn": {
+              "additionalProperties": false,
+              "properties": {
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": ["despawn"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "damage": {
+              "additionalProperties": false,
+              "properties": {
+                "amount": {
+                  "description": "A fixed amount instead.",
+                  "format": "float",
+                  "type": ["number", "null"]
+                },
+                "mod": {
+                  "description": "Share of the attacker's power (the client's AbilityMod).",
+                  "format": "float",
+                  "type": ["number", "null"]
+                },
+                "radius": {
+                  "format": "float",
+                  "type": ["number", "null"]
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                },
+                "type": {
+                  "description": "Damage type: `normal`, `fire`, ... or a client damage type number."
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": ["damage"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "heal": {
+              "additionalProperties": false,
+              "properties": {
+                "amount": {
+                  "$ref": "#/$defs/Ratio",
+                  "description": "Share of maximum health."
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "required": ["amount"],
+              "type": "object"
+            }
+          },
+          "required": ["heal"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "apply_buff": {
+              "additionalProperties": false,
+              "properties": {
+                "amount": {
+                  "description": "Overrides the buff's own `amount`."
+                },
+                "buff": {
+                  "type": "string"
+                },
+                "duration": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Duration"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "stacks": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": ["integer", "null"]
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "required": ["buff"],
+              "type": "object"
+            }
+          },
+          "required": ["apply_buff"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "remove_buff": {
+              "additionalProperties": false,
+              "properties": {
+                "buff": {
+                  "type": "string"
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "required": ["buff"],
+              "type": "object"
+            }
+          },
+          "required": ["remove_buff"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "knockback": {
+              "additionalProperties": false,
+              "properties": {
+                "distance": {
+                  "format": "float",
+                  "type": "number"
+                },
+                "radius": {
+                  "format": "float",
+                  "type": ["number", "null"]
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "required": ["distance"],
+              "type": "object"
+            }
+          },
+          "required": ["knockback"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Shows a client effect package.",
+          "properties": {
+            "effect": {
+              "additionalProperties": false,
+              "properties": {
+                "effect_package": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "required": ["effect_package"],
+              "type": "object"
+            }
+          },
+          "required": ["effect"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "teleport": {
+              "additionalProperties": false,
+              "properties": {
+                "to": {
+                  "$ref": "#/$defs/Destination"
+                }
+              },
+              "required": ["to"],
+              "type": "object"
+            }
+          },
+          "required": ["teleport"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Opens a client teleport window.",
+          "properties": {
+            "open_window": {
+              "additionalProperties": false,
+              "properties": {
+                "window": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": ["window"],
+              "type": "object"
+            }
+          },
+          "required": ["open_window"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "dialogue": {
+              "additionalProperties": false,
+              "properties": {
+                "dialogue": {
+                  "type": "string"
+                }
+              },
+              "required": ["dialogue"],
+              "type": "object"
+            }
+          },
+          "required": ["dialogue"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "message": {
+              "additionalProperties": false,
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": ["text"],
+              "type": "object"
+            }
+          },
+          "required": ["message"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "music": {
+              "additionalProperties": false,
+              "properties": {
+                "track": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "required": ["track"],
+              "type": "object"
+            }
+          },
+          "required": ["music"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Changes an object's state (doors and gates `open`/`closed`, levers, buildies `built`).",
+          "properties": {
+            "set_state": {
+              "additionalProperties": false,
+              "properties": {
+                "state": {
+                  "type": "string"
+                },
+                "target": {
+                  "$ref": "#/$defs/Target"
+                }
+              },
+              "required": ["target", "state"],
+              "type": "object"
+            }
+          },
+          "required": ["set_state"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "start_script": {
+              "additionalProperties": false,
+              "properties": {
+                "script": {
+                  "type": "string"
+                },
+                "wave": {
+                  "type": ["string", "null"]
+                }
+              },
+              "required": ["script"],
+              "type": "object"
+            }
+          },
+          "required": ["start_script"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "end_script": {
+              "additionalProperties": false,
+              "properties": {
+                "script": {
+                  "type": "string"
+                }
+              },
+              "required": ["script"],
+              "type": "object"
+            }
+          },
+          "required": ["end_script"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Counts a location as found (an exploration area's name), for its achievements.",
+          "properties": {
+            "discover": {
+              "additionalProperties": false,
+              "properties": {
+                "achievement": {
+                  "type": ["string", "null"]
+                },
+                "location": {
+                  "type": ["string", "null"]
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": ["discover"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "grant_achievement": {
+              "additionalProperties": false,
+              "properties": {
+                "achievement": {
+                  "type": "string"
+                }
+              },
+              "required": ["achievement"],
+              "type": "object"
+            }
+          },
+          "required": ["grant_achievement"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "One collectible: a collect achievement (`achievement/...`) or a `drop:<name>` key.",
+          "properties": {
+            "collect": {
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                }
+              },
+              "required": ["key"],
+              "type": "object"
+            }
+          },
+          "required": ["collect"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Rolls a loot table where the owner is.",
+          "properties": {
+            "drop": {
+              "additionalProperties": false,
+              "properties": {
+                "loot": {
+                  "type": "string"
+                }
+              },
+              "required": ["loot"],
+              "type": "object"
+            }
+          },
+          "required": ["drop"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "give_item": {
+              "additionalProperties": false,
+              "properties": {
+                "count": {
+                  "default": 1,
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "item": {
+                  "type": "string"
+                }
+              },
+              "required": ["item"],
+              "type": "object"
+            }
+          },
+          "required": ["give_item"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "cinematic": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": ["name"],
+              "type": "object"
+            }
+          },
+          "required": ["cinematic"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "A server command with arguments (the server lists what it knows).",
+          "properties": {
+            "command": {
+              "additionalProperties": false,
+              "properties": {
+                "args": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": ["name"],
+              "type": "object"
+            }
+          },
+          "required": ["command"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Not known yet: what it should do goes in `comment`.",
+          "properties": {
+            "other": {
+              "additionalProperties": false,
+              "properties": {
+                "comment": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": ["other"],
+          "type": "object"
+        }
+      ]
+    },
+    "Build": {
+      "additionalProperties": false,
+      "properties": {
+        "built_visual": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "hide_after": {
+          "description": "Gone once built (bouncers show their pad instead).",
+          "type": "boolean"
+        },
+        "points": {
+          "description": "Build points needed (the client's max health of the buildie).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Duration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Destination": {
+      "additionalProperties": false,
+      "description": "Where a portal, trigger or teleport takes a player.",
+      "properties": {
+        "args": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "command": {
+          "description": "A server command instead of a place, e.g. `lost_creations.advance` (the server lists its\ncommands and their arguments).",
+          "type": ["string", "null"]
+        },
+        "point": {
+          "description": "A named arrival point of that world (`arrival_from` key or respawn point name).",
+          "type": ["string", "null"]
+        },
+        "pos": {
+          "description": "An exact position (instead of a point).",
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": ["array", "null"]
+        },
+        "prompt": {
+          "description": "Ask first (\"Do you want to travel to X?\").",
+          "type": ["string", "null"]
+        },
+        "world": {
+          "description": "The world (`world/...`); none: the same world.",
+          "type": ["string", "null"]
+        }
+      },
+      "type": "object"
+    },
+    "Duration": {
+      "anyOf": [
+        {
+          "pattern": "^\\s*-?[0-9.]+\\s*(ms|s|m|h)?\\s*$",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "A length of time: \"1.5s\", \"200ms\", \"2m\", \"1h\", or a number of seconds"
+    },
+    "Launch": {
+      "additionalProperties": false,
+      "properties": {
+        "animation": {
+          "type": ["string", "null"]
+        },
+        "apex": {
+          "format": "float",
+          "type": ["number", "null"]
+        },
+        "effect": {
+          "description": "The effect players get when thrown.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        }
+      },
+      "type": "object"
+    },
+    "ObjectClient": {
+      "additionalProperties": false,
+      "description": "Client object details sent as they are (buildies' recorded spawn data).",
+      "properties": {
+        "bounds": {
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 6,
+          "minItems": 6,
+          "type": ["array", "null"]
+        },
+        "destructible": true,
+        "display_name": {
+          "type": ["string", "null"]
+        },
+        "dynel_type": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "loot_table": {
+          "description": "The client's own loot table id (its loot isn't in the client).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "particles": {
+          "items": {
+            "items": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "tail": true
+      },
+      "type": "object"
+    },
+    "ObjectKind": {
+      "enum": ["smashable", "buildie", "bouncer", "door", "interactable", "scenery"],
+      "type": "string"
+    },
+    "Ratio": {
+      "anyOf": [
+        {
+          "pattern": "^\\s*-?[0-9.]+\\s*%\\s*$",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "A share: \"20%\" or a fraction (0.2)"
+    },
+    "Render": {
+      "additionalProperties": false,
+      "description": "How a template looks in the client.",
+      "properties": {
+        "cars_group": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "effect_package": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "look": {
+          "description": "The look's name, for reading.",
+          "type": ["string", "null"]
+        },
+        "monster_data": {
+          "description": "The look: client monster data (RDB 1010514).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "npc_template": {
+          "description": "Client NPC template (TDB 51000 name).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "scale": {
+          "format": "float",
+          "type": ["number", "null"]
+        },
+        "template": {
+          "description": "Client item template (smashables, buildies, chests, ...).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "visual": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": ["array", "null"]
+        }
+      },
+      "type": "object"
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    },
+    "SpawnAt": {
+      "description": "Where spawned things appear.",
+      "oneOf": [
+        {
+          "enum": ["on_self", "on_target", "around_self", "around_target"],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "description": "A random point in an area (`area/...`).",
+          "properties": {
+            "in_area": {
+              "type": "string"
+            }
+          },
+          "required": ["in_area"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "at": {
+              "items": {
+                "format": "float",
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            }
+          },
+          "required": ["at"],
+          "type": "object"
+        }
+      ]
+    },
+    "Target": {
+      "description": "Who or what an action acts on. Default: whoever the action's owner aims at (the skill's\ntarget, the player who set the trigger off, the defeated enemy ...).",
+      "oneOf": [
+        {
+          "const": "target",
+          "description": "The action's own target (default).",
+          "type": "string"
+        },
+        {
+          "const": "self",
+          "description": "Whoever owns the action (the caster, the buff's holder, the trigger, the object).",
+          "type": "string"
+        },
+        {
+          "const": "trigger_player",
+          "description": "The player who set it off (triggers, scripts).",
+          "type": "string"
+        },
+        {
+          "const": "team",
+          "description": "The player's team on the same playfield.",
+          "type": "string"
+        },
+        {
+          "const": "all_in_area",
+          "description": "Everyone in the area of the trigger or script.",
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "description": "One placement or object by id (`spawn/4200/gate-north`).",
+          "properties": {
+            "placement": {
+              "type": "string"
+            }
+          },
+          "required": ["placement"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "Every placement with this tag.",
+          "properties": {
+            "tag": {
+              "type": "string"
+            }
+          },
+          "required": ["tag"],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A kind of object: `objects/<slug>.json`.",
+  "properties": {
+    "author": {
+      "type": "string"
+    },
+    "build": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Build"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "client": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ObjectClient"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "comment": {
+      "type": "string"
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "health": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "id": {
+      "description": "Its id: `object/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/ObjectKind"
+    },
+    "launch": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Launch"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "level": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "loot": {
+      "type": ["string", "null"]
+    },
+    "name": {
+      "type": "string"
+    },
+    "on_built": {
+      "items": {
+        "$ref": "#/$defs/Action"
+      },
+      "type": "array"
+    },
+    "on_smashed": {
+      "items": {
+        "$ref": "#/$defs/Action"
+      },
+      "type": "array"
+    },
+    "on_use": {
+      "items": {
+        "$ref": "#/$defs/Action"
+      },
+      "type": "array"
+    },
+    "render": {
+      "$ref": "#/$defs/Render"
+    },
+    "respawn": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Duration"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "states": {
+      "description": "States it can be in (`open`, `closed`, `built`, ...), the first is where it starts.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": ["id", "kind"],
+  "title": "Object",
+  "type": "object"
+}

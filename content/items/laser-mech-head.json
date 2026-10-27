@@ -1,0 +1,16 @@
+{
+  "id": "item/laser-mech-head",
+  "name": "Laser Mech Head",
+  "kind": "part",
+  "template": 668677,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11512,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/laser-mech",
+  "location": "Head",
+  "source": "client"
+}

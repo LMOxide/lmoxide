@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-fairytaleprincess2-pge",
+  "name": "main fairytaleprincess2 pge",
+  "client": {
+    "spell": 503532,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 40,
+            "Arg2": 5,
+            "EffectPackage": 508328,
+            "NanoTemplate": 503533
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fairytale Princess: Frognado",
+  "source": "client"
+}

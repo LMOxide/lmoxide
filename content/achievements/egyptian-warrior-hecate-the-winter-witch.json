@@ -1,0 +1,13 @@
+{
+  "id": "achievement/egyptian-warrior-hecate-the-winter-witch",
+  "lore": 4013,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Hecate, the Winter Witch",
+  "title": "Egyptian Warrior: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Egyptian Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/egyptian-warrior",
+  "source": "client"
+}

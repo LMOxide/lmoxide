@@ -1,0 +1,13 @@
+{
+  "id": "achievement/policeman-ancient-ruins",
+  "lore": 2769,
+  "parent": "achievement/policeman",
+  "client_name": "Policeman_Ancient Ruins",
+  "title": "Policeman: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Policeman.",
+  "points": 50,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/policeman",
+  "source": "client"
+}

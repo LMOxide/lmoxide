@@ -1,0 +1,16 @@
+{
+  "id": "achievement/galaxy-trooper-the-striker",
+  "lore": 3874,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Smash 1000 Monsters",
+  "title": "Galaxy Trooper, the Striker",
+  "text": "Smash 1000 monsters as Galaxy Trooper.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/galaxy-trooper",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

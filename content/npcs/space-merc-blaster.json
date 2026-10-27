@@ -1,0 +1,22 @@
+{
+  "id": "npc/space-merc-blaster",
+  "name": "Space Merc Blaster",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 388764
+  },
+  "level": 14,
+  "stats": {
+    "health": 1002
+  },
+  "attack": "skill/merc-blaster-shoot-castable",
+  "skills": [
+    {
+      "skill": "skill/merc-blaster-shoot-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

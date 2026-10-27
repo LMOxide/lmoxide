@@ -1,0 +1,16 @@
+{
+  "id": "achievement/monster-scientist-the-master-striker",
+  "lore": 4637,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Smash 10000 Monsters",
+  "title": "Monster Scientist, the Master Striker",
+  "text": "Smash 10000 monsters as Monster Scientist.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/monster-scientist",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

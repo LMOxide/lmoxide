@@ -1,0 +1,13 @@
+{
+  "id": "skill/main-s15-faun2-heal",
+  "name": "main s15 faun2 heal",
+  "client": {
+    "spell": 667242,
+    "stats": {
+      "EffectPackage": 668561,
+      "LuaScriptID": 4582,
+      "TargetingMode": 1
+    }
+  },
+  "source": "client"
+}

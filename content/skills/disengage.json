@@ -1,0 +1,59 @@
+{
+  "id": "skill/disengage",
+  "name": "Disengage",
+  "client": {
+    "spell": 565294,
+    "stats": {
+      "EffectPackage": 580434,
+      "ItemDelay": 40,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 10,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 180,
+            "AngleStart": -90,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 565295,
+            "Radius": 2
+          }
+        },
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 4,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "Value1": 577672,
+            "Value2": 1
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 565294,
+            "Value": 300
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fencer: Disengage",
+  "dash": {
+    "distance": 4.0,
+    "radius": 1.0,
+    "backwards": true,
+    "effect": 577672
+  },
+  "source": "client"
+}

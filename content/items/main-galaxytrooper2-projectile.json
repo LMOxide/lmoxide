@@ -1,0 +1,17 @@
+{
+  "id": "item/main-galaxytrooper2-projectile",
+  "name": "main galaxytrooper2 projectile",
+  "kind": "projectile",
+  "template": 550768,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 550769
+      }
+    }
+  ],
+  "source": "client"
+}

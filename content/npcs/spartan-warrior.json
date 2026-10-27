@@ -1,0 +1,17 @@
+{
+  "id": "npc/spartan-warrior",
+  "name": "Spartan Warrior",
+  "kind": "npc",
+  "render": {
+    "monster_data": 486269,
+    "npc_template": 1823,
+    "look": "spartan_warrior_npc",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

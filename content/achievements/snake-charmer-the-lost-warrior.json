@@ -1,0 +1,13 @@
+{
+  "id": "achievement/snake-charmer-the-lost-warrior",
+  "lore": 3991,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Lost Creations_Get to Level 10",
+  "title": "Snake Charmer, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Snake Charmer.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/snake-charmer",
+  "n": 10,
+  "source": "client"
+}

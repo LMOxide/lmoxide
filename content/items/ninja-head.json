@@ -1,0 +1,16 @@
+{
+  "id": "item/ninja-head",
+  "name": "Ninja Head",
+  "kind": "part",
+  "template": 599503,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10109,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/ninja",
+  "location": "Head",
+  "source": "client"
+}

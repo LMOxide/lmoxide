@@ -1,0 +1,13 @@
+{
+  "id": "achievement/square-foot-mercenary-cave",
+  "lore": 4540,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Mercenary Cave",
+  "title": "Square Foot: Mercenary Cave",
+  "text": "Conquer the Mercenary Cave as Square Foot.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mercenary Cave",
+  "minifigure": "minifig/square-foot",
+  "source": "client"
+}

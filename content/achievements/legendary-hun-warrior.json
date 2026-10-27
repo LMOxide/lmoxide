@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-hun-warrior",
+  "lore": 3139,
+  "parent": "achievement/hun-warrior",
+  "client_name": "Hun Warrior_Complete Any 10",
+  "title": "Legendary Hun Warrior",
+  "text": "Complete any 11 Hun Warrior achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/hun-warrior",
+  "n": 11,
+  "source": "client"
+}

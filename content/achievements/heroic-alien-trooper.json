@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-alien-trooper",
+  "lore": 3758,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Complete Any 5",
+  "title": "Heroic Alien Trooper",
+  "text": "Complete any 5 Alien Trooper achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/alien-trooper",
+  "n": 5,
+  "source": "client"
+}

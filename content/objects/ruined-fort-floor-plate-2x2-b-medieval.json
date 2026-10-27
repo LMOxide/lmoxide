@@ -1,0 +1,10 @@
+{
+  "id": "object/ruined-fort-floor-plate-2x2-b-medieval",
+  "name": "ruined_fort_floor_plate_2x2_b_medieval",
+  "kind": "scenery",
+  "render": {
+    "look": "ruined_fort_floor_plate_2x2_b_medieval",
+    "visual": [1010030, 346166]
+  },
+  "source": "client"
+}

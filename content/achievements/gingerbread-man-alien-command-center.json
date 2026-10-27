@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gingerbread-man-alien-command-center",
+  "lore": 2991,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Alien Command Center",
+  "title": "Gingerbread Man: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Gingerbread Man.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/gingerbread-man",
+  "source": "client"
+}

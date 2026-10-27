@@ -1,0 +1,141 @@
+{
+  "id": "minifig/fortune-teller",
+  "name": "Fortune Teller",
+  "template": 41766,
+  "series": 9,
+  "series_index": 0,
+  "render": {
+    "monster_data": 33015
+  },
+  "stats": {
+    "life": 250,
+    "power": 5,
+    "defense": 6,
+    "creativity": 7,
+    "role": 3,
+    "element": 4
+  },
+  "normal": {
+    "skill": "skill/tarot-fling-tower",
+    "hits": [
+      {
+        "skill": "skill/tarot-fling-tower-204256",
+        "type": "WeaponHit",
+        "ability_mod": 0.65,
+        "damage_type": 1000,
+        "via": [33667, 40499, 204254]
+      },
+      {
+        "skill": "skill/tarot-fling-towers",
+        "type": "WeaponHit",
+        "ability_mod": 0.65,
+        "damage_type": 1000,
+        "via": [33667, 204252]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/wheel-of-fortune",
+    "hits": [
+      {
+        "skill": "skill/the-wheel-of-fortune-212697",
+        "type": "WeaponHit",
+        "ability_mod": 0.75,
+        "damage_type": 1000,
+        "via": [34076, 212666, 212696]
+      }
+    ]
+  },
+  "click_spells": [33667, 34076],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-charge-up"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-escape-artist"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530298"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2629, 2471, 3641, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/fortune-teller-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/fortune-teller-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/fortune-teller-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-fortune-teller",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/medieval-world"],
+    "text": "You can find me in the Medieval World.",
+    "location_text": 232051452,
+    "location_picture": 473028
+  },
+  "source": "client"
+}

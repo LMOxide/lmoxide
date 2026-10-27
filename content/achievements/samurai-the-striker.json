@@ -1,0 +1,16 @@
+{
+  "id": "achievement/samurai-the-striker",
+  "lore": 3959,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Smash 1000 Monsters",
+  "title": "Samurai, the Striker",
+  "text": "Smash 1000 monsters as Samurai.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/samurai",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

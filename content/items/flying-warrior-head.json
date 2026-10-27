@@ -1,0 +1,16 @@
+{
+  "id": "item/flying-warrior-head",
+  "name": "Flying Warrior Head",
+  "kind": "part",
+  "template": 668682,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11507,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/flying-warrior",
+  "location": "Head",
+  "source": "client"
+}

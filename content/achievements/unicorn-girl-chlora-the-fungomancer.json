@@ -1,0 +1,13 @@
+{
+  "id": "achievement/unicorn-girl-chlora-the-fungomancer",
+  "lore": 4001,
+  "parent": "achievement/unicorn-girl",
+  "client_name": "Unicorn Girl_Chlora the Fungomancer",
+  "title": "Unicorn Girl: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Unicorn Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/unicorn-girl",
+  "source": "client"
+}

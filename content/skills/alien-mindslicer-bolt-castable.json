@@ -1,0 +1,31 @@
+{
+  "id": "skill/alien-mindslicer-bolt-castable",
+  "name": "alien mindslicer bolt castable",
+  "client": {
+    "spell": 377027,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 1000,
+      "EffectPackage": 388598,
+      "ItemDelay": 36,
+      "RechargeDelay": 164,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1250,
+            "ItemInstance": 377028,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

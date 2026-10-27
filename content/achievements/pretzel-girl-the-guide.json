@@ -1,0 +1,17 @@
+{
+  "id": "achievement/pretzel-girl-the-guide",
+  "lore": 2899,
+  "parent": "achievement/pretzel-girl",
+  "client_name": "Pretzel Girl_Build 30 Signs",
+  "title": "Pretzel Girl, the Guide",
+  "text": "Build 30 Signs with Pretzel Girl.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/pretzel-girl",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

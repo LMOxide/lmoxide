@@ -1,0 +1,16 @@
+{
+  "id": "item/disco-diva-legs",
+  "name": "Disco Diva Legs",
+  "kind": "part",
+  "template": 576099,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31304,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/disco-diva",
+  "location": "Legs",
+  "source": "client"
+}

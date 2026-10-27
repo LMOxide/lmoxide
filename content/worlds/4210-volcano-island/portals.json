@@ -1,0 +1,58 @@
+{
+  "portals": [
+    {
+      "id": "portal/4210/to-beach-cave",
+      "pos": [109.23, 65.2, 116.92],
+      "window": 46,
+      "to": {
+        "world": "world/beach-cave"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4210/to-wind-shrine",
+      "pos": [176.6, 69.54, 149.64],
+      "window": 47,
+      "to": {
+        "world": "world/wind-shrine"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4210/to-crimson-chamber",
+      "pos": [306.02, 57.57, 423.77],
+      "window": 48,
+      "to": {
+        "world": "world/crimson-chamber"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4210/to-scorched-ruins",
+      "pos": [464.28, 78.57, 388.05],
+      "window": 49,
+      "to": {
+        "world": "world/scorched-ruins"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4210/to-pirate-grotto",
+      "pos": [468.89, 67.1, 479.39],
+      "window": 38,
+      "to": {
+        "world": "world/pirate-grotto"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4210/to-isle-of-yarr",
+      "pos": [68.92, 65.16, 33.0],
+      "window": 37,
+      "to": {
+        "world": "world/isle-of-yarr"
+      },
+      "source": "client"
+    }
+  ]
+}

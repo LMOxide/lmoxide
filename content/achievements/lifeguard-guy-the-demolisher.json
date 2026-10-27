@@ -1,0 +1,17 @@
+{
+  "id": "achievement/lifeguard-guy-the-demolisher",
+  "lore": 3171,
+  "parent": "achievement/lifeguard-guy",
+  "client_name": "Lifeguard Guy_Smash 25 Minotaur Statues",
+  "title": "Lifeguard Guy, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Lifeguard Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/lifeguard-guy",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

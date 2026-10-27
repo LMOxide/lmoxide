@@ -1,0 +1,10 @@
+{
+  "id": "object/tiki-room-skull-forcefield-holder",
+  "name": "Tiki Room Skull Forcefield Holder",
+  "kind": "scenery",
+  "render": {
+    "look": "Tiki Room Skull Forcefield Holder",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

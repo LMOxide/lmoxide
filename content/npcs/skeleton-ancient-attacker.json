@@ -1,0 +1,23 @@
+{
+  "id": "npc/skeleton-ancient-attacker",
+  "name": "Skeleton Ancient Attacker",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 236397
+  },
+  "level": 8,
+  "stats": {
+    "health": 367,
+    "life_factor": 0.8
+  },
+  "attack": "skill/spell-197335",
+  "skills": [
+    {
+      "skill": "skill/strike",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

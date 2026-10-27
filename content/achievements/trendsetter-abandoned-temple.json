@@ -1,0 +1,13 @@
+{
+  "id": "achievement/trendsetter-abandoned-temple",
+  "lore": 3497,
+  "parent": "achievement/trendsetter",
+  "client_name": "Trendsetter_Abandoned Temple",
+  "title": "Trendsetter: Abandoned Temple",
+  "text": "Conquer the Abandoned Temple as Trendsetter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Abandoned Temple",
+  "minifigure": "minifig/trendsetter",
+  "source": "client"
+}

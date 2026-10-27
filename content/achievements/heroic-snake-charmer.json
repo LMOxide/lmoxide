@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-snake-charmer",
+  "lore": 3979,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Complete Any 5",
+  "title": "Heroic Snake Charmer",
+  "text": "Complete any 5 Snake Charmer achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/snake-charmer",
+  "n": 5,
+  "source": "client"
+}

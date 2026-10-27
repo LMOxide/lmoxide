@@ -1,0 +1,13 @@
+{
+  "id": "achievement/barbarian-ridgeback-spitter",
+  "lore": 2875,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Ridgeback Spitter",
+  "title": "Barbarian: Ridgeback Spitter",
+  "text": "Defeat Ridgeback Spitter as Barbarian.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ridgeback Spitter",
+  "minifigure": "minifig/barbarian",
+  "source": "client"
+}

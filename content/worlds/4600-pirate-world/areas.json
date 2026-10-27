@@ -1,0 +1,232 @@
+{
+  "areas": [
+    {
+      "id": "area/4600/cine-guard1",
+      "name": "Cine_Guard1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [116.51, 71.0, 110.44],
+          "rot": -2.851
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-guard2",
+      "name": "Cine_Guard2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [114.56, 71.0, 106.91],
+          "rot": -2.851
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-guard3",
+      "name": "Cine_Guard3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [117.88, 71.0, 105.35],
+          "rot": -2.851
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-officer1",
+      "name": "Cine_Officer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [116.57, 71.0, 109.11],
+          "rot": -2.851
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotoguard1",
+      "name": "Cine_GoToGuard1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [110.24, 71.0, 100.99],
+          "rot": -2.071
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotoguard2",
+      "name": "Cine_GoToGuard2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [108.69, 71.0, 102.16],
+          "rot": -2.324
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotoguard3",
+      "name": "Cine_GoToGuard3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [107.06, 71.0, 102.65],
+          "rot": -2.631
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotoofficer1",
+      "name": "Cine_GoToOfficer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [108.56, 71.0, 100.63],
+          "rot": -2.132
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-camera1",
+      "name": "Cine_Camera1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [109.8, 71.0, 101.94],
+          "rot": -2.851
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotocapture1",
+      "name": "Cine_GoToCapture1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [108.23, 70.82, 98.82],
+          "rot": -1.705
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotocapture2",
+      "name": "Cine_GoToCapture2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [107.02, 70.62, 100.56],
+          "rot": -2.631
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-gotocapture3",
+      "name": "Cine_GoToCapture3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [105.81, 70.82, 100.77],
+          "rot": 3.073
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-oops-player1",
+      "name": "Cine_Oops_Player1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [106.04, 70.0, 98.85],
+          "rot": 0.838
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-playergotoarrival1",
+      "name": "Cine_PlayerGoToArrival1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [109.79, 70.78, 27.76],
+          "rot": 0.565
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-vgggotoarrival1",
+      "name": "Cine_VGGGoToArrival1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [109.3, 70.78, 29.69],
+          "rot": 2.233
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-spawninvispirate1",
+      "name": "Cine_SpawnInvisPirate1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [112.48, 70.8, 32.14],
+          "rot": 1.328
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-vgggototalk1",
+      "name": "Cine_VGGGoToTalk1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [110.2, 70.78, 32.63],
+          "rot": 1.978
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-vgggototalk2",
+      "name": "Cine_VGGGoToTalk2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [109.78, 70.78, 29.95],
+          "rot": 2.832
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4600/cine-vgggototalk3",
+      "name": "Cine_VGGGoToTalk3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [111.39, 70.78, 31.16],
+          "rot": 1.446
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

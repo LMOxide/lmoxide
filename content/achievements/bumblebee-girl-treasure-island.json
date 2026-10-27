@@ -1,0 +1,13 @@
+{
+  "id": "achievement/bumblebee-girl-treasure-island",
+  "lore": 3601,
+  "parent": "achievement/bumblebee-girl",
+  "client_name": "Bumblebee Girl_Treasure Island",
+  "title": "Bumblebee Girl: Treasure Island",
+  "text": "Conquer the Treasure Island as Bumblebee Girl.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/bumblebee-girl",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/genie-girl-korard-mercenary-captain",
+  "lore": 3111,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Korard, Mercenary Captain",
+  "title": "Genie Girl: Korard, Mercenary Captain",
+  "text": "Defeat Korard, Mercenary Captain as Genie Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Korard, Mercenary Captain",
+  "minifigure": "minifig/genie-girl",
+  "source": "client"
+}

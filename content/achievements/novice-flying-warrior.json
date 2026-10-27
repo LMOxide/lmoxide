@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-flying-warrior",
+  "lore": 5176,
+  "parent": "achievement/flying-warrior",
+  "client_name": "Flying Warrior_Upgrade 3",
+  "title": "Novice Flying Warrior",
+  "text": "Get the third Flying Warrior upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/flying-warrior",
+  "n": 3,
+  "source": "client"
+}

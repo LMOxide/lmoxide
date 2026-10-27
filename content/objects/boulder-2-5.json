@@ -1,0 +1,10 @@
+{
+  "id": "object/boulder-2-5",
+  "name": "boulder 2_5",
+  "kind": "scenery",
+  "render": {
+    "look": "boulder 2_5",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

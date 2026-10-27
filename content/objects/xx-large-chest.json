@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-large-chest",
+  "name": "XX_Large Chest",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 153107,
+    "template": 153173,
+    "look": "lego_chest_large_a_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 202
+  },
+  "source": "client"
+}

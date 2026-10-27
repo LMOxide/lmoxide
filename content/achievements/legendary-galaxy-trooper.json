@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-galaxy-trooper",
+  "lore": 3861,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Complete Any 10",
+  "title": "Legendary Galaxy Trooper",
+  "text": "Complete any 11 Galaxy Trooper achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/galaxy-trooper",
+  "n": 11,
+  "source": "client"
+}

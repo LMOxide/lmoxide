@@ -1,0 +1,10 @@
+{
+  "id": "object/pit2-particle",
+  "name": "Pit2 particle",
+  "kind": "scenery",
+  "render": {
+    "look": "Pit2 particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

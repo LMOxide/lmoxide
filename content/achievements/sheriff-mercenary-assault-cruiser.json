@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sheriff-mercenary-assault-cruiser",
+  "lore": 3964,
+  "parent": "achievement/sheriff",
+  "client_name": "Sheriff_Mercenary Assault Cruiser",
+  "title": "Sheriff: Mercenary Assault Cruiser",
+  "text": "Conquer the Mercenary Assault Cruiser as Sheriff.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mercenary Assault Cruiser",
+  "minifigure": "minifig/sheriff",
+  "source": "client"
+}

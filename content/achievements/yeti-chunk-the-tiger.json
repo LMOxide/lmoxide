@@ -1,0 +1,13 @@
+{
+  "id": "achievement/yeti-chunk-the-tiger",
+  "lore": 3043,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Chunk the Tiger",
+  "title": "Yeti: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Yeti.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/yeti",
+  "source": "client"
+}

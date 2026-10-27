@@ -1,0 +1,24 @@
+{
+  "id": "region/pirate-world",
+  "name": "Pirate World",
+  "worlds": [
+    "world/tutorial",
+    "world/dragoon-dwelling",
+    "world/crimson-chamber",
+    "world/natives-hollow",
+    "world/beach-cave",
+    "world/monkey-cave",
+    "world/wind-shrine",
+    "world/jacket-cellar",
+    "world/scorched-ruins",
+    "world/isle-of-yarr",
+    "world/volcano-island",
+    "world/pirate-trials",
+    "world/pirate-grotto",
+    "world/treasure-island",
+    "world/pirate-world",
+    "world/jail",
+    "world/pirate-storage"
+  ],
+  "source": "client"
+}

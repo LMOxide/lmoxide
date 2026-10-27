@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-wagon",
+  "name": "XX_Wagon",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 160045,
+    "template": 160068,
+    "look": "lego_wagon_b_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 201
+  },
+  "source": "client"
+}

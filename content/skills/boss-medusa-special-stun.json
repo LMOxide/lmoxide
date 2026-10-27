@@ -1,0 +1,24 @@
+{
+  "id": "skill/boss-medusa-special-stun",
+  "name": "boss medusa special stun",
+  "client": {
+    "spell": 488283,
+    "stats": {
+      "EffectPackage": 3985,
+      "TargetingMode": 5,
+      "TimeExist": 150
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Stun",
+          "client": true,
+          "args": {
+            "ApplyOn": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

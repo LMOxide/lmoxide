@@ -1,0 +1,12 @@
+{
+  "id": "world/funhouse-dungeon-2-dark-hunt-sound",
+  "name": "Funhouse - Dungeon_2_dark_hunt - Sound",
+  "playfield": 8072,
+  "kind": "other",
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "npc/crooked-tooth-brute",
+  "name": "Crooked Tooth Brute",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 157082,
+    "npc_template": 2897,
+    "look": "ogre_green",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 2463,
+    "life_factor": 1.85
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

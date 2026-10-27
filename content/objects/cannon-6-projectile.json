@@ -1,0 +1,10 @@
+{
+  "id": "object/cannon-6-projectile",
+  "name": "cannon 6 projectile",
+  "kind": "scenery",
+  "render": {
+    "look": "cannon 6 projectile",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

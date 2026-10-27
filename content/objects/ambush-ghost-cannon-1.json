@@ -1,0 +1,10 @@
+{
+  "id": "object/ambush-ghost-cannon-1",
+  "name": "Ambush Ghost Cannon 1",
+  "kind": "scenery",
+  "render": {
+    "look": "Ambush Ghost Cannon 1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

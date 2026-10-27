@@ -1,0 +1,32 @@
+{
+  "id": "skill/psychlops-32478",
+  "name": "Psychlops",
+  "client": {
+    "spell": 32478,
+    "stats": {
+      "EffectPackage": 24207,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 32463,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Cyclops: Psychlops",
+  "source": "client"
+}

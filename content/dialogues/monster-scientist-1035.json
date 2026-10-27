@@ -1,0 +1,11 @@
+{
+  "id": "dialogue/monster-scientist-1035",
+  "name": "Monster Scientist",
+  "texts": [1035, 1037, 1039, 1040, 1036],
+  "world": "world/monster-laboratory",
+  "npc_name": 2969,
+  "npc": "Monster Scientist",
+  "start": "server",
+  "pos": [241.6528, 42.0, 280.1072],
+  "source": "live"
+}

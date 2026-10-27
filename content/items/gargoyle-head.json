@@ -1,0 +1,16 @@
+{
+  "id": "item/gargoyle-head",
+  "name": "Gargoyle  Head",
+  "kind": "part",
+  "template": 662043,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11404,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/gargoyle",
+  "location": "Head",
+  "source": "client"
+}

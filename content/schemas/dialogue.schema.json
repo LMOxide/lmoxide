@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "An NPC dialogue: `dialogues/<slug>.json`. Its lines are client text ids (`texts.json`).",
+  "properties": {
+    "author": {
+      "type": "string"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "follows": true,
+    "id": {
+      "description": "Its id: `dialogue/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "npc": {
+      "type": ["string", "null"]
+    },
+    "npc_name": {
+      "description": "Who speaks: the client's name text id and the name.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "pos": {
+      "items": {
+        "format": "float",
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": ["array", "null"]
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "seen_live": {
+      "type": "boolean"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "start": {
+      "description": "Where it starts by itself (proximity)."
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "texts": {
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "world": {
+      "type": ["string", "null"]
+    }
+  },
+  "required": ["id", "texts"],
+  "title": "Dialogue",
+  "type": "object"
+}

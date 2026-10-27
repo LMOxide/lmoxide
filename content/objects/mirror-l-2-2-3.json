@@ -1,0 +1,10 @@
+{
+  "id": "object/mirror-l-2-2-3",
+  "name": "mirror L.2.2 +",
+  "kind": "scenery",
+  "render": {
+    "look": "mirror L.2.2 +",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/frightening-knight-the-lost-challenger",
+  "lore": 5194,
+  "parent": "achievement/frightening-knight",
+  "client_name": "Frightening Knight_Lost Creations_Get to Level 5",
+  "title": "Frightening Knight, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Frightening Knight.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/frightening-knight",
+  "n": 5,
+  "source": "client"
+}

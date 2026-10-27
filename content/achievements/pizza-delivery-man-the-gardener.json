@@ -1,0 +1,17 @@
+{
+  "id": "achievement/pizza-delivery-man-the-gardener",
+  "lore": 3205,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Smash 50 Triffids",
+  "title": "Pizza Delivery Man the Gardener",
+  "text": "Smash 50 Monster Plants as Pizza Delivery Man.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/pizza-delivery-man",
+  "counts": {
+    "match": "Triffid",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

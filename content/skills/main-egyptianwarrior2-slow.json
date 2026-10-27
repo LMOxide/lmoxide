@@ -1,0 +1,34 @@
+{
+  "id": "skill/main-egyptianwarrior2-slow",
+  "name": "main egyptianwarrior2 slow",
+  "client": {
+    "spell": 566633,
+    "stats": {
+      "EffectPackage": 637104,
+      "TargetingMode": 5,
+      "TimeExist": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.6000000238418579
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

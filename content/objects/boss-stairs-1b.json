@@ -1,0 +1,10 @@
+{
+  "id": "object/boss-stairs-1b",
+  "name": "boss stairs 1b",
+  "kind": "scenery",
+  "render": {
+    "look": "boss stairs 1b",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

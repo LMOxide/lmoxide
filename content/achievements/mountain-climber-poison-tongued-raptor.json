@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mountain-climber-poison-tongued-raptor",
+  "lore": 2823,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Poison-tongued Raptor",
+  "title": "Mountain Climber: Poison-tongued Raptor",
+  "text": "Defeat Poison-tongued Raptor as Mountain Climber.",
+  "points": 25,
+  "kind": "target",
+  "target": "Poison-tongued Raptor",
+  "minifigure": "minifig/mountain-climber",
+  "source": "client"
+}

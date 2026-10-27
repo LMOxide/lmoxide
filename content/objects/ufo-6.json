@@ -1,0 +1,10 @@
+{
+  "id": "object/ufo-6",
+  "name": "ufo 6",
+  "kind": "scenery",
+  "render": {
+    "look": "ufo 6",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

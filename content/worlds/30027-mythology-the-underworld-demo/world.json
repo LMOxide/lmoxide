@@ -1,0 +1,68 @@
+{
+  "id": "world/mythology-the-underworld-demo",
+  "name": "Mythology - The Underworld Demo",
+  "playfield": 30027,
+  "kind": "other",
+  "arrival": {
+    "pos": [212.45, 84.5, 323.9],
+    "rot": 4.712
+  },
+  "arrival_guid": 212071,
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 212071,
+      "pos": [212.45, 84.5, 323.9],
+      "rot": 4.712,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Hades",
+      "guid": 212072,
+      "pos": [347.24, 20.13, 318.46],
+      "rot": 3.944,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boatman",
+      "guid": 212073,
+      "pos": [174.06, 53.04, 157.85],
+      "rot": 4.712,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_HarpyStatues",
+      "guid": 212094,
+      "pos": [159.95, 64.5, 308.33],
+      "rot": 1.606,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Passage",
+      "guid": 212095,
+      "pos": [103.86, 62.25, 273.93],
+      "rot": 0.015,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Bridge",
+      "guid": 212096,
+      "pos": [153.2, 65.36, 230.93],
+      "rot": 5.671,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

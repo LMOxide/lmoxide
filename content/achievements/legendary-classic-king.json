@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-classic-king",
+  "lore": 3793,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Complete Any 10",
+  "title": "Legendary Classic King",
+  "text": "Complete any 11 Classic King achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/classic-king",
+  "n": 11,
+  "source": "client"
+}

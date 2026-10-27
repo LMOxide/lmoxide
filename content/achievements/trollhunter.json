@@ -1,0 +1,12 @@
+{
+  "id": "achievement/trollhunter",
+  "lore": 770,
+  "parent": "achievement/trial-by-combat",
+  "client_name": "Medieval_Combat_Champion_Skram Gatecrasher",
+  "title": "Trollhunter",
+  "text": "Defeat Skram Gatecrasher in the Medieval World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Skram Gatecrasher",
+  "source": "client"
+}

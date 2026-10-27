@@ -1,0 +1,17 @@
+{
+  "id": "achievement/banshee-the-machinist",
+  "lore": 4417,
+  "parent": "achievement/banshee",
+  "client_name": "Banshee_Smash 50 Alien Machines",
+  "title": "Banshee, the Machinist",
+  "text": "Smash 50 Alien Machines as Banshee.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/banshee",
+  "counts": {
+    "match": "Alien Machine",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

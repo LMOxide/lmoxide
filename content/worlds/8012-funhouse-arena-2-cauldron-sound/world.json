@@ -1,0 +1,12 @@
+{
+  "id": "world/funhouse-arena-2-cauldron-sound",
+  "name": "Funhouse - arena_2_cauldron - Sound",
+  "playfield": 8012,
+  "kind": "other",
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

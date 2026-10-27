@@ -1,0 +1,13 @@
+{
+  "id": "achievement/smashiophobe",
+  "lore": 3646,
+  "parent": "achievement/global",
+  "client_name": "Global_Smash 5000 Smashies",
+  "title": "Smashiophobe",
+  "text": "Smash 5000 Smashies.",
+  "points": 50,
+  "kind": "counter",
+  "stars": 500,
+  "counter": [3000126, 5000],
+  "source": "client"
+}

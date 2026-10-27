@@ -1,0 +1,18 @@
+{
+  "id": "item/alien-ranger-shot-projectile",
+  "name": "alien ranger shot projectile",
+  "kind": "projectile",
+  "template": 376931,
+  "effect_package": 389422,
+  "radius": 1.0,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 376932
+      }
+    }
+  ],
+  "source": "client"
+}

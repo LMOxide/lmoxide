@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-square-foot",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 642206,
+  "minifigure": "minifig/square-foot",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "E5PT"
+      }
+    }
+  ],
+  "source": "client"
+}

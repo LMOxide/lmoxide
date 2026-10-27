@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-cyclops",
+  "lore": 2655,
+  "parent": "achievement/cyclops",
+  "client_name": "Cyclops_Upgrade 3",
+  "title": "Novice Cyclops",
+  "text": "Get the third Cyclops upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/cyclops",
+  "n": 3,
+  "source": "client"
+}

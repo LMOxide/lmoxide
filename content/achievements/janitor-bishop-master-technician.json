@@ -1,0 +1,13 @@
+{
+  "id": "achievement/janitor-bishop-master-technician",
+  "lore": 5205,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Bishop, Master Technician",
+  "title": "Janitor: Bishop, Master Technician",
+  "text": "Defeat Bishop, Master Technician as Janitor.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bishop, Master Technician",
+  "minifigure": "minifig/janitor",
+  "source": "client"
+}

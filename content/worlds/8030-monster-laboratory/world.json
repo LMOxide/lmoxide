@@ -1,0 +1,19 @@
+{
+  "id": "world/monster-laboratory",
+  "name": "Monster Laboratory",
+  "playfield": 8030,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [204.48, 42.88, 280.55],
+    "rot": 0.0
+  },
+  "arrival_mode": "capture",
+  "arrival_from": {
+    "world/lego-center": {
+      "pos": [272.69, 43.42, 284.63],
+      "rot": 5.76
+    }
+  },
+  "source": "client",
+  "comment": "spawns the live server sent (tools/re/live_playfield.py); proposed ones only where the player never came within 40 m (visits 1, seen radius 40.0 m)"
+}

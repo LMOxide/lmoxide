@@ -1,0 +1,23 @@
+{
+  "id": "world/xx-johnw-test-playfield-4",
+  "name": "XX_Johnw Test Playfield 4",
+  "playfield": 30024,
+  "kind": "other",
+  "arrival": {
+    "pos": [139.75, 36.0, 81.97],
+    "rot": 0.0
+  },
+  "arrival_guid": 113536,
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 113536,
+      "pos": [139.75, 36.0, 81.97],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

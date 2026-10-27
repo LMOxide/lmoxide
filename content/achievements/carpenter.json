@@ -1,0 +1,29 @@
+{
+  "id": "achievement/carpenter",
+  "lore": 3743,
+  "parent": "achievement/series-13",
+  "client_name": "Carpenter",
+  "title": "Carpenter",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-carpenter",
+    "achievement/legendary-carpenter",
+    "achievement/novice-carpenter",
+    "achievement/expert-carpenter",
+    "achievement/carpenter-spider-s-nest",
+    "achievement/carpenter-mercenary-cave",
+    "achievement/carpenter-dragon-halls",
+    "achievement/carpenter-chunk-the-tiger",
+    "achievement/carpenter-the-triffid",
+    "achievement/carpenter-roar-the-gladiator",
+    "achievement/carpenter-the-builder",
+    "achievement/carpenter-the-master-builder",
+    "achievement/carpenter-the-speed-freak",
+    "achievement/carpenter-the-lost-challenger",
+    "achievement/carpenter-the-lost-warrior",
+    "achievement/carpenter-the-lost-champion"
+  ],
+  "minifigure": "minifig/carpenter",
+  "source": "client"
+}

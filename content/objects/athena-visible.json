@@ -1,0 +1,10 @@
+{
+  "id": "object/athena-visible",
+  "name": "athena visible",
+  "kind": "scenery",
+  "render": {
+    "look": "athena visible",
+    "visual": [1010030, 492226]
+  },
+  "source": "client"
+}

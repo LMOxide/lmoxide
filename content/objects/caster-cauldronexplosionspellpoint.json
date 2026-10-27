@@ -1,0 +1,10 @@
+{
+  "id": "object/caster-cauldronexplosionspellpoint",
+  "name": "caster_CauldronExplosionSpellPoint",
+  "kind": "scenery",
+  "render": {
+    "look": "caster_CauldronExplosionSpellPoint",
+    "visual": [1010030, 465834]
+  },
+  "source": "client"
+}

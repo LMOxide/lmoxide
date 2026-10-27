@@ -1,0 +1,38 @@
+{
+  "id": "skill/monstrous-roots",
+  "name": "Monstrous Roots",
+  "client": {
+    "spell": 641624,
+    "stats": {
+      "EffectPackage": 643086,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 100,
+            "Arg2": 5,
+            "EffectPackage": 643083,
+            "NanoTemplate": 642250
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641624,
+            "Value": 200
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Plant Monster: Monstrous Roots",
+  "source": "client"
+}

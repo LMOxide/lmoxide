@@ -1,0 +1,10 @@
+{
+  "id": "object/alien-props-alarm-a-on-space",
+  "name": "alien_props_alarm_a_on_space",
+  "kind": "scenery",
+  "render": {
+    "look": "alien_props_alarm_a_on_space",
+    "visual": [1010201, 388082]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/librarian-the-lost-challenger",
+  "lore": 3421,
+  "parent": "achievement/librarian",
+  "client_name": "Librarian_Lost Creations_Get to Level 5",
+  "title": "Librarian, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Librarian.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/librarian",
+  "n": 5,
+  "source": "client"
+}

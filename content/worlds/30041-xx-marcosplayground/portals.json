@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/30041/to-xx-marcosplayground",
+      "pos": [257.18, 0.0, 228.52],
+      "window": 73,
+      "to": {
+        "world": "world/xx-marcosplayground"
+      },
+      "source": "client"
+    }
+  ]
+}

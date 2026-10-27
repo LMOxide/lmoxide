@@ -1,0 +1,13 @@
+{
+  "id": "achievement/barbarian-the-lost-challenger",
+  "lore": 2879,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Lost Creations_Get to Level 5",
+  "title": "Barbarian, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Barbarian.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/barbarian",
+  "n": 5,
+  "source": "client"
+}

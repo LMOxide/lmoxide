@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-good-and-evil-maggut-the-beast-tamer",
+  "lore": 2535,
+  "parent": "achievement/mr-good-and-evil",
+  "client_name": "Mr. Good and Evil_Maggut the Beast Tamer",
+  "title": "Mr. Good and Evil: Maggut the Beast Tamer",
+  "text": "Defeat Maggut the Beast Tamer as Mr. Good and Evil.",
+  "points": 25,
+  "kind": "target",
+  "target": "Maggut the Beast Tamer",
+  "minifigure": "minifig/mr-good-and-evil",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-dino-tracker",
+  "lore": 3081,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Upgrade 7",
+  "title": "Expert Dino Tracker",
+  "text": "Get the seventh Dino Tracker upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/dino-tracker",
+  "n": 7,
+  "source": "client"
+}

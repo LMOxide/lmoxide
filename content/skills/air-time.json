@@ -1,0 +1,12 @@
+{
+  "id": "skill/air-time",
+  "name": "Air Time",
+  "client": {
+    "spell": 595462,
+    "stats": {
+      "LuaScriptID": 3822
+    }
+  },
+  "minifigure": "Skater Girl: Air Time",
+  "source": "client"
+}

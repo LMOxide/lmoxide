@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-yeti2-explosion-wrapper",
+  "name": "main yeti2 explosion wrapper",
+  "client": {
+    "spell": 500758,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 500775
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 500776
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Yeti: Ice Slide",
+  "source": "client"
+}

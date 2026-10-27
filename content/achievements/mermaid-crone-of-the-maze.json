@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mermaid-crone-of-the-maze",
+  "lore": 2552,
+  "parent": "achievement/mermaid",
+  "client_name": "Mermaid_Crone of the Maze",
+  "title": "Mermaid: Crone of the Maze",
+  "text": "Defeat Crone of the Maze as Mermaid.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crone of the Maze",
+  "minifigure": "minifig/mermaid",
+  "source": "client"
+}

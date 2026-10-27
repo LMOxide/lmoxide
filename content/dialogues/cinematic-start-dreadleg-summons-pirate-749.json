@@ -1,0 +1,10 @@
+{
+  "id": "dialogue/cinematic-start-dreadleg-summons-pirate-749",
+  "name": "Cinematic Start Dreadleg Summons Pirate",
+  "texts": [749, 750, 752, 751],
+  "world": "world/tutorial",
+  "npc_name": 2625,
+  "npc": "Cinematic Start Dreadleg Summons Pirate",
+  "seen_live": true,
+  "source": "demo"
+}

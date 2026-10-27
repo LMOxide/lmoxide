@@ -1,0 +1,15 @@
+{
+  "id": "world/skyforge-art",
+  "name": "Skyforge - Art",
+  "playfield": 2501,
+  "kind": "other",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [193.5, 47.48, 137.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

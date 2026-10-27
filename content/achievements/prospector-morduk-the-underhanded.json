@@ -1,0 +1,13 @@
+{
+  "id": "achievement/prospector-morduk-the-underhanded",
+  "lore": 3213,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Morduk, the Underhanded",
+  "title": "Prospector: Morduk, the Underhanded",
+  "text": "Defeat Morduk, the Underhanded as Prospector.",
+  "points": 25,
+  "kind": "target",
+  "target": "Morduk, the Underhanded",
+  "minifigure": "minifig/prospector",
+  "source": "client"
+}

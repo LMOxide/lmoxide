@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-graveyard",
+  "name": "BossEntranceVisualOpen_Graveyard",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_Graveyard",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

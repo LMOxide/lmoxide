@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-motorcycle-mechanic",
+  "lore": 3402,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Upgrade 7",
+  "title": "Expert Motorcycle Mechanic",
+  "text": "Get the seventh Motorcycle Mechanic upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "n": 7,
+  "source": "client"
+}

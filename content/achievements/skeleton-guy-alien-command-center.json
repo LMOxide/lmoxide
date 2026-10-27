@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skeleton-guy-alien-command-center",
+  "lore": 4490,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Alien Command Center",
+  "title": "Skeleton Guy: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Skeleton Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/skeleton-guy",
+  "source": "client"
+}

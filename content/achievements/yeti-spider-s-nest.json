@@ -1,0 +1,13 @@
+{
+  "id": "achievement/yeti-spider-s-nest",
+  "lore": 3040,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Spider's Nest",
+  "title": "Yeti: Spider's Nest",
+  "text": "Conquer the Spider's Nest as Yeti.",
+  "points": 25,
+  "kind": "target",
+  "target": "Spider's Nest",
+  "minifigure": "minifig/yeti",
+  "source": "client"
+}

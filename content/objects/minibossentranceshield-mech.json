@@ -1,0 +1,10 @@
+{
+  "id": "object/minibossentranceshield-mech",
+  "name": "MinibossEntranceShield_Mech",
+  "kind": "scenery",
+  "render": {
+    "look": "MinibossEntranceShield_Mech",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

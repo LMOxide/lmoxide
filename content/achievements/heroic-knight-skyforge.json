@@ -1,0 +1,13 @@
+{
+  "id": "achievement/heroic-knight-skyforge",
+  "lore": 2600,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Skyforge",
+  "title": "Heroic Knight: Skyforge",
+  "text": "Conquer the Skyforge as Heroic Knight.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/heroic-knight",
+  "source": "client"
+}

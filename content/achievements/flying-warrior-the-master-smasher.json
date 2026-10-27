@@ -1,0 +1,16 @@
+{
+  "id": "achievement/flying-warrior-the-master-smasher",
+  "lore": 5182,
+  "parent": "achievement/flying-warrior",
+  "client_name": "Flying Warrior_Smash 5000 Smashies",
+  "title": "Flying Warrior, the Master Smasher",
+  "text": "Smash 5000 smashies as Flying Warrior.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/flying-warrior",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

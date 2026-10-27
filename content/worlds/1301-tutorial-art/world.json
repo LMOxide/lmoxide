@@ -1,0 +1,12 @@
+{
+  "id": "world/tutorial-art",
+  "name": "Tutorial - Art",
+  "playfield": 1301,
+  "kind": "other",
+  "arrival": {
+    "pos": [192.0, 31.32, 268.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

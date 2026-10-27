@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-welder",
+  "lore": 2791,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Upgrade 3",
+  "title": "Novice Welder",
+  "text": "Get the third Welder upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/welder",
+  "n": 3,
+  "source": "client"
+}

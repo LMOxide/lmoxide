@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skydiver-cave-of-the-exiled",
+  "lore": 3480,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Cave of the Exiled",
+  "title": "Skydiver: Cave of the Exiled",
+  "text": "Conquer the Cave of the Exiled as Skydiver.",
+  "points": 25,
+  "kind": "target",
+  "target": "Cave of the Exiled",
+  "minifigure": "minifig/skydiver",
+  "source": "client"
+}

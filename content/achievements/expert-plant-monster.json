@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-plant-monster",
+  "lore": 4563,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Upgrade 7",
+  "title": "Expert Plant Monster",
+  "text": "Get the seventh Plant Monster upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/plant-monster",
+  "n": 7,
+  "source": "client"
+}

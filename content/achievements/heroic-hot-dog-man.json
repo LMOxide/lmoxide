@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-hot-dog-man",
+  "lore": 3894,
+  "parent": "achievement/hot-dog-man",
+  "client_name": "Hot Dog Man_Complete Any 5",
+  "title": "Heroic Hot Dog Man",
+  "text": "Complete any 5 Hot Dog Man achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/hot-dog-man",
+  "n": 5,
+  "source": "client"
+}

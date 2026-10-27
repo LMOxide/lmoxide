@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-paleontologist",
+  "lore": 3937,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Upgrade 7",
+  "title": "Expert Paleontologist",
+  "text": "Get the seventh Paleontologist upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/paleontologist",
+  "n": 7,
+  "source": "client"
+}

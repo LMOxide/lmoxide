@@ -1,0 +1,16 @@
+{
+  "id": "item/queen-legs",
+  "name": "Queen Legs",
+  "kind": "part",
+  "template": 668644,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31513,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/queen",
+  "location": "Legs",
+  "source": "client"
+}

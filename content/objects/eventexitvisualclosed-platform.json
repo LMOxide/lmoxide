@@ -1,0 +1,10 @@
+{
+  "id": "object/eventexitvisualclosed-platform",
+  "name": "EventExitVisualClosed_Platform",
+  "kind": "scenery",
+  "render": {
+    "look": "EventExitVisualClosed_Platform",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

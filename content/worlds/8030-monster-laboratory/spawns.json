@@ -1,0 +1,2293 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/8030/giant-spider",
+      "name": "Giant spider",
+      "kind": "enemy",
+      "template": "npc/giant-spider",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crimson-leg-crawler",
+      "name": "Crimson Leg Crawler",
+      "kind": "enemy",
+      "template": "npc/crimson-leg-crawler",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/giant-spider-2",
+      "name": "Giant spider",
+      "kind": "enemy",
+      "template": "npc/giant-spider",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/harpy-raider",
+      "name": "Harpy Raider",
+      "kind": "enemy",
+      "template": "npc/harpy-raider",
+      "pos": [251.85, 42.3, 259.89],
+      "rot": -0.445,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/mantis-nymph",
+      "name": "Mantis Nymph",
+      "kind": "enemy",
+      "template": "npc/mantis-nymph",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/forest-treeman",
+      "name": "Forest Treeman",
+      "kind": "enemy",
+      "template": "npc/forest-treeman",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/skeleton-fighter",
+      "name": "Skeleton Fighter",
+      "kind": "enemy",
+      "template": "npc/skeleton-fighter",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/skeleton-fighter-2",
+      "name": "Skeleton Fighter",
+      "kind": "enemy",
+      "template": "npc/skeleton-fighter",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/shade",
+      "name": "Shade",
+      "kind": "enemy",
+      "template": "npc/shade",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/witch",
+      "name": "Witch",
+      "kind": "enemy",
+      "template": "npc/witch",
+      "pos": [251.04, 42.23, 261.06],
+      "rot": -0.607,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/harpy-raider-2",
+      "name": "Harpy Raider",
+      "kind": "enemy",
+      "template": "npc/harpy-raider",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling",
+      "pos": [220.7, 42.0, 287.98],
+      "rot": 1.727,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/skeleton-axeman",
+      "name": "Skeleton Axeman",
+      "kind": "enemy",
+      "template": "npc/skeleton-axeman",
+      "pos": [251.27, 42.3, 260.72],
+      "rot": -0.607,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crooked-tooth-shaman",
+      "name": "Crooked Tooth Shaman",
+      "kind": "enemy",
+      "template": "npc/crooked-tooth-shaman",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crooked-tooth-shaman-2",
+      "name": "Crooked Tooth Shaman",
+      "kind": "enemy",
+      "template": "npc/crooked-tooth-shaman",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/werewolf",
+      "name": "Werewolf",
+      "kind": "enemy",
+      "template": "npc/werewolf",
+      "pos": [251.12, 42.25, 260.94],
+      "rot": -0.607,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/werewolf-2",
+      "name": "Werewolf",
+      "kind": "enemy",
+      "template": "npc/werewolf",
+      "pos": [254.4, 42.0, 260.09],
+      "rot": -1.212,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargoyle",
+      "name": "Gargoyle",
+      "kind": "enemy",
+      "template": "npc/gargoyle",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargoyle-2",
+      "name": "Gargoyle",
+      "kind": "enemy",
+      "template": "npc/gargoyle",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-monster-scientist",
+      "name": "XX_Monster Scientist",
+      "kind": "npc",
+      "template": "npc/xx-monster-scientist",
+      "pos": [252.17, 43.97, 280.29],
+      "rot": -1.551,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/monster-scientist",
+      "name": "Monster Scientist",
+      "kind": "trigger",
+      "template": "npc/monster-scientist-2",
+      "pos": [212.99, 42.88, 274.78],
+      "rot": -1.608,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/monster-scientist-2",
+      "name": "Monster Scientist",
+      "kind": "trigger",
+      "template": "npc/monster-scientist-3",
+      "pos": [241.65, 42.0, 280.11],
+      "rot": -1.637,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisibledummy",
+      "name": "XX_InvisibleDummy",
+      "kind": "trigger",
+      "template": "npc/xx-invisibledummy",
+      "pos": [214.68, 42.77, 275.07],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "trigger",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor",
+      "pos": [228.68, 42.0, 264.65],
+      "rot": 1.003,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "trigger",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor",
+      "pos": [250.06, 42.0, 265.34],
+      "rot": 1.003,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/t-e-s-l-a-v2-0",
+      "name": "T.E.S.L.A v2.0",
+      "kind": "npc",
+      "template": "npc/t-e-s-l-a-v2-0",
+      "pos": [239.0, 42.3, 279.0],
+      "rot": -1.579,
+      "appeared_at": 120.8688399,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/banshee",
+      "name": "Banshee",
+      "kind": "enemy",
+      "template": "npc/banshee",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 121.074535,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/spectre",
+      "name": "Spectre",
+      "kind": "enemy",
+      "template": "npc/spectre",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 121.0758427,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-funhouse-invis-tesla-overcharge-rapid-fire",
+      "name": "XX_funhouse invis tesla overcharge rapid fire",
+      "kind": "enemy",
+      "template": "npc/xx-funhouse-invis-tesla-overcharge-rapid-fire",
+      "pos": [239.0, 46.9, 278.99],
+      "rot": 0.0,
+      "appeared_at": 121.5198286,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/mantis-nymph-2",
+      "name": "Mantis Nymph",
+      "kind": "enemy",
+      "template": "npc/mantis-nymph-2",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "appeared_at": 123.1929659,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/plant-monster",
+      "name": "Plant Monster",
+      "kind": "enemy",
+      "template": "npc/plant-monster",
+      "pos": [251.85, 42.3, 259.89],
+      "rot": -0.445,
+      "appeared_at": 123.1938768,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/forest-leafling",
+      "name": "Forest Leafling",
+      "kind": "enemy",
+      "template": "npc/forest-leafling",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 123.1949786,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/plant-monster-2",
+      "name": "Plant Monster",
+      "kind": "enemy",
+      "template": "npc/plant-monster",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 123.195876,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-dummy",
+      "name": "XX_Invisible Funhouse Poison Hazard Dummy",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-dummy",
+      "pos": [239.0, 42.3, 279.0],
+      "rot": -1.579,
+      "appeared_at": 123.3921,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-3",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [225.62, 42.0, 275.02],
+      "rot": 1.003,
+      "appeared_at": 123.4978727,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-4",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [245.96, 42.0, 271.5],
+      "rot": 1.003,
+      "appeared_at": 123.5977156,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-5",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [237.29, 42.0, 284.52],
+      "rot": 1.003,
+      "appeared_at": 123.7977106,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-6",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [238.57, 42.0, 261.52],
+      "rot": 1.003,
+      "appeared_at": 123.9973297,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-7",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [239.8, 42.0, 266.98],
+      "rot": 1.003,
+      "appeared_at": 124.097327,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-8",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [243.72, 42.0, 277.15],
+      "rot": 1.003,
+      "appeared_at": 124.1970942,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-9",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [235.43, 42.0, 292.41],
+      "rot": 1.003,
+      "appeared_at": 124.2970058,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-10",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [251.11, 43.07, 281.21],
+      "rot": 1.003,
+      "appeared_at": 124.597398,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/shade-2",
+      "name": "Shade",
+      "kind": "enemy",
+      "template": "npc/shade-2",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 125.514147,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/skeleton-axeman-2",
+      "name": "Skeleton Axeman",
+      "kind": "enemy",
+      "template": "npc/skeleton-axeman-2",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 125.514914,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargoyle-3",
+      "name": "Gargoyle",
+      "kind": "enemy",
+      "template": "npc/gargoyle-2",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "appeared_at": 127.4299132,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/moon-gazer",
+      "name": "Moon Gazer",
+      "kind": "enemy",
+      "template": "npc/moon-gazer",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "appeared_at": 127.4308805,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/moon-gazer-2",
+      "name": "Moon Gazer",
+      "kind": "enemy",
+      "template": "npc/moon-gazer-2",
+      "pos": [251.85, 42.3, 259.89],
+      "rot": -0.445,
+      "appeared_at": 127.4317832,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crooked-tooth-brute",
+      "name": "Crooked Tooth Brute",
+      "kind": "enemy",
+      "template": "npc/crooked-tooth-brute",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 127.4327474,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crooked-tooth-brute-2",
+      "name": "Crooked Tooth Brute",
+      "kind": "enemy",
+      "template": "npc/crooked-tooth-brute",
+      "pos": [225.72, 42.0, 278.04],
+      "rot": 1.189,
+      "appeared_at": 127.4331943,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling-2",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling-2",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 127.4337269,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-11",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [242.78, 42.0, 281.6],
+      "rot": 1.003,
+      "appeared_at": 127.7355006,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-12",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [234.46, 42.0, 269.23],
+      "rot": 1.003,
+      "appeared_at": 127.8352109,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-13",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [246.44, 42.0, 283.16],
+      "rot": 1.003,
+      "appeared_at": 128.0352525,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-14",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [232.7, 42.0, 282.19],
+      "rot": 1.003,
+      "appeared_at": 128.134985,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-15",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [248.53, 42.0, 293.36],
+      "rot": 1.003,
+      "appeared_at": 128.235095,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-16",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [242.88, 42.0, 285.12],
+      "rot": 1.003,
+      "appeared_at": 128.4347989,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-17",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [237.23, 42.0, 296.14],
+      "rot": 1.003,
+      "appeared_at": 128.8357618,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/shade-3",
+      "name": "Shade",
+      "kind": "enemy",
+      "template": "npc/shade-2",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "appeared_at": 129.94876,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/skeleton-axeman-3",
+      "name": "Skeleton Axeman",
+      "kind": "enemy",
+      "template": "npc/skeleton-axeman-2",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "appeared_at": 129.9497612,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/skeleton-fighter-3",
+      "name": "Skeleton Fighter",
+      "kind": "enemy",
+      "template": "npc/skeleton-fighter-2",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 129.953032,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/witch-2",
+      "name": "Witch",
+      "kind": "enemy",
+      "template": "npc/witch-2",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 129.9538677,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/alpha-wolf",
+      "name": "Alpha Wolf",
+      "kind": "enemy",
+      "template": "npc/alpha-wolf",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "appeared_at": 131.6665793,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/grey-wolf",
+      "name": "Grey Wolf",
+      "kind": "enemy",
+      "template": "npc/grey-wolf",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 131.6695742,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/grey-wolf-2",
+      "name": "Grey Wolf",
+      "kind": "enemy",
+      "template": "npc/grey-wolf",
+      "pos": [223.67, 42.0, 269.34],
+      "rot": 1.189,
+      "appeared_at": 131.6695742,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/alpha-wolf-2",
+      "name": "Alpha Wolf",
+      "kind": "enemy",
+      "template": "npc/alpha-wolf",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 131.6707294,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/summoned-wolf",
+      "name": "Summoned Wolf",
+      "kind": "enemy",
+      "template": "npc/summoned-wolf",
+      "pos": [228.37, 42.0, 289.34],
+      "rot": 1.003,
+      "appeared_at": 131.9342699,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-18",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [229.94, 42.0, 278.43],
+      "rot": 1.003,
+      "appeared_at": 131.9726686,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/summoned-wolf-2",
+      "name": "Summoned Wolf",
+      "kind": "enemy",
+      "template": "npc/summoned-wolf",
+      "pos": [245.23, 42.0, 281.63],
+      "rot": 1.003,
+      "appeared_at": 132.1238,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-19",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [249.79, 42.0, 289.08],
+      "rot": 1.003,
+      "appeared_at": 132.2726482,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-20",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [232.45, 44.65, 262.55],
+      "rot": 1.003,
+      "appeared_at": 132.6717909,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-21",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [254.36, 43.97, 276.5],
+      "rot": 1.003,
+      "appeared_at": 132.8720195,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-22",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [253.76, 43.97, 279.78],
+      "rot": 1.003,
+      "appeared_at": 133.0726698,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling-3",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling-2",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "appeared_at": 133.988127,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling-4",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling-2",
+      "pos": [251.85, 42.3, 259.89],
+      "rot": -0.445,
+      "appeared_at": 133.9891623,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling-5",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling-2",
+      "pos": [250.58, 42.0, 262.94],
+      "rot": -0.445,
+      "appeared_at": 133.9891623,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargoyle-4",
+      "name": "Gargoyle",
+      "kind": "enemy",
+      "template": "npc/gargoyle-2",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 133.9901558,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargoyle-5",
+      "name": "Gargoyle",
+      "kind": "enemy",
+      "template": "npc/gargoyle-2",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 133.9911637,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/werewolf-3",
+      "name": "Werewolf",
+      "kind": "enemy",
+      "template": "npc/werewolf-2",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "appeared_at": 135.3020987,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/grey-wolf-3",
+      "name": "Grey Wolf",
+      "kind": "enemy",
+      "template": "npc/grey-wolf",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "appeared_at": 135.30259,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/werewolf-4",
+      "name": "Werewolf",
+      "kind": "enemy",
+      "template": "npc/werewolf-2",
+      "pos": [251.81, 42.3, 267.6],
+      "rot": -1.14,
+      "appeared_at": 135.3035926,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/werewolf-5",
+      "name": "Werewolf",
+      "kind": "enemy",
+      "template": "npc/werewolf-2",
+      "pos": [250.06, 42.0, 270.92],
+      "rot": -1.14,
+      "appeared_at": 135.3041462,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crooked-tooth-ruffian",
+      "name": "Crooked Tooth Ruffian",
+      "kind": "enemy",
+      "template": "npc/crooked-tooth-ruffian",
+      "pos": [251.85, 42.3, 259.89],
+      "rot": -0.445,
+      "appeared_at": 135.3046173,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/alpha-wolf-3",
+      "name": "Alpha Wolf",
+      "kind": "enemy",
+      "template": "npc/alpha-wolf",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 135.3055889,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/crooked-tooth-ruffian-2",
+      "name": "Crooked Tooth Ruffian",
+      "kind": "enemy",
+      "template": "npc/crooked-tooth-ruffian",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 135.3068219,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-23",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [228.98, 42.0, 292.65],
+      "rot": 1.003,
+      "appeared_at": 135.6087507,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/summoned-wolf-3",
+      "name": "Summoned Wolf",
+      "kind": "enemy",
+      "template": "npc/summoned-wolf",
+      "pos": [235.04, 42.0, 274.55],
+      "rot": 1.003,
+      "appeared_at": 135.7138739,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-24",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [242.01, 42.0, 291.92],
+      "rot": 1.003,
+      "appeared_at": 136.0088215,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-25",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [240.28, 42.0, 283.44],
+      "rot": 1.003,
+      "appeared_at": 136.4085292,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-26",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [232.04, 42.0, 275.01],
+      "rot": 1.003,
+      "appeared_at": 136.5078817,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/summoned-wolf-4",
+      "name": "Summoned Wolf",
+      "kind": "enemy",
+      "template": "npc/summoned-wolf",
+      "pos": [235.58, 42.0, 282.11],
+      "rot": 1.003,
+      "appeared_at": 136.7408755,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling-6",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling-2",
+      "pos": [251.83, 42.3, 299.69],
+      "rot": -2.525,
+      "appeared_at": 137.220868,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/ember-hatchling-7",
+      "name": "Ember Hatchling",
+      "kind": "enemy",
+      "template": "npc/ember-hatchling-2",
+      "pos": [251.82, 42.3, 291.99],
+      "rot": -1.823,
+      "appeared_at": 137.2218657,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/harpy-sentinel",
+      "name": "Harpy Sentinel",
+      "kind": "enemy",
+      "template": "npc/harpy-sentinel",
+      "pos": [224.0, 42.25, 273.08],
+      "rot": 1.189,
+      "appeared_at": 137.2248663,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/moon-gazer-3",
+      "name": "Moon Gazer",
+      "kind": "enemy",
+      "template": "npc/moon-gazer",
+      "pos": [224.0, 42.25, 288.0],
+      "rot": 1.727,
+      "appeared_at": 137.2258696,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-dummy-permanent",
+      "name": "XX_Invisible Funhouse Poison Hazard Dummy Permanent",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-dummy-permanent",
+      "pos": [239.0, 42.3, 279.0],
+      "rot": -1.579,
+      "appeared_at": 139.3389123,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/monster-scientist-3",
+      "name": "Monster Scientist",
+      "kind": "enemy",
+      "template": "npc/monster-scientist-4",
+      "pos": [252.13, 43.97, 280.56],
+      "rot": -1.665,
+      "appeared_at": 139.3389123,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargantuan",
+      "name": "Gargantuan",
+      "kind": "enemy",
+      "template": "npc/gargantuan",
+      "pos": [245.38, 42.0, 284.99],
+      "rot": -2.03,
+      "appeared_at": 139.340948,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gargantuan-2",
+      "name": "Gargantuan",
+      "kind": "enemy",
+      "template": "npc/gargantuan",
+      "pos": [245.6, 42.0, 273.71],
+      "rot": -0.977,
+      "appeared_at": 139.3415211,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-27",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [248.78, 42.0, 269.92],
+      "rot": 1.003,
+      "appeared_at": 139.5457197,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-funhouse-poison-hazard-anchor-28",
+      "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+      "kind": "enemy",
+      "template": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+      "pos": [249.77, 42.0, 274.16],
+      "rot": 1.003,
+      "appeared_at": 139.7446697,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-buildie-level-05-1-normal-immune",
+      "name": "XX_Buildie : Level 05 : 1 Normal : Immune",
+      "kind": "buildie",
+      "template": "object/xx-buildie-level-05-1-normal-immune",
+      "pos": [232.24, 41.95, 288.98],
+      "rot": 0.04,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-buildie-level-05-1-normal-immune-2",
+      "name": "XX_Buildie : Level 05 : 1 Normal : Immune",
+      "kind": "buildie",
+      "template": "object/xx-buildie-level-05-1-normal-immune",
+      "pos": [232.4, 41.93, 271.51],
+      "rot": 3.102,
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/gatestartvisual",
+      "name": "GateStartVisual",
+      "kind": "scenery",
+      "template": "object/gatestartvisual",
+      "pos": [216.79, 42.77, 280.21],
+      "rot": [0.0, -0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 656804,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/gatestartshield",
+      "name": "GateStartShield",
+      "kind": "scenery",
+      "template": "object/gatestartshield",
+      "pos": [217.31, 42.77, 280.11],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 656805,
+        "tag": "28EI",
+        "script_group": 4,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/startbutton",
+      "name": "StartButton",
+      "kind": "scenery",
+      "template": "object/red-button-pedestal",
+      "pos": [214.68, 42.77, 275.07],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 656806,
+        "tag": "PTBB",
+        "script_group": -1,
+        "visual": [1010201, 538399],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/jump-target",
+      "name": "Jump Target",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [253.46, 43.93, 280.27],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 658994,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/8030/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [251.26, 42.42, 279.97],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 658996,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/hazard-castpoint",
+      "name": "Hazard Castpoint",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [248.02, 42.44, 273.58],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 663761,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [239.0, 42.3, 279.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660436,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [238.68, 49.05, 279.04],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 659777,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [236.86, 42.0, 274.64],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 663818,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/blue-base-sign-arrow-a-pvp",
+      "name": "blue_base_sign_arrow_a_pvp",
+      "kind": "scenery",
+      "template": "object/blue-base-sign-arrow-a-pvp",
+      "pos": [245.25, 42.0, 285.08],
+      "rot": [0.0, -0.9395, 0.0, 0.3425],
+      "client": {
+        "guid": 663819,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 297770],
+        "bounds": [-1.146, -0.0, -0.25, 0.625, 1.277, 0.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/blue-base-sign-arrow-a-pvp-2",
+      "name": "blue_base_sign_arrow_a_pvp",
+      "kind": "scenery",
+      "template": "object/blue-base-sign-arrow-a-pvp",
+      "pos": [245.48, 42.0, 275.17],
+      "rot": [0.0, 0.9063, 0.0, 0.4226],
+      "client": {
+        "guid": 663820,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 297770],
+        "bounds": [-1.146, -0.0, -0.25, 0.625, 1.277, 0.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/blue-base-sign-arrow-b-pvp",
+      "name": "blue_base_sign_arrow_b_pvp",
+      "kind": "scenery",
+      "template": "object/blue-base-sign-arrow-b-pvp",
+      "pos": [231.6, 42.0, 274.0],
+      "rot": [0.0, 0.9985, 0.0, 0.0552],
+      "client": {
+        "guid": 663821,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 307557],
+        "bounds": [-0.885, -0.0, -0.602, 0.885, 0.15, 0.602]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/blue-base-sign-arrow-b-pvp-2",
+      "name": "blue_base_sign_arrow_b_pvp",
+      "kind": "scenery",
+      "template": "object/blue-base-sign-arrow-b-pvp",
+      "pos": [231.6, 42.0, 285.64],
+      "rot": [0.0, 0.9995, 0.0, -0.0301],
+      "client": {
+        "guid": 663822,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 307557],
+        "bounds": [-0.885, -0.0, -0.602, 0.885, 0.15, 0.602]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/blue-base-sign-arrow-a-pvp-3",
+      "name": "blue_base_sign_arrow_a_pvp",
+      "kind": "scenery",
+      "template": "object/blue-base-sign-arrow-a-pvp",
+      "pos": [246.31, 42.0, 263.07],
+      "rot": [0.0, 0.7046, 0.0, 0.7096],
+      "client": {
+        "guid": 663823,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 297770],
+        "bounds": [-1.146, -0.0, -0.25, 0.625, 1.277, 0.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/blue-base-sign-arrow-a-pvp-4",
+      "name": "blue_base_sign_arrow_a_pvp",
+      "kind": "scenery",
+      "template": "object/blue-base-sign-arrow-a-pvp",
+      "pos": [246.31, 42.0, 296.27],
+      "rot": [0.0, -0.6999, 0.0, 0.7142],
+      "client": {
+        "guid": 663824,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 297770],
+        "bounds": [-1.146, -0.0, -0.25, 0.625, 1.277, 0.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/invisible-monsterdata-4",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [238.96, 43.84, 278.9],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 659755,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-2",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [240.4, 42.31, 282.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 659994,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-3",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [237.61, 42.0, 276.18],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 659996,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-4",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [238.71, 42.3, 278.35],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 659995,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-5",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [241.46, 42.0, 276.96],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 659993,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-6",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [258.41, 44.1, 292.36],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660021,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-7",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [255.98, 42.26, 290.63],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660022,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-8",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [257.1, 45.56, 285.84],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660023,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-9",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [257.87, 43.53, 288.12],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660020,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-10",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [258.41, 44.1, 274.03],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660029,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-11",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [259.68, 44.69, 268.04],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660030,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-12",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [257.87, 43.53, 269.79],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660031,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-13",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [255.98, 42.26, 272.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660032,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-14",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [225.5, 42.48, 262.28],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660043,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-15",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [229.5, 44.0, 264.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660044,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-16",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [231.94, 45.0, 267.58],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660045,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-17",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [230.96, 42.0, 265.47],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660046,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-18",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [231.27, 45.02, 292.75],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660047,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-19",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [224.05, 43.04, 298.22],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660048,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-20",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [235.75, 43.14, 297.45],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660049,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-21",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [230.76, 44.31, 298.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660050,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-22",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [248.68, 42.0, 285.63],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 663877,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-23",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [251.84, 42.4, 299.69],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660117,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-24",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [251.82, 42.4, 291.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660118,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-25",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [251.81, 42.4, 267.6],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660119,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-26",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [251.85, 42.4, 259.89],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660120,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-27",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [223.92, 42.4, 273.09],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 661609,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-28",
+      "name": "empty_monsterdata",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [224.0, 42.4, 288.06],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 661610,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/arrow-1",
+      "name": "Arrow 1",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [232.27, 44.58, 271.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 662104,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/arrow-2",
+      "name": "Arrow 2",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [232.37, 44.75, 289.04],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 662105,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/tesla-coil-objective",
+      "name": "tesla_coil_objective",
+      "kind": "scenery",
+      "template": "object/tesla-coil-objective",
+      "pos": [239.0, 42.3, 279.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 660018,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 659091],
+        "bounds": [-0.75, 0.0, -0.75, 0.753, 5.106, 0.752]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [271.56, 43.66, 279.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 656807,
+        "tag": "----",
+        "script_group": 1,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/8030/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [271.56, 43.66, 279.0],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-3",
+      "pos": [216.79, 42.77, 280.21],
+      "rot": 1.579,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-2",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-6",
+      "pos": [231.6, 42.0, 285.64],
+      "rot": -3.082,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-3",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [231.27, 45.02, 292.75],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-4",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [224.05, 43.04, 298.22],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-5",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [235.75, 43.14, 297.45],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-6",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [230.76, 44.31, 298.46],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-7",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [224.0, 42.4, 288.06],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-8",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [232.37, 44.75, 289.04],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-interactable",
+      "name": "XX_Interactable",
+      "kind": "interactable",
+      "template": "object/red-button-pedestal-2",
+      "pos": [214.68, 42.77, 275.07],
+      "rot": -1.579,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-9",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/invisible-monsterdata-5",
+      "pos": [238.96, 43.84, 278.9],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-10",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [237.61, 42.0, 276.18],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-11",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-6",
+      "pos": [231.6, 42.0, 274.0],
+      "rot": 3.022,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-12",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [225.5, 42.48, 262.28],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-13",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [229.5, 44.0, 264.54],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-14",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [231.94, 45.0, 267.58],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-15",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [223.92, 42.4, 273.09],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/tesla-coil-objective-2",
+      "name": "tesla_coil_objective",
+      "kind": "interactable",
+      "template": "object/tesla-coil-objective-2",
+      "pos": [239.0, 42.3, 279.01],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-16",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [251.85, 42.4, 259.89],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-17",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-7",
+      "pos": [245.25, 42.0, 285.08],
+      "rot": -2.447,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-18",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/invisible-monsterdata-5",
+      "pos": [253.46, 43.93, 280.27],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/jumper",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-wind-fan-a-buildie",
+      "pos": [247.68, 42.0, 281.5],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-19",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-7",
+      "pos": [246.31, 42.0, 296.27],
+      "rot": -1.551,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-20",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [240.4, 42.31, 282.01],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-21",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [258.41, 44.1, 292.36],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-22",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [257.1, 45.56, 285.84],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-23",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [248.68, 42.0, 285.63],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-24",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [251.84, 42.4, 299.69],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-25",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [251.82, 42.4, 291.99],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-26",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-7",
+      "pos": [246.31, 42.0, 263.07],
+      "rot": 1.551,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-27",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/invisible-monsterdata-5",
+      "pos": [248.02, 42.44, 273.58],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/jumper-2",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-wind-fan-a-buildie",
+      "pos": [247.68, 42.0, 277.95],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-28",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [241.46, 42.0, 276.96],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-29",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [258.41, 44.1, 274.03],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-30",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [259.68, 44.69, 268.04],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/xx-invisible-31",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-2",
+      "pos": [251.81, 42.4, 267.6],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/8030/monster-scientist-4",
+      "name": "Monster Scientist",
+      "kind": "actor",
+      "pos": [245.01, 42.0, 279.54],
+      "rot": -1.64,
+      "anchor": "Cine_SpawnScientistWin1",
+      "client": {
+        "item_template": 662149,
+        "ai_point": "Cine_SpawnScientistWin1",
+        "actor_alias": "Scientist",
+        "cinematic": true
+      },
+      "source": "client"
+    }
+  ]
+}

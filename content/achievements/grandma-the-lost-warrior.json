@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandma-the-lost-warrior",
+  "lore": 2982,
+  "parent": "achievement/grandma",
+  "client_name": "Grandma_Lost Creations_Get to Level 10",
+  "title": "Grandma, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Grandma.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/grandma",
+  "n": 10,
+  "source": "client"
+}

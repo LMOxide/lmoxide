@@ -1,0 +1,13 @@
+{
+  "id": "achievement/kendo-fighter-ancient-space-ruins",
+  "lore": 5234,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Ancient Space Ruins",
+  "title": "Kendo Fighter: Ancient Space Ruins",
+  "text": "Conquer the Ancient Space Ruins as Kendo Fighter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Space Ruins",
+  "minifigure": "minifig/kendo-fighter",
+  "source": "client"
+}

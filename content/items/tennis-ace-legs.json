@@ -1,0 +1,16 @@
+{
+  "id": "item/tennis-ace-legs",
+  "name": "Tennis Ace Legs",
+  "kind": "part",
+  "template": 483710,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30715,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/tennis-ace",
+  "location": "Legs",
+  "source": "client"
+}

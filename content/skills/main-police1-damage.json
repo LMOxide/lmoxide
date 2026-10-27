@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-police1-damage",
+  "name": "main police1 damage",
+  "client": {
+    "spell": 300912,
+    "stats": {
+      "EffectPackage": 464764,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1004,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

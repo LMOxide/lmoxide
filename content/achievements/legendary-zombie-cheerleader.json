@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-zombie-cheerleader",
+  "lore": 4436,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Complete Any 10",
+  "title": "Legendary Zombie Cheerleader",
+  "text": "Complete any 11 Zombie Cheerleader achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/zombie-cheerleader",
+  "n": 11,
+  "source": "client"
+}

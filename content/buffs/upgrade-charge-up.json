@@ -1,0 +1,40 @@
+{
+  "id": "buff/upgrade-charge-up",
+  "name": "Upgrade: Charge Up",
+  "nano": 443056,
+  "effects": [
+    {
+      "proc": {
+        "on": "normal_attack",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-charge-up",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "proc": {
+        "on": "special_attack",
+        "then": [
+          {
+            "command": {
+              "name": "upgrade.charge_up_release",
+              "args": {
+                "ability_mods": [0.5, 0.75, 1.0, 1.25, 1.5],
+                "effect_package": 663901,
+                "effect_package_full": 663889,
+                "radius": 3.0,
+                "stacks": [663890, 663891, 663892, 663893, 663894]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

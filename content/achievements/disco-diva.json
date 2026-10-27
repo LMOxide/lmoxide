@@ -1,0 +1,29 @@
+{
+  "id": "achievement/disco-diva",
+  "lore": 3745,
+  "parent": "achievement/series-13",
+  "client_name": "Disco Diva",
+  "title": "Disco Diva",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-disco-diva",
+    "achievement/legendary-disco-diva",
+    "achievement/novice-disco-diva",
+    "achievement/expert-disco-diva",
+    "achievement/disco-diva-natives-hollow",
+    "achievement/disco-diva-ancient-ruins",
+    "achievement/disco-diva-treasure-island",
+    "achievement/disco-diva-karna-itta",
+    "achievement/disco-diva-megamind",
+    "achievement/disco-diva-lord-minos-the-lich",
+    "achievement/disco-diva-the-builder",
+    "achievement/disco-diva-the-master-builder",
+    "achievement/disco-diva-the-speed-freak",
+    "achievement/disco-diva-the-lost-challenger",
+    "achievement/disco-diva-the-lost-warrior",
+    "achievement/disco-diva-the-lost-champion"
+  ],
+  "minifigure": "minifig/disco-diva",
+  "source": "client"
+}

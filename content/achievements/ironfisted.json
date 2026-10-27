@@ -1,0 +1,12 @@
+{
+  "id": "achievement/ironfisted",
+  "lore": 873,
+  "parent": "achievement/iron-will-of-the-gods",
+  "client_name": "Mythology_Combat_Champion_Morduk, the Underhanded",
+  "title": "Ironfisted!",
+  "text": "Defeat Morduk, the Underhanded in Mythology World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Morduk, the Underhanded",
+  "source": "client"
+}

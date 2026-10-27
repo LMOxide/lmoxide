@@ -1,0 +1,65 @@
+{
+  "id": "skill/blaster-storm",
+  "name": "Blaster Storm",
+  "client": {
+    "spell": 550766,
+    "stats": {
+      "ChannelingInterval": 20,
+      "ChannelingTicks": 8,
+      "EffectPackage": 550950,
+      "ItemDelay": 32,
+      "MoreFlags": 1073741824,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 550768,
+            "ProjectileType": 1,
+            "Speed": 2000
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 550768,
+            "ProjectileType": 1,
+            "Speed": 2000
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 550766,
+            "Value": 350
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Galaxy Trooper: Blaster Storm",
+  "range": 12.5,
+  "projectile": {
+    "item": 550768,
+    "speed": 20.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-tribal-woman",
+  "lore": 5305,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Upgrade 7",
+  "title": "Expert Tribal Woman",
+  "text": "Get the seventh Tribal Woman upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/tribal-woman",
+  "n": 7,
+  "source": "client"
+}

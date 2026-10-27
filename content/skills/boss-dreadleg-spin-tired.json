@@ -1,0 +1,22 @@
+{
+  "id": "skill/boss-dreadleg-spin-tired",
+  "name": "boss dreadleg spin tired",
+  "client": {
+    "spell": 609767,
+    "stats": {
+      "EffectPackage": 618351
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Stun",
+          "client": true,
+          "args": {
+            "ApplyOn": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

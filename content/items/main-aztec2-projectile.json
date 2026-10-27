@@ -1,0 +1,24 @@
+{
+  "id": "item/main-aztec2-projectile",
+  "name": "main aztec2 projectile",
+  "kind": "projectile",
+  "template": 50699,
+  "radius": 2.0,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 3996
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 444520
+      }
+    }
+  ],
+  "source": "client"
+}

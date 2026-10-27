@@ -1,0 +1,12 @@
+{
+  "id": "achievement/sneaky-snirk",
+  "lore": 788,
+  "parent": "achievement/space-commander",
+  "client_name": "Space_Combat_Champion_Snirk",
+  "title": "Sneaky Snirk",
+  "text": "Defeat Snirk in the Space World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Snirk",
+  "source": "client"
+}

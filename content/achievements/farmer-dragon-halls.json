@@ -1,0 +1,13 @@
+{
+  "id": "achievement/farmer-dragon-halls",
+  "lore": 5140,
+  "parent": "achievement/farmer",
+  "client_name": "Farmer_Dragon Halls",
+  "title": "Farmer: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Farmer.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/farmer",
+  "source": "client"
+}

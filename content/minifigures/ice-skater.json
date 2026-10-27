@@ -1,0 +1,133 @@
+{
+  "id": "minifig/ice-skater",
+  "name": "Ice Skater",
+  "template": 15200,
+  "series": 4,
+  "series_index": 0,
+  "render": {
+    "monster_data": 15836
+  },
+  "stats": {
+    "life": 250,
+    "power": 7,
+    "defense": 4,
+    "creativity": 6,
+    "role": 1,
+    "element": 4
+  },
+  "normal": {
+    "skill": "skill/aerial",
+    "hits": [
+      {
+        "skill": "skill/aerial-20169",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [14781]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/scratch-spin",
+    "hits": [
+      {
+        "skill": "skill/main-iceskater2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.4,
+        "damage_type": 1000,
+        "via": [14839]
+      }
+    ]
+  },
+  "click_spells": [14781, 14839],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-hunter"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-reconstruct"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530253"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/ice-skater-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/ice-skater-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/ice-skater-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-ice-skater",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

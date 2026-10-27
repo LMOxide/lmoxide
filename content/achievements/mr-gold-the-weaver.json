@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-the-weaver",
+  "lore": 3383,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_The Weaver",
+  "title": "Mr. Gold: The Weaver",
+  "text": "Defeat The Weaver as Mr. Gold.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Weaver",
+  "minifigure": "minifig/mr-gold",
+  "source": "client"
+}

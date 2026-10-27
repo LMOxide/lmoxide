@@ -1,0 +1,18 @@
+{
+  "id": "item/arrow-shot",
+  "name": "Arrow Shot",
+  "kind": "projectile",
+  "template": 319300,
+  "effect_package": 339287,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 319301
+      }
+    }
+  ],
+  "source": "client"
+}

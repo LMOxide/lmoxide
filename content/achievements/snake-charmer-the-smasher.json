@@ -1,0 +1,16 @@
+{
+  "id": "achievement/snake-charmer-the-smasher",
+  "lore": 3993,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Smash 500 Smashies",
+  "title": "Snake Charmer, the Smasher",
+  "text": "Smash 500 smashies as Snake Charmer.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/snake-charmer",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

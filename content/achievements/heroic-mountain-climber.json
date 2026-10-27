@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-mountain-climber",
+  "lore": 2832,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Complete Any 5",
+  "title": "Heroic Mountain Climber",
+  "text": "Complete any 5 Mountain Climber achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/mountain-climber",
+  "n": 5,
+  "source": "client"
+}

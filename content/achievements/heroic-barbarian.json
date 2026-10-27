@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-barbarian",
+  "lore": 2883,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Complete Any 5",
+  "title": "Heroic Barbarian",
+  "text": "Complete any 5 Barbarian achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/barbarian",
+  "n": 5,
+  "source": "client"
+}

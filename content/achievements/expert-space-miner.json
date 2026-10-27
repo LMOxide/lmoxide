@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-space-miner",
+  "lore": 3249,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Upgrade 7",
+  "title": "Expert Space Miner",
+  "text": "Get the seventh Space Miner upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/space-miner",
+  "n": 7,
+  "source": "client"
+}

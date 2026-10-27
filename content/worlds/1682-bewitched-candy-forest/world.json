@@ -1,0 +1,29 @@
+{
+  "id": "world/bewitched-candy-forest",
+  "name": "Bewitched Candy Forest",
+  "playfield": 1682,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [234.69, 19.93, 244.76],
+    "rot": 4.71
+  },
+  "arrival_guid": 442893,
+  "arrival_from": {
+    "world/kingdom": {
+      "pos": [241.79, 19.72, 238.25],
+      "rot": 0.0
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 442893,
+      "pos": [234.69, 19.93, 244.76],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

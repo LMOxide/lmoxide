@@ -1,0 +1,26 @@
+{
+  "id": "item/minifigure-bag-elf",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 598528,
+  "minifigure": "minifig/elf",
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "ZXNS"
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "skill/main-battlegoddess2-defense-wrapper",
+  "name": "main battlegoddess2 defense wrapper",
+  "client": {
+    "spell": 517546,
+    "stats": {
+      "TargetingMode": 10
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 517541
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 517548, 101]
+          ]
+        },
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 517541,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 517548, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

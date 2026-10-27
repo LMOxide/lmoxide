@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-art",
+  "name": "Dino World - Art",
+  "playfield": 6001,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [178.0, 63.87, 142.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

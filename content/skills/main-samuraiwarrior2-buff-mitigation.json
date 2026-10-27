@@ -1,0 +1,21 @@
+{
+  "id": "skill/main-samuraiwarrior2-buff-mitigation",
+  "name": "main samuraiwarrior2 buff mitigation",
+  "client": {
+    "spell": 596785,
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.5,
+            "Stat": 3000012
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

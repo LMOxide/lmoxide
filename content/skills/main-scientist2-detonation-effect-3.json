@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-scientist2-detonation-effect-3",
+  "name": "main scientist2 detonation effect 3",
+  "client": {
+    "spell": 34744,
+    "stats": {
+      "EffectPackage": 637061
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.5,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

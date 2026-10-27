@@ -1,0 +1,2993 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/6200/boom-shroom",
+      "name": "Boom Shroom",
+      "kind": "enemy",
+      "template": "npc/boom-shroom-2",
+      "pos": [141.14, 64.02, 60.94],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/boom-shroom-2",
+      "name": "Boom Shroom",
+      "kind": "enemy",
+      "template": "npc/boom-shroom-2",
+      "pos": [149.35, 62.01, 71.86],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [149.71, 62.07, 70.0],
+      "rot": -1.118,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/hophop-shroom",
+      "name": "Hophop Shroom",
+      "kind": "enemy",
+      "template": "npc/hophop-shroom-2",
+      "pos": [135.42, 62.0, 81.42],
+      "rot": 1.263,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/small-spider-mound",
+      "name": "Small Spider Mound",
+      "kind": "enemy",
+      "template": "npc/small-spider-mound",
+      "pos": [122.96, 62.01, 119.24],
+      "rot": -1.14,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/slime-spore",
+      "name": "Slime Spore",
+      "kind": "enemy",
+      "template": "npc/slime-spore",
+      "pos": [120.52, 59.96, 89.95],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy-2",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [133.29, 62.04, 93.17],
+      "rot": -0.403,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [136.77, 62.0, 84.19],
+      "rot": -3.002,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy-3",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [86.69, 59.89, 74.6],
+      "rot": 2.292,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/nimble-compy",
+      "name": "Nimble Compy",
+      "kind": "enemy",
+      "template": "npc/nimble-compy",
+      "pos": [85.26, 59.98, 72.24],
+      "rot": 1.696,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/small-spider-mound-2",
+      "name": "Small Spider Mound",
+      "kind": "enemy",
+      "template": "npc/small-spider-mound",
+      "pos": [90.77, 62.02, 92.05],
+      "rot": 2.399,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/small-spider-mound-3",
+      "name": "Small Spider Mound",
+      "kind": "enemy",
+      "template": "npc/small-spider-mound",
+      "pos": [91.21, 61.93, 95.36],
+      "rot": 1.468,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy-4",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [99.83, 62.01, 83.6],
+      "rot": 1.892,
+      "patrol": [
+        [96.59, 62.0, 81.98],
+        [95.95, 62.0, 79.78],
+        [93.89, 62.0, 78.41],
+        [90.9, 62.0, 78.71],
+        [90.16, 62.0, 80.46],
+        [91.44, 62.0, 82.27],
+        [93.49, 62.0, 82.84],
+        [94.32, 62.0, 87.32],
+        [96.61, 62.0, 89.49],
+        [101.08, 62.0, 89.84],
+        [103.62, 62.0, 86.59],
+        [102.34, 62.0, 83.62],
+        [100.16, 62.0, 83.49]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/spore-shroom",
+      "name": "Spore Shroom",
+      "kind": "enemy",
+      "template": "npc/spore-shroom-2",
+      "pos": [119.91, 59.99, 92.54],
+      "rot": 3.002,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-2",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [118.71, 59.9, 86.79],
+      "rot": 0.1,
+      "patrol": [
+        [117.48, 60.44, 89.77],
+        [119.1, 60.44, 91.45],
+        [121.28, 60.44, 91.0],
+        [121.0, 60.44, 89.72],
+        [119.91, 60.44, 88.3],
+        [121.33, 60.44, 87.66],
+        [118.49, 60.44, 85.94],
+        [119.19, 60.44, 87.75],
+        [117.29, 60.44, 87.62]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-3",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [116.77, 59.94, 91.7],
+      "rot": 2.063,
+      "patrol": [
+        [120.44, 60.44, 92.06],
+        [121.55, 60.44, 90.0],
+        [120.47, 60.44, 88.06],
+        [119.33, 60.44, 88.71],
+        [118.31, 60.44, 90.17],
+        [117.28, 60.44, 89.0],
+        [116.48, 60.44, 92.23],
+        [118.0, 60.44, 91.02],
+        [118.44, 60.44, 92.87]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy-5",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [106.41, 62.02, 91.41],
+      "rot": 0.844,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/nimble-compy-2",
+      "name": "Nimble Compy",
+      "kind": "enemy",
+      "template": "npc/nimble-compy",
+      "pos": [107.29, 62.02, 90.25],
+      "rot": 0.06,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/hophop-shroom-2",
+      "name": "Hophop Shroom",
+      "kind": "enemy",
+      "template": "npc/hophop-shroom-2",
+      "pos": [118.27, 59.87, 90.87],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/spore-shroom-2",
+      "name": "Spore Shroom",
+      "kind": "enemy",
+      "template": "npc/spore-shroom-2",
+      "pos": [118.53, 59.95, 88.64],
+      "rot": 1.791,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/boom-shroom-3",
+      "name": "Boom Shroom",
+      "kind": "enemy",
+      "template": "npc/boom-shroom-2",
+      "pos": [120.17, 59.99, 87.34],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy-6",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [132.1, 62.0, 86.87],
+      "rot": 1.339,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-4",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [120.28, 59.99, 92.18],
+      "rot": 2.235,
+      "patrol": [
+        [117.48, 60.44, 89.77],
+        [119.1, 60.44, 91.45],
+        [121.28, 60.44, 91.0],
+        [121.0, 60.44, 89.72],
+        [119.91, 60.44, 88.3],
+        [121.33, 60.44, 87.66],
+        [118.49, 60.44, 85.94],
+        [119.19, 60.44, 87.75],
+        [117.29, 60.44, 87.62]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/spore-shroom-3",
+      "name": "Spore Shroom",
+      "kind": "enemy",
+      "template": "npc/spore-shroom-2",
+      "pos": [150.66, 60.0, 135.17],
+      "rot": 3.002,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/hophop-shroom-3",
+      "name": "Hophop Shroom",
+      "kind": "enemy",
+      "template": "npc/hophop-shroom-2",
+      "pos": [149.01, 60.0, 133.5],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/spore-shroom-4",
+      "name": "Spore Shroom",
+      "kind": "enemy",
+      "template": "npc/spore-shroom-2",
+      "pos": [156.81, 60.0, 120.94],
+      "rot": 1.287,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-5",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [153.71, 60.08, 101.29],
+      "rot": -2.558,
+      "patrol": [
+        [153.1, 60.44, 104.77],
+        [154.22, 60.44, 102.72],
+        [153.14, 60.44, 100.78],
+        [152.0, 60.44, 101.42],
+        [150.98, 60.44, 102.89],
+        [149.94, 60.44, 101.72],
+        [149.15, 60.44, 104.94],
+        [150.66, 60.44, 103.73],
+        [151.1, 60.44, 105.59]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-6",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [153.14, 59.98, 104.24],
+      "rot": -0.199,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/spore-shroom-5",
+      "name": "Spore Shroom",
+      "kind": "enemy",
+      "template": "npc/spore-shroom-2",
+      "pos": [163.34, 61.83, 68.53],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/boom-shroom-4",
+      "name": "Boom Shroom",
+      "kind": "enemy",
+      "template": "npc/boom-shroom-2",
+      "pos": [162.09, 61.79, 69.79],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-7",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [160.96, 61.87, 68.62],
+      "rot": 1.263,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-8",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [196.11, 36.99, 93.0],
+      "rot": 2.157,
+      "overrides": {
+        "level": 27,
+        "stats": {
+          "health": 1005
+        }
+      },
+      "patrol": [
+        [192.06, 37.04, 90.78],
+        [194.01, 37.04, 90.97],
+        [194.31, 37.04, 93.53],
+        [195.49, 37.04, 95.2],
+        [197.27, 37.04, 94.36],
+        [195.79, 37.04, 93.36],
+        [197.21, 37.04, 92.6],
+        [198.58, 37.04, 93.81],
+        [199.27, 37.04, 91.38],
+        [199.73, 37.04, 89.36],
+        [197.18, 37.04, 88.17],
+        [196.69, 37.04, 86.89],
+        [192.9, 37.04, 86.68],
+        [193.84, 37.04, 88.3]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-9",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [196.54, 37.0, 88.3],
+      "rot": 1.07,
+      "overrides": {
+        "level": 27,
+        "stats": {
+          "health": 1005
+        }
+      },
+      "patrol": [
+        [197.26, 37.04, 90.45],
+        [195.11, 37.04, 91.4],
+        [194.14, 37.04, 89.55],
+        [194.85, 37.04, 88.38],
+        [193.74, 37.04, 87.59],
+        [195.74, 37.04, 85.17],
+        [197.87, 37.04, 86.47],
+        [196.18, 37.04, 87.95],
+        [197.7, 37.04, 89.07]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/rascal-compy-7",
+      "name": "Rascal Compy",
+      "kind": "enemy",
+      "template": "npc/rascal-compy",
+      "pos": [160.42, 61.92, 82.13],
+      "rot": 0.957,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/vespid-10",
+      "name": "Vespid",
+      "kind": "enemy",
+      "template": "npc/vespid",
+      "pos": [192.83, 36.99, 89.22],
+      "rot": 0.04,
+      "overrides": {
+        "level": 27,
+        "stats": {
+          "health": 1005
+        }
+      },
+      "patrol": [
+        [200.6, 37.04, 88.41],
+        [198.67, 37.04, 88.14],
+        [198.4, 37.04, 89.2],
+        [197.29, 37.04, 87.48],
+        [195.47, 37.04, 88.25],
+        [196.92, 37.04, 89.32],
+        [195.46, 37.04, 90.01],
+        [193.43, 37.04, 87.52],
+        [192.89, 37.04, 89.52],
+        [195.38, 37.04, 90.81],
+        [195.82, 37.04, 92.11],
+        [199.6, 37.04, 92.47],
+        [198.72, 37.04, 90.81]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/boom-shroom-5",
+      "name": "Boom Shroom",
+      "kind": "enemy",
+      "template": "npc/boom-shroom-2",
+      "pos": [152.59, 62.02, 92.61],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/nimble-compy-3",
+      "name": "Nimble Compy",
+      "kind": "enemy",
+      "template": "npc/nimble-compy",
+      "pos": [151.85, 62.0, 90.47],
+      "rot": 1.263,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/hophop-shroom-4",
+      "name": "Hophop Shroom",
+      "kind": "enemy",
+      "template": "npc/hophop-shroom-2",
+      "pos": [137.73, 62.0, 83.38],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/raptor-bruiser",
+      "name": "Raptor Bruiser",
+      "kind": "enemy",
+      "template": "npc/raptor-bruiser",
+      "pos": [120.26, 61.08, 129.87],
+      "rot": -2.899,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/dino-raptor",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [432.5, 74.65, 185.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [430.7, 74.65, 187.1],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-2",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [433.1, 74.65, 183.3],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-2",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [335.5, 80.12, 259.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [337.7, 80.12, 260.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-3",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [333.7, 80.12, 260.6],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-2",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [347.5, 79.92, 162.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [349.7, 79.92, 163.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-3",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [345.7, 79.92, 164.1],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-2",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [109.5, 61.81, 140.0],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [111.7, 61.81, 141.2],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-3",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [107.7, 61.81, 141.6],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-2",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [211.0, 39.65, 15.0],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [213.2, 39.65, 16.2],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-3",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [209.2, 39.65, 16.6],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-2",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [269.5, 83.82, 224.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-3",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [271.7, 83.82, 225.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-3",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [267.7, 83.82, 226.1],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-4",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [45.5, 86.65, 241.5],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-4",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [46.1, 86.65, 239.3],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-5",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [43.1, 86.64, 240.5],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-5",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [200.0, 37.25, 97.0],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-4",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [202.2, 37.25, 98.2],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-6",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [198.2, 37.25, 98.6],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-5",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [399.5, 74.65, 128.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-4",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [401.7, 74.65, 129.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-6",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [397.7, 74.65, 130.1],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-5",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [80.5, 60.17, 66.0],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-4",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [82.7, 60.17, 67.2],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-6",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [78.7, 60.17, 67.6],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-5",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [259.5, 39.04, 46.5],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-4",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [261.7, 39.04, 47.7],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-6",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [257.7, 39.04, 48.1],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-5",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [60.5, 79.05, 185.5],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-6",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [62.7, 78.65, 186.7],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-6",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [58.7, 78.65, 187.1],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-7",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [160.0, 61.22, 139.5],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-7",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [162.2, 61.22, 140.7],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-8",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [158.2, 61.22, 141.1],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-8",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [302.0, 82.17, 183.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-7",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [304.2, 82.11, 184.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-9",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [300.2, 82.17, 184.6],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-8",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [357.5, 81.86, 211.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-7",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [359.7, 81.86, 212.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-9",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [355.7, 81.86, 212.6],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-8",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [285.5, 78.65, 131.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-7",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [287.7, 78.65, 132.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-9",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [283.7, 78.65, 133.1],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-8",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [210.5, 60.52, 149.5],
+      "anchor": "BA_Swamp4",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-7",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [212.7, 60.88, 150.7],
+      "anchor": "BA_Swamp4",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-9",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [208.7, 61.8, 151.1],
+      "anchor": "BA_Swamp4",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-8",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [114.5, 76.76, 215.5],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-9",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [112.7, 76.65, 217.1],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-9",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [115.1, 76.65, 213.3],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-10",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [310.0, 80.35, 227.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-10",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [312.2, 80.35, 228.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-11",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [308.2, 80.35, 229.1],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-11",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [215.0, 39.61, 60.5],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-10",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [217.2, 39.61, 61.7],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-12",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [213.2, 39.64, 62.1],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-11",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [394.5, 75.12, 175.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-10",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [396.7, 75.12, 176.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-pterodactyl-12",
+      "name": "Dino Pterodactyl",
+      "kind": "enemy",
+      "template": "npc/dino-pterodactyl",
+      "pos": [392.7, 75.12, 176.6],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-11",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [105.0, 62.24, 96.0],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-10",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [107.2, 61.97, 97.2],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/lizard-man-12",
+      "name": "Lizard Man",
+      "kind": "enemy",
+      "template": "npc/lizard-man",
+      "pos": [103.2, 62.24, 97.6],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-11",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [239.0, 37.45, 100.5],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-10",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [236.6, 37.5, 99.5],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-fire-12",
+      "name": "Dino Raptor Fire",
+      "kind": "enemy",
+      "template": "npc/dino-raptor-fire",
+      "pos": [241.6, 37.33, 99.1],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-11",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [86.0, 86.65, 240.0],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-12",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [88.2, 86.65, 241.2],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-raptor-12",
+      "name": "Dino Raptor",
+      "kind": "enemy",
+      "template": "npc/dino-raptor",
+      "pos": [84.2, 86.65, 241.6],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-13",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [96.0, 76.65, 181.5],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-dimetrodon-13",
+      "name": "Dino Dimetrodon",
+      "kind": "enemy",
+      "template": "npc/dino-dimetrodon",
+      "pos": [98.2, 76.65, 182.7],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/dino-coelophysis-14",
+      "name": "Dino Coelophysis",
+      "kind": "enemy",
+      "template": "npc/dino-coelophysis",
+      "pos": [94.2, 76.65, 183.1],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/pilot",
+      "name": "Pilot",
+      "kind": "npc",
+      "template": "npc/pilot",
+      "pos": [149.72, 64.03, 46.36],
+      "rot": -0.506,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/paleontologist",
+      "name": "Paleontologist",
+      "kind": "npc",
+      "template": "npc/paleontologist",
+      "pos": [200.18, 72.1, 183.1],
+      "rot": 1.668,
+      "anchor": "Cine_Adventurer1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/dinosaur-wrangler",
+      "name": "Dinosaur Wrangler",
+      "kind": "npc",
+      "template": "npc/dinosaur-wrangler",
+      "pos": [204.03, 72.1, 182.58],
+      "rot": -2.334,
+      "anchor": "Cine_DinoTrackerSpawn1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/swashbuckler",
+      "name": "Swashbuckler",
+      "kind": "npc",
+      "template": "npc/swashbuckler",
+      "pos": [201.33, 72.1, 180.81],
+      "rot": 2.306,
+      "anchor": "Cine_CampSwashbuckler1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/deep-sea-diver",
+      "name": "Deep Sea Diver",
+      "kind": "npc",
+      "template": "npc/deep-sea-diver",
+      "pos": [246.04, 36.87, 80.94],
+      "rot": 0.99,
+      "anchor": "Cine_ScubaDiver1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/wizard",
+      "name": "Wizard",
+      "kind": "npc",
+      "template": "npc/wizard",
+      "pos": [247.35, 36.96, 81.99],
+      "rot": -2.349,
+      "anchor": "Cine_PondWizard1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/court-jester",
+      "name": "Court Jester",
+      "kind": "npc",
+      "template": "npc/court-jester",
+      "pos": [246.29, 36.92, 77.89],
+      "rot": -0.897,
+      "anchor": "Cine_PondJester1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/caveman",
+      "name": "Caveman",
+      "kind": "npc",
+      "template": "npc/caveman",
+      "pos": [87.27, 76.2, 204.42],
+      "rot": 3.058,
+      "anchor": "Cine_Caveman1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/zookeeper",
+      "name": "Zookeeper",
+      "kind": "npc",
+      "template": "npc/zookeeper",
+      "pos": [277.34, 80.0, 161.88],
+      "rot": -1.702,
+      "anchor": "Cine_Zookeeper1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/space-miner",
+      "name": "Space Miner",
+      "kind": "npc",
+      "template": "npc/space-miner",
+      "pos": [273.68, 80.0, 161.83],
+      "rot": -3.113,
+      "anchor": "Cine_ZooMiner1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/main-pierrot2",
+      "name": "main pierrot2 ",
+      "kind": "trigger",
+      "template": "npc/main-pierrot2",
+      "pos": [119.65, 59.98, 90.81],
+      "rot": 1.003,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/main-pierrot2-2",
+      "name": "main pierrot2 ",
+      "kind": "trigger",
+      "template": "npc/main-pierrot2",
+      "pos": [118.17, 59.84, 85.8],
+      "rot": 1.003,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/main-pierrot2-3",
+      "name": "main pierrot2 ",
+      "kind": "trigger",
+      "template": "npc/main-pierrot2",
+      "pos": [108.18, 62.02, 85.55],
+      "rot": 1.003,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-plane-parts-a-smashie",
+      "name": "XX_plane parts a smashie",
+      "kind": "smashable",
+      "template": "object/xx-plane-parts-a-smashie",
+      "pos": [131.23, 62.06, 79.34],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-5",
+      "pos": [147.24, 64.0, 52.85],
+      "rot": 1.023,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel-3",
+      "pos": [165.18, 61.86, 76.84],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [165.52, 61.98, 75.89],
+      "rot": 0.0,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-plane-parts-a-smashie-2",
+      "name": "XX_plane parts a smashie",
+      "kind": "smashable",
+      "template": "object/xx-plane-parts-a-smashie",
+      "pos": [162.43, 61.97, 83.21],
+      "rot": 1.023,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [141.41, 61.85, 81.38],
+      "rot": 3.102,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [136.89, 61.93, 94.2],
+      "rot": -1.364,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-plane-parts-a-smashie-3",
+      "name": "XX_plane parts a smashie",
+      "kind": "smashable",
+      "template": "object/xx-plane-parts-a-smashie",
+      "pos": [133.38, 61.88, 95.33],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel-3",
+      "pos": [141.79, 61.74, 80.46],
+      "rot": 3.102,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms",
+      "pos": [97.71, 61.98, 76.99],
+      "rot": -1.791,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-2",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms-2",
+      "pos": [122.75, 60.44, 78.38],
+      "rot": 1.311,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-lmushrooms",
+      "name": "XX_lMushrooms",
+      "kind": "smashable",
+      "template": "object/xx-lmushrooms",
+      "pos": [99.79, 61.95, 77.85],
+      "rot": 1.996,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-3",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms-3",
+      "pos": [100.93, 62.03, 78.06],
+      "rot": -2.03,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-4",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms",
+      "pos": [116.31, 60.44, 81.44],
+      "rot": 1.287,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-5",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms",
+      "pos": [115.92, 59.95, 89.57],
+      "rot": -0.1,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-6",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms-2",
+      "pos": [118.47, 59.95, 89.6],
+      "rot": 1.311,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-lmushrooms-2",
+      "name": "XX_lMushrooms",
+      "kind": "smashable",
+      "template": "object/xx-lmushrooms",
+      "pos": [117.2, 59.95, 89.35],
+      "rot": -0.528,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-lmushrooms-3",
+      "name": "XX_lMushrooms",
+      "kind": "smashable",
+      "template": "object/xx-lmushrooms",
+      "pos": [122.98, 60.44, 80.13],
+      "rot": -0.528,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-7",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms-3",
+      "pos": [120.05, 59.95, 88.73],
+      "rot": -1.99,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-8",
+      "name": "XX_Mushrooms",
+      "kind": "smashable",
+      "template": "object/xx-mushrooms-3",
+      "pos": [114.62, 60.29, 82.1],
+      "rot": -1.496,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-plane-parts-a-smashie-4",
+      "name": "XX_plane parts a smashie",
+      "kind": "smashable",
+      "template": "object/xx-plane-parts-a-smashie",
+      "pos": [108.57, 61.95, 91.75],
+      "rot": 1.023,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-plane-parts-a-smashie-5",
+      "name": "XX_plane parts a smashie",
+      "kind": "smashable",
+      "template": "object/xx-plane-parts-a-smashie",
+      "pos": [106.45, 62.0, 80.31],
+      "rot": 2.03,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [428.0, 74.65, 148.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [428.8, 74.65, 149.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [427.4, 74.65, 149.9],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [315.0, 78.25, 146.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [315.8, 78.25, 147.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-6",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [314.4, 78.25, 147.4],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [41.5, 78.7, 210.0],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [42.3, 78.7, 211.2],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [40.9, 78.7, 211.4],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [368.0, 80.25, 179.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [368.8, 80.25, 180.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-7",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [367.4, 80.25, 180.4],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [230.0, 62.79, 132.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [230.8, 62.79, 133.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [229.4, 62.79, 133.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-8",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [292.0, 80.57, 246.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-11",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [292.8, 80.57, 247.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-5",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [291.4, 80.57, 247.9],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-12",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [348.5, 82.66, 235.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-9",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [349.3, 82.66, 236.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-13",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [347.9, 82.66, 236.9],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-6",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [91.0, 64.65, 155.0],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-14",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [91.8, 64.65, 156.2],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-10",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [90.4, 64.65, 156.4],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-15",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [318.0, 80.67, 200.0],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-7",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [318.8, 80.67, 201.2],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-16",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [317.4, 80.67, 201.4],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-11",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [237.0, 39.63, 53.0],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-17",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [237.8, 39.63, 54.2],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-8",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [236.4, 39.63, 54.4],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-18",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [138.0, 62.65, 140.5],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-12",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [138.8, 62.65, 141.7],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-19",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [137.4, 62.65, 141.9],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-9",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [219.5, 37.49, 87.0],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-20",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [220.3, 37.49, 88.2],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-13",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [218.9, 37.49, 88.4],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-21",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [123.4, 60.55, 103.9],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-14",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [411.5, 74.65, 185.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-22",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [412.3, 74.65, 186.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-10",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [410.9, 74.65, 186.9],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-23",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [95.5, 62.34, 78.0],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-15",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [96.3, 62.34, 79.2],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-24",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [94.9, 62.34, 79.4],
+      "anchor": "Quest_Swamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-11",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [109.0, 76.65, 195.5],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-25",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [109.8, 76.65, 196.7],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-16",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [108.4, 76.65, 196.9],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-26",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [392.0, 75.11, 153.5],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-12",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [392.8, 75.11, 154.7],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-27",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [391.4, 75.11, 154.9],
+      "anchor": "Quest_Tarpit",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-17",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [208.0, 39.33, 35.0],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-28",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [208.8, 39.33, 36.2],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-13",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [207.4, 39.33, 36.4],
+      "anchor": "Quest_Pond",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-29",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [176.5, 64.73, 146.5],
+      "anchor": "ClearHate_DinoHub",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-18",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [177.3, 64.73, 147.7],
+      "anchor": "ClearHate_DinoHub",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-30",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [175.9, 64.73, 147.9],
+      "anchor": "ClearHate_DinoHub",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-14",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [75.5, 86.77, 226.0],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-31",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [76.3, 86.77, 227.2],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-barrel-19",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [74.9, 86.77, 227.4],
+      "anchor": "Quest_Volcano",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-32",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [158.5, 65.17, 173.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-small-chest-15",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [159.3, 65.17, 174.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-crate-33",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [157.9, 65.17, 174.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/6200/xx-buildie-level-30-5-buildie-achievement-signs-1",
+      "name": "XX_Buildie : Level 30 : 5 Buildie Achievement : Signs : 1",
+      "kind": "buildie",
+      "template": "object/xx-buildie-level-30-5-buildie-achievement-signs-1",
+      "pos": [152.87, 64.02, 58.66],
+      "rot": -1.364,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-corruption-container",
+      "name": "XX_Corruption Container",
+      "kind": "buildie",
+      "template": "object/xx-corruption-container",
+      "pos": [194.71, 36.6, 60.28],
+      "rot": 0.121,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-corruption-container-2",
+      "name": "XX_Corruption Container",
+      "kind": "buildie",
+      "template": "object/xx-corruption-container",
+      "pos": [189.46, 36.6, 66.55],
+      "rot": -1.757,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-corruption-container-3",
+      "name": "XX_Corruption Container",
+      "kind": "buildie",
+      "template": "object/xx-corruption-container",
+      "pos": [187.46, 36.2, 87.22],
+      "rot": 1.023,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-plane-parts-a-smashie-6",
+      "name": "XX_plane parts a smashie",
+      "kind": "buildie",
+      "template": "object/xx-plane-parts-a-smashie-2",
+      "pos": [154.56, 62.02, 91.75],
+      "rot": 2.03,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-mushrooms-9",
+      "name": "XX_Mushrooms",
+      "kind": "buildie",
+      "template": "object/xx-mushrooms-4",
+      "pos": [118.46, 59.95, 92.22],
+      "rot": -2.191,
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/dino-egg-1",
+      "name": "dino_egg_1",
+      "kind": "scenery",
+      "template": "object/dino-egg-1",
+      "pos": [271.78, 86.58, 192.38],
+      "rot": [-0.2574, -0.163, -0.0086, 0.9524],
+      "client": {
+        "guid": 528801,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 528795],
+        "bounds": [-0.22, -0.313, -0.221, 0.22, 0.313, 0.221]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/dino-egg-2",
+      "name": "dino_egg_2",
+      "kind": "scenery",
+      "template": "object/dino-egg-2",
+      "pos": [271.87, 86.58, 193.02],
+      "rot": [0.1256, 0.3762, 0.1417, 0.907],
+      "client": {
+        "guid": 528803,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 528795],
+        "bounds": [-0.22, -0.313, -0.221, 0.22, 0.313, 0.221]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [272.38, 86.4, 192.84],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 528802,
+        "tag": "28EIM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/boombox-1",
+      "name": "boombox 1",
+      "kind": "scenery",
+      "template": "object/boombox-1",
+      "pos": [241.67, 38.04, 15.32],
+      "rot": [-0.0006, 0.0677, -0.0025, 0.9977],
+      "client": {
+        "guid": 520119,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/boombox-2",
+      "name": "boombox 2",
+      "kind": "scenery",
+      "template": "object/boombox-2",
+      "pos": [241.72, 38.04, 14.3],
+      "rot": [-0.0006, 0.0677, -0.0025, 0.9977],
+      "client": {
+        "guid": 520120,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/collectible-trex-foot",
+      "name": "collectible_trex_foot",
+      "kind": "scenery",
+      "template": "object/collectible-trex-foot",
+      "pos": [189.99, 36.34, 94.68],
+      "rot": [-0.0939, 0.9352, 0.2231, 0.2585],
+      "client": {
+        "guid": 530806,
+        "tag": "----",
+        "script_group": 64,
+        "visual": [1010030, 527192],
+        "bounds": [-0.458, 0.016, -0.688, 0.546, 1.331, 0.822]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/empty-monsterdata-2x2x2-icecream",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [192.4, 68.95, 165.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 577097,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/swamptovolcanoend",
+      "name": "SwampToVolcanoEnd",
+      "kind": "scenery",
+      "template": "object/swamptovolcanoend",
+      "pos": [59.64, 78.0, 185.13],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515398,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/hubtovolcanoend",
+      "name": "HubToVolcanoEnd",
+      "kind": "scenery",
+      "template": "object/hubtovolcanoend",
+      "pos": [109.19, 76.0, 185.81],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515401,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/swamptotarpitend",
+      "name": "SwampToTarpitEnd",
+      "kind": "scenery",
+      "template": "object/swamptotarpitend",
+      "pos": [265.85, 80.0, 164.67],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515403,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/swamptopondend",
+      "name": "SwampToPondEnd",
+      "kind": "scenery",
+      "template": "object/swamptopondend",
+      "pos": [254.85, 37.02, 80.7],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 504803,
+        "tag": "JUMP",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pondtotarpitend",
+      "name": "PondToTarpitEnd",
+      "kind": "scenery",
+      "template": "object/pondtotarpitend",
+      "pos": [285.45, 78.0, 126.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515347,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/tarpittopondend",
+      "name": "TarpitToPondEnd",
+      "kind": "scenery",
+      "template": "object/tarpittopondend",
+      "pos": [256.69, 38.53, 98.17],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515351,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/tarpittoswampend",
+      "name": "TarpitToSwampEnd",
+      "kind": "scenery",
+      "template": "object/tarpittoswampend",
+      "pos": [229.11, 63.57, 160.23],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515404,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [236.81, 35.8, 113.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 530489,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [267.05, 35.8, 79.33],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 530502,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/volcanotoswampend",
+      "name": "VolcanoToSwampEnd",
+      "kind": "scenery",
+      "template": "object/volcanotoswampend",
+      "pos": [93.23, 64.0, 156.1],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515400,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/volcanotohubend",
+      "name": "VolcanoToHubEnd",
+      "kind": "scenery",
+      "template": "object/volcanotohubend",
+      "pos": [160.61, 64.57, 172.35],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515402,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pondtoswampend",
+      "name": "PondToSwampEnd",
+      "kind": "scenery",
+      "template": "object/pondtoswampend",
+      "pos": [228.51, 62.2, 128.82],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 521800,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/tar-6-end",
+      "name": "Tar 6 end",
+      "kind": "scenery",
+      "template": "object/tar-6-end",
+      "pos": [266.55, 86.0, 199.91],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514520,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-8-end",
+      "name": "Tar 8 end",
+      "kind": "scenery",
+      "template": "object/tar-8-end",
+      "pos": [391.61, 74.6, 152.52],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 516009,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-3-end",
+      "name": "Tar 3 end",
+      "kind": "scenery",
+      "template": "object/tar-3-end",
+      "pos": [333.75, 79.78, 209.21],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514492,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-1-end",
+      "name": "Tar 1 end",
+      "kind": "scenery",
+      "template": "object/tar-1-end",
+      "pos": [336.73, 79.77, 164.47],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514452,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-2-end",
+      "name": "Tar 2 end",
+      "kind": "scenery",
+      "template": "object/tar-2-end",
+      "pos": [339.51, 80.7, 189.2],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514453,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-4-end",
+      "name": "Tar 4 end",
+      "kind": "scenery",
+      "template": "object/tar-4-end",
+      "pos": [350.87, 79.78, 248.74],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514493,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-5-end",
+      "name": "Tar 5 end",
+      "kind": "scenery",
+      "template": "object/tar-5-end",
+      "pos": [315.99, 80.0, 202.44],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514509,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-7-end",
+      "name": "Tar 7 end",
+      "kind": "scenery",
+      "template": "object/tar-7-end",
+      "pos": [271.1, 80.0, 178.26],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 514521,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/tar-9-end",
+      "name": "Tar 9 end",
+      "kind": "scenery",
+      "template": "object/tar-9-end",
+      "pos": [371.82, 79.98, 156.96],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 516011,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/volcano-5-end",
+      "name": "Volcano 5 end",
+      "kind": "scenery",
+      "template": "object/volcano-5-end",
+      "pos": [77.58, 82.99, 212.94],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515521,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/volcano-1-end",
+      "name": "Volcano 1 end",
+      "kind": "scenery",
+      "template": "object/volcano-1-end",
+      "pos": [55.53, 86.0, 227.8],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515517,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/volcano-2-end",
+      "name": "Volcano 2 end",
+      "kind": "scenery",
+      "template": "object/volcano-2-end",
+      "pos": [52.04, 78.0, 214.27],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515518,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/volcano-3-end",
+      "name": "Volcano 3 end",
+      "kind": "scenery",
+      "template": "object/volcano-3-end",
+      "pos": [103.65, 76.0, 215.12],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515519,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/volcano-4-end",
+      "name": "Volcano 4 end",
+      "kind": "scenery",
+      "template": "object/volcano-4-end",
+      "pos": [88.67, 86.0, 228.13],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515520,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/volcano-6-end",
+      "name": "Volcano 6 end",
+      "kind": "scenery",
+      "template": "object/volcano-6-end",
+      "pos": [90.85, 76.2, 203.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515522,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/pond-1-end",
+      "name": "Pond 1 end",
+      "kind": "scenery",
+      "template": "object/pond-1-end",
+      "pos": [235.11, 37.38, 17.07],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515523,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/pond-2-end",
+      "name": "Pond 2 end",
+      "kind": "scenery",
+      "template": "object/pond-2-end",
+      "pos": [212.41, 39.17, 15.66],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 515526,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/6200/pond-group-1-corruption-2",
+      "name": "pond group 1 corruption 2",
+      "kind": "scenery",
+      "template": "object/pond-group-1-corruption-2",
+      "pos": [239.56, 36.78, 80.61],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522520,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-1-corruption-1",
+      "name": "pond group 1 corruption 1",
+      "kind": "scenery",
+      "template": "object/pond-group-1-corruption-1",
+      "pos": [241.45, 36.78, 79.77],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522521,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-1-corruption-3",
+      "name": "pond group 1 corruption 3",
+      "kind": "scenery",
+      "template": "object/pond-group-1-corruption-3",
+      "pos": [238.48, 36.78, 78.82],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522519,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-4-corruption-2",
+      "name": "pond group 4 corruption 2",
+      "kind": "scenery",
+      "template": "object/pond-group-4-corruption-2",
+      "pos": [200.51, 36.5, 100.7],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522538,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-4-corruption-1",
+      "name": "pond group 4 corruption 1",
+      "kind": "scenery",
+      "template": "object/pond-group-4-corruption-1",
+      "pos": [186.28, 36.5, 88.81],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522537,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-2-corruption-2",
+      "name": "pond group 2 corruption 2",
+      "kind": "scenery",
+      "template": "object/pond-group-2-corruption-2",
+      "pos": [209.41, 38.78, 32.02],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522526,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-2-corruption-1",
+      "name": "pond group 2 corruption 1",
+      "kind": "scenery",
+      "template": "object/pond-group-2-corruption-1",
+      "pos": [206.9, 38.78, 30.45],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522525,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-2-corruption-3",
+      "name": "pond group 2 corruption 3",
+      "kind": "scenery",
+      "template": "object/pond-group-2-corruption-3",
+      "pos": [207.14, 38.78, 32.15],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522527,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-3-corruption-1",
+      "name": "pond group 3 corruption 1",
+      "kind": "scenery",
+      "template": "object/pond-group-3-corruption-1",
+      "pos": [192.47, 36.78, 62.41],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522531,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-3-corruption-2",
+      "name": "pond group 3 corruption 2",
+      "kind": "scenery",
+      "template": "object/pond-group-3-corruption-2",
+      "pos": [194.24, 36.78, 63.76],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522532,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/pond-group-3-corruption-3",
+      "name": "pond group 3 corruption 3",
+      "kind": "scenery",
+      "template": "object/pond-group-3-corruption-3",
+      "pos": [190.68, 36.78, 64.73],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 522533,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [202.58, 77.75, 232.13],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 522018,
+        "tag": "----",
+        "script_group": 51,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [217.2, 74.45, 195.89],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 544337,
+        "tag": "----",
+        "script_group": 52,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/6200/empty-monsterdata-1x1x1-3",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [202.58, 77.75, 232.13],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/empty-monsterdata-1x1x1-4",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [217.2, 74.45, 195.89],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-invisible",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [194.24, 36.78, 63.76],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-invisible-2",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [190.68, 36.78, 64.73],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/collectible-trex-foot-2",
+      "name": "collectible_trex_foot",
+      "kind": "interactable",
+      "template": "object/collectible-trex-foot-2",
+      "pos": [189.99, 36.34, 94.68],
+      "rot": 2.621,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/xx-invisible-3",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [186.28, 36.5, 88.81],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/6200/p-host-ad6c2f5f72d77a23",
+      "name": "Crazy Kotaki ",
+      "kind": "enemy",
+      "template": "npc/crazy-kotaki-2",
+      "pos": [206.01308, 72.10009, 180.81903],
+      "rot": 3.5953782,
+      "patrol": [
+        [204.55124, 72.10009, 177.32762],
+        [203.1397, 72.10009, 177.33157],
+        [200.80682, 72.1, 177.06625]
+      ],
+      "removed": true,
+      "source": "surveyed",
+      "author": "host",
+      "updated": 1793115584
+    }
+  ]
+}

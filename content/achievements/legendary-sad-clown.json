@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-sad-clown",
+  "lore": 3562,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_Complete Any 10",
+  "title": "Legendary Sad Clown",
+  "text": "Complete any 11 Sad Clown achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/sad-clown",
+  "n": 11,
+  "source": "client"
+}

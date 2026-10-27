@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-faun",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 669618,
+  "minifigure": "minifig/faun",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "T1FH"
+      }
+    }
+  ],
+  "source": "client"
+}

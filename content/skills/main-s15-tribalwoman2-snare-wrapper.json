@@ -1,0 +1,22 @@
+{
+  "id": "skill/main-s15-tribalwoman2-snare-wrapper",
+  "name": "main s15 tribalwoman2 snare wrapper",
+  "client": {
+    "spell": 667288,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667292
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

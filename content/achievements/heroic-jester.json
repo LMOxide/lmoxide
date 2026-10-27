@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-jester",
+  "lore": 3155,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Complete Any 5",
+  "title": "Heroic Jester",
+  "text": "Complete any 5 Jester achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/jester",
+  "n": 5,
+  "source": "client"
+}

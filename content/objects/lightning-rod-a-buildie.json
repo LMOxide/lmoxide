@@ -1,0 +1,10 @@
+{
+  "id": "object/lightning-rod-a-buildie",
+  "name": "lightning_rod_a_buildie",
+  "kind": "buildie",
+  "render": {
+    "look": "lightning_rod_a_buildie",
+    "visual": [1010201, 148624]
+  },
+  "source": "client"
+}

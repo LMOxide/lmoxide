@@ -1,0 +1,29 @@
+{
+  "id": "skill/alien-buzzers-slash-castable",
+  "name": "alien buzzers slash castable",
+  "client": {
+    "spell": 380316,
+    "stats": {
+      "AISpellCategory": 512,
+      "AttackRange": 50,
+      "EffectPackage": 390755,
+      "ItemDelay": 16,
+      "RechargeDelay": 184,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

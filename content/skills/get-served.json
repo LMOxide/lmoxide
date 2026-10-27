@@ -1,0 +1,55 @@
+{
+  "id": "skill/get-served",
+  "name": "Get Served!",
+  "client": {
+    "spell": 36551,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 40,
+      "EffectPackage": 304753,
+      "ItemDelay": 40,
+      "MoreFlags": 1073743872,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 1.0,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 301708
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 1.0,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 301708
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 36551
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Waiter: Get Served!",
+  "source": "client"
+}

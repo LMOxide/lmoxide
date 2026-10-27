@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gingerbread-man-dark-alcove",
+  "lore": 2990,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Dark Alcove",
+  "title": "Gingerbread Man: Dark Alcove",
+  "text": "Conquer the Dark Alcove as Gingerbread Man.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dark Alcove",
+  "minifigure": "minifig/gingerbread-man",
+  "source": "client"
+}

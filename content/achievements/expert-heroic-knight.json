@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-heroic-knight",
+  "lore": 2605,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Upgrade 7",
+  "title": "Expert Heroic Knight",
+  "text": "Get the seventh Heroic Knight upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/heroic-knight",
+  "n": 7,
+  "source": "client"
+}

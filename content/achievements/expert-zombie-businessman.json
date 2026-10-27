@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-zombie-businessman",
+  "lore": 4665,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Upgrade 7",
+  "title": "Expert Zombie Businessman",
+  "text": "Get the seventh Zombie Businessman upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/zombie-businessman",
+  "n": 7,
+  "source": "client"
+}

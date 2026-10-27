@@ -1,0 +1,10 @@
+{
+  "id": "object/boombox-2",
+  "name": "boombox 2",
+  "kind": "scenery",
+  "render": {
+    "look": "boombox 2",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

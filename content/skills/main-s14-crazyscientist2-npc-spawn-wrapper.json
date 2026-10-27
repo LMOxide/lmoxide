@@ -1,0 +1,22 @@
+{
+  "id": "skill/main-s14-crazyscientist2-npc-spawn-wrapper",
+  "name": "main s14 crazyscientist2 npc spawn wrapper",
+  "client": {
+    "spell": 654691,
+    "stats": {
+      "TargetingMode": 1
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 654692
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

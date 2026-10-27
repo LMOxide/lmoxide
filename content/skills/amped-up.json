@@ -1,0 +1,44 @@
+{
+  "id": "skill/amped-up",
+  "name": "Amped Up",
+  "client": {
+    "spell": 516697,
+    "stats": {
+      "ChannelingInterval": 20,
+      "ChannelingTicks": 25,
+      "EffectPackage": 520127,
+      "ItemDelay": 32,
+      "MoreFlags": 536872962,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "33": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 180,
+            "AngleStart": -90,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 516696,
+            "Radius": 10
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 516697
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Rock Star: Amped Up",
+  "source": "client"
+}

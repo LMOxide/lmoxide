@@ -1,0 +1,13 @@
+{
+  "id": "achievement/cyclops-hecate-the-winter-witch",
+  "lore": 2652,
+  "parent": "achievement/cyclops",
+  "client_name": "Cyclops_Hecate, the Winter Witch",
+  "title": "Cyclops: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Cyclops.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/cyclops",
+  "source": "client"
+}

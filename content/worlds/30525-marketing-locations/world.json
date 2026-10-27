@@ -1,0 +1,12 @@
+{
+  "id": "world/marketing-locations",
+  "name": "Marketing Locations",
+  "playfield": 30525,
+  "kind": "other",
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

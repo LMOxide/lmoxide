@@ -1,0 +1,14 @@
+{
+  "id": "achievement/for-science",
+  "lore": 765,
+  "parent": "achievement/deep-space-explorer",
+  "client_name": "Space_Exploration_Research Station",
+  "title": "For Science!",
+  "text": "Find the Research Station in the Space World.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/planet-s-dark-side",
+  "find": "Achievement_Research",
+  "place": "Research Station",
+  "source": "client"
+}

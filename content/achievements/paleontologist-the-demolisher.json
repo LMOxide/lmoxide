@@ -1,0 +1,17 @@
+{
+  "id": "achievement/paleontologist-the-demolisher",
+  "lore": 3944,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Smash 25 Minotaur Statues",
+  "title": "Paleontologist, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Paleontologist.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/paleontologist",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

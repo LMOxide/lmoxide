@@ -1,0 +1,16 @@
+{
+  "id": "buff/upgrade-mountain-avalanche",
+  "name": "Mountain Avalanche",
+  "nano": 482725,
+  "effects": [
+    {
+      "client": {
+        "type": "CastNano",
+        "args": {
+          "Value": 482721
+        }
+      }
+    }
+  ],
+  "source": "client"
+}

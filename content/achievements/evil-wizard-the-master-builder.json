@@ -1,0 +1,16 @@
+{
+  "id": "achievement/evil-wizard-the-master-builder",
+  "lore": 3841,
+  "parent": "achievement/evil-wizard",
+  "client_name": "Evil Wizard_Build 1000 buildies",
+  "title": "Evil Wizard, the Master Builder",
+  "text": "Build 1000 buildies as Evil Wizard.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/evil-wizard",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

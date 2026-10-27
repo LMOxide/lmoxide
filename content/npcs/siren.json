@@ -1,0 +1,17 @@
+{
+  "id": "npc/siren",
+  "name": "Siren",
+  "kind": "npc",
+  "render": {
+    "monster_data": 487224,
+    "npc_template": 1900,
+    "look": "siren",
+    "cars_group": 2
+  },
+  "level": 20,
+  "stats": {
+    "health": 2618,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

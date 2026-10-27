@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-harlequin",
+  "name": "BossEntranceVisualOpen_Harlequin",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_Harlequin",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

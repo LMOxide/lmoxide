@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-robot-korard-mercenary-captain",
+  "lore": 2941,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Korard, Mercenary Captain",
+  "title": "Lady Robot: Korard, Mercenary Captain",
+  "text": "Defeat Korard, Mercenary Captain as Lady Robot.",
+  "points": 25,
+  "kind": "target",
+  "target": "Korard, Mercenary Captain",
+  "minifigure": "minifig/lady-robot",
+  "source": "client"
+}

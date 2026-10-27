@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-paleontologist",
+  "lore": 3936,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Upgrade 3",
+  "title": "Novice Paleontologist",
+  "text": "Get the third Paleontologist upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/paleontologist",
+  "n": 3,
+  "source": "client"
+}

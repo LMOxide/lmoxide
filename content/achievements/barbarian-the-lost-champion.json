@@ -1,0 +1,13 @@
+{
+  "id": "achievement/barbarian-the-lost-champion",
+  "lore": 2886,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Lost Creations_Get to Level 15",
+  "title": "Barbarian, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Barbarian.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/barbarian",
+  "n": 15,
+  "source": "client"
+}

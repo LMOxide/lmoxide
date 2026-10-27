@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-18-mythology-art",
+  "name": "Dino World - 18_Mythology - Art",
+  "playfield": 6518,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [196.5, 42.25, 113.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

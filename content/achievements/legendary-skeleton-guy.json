@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-skeleton-guy",
+  "lore": 4487,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Complete Any 10",
+  "title": "Legendary Skeleton Guy",
+  "text": "Complete any 11 Skeleton Guy achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/skeleton-guy",
+  "n": 11,
+  "source": "client"
+}

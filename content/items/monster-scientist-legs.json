@@ -1,0 +1,16 @@
+{
+  "id": "item/monster-scientist-legs",
+  "name": "Monster Scientist Legs",
+  "kind": "part",
+  "template": 662062,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31402,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/monster-scientist",
+  "location": "Legs",
+  "source": "client"
+}

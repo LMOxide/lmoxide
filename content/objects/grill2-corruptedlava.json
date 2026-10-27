@@ -1,0 +1,10 @@
+{
+  "id": "object/grill2-corruptedlava",
+  "name": "Grill2_CorruptedLava",
+  "kind": "scenery",
+  "render": {
+    "look": "Grill2_CorruptedLava",
+    "visual": [1010030, 463951]
+  },
+  "source": "client"
+}

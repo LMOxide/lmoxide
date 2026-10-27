@@ -1,0 +1,397 @@
+{
+  "$defs": {
+    "AreaRole": {
+      "oneOf": [
+        {
+          "enum": ["ambush"],
+          "type": "string"
+        },
+        {
+          "const": "place",
+          "description": "Just a named place.",
+          "type": "string"
+        },
+        {
+          "const": "arena",
+          "description": "A boss or miniboss arena (doors close while the fight runs).",
+          "type": "string"
+        },
+        {
+          "const": "explore",
+          "description": "An exploration area (discovering it counts for achievements).",
+          "type": "string"
+        },
+        {
+          "const": "champion",
+          "description": "Where a side dungeon's champion stands.",
+          "type": "string"
+        },
+        {
+          "const": "marker",
+          "description": "A named point the client's cinematics and AI use.",
+          "type": "string"
+        },
+        {
+          "const": "note",
+          "description": "A world-editor note's area.",
+          "type": "string"
+        }
+      ]
+    },
+    "ArenaDoors": {
+      "additionalProperties": false,
+      "description": "Doors of an arena by client guid.",
+      "properties": {
+        "closed": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "exit": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "open": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "Rot": {
+      "anyOf": [
+        {
+          "format": "float",
+          "type": "number"
+        },
+        {
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        }
+      ],
+      "description": "Which way something faces: a heading (radians about the up axis) or a quaternion\n`[x, y, z, w]` as the client stores it."
+    },
+    "Shape": {
+      "description": "The shape of an area or trigger.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "description": "An upright box standing on `pos` (bottom centre), `size` = width, height, depth,\nturned by `heading`.",
+          "properties": {
+            "wall": {
+              "additionalProperties": false,
+              "properties": {
+                "heading": {
+                  "default": 0.0,
+                  "format": "float",
+                  "type": "number"
+                },
+                "pos": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 3,
+                  "type": "array"
+                },
+                "size": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 3,
+                  "type": "array"
+                }
+              },
+              "required": ["pos", "size"],
+              "type": "object"
+            }
+          },
+          "required": ["wall"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "A cylinder.",
+          "properties": {
+            "circle": {
+              "additionalProperties": false,
+              "properties": {
+                "height": {
+                  "format": "float",
+                  "type": ["number", "null"]
+                },
+                "pos": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 3,
+                  "type": "array"
+                },
+                "radius": {
+                  "format": "float",
+                  "type": "number"
+                }
+              },
+              "required": ["pos", "radius"],
+              "type": "object"
+            }
+          },
+          "required": ["circle"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "A ground polygon (x, z) between two heights.",
+          "properties": {
+            "polygon": {
+              "additionalProperties": false,
+              "properties": {
+                "heights": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": "array"
+                },
+                "points": {
+                  "items": {
+                    "items": {
+                      "format": "float",
+                      "type": "number"
+                    },
+                    "maxItems": 2,
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": ["points", "heights"],
+              "type": "object"
+            }
+          },
+          "required": ["polygon"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "A ground position (x, z), at whatever height the ground is there.",
+          "properties": {
+            "ground": {
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": "array"
+                }
+              },
+              "required": ["at"],
+              "type": "object"
+            }
+          },
+          "required": ["ground"],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "A point (cinematic and AI points).",
+          "properties": {
+            "point": {
+              "additionalProperties": false,
+              "properties": {
+                "pos": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "maxItems": 3,
+                  "minItems": 3,
+                  "type": "array"
+                },
+                "rot": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Rot"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": ["pos"],
+              "type": "object"
+            }
+          },
+          "required": ["point"],
+          "type": "object"
+        }
+      ]
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A named area or point: `worlds/<world>/areas.json`.",
+  "properties": {
+    "author": {
+      "type": "string"
+    },
+    "client_name": {
+      "description": "The client's name for it (bounded area or point name), when `name` differs.",
+      "type": ["string", "null"]
+    },
+    "comment": {
+      "type": "string"
+    },
+    "doors": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ArenaDoors"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Its id: `area/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "note": {
+      "description": "World-editor notes: what it is about and how far it is checked."
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "role": {
+      "$ref": "#/$defs/AreaRole",
+      "default": "place"
+    },
+    "shape": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Shape"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "suffix": {
+      "type": ["string", "null"]
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": ["id"],
+  "title": "Area",
+  "type": "object"
+}

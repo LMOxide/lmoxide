@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-cheerleader-mysterious-crystal-cave",
+  "lore": 4437,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Mysterious Crystal Cave",
+  "title": "Zombie Cheerleader: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Zombie Cheerleader.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/zombie-cheerleader",
+  "source": "client"
+}

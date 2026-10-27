@@ -1,0 +1,134 @@
+{
+  "id": "minifig/farmer",
+  "name": "Farmer",
+  "template": 663932,
+  "series": 15,
+  "series_index": 0,
+  "render": {
+    "monster_data": 663913
+  },
+  "stats": {
+    "life": 250,
+    "power": 5,
+    "defense": 5,
+    "creativity": 8,
+    "role": 3,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/haymaker",
+    "hits": [
+      {
+        "skill": "skill/main-s15-farmer1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [663942]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/combine-harvester",
+    "hits": [
+      {
+        "skill": "skill/main-s15-farmer2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [663943, 667146]
+      }
+    ]
+  },
+  "click_spells": [663942, 663943],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530295"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [5137, 5061, 5328, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/farmer-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/farmer-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/farmer-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-farmer",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

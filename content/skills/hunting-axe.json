@@ -1,0 +1,42 @@
+{
+  "id": "skill/hunting-axe",
+  "name": "Hunting Axe",
+  "client": {
+    "spell": 302190,
+    "stats": {
+      "EffectPackage": 305630,
+      "ItemDelay": 34,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1260,
+            "ItemInstance": 302192,
+            "MaxChains": 3,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "Speed": 1750
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Tomahawk Warrior: Hunting Axe",
+  "range": 12.5,
+  "projectile": {
+    "item": 302192,
+    "speed": 17.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 12.6,
+    "ricochets": 0
+  },
+  "source": "client"
+}

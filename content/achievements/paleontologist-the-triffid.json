@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paleontologist-the-triffid",
+  "lore": 3934,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_The Triffid",
+  "title": "Paleontologist: The Triffid",
+  "text": "Defeat The Triffid as Paleontologist.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/paleontologist",
+  "source": "client"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "skill/main-s15-sharksuitguy2-wrapper",
+  "name": "main s15 sharksuitguy2 wrapper",
+  "client": {
+    "spell": 667273,
+    "stats": {
+      "EffectPackage": 667560,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667272
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667274
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Shark Suit Guy: Submerge",
+  "source": "client"
+}

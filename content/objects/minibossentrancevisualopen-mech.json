@@ -1,0 +1,10 @@
+{
+  "id": "object/minibossentrancevisualopen-mech",
+  "name": "MinibossEntranceVisualOpen_Mech",
+  "kind": "scenery",
+  "render": {
+    "look": "MinibossEntranceVisualOpen_Mech",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

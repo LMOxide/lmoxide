@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roooooar",
+  "lore": 1540,
+  "parent": "achievement/dino-story",
+  "client_name": "Dino_Defeat T-Rex",
+  "title": "Roooooar!",
+  "text": "Track down and defeat T-Rex, the biggest baddie of Dinosaur Rise.",
+  "points": 100,
+  "kind": "defeat",
+  "stars": 500,
+  "target": "T-Rex",
+  "source": "client"
+}

@@ -1,0 +1,31 @@
+{
+  "portals": [
+    {
+      "id": "portal/33000/to-the-peglegged-mermaid-tavern",
+      "pos": [438.86, 70.35, 173.13],
+      "window": 35,
+      "to": {
+        "world": "world/the-peglegged-mermaid-tavern"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/33000/to-volcano-island",
+      "pos": [450.4, 67.99, 128.31],
+      "window": 21,
+      "to": {
+        "world": "world/volcano-island"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/33000/to-treasure-island",
+      "pos": [443.22, 65.5, 107.88],
+      "window": 16,
+      "to": {
+        "world": "world/treasure-island"
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/roman-emperor",
+  "lore": 2478,
+  "parent": "achievement/series-9",
+  "client_name": "Roman Emperor",
+  "title": "Roman Emperor",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-roman-emperor",
+    "achievement/legendary-roman-emperor",
+    "achievement/novice-roman-emperor",
+    "achievement/expert-roman-emperor",
+    "achievement/roman-emperor-scorched-ruins",
+    "achievement/roman-emperor-abandoned-temple",
+    "achievement/roman-emperor-treasure-island",
+    "achievement/roman-emperor-crone-of-the-maze",
+    "achievement/roman-emperor-madcap-compy",
+    "achievement/roman-emperor-john-the-greedy",
+    "achievement/roman-emperor-the-smasher",
+    "achievement/roman-emperor-the-master-smasher",
+    "achievement/roman-emperor-the-demolisher",
+    "achievement/roman-emperor-the-lost-challenger",
+    "achievement/roman-emperor-the-lost-warrior",
+    "achievement/roman-emperor-the-lost-champion"
+  ],
+  "minifigure": "minifig/roman-emperor",
+  "source": "client"
+}

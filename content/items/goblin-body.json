@@ -1,0 +1,16 @@
+{
+  "id": "item/goblin-body",
+  "name": "Goblin Body",
+  "kind": "part",
+  "template": 576123,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21309,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/goblin",
+  "location": "Torso",
+  "source": "client"
+}

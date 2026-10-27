@@ -1,0 +1,15 @@
+{
+  "id": "npc/commodore-moksey",
+  "name": "Commodore Moksey",
+  "kind": "npc",
+  "render": {
+    "monster_data": 192827,
+    "npc_template": 901
+  },
+  "level": 4,
+  "stats": {
+    "health": 120,
+    "life_factor": 1.5
+  },
+  "source": "client"
+}

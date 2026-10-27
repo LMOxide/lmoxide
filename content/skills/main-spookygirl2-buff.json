@@ -1,0 +1,70 @@
+{
+  "id": "skill/main-spookygirl2-buff",
+  "name": "main spookygirl2 buff",
+  "client": {
+    "spell": 506058,
+    "stats": {
+      "TimeExist": 1000
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 500485,
+            "TemplateID2": 506059
+          }
+        },
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 500486,
+            "TemplateID2": 506078
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 359,
+            "Value": 514368
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 360,
+            "Value": 50
+          }
+        }
+      ],
+      "20": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 500486,
+            "Value": 600
+          }
+        }
+      ],
+      "37": [
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 514508
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

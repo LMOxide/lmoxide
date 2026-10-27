@@ -1,0 +1,10 @@
+{
+  "id": "object/volcanotoswampend",
+  "name": "VolcanoToSwampEnd",
+  "kind": "scenery",
+  "render": {
+    "look": "VolcanoToSwampEnd",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

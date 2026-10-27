@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wrestling-champion-cliffside",
+  "lore": 5315,
+  "parent": "achievement/wrestling-champion",
+  "client_name": "Wrestling Champion_Cliffside",
+  "title": "Wrestling Champion: Cliffside",
+  "text": "Conquer the Cliffside as Wrestling Champion.",
+  "points": 50,
+  "kind": "target",
+  "target": "Cliffside",
+  "minifigure": "minifig/wrestling-champion",
+  "source": "client"
+}

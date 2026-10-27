@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-welder",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 464970,
+  "minifigure": "minifig/welder",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1P84"
+      }
+    }
+  ],
+  "source": "client"
+}

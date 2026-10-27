@@ -1,0 +1,30 @@
+{
+  "id": "npc/scallywag-2",
+  "name": "Scallywag",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 207001,
+    "npc_template": 1711,
+    "look": "skeleton_pirate_1",
+    "cars_group": 3
+  },
+  "level": 1,
+  "stats": {
+    "health": 1,
+    "life_factor": 0.5
+  },
+  "attack": "skill/spell-197335",
+  "skills": [
+    {
+      "skill": "skill/shot-197370",
+      "weight": 1
+    },
+    {
+      "skill": "skill/slash-197365",
+      "weight": 1
+    }
+  ],
+  "skills_from": "recorded",
+  "loot": "loot/enemy",
+  "source": "client"
+}

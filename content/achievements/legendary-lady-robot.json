@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-lady-robot",
+  "lore": 2952,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Complete Any 10",
+  "title": "Legendary Lady Robot",
+  "text": "Complete any 11 Lady Robot achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/lady-robot",
+  "n": 11,
+  "source": "client"
+}

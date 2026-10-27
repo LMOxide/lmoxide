@@ -1,0 +1,18 @@
+{
+  "id": "npc/spider-egg-4",
+  "name": "Spider egg",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 237267,
+    "npc_template": 985,
+    "look": "spider_eggsack",
+    "cars_group": 3
+  },
+  "level": 4,
+  "stats": {
+    "health": 105,
+    "life_factor": 0.8
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

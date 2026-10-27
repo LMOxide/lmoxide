@@ -1,0 +1,39 @@
+{
+  "id": "skill/yellow-potion",
+  "name": "Yellow Potion",
+  "client": {
+    "spell": 34726,
+    "stats": {
+      "EffectPackage": 360338,
+      "ItemDelay": 34,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 39041,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Scientist: Yellow Potion",
+  "range": 12.5,
+  "projectile": {
+    "item": 39041,
+    "speed": 12.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

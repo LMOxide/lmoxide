@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scarecrow-crone-of-the-maze",
+  "lore": 2856,
+  "parent": "achievement/scarecrow",
+  "client_name": "Scarecrow_Crone of the Maze",
+  "title": "Scarecrow: Crone of the Maze",
+  "text": "Defeat Crone of the Maze as Scarecrow.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crone of the Maze",
+  "minifigure": "minifig/scarecrow",
+  "source": "client"
+}

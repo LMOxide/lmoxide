@@ -1,0 +1,57 @@
+{
+  "id": "skill/main-cowboy2-attack",
+  "name": "main cowboy2 attack",
+  "client": {
+    "spell": 596825,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 596822,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 596822,
+            "ProjectileType": 1,
+            "RotY": -15,
+            "Speed": 1100
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 598407, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 596822,
+            "ProjectileType": 1,
+            "RotY": 15,
+            "Speed": 1100
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 598407, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Cowboy: Wild Ride",
+  "range": 12.5,
+  "source": "client"
+}

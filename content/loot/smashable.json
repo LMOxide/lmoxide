@@ -1,0 +1,35 @@
+{
+  "id": "loot/smashable",
+  "name": "Smashable",
+  "rolls": 1,
+  "entries": [
+    {
+      "drop": {
+        "stars": [1, 2]
+      }
+    },
+    {
+      "chance": "2%",
+      "drop": {
+        "items": ["item/25-minifigure-xp"]
+      }
+    },
+    {
+      "chance": "3%",
+      "drop": {
+        "potions": 1
+      }
+    },
+    {
+      "chance": "4%",
+      "drop": {
+        "minifig_parts": {
+          "from": "world",
+          "count": 1
+        }
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "loot.rs roll(): stars as recorded (smashables 1-2, enemies 3), the rest proposed (docs/TUNABLES.md)."
+}

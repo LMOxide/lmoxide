@@ -1,0 +1,3300 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/2210/skeleton-axe",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [107.0, 43.75, 321.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [109.2, 43.75, 322.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-2",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [105.2, 43.75, 323.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer-2",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [355.5, 86.77, 396.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-trident",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [357.7, 86.77, 397.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer-3",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [353.7, 86.77, 397.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-trident-2",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [35.5, 48.28, 461.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/harpy",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [37.7, 48.28, 462.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-trident-3",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [33.7, 48.28, 462.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/harpy-2",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [407.5, 92.32, 461.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [405.7, 92.45, 462.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/harpy-3",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [408.1, 92.32, 458.8],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-2",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [130.0, 41.25, 408.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-shaman",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [132.2, 41.54, 409.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-3",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [128.2, 41.25, 410.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-shaman-2",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [259.0, 60.48, 298.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/gorgon",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [261.2, 60.48, 299.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-shaman-3",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [257.2, 60.43, 300.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/gorgon-2",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [223.5, 50.59, 344.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/hound",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [225.7, 50.59, 345.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/gorgon-3",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [221.7, 50.59, 345.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/hound-2",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [106.0, 43.71, 368.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/ogre",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [108.2, 43.71, 369.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/hound-3",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [104.2, 43.71, 369.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/ogre-2",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [312.0, 86.34, 398.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-3",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [314.2, 86.34, 399.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/ogre-3",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [310.2, 86.34, 399.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-4",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [60.0, 48.49, 491.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer-4",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [62.2, 48.49, 492.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-5",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [58.2, 48.49, 493.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer-5",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [351.5, 92.11, 434.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-trident-4",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [353.7, 92.19, 435.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer-6",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [349.1, 92.15, 433.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-trident-5",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [50.5, 47.78, 426.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/harpy-4",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [48.7, 47.09, 428.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-trident-6",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [51.1, 48.28, 424.3],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/harpy-5",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [290.5, 61.65, 315.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-4",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [292.7, 61.65, 316.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/harpy-6",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [288.7, 61.65, 317.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-5",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [217.0, 48.49, 296.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-shaman-4",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [215.2, 48.3, 298.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-6",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [217.6, 48.63, 294.3],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-shaman-5",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [374.5, 92.7, 461.5],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/gorgon-4",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [376.7, 92.7, 462.7],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/satyr-shaman-6",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [372.7, 92.7, 463.1],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/gorgon-5",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [137.0, 43.71, 357.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/hound-4",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [135.2, 43.71, 358.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/gorgon-6",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [137.6, 43.71, 354.8],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/hound-5",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [99.5, 41.84, 425.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Res_satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/ogre-4",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [101.7, 42.09, 426.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Res_satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/hound-6",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [97.7, 43.26, 426.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Res_satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/ogre-5",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [65.5, 47.44, 452.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Harpy_Area_BA_1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-6",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [67.7, 47.44, 453.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Harpy_Area_BA_1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/ogre-6",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [63.7, 47.44, 453.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Harpy_Area_BA_1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-7",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [258.5, 60.43, 327.0],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-archer-7",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [260.7, 60.43, 328.2],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/skeleton-axe-8",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [256.7, 60.43, 328.6],
+      "overrides": {
+        "level": 17,
+        "stats": {
+          "health": 1838
+        }
+      },
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/zeus",
+      "name": "Zeus",
+      "kind": "npc",
+      "template": "npc/zeus",
+      "pos": [31.3, 14.07, 215.54],
+      "rot": -2.48,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-3",
+      "pos": [16.2, 14.0, 222.02],
+      "rot": 0.801,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/siren",
+      "name": "Siren",
+      "kind": "npc",
+      "template": "npc/siren",
+      "pos": [9.1, 13.0, 239.43],
+      "rot": -2.48,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/spartan-warrior",
+      "name": "Spartan Warrior",
+      "kind": "npc",
+      "template": "npc/spartan-warrior",
+      "pos": [15.12, 13.85, 238.36],
+      "rot": -1.389,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-2",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner",
+      "pos": [16.37, 14.0, 223.45],
+      "rot": 2.704,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/siren-2",
+      "name": "Siren",
+      "kind": "npc",
+      "template": "npc/siren",
+      "pos": [5.8, 13.0, 231.89],
+      "rot": 2.037,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-3",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-4",
+      "pos": [17.25, 14.0, 239.88],
+      "rot": -2.292,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/mermaid",
+      "name": "Mermaid",
+      "kind": "npc",
+      "template": "npc/mermaid",
+      "pos": [12.2, 13.0, 231.95],
+      "rot": 1.957,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/spartan-warrior-2",
+      "name": "Spartan Warrior",
+      "kind": "npc",
+      "template": "npc/spartan-warrior",
+      "pos": [32.26, 15.2, 230.27],
+      "rot": -2.525,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-4",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-5",
+      "pos": [25.98, 15.2, 227.71],
+      "rot": 0.957,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-5",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-2",
+      "pos": [26.88, 15.27, 227.01],
+      "rot": -0.199,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-6",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-2",
+      "pos": [37.94, 14.0, 239.6],
+      "rot": 1.963,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-7",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-3",
+      "pos": [26.46, 15.2, 230.28],
+      "rot": 2.447,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-8",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner",
+      "pos": [39.01, 14.0, 239.96],
+      "rot": -1.887,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-9",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner-4",
+      "pos": [39.63, 14.0, 222.67],
+      "rot": -2.292,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/spartan-warrior-3",
+      "name": "Spartan Warrior",
+      "kind": "npc",
+      "template": "npc/spartan-warrior",
+      "pos": [39.43, 14.0, 221.11],
+      "rot": -1.389,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/commoner-10",
+      "name": "Commoner",
+      "kind": "npc",
+      "template": "npc/commoner",
+      "pos": [37.83, 14.0, 221.84],
+      "rot": 2.147,
+      "overrides": {
+        "level": 20,
+        "stats": {
+          "health": 2618
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/artemis",
+      "name": "Artemis",
+      "kind": "npc",
+      "template": "npc/artemis",
+      "pos": [33.02, 15.2, 227.41],
+      "rot": -2.48,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/mermaid-2",
+      "name": "Mermaid",
+      "kind": "npc",
+      "template": "npc/mermaid-2",
+      "pos": [21.09, 16.0, 247.02],
+      "rot": 1.619,
+      "anchor": "Cine_Mermaid1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/swashbuckler",
+      "name": "Swashbuckler",
+      "kind": "npc",
+      "template": "npc/swashbuckler",
+      "pos": [31.0, 15.6, 241.99],
+      "rot": -1.79,
+      "anchor": "Cine_Swashbuckler1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/deino",
+      "name": "Deino",
+      "kind": "npc",
+      "template": "npc/deino",
+      "pos": [46.23, 48.98, 350.31],
+      "rot": 3.069,
+      "anchor": "Cine_Deino1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/enyo",
+      "name": "Enyo",
+      "kind": "npc",
+      "template": "npc/enyo",
+      "pos": [48.26, 49.0, 348.09],
+      "rot": -2.604,
+      "anchor": "Cine_Enyo1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/pemphredo",
+      "name": "Pemphredo",
+      "kind": "npc",
+      "template": "npc/pemphredo",
+      "pos": [44.26, 49.0, 348.07],
+      "rot": 2.96,
+      "anchor": "Cine_Pemphredo1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/wizard",
+      "name": "Wizard",
+      "kind": "npc",
+      "template": "npc/wizard",
+      "pos": [48.29, 49.0, 345.26],
+      "rot": -0.615,
+      "anchor": "Cine_Wizard1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/xx-wagon",
+      "name": "XX_Wagon",
+      "kind": "smashable",
+      "template": "object/xx-wagon",
+      "pos": [38.1, 45.99, 292.39],
+      "rot": -2.673,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [38.29, 46.0, 289.5],
+      "rot": 1.415,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-bonfire",
+      "name": "XX_Bonfire",
+      "kind": "smashable",
+      "template": "object/xx-bonfire",
+      "pos": [50.34, 46.0, 286.53],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-carrot-crate",
+      "name": "XX_Carrot Crate",
+      "kind": "smashable",
+      "template": "object/xx-carrot-crate",
+      "pos": [40.35, 46.0, 292.01],
+      "rot": 1.823,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel-2",
+      "pos": [51.2, 46.0, 284.36],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-villain-statue",
+      "name": "XX_Villain statue",
+      "kind": "smashable",
+      "template": "object/xx-villain-statue",
+      "pos": [52.75, 45.98, 302.5],
+      "rot": -1.579,
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [52.71, 45.96, 306.15],
+      "rot": 1.003,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [49.5, 46.72, 290.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [50.3, 46.72, 291.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [48.9, 46.72, 291.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [160.0, 43.23, 304.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [160.8, 43.23, 305.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [159.4, 43.23, 305.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [96.0, 51.26, 459.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [96.8, 51.26, 460.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [95.4, 51.26, 460.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [435.0, 98.56, 469.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [435.8, 98.56, 470.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [434.4, 98.56, 470.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [99.0, 41.79, 397.0],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-5",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [99.8, 41.79, 398.2],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [98.4, 41.79, 398.4],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [253.5, 73.07, 380.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [254.3, 73.07, 381.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-6",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [252.9, 73.07, 381.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-6",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [133.0, 43.65, 333.0],
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-11",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [133.8, 43.65, 334.2],
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-12",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [132.4, 43.65, 334.4],
+      "anchor": "ba_MinotaurMaze_Spawn",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-7",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [235.5, 48.54, 308.5],
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-7",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [236.3, 48.54, 309.7],
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-13",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [234.9, 48.54, 309.9],
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-14",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [391.5, 92.69, 446.0],
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-8",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [392.3, 92.69, 447.2],
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-8",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [390.9, 92.69, 447.4],
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-15",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [334.5, 86.69, 394.0],
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-16",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [335.3, 86.69, 395.2],
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-9",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [333.9, 86.69, 395.4],
+      "anchor": "BA_Undead_Ritual",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-9",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [56.5, 48.84, 469.5],
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-17",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [57.3, 48.84, 470.7],
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-18",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [55.9, 48.84, 470.9],
+      "anchor": "Quest_Harpy",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-10",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [145.0, 40.65, 398.5],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-10",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [145.8, 40.65, 399.7],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-19",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [144.4, 40.65, 399.9],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-20",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [125.5, 42.63, 370.5],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-11",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [126.3, 42.63, 371.7],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-11",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [124.9, 42.63, 371.9],
+      "anchor": "Quest_Satyr",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-21",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [4.8, 13.65, 238.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-12",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [3.4, 13.65, 238.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-12",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [276.0, 60.86, 306.5],
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-22",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [276.8, 60.86, 307.7],
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-23",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [275.4, 60.86, 307.9],
+      "anchor": "Quest_Ogre_Mountains",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-13",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [283.5, 72.42, 363.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-13",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [284.3, 72.42, 364.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-24",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [282.9, 72.42, 364.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-crate-25",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [49.0, 14.25, 234.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-small-chest-14",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [49.8, 14.25, 235.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/xx-barrel-14",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [48.4, 14.25, 235.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2210/spirits-1",
+      "name": "spirits_1",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [101.82, 43.0, 363.74],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 630234,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-2",
+      "name": "spirits_2",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [124.1, 44.25, 335.95],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 630238,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-3",
+      "name": "spirits_3",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [128.1, 43.0, 357.7],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 630239,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-4",
+      "name": "spirits_4",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [115.98, 44.42, 336.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 630240,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-5",
+      "name": "spirits_5",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [120.47, 43.31, 348.28],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 635503,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-6",
+      "name": "spirits_6",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [131.15, 43.1, 321.17],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 635504,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-7",
+      "name": "spirits_7",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [104.58, 43.0, 323.15],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 635505,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/spirits-8",
+      "name": "spirits_8",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata",
+      "pos": [104.87, 43.0, 349.83],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 635506,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 237187],
+        "bounds": [0.001, 0.021, 0.002, 0.004, 0.021, 0.006]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/crystal-pedestal-3",
+      "name": "crystal_pedestal_3",
+      "kind": "interactable",
+      "template": "object/crystal-pedestal-a-interactable",
+      "pos": [119.0, 44.25, 335.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 634344,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 634321],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/crystal-pedestal-2",
+      "name": "crystal_pedestal_2",
+      "kind": "interactable",
+      "template": "object/crystal-pedestal-a-interactable",
+      "pos": [114.61, 44.25, 338.63],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 634343,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 634321],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/crystal-pedestal-1",
+      "name": "crystal_pedestal_1",
+      "kind": "interactable",
+      "template": "object/crystal-pedestal-a-interactable",
+      "pos": [114.39, 44.25, 333.53],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 634342,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 634321],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/boombox-1",
+      "name": "boombox 1",
+      "kind": "scenery",
+      "template": "object/boombox-1",
+      "pos": [182.38, 42.35, 312.6],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 160228,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/boombox-2",
+      "name": "boombox 2",
+      "kind": "scenery",
+      "template": "object/boombox-2",
+      "pos": [182.53, 42.32, 311.6],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 160229,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar5-center",
+      "name": "altar5 center",
+      "kind": "scenery",
+      "template": "object/altar5-center",
+      "pos": [355.69, 86.0, 396.16],
+      "rot": [0.0, 0.4657, 0.0, 0.8849],
+      "client": {
+        "guid": 618288,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar5-castpoint",
+      "name": "altar5 castpoint",
+      "kind": "scenery",
+      "template": "object/altar5-castpoint",
+      "pos": [355.66, 87.7, 396.16],
+      "rot": [0.0, 0.4657, 0.0, 0.8849],
+      "client": {
+        "guid": 618274,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-1-altar-1",
+      "name": "particle 1 altar 1",
+      "kind": "scenery",
+      "template": "object/particle-1-altar-1",
+      "pos": [354.97, 88.49, 397.22],
+      "rot": [0.0, 0.3808, 0.0, 0.9247],
+      "client": {
+        "guid": 158157,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-2-altar-1",
+      "name": "particle 2 altar 1",
+      "kind": "scenery",
+      "template": "object/particle-2-altar-1",
+      "pos": [356.39, 88.45, 397.24],
+      "rot": [0.0, 0.3808, 0.0, 0.9247],
+      "client": {
+        "guid": 158163,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-3-altar-1",
+      "name": "particle 3 altar 1",
+      "kind": "scenery",
+      "template": "object/particle-3-altar-1",
+      "pos": [356.42, 88.45, 395.1],
+      "rot": [0.0, 0.3808, 0.0, 0.9247],
+      "client": {
+        "guid": 158164,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-4-altar-1",
+      "name": "particle 4 altar 1",
+      "kind": "scenery",
+      "template": "object/particle-4-altar-1",
+      "pos": [354.99, 88.45, 395.09],
+      "rot": [0.0, 0.3808, 0.0, 0.9247],
+      "client": {
+        "guid": 158165,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar2-center",
+      "name": "altar2 center",
+      "kind": "scenery",
+      "template": "object/altar2-center",
+      "pos": [375.35, 92.0, 462.31],
+      "rot": [0.0, -0.3562, 0.0, 0.9344],
+      "client": {
+        "guid": 618310,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar2-castpoint",
+      "name": "altar2 castpoint",
+      "kind": "scenery",
+      "template": "object/altar2-castpoint",
+      "pos": [375.35, 93.7, 462.32],
+      "rot": [0.0, -0.3562, 0.0, 0.9344],
+      "client": {
+        "guid": 618319,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-1-altar-2",
+      "name": "particle 1 altar 2",
+      "kind": "scenery",
+      "template": "object/particle-1-altar-2",
+      "pos": [374.29, 94.48, 461.6],
+      "rot": [0.0, -0.3819, 0.0, 0.9242],
+      "client": {
+        "guid": 158171,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-2-altar-2",
+      "name": "particle 2 altar 2",
+      "kind": "scenery",
+      "template": "object/particle-2-altar-2",
+      "pos": [374.28, 94.44, 463.02],
+      "rot": [0.0, -0.3819, 0.0, 0.9242],
+      "client": {
+        "guid": 158174,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-3-altar-2",
+      "name": "particle 3 altar 2",
+      "kind": "scenery",
+      "template": "object/particle-3-altar-2",
+      "pos": [376.42, 94.44, 463.03],
+      "rot": [0.0, -0.3819, 0.0, 0.9242],
+      "client": {
+        "guid": 158172,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-4-altar-2",
+      "name": "particle 4 altar 2",
+      "kind": "scenery",
+      "template": "object/particle-4-altar-2",
+      "pos": [376.42, 94.44, 461.6],
+      "rot": [0.0, -0.3819, 0.0, 0.9242],
+      "client": {
+        "guid": 158173,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar3-center",
+      "name": "altar3 center",
+      "kind": "scenery",
+      "template": "object/altar3-center",
+      "pos": [403.07, 92.0, 444.9],
+      "rot": [0.0, -0.444, 0.0, -0.896],
+      "client": {
+        "guid": 618337,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar3-castpoint",
+      "name": "altar3 castpoint",
+      "kind": "scenery",
+      "template": "object/altar3-castpoint",
+      "pos": [403.05, 93.7, 444.93],
+      "rot": [0.0, -0.444, 0.0, -0.896],
+      "client": {
+        "guid": 618323,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-1-altar-3",
+      "name": "particle 1 altar 3",
+      "kind": "scenery",
+      "template": "object/particle-1-altar-3",
+      "pos": [403.78, 94.45, 443.84],
+      "rot": [0.0, -0.924, 0.0, 0.3823],
+      "client": {
+        "guid": 158176,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-2-altar-3",
+      "name": "particle 2 altar 3",
+      "kind": "scenery",
+      "template": "object/particle-2-altar-3",
+      "pos": [402.37, 94.45, 443.84],
+      "rot": [0.0, -0.924, 0.0, 0.3823],
+      "client": {
+        "guid": 158179,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-3-altar-3",
+      "name": "particle 3 altar 3",
+      "kind": "scenery",
+      "template": "object/particle-3-altar-3",
+      "pos": [402.37, 94.45, 445.96],
+      "rot": [0.0, -0.924, 0.0, 0.3823],
+      "client": {
+        "guid": 158177,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-4-altar-3",
+      "name": "particle 4 altar 3",
+      "kind": "scenery",
+      "template": "object/particle-4-altar-3",
+      "pos": [403.77, 94.45, 445.96],
+      "rot": [0.0, -0.924, 0.0, 0.3823],
+      "client": {
+        "guid": 158178,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-1-altar-4",
+      "name": "particle 1 altar 4",
+      "kind": "scenery",
+      "template": "object/particle-1-altar-4",
+      "pos": [320.46, 88.49, 412.83],
+      "rot": [0.0, -0.3862, 0.0, 0.9224],
+      "client": {
+        "guid": 487398,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-2-altar-4",
+      "name": "particle 2 altar 4",
+      "kind": "scenery",
+      "template": "object/particle-2-altar-4",
+      "pos": [320.44, 88.45, 414.25],
+      "rot": [0.0, -0.3862, 0.0, 0.9224],
+      "client": {
+        "guid": 487399,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-3-altar-4",
+      "name": "particle 3 altar 4",
+      "kind": "scenery",
+      "template": "object/particle-3-altar-4",
+      "pos": [322.58, 88.45, 414.28],
+      "rot": [0.0, -0.3862, 0.0, 0.9224],
+      "client": {
+        "guid": 487400,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/particle-4-altar-4",
+      "name": "particle 4 altar 4",
+      "kind": "scenery",
+      "template": "object/particle-4-altar-4",
+      "pos": [322.59, 88.45, 412.85],
+      "rot": [0.0, -0.3862, 0.0, 0.9224],
+      "client": {
+        "guid": 487401,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar4-center",
+      "name": "altar4 center",
+      "kind": "scenery",
+      "template": "object/altar4-center",
+      "pos": [321.52, 86.0, 413.54],
+      "rot": [0.0, -0.3862, 0.0, 0.9224],
+      "client": {
+        "guid": 618142,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/altar4-castpoint",
+      "name": "altar4 castpoint",
+      "kind": "scenery",
+      "template": "object/altar4-castpoint",
+      "pos": [321.53, 87.7, 413.47],
+      "rot": [0.0, -0.3862, 0.0, 0.9224],
+      "client": {
+        "guid": 618085,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [112.87, 42.34, 413.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641925,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [114.56, 42.34, 411.23],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641926,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [130.89, 42.34, 396.74],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641927,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-4",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [137.04, 42.34, 398.81],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641928,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-5",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [143.48, 42.34, 400.02],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641929,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-6",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [145.68, 42.34, 399.82],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641930,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-7",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [130.98, 43.7, 378.59],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641931,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-8",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [131.66, 43.7, 375.2],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641932,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-9",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [127.28, 43.7, 368.34],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641933,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-10",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [105.88, 43.54, 391.38],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641934,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-11",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [103.32, 43.54, 392.4],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641935,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/flying-machine-myth-a",
+      "name": "flying_machine_myth_a",
+      "kind": "scenery",
+      "template": "object/flying-machine-myth-a",
+      "pos": [303.99, 68.14, 336.43],
+      "rot": [0.0, 0.9239, 0.0, -0.3827],
+      "client": {
+        "guid": 530834,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 98061],
+        "bounds": [-1.856, 0.0, -3.084, 5.183, 2.991, 1.905]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/collectible-all-seeing-eye",
+      "name": "collectible_all_seeing_eye",
+      "kind": "scenery",
+      "template": "object/collectible-all-seeing-eye",
+      "pos": [56.85, 48.0, 331.41],
+      "rot": [0.0, -0.6391, 0.0, 0.7691],
+      "client": {
+        "guid": 530792,
+        "tag": "----",
+        "script_group": 341,
+        "visual": [1010030, 527182],
+        "bounds": [-0.252, 0.0, -0.259, 0.252, 0.518, 0.259]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-2x2x2-icecream",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [56.68, 48.0, 359.64],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576997,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-2x2x2-icecream-2",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [188.58, 41.97, 323.05],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576998,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-2x2x2-icecream-3",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [264.56, 79.94, 403.12],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576999,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-12",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [50.37, 46.99, 286.51],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 486096,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-13",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [44.37, 49.05, 462.78],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 486346,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-14",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [81.35, 42.59, 355.34],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 162813,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-15",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [133.85, 40.83, 389.17],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 162812,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/invisible-monsterdata-16",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [45.96, 46.98, 448.26],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 163305,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [23.17, 27.55, 257.95],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 486251,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-2",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [34.35, 37.08, 265.62],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 486279,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-3",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [26.12, 44.64, 270.47],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 486280,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-4",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [28.75, 46.62, 280.26],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 486281,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-5",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [251.84, 59.97, 336.42],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 487273,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-6",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [239.96, 52.0, 331.92],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 599337,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-7",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [289.02, 65.81, 326.49],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 487274,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-8",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [288.61, 61.0, 316.59],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 599338,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-9",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [287.38, 71.59, 359.97],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 487275,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-10",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [288.26, 66.5, 347.82],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 599340,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-11",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [253.44, 80.0, 390.33],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 487276,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-12",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [254.69, 72.5, 379.62],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 599346,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-13",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [173.81, 41.5, 323.53],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 490110,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-14",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [177.02, 41.5, 332.47],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 490111,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-15",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [174.9, 50.5, 347.7],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 490112,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-invisible-16",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [159.52, 42.05, 344.6],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 490113,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-harpy-1",
+      "name": "Jump Location Harpy 1",
+      "kind": "scenery",
+      "template": "object/jump-location-harpy-1",
+      "pos": [85.68, 42.44, 343.75],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491283,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-harpy-2",
+      "name": "Jump Location Harpy 2",
+      "kind": "scenery",
+      "template": "object/jump-location-harpy-2",
+      "pos": [92.22, 42.52, 343.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491685,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/jump-location-harpy-3",
+      "name": "Jump Location Harpy 3",
+      "kind": "scenery",
+      "template": "object/jump-location-harpy-3",
+      "pos": [100.81, 43.24, 343.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491686,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [104.88, 53.51, 491.77],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 526687,
+        "tag": "----",
+        "script_group": 314,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [255.74, 60.21, 342.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 526688,
+        "tag": "----",
+        "script_group": 315,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-3",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [471.49, 97.51, 475.7],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 526689,
+        "tag": "----",
+        "script_group": 316,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/skyforge-teleport",
+      "name": "skyforge teleport",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [298.9, 67.51, 336.92],
+      "rot": [0.0, -0.3924, 0.0, 0.9198],
+      "scale": 3.0,
+      "client": {
+        "guid": 526682,
+        "tag": "----",
+        "script_group": 317,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-4",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [57.74, 48.1, 408.07],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 526690,
+        "tag": "----",
+        "script_group": 318,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-5",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [159.16, 41.03, 354.86],
+      "rot": [0.0, 0.0169, 0.0, 0.9999],
+      "scale": 3.0,
+      "client": {
+        "guid": 526691,
+        "tag": "----",
+        "script_group": 319,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-6",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [255.38, 80.55, 408.33],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 526692,
+        "tag": "----",
+        "script_group": 320,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-7",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [351.09, 92.1, 454.93],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 526693,
+        "tag": "----",
+        "script_group": 321,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-8",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [104.88, 53.51, 491.77],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-9",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [255.74, 60.21, 342.3],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-10",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [471.49, 97.51, 475.7],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/skyforge-teleport-2",
+      "name": "skyforge teleport",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [298.9, 67.51, 336.92],
+      "rot": -0.801,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-11",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [57.74, 48.1, 408.07],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-12",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [159.16, 41.03, 354.86],
+      "rot": 0.04,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-13",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [255.38, 80.55, 408.33],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/empty-monsterdata-1x1x1-14",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [351.09, 92.1, 454.93],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/jumper",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-wind-fan-b-buildie-2",
+      "pos": [30.0, 16.2, 249.33],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false,
+        "interaction_radius": 50
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-invisible",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [23.17, 27.55, 257.95],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/jumper-2",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jumper",
+      "pos": [23.17, 27.55, 257.95],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/jumper-3",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jumper",
+      "pos": [26.3, 44.58, 270.4],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-invisible-2",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [28.75, 46.62, 280.26],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-invisible-3",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [34.35, 37.08, 265.62],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-invisible-4",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [26.12, 44.64, 270.47],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/jumper-4",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jumper",
+      "pos": [34.35, 37.08, 265.62],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/2210/xx-invisible-5",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [50.37, 46.99, 286.51],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    }
+  ]
+}

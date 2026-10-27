@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-gingerbread-man",
+  "lore": 2996,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Upgrade 7",
+  "title": "Expert Gingerbread Man",
+  "text": "Get the seventh Gingerbread Man upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/gingerbread-man",
+  "n": 7,
+  "source": "client"
+}

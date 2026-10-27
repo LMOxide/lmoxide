@@ -1,0 +1,22 @@
+{
+  "areas": [
+    {
+      "id": "area/1399/bossencounter-start",
+      "name": "BossEncounter_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [253.91, 263.25],
+            [253.5, 261.63],
+            [259.79, 259.92],
+            [260.23, 261.48]
+          ],
+          "heights": [23.680187, 33.680183]
+        }
+      },
+      "doors": {},
+      "source": "client"
+    }
+  ]
+}

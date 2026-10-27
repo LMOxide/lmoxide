@@ -1,0 +1,16 @@
+{
+  "id": "item/welder-head",
+  "name": "Welder Head",
+  "kind": "part",
+  "template": 483543,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11115,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/welder",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/animal-control-the-witch-hunter",
+  "lore": 5087,
+  "parent": "achievement/animal-control",
+  "client_name": "Animal Control_Smash 50 Witches",
+  "title": "Animal Control, the Witch Hunter",
+  "text": "Smash 50 Witches as Animal Control.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/animal-control",
+  "counts": {
+    "match": "Witch",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "npc/hophop-shroom-2",
+  "name": "Hophop Shroom",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 346165,
+    "npc_template": 1982,
+    "look": "mushroom_runner",
+    "cars_group": 3
+  },
+  "level": 26,
+  "stats": {
+    "health": 1927,
+    "life_factor": 0.5
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/explode-321437",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/laser-3",
+  "name": "laser 3",
+  "kind": "scenery",
+  "render": {
+    "look": "laser 3",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

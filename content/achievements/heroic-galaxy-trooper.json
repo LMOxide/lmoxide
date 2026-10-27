@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-galaxy-trooper",
+  "lore": 3860,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Complete Any 5",
+  "title": "Heroic Galaxy Trooper",
+  "text": "Complete any 5 Galaxy Trooper achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/galaxy-trooper",
+  "n": 5,
+  "source": "client"
+}

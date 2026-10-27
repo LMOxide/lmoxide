@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spooky-girl-lord-minos-the-lich",
+  "lore": 3262,
+  "parent": "achievement/spooky-girl",
+  "client_name": "Spooky Girl_Lord Minos, the Lich",
+  "title": "Spooky Girl: Lord Minos, the Lich",
+  "text": "Defeat Lord Minos, the Lich as Spooky Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Lord Minos, the Lich",
+  "minifigure": "minifig/spooky-girl",
+  "source": "client"
+}

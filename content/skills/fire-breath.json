@@ -1,0 +1,27 @@
+{
+  "id": "skill/fire-breath",
+  "name": "Fire Breath",
+  "client": {
+    "spell": 16207,
+    "stats": {
+      "AISpellCategory": 1,
+      "AttackRange": 200,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.20000000298023224,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1003,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

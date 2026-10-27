@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skeleton-guy-the-lost-warrior",
+  "lore": 4498,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Lost Creations_Get to Level 10",
+  "title": "Skeleton Guy, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Skeleton Guy.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/skeleton-guy",
+  "n": 10,
+  "source": "client"
+}

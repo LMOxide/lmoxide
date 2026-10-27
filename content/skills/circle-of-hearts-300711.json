@@ -1,0 +1,25 @@
+{
+  "id": "skill/circle-of-hearts-300711",
+  "name": "Circle of Hearts",
+  "client": {
+    "spell": 300711,
+    "stats": {
+      "EffectPackage": 637037,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/lizard-man-body",
+  "name": "Lizard Man Body",
+  "kind": "part",
+  "template": 599520,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20511,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/lizard-man",
+  "location": "Torso",
+  "source": "client"
+}

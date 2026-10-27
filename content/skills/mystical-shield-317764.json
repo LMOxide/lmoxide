@@ -1,0 +1,25 @@
+{
+  "id": "skill/mystical-shield-317764",
+  "name": "Mystical Shield",
+  "client": {
+    "spell": 317764,
+    "stats": {
+      "EffectPackage": 318843,
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.5,
+            "Stat": 3000012
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

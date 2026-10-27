@@ -1,0 +1,17 @@
+{
+  "id": "achievement/swashbuckler-the-gardener",
+  "lore": 3288,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Smash 50 Triffids",
+  "title": "Swashbuckler the Gardener",
+  "text": "Smash 50 Monster Plants as Swashbuckler.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/swashbuckler",
+  "counts": {
+    "match": "Triffid",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

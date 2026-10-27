@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-trooper-minotaur-refuge",
+  "lore": 3761,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Minotaur Refuge",
+  "title": "Alien Trooper: Minotaur Refuge",
+  "text": "Conquer the Minotaur Refuge as Alien Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Minotaur Refuge",
+  "minifigure": "minifig/alien-trooper",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/square-foot-head",
+  "name": "Square Foot Head",
+  "kind": "part",
+  "template": 662037,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11410,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/square-foot",
+  "location": "Head",
+  "source": "client"
+}

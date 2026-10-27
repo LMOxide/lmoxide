@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-mountain-climber",
+  "lore": 2833,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Complete Any 10",
+  "title": "Legendary Mountain Climber",
+  "text": "Complete any 11 Mountain Climber achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/mountain-climber",
+  "n": 11,
+  "source": "client"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "dialogue/cinematic-start-escaped-from-jail-822",
+  "name": "Cinematic Start Escaped From Jail",
+  "texts": [822, 824, 825, 826, 827, 823],
+  "world": "world/isle-of-yarr",
+  "npc_name": 2725,
+  "npc": "Cinematic Start Escaped From Jail",
+  "start": "arrival",
+  "pos": [126.4161, 79.2001, 60.5725],
+  "source": "live"
+}

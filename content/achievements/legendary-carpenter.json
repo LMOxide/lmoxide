@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-carpenter",
+  "lore": 3776,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Complete Any 10",
+  "title": "Legendary Carpenter",
+  "text": "Complete any 11 Carpenter achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/carpenter",
+  "n": 11,
+  "source": "client"
+}

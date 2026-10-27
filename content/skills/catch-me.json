@@ -1,0 +1,36 @@
+{
+  "id": "skill/catch-me",
+  "name": "Catch Me!",
+  "client": {
+    "spell": 465026,
+    "stats": {
+      "MoreFlags": 65536,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 7,
+            "NPCSelectMode": 3,
+            "Radius": 1,
+            "TemplateID": 600423,
+            "TemplateID2": 465751,
+            "Value1": 466705
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Gingerbread Man: Catch Me!",
+  "dash": {
+    "distance": 7.0,
+    "radius": 1.0,
+    "effect": 466705,
+    "path_mod": 0.05
+  },
+  "source": "client"
+}

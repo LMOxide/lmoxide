@@ -1,0 +1,14 @@
+{
+  "id": "achievement/mythic-paradise",
+  "lore": 948,
+  "parent": "achievement/did-i-mention-paradise",
+  "client_name": "[Mythology Mountains] Boombox",
+  "title": "Mythic Paradise",
+  "text": "Get your groove on in the Mythology Mountains.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/mythology-mountains",
+  "find": "boombox 1",
+  "place": "Boombox",
+  "source": "client"
+}

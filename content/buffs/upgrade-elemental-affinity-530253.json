@@ -1,0 +1,8 @@
+{
+  "id": "buff/upgrade-elemental-affinity-530253",
+  "name": "Upgrade: Elemental Affinity",
+  "nano": 530253,
+  "source": "client",
+  "tags": ["todo"],
+  "comment": "No client-side game actions: the effect was server script, not known yet."
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spectre-ancient-space-ruins",
+  "lore": 4573,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Ancient Space Ruins",
+  "title": "Spectre: Ancient Space Ruins",
+  "text": "Conquer the Ancient Space Ruins as Spectre.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Space Ruins",
+  "minifigure": "minifig/spectre",
+  "source": "client"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "npc/pirate-scout",
+  "name": "Pirate Scout",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 201478
+  },
+  "level": 1,
+  "stats": {
+    "health": 60,
+    "life_factor": 1.0
+  },
+  "skills": [
+    {
+      "skill": "skill/islander-scout-trap-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

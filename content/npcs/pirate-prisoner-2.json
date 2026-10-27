@@ -1,0 +1,17 @@
+{
+  "id": "npc/pirate-prisoner-2",
+  "name": "Pirate prisoner",
+  "kind": "npc",
+  "render": {
+    "monster_data": 241333,
+    "npc_template": 909,
+    "look": "pirate_good_b",
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

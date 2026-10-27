@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-fortune-teller",
+  "lore": 2622,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Upgrade 7",
+  "title": "Expert Fortune Teller",
+  "text": "Get the seventh Fortune Teller upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/fortune-teller",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "skill/passive-spookygirl-web-snare",
+  "name": "passive spookygirl web snare",
+  "client": {
+    "spell": 517099,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.6000000238418579
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

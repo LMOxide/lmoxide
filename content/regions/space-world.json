@@ -1,0 +1,20 @@
+{
+  "id": "region/space-world",
+  "name": "Space World",
+  "worlds": [
+    "world/mercenary-cave",
+    "world/cave-of-the-exiled",
+    "world/underground-cave",
+    "world/unexplored-crystal-cave",
+    "world/alien-crystal-station",
+    "world/mercenary-troop-transport",
+    "world/mercenary-assault-cruiser",
+    "world/ancient-space-ruins",
+    "world/space-colony",
+    "world/planet-s-dark-side",
+    "world/space-command-hq",
+    "world/shadow-centurion-base",
+    "world/alien-command-center"
+  ],
+  "source": "client"
+}

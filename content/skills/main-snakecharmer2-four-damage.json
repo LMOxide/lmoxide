@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-snakecharmer2-four-damage",
+  "name": "main snakecharmer2 four damage",
+  "client": {
+    "spell": 551020,
+    "stats": {
+      "EffectPackage": 578072,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 2.4000000953674316,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

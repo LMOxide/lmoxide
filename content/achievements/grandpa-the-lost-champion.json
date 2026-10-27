@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandpa-the-lost-champion",
+  "lore": 3445,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Lost Creations_Get to Level 15",
+  "title": "Grandpa, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Grandpa.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/grandpa",
+  "n": 15,
+  "source": "client"
+}

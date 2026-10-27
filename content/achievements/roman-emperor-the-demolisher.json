@@ -1,0 +1,17 @@
+{
+  "id": "achievement/roman-emperor-the-demolisher",
+  "lore": 2746,
+  "parent": "achievement/roman-emperor",
+  "client_name": "Roman Emperor_Smash 25 Minotaur Statues",
+  "title": "Roman Emperor, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Roman Emperor.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/roman-emperor",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

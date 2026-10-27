@@ -1,0 +1,15 @@
+{
+  "id": "npc/knight-of-the-crown",
+  "name": "Knight of the Crown",
+  "kind": "npc",
+  "render": {
+    "monster_data": 352446,
+    "npc_template": 1342
+  },
+  "level": 9,
+  "stats": {
+    "health": 195,
+    "life_factor": 0.15
+  },
+  "source": "client"
+}

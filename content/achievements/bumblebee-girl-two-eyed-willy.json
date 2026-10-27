@@ -1,0 +1,13 @@
+{
+  "id": "achievement/bumblebee-girl-two-eyed-willy",
+  "lore": 3602,
+  "parent": "achievement/bumblebee-girl",
+  "client_name": "Bumblebee Girl_Two-Eyed Willy",
+  "title": "Bumblebee Girl: Two-Eyed Willy",
+  "text": "Defeat Two-Eyed Willy as Bumblebee Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Two-Eyed Willy",
+  "minifigure": "minifig/bumblebee-girl",
+  "source": "client"
+}

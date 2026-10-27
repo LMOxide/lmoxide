@@ -1,0 +1,39 @@
+{
+  "id": "skill/ball-of-yarn",
+  "name": "Ball of Yarn",
+  "client": {
+    "spell": 357877,
+    "stats": {
+      "EffectPackage": 366654,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 360402,
+            "ProjectileType": 2,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Grandma: Ball of Yarn",
+  "range": 12.5,
+  "projectile": {
+    "item": 360402,
+    "speed": 10.0,
+    "kind": 2,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

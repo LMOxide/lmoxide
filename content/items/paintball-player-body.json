@@ -1,0 +1,16 @@
+{
+  "id": "item/paintball-player-body",
+  "name": "Paintball Player Body",
+  "kind": "part",
+  "template": 483624,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21008,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/paintball-player",
+  "location": "Torso",
+  "source": "client"
+}

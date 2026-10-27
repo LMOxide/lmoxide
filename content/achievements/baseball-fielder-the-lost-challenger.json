@@ -1,0 +1,13 @@
+{
+  "id": "achievement/baseball-fielder-the-lost-challenger",
+  "lore": 3472,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_Lost Creations_Get to Level 5",
+  "title": "Baseball Fielder, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Baseball Fielder.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/baseball-fielder",
+  "n": 5,
+  "source": "client"
+}

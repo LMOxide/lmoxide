@@ -1,0 +1,13 @@
+{
+  "id": "achievement/librarian-the-lost-warrior",
+  "lore": 3422,
+  "parent": "achievement/librarian",
+  "client_name": "Librarian_Lost Creations_Get to Level 10",
+  "title": "Librarian, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Librarian.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/librarian",
+  "n": 10,
+  "source": "client"
+}

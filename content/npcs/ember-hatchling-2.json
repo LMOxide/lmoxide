@@ -1,0 +1,25 @@
+{
+  "id": "npc/ember-hatchling-2",
+  "name": "Ember Hatchling",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 416520,
+    "npc_template": 2895,
+    "look": "drake",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 1314,
+    "life_factor": 1.0
+  },
+  "skills": [
+    {
+      "skill": "skill/drake-razor-breath-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

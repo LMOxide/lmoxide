@@ -1,0 +1,34 @@
+{
+  "id": "skill/starfish-34533",
+  "name": "Starfish",
+  "client": {
+    "spell": 34533,
+    "stats": {
+      "EffectPackage": 636911,
+      "TimeExist": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.75
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

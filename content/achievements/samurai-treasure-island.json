@@ -1,0 +1,13 @@
+{
+  "id": "achievement/samurai-treasure-island",
+  "lore": 3949,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Treasure Island",
+  "title": "Samurai: Treasure Island",
+  "text": "Conquer the Treasure Island as Samurai.",
+  "points": 25,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/samurai",
+  "source": "client"
+}

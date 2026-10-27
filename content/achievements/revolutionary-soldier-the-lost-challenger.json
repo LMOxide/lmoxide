@@ -1,0 +1,13 @@
+{
+  "id": "achievement/revolutionary-soldier-the-lost-challenger",
+  "lore": 3574,
+  "parent": "achievement/revolutionary-soldier",
+  "client_name": "Revolutionary Soldier_Lost Creations_Get to Level 5",
+  "title": "Revolutionary Soldier, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Revolutionary Soldier.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/revolutionary-soldier",
+  "n": 5,
+  "source": "client"
+}

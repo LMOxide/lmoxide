@@ -1,0 +1,23 @@
+{
+  "id": "npc/drake",
+  "name": "Drake",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 416520
+  },
+  "level": 10,
+  "stats": {
+    "health": 5380,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/drake-razor-breath-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

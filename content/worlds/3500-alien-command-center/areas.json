@@ -1,0 +1,108 @@
+{
+  "areas": [
+    {
+      "id": "area/3500/outsideaipoint",
+      "name": "OutsideAIPoint",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [312.9, 108.11, 399.9],
+          "rot": 0.828
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/3500/bossencounter-start-saucer-saucer",
+      "name": "BossEncounter_Start_Saucer",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [313.24, 407.95],
+            [321.02, 400.17],
+            [321.37, 400.52],
+            [313.59, 408.3]
+          ],
+          "heights": [108.58812, 118.58812]
+        }
+      },
+      "suffix": "Saucer",
+      "doors": {
+        "open": [564674],
+        "closed": [564675],
+        "exit": [362073]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/3500/minibossencounter-start-first-encounter-first-encounter",
+      "name": "MiniBossEncounter_Start_First_Encounter",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [85.01, 194.54],
+            [85.01, 192.91],
+            [91.3, 192.78],
+            [91.3, 194.4]
+          ],
+          "heights": [73.27877, 83.27877]
+        }
+      },
+      "suffix": "First_Encounter",
+      "doors": {
+        "open": [365848],
+        "closed": [365845],
+        "exit": [365846]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/3500/minibossencounter-start-overlord-overlord",
+      "name": "MiniBossEncounter_Start_Overlord",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [150.3, 247.06],
+            [148.67, 247.07],
+            [148.54, 240.78],
+            [150.16, 240.78]
+          ],
+          "heights": [81.32373, 91.32373]
+        }
+      },
+      "suffix": "Overlord",
+      "doors": {
+        "open": [365456],
+        "closed": [365453],
+        "exit": [365454]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/3500/minibossencounter-start-ufo-ufo",
+      "name": "MiniBossEncounter_Start_UFO",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [324.68, 232.31],
+            [331.48, 232.31],
+            [331.48, 232.81],
+            [324.68, 232.81]
+          ],
+          "heights": [90.92476, 100.92476]
+        }
+      },
+      "suffix": "UFO",
+      "doors": {
+        "open": [525953],
+        "closed": [525954],
+        "exit": [365829]
+      },
+      "source": "client"
+    }
+  ]
+}

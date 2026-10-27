@@ -1,0 +1,16 @@
+{
+  "id": "item/pirate-captain-head",
+  "name": "Pirate Captain Head",
+  "kind": "part",
+  "template": 577133,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10812,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/pirate-captain",
+  "location": "Head",
+  "source": "client"
+}

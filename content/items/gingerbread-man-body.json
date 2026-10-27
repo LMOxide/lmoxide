@@ -1,0 +1,16 @@
+{
+  "id": "item/gingerbread-man-body",
+  "name": "Gingerbread Man Body",
+  "kind": "part",
+  "template": 483611,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21105,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/gingerbread-man",
+  "location": "Torso",
+  "source": "client"
+}

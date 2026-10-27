@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-location-harpy-1",
+  "name": "Jump Location Harpy 1",
+  "kind": "scenery",
+  "render": {
+    "look": "Jump Location Harpy 1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

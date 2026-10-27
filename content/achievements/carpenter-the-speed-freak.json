@@ -1,0 +1,17 @@
+{
+  "id": "achievement/carpenter-the-speed-freak",
+  "lore": 3791,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Build 20 Speed Pads",
+  "title": "Carpenter, the Speed Freak",
+  "text": "Build 20 Speed Pads as Carpenter.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/carpenter",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

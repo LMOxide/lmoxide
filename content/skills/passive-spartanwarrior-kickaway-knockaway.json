@@ -1,0 +1,34 @@
+{
+  "id": "skill/passive-spartanwarrior-kickaway-knockaway",
+  "name": "passive spartanwarrior kickaway knockaway",
+  "client": {
+    "spell": 596897,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 365804
+          }
+        },
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Arg2": 4,
+            "Distance": 2,
+            "PowerRating": 9001,
+            "Speed": 25
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-faun",
+  "lore": 5152,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Complete Any 5",
+  "title": "Heroic Faun",
+  "text": "Complete any 5 Faun achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/faun",
+  "n": 5,
+  "source": "client"
+}

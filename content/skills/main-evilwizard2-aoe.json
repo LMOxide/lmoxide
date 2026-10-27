@@ -1,0 +1,28 @@
+{
+  "id": "skill/main-evilwizard2-aoe",
+  "name": "main evilwizard2 aoe",
+  "client": {
+    "spell": 578379,
+    "stats": {
+      "EffectPackage": 551032,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 578380,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Evil Wizard: Sigil of Magic ",
+  "source": "client"
+}

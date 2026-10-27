@@ -1,0 +1,15 @@
+{
+  "id": "world/medieval-kingdom-art",
+  "name": "Medieval - Kingdom - Art",
+  "playfield": 5201,
+  "kind": "other",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [157.0, 15.96, 104.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

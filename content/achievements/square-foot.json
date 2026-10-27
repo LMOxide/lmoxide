@@ -1,0 +1,29 @@
+{
+  "id": "achievement/square-foot",
+  "lore": 4393,
+  "parent": "achievement/series-14",
+  "client_name": "Square Foot",
+  "title": "Square Foot",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-square-foot",
+    "achievement/legendary-square-foot",
+    "achievement/square-foot-spider-s-nest",
+    "achievement/square-foot-mercenary-cave",
+    "achievement/square-foot-dragon-halls",
+    "achievement/square-foot-chunk-the-tiger",
+    "achievement/square-foot-the-triffid",
+    "achievement/square-foot-roar-the-gladiator",
+    "achievement/novice-square-foot",
+    "achievement/expert-square-foot",
+    "achievement/square-foot-the-lost-challenger",
+    "achievement/square-foot-the-lost-warrior",
+    "achievement/square-foot-the-lost-champion",
+    "achievement/square-foot-the-smasher",
+    "achievement/square-foot-the-master-smasher",
+    "achievement/square-foot-the-demolisher"
+  ],
+  "minifigure": "minifig/square-foot",
+  "source": "client"
+}

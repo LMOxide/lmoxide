@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-iceskater2-damage",
+  "name": "main iceskater2 damage",
+  "client": {
+    "spell": 14897,
+    "stats": {
+      "EffectPackage": 23787,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.4000000059604645,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

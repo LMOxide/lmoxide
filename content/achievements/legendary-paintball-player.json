@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-paintball-player",
+  "lore": 3596,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Complete Any 10",
+  "title": "Legendary Paintball Player",
+  "text": "Complete any 11 Paintball Player achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/paintball-player",
+  "n": 11,
+  "source": "client"
+}

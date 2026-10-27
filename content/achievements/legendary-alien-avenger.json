@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-alien-avenger",
+  "lore": 2714,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Complete Any 10",
+  "title": "Legendary Alien Avenger",
+  "text": "Complete any 11 Alien Avenger achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/alien-avenger",
+  "n": 11,
+  "source": "client"
+}

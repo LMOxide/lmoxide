@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-tiger-woman",
+  "lore": 4418,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Complete Any 5",
+  "title": "Heroic Tiger Woman",
+  "text": "Complete any 5 Tiger Woman achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/tiger-woman",
+  "n": 5,
+  "source": "client"
+}

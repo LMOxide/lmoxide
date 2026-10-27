@@ -1,0 +1,13 @@
+{
+  "id": "achievement/astronaut-swamp-tunnel",
+  "lore": 5091,
+  "parent": "achievement/astronaut",
+  "client_name": "Astronaut_Swamp Tunnel",
+  "title": "Astronaut: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Astronaut.",
+  "points": 25,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/astronaut",
+  "source": "client"
+}

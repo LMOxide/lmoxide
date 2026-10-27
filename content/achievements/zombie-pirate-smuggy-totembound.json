@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-pirate-smuggy-totembound",
+  "lore": 4611,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Smuggy Totembound",
+  "title": "Zombie Pirate: Smuggy Totembound",
+  "text": "Defeat Smuggy Totembound as Zombie Pirate.",
+  "points": 25,
+  "kind": "target",
+  "target": "Smuggy Totembound",
+  "minifigure": "minifig/zombie-pirate",
+  "source": "client"
+}

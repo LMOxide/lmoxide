@@ -1,0 +1,29 @@
+{
+  "id": "achievement/queen",
+  "lore": 5068,
+  "parent": "achievement/series-15",
+  "client_name": "Queen",
+  "title": "Queen",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-queen",
+    "achievement/legendary-queen",
+    "achievement/queen-bewitched-candy-forest",
+    "achievement/queen-cave-of-the-exiled",
+    "achievement/queen-dragon-halls",
+    "achievement/queen-chlora-the-fungomancer",
+    "achievement/queen-the-weaver",
+    "achievement/queen-hecate-the-winter-witch",
+    "achievement/novice-queen",
+    "achievement/expert-queen",
+    "achievement/queen-the-lost-challenger",
+    "achievement/queen-the-lost-warrior",
+    "achievement/queen-the-lost-champion",
+    "achievement/queen-the-striker",
+    "achievement/queen-the-master-striker",
+    "achievement/queen-the-dragontamer"
+  ],
+  "minifigure": "minifig/queen",
+  "source": "client"
+}

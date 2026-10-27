@@ -1,0 +1,11 @@
+{
+  "id": "object/crystal-compass",
+  "name": "crystal_compass",
+  "kind": "door",
+  "render": {
+    "look": "crystal_compass",
+    "visual": [1010201, 635274]
+  },
+  "states": ["open", "closed"],
+  "source": "client"
+}

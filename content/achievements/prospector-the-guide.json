@@ -1,0 +1,17 @@
+{
+  "id": "achievement/prospector-the-guide",
+  "lore": 3220,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Build 30 Signs",
+  "title": "Prospector, the Guide",
+  "text": "Build 30 Signs with Prospector.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/prospector",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

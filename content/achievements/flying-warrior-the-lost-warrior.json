@@ -1,0 +1,13 @@
+{
+  "id": "achievement/flying-warrior-the-lost-warrior",
+  "lore": 5179,
+  "parent": "achievement/flying-warrior",
+  "client_name": "Flying Warrior_Lost Creations_Get to Level 10",
+  "title": "Flying Warrior, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Flying Warrior.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/flying-warrior",
+  "n": 10,
+  "source": "client"
+}

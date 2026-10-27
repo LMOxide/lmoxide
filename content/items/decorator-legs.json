@@ -1,0 +1,16 @@
+{
+  "id": "item/decorator-legs",
+  "name": "Decorator Legs",
+  "kind": "part",
+  "template": 483688,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31003,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/decorator",
+  "location": "Legs",
+  "source": "client"
+}

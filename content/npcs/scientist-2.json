@@ -1,0 +1,17 @@
+{
+  "id": "npc/scientist-2",
+  "name": "Scientist",
+  "kind": "npc",
+  "render": {
+    "monster_data": 527027,
+    "npc_template": 2082,
+    "look": "scientist_npc_sitting",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

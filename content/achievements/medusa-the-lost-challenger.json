@@ -1,0 +1,13 @@
+{
+  "id": "achievement/medusa-the-lost-challenger",
+  "lore": 3625,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Lost Creations_Get to Level 5",
+  "title": "Medusa, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Medusa.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/medusa",
+  "n": 5,
+  "source": "client"
+}

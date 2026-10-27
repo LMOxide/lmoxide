@@ -1,0 +1,18 @@
+{
+  "id": "item/feather-fling",
+  "name": "Feather Fling",
+  "kind": "projectile",
+  "template": 66253,
+  "effect_package": 82593,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 66252
+      }
+    }
+  ],
+  "source": "client"
+}

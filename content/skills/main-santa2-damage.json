@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-santa2-damage",
+  "name": "main santa2 damage",
+  "client": {
+    "spell": 579779,
+    "stats": {
+      "EffectPackage": 636861,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.125,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

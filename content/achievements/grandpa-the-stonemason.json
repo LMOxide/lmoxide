@@ -1,0 +1,17 @@
+{
+  "id": "achievement/grandpa-the-stonemason",
+  "lore": 3441,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Build 15 Mythology Statues",
+  "title": "Grandpa, the Stonemason",
+  "text": "Build 15 Mythology Statues as Grandpa.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/grandpa",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lifeguard-guy-roar-the-gladiator",
+  "lore": 3164,
+  "parent": "achievement/lifeguard-guy",
+  "client_name": "Lifeguard Guy_Roar the Gladiator",
+  "title": "Lifeguard Guy: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Lifeguard Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/lifeguard-guy",
+  "source": "client"
+}

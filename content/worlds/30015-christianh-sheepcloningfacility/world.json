@@ -1,0 +1,23 @@
+{
+  "id": "world/christianh-sheepcloningfacility",
+  "name": "ChristianH_SheepCloningFacility",
+  "playfield": 30015,
+  "kind": "other",
+  "arrival": {
+    "pos": [90.74, 21.0, 132.44],
+    "rot": 0.0
+  },
+  "arrival_guid": 152159,
+  "respawn_points": [
+    {
+      "name": "Res_Here",
+      "guid": 152159,
+      "pos": [90.74, 21.0, 132.44],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

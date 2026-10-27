@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-mountainclimber3-wrapper",
+  "name": "main mountainclimber3 wrapper",
+  "client": {
+    "spell": 484714,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 484715
+          }
+        },
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 484723,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,62 @@
+{
+  "id": "world/volcano-island-sound",
+  "name": "Volcano Island - SOUND",
+  "playfield": 4212,
+  "kind": "pocket",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [95.97, 65.0, 45.53],
+    "rot": 3.003
+  },
+  "arrival_guid": 348118,
+  "respawn_points": [
+    {
+      "name": "Beach",
+      "guid": 348118,
+      "pos": [95.97, 65.0, 45.53],
+      "rot": 3.003,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "River Crossing",
+      "guid": 348119,
+      "pos": [121.98, 74.0, 147.41],
+      "rot": 4.867,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Volcano Entrance",
+      "guid": 348120,
+      "pos": [237.91, 100.17, 297.32],
+      "rot": 6.128,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Scorched City",
+      "guid": 348121,
+      "pos": [352.15, 88.99, 346.73],
+      "rot": 2.631,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Pirate Grotto",
+      "guid": 348122,
+      "pos": [447.3, 69.71, 485.68],
+      "rot": 5.779,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

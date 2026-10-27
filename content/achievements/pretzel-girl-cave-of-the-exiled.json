@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pretzel-girl-cave-of-the-exiled",
+  "lore": 2887,
+  "parent": "achievement/pretzel-girl",
+  "client_name": "Pretzel Girl_Cave of the Exiled",
+  "title": "Pretzel Girl: Cave of the Exiled",
+  "text": "Conquer the Cave of the Exiled as Pretzel Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Cave of the Exiled",
+  "minifigure": "minifig/pretzel-girl",
+  "source": "client"
+}

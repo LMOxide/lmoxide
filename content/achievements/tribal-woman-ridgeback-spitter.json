@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tribal-woman-ridgeback-spitter",
+  "lore": 5303,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Ridgeback Spitter",
+  "title": "Tribal Woman: Ridgeback Spitter",
+  "text": "Defeat Ridgeback Spitter as Tribal Woman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ridgeback Spitter",
+  "minifigure": "minifig/tribal-woman",
+  "source": "client"
+}

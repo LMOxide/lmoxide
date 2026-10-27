@@ -1,0 +1,17 @@
+{
+  "id": "achievement/tribal-woman-the-stonemason",
+  "lore": 5311,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Build 15 Mythology Statues",
+  "title": "Tribal Woman, the Stonemason",
+  "text": "Build 15 Mythology Statues as Tribal Woman.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/tribal-woman",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

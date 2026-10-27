@@ -1,0 +1,13 @@
+{
+  "id": "achievement/piggy-guy-nyx-blackfeather",
+  "lore": 3181,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Nyx Blackfeather",
+  "title": "Piggy Guy: Nyx Blackfeather",
+  "text": "Defeat Nyx Blackfeather as Piggy Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Nyx Blackfeather",
+  "minifigure": "minifig/piggy-guy",
+  "source": "client"
+}

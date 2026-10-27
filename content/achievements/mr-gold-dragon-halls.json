@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-dragon-halls",
+  "lore": 3380,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Dragon Halls",
+  "title": "Mr. Gold: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Mr. Gold.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/mr-gold",
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/astronaut",
+  "lore": 5058,
+  "parent": "achievement/series-15",
+  "client_name": "Astronaut",
+  "title": "Astronaut",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-astronaut",
+    "achievement/legendary-astronaut",
+    "achievement/astronaut-mercenary-assault-cruiser",
+    "achievement/astronaut-swamp-tunnel",
+    "achievement/astronaut-skyforge",
+    "achievement/astronaut-warchief-grogrog",
+    "achievement/astronaut-chug",
+    "achievement/astronaut-mind-lord-taggoth",
+    "achievement/novice-astronaut",
+    "achievement/expert-astronaut",
+    "achievement/astronaut-the-lost-challenger",
+    "achievement/astronaut-the-lost-warrior",
+    "achievement/astronaut-the-lost-champion",
+    "achievement/astronaut-the-builder",
+    "achievement/astronaut-the-master-builder",
+    "achievement/astronaut-the-guide"
+  ],
+  "minifigure": "minifig/astronaut",
+  "source": "client"
+}

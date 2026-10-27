@@ -1,0 +1,13 @@
+{
+  "id": "achievement/warrior-woman-sir-hector",
+  "lore": 3347,
+  "parent": "achievement/warrior-woman",
+  "client_name": "Warrior Woman_Sir Hector",
+  "title": "Warrior Woman: Sir Hector",
+  "text": "Defeat Sir Hector as Warrior Woman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Sir Hector",
+  "minifigure": "minifig/warrior-woman",
+  "source": "client"
+}

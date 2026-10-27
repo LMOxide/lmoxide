@@ -1,0 +1,13 @@
+{
+  "id": "achievement/snake-charmer-alien-command-center",
+  "lore": 3983,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Alien Command Center",
+  "title": "Snake Charmer: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Snake Charmer.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/snake-charmer",
+  "source": "client"
+}

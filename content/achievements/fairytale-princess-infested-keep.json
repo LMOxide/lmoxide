@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fairytale-princess-infested-keep",
+  "lore": 3092,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Infested Keep",
+  "title": "Fairytale Princess: Infested Keep",
+  "text": "Conquer the Infested Keep as Fairytale Princess.",
+  "points": 50,
+  "kind": "target",
+  "target": "Infested Keep",
+  "minifigure": "minifig/fairytale-princess",
+  "source": "client"
+}

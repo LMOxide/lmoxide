@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-good-and-evil-smuggy-totembound",
+  "lore": 2534,
+  "parent": "achievement/mr-good-and-evil",
+  "client_name": "Mr. Good and Evil_Smuggy Totembound",
+  "title": "Mr. Good and Evil: Smuggy Totembound",
+  "text": "Defeat Smuggy Totembound as Mr. Good and Evil.",
+  "points": 25,
+  "kind": "target",
+  "target": "Smuggy Totembound",
+  "minifigure": "minifig/mr-good-and-evil",
+  "source": "client"
+}

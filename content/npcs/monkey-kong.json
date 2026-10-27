@@ -1,0 +1,19 @@
+{
+  "id": "npc/monkey-kong",
+  "name": "Monkey Kong",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 464417,
+    "npc_template": 907,
+    "look": "monkey_kong",
+    "cars_group": 3
+  },
+  "level": 3,
+  "stats": {
+    "health": 855,
+    "life_factor": 7.5
+  },
+  "attack": "skill/spell-240264",
+  "loot": "loot/enemy",
+  "source": "client"
+}

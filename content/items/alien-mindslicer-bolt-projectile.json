@@ -1,0 +1,18 @@
+{
+  "id": "item/alien-mindslicer-bolt-projectile",
+  "name": "alien mindslicer bolt projectile",
+  "kind": "projectile",
+  "template": 377028,
+  "effect_package": 390557,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 377031
+      }
+    }
+  ],
+  "source": "client"
+}

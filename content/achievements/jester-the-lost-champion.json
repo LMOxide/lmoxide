@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jester-the-lost-champion",
+  "lore": 3158,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Lost Creations_Get to Level 15",
+  "title": "Jester, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Jester.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/jester",
+  "n": 15,
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/skeleton-guy",
+  "lore": 4390,
+  "parent": "achievement/series-14",
+  "client_name": "Skeleton Guy",
+  "title": "Skeleton Guy",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-skeleton-guy",
+    "achievement/legendary-skeleton-guy",
+    "achievement/skeleton-guy-swamp-tunnel",
+    "achievement/skeleton-guy-infested-keep",
+    "achievement/skeleton-guy-alien-command-center",
+    "achievement/skeleton-guy-temper",
+    "achievement/skeleton-guy-kruun-super-genius",
+    "achievement/skeleton-guy-crone-of-the-maze",
+    "achievement/novice-skeleton-guy",
+    "achievement/expert-skeleton-guy",
+    "achievement/skeleton-guy-the-lost-challenger",
+    "achievement/skeleton-guy-the-lost-warrior",
+    "achievement/skeleton-guy-the-lost-champion",
+    "achievement/skeleton-guy-the-smasher",
+    "achievement/skeleton-guy-the-master-smasher",
+    "achievement/skeleton-guy-the-sweet"
+  ],
+  "minifigure": "minifig/skeleton-guy",
+  "source": "client"
+}

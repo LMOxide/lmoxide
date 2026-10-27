@@ -1,0 +1,19 @@
+{
+  "id": "npc/dragoon-2",
+  "name": "Dragoon",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 192827,
+    "npc_template": 899,
+    "look": "pirate_officer",
+    "cars_group": 3
+  },
+  "level": 3,
+  "stats": {
+    "health": 171,
+    "life_factor": 1.5
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "skill/battle-crescendo-207451",
+  "name": "Battle Crescendo",
+  "client": {
+    "spell": 207451,
+    "stats": {
+      "EffectPackage": 208986,
+      "TargetingMode": 8,
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 1,
+            "Ascending": 1,
+            "Duration": -1,
+            "Interval": 50,
+            "Max1": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 207452,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

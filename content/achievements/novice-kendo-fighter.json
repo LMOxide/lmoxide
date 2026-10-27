@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-kendo-fighter",
+  "lore": 5240,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Upgrade 3",
+  "title": "Novice Kendo Fighter",
+  "text": "Get the third Kendo Fighter upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/kendo-fighter",
+  "n": 3,
+  "source": "client"
+}

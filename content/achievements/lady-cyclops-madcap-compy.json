@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-cyclops-madcap-compy",
+  "lore": 3917,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Madcap Compy",
+  "title": "Lady Cyclops: Madcap Compy",
+  "text": "Defeat Madcap Compy as Lady Cyclops.",
+  "points": 25,
+  "kind": "target",
+  "target": "Madcap Compy",
+  "minifigure": "minifig/lady-cyclops",
+  "source": "client"
+}

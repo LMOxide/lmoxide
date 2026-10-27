@@ -1,0 +1,29 @@
+{
+  "id": "skill/passive-spartanwarrior-kickaway-attack",
+  "name": "passive spartanwarrior kickaway attack",
+  "client": {
+    "spell": 596898,
+    "stats": {
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 596895,
+            "ProjectileType": 1,
+            "Speed": 1750
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Spartan Warrior: Might of Sparta",
+  "range": 12.0,
+  "source": "client"
+}

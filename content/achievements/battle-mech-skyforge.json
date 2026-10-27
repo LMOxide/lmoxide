@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-skyforge",
+  "lore": 2685,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Skyforge",
+  "title": "Battle Mech: Skyforge",
+  "text": "Conquer the Skyforge as Battle Mech.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/battle-mech",
+  "source": "client"
+}

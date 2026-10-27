@@ -1,0 +1,26 @@
+{
+  "id": "npc/nimble-compy",
+  "name": "Nimble Compy",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 521911,
+    "npc_template": 2054,
+    "look": "dino_coelophysis",
+    "cars_group": 3
+  },
+  "level": 26,
+  "stats": {
+    "health": 2890,
+    "life_factor": 0.75
+  },
+  "attack": "skill/dino-raptor-small-melee-hit-castable",
+  "skills": [
+    {
+      "skill": "skill/bite-18249",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

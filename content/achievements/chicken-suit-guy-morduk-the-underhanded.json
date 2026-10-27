@@ -1,0 +1,13 @@
+{
+  "id": "achievement/chicken-suit-guy-morduk-the-underhanded",
+  "lore": 2671,
+  "parent": "achievement/chicken-suit-guy",
+  "client_name": "Chicken Suit Guy_Morduk, the Underhanded",
+  "title": "Chicken Suit Guy: Morduk, the Underhanded",
+  "text": "Defeat Morduk, the Underhanded as Chicken Suit Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Morduk, the Underhanded",
+  "minifigure": "minifig/chicken-suit-guy",
+  "source": "client"
+}

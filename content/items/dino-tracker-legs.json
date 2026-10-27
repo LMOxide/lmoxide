@@ -1,0 +1,16 @@
+{
+  "id": "item/dino-tracker-legs",
+  "name": "Dino Tracker Legs",
+  "kind": "part",
+  "template": 576115,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31202,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/dino-tracker",
+  "location": "Legs",
+  "source": "client"
+}

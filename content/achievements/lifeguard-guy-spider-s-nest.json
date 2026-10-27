@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lifeguard-guy-spider-s-nest",
+  "lore": 3159,
+  "parent": "achievement/lifeguard-guy",
+  "client_name": "Lifeguard Guy_Spider's Nest",
+  "title": "Lifeguard Guy: Spider's Nest",
+  "text": "Conquer the Spider's Nest as Lifeguard Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Spider's Nest",
+  "minifigure": "minifig/lifeguard-guy",
+  "source": "client"
+}

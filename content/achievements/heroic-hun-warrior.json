@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-hun-warrior",
+  "lore": 3138,
+  "parent": "achievement/hun-warrior",
+  "client_name": "Hun Warrior_Complete Any 5",
+  "title": "Heroic Hun Warrior",
+  "text": "Complete any 5 Hun Warrior achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/hun-warrior",
+  "n": 5,
+  "source": "client"
+}

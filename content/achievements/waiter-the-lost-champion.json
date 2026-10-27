@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-the-lost-champion",
+  "lore": 2733,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Lost Creations_Get to Level 15",
+  "title": "Waiter, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Waiter.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/waiter",
+  "n": 15,
+  "source": "client"
+}

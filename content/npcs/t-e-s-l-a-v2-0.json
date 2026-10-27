@@ -1,0 +1,17 @@
+{
+  "id": "npc/t-e-s-l-a-v2-0",
+  "name": "T.E.S.L.A v2.0",
+  "kind": "npc",
+  "render": {
+    "monster_data": 659668,
+    "npc_template": 2903,
+    "look": "tesla_coil_objective",
+    "cars_group": 2
+  },
+  "level": 15,
+  "stats": {
+    "health": 7884,
+    "life_factor": 6.0
+  },
+  "source": "client"
+}

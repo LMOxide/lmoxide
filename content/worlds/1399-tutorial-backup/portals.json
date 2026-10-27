@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/1399/to-pirate-world",
+      "pos": [401.5, 30.0, 285.99],
+      "window": 74,
+      "to": {
+        "world": "world/pirate-world"
+      },
+      "source": "client"
+    }
+  ]
+}

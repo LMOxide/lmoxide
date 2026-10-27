@@ -1,0 +1,30 @@
+{
+  "id": "world/beach-cave",
+  "name": "Beach Cave",
+  "playfield": 1642,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [235.44, 17.24, 254.75],
+    "rot": 4.71
+  },
+  "arrival_guid": 423289,
+  "arrival_from": {
+    "world/volcano-island": {
+      "pos": [240.5, 19.65, 238.08],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 423289,
+      "pos": [235.44, 17.24, 254.75],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

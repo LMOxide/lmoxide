@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plumber-the-lost-challenger",
+  "lore": 2522,
+  "parent": "achievement/plumber",
+  "client_name": "Plumber_Lost Creations_Get to Level 5",
+  "title": "Plumber, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Plumber.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/plumber",
+  "n": 5,
+  "source": "client"
+}

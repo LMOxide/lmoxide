@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-plumber",
+  "lore": 2527,
+  "parent": "achievement/plumber",
+  "client_name": "Plumber_Complete Any 10",
+  "title": "Legendary Plumber",
+  "text": "Complete any 11 Plumber achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/plumber",
+  "n": 11,
+  "source": "client"
+}

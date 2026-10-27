@@ -1,0 +1,17 @@
+{
+  "id": "buff/proc-slippery-defense",
+  "name": "Slippery Defense",
+  "nano": 531633,
+  "ends_on": "damaged",
+  "effects": [
+    {
+      "stat": {
+        "stat": "defense",
+        "op": "add",
+        "value": 0.2
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
+}

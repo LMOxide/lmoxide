@@ -1,0 +1,17 @@
+{
+  "id": "achievement/genie-girl-the-speed-freak",
+  "lore": 3120,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Build 20 Speed Pads",
+  "title": "Genie Girl, the Speed Freak",
+  "text": "Build 20 Speed Pads as Genie Girl.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/genie-girl",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

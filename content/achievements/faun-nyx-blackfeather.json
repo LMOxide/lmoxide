@@ -1,0 +1,13 @@
+{
+  "id": "achievement/faun-nyx-blackfeather",
+  "lore": 5159,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Nyx Blackfeather",
+  "title": "Faun: Nyx Blackfeather",
+  "text": "Defeat Nyx Blackfeather as Faun.",
+  "points": 25,
+  "kind": "target",
+  "target": "Nyx Blackfeather",
+  "minifigure": "minifig/faun",
+  "source": "client"
+}

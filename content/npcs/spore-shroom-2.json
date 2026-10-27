@@ -1,0 +1,19 @@
+{
+  "id": "npc/spore-shroom-2",
+  "name": "Spore Shroom",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 349939,
+    "npc_template": 1983,
+    "look": "mushroom_poison",
+    "cars_group": 3
+  },
+  "level": 26,
+  "stats": {
+    "health": 4624,
+    "life_factor": 1.2
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

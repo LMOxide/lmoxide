@@ -1,0 +1,8 @@
+{
+  "id": "buff/upgrade-equalizing-burst",
+  "name": "Upgrade: Equalizing Burst",
+  "nano": 531646,
+  "source": "client",
+  "tags": ["todo"],
+  "comment": "No client-side game actions: the effect was server script, not known yet."
+}

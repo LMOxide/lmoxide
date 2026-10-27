@@ -1,0 +1,30 @@
+{
+  "id": "npc/alien-commander",
+  "name": "Alien Commander",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 387585
+  },
+  "level": 18,
+  "stats": {
+    "health": 21000
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/space-dg-alienhq-boss-saucer-bolt-castable",
+      "weight": 1
+    },
+    {
+      "skill": "skill/space-dg-alienhq-boss-saucer-ball-castable",
+      "weight": 1
+    },
+    {
+      "skill": "skill/space-dg-alienhq-boss-saucer-spin-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

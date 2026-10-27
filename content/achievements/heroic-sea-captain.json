@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-sea-captain",
+  "lore": 3544,
+  "parent": "achievement/sea-captain",
+  "client_name": "Sea Captain_Complete Any 5",
+  "title": "Heroic Sea Captain",
+  "text": "Complete any 5 Sea Captain achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/sea-captain",
+  "n": 5,
+  "source": "client"
+}

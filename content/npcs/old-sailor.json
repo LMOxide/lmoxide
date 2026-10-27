@@ -1,0 +1,17 @@
+{
+  "id": "npc/old-sailor",
+  "name": "Old Sailor",
+  "kind": "npc",
+  "render": {
+    "monster_data": 241332,
+    "npc_template": 841,
+    "look": "pirate_good_a",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

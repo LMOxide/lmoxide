@@ -1,0 +1,10 @@
+{
+  "id": "object/piratebay-particle-12",
+  "name": "piratebay_particle_12",
+  "kind": "scenery",
+  "render": {
+    "look": "piratebay_particle_12",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/queen-chlora-the-fungomancer",
+  "lore": 5269,
+  "parent": "achievement/queen",
+  "client_name": "Queen_Chlora the Fungomancer",
+  "title": "Queen: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Queen.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/queen",
+  "source": "client"
+}

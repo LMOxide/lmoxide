@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roman-emperor-the-lost-challenger",
+  "lore": 2743,
+  "parent": "achievement/roman-emperor",
+  "client_name": "Roman Emperor_Lost Creations_Get to Level 5",
+  "title": "Roman Emperor, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Roman Emperor.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/roman-emperor",
+  "n": 5,
+  "source": "client"
+}

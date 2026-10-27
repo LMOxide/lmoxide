@@ -1,0 +1,10 @@
+{
+  "id": "object/player-vehicle-shredder",
+  "name": "player_vehicle_shredder",
+  "kind": "scenery",
+  "render": {
+    "look": "player_vehicle_shredder",
+    "visual": [1010030, 636501]
+  },
+  "source": "client"
+}

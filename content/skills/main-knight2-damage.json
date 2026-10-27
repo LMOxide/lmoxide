@@ -1,0 +1,24 @@
+{
+  "id": "skill/main-knight2-damage",
+  "name": "main knight2 damage",
+  "client": {
+    "spell": 205322,
+    "stats": {
+      "EffectPackage": 229883
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

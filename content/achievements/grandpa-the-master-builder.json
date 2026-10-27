@@ -1,0 +1,16 @@
+{
+  "id": "achievement/grandpa-the-master-builder",
+  "lore": 3444,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Build 1000 Buildies",
+  "title": "Grandpa, the Master Builder",
+  "text": "Build 1000 buildies as Grandpa.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/grandpa",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

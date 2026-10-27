@@ -1,0 +1,16 @@
+{
+  "id": "item/space-miner-head",
+  "name": "Space Miner Head",
+  "kind": "part",
+  "template": 576178,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11212,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/space-miner",
+  "location": "Head",
+  "source": "client"
+}

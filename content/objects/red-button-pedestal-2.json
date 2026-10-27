@@ -1,0 +1,11 @@
+{
+  "id": "object/red-button-pedestal-2",
+  "name": "XX_Interactable",
+  "kind": "scenery",
+  "render": {
+    "template": 482763,
+    "look": "red_button_pedestal",
+    "visual": [1010201, 538399]
+  },
+  "source": "live"
+}

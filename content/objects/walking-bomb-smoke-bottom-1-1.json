@@ -1,0 +1,10 @@
+{
+  "id": "object/walking-bomb-smoke-bottom-1-1",
+  "name": "walking bomb smoke  bottom 1_1",
+  "kind": "scenery",
+  "render": {
+    "look": "walking bomb smoke  bottom 1_1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

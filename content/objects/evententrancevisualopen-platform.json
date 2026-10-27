@@ -1,0 +1,10 @@
+{
+  "id": "object/evententrancevisualopen-platform",
+  "name": "EventEntranceVisualOpen_Platform",
+  "kind": "scenery",
+  "render": {
+    "look": "EventEntranceVisualOpen_Platform",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

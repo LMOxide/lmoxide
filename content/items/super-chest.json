@@ -1,0 +1,17 @@
+{
+  "id": "item/super-chest",
+  "name": "XX_Super Chest",
+  "kind": "chest",
+  "template": 482326,
+  "monster_data": 480104,
+  "effect_package": 481839,
+  "chest": {
+    "loot_type": 1,
+    "client_loot_table": 929,
+    "spawn_effect_package": 481837,
+    "lua_script": 1180,
+    "offset": [4294967084, null, 212],
+    "loot": "loot/chest"
+  },
+  "source": "client"
+}

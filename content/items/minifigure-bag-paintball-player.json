@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-paintball-player",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 196134,
+  "minifigure": "minifig/paintball-player",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "ZXM4"
+      }
+    }
+  ],
+  "source": "client"
+}

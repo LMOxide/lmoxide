@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-the-lost-champion",
+  "lore": 2920,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Lost Creations_Get to Level 15",
+  "title": "Scientist, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Scientist.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/scientist",
+  "n": 15,
+  "source": "client"
+}

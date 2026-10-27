@@ -1,0 +1,16 @@
+{
+  "id": "item/grandma-visitor-head",
+  "name": "Grandma Visitor Head",
+  "kind": "part",
+  "template": 483595,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10709,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/grandma-visitor",
+  "location": "Head",
+  "source": "client"
+}

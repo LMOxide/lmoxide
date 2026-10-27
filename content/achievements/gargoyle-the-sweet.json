@@ -1,0 +1,17 @@
+{
+  "id": "achievement/gargoyle-the-sweet",
+  "lore": 4536,
+  "parent": "achievement/gargoyle",
+  "client_name": "Gargoyle_Smash 50 Magic Candy",
+  "title": "Gargoyle, the Sweet",
+  "text": "Smash 50 Sweets as Gargoyle.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/gargoyle",
+  "counts": {
+    "match": "Magic Candy",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

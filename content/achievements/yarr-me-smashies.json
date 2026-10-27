@@ -1,0 +1,12 @@
+{
+  "id": "achievement/yarr-me-smashies",
+  "lore": 2381,
+  "parent": "achievement/a-pirate-life-for-me",
+  "client_name": "Pirate_Combat_Champion_Smuggy Totembound",
+  "title": "Yarr, Me Smashies!",
+  "text": "Defeat Smuggy Totembound in the Pirate World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Smuggy Totembound",
+  "source": "client"
+}

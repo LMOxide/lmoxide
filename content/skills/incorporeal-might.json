@@ -1,0 +1,32 @@
+{
+  "id": "skill/incorporeal-might",
+  "name": "Incorporeal Might",
+  "client": {
+    "spell": 641603,
+    "stats": {
+      "EffectPackage": 642793,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 641743,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Banshee: Incorporeal Might",
+  "source": "client"
+}

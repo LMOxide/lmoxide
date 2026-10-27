@@ -1,0 +1,32 @@
+{
+  "id": "skill/main-fencer1-damage",
+  "name": "main fencer1 damage",
+  "client": {
+    "spell": 565019,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 577664
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/viisble-click",
+  "name": "viisble_Click",
+  "kind": "scenery",
+  "render": {
+    "look": "viisble_Click",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-lifeguardguy2-wrapper",
+  "name": "main lifeguardguy2 wrapper",
+  "client": {
+    "spell": 504565,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 446977
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 504707
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Lifeguard Guy: Sparkling Whirlpool",
+  "source": "client"
+}

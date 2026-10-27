@@ -1,0 +1,29 @@
+{
+  "id": "achievement/medusa",
+  "lore": 3343,
+  "parent": "achievement/series-10",
+  "client_name": "Medusa",
+  "title": "Medusa",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-medusa",
+    "achievement/legendary-medusa",
+    "achievement/novice-medusa",
+    "achievement/expert-medusa",
+    "achievement/medusa-ancient-ruins",
+    "achievement/medusa-siege-command-room",
+    "achievement/medusa-skyforge",
+    "achievement/medusa-lord-minos-the-lich",
+    "achievement/medusa-black-widow",
+    "achievement/medusa-ouch-ouch",
+    "achievement/medusa-the-striker",
+    "achievement/medusa-the-master-striker",
+    "achievement/medusa-the-dragontamer",
+    "achievement/medusa-the-lost-challenger",
+    "achievement/medusa-the-lost-warrior",
+    "achievement/medusa-the-lost-champion"
+  ],
+  "minifigure": "minifig/medusa",
+  "source": "client"
+}

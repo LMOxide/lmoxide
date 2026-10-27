@@ -1,0 +1,27 @@
+{
+  "id": "skill/honey-pot-238238",
+  "name": "Honey Pot",
+  "client": {
+    "spell": 238238,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 238239,
+            "Radius": 4
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Bumblebee Girl: Honey Pot ",
+  "source": "client"
+}

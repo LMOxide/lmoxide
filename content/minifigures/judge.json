@@ -1,0 +1,134 @@
+{
+  "id": "minifig/judge",
+  "name": "Judge",
+  "template": 41840,
+  "series": 9,
+  "series_index": 0,
+  "render": {
+    "monster_data": 33674
+  },
+  "stats": {
+    "life": 250,
+    "power": 8,
+    "defense": 5,
+    "creativity": 3,
+    "role": 1,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/order",
+    "hits": [
+      {
+        "skill": "skill/order-41171",
+        "type": "WeaponHit",
+        "ability_mod": 0.8,
+        "damage_type": 1000,
+        "via": [41170]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/the-weight-of-the-law",
+    "hits": [
+      {
+        "skill": "skill/main-judge2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.125,
+        "damage_type": 1000,
+        "via": [34398, 41174]
+      }
+    ]
+  },
+  "click_spells": [41170, 34398],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530221"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460945"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2578, 2468, 3641, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/judge-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/judge-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/judge-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-judge",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/medieval-world"],
+    "text": "You can find me in the Medieval World.",
+    "location_text": 232051452,
+    "location_picture": 473028
+  },
+  "source": "client"
+}

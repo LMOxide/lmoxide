@@ -1,0 +1,15 @@
+{
+  "id": "object/xx-wooden-cage",
+  "name": "XX_Wooden Cage",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 224422,
+    "template": 224318,
+    "look": "cell_b_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "source": "client"
+}

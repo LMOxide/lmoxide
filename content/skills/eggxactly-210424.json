@@ -1,0 +1,27 @@
+{
+  "id": "skill/eggxactly-210424",
+  "name": "Eggxactly",
+  "client": {
+    "spell": 210424,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 3,
+            "EffectPackage": 195046,
+            "NanoTemplate": 210426,
+            "TemplateID": 210426
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Chicken Suit Guy: Eggxactly",
+  "source": "client"
+}

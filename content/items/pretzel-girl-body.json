@@ -1,0 +1,16 @@
+{
+  "id": "item/pretzel-girl-body",
+  "name": "Pretzel Girl Body",
+  "kind": "part",
+  "template": 483605,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21111,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/pretzel-girl",
+  "location": "Torso",
+  "source": "client"
+}

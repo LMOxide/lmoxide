@@ -1,0 +1,13 @@
+{
+  "id": "achievement/frightening-knight-derp-the-internet-troll",
+  "lore": 5191,
+  "parent": "achievement/frightening-knight",
+  "client_name": "Frightening Knight_Derp the Internet Troll",
+  "title": "Frightening Knight: Derp the Internet Troll",
+  "text": "Defeat Derp the Internet Troll as Frightening Knight.",
+  "points": 25,
+  "kind": "target",
+  "target": "Derp the Internet Troll",
+  "minifigure": "minifig/frightening-knight",
+  "source": "client"
+}

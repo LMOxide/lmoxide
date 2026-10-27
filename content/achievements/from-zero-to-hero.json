@@ -1,0 +1,13 @@
+{
+  "id": "achievement/from-zero-to-hero",
+  "lore": 847,
+  "parent": "achievement/mythology-story",
+  "client_name": "Mythology_Story_Defeat Hades",
+  "title": "From Zero to Hero",
+  "text": "Uncover the secrets of the Underworld.",
+  "points": 100,
+  "kind": "defeat",
+  "stars": 500,
+  "target": "Hades",
+  "source": "client"
+}

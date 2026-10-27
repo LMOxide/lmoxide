@@ -1,0 +1,14 @@
+{
+  "id": "achievement/willing-sacrifice",
+  "lore": 754,
+  "parent": "achievement/treasure-chaser",
+  "client_name": "Pirate_Exploration_Climb the Volcano",
+  "title": "Willing Sacrifice",
+  "text": "Reach the top of the volcano and prepare to jump in!",
+  "points": 25,
+  "kind": "find",
+  "world": "world/volcano-island",
+  "find": "Achievement_Volcano",
+  "place": "Top of the volcano",
+  "source": "client"
+}

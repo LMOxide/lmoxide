@@ -1,0 +1,29 @@
+{
+  "id": "achievement/fairytale-princess",
+  "lore": 2499,
+  "parent": "achievement/series-12",
+  "client_name": "Fairytale Princess",
+  "title": "Fairytale Princess",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-fairytale-princess",
+    "achievement/legendary-fairytale-princess",
+    "achievement/novice-fairytale-princess",
+    "achievement/expert-fairytale-princess",
+    "achievement/fairytale-princess-swamp-tunnel",
+    "achievement/fairytale-princess-infested-keep",
+    "achievement/fairytale-princess-alien-command-center",
+    "achievement/fairytale-princess-temper",
+    "achievement/fairytale-princess-kruun-super-genius",
+    "achievement/fairytale-princess-crone-of-the-maze",
+    "achievement/fairytale-princess-the-builder",
+    "achievement/fairytale-princess-the-master-builder",
+    "achievement/fairytale-princess-the-stonemason",
+    "achievement/fairytale-princess-the-lost-challenger",
+    "achievement/fairytale-princess-the-lost-warrior",
+    "achievement/fairytale-princess-the-lost-champion"
+  ],
+  "minifigure": "minifig/fairytale-princess",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/welder-the-lost-champion",
+  "lore": 2801,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Lost Creations_Get to Level 15",
+  "title": "Welder, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Welder.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/welder",
+  "n": 15,
+  "source": "client"
+}

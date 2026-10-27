@@ -1,0 +1,15 @@
+{
+  "id": "world/medieval-enchanted-forest-art-oyvinds-original-version",
+  "name": "Medieval - Enchanted Forest - Art (Oyvinds original version)",
+  "playfield": 5212,
+  "kind": "other",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

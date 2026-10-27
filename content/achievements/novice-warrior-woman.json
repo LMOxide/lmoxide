@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-warrior-woman",
+  "lore": 3350,
+  "parent": "achievement/warrior-woman",
+  "client_name": "Warrior Woman_Upgrade 3",
+  "title": "Novice Warrior Woman",
+  "text": "Get the third Warrior Woman upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/warrior-woman",
+  "n": 3,
+  "source": "client"
+}

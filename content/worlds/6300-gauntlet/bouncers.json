@@ -1,0 +1,72 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/6300/jump-pad-plane-a-buildie",
+      "name": "jump_pad_plane_a_buildie",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [364.68, 48.0, 174.56],
+      "rot": [0.0, 0.0196, 0.0, 0.9998],
+      "target": [362.22, 53.0, 183.87],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 503031,
+        "tag": "JUMP",
+        "script_group": 285,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6300/jump-pad-plane-a-buildie-2",
+      "name": "jump_pad_plane_a_buildie",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [331.45, 53.0, 187.53],
+      "rot": [0.0, 0.8746, 0.0, -0.4848],
+      "target": [333.26, 58.0, 194.32],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 513296,
+        "tag": "JUMP",
+        "script_group": 286,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6300/jump-pad-plane-a-buildie-3",
+      "name": "jump_pad_plane_a_buildie",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [364.61, 53.0, 182.64],
+      "rot": [0.0, 0.6916, 0.0, -0.7223],
+      "target": [361.86, 48.0, 174.09],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 513476,
+        "tag": "JUMP",
+        "script_group": 287,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6300/jump-pad-plane-a-buildie-4",
+      "name": "jump_pad_plane_a_buildie",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [330.34, 58.0, 193.58],
+      "rot": [0.0, 0.7687, 0.0, -0.6396],
+      "target": [330.72, 53.0, 184.81],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 513477,
+        "tag": "JUMP",
+        "script_group": 288,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    }
+  ]
+}

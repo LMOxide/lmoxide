@@ -1,0 +1,13 @@
+{
+  "id": "achievement/trendsetter-scorched-ruins",
+  "lore": 3498,
+  "parent": "achievement/trendsetter",
+  "client_name": "Trendsetter_Scorched Ruins",
+  "title": "Trendsetter: Scorched Ruins",
+  "text": "Conquer the Scorched Ruins as Trendsetter.",
+  "points": 50,
+  "kind": "target",
+  "target": "Scorched Ruins",
+  "minifigure": "minifig/trendsetter",
+  "source": "client"
+}

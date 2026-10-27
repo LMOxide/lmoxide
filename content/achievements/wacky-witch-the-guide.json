@@ -1,0 +1,17 @@
+{
+  "id": "achievement/wacky-witch-the-guide",
+  "lore": 4468,
+  "parent": "achievement/wacky-witch",
+  "client_name": "Wacky Witch_Build 30 Signs",
+  "title": "Wacky Witch, the Guide",
+  "text": "Build 30 Signs with Wacky Witch.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/wacky-witch",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

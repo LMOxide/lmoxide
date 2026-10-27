@@ -1,0 +1,10 @@
+{
+  "id": "object/fire-pit-5-particle",
+  "name": "fire pit 5 particle",
+  "kind": "scenery",
+  "render": {
+    "look": "fire pit 5 particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

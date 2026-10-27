@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-to-landing",
+  "name": "Jump To landing",
+  "kind": "scenery",
+  "render": {
+    "look": "Jump To landing",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

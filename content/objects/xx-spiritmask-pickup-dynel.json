@@ -1,0 +1,15 @@
+{
+  "id": "object/xx-spiritmask-pickup-dynel",
+  "name": "XX_spiritmask pickup dynel",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 51057,
+    "template": 636722,
+    "look": "invisible_monsterdata",
+    "cars_group": 5
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "source": "client"
+}

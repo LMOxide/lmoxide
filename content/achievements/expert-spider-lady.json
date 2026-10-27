@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-spider-lady",
+  "lore": 4478,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Upgrade 7",
+  "title": "Expert Spider Lady",
+  "text": "Get the seventh Spider Lady upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/spider-lady",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "world/pvp-space-small",
+  "name": "PvP - Space_Small",
+  "playfield": 1141,
+  "kind": "other",
+  "arrival": {
+    "pos": [290.5, 66.31, 180.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

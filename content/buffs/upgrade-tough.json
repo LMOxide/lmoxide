@@ -1,0 +1,15 @@
+{
+  "id": "buff/upgrade-tough",
+  "name": "Upgrade: Tough",
+  "nano": 421233,
+  "effects": [
+    {
+      "stat": {
+        "stat": "MitigationOverrideFlat",
+        "op": "add",
+        "value": 0.03
+      }
+    }
+  ],
+  "source": "client"
+}

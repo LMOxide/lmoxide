@@ -1,0 +1,56 @@
+{
+  "id": "skill/laser-eye",
+  "name": "Laser Eye",
+  "client": {
+    "spell": 60914,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 40,
+      "EffectPackage": 85378,
+      "ItemDelay": 25,
+      "MoreFlags": 1073743872,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 1.0,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 446286
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 1.0,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 446286
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 60914
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Cyclops: Laser Eye",
+  "source": "client"
+}

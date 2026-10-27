@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-04-pirate-town-art",
+  "name": "Dino World - 04_Pirate Town - Art",
+  "playfield": 6503,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [317.5, 53.08, 111.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

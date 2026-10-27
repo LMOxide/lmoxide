@@ -1,0 +1,24 @@
+{
+  "id": "skill/main-pretzelgirl3-pge",
+  "name": "main pretzelgirl3 pge",
+  "client": {
+    "spell": 482724,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 35,
+            "Arg2": 1,
+            "EffectPackage": 470692
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "world/pirate-smash",
+  "name": "Pirate Smash",
+  "playfield": 7501,
+  "kind": "other",
+  "arrival": {
+    "pos": [317.5, 53.08, 111.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

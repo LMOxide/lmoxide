@@ -1,0 +1,10 @@
+{
+  "id": "buff/proc-charge-up",
+  "name": "Charge Up",
+  "nano": 663890,
+  "duration": "5s",
+  "stacking": "stack",
+  "max_stacks": 5,
+  "source": "server",
+  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
+}

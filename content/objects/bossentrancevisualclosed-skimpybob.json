@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualclosed-skimpybob",
+  "name": "BossEntranceVisualClosed_SkimpyBob",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualClosed_SkimpyBob",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

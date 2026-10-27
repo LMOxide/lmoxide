@@ -1,0 +1,16 @@
+{
+  "id": "item/spooky-girl-head",
+  "name": "Spooky Girl Head",
+  "kind": "part",
+  "template": 576176,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11214,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/spooky-girl",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "world/space-outdoor-1-space-colony-art",
+  "name": "Space Outdoor 1 - Space Colony - Art",
+  "playfield": 3201,
+  "kind": "other",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [406.0, 128.38, 479.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

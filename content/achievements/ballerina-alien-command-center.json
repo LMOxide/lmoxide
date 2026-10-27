@@ -1,0 +1,13 @@
+{
+  "id": "achievement/ballerina-alien-command-center",
+  "lore": 5108,
+  "parent": "achievement/ballerina",
+  "client_name": "Ballerina_Alien Command Center",
+  "title": "Ballerina: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Ballerina.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/ballerina",
+  "source": "client"
+}

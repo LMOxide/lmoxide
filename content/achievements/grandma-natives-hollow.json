@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandma-natives-hollow",
+  "lore": 2972,
+  "parent": "achievement/grandma",
+  "client_name": "Grandma_Natives' Hollow",
+  "title": "Grandma: Natives' Hollow",
+  "text": "Conquer the Natives' Hollow as Grandma.",
+  "points": 25,
+  "kind": "target",
+  "target": "Natives' Hollow",
+  "minifigure": "minifig/grandma",
+  "source": "client"
+}

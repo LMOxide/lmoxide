@@ -1,0 +1,12 @@
+{
+  "id": "achievement/unforgiven",
+  "lore": 870,
+  "parent": "achievement/iron-will-of-the-gods",
+  "client_name": "Mythology_Combat_Champion_Janos the Unforgiving",
+  "title": "Unforgiven",
+  "text": "Defeat Janos the Unforgiving in Mythology World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Janos the Unforgiving",
+  "source": "client"
+}

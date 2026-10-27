@@ -1,0 +1,40 @@
+{
+  "id": "skill/echo",
+  "name": "Echo",
+  "client": {
+    "spell": 465035,
+    "stats": {
+      "EffectPackage": 470888,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 467882,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pretzel Girl: Echo",
+  "range": 12.0,
+  "projectile": {
+    "item": 467882,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

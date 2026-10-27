@@ -1,0 +1,29 @@
+{
+  "id": "achievement/waiter",
+  "lore": 2477,
+  "parent": "achievement/series-9",
+  "client_name": "Waiter",
+  "title": "Waiter",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-waiter",
+    "achievement/legendary-waiter",
+    "achievement/novice-waiter",
+    "achievement/expert-waiter",
+    "achievement/waiter-alien-crystal-station",
+    "achievement/waiter-spider-s-nest",
+    "achievement/waiter-skyforge",
+    "achievement/waiter-quicksword-billy",
+    "achievement/waiter-ponos-the-pitcher",
+    "achievement/waiter-nyx-blackfeather",
+    "achievement/waiter-the-striker",
+    "achievement/waiter-the-master-striker",
+    "achievement/waiter-the-witch-hunter",
+    "achievement/waiter-the-lost-challenger",
+    "achievement/waiter-the-lost-warrior",
+    "achievement/waiter-the-lost-champion"
+  ],
+  "minifigure": "minifig/waiter",
+  "source": "client"
+}

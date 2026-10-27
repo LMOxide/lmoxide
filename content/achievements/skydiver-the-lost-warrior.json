@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skydiver-the-lost-warrior",
+  "lore": 3490,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Lost Creations_Get to Level 10",
+  "title": "Skydiver, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Skydiver.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/skydiver",
+  "n": 10,
+  "source": "client"
+}

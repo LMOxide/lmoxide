@@ -1,0 +1,13 @@
+{
+  "id": "achievement/carpenter-the-lost-champion",
+  "lore": 3788,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Lost Creations_Get to level 15",
+  "title": "Carpenter, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Carpenter.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/carpenter",
+  "n": 15,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fly-monster-warchief-grogrog",
+  "lore": 4508,
+  "parent": "achievement/fly-monster",
+  "client_name": "Fly Monster_Warchief Grogrog",
+  "title": "Fly Monster: Warchief Grogrog",
+  "text": "Defeat Warchief Grogrog as Fly Monster.",
+  "points": 25,
+  "kind": "target",
+  "target": "Warchief Grogrog",
+  "minifigure": "minifig/fly-monster",
+  "source": "client"
+}

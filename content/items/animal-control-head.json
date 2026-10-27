@@ -1,0 +1,16 @@
+{
+  "id": "item/animal-control-head",
+  "name": "Animal Control Head",
+  "kind": "part",
+  "template": 668641,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11501,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/animal-control",
+  "location": "Head",
+  "source": "client"
+}

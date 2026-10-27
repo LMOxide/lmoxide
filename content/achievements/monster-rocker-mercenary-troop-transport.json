@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-rocker-mercenary-troop-transport",
+  "lore": 4641,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Mercenary Troop Transport",
+  "title": "Monster Rocker: Mercenary Troop Transport",
+  "text": "Conquer the Mercenary Troop Transport as Monster Rocker.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Troop Transport",
+  "minifigure": "minifig/monster-rocker",
+  "source": "client"
+}

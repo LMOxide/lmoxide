@@ -1,0 +1,15 @@
+{
+  "id": "world/medieval-enchanted-forest-art",
+  "name": "Medieval - Enchanted Forest - Art",
+  "playfield": 5211,
+  "kind": "other",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

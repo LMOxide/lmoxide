@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-crate-4",
+  "name": "XX_Crate",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 236704,
+    "template": 236725,
+    "look": "lego_crate_f_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

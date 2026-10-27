@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-motorcycle-mechanic",
+  "lore": 3401,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Upgrade 3",
+  "title": "Novice Motorcycle Mechanic",
+  "text": "Get the third Motorcycle Mechanic upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-diner-waitress",
+  "lore": 2815,
+  "parent": "achievement/diner-waitress",
+  "client_name": "Diner Waitress_Complete Any 5",
+  "title": "Heroic Diner Waitress",
+  "text": "Complete any 5 Diner Waitress achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/diner-waitress",
+  "n": 5,
+  "source": "client"
+}

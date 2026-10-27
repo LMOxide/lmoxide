@@ -1,0 +1,13 @@
+{
+  "id": "achievement/heroic-knight-uggluk-gatekeeper",
+  "lore": 2601,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Uggluk Gatekeeper",
+  "title": "Heroic Knight: Uggluk Gatekeeper",
+  "text": "Defeat Uggluk Gatekeeper as Heroic Knight.",
+  "points": 25,
+  "kind": "target",
+  "target": "Uggluk Gatekeeper",
+  "minifigure": "minifig/heroic-knight",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-grandpa",
+  "lore": 3435,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Upgrade 3",
+  "title": "Novice Grandpa",
+  "text": "Get the third Grandpa upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/grandpa",
+  "n": 3,
+  "source": "client"
+}

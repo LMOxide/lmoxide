@@ -1,0 +1,29 @@
+{
+  "id": "achievement/diner-waitress",
+  "lore": 2482,
+  "parent": "achievement/series-11",
+  "client_name": "Diner Waitress",
+  "title": "Diner Waitress",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-diner-waitress",
+    "achievement/legendary-diner-waitress",
+    "achievement/novice-diner-waitress",
+    "achievement/expert-diner-waitress",
+    "achievement/diner-waitress-alien-crystal-station",
+    "achievement/diner-waitress-spider-s-nest",
+    "achievement/diner-waitress-skyforge",
+    "achievement/diner-waitress-quicksword-billy",
+    "achievement/diner-waitress-ponos-the-pitcher",
+    "achievement/diner-waitress-nyx-blackfeather",
+    "achievement/diner-waitress-the-striker",
+    "achievement/diner-waitress-the-master-striker",
+    "achievement/diner-waitress-the-dragontamer",
+    "achievement/diner-waitress-the-lost-challenger",
+    "achievement/diner-waitress-the-lost-warrior",
+    "achievement/diner-waitress-the-lost-champion"
+  ],
+  "minifigure": "minifig/diner-waitress",
+  "source": "client"
+}

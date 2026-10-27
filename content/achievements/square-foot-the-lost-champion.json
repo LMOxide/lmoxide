@@ -1,0 +1,13 @@
+{
+  "id": "achievement/square-foot-the-lost-champion",
+  "lore": 4550,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Lost Creations_Get to level 15",
+  "title": "Square Foot, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Square Foot.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/square-foot",
+  "n": 15,
+  "source": "client"
+}

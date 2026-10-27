@@ -1,0 +1,12 @@
+{
+  "id": "world/funhouse-arena-4-boss-art",
+  "name": "Funhouse - arena_4_Boss - Art",
+  "playfield": 8031,
+  "kind": "other",
+  "arrival": {
+    "pos": [236.0, 44.05, 280.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

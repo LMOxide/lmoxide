@@ -1,0 +1,36 @@
+{
+  "id": "skill/main-scientist2-detonation-wrapper-2",
+  "name": "main scientist2 detonation wrapper 2",
+  "client": {
+    "spell": 34748,
+    "stats": {
+      "EffectPackage": 366587,
+      "TargetingMode": 6
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 34585
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 3,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 34745,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Scientist: Yellow Potion",
+  "source": "client"
+}

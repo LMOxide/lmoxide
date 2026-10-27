@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-fencer",
+  "lore": 3852,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Upgrade 7",
+  "title": "Expert Fencer",
+  "text": "Get the seventh Fencer upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/fencer",
+  "n": 7,
+  "source": "client"
+}

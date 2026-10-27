@@ -1,0 +1,216 @@
+{
+  "$defs": {
+    "AchievementRule": {
+      "additionalProperties": false,
+      "description": "A smash or collect rule a world editor added to an achievement.",
+      "properties": {
+        "enemies": {
+          "description": "Enemy names (`@category` for a category's).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "item": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "once": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "An achievement (the client's lore tree), or a rule-only key (`category:`, `drop:`,\n`find:`): `achievements/<slug>.json`.",
+  "properties": {
+    "author": {
+      "type": "string"
+    },
+    "children": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "client_name": {
+      "description": "The client's internal name.",
+      "type": ["string", "null"]
+    },
+    "comment": {
+      "type": "string"
+    },
+    "counter": {
+      "description": "Client stat and the count needed.",
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "type": ["array", "null"]
+    },
+    "counts": true,
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "find": {
+      "type": ["string", "null"]
+    },
+    "id": {
+      "description": "Its id: `achievement/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "invisible": {
+      "type": "boolean"
+    },
+    "kind": {
+      "description": "`target`, `counter`, `defeat`, `find`, `collect`, `all`, `any`, ...",
+      "type": "string"
+    },
+    "lore": {
+      "description": "The client's lore id (none: a rule-only record).",
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "minifigure": {
+      "type": ["string", "null"]
+    },
+    "n": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "name": {
+      "type": "string"
+    },
+    "parent": {
+      "type": ["string", "null"]
+    },
+    "place": {
+      "type": ["string", "null"]
+    },
+    "points": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rule": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AchievementRule"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "series": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stars": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "target": true,
+    "text": {
+      "type": ["string", "null"]
+    },
+    "title": {
+      "type": ["string", "null"]
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "world": {
+      "type": ["string", "null"]
+    }
+  },
+  "required": ["id"],
+  "title": "Achievement",
+  "type": "object"
+}

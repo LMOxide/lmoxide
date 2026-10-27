@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-waiter",
+  "lore": 2730,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Complete Any 5",
+  "title": "Heroic Waiter",
+  "text": "Complete any 5 Waiter achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/waiter",
+  "n": 5,
+  "source": "client"
+}

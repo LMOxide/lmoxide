@@ -1,0 +1,26 @@
+{
+  "id": "skill/satyr-shaman-fire-ranged-aoe",
+  "name": "satyr shaman fire ranged aoe",
+  "client": {
+    "spell": 153423,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 153424,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

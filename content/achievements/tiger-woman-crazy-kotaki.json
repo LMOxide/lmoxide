@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tiger-woman-crazy-kotaki",
+  "lore": 4425,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Crazy Kotaki",
+  "title": "Tiger Woman: Crazy Kotaki",
+  "text": "Defeat Crazy Kotaki as Tiger Woman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crazy Kotaki",
+  "minifigure": "minifig/tiger-woman",
+  "source": "client"
+}

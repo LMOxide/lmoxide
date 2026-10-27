@@ -1,0 +1,8 @@
+{
+  "id": "achievement/dino-collectibles",
+  "lore": 1533,
+  "parent": "achievement/dino-world",
+  "client_name": "Dino_Collectibles",
+  "kind": "category",
+  "source": "client"
+}

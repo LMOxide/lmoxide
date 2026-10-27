@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spider-lady-alien-command-center",
+  "lore": 4473,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Alien Command Center",
+  "title": "Spider Lady: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Spider Lady.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/spider-lady",
+  "source": "client"
+}

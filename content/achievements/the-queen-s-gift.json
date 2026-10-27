@@ -1,0 +1,13 @@
+{
+  "id": "achievement/the-queen-s-gift",
+  "lore": 2427,
+  "parent": "achievement/medieval-collectibles",
+  "client_name": "Medieval_Collectibles_Queen Flora's Crystal Pouch",
+  "title": "The Queen's Gift",
+  "text": "Find Queen Flora's gift in the Medieval World.",
+  "points": 50,
+  "kind": "find",
+  "find": "collectible_queens_crystal_pouch",
+  "place": "Queen Flora's gift",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/skeleton-guy-the-sweet",
+  "lore": 4502,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Smash 50 Magic Candy",
+  "title": "Skeleton Guy, the Sweet",
+  "text": "Smash 50 Sweets as Skeleton Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/skeleton-guy",
+  "counts": {
+    "match": "Magic Candy",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

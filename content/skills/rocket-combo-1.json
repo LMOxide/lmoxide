@@ -1,0 +1,41 @@
+{
+  "id": "skill/rocket-combo-1",
+  "name": "Rocket Combo 1",
+  "client": {
+    "spell": 36861,
+    "stats": {
+      "EffectPackage": 225627,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 209024,
+            "Radius": 2
+          }
+        }
+      ],
+      "39": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 209198
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Battle Mech: Rocket Combo 1",
+  "source": "client"
+}

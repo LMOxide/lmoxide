@@ -1,0 +1,32 @@
+{
+  "id": "skill/rusty-cutlass",
+  "name": "Rusty Cutlass",
+  "client": {
+    "spell": 641618,
+    "stats": {
+      "EffectPackage": 643180,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642430,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Zombie Pirate: Rusty Cutlass",
+  "source": "client"
+}

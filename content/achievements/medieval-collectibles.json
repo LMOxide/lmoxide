@@ -1,0 +1,8 @@
+{
+  "id": "achievement/medieval-collectibles",
+  "lore": 2422,
+  "parent": "achievement/medieval-world",
+  "client_name": "Medieval_Collectibles",
+  "kind": "category",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-mysterious-crystal-cave",
+  "lore": 3378,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Mysterious Crystal Cave",
+  "title": "Mr. Gold: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Mr. Gold.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/mr-gold",
+  "source": "client"
+}

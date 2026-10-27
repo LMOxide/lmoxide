@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-spider-lady",
+  "lore": 4477,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Upgrade 3",
+  "title": "Novice Spider Lady",
+  "text": "Get the third Spider Lady upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/spider-lady",
+  "n": 3,
+  "source": "client"
+}

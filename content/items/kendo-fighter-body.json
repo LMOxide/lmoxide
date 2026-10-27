@@ -1,0 +1,16 @@
+{
+  "id": "item/kendo-fighter-body",
+  "name": "Kendo Fighter Body",
+  "kind": "part",
+  "template": 668662,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21511,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/kendo-fighter",
+  "location": "Torso",
+  "source": "client"
+}

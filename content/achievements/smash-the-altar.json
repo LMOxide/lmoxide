@@ -1,0 +1,11 @@
+{
+  "id": "achievement/smash-the-altar",
+  "lore": 752,
+  "parent": "achievement/treasure-chaser",
+  "client_name": "Pirate_Exploration_Smash the Altar",
+  "title": "Smash the Altar",
+  "text": "Smash the four Tiki pillars and deal with the consequences.",
+  "points": 25,
+  "kind": "manual",
+  "source": "client"
+}

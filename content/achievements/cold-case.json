@@ -1,0 +1,12 @@
+{
+  "id": "achievement/cold-case",
+  "lore": 871,
+  "parent": "achievement/iron-will-of-the-gods",
+  "client_name": "Mythology_Combat_Champion_Lord Minos, the Lich",
+  "title": "Cold Case",
+  "text": "Defeat Lord Minos in Mythology World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Lord Minos, the Lich",
+  "source": "client"
+}

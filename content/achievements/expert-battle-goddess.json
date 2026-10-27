@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-battle-goddess",
+  "lore": 3064,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Upgrade 7",
+  "title": "Expert Battle Goddess",
+  "text": "Get the seventh Battle Goddess upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/battle-goddess",
+  "n": 7,
+  "source": "client"
+}

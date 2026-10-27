@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fairytale-princess-temper",
+  "lore": 3094,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Temper",
+  "title": "Fairytale Princess: Temper",
+  "text": "Defeat Temper as Fairytale Princess.",
+  "points": 25,
+  "kind": "target",
+  "target": "Temper",
+  "minifigure": "minifig/fairytale-princess",
+  "source": "client"
+}

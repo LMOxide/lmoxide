@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-carpenter",
+  "lore": 3775,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Complete Any 5",
+  "title": "Heroic Carpenter",
+  "text": "Complete any 5 Carpenter achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/carpenter",
+  "n": 5,
+  "source": "client"
+}

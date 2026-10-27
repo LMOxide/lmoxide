@@ -1,0 +1,16 @@
+{
+  "id": "item/spider-lady-body",
+  "name": "Spider Lady Body",
+  "kind": "part",
+  "template": 662071,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21409,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/spider-lady",
+  "location": "Torso",
+  "source": "client"
+}

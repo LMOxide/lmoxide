@@ -1,0 +1,14 @@
+{
+  "id": "npc/corrupted-chicken-suit-guy-3",
+  "name": "Corrupted Chicken Suit Guy",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 32338
+  },
+  "level": 100,
+  "stats": {
+    "life_factor": 1.0
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

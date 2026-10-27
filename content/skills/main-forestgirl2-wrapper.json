@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-forestgirl2-wrapper",
+  "name": "main forestgirl2 wrapper",
+  "client": {
+    "spell": 293345,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 343899
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 343886
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Forest Maiden: Rope Arrow",
+  "source": "client"
+}

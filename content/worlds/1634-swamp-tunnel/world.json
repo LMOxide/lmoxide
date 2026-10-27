@@ -1,0 +1,30 @@
+{
+  "id": "world/swamp-tunnel",
+  "name": "Swamp Tunnel",
+  "playfield": 1634,
+  "kind": "pocket",
+  "region": "region/medieval-world",
+  "arrival": {
+    "pos": [132.22, 72.0, 140.01],
+    "rot": 4.71
+  },
+  "arrival_guid": 433292,
+  "arrival_from": {
+    "world/enchanted-forest": {
+      "pos": [131.95, 72.68, 145.85],
+      "rot": 3.142
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 433292,
+      "pos": [132.22, 72.0, 140.01],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,39 @@
+{
+  "id": "skill/ground-crawler",
+  "name": "Ground Crawler",
+  "client": {
+    "spell": 551007,
+    "stats": {
+      "EffectPackage": 551146,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 551006,
+            "ProjectileType": 1,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Snake Charmer: Ground Crawler",
+  "range": 10.0,
+  "projectile": {
+    "item": 551006,
+    "speed": 7.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

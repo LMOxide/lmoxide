@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-wizard2-damage",
+  "name": "main wizard2 damage",
+  "client": {
+    "spell": 505510,
+    "stats": {
+      "EffectPackage": 637095,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.800000011920929,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

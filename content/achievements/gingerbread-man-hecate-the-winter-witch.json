@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gingerbread-man-hecate-the-winter-witch",
+  "lore": 2992,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Hecate, the Winter Witch",
+  "title": "Gingerbread Man: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Gingerbread Man.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/gingerbread-man",
+  "source": "client"
+}

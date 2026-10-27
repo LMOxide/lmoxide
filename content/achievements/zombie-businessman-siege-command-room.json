@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-businessman-siege-command-room",
+  "lore": 4658,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Siege Command Room",
+  "title": "Zombie Businessman: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Zombie Businessman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/zombie-businessman",
+  "source": "client"
+}

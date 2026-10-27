@@ -1,0 +1,17 @@
+{
+  "id": "achievement/square-foot-the-demolisher",
+  "lore": 4553,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Smash 25 Minotaur Statues",
+  "title": "Square Foot, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Square Foot.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/square-foot",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

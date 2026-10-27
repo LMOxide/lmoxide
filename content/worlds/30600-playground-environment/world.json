@@ -1,0 +1,12 @@
+{
+  "id": "world/playground-environment",
+  "name": "Playground_Environment",
+  "playfield": 30600,
+  "kind": "other",
+  "arrival": {
+    "pos": [248.0, 52.81, 334.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

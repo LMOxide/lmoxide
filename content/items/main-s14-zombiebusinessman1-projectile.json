@@ -1,0 +1,17 @@
+{
+  "id": "item/main-s14-zombiebusinessman1-projectile",
+  "name": "main s14 zombiebusinessman1 projectile",
+  "kind": "projectile",
+  "template": 642444,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 642445
+      }
+    }
+  ],
+  "source": "client"
+}

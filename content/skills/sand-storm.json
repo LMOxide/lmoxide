@@ -1,0 +1,36 @@
+{
+  "id": "skill/sand-storm",
+  "name": "Sand Storm",
+  "client": {
+    "spell": 566630,
+    "stats": {
+      "MoreFlags": 134217728,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 20,
+            "Arg2": 25,
+            "EffectPackage": 577002,
+            "NanoTemplate": 566631
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 566630,
+            "Value": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Egyptian Warrior: Sand Storm",
+  "source": "client"
+}

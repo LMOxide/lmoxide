@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jewel-thief-black-widow",
+  "lore": 5222,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Black Widow",
+  "title": "Jewel Thief: Black Widow",
+  "text": "Defeat Black Widow as Jewel Thief.",
+  "points": 25,
+  "kind": "target",
+  "target": "Black Widow",
+  "minifigure": "minifig/jewel-thief",
+  "source": "client"
+}

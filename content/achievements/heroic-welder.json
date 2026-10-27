@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-welder",
+  "lore": 2798,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Complete Any 5",
+  "title": "Heroic Welder",
+  "text": "Complete any 5 Welder achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/welder",
+  "n": 5,
+  "source": "client"
+}

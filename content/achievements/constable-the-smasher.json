@@ -1,0 +1,16 @@
+{
+  "id": "achievement/constable-the-smasher",
+  "lore": 3034,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Smash 500 Smashies",
+  "title": "Constable, the Smasher",
+  "text": "Smash 500 smashies as Constable.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/constable",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

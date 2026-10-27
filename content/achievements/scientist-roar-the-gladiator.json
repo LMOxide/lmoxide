@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-roar-the-gladiator",
+  "lore": 2907,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Roar the Gladiator",
+  "title": "Scientist: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Scientist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/scientist",
+  "source": "client"
+}

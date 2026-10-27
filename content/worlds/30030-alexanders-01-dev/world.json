@@ -1,0 +1,12 @@
+{
+  "id": "world/alexanders-01-dev",
+  "name": "alexanders - 01 - dev",
+  "playfield": 30030,
+  "kind": "other",
+  "arrival": {
+    "pos": [49.25, 2.25, 48.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

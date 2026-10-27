@@ -1,0 +1,12 @@
+{
+  "id": "achievement/series-13-grandmaster",
+  "lore": 4044,
+  "parent": "achievement/global",
+  "client_name": "Global_Minifigures_Series 13",
+  "title": "Series 13 Grandmaster",
+  "text": "Master all Series 13 Minifigures.",
+  "points": 100,
+  "kind": "series",
+  "series": 13,
+  "source": "client"
+}

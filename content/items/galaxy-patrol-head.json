@@ -1,0 +1,16 @@
+{
+  "id": "item/galaxy-patrol-head",
+  "name": "Galaxy Patrol Head",
+  "kind": "part",
+  "template": 483596,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10708,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/galaxy-patrol",
+  "location": "Head",
+  "source": "client"
+}

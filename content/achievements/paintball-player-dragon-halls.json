@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paintball-player-dragon-halls",
+  "lore": 3584,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Dragon Halls",
+  "title": "Paintball Player: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Paintball Player.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/paintball-player",
+  "source": "client"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-skirmisher",
+  "name": "Upgrade: Skirmisher",
+  "nano": 481806,
+  "effects": [
+    {
+      "proc": {
+        "on": "normal_hit",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-skirmisher",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/spectre-the-stonemason",
+  "lore": 4587,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Build 15 Mythology Statues",
+  "title": "Spectre, the Stonemason",
+  "text": "Build 15 Mythology Statues as Spectre.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/spectre",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

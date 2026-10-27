@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-banshee",
+  "lore": 4409,
+  "parent": "achievement/banshee",
+  "client_name": "Banshee_Upgrade 3",
+  "title": "Novice Banshee",
+  "text": "Get the third Banshee upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/banshee",
+  "n": 3,
+  "source": "client"
+}

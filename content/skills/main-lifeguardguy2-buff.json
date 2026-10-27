@@ -1,0 +1,32 @@
+{
+  "id": "skill/main-lifeguardguy2-buff",
+  "name": "main lifeguardguy2 buff",
+  "client": {
+    "spell": 504556,
+    "stats": {
+      "EffectPackage": 506732,
+      "TargetingMode": 8,
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Duration": -1,
+            "Interval": 20,
+            "Min": 3,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 504565,
+            "Radius": 4
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Lifeguard Guy: Sparkling Whirlpool",
+  "source": "client"
+}

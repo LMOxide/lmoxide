@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-fairy",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 22290,
+  "minifigure": "minifig/fairy",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "IB1L"
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/genie-girl-the-lost-challenger",
+  "lore": 3117,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Lost Creations_Get to Level 5",
+  "title": "Genie Girl, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Genie Girl.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/genie-girl",
+  "n": 5,
+  "source": "client"
+}

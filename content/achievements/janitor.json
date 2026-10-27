@@ -1,0 +1,29 @@
+{
+  "id": "achievement/janitor",
+  "lore": 5065,
+  "parent": "achievement/series-15",
+  "client_name": "Janitor",
+  "title": "Janitor",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-janitor",
+    "achievement/legendary-janitor",
+    "achievement/janitor-siege-command-room",
+    "achievement/janitor-minotaur-refuge",
+    "achievement/janitor-treasure-island",
+    "achievement/janitor-bishop-master-technician",
+    "achievement/janitor-megamind",
+    "achievement/janitor-beastmaster-wulfgar",
+    "achievement/novice-janitor",
+    "achievement/expert-janitor",
+    "achievement/janitor-the-lost-challenger",
+    "achievement/janitor-the-lost-warrior",
+    "achievement/janitor-the-lost-champion",
+    "achievement/janitor-the-smasher",
+    "achievement/janitor-the-master-smasher",
+    "achievement/janitor-the-machinist"
+  ],
+  "minifigure": "minifig/janitor",
+  "source": "client"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "world/christianh-elementplayfield",
+  "name": "ChristianH_ElementPlayfield",
+  "playfield": 31012,
+  "kind": "other",
+  "arrival": {
+    "pos": [344.06, 40.0, 169.1],
+    "rot": 0.0
+  },
+  "arrival_guid": 465831,
+  "respawn_points": [
+    {
+      "name": "ResurrectionAIPoint0",
+      "guid": 465831,
+      "pos": [344.06, 40.0, 169.1],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

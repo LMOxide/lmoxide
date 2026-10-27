@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-clay-vase",
+  "name": "XX_Clay vase",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 152352,
+    "template": 153144,
+    "look": "vase_clay_c_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

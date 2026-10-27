@@ -1,0 +1,10 @@
+{
+  "id": "object/cannon-4-1-particle",
+  "name": "cannon 4_1 particle",
+  "kind": "scenery",
+  "render": {
+    "look": "cannon 4_1 particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

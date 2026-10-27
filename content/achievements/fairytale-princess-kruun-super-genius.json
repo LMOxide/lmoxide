@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fairytale-princess-kruun-super-genius",
+  "lore": 3095,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Kruun, Super Genius",
+  "title": "Fairytale Princess: Kruun, Super Genius",
+  "text": "Defeat Kruun, Super Genius as Fairytale Princess.",
+  "points": 25,
+  "kind": "target",
+  "target": "Kruun, Super Genius",
+  "minifigure": "minifig/fairytale-princess",
+  "source": "client"
+}

@@ -1,0 +1,36 @@
+{
+  "id": "skill/medieval-pd-castle-evil-sorcerer-portal-castable",
+  "name": "medieval pd castle evil sorcerer portal castable",
+  "client": {
+    "spell": 318120,
+    "stats": {
+      "AIPowerrating": 10,
+      "AISpellCategory": 1024,
+      "AttackRange": 1250,
+      "ItemDelay": 25,
+      "RechargeDelay": 25,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 462795
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 318120,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

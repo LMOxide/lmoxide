@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-avenger-janos-the-unforgiving",
+  "lore": 2704,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Janos the Unforgiving",
+  "title": "Alien Avenger: Janos the Unforgiving",
+  "text": "Defeat Janos the Unforgiving as Alien Avenger.",
+  "points": 25,
+  "kind": "target",
+  "target": "Janos the Unforgiving",
+  "minifigure": "minifig/alien-avenger",
+  "source": "client"
+}

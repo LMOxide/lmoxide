@@ -1,0 +1,16 @@
+{
+  "id": "achievement/sheriff-the-smasher",
+  "lore": 3976,
+  "parent": "achievement/sheriff",
+  "client_name": "Sheriff_Smash 500 Smashies",
+  "title": "Sheriff, the Smasher",
+  "text": "Smash 500 smashies as Sheriff.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/sheriff",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

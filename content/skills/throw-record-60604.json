@@ -1,0 +1,26 @@
+{
+  "id": "skill/throw-record-60604",
+  "name": "Throw Record",
+  "client": {
+    "spell": 60604,
+    "stats": {
+      "EffectPackage": 636855,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1002,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

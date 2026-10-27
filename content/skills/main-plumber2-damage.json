@@ -1,0 +1,24 @@
+{
+  "id": "skill/main-plumber2-damage",
+  "name": "main plumber2 damage",
+  "client": {
+    "spell": 437219,
+    "stats": {
+      "EffectPackage": 636936,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.6499999761581421,
+            "ApplyOn": 3,
+            "DamageType": 1002
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

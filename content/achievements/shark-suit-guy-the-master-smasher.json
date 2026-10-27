@@ -1,0 +1,16 @@
+{
+  "id": "achievement/shark-suit-guy-the-master-smasher",
+  "lore": 5294,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Smash 5000 Smashies",
+  "title": "Shark Suit Guy, the Master Smasher",
+  "text": "Smash 5000 smashies as Shark Suit Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/shark-suit-guy",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/dino-tracker-the-lost-warrior",
+  "lore": 3084,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Lost Creations_Get to Level 10",
+  "title": "Dino Tracker, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Dino Tracker.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/dino-tracker",
+  "n": 10,
+  "source": "client"
+}

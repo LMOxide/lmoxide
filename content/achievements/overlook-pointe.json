@@ -1,0 +1,14 @@
+{
+  "id": "achievement/overlook-pointe",
+  "lore": 758,
+  "parent": "achievement/wayfarer",
+  "client_name": "Medieval_Exploration_Overlook the Medieval World",
+  "title": "Overlook Pointe",
+  "text": "Take a break and enjoy the Medieval view.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/kingdom",
+  "find": "Achievement_Overlook",
+  "place": "Overlook Pointe",
+  "source": "client"
+}

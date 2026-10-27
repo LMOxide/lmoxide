@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-s14-flymonster2-aoe",
+  "name": "main s14 flymonster2 aoe",
+  "client": {
+    "spell": 642256,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642257,
+            "Radius": 1
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fly Monster: Toxic Goop",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roman-commander-alien-command-center",
+  "lore": 3363,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Alien Command Center",
+  "title": "Roman Commander: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Roman Commander.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/roman-commander",
+  "source": "client"
+}

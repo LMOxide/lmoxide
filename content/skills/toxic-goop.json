@@ -1,0 +1,51 @@
+{
+  "id": "skill/toxic-goop",
+  "name": "Toxic Goop",
+  "client": {
+    "spell": 641621,
+    "stats": {
+      "ItemDelay": 10,
+      "RechargeDelay": 1,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 642254
+          }
+        },
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "TemplateID2": 642292,
+            "Value1": 643178
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641621,
+            "Value": 600
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fly Monster: Toxic Goop",
+  "dash": {
+    "distance": 10.0,
+    "radius": 1.0,
+    "effect": 643178
+  },
+  "source": "client"
+}

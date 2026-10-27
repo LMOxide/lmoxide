@@ -1,0 +1,13 @@
+{
+  "id": "achievement/piggy-guy-spider-s-nest",
+  "lore": 3177,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Spider's Nest",
+  "title": "Piggy Guy: Spider's Nest",
+  "text": "Conquer the Spider's Nest as Piggy Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Spider's Nest",
+  "minifigure": "minifig/piggy-guy",
+  "source": "client"
+}

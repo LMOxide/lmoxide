@@ -1,0 +1,16 @@
+{
+  "id": "achievement/zombie-pirate-the-master-smasher",
+  "lore": 4620,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Smash 5000 Smashies",
+  "title": "Zombie Pirate, the Master Smasher",
+  "text": "Smash 5000 smashies as Zombie Pirate.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/zombie-pirate",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

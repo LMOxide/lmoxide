@@ -1,0 +1,29 @@
+{
+  "id": "achievement/tribal-woman",
+  "lore": 5070,
+  "parent": "achievement/series-15",
+  "client_name": "Tribal Woman",
+  "title": "Tribal Woman",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-tribal-woman",
+    "achievement/legendary-tribal-woman",
+    "achievement/tribal-woman-crimson-chamber",
+    "achievement/tribal-woman-ancient-space-ruins",
+    "achievement/tribal-woman-treasure-island",
+    "achievement/tribal-woman-two-eyed-willy",
+    "achievement/tribal-woman-ponos-the-pitcher",
+    "achievement/tribal-woman-ridgeback-spitter",
+    "achievement/novice-tribal-woman",
+    "achievement/expert-tribal-woman",
+    "achievement/tribal-woman-the-lost-challenger",
+    "achievement/tribal-woman-the-lost-warrior",
+    "achievement/tribal-woman-the-lost-champion",
+    "achievement/tribal-woman-the-builder",
+    "achievement/tribal-woman-the-master-builder",
+    "achievement/tribal-woman-the-stonemason"
+  ],
+  "minifigure": "minifig/tribal-woman",
+  "source": "client"
+}

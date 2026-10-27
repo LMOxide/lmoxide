@@ -1,0 +1,17 @@
+{
+  "id": "item/tidal-wave",
+  "name": "Tidal Wave",
+  "kind": "projectile",
+  "template": 230490,
+  "radius": 2.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 207678
+      }
+    }
+  ],
+  "source": "client"
+}

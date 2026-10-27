@@ -1,0 +1,17 @@
+{
+  "id": "buff/proc-brute-force",
+  "name": "Brute Force",
+  "nano": 423295,
+  "ends_on": "hit",
+  "effects": [
+    {
+      "stat": {
+        "stat": "damage",
+        "op": "add",
+        "value": 0.33
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
+}

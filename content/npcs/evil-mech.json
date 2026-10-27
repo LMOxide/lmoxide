@@ -1,0 +1,26 @@
+{
+  "id": "npc/evil-mech",
+  "name": "Evil Mech",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 267321
+  },
+  "level": 16,
+  "stats": {
+    "health": 15760
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/space-pd-policehq-boss-mech-stomp-castable",
+      "weight": 1
+    },
+    {
+      "skill": "skill/space-pd-policehq-boss-mech-minigun-lvl1-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

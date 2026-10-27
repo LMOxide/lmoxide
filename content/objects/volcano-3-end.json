@@ -1,0 +1,10 @@
+{
+  "id": "object/volcano-3-end",
+  "name": "Volcano 3 end",
+  "kind": "scenery",
+  "render": {
+    "look": "Volcano 3 end",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "npc/banshee-2",
+  "name": "Banshee",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 660084,
+    "npc_template": 2914,
+    "look": "banshee_npc",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 9855,
+    "life_factor": 4.25
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

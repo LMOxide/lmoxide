@@ -1,0 +1,31 @@
+{
+  "portals": [
+    {
+      "id": "portal/5202/to-dragon-halls",
+      "pos": [348.09, 32.5, 284.43],
+      "window": 17,
+      "to": {
+        "world": "world/dragon-halls"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/5202/to-ruined-fort",
+      "pos": [501.65, 40.15, 320.01],
+      "window": 28,
+      "to": {
+        "world": "world/ruined-fort"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/5202/to-enchanted-forest",
+      "pos": [491.89, 51.72, 331.43],
+      "window": 20,
+      "to": {
+        "world": "world/enchanted-forest"
+      },
+      "source": "client"
+    }
+  ]
+}

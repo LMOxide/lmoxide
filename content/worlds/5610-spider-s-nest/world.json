@@ -1,0 +1,32 @@
+{
+  "id": "world/spider-s-nest",
+  "name": "Spider's Nest",
+  "playfield": 5610,
+  "kind": "pocket",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [235.3, 17.24, 254.75],
+    "rot": 4.6
+  },
+  "arrival_guid": 352364,
+  "arrival_from": {
+    "world/kingdom": {
+      "pos": [242.25, 19.67, 238.99],
+      "rot": 0.0
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Spider&apos;s Nest",
+      "guid": 352364,
+      "pos": [235.3, 17.24, 254.75],
+      "rot": 4.6,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

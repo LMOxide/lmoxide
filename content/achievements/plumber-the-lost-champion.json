@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plumber-the-lost-champion",
+  "lore": 2529,
+  "parent": "achievement/plumber",
+  "client_name": "Plumber_Lost Creations_Get to Level 15",
+  "title": "Plumber, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Plumber.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/plumber",
+  "n": 15,
+  "source": "client"
+}

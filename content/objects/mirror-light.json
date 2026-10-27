@@ -1,0 +1,10 @@
+{
+  "id": "object/mirror-light",
+  "name": "mirror light",
+  "kind": "scenery",
+  "render": {
+    "look": "mirror light",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

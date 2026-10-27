@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-avenger-the-lost-challenger",
+  "lore": 2709,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Lost Creations_Get to Level 5",
+  "title": "Alien Avenger, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Alien Avenger.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/alien-avenger",
+  "n": 5,
+  "source": "client"
+}

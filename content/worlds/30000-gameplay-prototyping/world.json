@@ -1,0 +1,23 @@
+{
+  "id": "world/gameplay-prototyping",
+  "name": "Gameplay Prototyping",
+  "playfield": 30000,
+  "kind": "other",
+  "arrival": {
+    "pos": [66.04, 64.0, 65.06],
+    "rot": 0.0
+  },
+  "arrival_guid": 1609,
+  "respawn_points": [
+    {
+      "name": "ResurrectionAIPoint0",
+      "guid": 1609,
+      "pos": [66.04, 64.0, 65.06],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

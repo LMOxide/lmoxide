@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-swashbuckler",
+  "lore": 3283,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Upgrade 7",
+  "title": "Expert Swashbuckler",
+  "text": "Get the seventh Swashbuckler upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/swashbuckler",
+  "n": 7,
+  "source": "client"
+}

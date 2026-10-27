@@ -1,0 +1,10 @@
+{
+  "id": "object/minibossentrancevisualopen-port",
+  "name": "MinibossEntranceVisualOpen_Port",
+  "kind": "scenery",
+  "render": {
+    "look": "MinibossEntranceVisualOpen_Port",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

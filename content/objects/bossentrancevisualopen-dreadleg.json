@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-dreadleg",
+  "name": "BossEntranceVisualOpen_Dreadleg",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_Dreadleg",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

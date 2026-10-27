@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-pizzadeliveryman2-small-pge",
+  "name": "main pizzadeliveryman2 small pge",
+  "client": {
+    "spell": 504855,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 35,
+            "Arg2": 1,
+            "DelayTime": 50,
+            "EffectPackage": 512760,
+            "NanoTemplate": 504864
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pizza Delivery Man: Special Delivery",
+  "source": "client"
+}

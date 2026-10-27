@@ -1,0 +1,16 @@
+{
+  "id": "achievement/dino-tracker-the-striker",
+  "lore": 3085,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Smash 1000 Monsters",
+  "title": "Dino Tracker, the Striker",
+  "text": "Smash 1000 monsters as Dino Tracker.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/dino-tracker",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

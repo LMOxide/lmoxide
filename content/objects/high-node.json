@@ -1,0 +1,10 @@
+{
+  "id": "object/high-node",
+  "name": "High node",
+  "kind": "scenery",
+  "render": {
+    "look": "High node",
+    "visual": [1010030, 465834]
+  },
+  "source": "client"
+}

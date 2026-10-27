@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-gingerbread-man",
+  "lore": 3003,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Complete Any 10",
+  "title": "Legendary Gingerbread Man",
+  "text": "Complete any 11 Gingerbread Man achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/gingerbread-man",
+  "n": 11,
+  "source": "client"
+}

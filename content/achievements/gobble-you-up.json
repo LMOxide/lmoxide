@@ -1,0 +1,12 @@
+{
+  "id": "achievement/gobble-you-up",
+  "lore": 775,
+  "parent": "achievement/trial-by-combat",
+  "client_name": "Medieval_Combat_Champion_The Bridge Troll",
+  "title": "Gobble you up!",
+  "text": "Defeat the Bridge Troll in the Medieval World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "The Bridge Troll",
+  "source": "client"
+}

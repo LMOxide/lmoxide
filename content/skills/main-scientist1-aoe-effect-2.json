@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-scientist1-aoe-effect-2",
+  "name": "main scientist1 aoe effect 2",
+  "client": {
+    "spell": 35534,
+    "stats": {
+      "EffectPackage": 637062
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.699999988079071,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

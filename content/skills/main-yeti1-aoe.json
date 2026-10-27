@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-yeti1-aoe",
+  "name": "main yeti1 aoe",
+  "client": {
+    "spell": 635424,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 467917,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Yeti: Freezeball",
+  "source": "client"
+}

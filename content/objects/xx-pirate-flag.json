@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-pirate-flag",
+  "name": "XX_Pirate Flag",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 226992,
+    "template": 227968,
+    "look": "lego_flag_pirate_a_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

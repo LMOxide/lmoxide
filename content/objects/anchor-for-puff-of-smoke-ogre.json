@@ -1,0 +1,10 @@
+{
+  "id": "object/anchor-for-puff-of-smoke-ogre",
+  "name": "anchor for puff of smoke ogre",
+  "kind": "scenery",
+  "render": {
+    "look": "anchor for puff of smoke ogre",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

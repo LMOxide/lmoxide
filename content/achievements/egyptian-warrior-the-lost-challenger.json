@@ -1,0 +1,13 @@
+{
+  "id": "achievement/egyptian-warrior-the-lost-challenger",
+  "lore": 4024,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Lost Creations_Get to Level 5",
+  "title": "Egyptian Warrior, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Egyptian Warrior.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/egyptian-warrior",
+  "n": 5,
+  "source": "client"
+}

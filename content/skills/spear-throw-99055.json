@@ -1,0 +1,31 @@
+{
+  "id": "skill/spear-throw-99055",
+  "name": "Spear Throw",
+  "client": {
+    "spell": 99055,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 800,
+      "EffectPackage": 90649,
+      "ItemDelay": 60,
+      "RechargeDelay": 140,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentY": -50,
+            "ItemInstance": 99054,
+            "ProjectileType": 2,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

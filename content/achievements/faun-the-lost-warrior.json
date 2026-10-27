@@ -1,0 +1,13 @@
+{
+  "id": "achievement/faun-the-lost-warrior",
+  "lore": 5163,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Lost Creations_Get to Level 10",
+  "title": "Faun, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Faun.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/faun",
+  "n": 10,
+  "source": "client"
+}

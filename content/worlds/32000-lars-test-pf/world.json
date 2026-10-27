@@ -1,0 +1,12 @@
+{
+  "id": "world/lars-test-pf",
+  "name": "Lars_test_pf",
+  "playfield": 32000,
+  "kind": "other",
+  "arrival": {
+    "pos": [196.0, 1.75, 476.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

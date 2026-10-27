@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-kendo-fighter",
+  "lore": 5232,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Complete Any 5",
+  "title": "Heroic Kendo Fighter",
+  "text": "Complete any 5 Kendo Fighter achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/kendo-fighter",
+  "n": 5,
+  "source": "client"
+}

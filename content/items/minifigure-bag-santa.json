@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-santa",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 577234,
+  "minifigure": "minifig/santa",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "D2NG"
+      }
+    }
+  ],
+  "source": "client"
+}

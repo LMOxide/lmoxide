@@ -1,0 +1,34 @@
+{
+  "id": "skill/2s-stun",
+  "name": "2s Stun",
+  "client": {
+    "spell": 57655,
+    "stats": {
+      "EffectPackage": 57720,
+      "MoreFlags": 33554432,
+      "TargetingMode": 5,
+      "TimeExist": 200
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 804,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "Stun",
+          "client": true,
+          "args": {
+            "ApplyOn": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-dreadleg",
+  "name": "BossExitVisualClosed_Dreadleg",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Dreadleg",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

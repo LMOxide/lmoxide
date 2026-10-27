@@ -1,0 +1,13 @@
+{
+  "id": "achievement/cyclops-the-lost-champion",
+  "lore": 2665,
+  "parent": "achievement/cyclops",
+  "client_name": "Cyclops_Lost Creations_Get to Level 15",
+  "title": "Cyclops, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Cyclops.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/cyclops",
+  "n": 15,
+  "source": "client"
+}

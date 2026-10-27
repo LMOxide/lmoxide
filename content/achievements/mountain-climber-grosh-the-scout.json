@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mountain-climber-grosh-the-scout",
+  "lore": 2822,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Grosh the Scout",
+  "title": "Mountain Climber: Grosh the Scout",
+  "text": "Defeat Grosh the Scout as Mountain Climber.",
+  "points": 25,
+  "kind": "target",
+  "target": "Grosh the Scout",
+  "minifigure": "minifig/mountain-climber",
+  "source": "client"
+}

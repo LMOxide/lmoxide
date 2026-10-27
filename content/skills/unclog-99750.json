@@ -1,0 +1,28 @@
+{
+  "id": "skill/unclog-99750",
+  "name": "Unclog",
+  "client": {
+    "spell": 99750,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 98398,
+            "Radius": 1
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Plumber: Unclog",
+  "source": "client"
+}

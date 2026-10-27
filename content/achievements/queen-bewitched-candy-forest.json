@@ -1,0 +1,13 @@
+{
+  "id": "achievement/queen-bewitched-candy-forest",
+  "lore": 5266,
+  "parent": "achievement/queen",
+  "client_name": "Queen_Bewitched Candy Forest",
+  "title": "Queen: Bewitched Candy Forest",
+  "text": "Conquer the Bewitched Candy Forest as Queen.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bewitched Candy Forest",
+  "minifigure": "minifig/queen",
+  "source": "client"
+}

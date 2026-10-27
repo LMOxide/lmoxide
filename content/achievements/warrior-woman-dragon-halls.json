@@ -1,0 +1,13 @@
+{
+  "id": "achievement/warrior-woman-dragon-halls",
+  "lore": 3346,
+  "parent": "achievement/warrior-woman",
+  "client_name": "Warrior Woman_Dragon Halls",
+  "title": "Warrior Woman: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Warrior Woman.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/warrior-woman",
+  "source": "client"
+}

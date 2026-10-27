@@ -1,0 +1,13 @@
+{
+  "id": "achievement/space-miner-treasure-island",
+  "lore": 3244,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Treasure Island",
+  "title": "Space Miner: Treasure Island",
+  "text": "Conquer the Treasure Island as Space Miner.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/space-miner",
+  "source": "client"
+}

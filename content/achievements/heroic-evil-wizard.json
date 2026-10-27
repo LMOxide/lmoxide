@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-evil-wizard",
+  "lore": 3826,
+  "parent": "achievement/evil-wizard",
+  "client_name": "Evil Wizard_Complete Any 5",
+  "title": "Heroic Evil Wizard",
+  "text": "Complete any 5 Evil Wizard achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/evil-wizard",
+  "n": 5,
+  "source": "client"
+}

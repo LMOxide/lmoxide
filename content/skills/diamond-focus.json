@@ -1,0 +1,42 @@
+{
+  "id": "skill/diamond-focus",
+  "name": "Diamond Focus",
+  "client": {
+    "spell": 317735,
+    "stats": {
+      "EffectPackage": 318725,
+      "ItemDelay": 34,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 1,
+            "ItemInstance": 318464,
+            "MaxChains": 5,
+            "MaxRicochets": 5,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Mr. Gold: Diamond Focus",
+  "range": 15.0,
+  "projectile": {
+    "item": 318464,
+    "speed": 12.5,
+    "kind": 1,
+    "attractor": 1,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

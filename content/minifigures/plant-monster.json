@@ -1,0 +1,134 @@
+{
+  "id": "minifig/plant-monster",
+  "name": "Plant Monster",
+  "template": 641024,
+  "series": 14,
+  "series_index": 0,
+  "render": {
+    "monster_data": 633963
+  },
+  "stats": {
+    "life": 250,
+    "power": 7,
+    "defense": 2,
+    "creativity": 8,
+    "role": 3,
+    "element": 5
+  },
+  "normal": {
+    "skill": "skill/lashing-vines",
+    "hits": [
+      {
+        "skill": "skill/main-s14-plantmonster1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.9,
+        "damage_type": 1000,
+        "via": [641608]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/monstrous-roots",
+    "hits": [
+      {
+        "skill": "skill/main-s14-plantmonster2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.5,
+        "damage_type": 1000,
+        "via": [641624, 642250, 642251]
+      }
+    ]
+  },
+  "click_spells": [641608, 641624],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-slippery-power"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530299"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-left-hook"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-empowered-specials"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [4555, 4394, 4681, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/plant-monster-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/plant-monster-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/plant-monster-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-plant-monster",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/monster-trials"],
+    "text": "You can find me in the Monster Trials, LEGO Center.",
+    "location_text": 251325715,
+    "location_picture": 659005
+  },
+  "source": "client"
+}

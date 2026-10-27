@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-saxophoneplayer1-wrapper",
+  "name": "main saxophoneplayer1 wrapper",
+  "client": {
+    "spell": 438822,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 360888
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 360906
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Saxophone Player: Bebop",
+  "source": "client"
+}

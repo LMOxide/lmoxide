@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-carpenter",
+  "lore": 3783,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Upgrade 3",
+  "title": "Novice Carpenter",
+  "text": "Get the third Carpenter upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/carpenter",
+  "n": 3,
+  "source": "client"
+}

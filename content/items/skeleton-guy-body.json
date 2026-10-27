@@ -1,0 +1,16 @@
+{
+  "id": "item/skeleton-guy-body",
+  "name": "Skeleton Guy Body",
+  "kind": "part",
+  "template": 662073,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21407,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/skeleton-guy",
+  "location": "Torso",
+  "source": "client"
+}

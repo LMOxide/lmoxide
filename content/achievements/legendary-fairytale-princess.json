@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-fairytale-princess",
+  "lore": 3105,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Complete Any 10",
+  "title": "Legendary Fairytale Princess",
+  "text": "Complete any 11 Fairytale Princess achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/fairytale-princess",
+  "n": 11,
+  "source": "client"
+}

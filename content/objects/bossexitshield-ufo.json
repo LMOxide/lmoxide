@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitshield-ufo",
+  "name": "BossExitShield_UFO",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitShield_UFO",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

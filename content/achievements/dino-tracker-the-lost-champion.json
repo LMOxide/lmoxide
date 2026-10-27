@@ -1,0 +1,13 @@
+{
+  "id": "achievement/dino-tracker-the-lost-champion",
+  "lore": 3090,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Lost Creations_Get to Level 15",
+  "title": "Dino Tracker, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Dino Tracker.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/dino-tracker",
+  "n": 15,
+  "source": "client"
+}

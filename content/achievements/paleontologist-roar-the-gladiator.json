@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paleontologist-roar-the-gladiator",
+  "lore": 3935,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Roar the Gladiator",
+  "title": "Paleontologist: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Paleontologist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/paleontologist",
+  "source": "client"
+}

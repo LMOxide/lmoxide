@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-jester2-marker",
+  "name": "main jester2 marker",
+  "client": {
+    "spell": 508258,
+    "stats": {
+      "TimeExist": 500
+    }
+  },
+  "source": "client"
+}

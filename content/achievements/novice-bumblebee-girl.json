@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-bumblebee-girl",
+  "lore": 3605,
+  "parent": "achievement/bumblebee-girl",
+  "client_name": "Bumblebee Girl_Upgrade 3",
+  "title": "Novice Bumblebee Girl",
+  "text": "Get the third Bumblebee Girl upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/bumblebee-girl",
+  "n": 3,
+  "source": "client"
+}

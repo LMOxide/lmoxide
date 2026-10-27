@@ -1,0 +1,32 @@
+{
+  "id": "skill/main-holidayelf2-selfsnare",
+  "name": "main holidayelf2 selfsnare",
+  "client": {
+    "spell": 636822,
+    "stats": {
+      "TimeExist": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.699999988079071
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

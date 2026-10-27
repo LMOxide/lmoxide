@@ -1,0 +1,16 @@
+{
+  "id": "item/battle-goddess-head",
+  "name": "Battle Goddess Head",
+  "kind": "part",
+  "template": 576186,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11204,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/battle-goddess",
+  "location": "Head",
+  "source": "client"
+}

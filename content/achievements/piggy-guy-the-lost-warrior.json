@@ -1,0 +1,13 @@
+{
+  "id": "achievement/piggy-guy-the-lost-warrior",
+  "lore": 3186,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Lost Creations_Get to Level 10",
+  "title": "Piggy Guy, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Piggy Guy.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/piggy-guy",
+  "n": 10,
+  "source": "client"
+}

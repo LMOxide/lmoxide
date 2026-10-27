@@ -1,0 +1,134 @@
+{
+  "id": "minifig/astronaut",
+  "name": "Astronaut",
+  "template": 663929,
+  "series": 15,
+  "series_index": 0,
+  "render": {
+    "monster_data": 663910
+  },
+  "stats": {
+    "life": 250,
+    "power": 3,
+    "defense": 5,
+    "creativity": 9,
+    "role": 3,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/zero-g-combat-moves",
+    "hits": [
+      {
+        "skill": "skill/main-s15-astronaut1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [663936]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/claim-the-land",
+    "hits": [
+      {
+        "skill": "skill/main-s15-astronaut2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.2,
+        "damage_type": 1000,
+        "via": [663937, 668612]
+      }
+    ]
+  },
+  "click_spells": [663936, 663937],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-second-wind"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-personal-space"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-puff-of-smoke"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530297"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-knockback"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-jury-rigging"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [5089, 5058, 5328, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/astronaut-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/astronaut-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/astronaut-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-astronaut",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/gladius-slash-317743",
+  "name": "Gladius Slash",
+  "client": {
+    "spell": 317743,
+    "stats": {
+      "EffectPackage": 319901,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.9300000071525574,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

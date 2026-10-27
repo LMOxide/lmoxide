@@ -1,0 +1,16 @@
+{
+  "id": "item/revolutionary-soldier-body",
+  "name": "Revolutionary Soldier Body",
+  "kind": "part",
+  "template": 483623,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21009,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/revolutionary-soldier",
+  "location": "Torso",
+  "source": "client"
+}

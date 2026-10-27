@@ -1,0 +1,26 @@
+{
+  "id": "npc/charon",
+  "name": "Charon",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 157071
+  },
+  "level": 20,
+  "stats": {
+    "health": 26180
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/wild-swing",
+      "weight": 1
+    },
+    {
+      "skill": "skill/bolt-332423",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

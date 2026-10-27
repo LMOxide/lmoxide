@@ -1,0 +1,13 @@
+{
+  "id": "achievement/ballerina-swamp-tunnel",
+  "lore": 5107,
+  "parent": "achievement/ballerina",
+  "client_name": "Ballerina_Swamp Tunnel",
+  "title": "Ballerina: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Ballerina.",
+  "points": 25,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/ballerina",
+  "source": "client"
+}

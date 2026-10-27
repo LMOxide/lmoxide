@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pizza-delivery-man-megamind",
+  "lore": 3197,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Megamind",
+  "title": "Pizza Delivery Man: Megamind",
+  "text": "Defeat Megamind as Pizza Delivery Man.",
+  "points": 25,
+  "kind": "target",
+  "target": "Megamind",
+  "minifigure": "minifig/pizza-delivery-man",
+  "source": "client"
+}

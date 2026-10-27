@@ -1,0 +1,24 @@
+{
+  "id": "world/crimson-chamber",
+  "name": "Crimson Chamber",
+  "playfield": 1633,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [132.06, 72.0, 140.17],
+    "rot": 4.71
+  },
+  "arrival_guid": 429687,
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 429687,
+      "pos": [132.06, 72.0, 140.17],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

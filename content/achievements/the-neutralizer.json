@@ -1,0 +1,12 @@
+{
+  "id": "achievement/the-neutralizer",
+  "lore": 1609,
+  "parent": "achievement/dino-tamer",
+  "client_name": "Dino_Combat_Defeat Tarpit Champion",
+  "title": "The Neutralizer",
+  "text": "Defeat the Ridgeback Spitter.",
+  "points": 50,
+  "kind": "defeat",
+  "target": "Tarpit Champion",
+  "source": "client"
+}

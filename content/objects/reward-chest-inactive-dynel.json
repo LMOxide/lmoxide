@@ -1,0 +1,10 @@
+{
+  "id": "object/reward-chest-inactive-dynel",
+  "name": "reward chest inactive dynel",
+  "kind": "scenery",
+  "render": {
+    "look": "reward chest inactive dynel",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

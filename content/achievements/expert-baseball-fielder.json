@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-baseball-fielder",
+  "lore": 3470,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_Upgrade 7",
+  "title": "Expert Baseball Fielder",
+  "text": "Get the seventh Baseball Fielder upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/baseball-fielder",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-the-lost-warrior",
+  "lore": 2727,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Lost Creations_Get to Level 10",
+  "title": "Waiter, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Waiter.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/waiter",
+  "n": 10,
+  "source": "client"
+}

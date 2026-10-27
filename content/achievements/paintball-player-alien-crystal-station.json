@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paintball-player-alien-crystal-station",
+  "lore": 3583,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Alien Crystal Station",
+  "title": "Paintball Player: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Paintball Player.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/paintball-player",
+  "source": "client"
+}

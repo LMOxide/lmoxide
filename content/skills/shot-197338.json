@@ -1,0 +1,122 @@
+{
+  "id": "skill/shot-197338",
+  "name": "Shot",
+  "client": {
+    "spell": 197338,
+    "stats": {
+      "AIPowerrating": 5,
+      "AISpellCategory": 1024,
+      "AttackRange": 1000,
+      "EffectPackage": 207447,
+      "ItemDelay": 32,
+      "RechargeDelay": 168,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1000,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1005,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1010,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1015,
+            "Value": 200
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1020,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1000,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1005,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1010,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1015,
+            "Value": 100
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 1020,
+            "Value": 100
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1500,
+            "ItemInstance": 197337,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

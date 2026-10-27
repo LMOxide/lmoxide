@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-motorcycle-mechanic",
+  "lore": 3408,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Complete Any 5",
+  "title": "Heroic Motorcycle Mechanic",
+  "text": "Complete any 5 Motorcycle Mechanic achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/motorcycle-mechanic",
+  "n": 5,
+  "source": "client"
+}

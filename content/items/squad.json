@@ -1,0 +1,17 @@
+{
+  "id": "item/squad",
+  "name": "Squad",
+  "kind": "projectile",
+  "template": 234947,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 234948
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/square-foot-the-triffid",
+  "lore": 4543,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_The Triffid",
+  "title": "Square Foot: The Triffid",
+  "text": "Defeat The Triffid as Square Foot.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/square-foot",
+  "source": "client"
+}

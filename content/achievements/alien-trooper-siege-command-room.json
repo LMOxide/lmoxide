@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-trooper-siege-command-room",
+  "lore": 3760,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Siege Command Room",
+  "title": "Alien Trooper: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Alien Trooper.",
+  "points": 50,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/alien-trooper",
+  "source": "client"
+}

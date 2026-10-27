@@ -1,0 +1,11 @@
+{
+  "id": "achievement/snow-racer",
+  "lore": 4049,
+  "parent": "achievement/highlight-of-winter",
+  "client_name": "Winter Holidays_Snow Racer",
+  "title": "Snow Racer!",
+  "text": "Climb the first hill in the Winter Pass in less than 18 seconds.",
+  "points": 25,
+  "kind": "manual",
+  "source": "client"
+}

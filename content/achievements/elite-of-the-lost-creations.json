@@ -1,0 +1,12 @@
+{
+  "id": "achievement/elite-of-the-lost-creations",
+  "lore": 4701,
+  "parent": "achievement/global",
+  "client_name": "Global_Lost Creations Elite",
+  "title": "Elite of the Lost Creations",
+  "text": "Complete level 25 in the Lost Creations.",
+  "points": 100,
+  "kind": "manual",
+  "stars": 1000,
+  "source": "client"
+}

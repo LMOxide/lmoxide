@@ -1,0 +1,13 @@
+{
+  "id": "achievement/saxophone-player-black-widow",
+  "lore": 2925,
+  "parent": "achievement/saxophone-player",
+  "client_name": "Saxophone Player_Black Widow",
+  "title": "Saxophone Player: Black Widow",
+  "text": "Defeat Black Widow as Saxophone Player.",
+  "points": 25,
+  "kind": "target",
+  "target": "Black Widow",
+  "minifigure": "minifig/saxophone-player",
+  "source": "client"
+}

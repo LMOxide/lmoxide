@@ -1,0 +1,10 @@
+{
+  "id": "object/camerashake-altar",
+  "name": "camerashake altar",
+  "kind": "scenery",
+  "render": {
+    "look": "camerashake altar",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

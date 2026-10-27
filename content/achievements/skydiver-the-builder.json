@@ -1,0 +1,16 @@
+{
+  "id": "achievement/skydiver-the-builder",
+  "lore": 3491,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Build 100 Buildies",
+  "title": "Skydiver, the Builder",
+  "text": "Build 100 buildies as Skydiver.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/skydiver",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

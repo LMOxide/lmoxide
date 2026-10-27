@@ -1,0 +1,16 @@
+{
+  "id": "achievement/roman-emperor-the-master-smasher",
+  "lore": 2749,
+  "parent": "achievement/roman-emperor",
+  "client_name": "Roman Emperor_Smash 5000 Smashies",
+  "title": "Roman Emperor, the Master Smasher",
+  "text": "Smash 5000 smashies as Roman Emperor.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/roman-emperor",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

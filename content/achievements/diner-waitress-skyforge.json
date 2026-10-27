@@ -1,0 +1,13 @@
+{
+  "id": "achievement/diner-waitress-skyforge",
+  "lore": 2804,
+  "parent": "achievement/diner-waitress",
+  "client_name": "Diner Waitress_Skyforge",
+  "title": "Diner Waitress: Skyforge",
+  "text": "Conquer the Skyforge as Diner Waitress.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/diner-waitress",
+  "source": "client"
+}

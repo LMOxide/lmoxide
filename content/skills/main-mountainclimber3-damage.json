@@ -1,0 +1,32 @@
+{
+  "id": "skill/main-mountainclimber3-damage",
+  "name": "main mountainclimber3 damage",
+  "client": {
+    "spell": 484715,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 470804
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

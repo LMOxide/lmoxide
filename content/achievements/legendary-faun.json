@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-faun",
+  "lore": 5153,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Complete Any 10",
+  "title": "Legendary Faun",
+  "text": "Complete any 11 Faun achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/faun",
+  "n": 11,
+  "source": "client"
+}

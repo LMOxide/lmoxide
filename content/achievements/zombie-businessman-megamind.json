@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-businessman-megamind",
+  "lore": 4662,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Megamind",
+  "title": "Zombie Businessman: Megamind",
+  "text": "Defeat Megamind as Zombie Businessman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Megamind",
+  "minifigure": "minifig/zombie-businessman",
+  "source": "client"
+}

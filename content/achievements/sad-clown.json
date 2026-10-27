@@ -1,0 +1,29 @@
+{
+  "id": "achievement/sad-clown",
+  "lore": 3339,
+  "parent": "achievement/series-10",
+  "client_name": "Sad Clown",
+  "title": "Sad Clown",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-sad-clown",
+    "achievement/legendary-sad-clown",
+    "achievement/novice-sad-clown",
+    "achievement/expert-sad-clown",
+    "achievement/sad-clown-scorched-ruins",
+    "achievement/sad-clown-abandoned-temple",
+    "achievement/sad-clown-treasure-island",
+    "achievement/sad-clown-crone-of-the-maze",
+    "achievement/sad-clown-madcap-compy",
+    "achievement/sad-clown-john-the-greedy",
+    "achievement/sad-clown-the-builder",
+    "achievement/sad-clown-the-master-builder",
+    "achievement/sad-clown-the-stonemason",
+    "achievement/sad-clown-the-lost-challenger",
+    "achievement/sad-clown-the-lost-warrior",
+    "achievement/sad-clown-the-lost-champion"
+  ],
+  "minifigure": "minifig/sad-clown",
+  "source": "client"
+}

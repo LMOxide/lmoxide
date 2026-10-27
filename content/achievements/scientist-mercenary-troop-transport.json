@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-mercenary-troop-transport",
+  "lore": 2904,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Mercenary Troop Transport",
+  "title": "Scientist: Mercenary Troop Transport",
+  "text": "Conquer the Mercenary Troop Transport as Scientist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Troop Transport",
+  "minifigure": "minifig/scientist",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tiger-woman-skyforge",
+  "lore": 4422,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Skyforge",
+  "title": "Tiger Woman: Skyforge",
+  "text": "Conquer the Skyforge as Tiger Woman.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/tiger-woman",
+  "source": "client"
+}

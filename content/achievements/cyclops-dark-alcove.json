@@ -1,0 +1,13 @@
+{
+  "id": "achievement/cyclops-dark-alcove",
+  "lore": 2650,
+  "parent": "achievement/cyclops",
+  "client_name": "Cyclops_Dark Alcove",
+  "title": "Cyclops: Dark Alcove",
+  "text": "Conquer the Dark Alcove as Cyclops.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dark Alcove",
+  "minifigure": "minifig/cyclops",
+  "source": "client"
+}

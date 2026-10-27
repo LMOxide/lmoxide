@@ -1,0 +1,24 @@
+{
+  "id": "skill/passive-piggyguy-defense-pge",
+  "name": "passive piggyguy defense pge",
+  "client": {
+    "spell": 516047,
+    "stats": {
+      "TargetingMode": 3
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 20,
+            "Arg2": 25,
+            "NanoTemplate": 516048
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

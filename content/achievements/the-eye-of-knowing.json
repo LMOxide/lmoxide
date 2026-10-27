@@ -1,0 +1,13 @@
+{
+  "id": "achievement/the-eye-of-knowing",
+  "lore": 2432,
+  "parent": "achievement/mythology-collectibles",
+  "client_name": "Mythology_Collectibles_All-seeing Eye",
+  "title": "The Eye of Knowing",
+  "text": "Find the witches' all-knowing eye in the Mythology World.",
+  "points": 50,
+  "kind": "find",
+  "find": "collectible_all_seeing_eye",
+  "place": "Witches' all-knowing eye",
+  "source": "client"
+}

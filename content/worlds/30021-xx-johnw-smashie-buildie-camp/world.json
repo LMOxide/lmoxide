@@ -1,0 +1,23 @@
+{
+  "id": "world/xx-johnw-smashie-buildie-camp",
+  "name": "XX_Johnw Smashie Buildie Camp",
+  "playfield": 30021,
+  "kind": "other",
+  "arrival": {
+    "pos": [131.91, 2.0, 15.7],
+    "rot": 0.0
+  },
+  "arrival_guid": 33223,
+  "respawn_points": [
+    {
+      "name": "ResurrectionAIPoint0",
+      "guid": 33223,
+      "pos": [131.91, 2.0, 15.7],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

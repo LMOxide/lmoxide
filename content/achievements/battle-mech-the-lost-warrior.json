@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-the-lost-warrior",
+  "lore": 2693,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Lost Creations_Get to Level 10",
+  "title": "Battle Mech, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Battle Mech.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/battle-mech",
+  "n": 10,
+  "source": "client"
+}

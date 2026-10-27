@@ -1,0 +1,14 @@
+{
+  "id": "achievement/prison-break",
+  "lore": 722,
+  "parent": "achievement/pirate-story",
+  "client_name": "Pirate_Story_Escape Jacket Fort",
+  "title": "Prison Break!",
+  "text": "Escape Jacket Fort.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/isle-of-yarr",
+  "find": "Achievement_EscapeFort",
+  "place": "Way out of Jacket Fort",
+  "source": "client"
+}

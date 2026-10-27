@@ -1,0 +1,20 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/30041/damnyou",
+      "name": "damnyou",
+      "kind": "scenery",
+      "template": "object/damnyou",
+      "pos": [176.45, 0.0, 288.82],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 267222,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 54252],
+        "bounds": [-1.043, -0.0, -0.622, 0.907, 1.02, 0.622]
+      },
+      "source": "client"
+    }
+  ]
+}

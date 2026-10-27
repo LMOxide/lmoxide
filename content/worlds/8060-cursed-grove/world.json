@@ -1,0 +1,13 @@
+{
+  "id": "world/cursed-grove",
+  "name": "Cursed Grove",
+  "playfield": 8060,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [123.65, 56.0, 130.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "capture",
+  "source": "client",
+  "comment": "spawns the live server sent (tools/re/live_playfield.py); proposed ones only where the player never came within 40 m (visits 1, seen radius 40.0 m)"
+}

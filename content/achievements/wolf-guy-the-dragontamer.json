@@ -1,0 +1,17 @@
+{
+  "id": "achievement/wolf-guy-the-dragontamer",
+  "lore": 4604,
+  "parent": "achievement/wolf-guy",
+  "client_name": "Wolf Guy_Smash 50 Drakes",
+  "title": "Wolf Guy the Dragontamer",
+  "text": "Smash 50 Drakes as Wolf Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/wolf-guy",
+  "counts": {
+    "match": "Drake",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

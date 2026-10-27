@@ -1,0 +1,13 @@
+{
+  "id": "achievement/unicorn-girl-cave-of-the-exiled",
+  "lore": 3999,
+  "parent": "achievement/unicorn-girl",
+  "client_name": "Unicorn Girl_Cave of the Exiled",
+  "title": "Unicorn Girl: Cave of the Exiled",
+  "text": "Conquer the Cave of the Exiled as Unicorn Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Cave of the Exiled",
+  "minifigure": "minifig/unicorn-girl",
+  "source": "client"
+}

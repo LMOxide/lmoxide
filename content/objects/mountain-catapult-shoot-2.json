@@ -1,0 +1,10 @@
+{
+  "id": "object/mountain-catapult-shoot-2",
+  "name": "mountain catapult shoot 2",
+  "kind": "scenery",
+  "render": {
+    "look": "mountain catapult shoot 2",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

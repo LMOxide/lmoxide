@@ -1,0 +1,16 @@
+{
+  "id": "achievement/space-miner-the-master-builder",
+  "lore": 3257,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Build 1000 Buildies",
+  "title": "Space Miner, the Master Builder",
+  "text": "Build 1000 buildies as Space Miner.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/space-miner",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

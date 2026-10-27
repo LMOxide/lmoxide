@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-sheriff1-damage",
+  "name": "main sheriff1 damage",
+  "client": {
+    "spell": 564264,
+    "stats": {
+      "EffectPackage": 637109,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

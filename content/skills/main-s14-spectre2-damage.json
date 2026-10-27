@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-s14-spectre2-damage",
+  "name": "main s14 spectre2 damage",
+  "client": {
+    "spell": 642348,
+    "stats": {
+      "EffectPackage": 656284,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.6000000238418579,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

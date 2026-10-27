@@ -1,0 +1,10 @@
+{
+  "id": "object/skeleton-spawn-1",
+  "name": "skeleton spawn 1",
+  "kind": "scenery",
+  "render": {
+    "look": "skeleton spawn 1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

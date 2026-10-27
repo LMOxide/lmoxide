@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-video-game-guy",
+  "lore": 3299,
+  "parent": "achievement/video-game-guy",
+  "client_name": "Video Game Guy_Upgrade 3",
+  "title": "Novice Video Game Guy",
+  "text": "Get the third Video Game Guy upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/video-game-guy",
+  "n": 3,
+  "source": "client"
+}

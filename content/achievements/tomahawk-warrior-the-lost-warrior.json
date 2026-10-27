@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tomahawk-warrior-the-lost-warrior",
+  "lore": 3524,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Lost Creations_Get to Level 10",
+  "title": "Tomahawk Warrior, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Tomahawk Warrior.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/tomahawk-warrior",
+  "n": 10,
+  "source": "client"
+}

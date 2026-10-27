@@ -1,0 +1,17 @@
+{
+  "id": "npc/xx-monster-scientist",
+  "name": "XX_Monster Scientist",
+  "kind": "npc",
+  "render": {
+    "monster_data": 663788,
+    "npc_template": 2972,
+    "look": "mad_scientist_npc_platform",
+    "cars_group": 2
+  },
+  "level": 15,
+  "stats": {
+    "health": 9855,
+    "life_factor": 7.5
+  },
+  "source": "client"
+}

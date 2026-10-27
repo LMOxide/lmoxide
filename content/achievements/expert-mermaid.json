@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-mermaid",
+  "lore": 2554,
+  "parent": "achievement/mermaid",
+  "client_name": "Mermaid_Upgrade 7",
+  "title": "Expert Mermaid",
+  "text": "Get the seventh Mermaid upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/mermaid",
+  "n": 7,
+  "source": "client"
+}

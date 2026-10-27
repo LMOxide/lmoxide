@@ -1,0 +1,31 @@
+{
+  "id": "object/xx-buildie-level-02-0-no-drop",
+  "name": "XX_Buildie : Level 02 : 0 No Drop",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 197948,
+    "template": 446283,
+    "look": "lego_cannon_a_buildie",
+    "cars_group": 1,
+    "visual": [1010201, 0]
+  },
+  "level": 1,
+  "health": 20,
+  "build": {
+    "points": 1600,
+    "built_visual": 197804
+  },
+  "states": ["unbuilt", "built"],
+  "client": {
+    "display_name": "<remoteformat id=\"446283\" category=\"50200\" key=\"p%]C3Z(M_3-MYA6`Kmkw\" knubot=\"0\"  ></remoteformat>",
+    "dynel_type": 51321,
+    "loot_table": 203,
+    "particles": [
+      [160433, 0, 0, 0, 0]
+    ],
+    "bounds": [-1.4230237, -0.035462037, -0.6544923, 1.3436726, 2.3613, 0.654492],
+    "destructible": [1.0, 0],
+    "tail": [0, 0.10000000149011612, 0.0, 0, 1.0]
+  },
+  "source": "client"
+}

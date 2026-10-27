@@ -1,0 +1,63 @@
+{
+  "id": "skill/stone-statue",
+  "name": "Stone Statue",
+  "client": {
+    "spell": 641622,
+    "stats": {
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 4,
+      "ItemDelay": 25,
+      "MoreFlags": 1610614784,
+      "RechargeDelay": 25
+    },
+    "actions": {
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 446818
+          },
+          "criteria": [
+            [0, 446836, 91]
+          ]
+        }
+      ],
+      "36": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 642426
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641622
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642429
+          }
+        }
+      ],
+      "39": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 642426
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Gargoyle: Stone Statue",
+  "source": "client"
+}

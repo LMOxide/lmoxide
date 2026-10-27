@@ -1,0 +1,10 @@
+{
+  "id": "object/empty-monsterdata-2x2x2-icecream",
+  "name": "empty_monsterdata_2x2x2_icecream",
+  "kind": "scenery",
+  "render": {
+    "look": "empty_monsterdata_2x2x2_icecream",
+    "visual": [1010201, 564580]
+  },
+  "source": "client"
+}

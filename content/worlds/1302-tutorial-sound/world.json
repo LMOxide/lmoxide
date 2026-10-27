@@ -1,0 +1,23 @@
+{
+  "id": "world/tutorial-sound",
+  "name": "Tutorial - Sound",
+  "playfield": 1302,
+  "kind": "other",
+  "arrival": {
+    "pos": [70.71, 62.46, 263.39],
+    "rot": 4.658
+  },
+  "arrival_guid": 226837,
+  "respawn_points": [
+    {
+      "name": "Start",
+      "guid": 226837,
+      "pos": [70.71, 62.46, 263.39],
+      "rot": 4.658,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

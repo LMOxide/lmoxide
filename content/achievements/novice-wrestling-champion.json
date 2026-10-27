@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-wrestling-champion",
+  "lore": 5320,
+  "parent": "achievement/wrestling-champion",
+  "client_name": "Wrestling Champion_Upgrade 3",
+  "title": "Novice Wrestling Champion",
+  "text": "Get the third Wrestling Champion upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/wrestling-champion",
+  "n": 3,
+  "source": "client"
+}

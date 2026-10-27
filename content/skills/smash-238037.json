@@ -1,0 +1,30 @@
+{
+  "id": "skill/smash-238037",
+  "name": "Smash",
+  "client": {
+    "spell": 238037,
+    "stats": {
+      "AIPowerrating": 10,
+      "AISpellCategory": 512,
+      "AttackRange": 50,
+      "EffectPackage": 194649,
+      "ItemDelay": 32,
+      "RechargeDelay": 168,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

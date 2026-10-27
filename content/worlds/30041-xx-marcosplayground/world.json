@@ -1,0 +1,23 @@
+{
+  "id": "world/xx-marcosplayground",
+  "name": "XX_MarcosPlayground",
+  "playfield": 30041,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [251.21, 0.0, 249.8],
+    "rot": 0.0
+  },
+  "arrival_guid": 267224,
+  "respawn_points": [
+    {
+      "name": "ResurrectionAIPoint0",
+      "guid": 267224,
+      "pos": [251.21, 0.0, 249.8],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

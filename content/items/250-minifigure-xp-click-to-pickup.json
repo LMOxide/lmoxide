@@ -1,0 +1,14 @@
+{
+  "id": "item/250-minifigure-xp-click-to-pickup",
+  "name": "XX_250_Minifigure XP Click To Pickup",
+  "kind": "token",
+  "template": 465756,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 100,
+      "amount": 250
+    }
+  ],
+  "source": "client"
+}

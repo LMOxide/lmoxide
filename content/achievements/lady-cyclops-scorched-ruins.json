@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-cyclops-scorched-ruins",
+  "lore": 3913,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Scorched Ruins",
+  "title": "Lady Cyclops: Scorched Ruins",
+  "text": "Conquer the Scorched Ruins as Lady Cyclops.",
+  "points": 50,
+  "kind": "target",
+  "target": "Scorched Ruins",
+  "minifigure": "minifig/lady-cyclops",
+  "source": "client"
+}

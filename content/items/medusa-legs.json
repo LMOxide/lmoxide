@@ -1,0 +1,16 @@
+{
+  "id": "item/medusa-legs",
+  "name": "Medusa Legs",
+  "kind": "part",
+  "template": 483685,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31006,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/medusa",
+  "location": "Legs",
+  "source": "client"
+}

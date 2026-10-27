@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-laser-mech",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 669624,
+  "minifigure": "minifig/laser-mech",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "8F8N"
+      }
+    }
+  ],
+  "source": "client"
+}

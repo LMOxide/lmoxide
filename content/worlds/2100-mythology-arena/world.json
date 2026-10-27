@@ -1,0 +1,26 @@
+{
+  "id": "world/mythology-arena",
+  "name": "Mythology Arena",
+  "playfield": 2100,
+  "kind": "other",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [225.0, 66.0, 231.25],
+    "rot": 0.0
+  },
+  "arrival_guid": 18669,
+  "respawn_points": [
+    {
+      "name": "ResPoint",
+      "guid": 18669,
+      "pos": [225.0, 66.0, 231.25],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

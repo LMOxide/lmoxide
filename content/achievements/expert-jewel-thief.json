@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-jewel-thief",
+  "lore": 5225,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Upgrade 7",
+  "title": "Expert Jewel Thief",
+  "text": "Get the seventh Jewel Thief upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/jewel-thief",
+  "n": 7,
+  "source": "client"
+}

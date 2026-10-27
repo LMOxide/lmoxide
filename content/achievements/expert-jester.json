@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-jester",
+  "lore": 3149,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Upgrade 7",
+  "title": "Expert Jester",
+  "text": "Get the seventh Jester upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/jester",
+  "n": 7,
+  "source": "client"
+}

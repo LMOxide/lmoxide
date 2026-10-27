@@ -1,0 +1,24 @@
+{
+  "id": "item/passive-spartanwarrior-kickaway-projectile",
+  "name": "passive spartanwarrior kickaway projectile",
+  "kind": "projectile",
+  "template": 596895,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 599409
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 596897
+      }
+    }
+  ],
+  "source": "client"
+}

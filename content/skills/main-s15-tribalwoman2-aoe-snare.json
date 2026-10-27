@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-s15-tribalwoman2-aoe-snare",
+  "name": "main s15 tribalwoman2 aoe snare",
+  "client": {
+    "spell": 667287,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 667288,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

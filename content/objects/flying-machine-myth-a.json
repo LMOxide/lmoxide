@@ -1,0 +1,10 @@
+{
+  "id": "object/flying-machine-myth-a",
+  "name": "flying_machine_myth_a",
+  "kind": "scenery",
+  "render": {
+    "look": "flying_machine_myth_a",
+    "visual": [1010030, 98061]
+  },
+  "source": "client"
+}

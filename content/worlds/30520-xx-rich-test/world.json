@@ -1,0 +1,12 @@
+{
+  "id": "world/xx-rich-test",
+  "name": "xx_rich_test",
+  "playfield": 30520,
+  "kind": "other",
+  "arrival": {
+    "pos": [374.5, 86.52, 161.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

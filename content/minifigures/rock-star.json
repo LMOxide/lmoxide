@@ -1,0 +1,134 @@
+{
+  "id": "minifig/rock-star",
+  "name": "Rock Star",
+  "template": 498516,
+  "series": 12,
+  "series_index": 0,
+  "render": {
+    "monster_data": 480227
+  },
+  "stats": {
+    "life": 350,
+    "power": 3,
+    "defense": 8,
+    "creativity": 6,
+    "role": 2,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/power-chord",
+    "hits": [
+      {
+        "skill": "skill/main-rockstar1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [500479, 504899]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/rock-the-house",
+    "hits": [
+      {
+        "skill": "skill/main-rockstar2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.3,
+        "damage_type": 1000,
+        "via": [500480, 504943]
+      }
+    ]
+  },
+  "click_spells": [500479, 500480],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 3,
+      "slot": 105,
+      "buff": "buff/upgrade-amped-up"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-shields-up"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-regenerate"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530278"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3239, 2507, 3644, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/rock-star-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/rock-star-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/rock-star-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-rock-star",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/medieval-world"],
+    "text": "You can find me in the Medieval World.",
+    "location_text": 232051452,
+    "location_picture": 473028
+  },
+  "source": "client"
+}

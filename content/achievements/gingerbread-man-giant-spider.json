@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gingerbread-man-giant-spider",
+  "lore": 2993,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Giant Spider",
+  "title": "Gingerbread Man: Giant Spider",
+  "text": "Defeat Giant Spider as Gingerbread Man.",
+  "points": 25,
+  "kind": "target",
+  "target": "Giant Spider",
+  "minifigure": "minifig/gingerbread-man",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jewel-thief-siege-command-room",
+  "lore": 5219,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Siege Command Room",
+  "title": "Jewel Thief: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Jewel Thief.",
+  "points": 25,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/jewel-thief",
+  "source": "client"
+}

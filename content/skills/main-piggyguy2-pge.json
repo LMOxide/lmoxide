@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-piggyguy2-pge",
+  "name": "main piggyguy2 pge",
+  "client": {
+    "spell": 504811,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 20,
+            "Arg2": 25,
+            "EffectPackage": 507814,
+            "NanoTemplate": 504812
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Piggy Guy: Mud Pit",
+  "source": "client"
+}

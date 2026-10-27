@@ -1,0 +1,48 @@
+{
+  "id": "skill/back-to-basics",
+  "name": "Back to Basics",
+  "client": {
+    "spell": 317712,
+    "stats": {
+      "EffectPackage": 318719,
+      "ItemDelay": 36,
+      "RechargeDelay": 14,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 318405,
+            "ProjectileType": 1,
+            "Speed": 350
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 317712,
+            "Value": 300
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Grandpa: Back to Basics",
+  "range": 15.0,
+  "projectile": {
+    "item": 318405,
+    "speed": 3.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

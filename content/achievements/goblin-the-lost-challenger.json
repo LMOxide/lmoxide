@@ -1,0 +1,13 @@
+{
+  "id": "achievement/goblin-the-lost-challenger",
+  "lore": 3888,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Lost Creations_Get to Level 5",
+  "title": "Goblin, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Goblin.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/goblin",
+  "n": 5,
+  "source": "client"
+}

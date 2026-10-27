@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paintball-player-the-lost-warrior",
+  "lore": 3592,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Lost Creations_Get to Level 10",
+  "title": "Paintball Player, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Paintball Player.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/paintball-player",
+  "n": 10,
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/gateexitshield",
+  "name": "GateExitShield",
+  "kind": "scenery",
+  "render": {
+    "look": "GateExitShield",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plumber-minotaur-refuge",
+  "lore": 2514,
+  "parent": "achievement/plumber",
+  "client_name": "Plumber_Minotaur Refuge",
+  "title": "Plumber: Minotaur Refuge",
+  "text": "Conquer the Minotaur Refuge as Plumber.",
+  "points": 50,
+  "kind": "target",
+  "target": "Minotaur Refuge",
+  "minifigure": "minifig/plumber",
+  "source": "client"
+}

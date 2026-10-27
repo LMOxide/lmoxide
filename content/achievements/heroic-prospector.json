@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-prospector",
+  "lore": 3221,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Complete Any 5",
+  "title": "Heroic Prospector",
+  "text": "Complete any 5 Prospector achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/prospector",
+  "n": 5,
+  "source": "client"
+}

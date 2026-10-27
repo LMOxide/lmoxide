@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-prospector2-damage",
+  "name": "main prospector2 damage",
+  "client": {
+    "spell": 507191,
+    "stats": {
+      "EffectPackage": 539458,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

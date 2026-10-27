@@ -1,0 +1,29 @@
+{
+  "id": "achievement/spooky-girl",
+  "lore": 2509,
+  "parent": "achievement/series-12",
+  "client_name": "Spooky Girl",
+  "title": "Spooky Girl",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-spooky-girl",
+    "achievement/legendary-spooky-girl",
+    "achievement/novice-spooky-girl",
+    "achievement/expert-spooky-girl",
+    "achievement/spooky-girl-ancient-ruins",
+    "achievement/spooky-girl-siege-command-room",
+    "achievement/spooky-girl-skyforge",
+    "achievement/spooky-girl-lord-minos-the-lich",
+    "achievement/spooky-girl-black-widow",
+    "achievement/spooky-girl-ouch-ouch",
+    "achievement/spooky-girl-the-striker",
+    "achievement/spooky-girl-the-master-striker",
+    "achievement/spooky-girl-the-gardener",
+    "achievement/spooky-girl-the-lost-challenger",
+    "achievement/spooky-girl-the-lost-warrior",
+    "achievement/spooky-girl-the-lost-champion"
+  ],
+  "minifigure": "minifig/spooky-girl",
+  "source": "client"
+}

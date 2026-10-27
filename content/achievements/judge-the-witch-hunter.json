@@ -1,0 +1,17 @@
+{
+  "id": "achievement/judge-the-witch-hunter",
+  "lore": 2576,
+  "parent": "achievement/judge",
+  "client_name": "Judge_Smash 50 Witches",
+  "title": "Judge, the Witch Hunter",
+  "text": "Smash 50 Witches as Judge.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/judge",
+  "counts": {
+    "match": "Witch",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

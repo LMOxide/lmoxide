@@ -1,0 +1,10 @@
+{
+  "id": "object/cannon-2-1-particle-telegraph",
+  "name": "cannon 2_1 particle telegraph",
+  "kind": "scenery",
+  "render": {
+    "look": "cannon 2_1 particle telegraph",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

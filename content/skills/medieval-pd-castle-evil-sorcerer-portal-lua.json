@@ -1,0 +1,11 @@
+{
+  "id": "skill/medieval-pd-castle-evil-sorcerer-portal-lua",
+  "name": "medieval pd castle evil sorcerer portal lua",
+  "client": {
+    "spell": 462795,
+    "stats": {
+      "TargetingMode": 5
+    }
+  },
+  "source": "client"
+}

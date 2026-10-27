@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-fencer",
+  "lore": 3843,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Complete Any 5",
+  "title": "Heroic Fencer",
+  "text": "Complete any 5 Fencer achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/fencer",
+  "n": 5,
+  "source": "client"
+}

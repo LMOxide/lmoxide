@@ -1,0 +1,16 @@
+{
+  "id": "achievement/goblin-the-master-smasher",
+  "lore": 3892,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Smash 5000 Smashies",
+  "title": "Goblin, the Master Smasher",
+  "text": "Smash 5000 smashies as Goblin.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/goblin",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

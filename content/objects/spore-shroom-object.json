@@ -1,0 +1,10 @@
+{
+  "id": "object/spore-shroom-object",
+  "name": "spore shroom object",
+  "kind": "scenery",
+  "render": {
+    "look": "spore shroom object",
+    "visual": [1010030, 624587]
+  },
+  "source": "client"
+}

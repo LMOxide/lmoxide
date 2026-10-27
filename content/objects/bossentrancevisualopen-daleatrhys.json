@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-daleatrhys",
+  "name": "BossEntranceVisualOpen_DaleAtRhys",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_DaleAtRhys",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

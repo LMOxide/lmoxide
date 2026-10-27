@@ -1,0 +1,13 @@
+{
+  "id": "achievement/holiday-elf-chlora-the-fungomancer",
+  "lore": 2958,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Chlora the Fungomancer",
+  "title": "Holiday Elf: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Holiday Elf.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/holiday-elf",
+  "source": "client"
+}

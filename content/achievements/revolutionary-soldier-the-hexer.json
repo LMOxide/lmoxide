@@ -1,0 +1,17 @@
+{
+  "id": "achievement/revolutionary-soldier-the-hexer",
+  "lore": 3577,
+  "parent": "achievement/revolutionary-soldier",
+  "client_name": "Revolutionary Soldier_Smash 50 Witch Doctors",
+  "title": "Revolutionary Soldier, the Hexer",
+  "text": "Smash 50 Witch Doctors as Revolutionary Soldier.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/revolutionary-soldier",
+  "counts": {
+    "match": "Witch Doctor",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

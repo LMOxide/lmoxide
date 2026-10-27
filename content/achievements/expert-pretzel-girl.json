@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-pretzel-girl",
+  "lore": 2894,
+  "parent": "achievement/pretzel-girl",
+  "client_name": "Pretzel Girl_Upgrade 7",
+  "title": "Expert Pretzel Girl",
+  "text": "Get the seventh Pretzel Girl upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/pretzel-girl",
+  "n": 7,
+  "source": "client"
+}

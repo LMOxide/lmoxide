@@ -1,0 +1,16 @@
+{
+  "id": "achievement/pizza-delivery-man-the-striker",
+  "lore": 3204,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Smash 1000 Monsters",
+  "title": "Pizza Delivery Man, the Striker",
+  "text": "Smash 1000 monsters as Pizza Delivery Man.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/pizza-delivery-man",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-19-dino-tar-forest-art",
+  "name": "Dino World - 19_Dino tar forest - Art",
+  "playfield": 6519,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [280.5, 43.87, 186.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

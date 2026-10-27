@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-zombie-businessman",
+  "lore": 4656,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Complete Any 5",
+  "title": "Heroic Zombie Businessman",
+  "text": "Complete any 5 Zombie Businessman achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/zombie-businessman",
+  "n": 5,
+  "source": "client"
+}

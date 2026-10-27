@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-rocker-underground-cave",
+  "lore": 4642,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Underground Cave",
+  "title": "Monster Rocker: Underground Cave",
+  "text": "Conquer the Underground Cave as Monster Rocker.",
+  "points": 50,
+  "kind": "target",
+  "target": "Underground Cave",
+  "minifigure": "minifig/monster-rocker",
+  "source": "client"
+}

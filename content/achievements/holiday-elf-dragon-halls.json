@@ -1,0 +1,13 @@
+{
+  "id": "achievement/holiday-elf-dragon-halls",
+  "lore": 2957,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Dragon Halls",
+  "title": "Holiday Elf: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Holiday Elf.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/holiday-elf",
+  "source": "client"
+}

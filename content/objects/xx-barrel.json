@@ -1,0 +1,17 @@
+{
+  "id": "object/xx-barrel",
+  "name": "XX_Barrel",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 152388,
+    "template": 153146
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

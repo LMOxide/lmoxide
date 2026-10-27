@@ -1,0 +1,16 @@
+{
+  "id": "achievement/medusa-the-striker",
+  "lore": 3627,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Smash 1000 Monsters",
+  "title": "Medusa, the Striker",
+  "text": "Smash 1000 monsters as Medusa.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/medusa",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

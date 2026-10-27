@@ -1,0 +1,13 @@
+{
+  "id": "achievement/dino-tracker-ridgeback-spitter",
+  "lore": 3079,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Ridgeback Spitter",
+  "title": "Dino Tracker: Ridgeback Spitter",
+  "text": "Defeat Ridgeback Spitter as Dino Tracker.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ridgeback Spitter",
+  "minifigure": "minifig/dino-tracker",
+  "source": "client"
+}

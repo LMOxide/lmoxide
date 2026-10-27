@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-lady-robot",
+  "lore": 2944,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Upgrade 3",
+  "title": "Novice Lady Robot",
+  "text": "Get the third Lady Robot upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/lady-robot",
+  "n": 3,
+  "source": "client"
+}

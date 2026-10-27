@@ -1,0 +1,17 @@
+{
+  "id": "item/main-islandwarrior2-projectile",
+  "name": "main islandwarrior2 projectile",
+  "kind": "projectile",
+  "template": 470917,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 470918
+      }
+    }
+  ],
+  "source": "client"
+}

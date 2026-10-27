@@ -1,0 +1,11 @@
+{
+  "id": "dialogue/swashbuckler-79",
+  "name": "Swashbuckler",
+  "texts": [79, 80, 81, 223, 126],
+  "world": "world/jail",
+  "npc_name": 961,
+  "npc": "Swashbuckler",
+  "start": "arrival",
+  "pos": [229.8686, 16.0289, 259.068],
+  "source": "live"
+}

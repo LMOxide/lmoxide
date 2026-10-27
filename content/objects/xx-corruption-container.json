@@ -1,0 +1,15 @@
+{
+  "id": "object/xx-corruption-container",
+  "name": "XX_Corruption Container",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 522444,
+    "template": 521937,
+    "look": "lego_barrel_pollution_a_buildie",
+    "cars_group": 1
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "source": "client"
+}

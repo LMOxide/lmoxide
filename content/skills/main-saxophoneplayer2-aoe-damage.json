@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-saxophoneplayer2-aoe-damage",
+  "name": "main saxophoneplayer2 aoe damage",
+  "client": {
+    "spell": 361078,
+    "stats": {
+      "EffectPackage": 637059,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.699999988079071,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "object/invisible-monsterdata-3",
+  "name": "invisible_monsterdata",
+  "kind": "door",
+  "render": {
+    "look": "invisible_monsterdata",
+    "visual": [1010030, 95472]
+  },
+  "states": ["open", "closed"],
+  "source": "client"
+}

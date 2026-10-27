@@ -1,0 +1,39 @@
+{
+  "id": "skill/space-pd-port-boss-queen-blast-castable",
+  "name": "space pd port boss queen blast castable",
+  "client": {
+    "spell": 362865,
+    "stats": {
+      "AttackRange": 1500,
+      "EffectPackage": 411016,
+      "ItemDelay": 8,
+      "RechargeDelay": 60
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 2000,
+            "AttractorID": 1,
+            "ItemInstance": 362866,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 362865,
+            "Value": 250
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-spartan-warrior",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 598523,
+  "minifigure": "minifig/spartan-warrior",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "IV59"
+      }
+    }
+  ],
+  "source": "client"
+}

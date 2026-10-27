@@ -1,0 +1,10 @@
+{
+  "id": "object/caster",
+  "name": "Caster",
+  "kind": "scenery",
+  "render": {
+    "look": "Caster",
+    "visual": [1010030, 465834]
+  },
+  "source": "client"
+}

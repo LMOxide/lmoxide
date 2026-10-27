@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plant-monster-ponos-the-pitcher",
+  "lore": 4560,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Ponos the Pitcher",
+  "title": "Plant Monster: Ponos the Pitcher",
+  "text": "Defeat Ponos the Pitcher as Plant Monster.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ponos the Pitcher",
+  "minifigure": "minifig/plant-monster",
+  "source": "client"
+}

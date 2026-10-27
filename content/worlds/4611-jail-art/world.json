@@ -1,0 +1,15 @@
+{
+  "id": "world/jail-art",
+  "name": "Jail - Art",
+  "playfield": 4611,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [255.0, 17.78, 256.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

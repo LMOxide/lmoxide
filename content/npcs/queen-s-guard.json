@@ -1,0 +1,17 @@
+{
+  "id": "npc/queen-s-guard",
+  "name": "Queen's Guard",
+  "kind": "npc",
+  "render": {
+    "monster_data": 352446,
+    "npc_template": 3002,
+    "look": "medieval_npc_knight_a",
+    "cars_group": 0
+  },
+  "level": 30,
+  "stats": {
+    "health": 750,
+    "life_factor": 0.15
+  },
+  "source": "client"
+}

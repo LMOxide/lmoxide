@@ -1,0 +1,134 @@
+{
+  "id": "minifig/hollywood-starlet",
+  "name": "Hollywood Starlet",
+  "template": 41785,
+  "series": 9,
+  "series_index": 0,
+  "render": {
+    "monster_data": 33230
+  },
+  "stats": {
+    "life": 250,
+    "power": 5,
+    "defense": 2,
+    "creativity": 10,
+    "role": 3,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/bonk",
+    "hits": [
+      {
+        "skill": "skill/main-starlet1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [34341]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/walk-of-fame",
+    "hits": [
+      {
+        "skill": "skill/main-starlet2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.2,
+        "damage_type": 1000,
+        "via": [41768, 208870, 208871]
+      }
+    ]
+  },
+  "click_spells": [34341, 41768],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-knockback"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-escape-artist"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530295"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2595, 2469, 3641, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/hollywood-starlet-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/hollywood-starlet-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/hollywood-starlet-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-hollywood-starlet",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/pirate-world"],
+    "text": "You can find me in the Pirate World.",
+    "location_text": 182907829,
+    "location_picture": 473019
+  },
+  "source": "client"
+}

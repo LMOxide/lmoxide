@@ -1,0 +1,10 @@
+{
+  "id": "object/empty-monsterdata-1x1x1-3",
+  "name": "empty_monsterdata_1x1x1",
+  "kind": "scenery",
+  "render": {
+    "look": "empty_monsterdata_1x1x1",
+    "visual": [1010201, 465832]
+  },
+  "source": "client"
+}

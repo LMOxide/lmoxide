@@ -1,0 +1,18 @@
+{
+  "id": "item/boss-hades-bolt-projectile",
+  "name": "boss hades bolt projectile",
+  "kind": "projectile",
+  "template": 56630,
+  "effect_package": 149979,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 151542
+      }
+    }
+  ],
+  "source": "client"
+}

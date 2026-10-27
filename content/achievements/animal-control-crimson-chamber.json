@@ -1,0 +1,13 @@
+{
+  "id": "achievement/animal-control-crimson-chamber",
+  "lore": 5072,
+  "parent": "achievement/animal-control",
+  "client_name": "Animal Control_Crimson Chamber ",
+  "title": "Animal Control: Crimson Chamber",
+  "text": "Conquer the Crimson Chamber as Animal Control.",
+  "points": 50,
+  "kind": "target",
+  "target": "Crimson Chamber",
+  "minifigure": "minifig/animal-control",
+  "source": "client"
+}

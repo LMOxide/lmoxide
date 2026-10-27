@@ -1,0 +1,14 @@
+{
+  "id": "achievement/volcanic-paradise",
+  "lore": 281,
+  "parent": "achievement/did-i-mention-paradise",
+  "client_name": "[Volcano Island] Boombox",
+  "title": "Volcanic Paradise",
+  "text": "Get your groove on at the Volcano Island.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/volcano-island",
+  "find": "boombox 1",
+  "place": "Boombox",
+  "source": "client"
+}

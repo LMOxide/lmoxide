@@ -1,0 +1,29 @@
+{
+  "id": "world/xx-gm-island",
+  "name": "XX_GM Island",
+  "playfield": 1337,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [37.0, 1.0, 37.0],
+    "rot": 0.785
+  },
+  "arrival_guid": 615616,
+  "arrival_from": {
+    "world/lego-center": {
+      "pos": [42.76, 2.69, 48.39],
+      "rot": 0.0
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 615616,
+      "pos": [37.0, 1.0, 37.0],
+      "rot": 0.785,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

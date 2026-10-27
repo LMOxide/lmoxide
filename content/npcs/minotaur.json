@@ -1,0 +1,26 @@
+{
+  "id": "npc/minotaur",
+  "name": "Minotaur",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 636593
+  },
+  "level": 20,
+  "stats": {
+    "health": 26180
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/rampage-319891",
+      "weight": 1
+    },
+    {
+      "skill": "skill/smash-319338",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/wacky-witch-legs",
+  "name": "Wacky Witch Legs",
+  "kind": "part",
+  "template": 662052,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31412,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/wacky-witch",
+  "location": "Legs",
+  "source": "client"
+}

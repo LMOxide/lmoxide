@@ -1,0 +1,937 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/1300/scallywag",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag",
+      "pos": [154.34, 44.0, 255.66],
+      "rot": -2.326,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/scallywag-2",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag-2",
+      "pos": [191.99, 30.03, 270.28],
+      "rot": -2.113,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/scallywag-3",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag-3",
+      "pos": [190.18, 30.02, 270.92],
+      "rot": 3.002,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/scallywag-4",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag-3",
+      "pos": [192.51, 30.02, 268.2],
+      "rot": -0.998,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/scallywag-5",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag-4",
+      "pos": [193.57, 30.0, 274.36],
+      "rot": -3.062,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/scallywag-6",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag-4",
+      "pos": [192.18, 30.0, 274.99],
+      "rot": -2.919,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/scallywag-7",
+      "name": "Scallywag",
+      "kind": "enemy",
+      "template": "npc/scallywag-4",
+      "pos": [195.23, 30.0, 274.33],
+      "rot": -2.462,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/captain-dreadleg",
+      "name": "Captain Dreadleg",
+      "kind": "enemy",
+      "template": "npc/captain-dreadleg",
+      "pos": [263.85, 29.0, 272.2],
+      "rot": -2.983,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/video-game-guy",
+      "name": "Video Game Guy",
+      "kind": "npc",
+      "template": "npc/video-game-guy-2",
+      "pos": [74.8, 47.07, 212.52],
+      "rot": -1.551,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/cinematic-start-knock-knock",
+      "name": "Cinematic Start Knock Knock",
+      "kind": "trigger",
+      "template": "npc/cinematic-start-knock-knock",
+      "pos": [71.37, 47.07, 214.52],
+      "rot": -1.579,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/cinematic-start-lets-smash-things",
+      "name": "Cinematic Start Lets Smash Things",
+      "kind": "trigger",
+      "template": "npc/cinematic-start-lets-smash-things",
+      "pos": [104.52, 44.03, 252.92],
+      "rot": -1.579,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/cinematic-start-ambush",
+      "name": "Cinematic Start Ambush",
+      "kind": "trigger",
+      "template": "npc/cinematic-start-ambush",
+      "pos": [185.5, 29.77, 267.35],
+      "rot": 3.122,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/cinematic-start-dreadleg-summons-pirate",
+      "name": "Cinematic Start Dreadleg Summons Pirate",
+      "kind": "trigger",
+      "template": "npc/cinematic-start-dreadleg-summons-pirate",
+      "pos": [156.44, 44.0, 258.0],
+      "rot": -1.579,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-cinematic-start-lets-build-together",
+      "name": "XX_Cinematic Start Lets Build Together",
+      "kind": "trigger",
+      "template": "npc/xx-cinematic-start-lets-build-together",
+      "pos": [211.76, 44.0, 252.19],
+      "rot": 3.122,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-cinematic-start-dreadleg-escapes",
+      "name": "XX_Cinematic Start Dreadleg Escapes",
+      "kind": "trigger",
+      "template": "npc/xx-cinematic-start-dreadleg-escapes",
+      "pos": [260.23, 29.0, 272.39],
+      "rot": 3.122,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/broken-wagon",
+      "name": "Broken Wagon",
+      "kind": "smashable",
+      "template": "object/broken-wagon",
+      "pos": [107.18, 44.04, 255.74],
+      "rot": 2.28,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [125.04, 44.03, 254.77],
+      "rot": 1.336,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-weapon-rack",
+      "name": "XX_Weapon rack",
+      "kind": "smashable",
+      "template": "object/xx-weapon-rack",
+      "pos": [113.63, 44.03, 258.11],
+      "rot": -2.157,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [125.14, 44.03, 256.26],
+      "rot": 1.608,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [125.11, 44.03, 257.71],
+      "rot": 0.343,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [65.82, 47.6, 223.03],
+      "rot": 1.381,
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/xx-ramp",
+      "name": "XX_Ramp",
+      "kind": "buildie",
+      "template": "object/xx-ramp",
+      "pos": [215.18, 44.0, 254.55],
+      "rot": [0.0, 0.7071068, 0.0, 0.7071067],
+      "client": {
+        "cars_group": 1
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-wind-propeller",
+      "name": "XX_Wind propeller",
+      "kind": "buildie",
+      "template": "object/xx-wind-propeller",
+      "pos": [227.91, 43.99, 252.99],
+      "rot": [0.0, 0.9489633, 0.0, 0.31538662],
+      "client": {
+        "cars_group": 1
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/mortar-buildie",
+      "name": "Mortar Buildie",
+      "kind": "buildie",
+      "template": "object/mortar-buildie",
+      "pos": [242.16, 44.0, 253.88],
+      "rot": [0.0, -0.9986888, 0.0, 0.05119257],
+      "client": {
+        "cars_group": 1
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/portal-spot",
+      "name": "portal spot",
+      "kind": "scenery",
+      "template": "object/portal-spot",
+      "pos": [263.61, 29.0, 268.73],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 610550,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/particle",
+      "name": "particle",
+      "kind": "scenery",
+      "template": "object/particle",
+      "pos": [263.72, 29.0, 268.86],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 637092,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/jump-target-1st",
+      "name": "jump_target_1st",
+      "kind": "scenery",
+      "template": "object/jump-target-1st",
+      "pos": [102.61, 44.03, 253.49],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 462417,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1300/jump-target-1st-2",
+      "name": "jump_target_1st",
+      "kind": "scenery",
+      "template": "object/jump-target-1st",
+      "pos": [147.3, 44.0, 256.97],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 195057,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1300/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [170.38, 44.0, 254.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 198565,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/jump-target-2nd",
+      "name": "jump_target_2nd",
+      "kind": "scenery",
+      "template": "object/jump-target-2nd",
+      "pos": [181.71, 29.25, 253.16],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 195062,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1300/jump-target-3rd",
+      "name": "jump_target_3rd",
+      "kind": "scenery",
+      "template": "object/jump-target-3rd",
+      "pos": [209.59, 44.0, 255.87],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 195060,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1300/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [200.55, 28.81, 254.9],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 221509,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/jump-target-6th",
+      "name": "jump_target_6th",
+      "kind": "scenery",
+      "template": "object/jump-target-6th",
+      "pos": [237.74, 43.99, 253.53],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 204451,
+        "tag": "JUMP",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1300/jump-target-6th-2",
+      "name": "jump_target_6th",
+      "kind": "scenery",
+      "template": "object/jump-target-6th",
+      "pos": [254.02, 28.87, 253.09],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 195068,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1300/bossentrancevisualopen",
+      "name": "BossEntranceVisualOpen",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen",
+      "pos": [256.2, 28.98, 260.52],
+      "rot": [0.0, 0.1221, 0.0, 0.9925],
+      "client": {
+        "guid": 221727,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/bossentrancevisualclosed",
+      "name": "BossEntranceVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed",
+      "pos": [256.25, 28.98, 260.53],
+      "rot": [0.0, 0.1221, 0.0, 0.9925],
+      "client": {
+        "guid": 221726,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/bossentranceshield",
+      "name": "BossEntranceShield",
+      "kind": "scenery",
+      "template": "object/bossentranceshield",
+      "pos": [256.23, 28.99, 259.85],
+      "rot": [0.0, 0.127, 0.0, 0.9919],
+      "scale": 1.2,
+      "client": {
+        "guid": 221729,
+        "tag": "28EI",
+        "script_group": 66,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/lego-chest-small-a-smashie",
+      "name": "lego_chest_small_a_smashie",
+      "kind": "smashable",
+      "template": "object/lego-chest-small-a-smashie",
+      "pos": [65.82, 47.6, 223.03],
+      "rot": [0.0, 0.6371, 0.0, 0.7707],
+      "client": {
+        "guid": 638638,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 148860],
+        "bounds": [-0.702, 0.0, -0.356, 0.701, 0.756, 0.356]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [65.81, 47.6, 223.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 638651,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/crystal-compass",
+      "name": "Crystal Compass",
+      "kind": "door",
+      "template": "object/crystal-compass",
+      "pos": [263.61, 29.0, 268.73],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 635924,
+        "tag": "8Y7Q",
+        "script_group": 5,
+        "visual": [1010201, 635274]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/crystal-compass-2",
+      "name": "Crystal Compass",
+      "kind": "interactable",
+      "template": "object/crystal-compass-2",
+      "pos": [263.61, 29.0, 268.73],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": true,
+        "interaction_radius": 50
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [102.61, 44.03, 253.49],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-mortar-a-buildie",
+      "pos": [86.48, 47.6, 221.17],
+      "rot": 2.03,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper-2",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-mortar-a-buildie",
+      "pos": [132.51, 44.03, 255.81],
+      "rot": 3.102,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-2",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [170.38, 44.0, 254.54],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper-3",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-mortar-a-buildie",
+      "pos": [170.3, 44.0, 254.7],
+      "rot": -3.042,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-3",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [181.71, 29.25, 253.16],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-4",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [147.3, 44.0, 256.97],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-5",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-2",
+      "pos": [256.2, 28.98, 260.52],
+      "rot": 0.24,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-6",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-3",
+      "pos": [256.25, 28.98, 260.53],
+      "rot": 0.24,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-7",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible-4",
+      "pos": [256.23, 28.99, 259.85],
+      "rot": 0.26,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper-4",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-mortar-a-buildie",
+      "pos": [200.63, 29.0, 254.86],
+      "rot": -3.102,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-8",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [209.59, 44.0, 255.87],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-9",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [200.55, 28.81, 254.9],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper-5",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jumper",
+      "pos": [237.74, 43.99, 253.53],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper-6",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-mortar-a-buildie",
+      "pos": [242.16, 44.0, 253.88],
+      "rot": -3.042,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-10",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [254.02, 28.87, 253.09],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/jumper-7",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-wind-fan-a-idle",
+      "pos": [227.91, 43.99, 252.99],
+      "rot": 2.495,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-11",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [263.61, 29.0, 268.73],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/xx-invisible-12",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [263.72, 29.0, 268.86],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/1300/captain-dreadleg-2",
+      "name": "Captain Dreadleg",
+      "kind": "actor",
+      "pos": [152.28, 44.0, 252.45],
+      "rot": 0.469,
+      "anchor": "Cine_Dreadleg_Spawn1",
+      "client": {
+        "item_template": 233315,
+        "ai_point": "Cine_Dreadleg_Spawn1",
+        "actor_alias": "Dreadleg",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [154.34, 44.0, 255.66],
+      "rot": -2.322,
+      "anchor": "AI_Combat1",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat1",
+        "actor_alias": "InvisDummy",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-2",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [191.99, 30.02, 270.28],
+      "rot": -2.114,
+      "anchor": "AI_Combat2",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat2",
+        "actor_alias": "TeleportSpot1",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-3",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [190.18, 30.01, 270.92],
+      "rot": 3.01,
+      "anchor": "AI_Combat3",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat3",
+        "actor_alias": "TeleportSpot2",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-4",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [192.51, 30.0, 268.2],
+      "rot": -1.011,
+      "anchor": "AI_Combat4",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat4",
+        "actor_alias": "TeleportSpot3",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-5",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [193.57, 30.0, 274.36],
+      "rot": -3.052,
+      "anchor": "AI_Combat8",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat8",
+        "actor_alias": "TeleportSpot4",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-6",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [192.18, 30.0, 274.99],
+      "rot": -2.927,
+      "anchor": "AI_Combat9",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat9",
+        "actor_alias": "TeleportSpot5",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-7",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [195.23, 30.0, 274.33],
+      "rot": -2.463,
+      "anchor": "AI_Combat10",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "AI_Combat10",
+        "actor_alias": "TeleportSpot6",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/captain-dreadleg-3",
+      "name": "Captain Dreadleg",
+      "kind": "actor",
+      "pos": [220.17, 45.99, 254.39],
+      "rot": -1.576,
+      "anchor": "Cine_DreadlegLaughsAtPlayer1",
+      "client": {
+        "item_template": 233315,
+        "ai_point": "Cine_DreadlegLaughsAtPlayer1",
+        "actor_alias": "DreadlegAct",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/dev-anchor-point-8",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [263.97, 29.0, 273.36],
+      "rot": -3.077,
+      "anchor": "Cine_DreadlegApproachPortal1",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "Cine_DreadlegApproachPortal1",
+        "actor_alias": "TeleportSpot",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1300/captain-dreadleg-4",
+      "name": "Captain Dreadleg",
+      "kind": "actor",
+      "pos": [263.73, 29.0, 270.71],
+      "rot": -2.976,
+      "anchor": "Cine_DreadlegDefeated1",
+      "client": {
+        "item_template": 233315,
+        "ai_point": "Cine_DreadlegDefeated1",
+        "actor_alias": "DreadlegBoss",
+        "cinematic": true
+      },
+      "source": "client"
+    }
+  ]
+}

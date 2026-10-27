@@ -1,0 +1,12 @@
+{
+  "id": "achievement/smash-the-core",
+  "lore": 824,
+  "parent": "achievement/pocket-universe",
+  "client_name": "Space_Combat_PA_Mercenary Troop Transport",
+  "title": "Smash the Core",
+  "text": "Clear the Mercenary Troop Transport in the Space World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Mercenary Troop Transport",
+  "source": "client"
+}

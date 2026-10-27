@@ -1,0 +1,10 @@
+{
+  "id": "object/tarpittoswampend",
+  "name": "TarpitToSwampEnd",
+  "kind": "scenery",
+  "render": {
+    "look": "TarpitToSwampEnd",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

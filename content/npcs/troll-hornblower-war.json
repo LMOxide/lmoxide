@@ -1,0 +1,22 @@
+{
+  "id": "npc/troll-hornblower-war",
+  "name": "Troll Hornblower War",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 331167
+  },
+  "level": 9,
+  "stats": {
+    "health": 453
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/smack",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/dino-tracker-ponos-the-pitcher",
+  "lore": 3078,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Ponos the Pitcher",
+  "title": "Dino Tracker: Ponos the Pitcher",
+  "text": "Defeat Ponos the Pitcher as Dino Tracker.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ponos the Pitcher",
+  "minifigure": "minifig/dino-tracker",
+  "source": "client"
+}

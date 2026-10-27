@@ -1,0 +1,10 @@
+{
+  "id": "object/fireball-11",
+  "name": "fireball 11",
+  "kind": "scenery",
+  "render": {
+    "look": "fireball 11",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

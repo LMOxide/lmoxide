@@ -1,0 +1,13 @@
+{
+  "id": "achievement/chicken-suit-guy-umad-thundercrusher",
+  "lore": 2669,
+  "parent": "achievement/chicken-suit-guy",
+  "client_name": "Chicken Suit Guy_Umad Thundercrusher",
+  "title": "Chicken Suit Guy: Umad Thundercrusher",
+  "text": "Defeat Umad Thundercrusher as Chicken Suit Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Umad Thundercrusher",
+  "minifigure": "minifig/chicken-suit-guy",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "achievement/paintball-player-the-striker",
+  "lore": 3593,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Smash 1000 Monsters",
+  "title": "Paintball Player, the Striker",
+  "text": "Smash 1000 monsters as Paintball Player.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/paintball-player",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

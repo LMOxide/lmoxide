@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-the-lost-challenger",
+  "lore": 2913,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Lost Creations_Get to Level 5",
+  "title": "Scientist, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Scientist.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/scientist",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "achievement/spider-lady-the-master-striker",
+  "lore": 4484,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Smash 10000 Monsters",
+  "title": "Spider Lady, the Master Striker",
+  "text": "Smash 10000 monsters as Spider Lady.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/spider-lady",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/dino-tracker-the-gardener",
+  "lore": 3086,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Smash 50 Triffids",
+  "title": "Dino Tracker the Gardener",
+  "text": "Smash 50 Monster Plants as Dino Tracker.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/dino-tracker",
+  "counts": {
+    "match": "Triffid",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

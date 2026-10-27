@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wizard-dragon-halls",
+  "lore": 3312,
+  "parent": "achievement/wizard",
+  "client_name": "Wizard_Dragon Halls",
+  "title": "Wizard: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Wizard.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/wizard",
+  "source": "client"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "npc/vespid",
+  "name": "Vespid",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 390750,
+    "npc_template": 1986,
+    "look": "space_buzzer",
+    "cars_group": 3
+  },
+  "level": 26,
+  "stats": {
+    "health": 963,
+    "life_factor": 0.25
+  },
+  "attack": "skill/alien-buzzers-slash-castable",
+  "skills": [
+    {
+      "skill": "skill/alien-buzzers-slash-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

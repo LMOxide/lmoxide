@@ -1,0 +1,29 @@
+{
+  "id": "achievement/faun",
+  "lore": 5062,
+  "parent": "achievement/series-15",
+  "client_name": "Faun",
+  "title": "Faun",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-faun",
+    "achievement/legendary-faun",
+    "achievement/faun-alien-crystal-station",
+    "achievement/faun-spider-s-nest",
+    "achievement/faun-skyforge",
+    "achievement/faun-quicksword-billy",
+    "achievement/faun-ponos-the-pitcher",
+    "achievement/faun-nyx-blackfeather",
+    "achievement/novice-faun",
+    "achievement/expert-faun",
+    "achievement/faun-the-lost-challenger",
+    "achievement/faun-the-lost-warrior",
+    "achievement/faun-the-lost-champion",
+    "achievement/faun-the-builder",
+    "achievement/faun-the-master-builder",
+    "achievement/faun-the-speed-freak"
+  ],
+  "minifigure": "minifig/faun",
+  "source": "client"
+}

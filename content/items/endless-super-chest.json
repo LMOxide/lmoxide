@@ -1,0 +1,18 @@
+{
+  "id": "item/endless-super-chest",
+  "name": "XX_Endless Super Chest",
+  "kind": "chest",
+  "template": 531717,
+  "monster_data": 480104,
+  "effect_package": 481839,
+  "chest": {
+    "loot_type": 1,
+    "client_loot_table": 1701,
+    "spawn_effect_package": 481837,
+    "lua_script": 1811,
+    "offset": [4294967084, null, 212],
+    "loot": "loot/chest",
+    "unused": true
+  },
+  "source": "client"
+}

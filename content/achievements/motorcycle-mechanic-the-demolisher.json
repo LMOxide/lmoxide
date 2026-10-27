@@ -1,0 +1,17 @@
+{
+  "id": "achievement/motorcycle-mechanic-the-demolisher",
+  "lore": 3407,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Smash 25 Minotaur Statues",
+  "title": "Motorcycle Mechanic, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Motorcycle Mechanic.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/motorcycle-mechanic",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

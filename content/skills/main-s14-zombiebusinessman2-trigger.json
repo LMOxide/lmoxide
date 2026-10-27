@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-s14-zombiebusinessman2-trigger",
+  "name": "main s14 zombiebusinessman2 trigger",
+  "client": {
+    "spell": 642449,
+    "stats": {
+      "EffectPackage": 647094,
+      "TargetingMode": 8,
+      "TimeExist": 300
+    },
+    "actions": {
+      "20": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642451
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Zombie Businessman: Zombie Project Management",
+  "source": "client"
+}

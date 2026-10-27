@@ -1,0 +1,16 @@
+{
+  "id": "npc/cinematic-start-ambush",
+  "name": "Cinematic Start Ambush",
+  "kind": "trigger",
+  "render": {
+    "monster_data": 51057,
+    "npc_template": 2627,
+    "look": "invisible_monsterdata",
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 93
+  },
+  "source": "client"
+}

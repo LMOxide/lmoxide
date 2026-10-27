@@ -1,0 +1,17 @@
+{
+  "id": "item/main-warriorwoman2-projectile3",
+  "name": "main warriorwoman2 projectile3",
+  "kind": "projectile",
+  "template": 636695,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 636703
+      }
+    }
+  ],
+  "source": "client"
+}

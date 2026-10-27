@@ -1,0 +1,148 @@
+{
+  "areas": [
+    {
+      "id": "area/4620/cine-captainpete1",
+      "name": "Cine_CaptainPete1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [228.98, 42.5, 174.31],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-invispirates1",
+      "name": "Cine_InvisPirates1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [221.87, 42.06, 173.87],
+          "rot": 3.142
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-captainsdaughter1",
+      "name": "Cine_CaptainsDaughter1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [230.01, 42.5, 169.09],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-invispirates2",
+      "name": "Cine_InvisPirates2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [223.07, 42.07, 172.64],
+          "rot": -1.571
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-invispirates3",
+      "name": "Cine_InvisPirates3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [219.89, 42.07, 173.74],
+          "rot": 3.142
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-captainsdaughter2",
+      "name": "Cine_CaptainsDaughter2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [229.85, 42.5, 169.2],
+          "rot": -2.092
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-captainpete2",
+      "name": "Cine_CaptainPete2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [225.41, 42.5, 167.93],
+          "rot": -2.59
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-playergoto1",
+      "name": "Cine_PlayerGoto1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [224.79, 42.1, 164.18],
+          "rot": 0.49
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-troupespawn1",
+      "name": "Cine_TroupeSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [222.6, 42.1, 164.89],
+          "rot": 0.611
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-troupespawn2",
+      "name": "Cine_TroupeSpawn2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [227.6, 42.1, 162.44],
+          "rot": -0.39
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-troupespawn3",
+      "name": "Cine_TroupeSpawn3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [226.3, 42.1, 165.21],
+          "rot": 0.074
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4620/cine-camerafocus1",
+      "name": "Cine_CameraFocus1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [225.46, 42.1, 166.41],
+          "rot": 0.074
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

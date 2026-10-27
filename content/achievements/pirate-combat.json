@@ -1,0 +1,8 @@
+{
+  "id": "achievement/pirate-combat",
+  "lore": 833,
+  "parent": "achievement/pirate-world",
+  "client_name": "Pirate_Combat",
+  "kind": "category",
+  "source": "client"
+}

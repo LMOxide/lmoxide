@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spectre-the-lost-warrior",
+  "lore": 4583,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Lost Creations_Get to Level 10",
+  "title": "Spectre, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Spectre.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/spectre",
+  "n": 10,
+  "source": "client"
+}

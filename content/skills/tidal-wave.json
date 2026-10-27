@@ -1,0 +1,49 @@
+{
+  "id": "skill/tidal-wave",
+  "name": "Tidal Wave",
+  "client": {
+    "spell": 34534,
+    "stats": {
+      "EffectPackage": 38629,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 35,
+            "ItemInstance": 230490,
+            "ProjectileType": 1,
+            "Speed": 500
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 34534,
+            "Value": 300
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Mermaid: Tidal Wave",
+  "range": 12.0,
+  "projectile": {
+    "item": 230490,
+    "speed": 5.0,
+    "kind": 1,
+    "attractor": 35,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-alien-command-center",
+  "lore": 2906,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Alien Command Center",
+  "title": "Scientist: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Scientist.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/scientist",
+  "source": "client"
+}

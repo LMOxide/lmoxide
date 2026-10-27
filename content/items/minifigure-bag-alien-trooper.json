@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-alien-trooper",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 575571,
+  "minifigure": "minifig/alien-trooper",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "FOIG"
+      }
+    }
+  ],
+  "source": "client"
+}

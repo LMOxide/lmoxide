@@ -1,0 +1,16 @@
+{
+  "id": "item/evil-knight-head",
+  "name": "Evil Knight Head",
+  "kind": "part",
+  "template": 586070,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10707,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/evil-knight",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/baseball-fielder-the-weaver",
+  "lore": 3467,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_The Weaver",
+  "title": "Baseball Fielder: The Weaver",
+  "text": "Defeat The Weaver as Baseball Fielder.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Weaver",
+  "minifigure": "minifig/baseball-fielder",
+  "source": "client"
+}

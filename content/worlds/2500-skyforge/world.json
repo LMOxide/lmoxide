@@ -1,0 +1,78 @@
+{
+  "id": "world/skyforge",
+  "name": "Skyforge",
+  "playfield": 2500,
+  "kind": "pocket",
+  "region": "region/mythology-world",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [49.6, 24.79, 133.77],
+    "rot": 5.311
+  },
+  "arrival_guid": 94962,
+  "arrival_from": {
+    "world/mythology-mountains": {
+      "pos": [323.85, 105.76, 416.77],
+      "rot": 3.142
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 94962,
+      "pos": [49.6, 24.79, 133.77],
+      "rot": 5.311,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_FirstBoss",
+      "guid": 105221,
+      "pos": [162.06, 45.58, 125.3],
+      "rot": 3.124,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_SecondBoss",
+      "guid": 105222,
+      "pos": [304.04, 57.87, 233.57],
+      "rot": 3.073,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_FinalBoss",
+      "guid": 105223,
+      "pos": [318.93, 109.49, 387.04],
+      "rot": 5.904,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Cliffs",
+      "guid": 160066,
+      "pos": [231.84, 52.79, 226.55],
+      "rot": 3.199,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_HarpyBoss",
+      "guid": 464787,
+      "pos": [333.06, 90.11, 371.39],
+      "rot": 6.23,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

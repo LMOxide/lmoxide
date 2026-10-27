@@ -1,0 +1,21 @@
+{
+  "id": "skill/main-elf4-buff-mitigation",
+  "name": "main elf4 buff mitigation",
+  "client": {
+    "spell": 597079,
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.5,
+            "Stat": 3000012
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

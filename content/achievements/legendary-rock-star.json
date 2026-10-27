@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-rock-star",
+  "lore": 3239,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Complete Any 10",
+  "title": "Legendary Rock Star",
+  "text": "Complete any 11 Rock Star achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/rock-star",
+  "n": 11,
+  "source": "client"
+}

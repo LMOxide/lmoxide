@@ -1,0 +1,16 @@
+{
+  "id": "item/spider-lady-head",
+  "name": "Spider Lady Head",
+  "kind": "part",
+  "template": 662038,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11409,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/spider-lady",
+  "location": "Head",
+  "source": "client"
+}

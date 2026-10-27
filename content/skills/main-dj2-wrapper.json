@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-dj2-wrapper",
+  "name": "main dj2 wrapper",
+  "client": {
+    "spell": 600598,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 3986
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 600599
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "None: Bass Drop",
+  "source": "client"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "achievement/dino-world",
+  "lore": 745,
+  "client_name": "Achievements_Dino World",
+  "title": "Dino World",
+  "kind": "category",
+  "source": "client"
+}

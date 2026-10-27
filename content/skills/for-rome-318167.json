@@ -1,0 +1,30 @@
+{
+  "id": "skill/for-rome-318167",
+  "name": "For Rome!",
+  "client": {
+    "spell": 318167,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 318156
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 318169
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Roman Commander: For Rome!",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-swashbuckler",
+  "lore": 3282,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Upgrade 3",
+  "title": "Novice Swashbuckler",
+  "text": "Get the third Swashbuckler upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/swashbuckler",
+  "n": 3,
+  "source": "client"
+}

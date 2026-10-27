@@ -1,0 +1,15 @@
+{
+  "id": "world/pirate-grotto-art",
+  "name": "Pirate Grotto - Art",
+  "playfield": 4311,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [372.5, 59.38, 141.75],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

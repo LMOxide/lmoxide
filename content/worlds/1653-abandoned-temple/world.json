@@ -1,0 +1,30 @@
+{
+  "id": "world/abandoned-temple",
+  "name": "Abandoned Temple",
+  "playfield": 1653,
+  "kind": "pocket",
+  "region": "region/mythology-world",
+  "arrival": {
+    "pos": [235.19, 18.49, 258.62],
+    "rot": 4.71
+  },
+  "arrival_guid": 484542,
+  "arrival_from": {
+    "world/mythology-mountains": {
+      "pos": [240.5, 20.62, 237.28],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 484542,
+      "pos": [235.19, 18.49, 258.62],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

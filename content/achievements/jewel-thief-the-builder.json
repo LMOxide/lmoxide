@@ -1,0 +1,16 @@
+{
+  "id": "achievement/jewel-thief-the-builder",
+  "lore": 5229,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Build 100 buildies",
+  "title": "Jewel Thief, the Builder",
+  "text": "Build 100 buildies as Jewel Thief.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/jewel-thief",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

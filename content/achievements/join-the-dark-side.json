@@ -1,0 +1,14 @@
+{
+  "id": "achievement/join-the-dark-side",
+  "lore": 764,
+  "parent": "achievement/deep-space-explorer",
+  "client_name": "Space_Exploration_Escort Ship",
+  "title": "Join the Dark Side",
+  "text": "Find the path to the dark side... of the planet.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/space-colony",
+  "find": "Achievement_Escort Ship",
+  "place": "Path to the dark side",
+  "source": "client"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "npc/dino-raptor",
+  "name": "Dino Raptor",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 521920
+  },
+  "level": 19,
+  "stats": {
+    "health": 2362,
+    "life_factor": 1.0
+  },
+  "attack": "skill/dino-raptor-small-melee-hit-castable",
+  "skills": [
+    {
+      "skill": "skill/dino-raptor-small-melee-hit-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-forest-maiden",
+  "lore": 2638,
+  "parent": "achievement/forest-maiden",
+  "client_name": "Forest Maiden_Upgrade 3",
+  "title": "Novice Forest Maiden",
+  "text": "Get the third Forest Maiden upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/forest-maiden",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "skill/wheel-of-fortune",
+  "name": "Wheel of Fortune",
+  "client": {
+    "spell": 34076,
+    "stats": {
+      "EffectPackage": 49224,
+      "ItemDelay": 25,
+      "MoreFlags": 134217728
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 212666
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 34076,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fortune Teller: Wheel of Fortune",
+  "source": "client"
+}

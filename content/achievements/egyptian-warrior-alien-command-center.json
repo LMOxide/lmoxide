@@ -1,0 +1,13 @@
+{
+  "id": "achievement/egyptian-warrior-alien-command-center",
+  "lore": 4018,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Alien Command Center",
+  "title": "Egyptian Warrior: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Egyptian Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/egyptian-warrior",
+  "source": "client"
+}

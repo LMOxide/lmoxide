@@ -1,0 +1,52 @@
+{
+  "id": "skill/main-piratecaptain2-cooldown",
+  "name": "main piratecaptain2 cooldown",
+  "client": {
+    "spell": 576070,
+    "stats": {
+      "MaxBuffCounters": 3
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 576070
+          },
+          "criteria": [
+            [0, 0, 19],
+            [576070, 2, 166],
+            [0, 636488, 101],
+            [0, 0, 4]
+          ]
+        },
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 576070
+          },
+          "criteria": [
+            [0, 0, 19],
+            [576070, 3, 166],
+            [0, 636488, 91],
+            [0, 0, 4]
+          ]
+        }
+      ],
+      "20": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 576069,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

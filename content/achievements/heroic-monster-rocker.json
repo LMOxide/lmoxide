@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-monster-rocker",
+  "lore": 4639,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Complete Any 5",
+  "title": "Heroic Monster Rocker",
+  "text": "Complete any 5 Monster Rocker achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/monster-rocker",
+  "n": 5,
+  "source": "client"
+}

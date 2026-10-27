@@ -1,0 +1,16 @@
+{
+  "id": "item/scarecrow-body",
+  "name": "Scarecrow Body",
+  "kind": "part",
+  "template": 483603,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21113,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/scarecrow",
+  "location": "Torso",
+  "source": "client"
+}

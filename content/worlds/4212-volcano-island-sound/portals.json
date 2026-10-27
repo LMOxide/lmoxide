@@ -1,0 +1,22 @@
+{
+  "portals": [
+    {
+      "id": "portal/4212/to-pirate-grotto",
+      "pos": [456.15, 85.64, 465.83],
+      "window": 38,
+      "to": {
+        "world": "world/pirate-grotto"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4212/to-isle-of-yarr",
+      "pos": [456.15, 86.79, 458.06],
+      "window": 23,
+      "to": {
+        "world": "world/isle-of-yarr"
+      },
+      "source": "client"
+    }
+  ]
+}

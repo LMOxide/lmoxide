@@ -1,0 +1,10 @@
+{
+  "id": "object/bomb-machine-a-green-light-2-2",
+  "name": "bomb_machine_a_green_light 2_2",
+  "kind": "scenery",
+  "render": {
+    "look": "bomb_machine_a_green_light 2_2",
+    "visual": [1010030, 635895]
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/particle-pickup-3",
+  "name": "particle_pickup_3",
+  "kind": "scenery",
+  "render": {
+    "look": "particle_pickup_3",
+    "visual": [1010030, 465834]
+  },
+  "source": "client"
+}

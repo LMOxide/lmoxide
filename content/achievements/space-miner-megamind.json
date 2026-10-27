@@ -1,0 +1,13 @@
+{
+  "id": "achievement/space-miner-megamind",
+  "lore": 3246,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Megamind",
+  "title": "Space Miner: Megamind",
+  "text": "Defeat Megamind as Space Miner.",
+  "points": 25,
+  "kind": "target",
+  "target": "Megamind",
+  "minifigure": "minifig/space-miner",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/fortune-teller-legs",
+  "name": "Fortune Teller Legs",
+  "kind": "part",
+  "template": 483701,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30906,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/fortune-teller",
+  "location": "Legs",
+  "source": "client"
+}

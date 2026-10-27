@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-island-warrior",
+  "lore": 2849,
+  "parent": "achievement/island-warrior",
+  "client_name": "Island Warrior_Complete Any 5",
+  "title": "Heroic Island Warrior",
+  "text": "Complete any 5 Island Warrior achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/island-warrior",
+  "n": 5,
+  "source": "client"
+}

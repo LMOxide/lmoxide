@@ -1,0 +1,30 @@
+{
+  "id": "world/tutorial",
+  "name": "Tutorial",
+  "playfield": 1300,
+  "kind": "open",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [61.21, 47.0, 216.73],
+    "rot": 6.086
+  },
+  "arrival_guid": 198073,
+  "arrival_from": {
+    "world/pirate-world": {
+      "pos": [267.15, 29.73, 272.27],
+      "rot": 0.785
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Start",
+      "guid": 198073,
+      "pos": [61.21, 47.0, 216.73],
+      "rot": 6.086,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

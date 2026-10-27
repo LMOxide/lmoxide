@@ -1,0 +1,17 @@
+{
+  "id": "npc/villager",
+  "name": "Villager",
+  "kind": "npc",
+  "render": {
+    "monster_data": 464159,
+    "npc_template": 1741,
+    "look": "medieval_villager_sitting",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

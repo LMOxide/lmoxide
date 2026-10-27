@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-egyptian-warrior",
+  "lore": 4021,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Upgrade 3",
+  "title": "Novice Egyptian Warrior",
+  "text": "Get the third Egyptian Warrior upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/egyptian-warrior",
+  "n": 3,
+  "source": "client"
+}

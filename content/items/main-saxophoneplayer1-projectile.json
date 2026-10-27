@@ -1,0 +1,22 @@
+{
+  "id": "item/main-saxophoneplayer1-projectile",
+  "name": "main saxophoneplayer1 projectile",
+  "kind": "projectile",
+  "template": 360887,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CoreFilteredAreaFormula",
+      "args": {
+        "Angle": 360,
+        "ApplyOn": 3,
+        "Ascending": 1,
+        "Max1": 1,
+        "NPCSelectMode": 3,
+        "NanoTemplate": 438822,
+        "Radius": 1
+      }
+    }
+  ],
+  "source": "client"
+}

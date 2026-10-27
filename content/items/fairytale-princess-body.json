@@ -1,0 +1,16 @@
+{
+  "id": "item/fairytale-princess-body",
+  "name": "Fairytale Princess Body",
+  "kind": "part",
+  "template": 576146,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21203,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/fairytale-princess",
+  "location": "Torso",
+  "source": "client"
+}

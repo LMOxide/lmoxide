@@ -1,0 +1,16 @@
+{
+  "id": "achievement/queen-the-striker",
+  "lore": 5277,
+  "parent": "achievement/queen",
+  "client_name": "Queen_Smash 1000 Monsters",
+  "title": "Queen, the Striker",
+  "text": "Smash 1000 monsters as Queen.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/queen",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

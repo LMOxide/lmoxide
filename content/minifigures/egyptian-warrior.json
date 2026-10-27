@@ -1,0 +1,134 @@
+{
+  "id": "minifig/egyptian-warrior",
+  "name": "Egyptian Warrior",
+  "template": 550362,
+  "series": 13,
+  "series_index": 0,
+  "render": {
+    "monster_data": 550353
+  },
+  "stats": {
+    "life": 350,
+    "power": 6,
+    "defense": 9,
+    "creativity": 1,
+    "role": 2,
+    "element": 2
+  },
+  "normal": {
+    "skill": "skill/ancient-guardian",
+    "hits": [
+      {
+        "skill": "skill/main-egyptianwarrior1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [566628]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/sand-storm",
+    "hits": [
+      {
+        "skill": "skill/main-egyptianwarrior2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.3,
+        "damage_type": 1000,
+        "via": [566630, 566631, 566632]
+      }
+    ]
+  },
+  "click_spells": [566628, 566630],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-reconstruct"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-puff-of-smoke"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-knockback"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-true-grit"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530279"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-technician"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [4015, 3746, 4044, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/egyptian-warrior-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/egyptian-warrior-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/egyptian-warrior-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-egyptian-warrior",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/medieval-world"],
+    "text": "You can find me in the Medieval World.",
+    "location_text": 232051452,
+    "location_picture": 473028
+  },
+  "source": "client"
+}

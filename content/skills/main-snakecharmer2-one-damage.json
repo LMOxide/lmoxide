@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-snakecharmer2-one-damage",
+  "name": "main snakecharmer2 one damage",
+  "client": {
+    "spell": 551014,
+    "stats": {
+      "EffectPackage": 578072,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.8999999761581421,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

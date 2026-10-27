@@ -1,0 +1,25 @@
+{
+  "id": "npc/musketeer-3",
+  "name": "Musketeer",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 192826,
+    "npc_template": 851,
+    "look": "pirate_musketeer",
+    "cars_group": 3
+  },
+  "level": 2,
+  "stats": {
+    "health": 90,
+    "life_factor": 1.0
+  },
+  "skills": [
+    {
+      "skill": "skill/shot",
+      "weight": 1
+    }
+  ],
+  "skills_from": "recorded",
+  "loot": "loot/enemy",
+  "source": "client"
+}

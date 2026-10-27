@@ -1,0 +1,26 @@
+{
+  "id": "npc/skeleton-warrior",
+  "name": "Skeleton Warrior",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 82410
+  },
+  "level": 1,
+  "stats": {
+    "health": 60,
+    "life_factor": 0.8
+  },
+  "skills": [
+    {
+      "skill": "skill/wild-swing",
+      "weight": 1
+    },
+    {
+      "skill": "skill/smash-319341",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

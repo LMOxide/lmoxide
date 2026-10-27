@@ -1,0 +1,12 @@
+{
+  "id": "skill/battle-crescendo-207452",
+  "name": "Battle Crescendo",
+  "client": {
+    "spell": 207452,
+    "stats": {
+      "LuaScriptID": 692,
+      "TargetingMode": 7
+    }
+  },
+  "source": "client"
+}

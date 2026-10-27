@@ -1,0 +1,14 @@
+{
+  "id": "achievement/i-scream-you-scream",
+  "lore": 858,
+  "parent": "achievement/your-personal-odyssey",
+  "client_name": "Mythology_Exploration_Ice Cream",
+  "title": "I Scream, You Scream",
+  "text": "Find the Ice Cream Stand in the Mythology World.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/mythology-mountains",
+  "find": "Achievement_IceCream",
+  "place": "Ice Cream Stand",
+  "source": "client"
+}

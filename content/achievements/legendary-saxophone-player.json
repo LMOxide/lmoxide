@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-saxophone-player",
+  "lore": 2935,
+  "parent": "achievement/saxophone-player",
+  "client_name": "Saxophone Player_Complete Any 10",
+  "title": "Legendary Saxophone Player",
+  "text": "Complete any 11 Saxophone Player achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/saxophone-player",
+  "n": 11,
+  "source": "client"
+}

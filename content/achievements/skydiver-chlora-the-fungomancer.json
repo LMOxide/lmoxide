@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skydiver-chlora-the-fungomancer",
+  "lore": 3484,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Chlora the Fungomancer",
+  "title": "Skydiver: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Skydiver.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/skydiver",
+  "source": "client"
+}

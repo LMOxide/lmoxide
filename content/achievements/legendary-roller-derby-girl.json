@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-roller-derby-girl",
+  "lore": 2765,
+  "parent": "achievement/roller-derby-girl",
+  "client_name": "Roller Derby Girl_Complete Any 10",
+  "title": "Legendary Roller Derby Girl",
+  "text": "Complete any 11 Roller Derby Girl achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/roller-derby-girl",
+  "n": 11,
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "region/mythology-world",
+  "name": "Mythology World",
+  "worlds": [
+    "world/ancient-ruins",
+    "world/abandoned-temple",
+    "world/minotaur-refuge",
+    "world/cliffside",
+    "world/mythology-mountains",
+    "world/medusa-s-lair",
+    "world/armory",
+    "world/underworld",
+    "world/skyforge"
+  ],
+  "source": "client"
+}

@@ -1,0 +1,86 @@
+{
+  "id": "skill/main-sheriff2-slow",
+  "name": "main sheriff2 slow",
+  "client": {
+    "spell": 564288,
+    "stats": {
+      "MaxBuffCounters": 5,
+      "TargetingMode": 5,
+      "TimeExist": 50
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.800000011920929
+          },
+          "criteria": [
+            [0, 0, 18],
+            [564288, 1, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.6000000238418579
+          },
+          "criteria": [
+            [0, 0, 18],
+            [564288, 2, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.4000000059604645
+          },
+          "criteria": [
+            [0, 0, 18],
+            [564288, 3, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.20000000298023224
+          },
+          "criteria": [
+            [0, 0, 18],
+            [564288, 4, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.009999999776482582
+          },
+          "criteria": [
+            [0, 0, 18],
+            [564288, 5, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

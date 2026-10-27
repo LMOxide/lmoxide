@@ -1,0 +1,10 @@
+{
+  "id": "object/graveyard9",
+  "name": "graveyard9",
+  "kind": "scenery",
+  "render": {
+    "look": "graveyard9",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/the-wheel-of-fortune-212697",
+  "name": "The Wheel of Fortune",
+  "client": {
+    "spell": 212697,
+    "stats": {
+      "EffectPackage": 636889,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.75,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

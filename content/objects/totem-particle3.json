@@ -1,0 +1,10 @@
+{
+  "id": "object/totem-particle3",
+  "name": "totem particle3",
+  "kind": "scenery",
+  "render": {
+    "look": "totem particle3",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

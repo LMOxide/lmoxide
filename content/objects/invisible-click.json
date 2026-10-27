@@ -1,0 +1,10 @@
+{
+  "id": "object/invisible-click",
+  "name": "invisible_Click",
+  "kind": "scenery",
+  "render": {
+    "look": "invisible_Click",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

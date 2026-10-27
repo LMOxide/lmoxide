@@ -1,0 +1,14 @@
+{
+  "id": "item/100-minifigure-xp",
+  "name": "XX_100_Minifigure XP",
+  "kind": "token",
+  "template": 386270,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 100,
+      "amount": 100
+    }
+  ],
+  "source": "client"
+}

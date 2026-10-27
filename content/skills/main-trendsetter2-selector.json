@@ -1,0 +1,42 @@
+{
+  "id": "skill/main-trendsetter2-selector",
+  "name": "main trendsetter2 selector",
+  "client": {
+    "spell": 300286,
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 300283
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 300269, 91]
+          ]
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 300269
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 300261, 91]
+          ]
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 300261
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Trendsetter: Circle of Hearts",
+  "source": "client"
+}

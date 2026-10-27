@@ -1,0 +1,16 @@
+{
+  "id": "item/forest-maiden-legs",
+  "name": "Forest Maiden Legs",
+  "kind": "part",
+  "template": 483702,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30905,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/forest-maiden",
+  "location": "Legs",
+  "source": "client"
+}

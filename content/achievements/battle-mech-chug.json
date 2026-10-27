@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-chug",
+  "lore": 2687,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Chug",
+  "title": "Battle Mech: Chug",
+  "text": "Defeat Chug as Battle Mech.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chug",
+  "minifigure": "minifig/battle-mech",
+  "source": "client"
+}

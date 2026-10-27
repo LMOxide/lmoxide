@@ -1,0 +1,10 @@
+{
+  "id": "object/invisible-monsterdata1",
+  "name": "invisible_monsterdata1",
+  "kind": "scenery",
+  "render": {
+    "look": "invisible_monsterdata1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

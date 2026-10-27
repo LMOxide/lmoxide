@@ -1,0 +1,11 @@
+{
+  "id": "object/genesisdoordynel-no-mesh-set",
+  "name": "GenesisDoorDynel (no mesh set)",
+  "kind": "door",
+  "render": {
+    "look": "GenesisDoorDynel (no mesh set)",
+    "visual": [1010030, 95472]
+  },
+  "states": ["open", "closed"],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-crimson-chamber",
+  "lore": 5282,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Crimson Chamber ",
+  "title": "Shark Suit Guy: Crimson Chamber",
+  "text": "Conquer the Crimson Chamber as Shark Suit Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Crimson Chamber",
+  "minifigure": "minifig/shark-suit-guy",
+  "source": "client"
+}

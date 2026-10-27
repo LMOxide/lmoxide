@@ -1,0 +1,12 @@
+{
+  "id": "achievement/too-cool-for-school",
+  "lore": 2382,
+  "parent": "achievement/a-pirate-life-for-me",
+  "client_name": "Pirate_Combat_Champion_Temper",
+  "title": "Too Cool For School",
+  "text": "Defeat Temper in the Pirate World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Temper",
+  "source": "client"
+}

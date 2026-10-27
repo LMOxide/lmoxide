@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-good-and-evil-the-lost-challenger",
+  "lore": 2539,
+  "parent": "achievement/mr-good-and-evil",
+  "client_name": "Mr. Good and Evil_Lost Creations_Get to Level 5",
+  "title": "Mr. Good and Evil, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Mr. Good and Evil.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/mr-good-and-evil",
+  "n": 5,
+  "source": "client"
+}

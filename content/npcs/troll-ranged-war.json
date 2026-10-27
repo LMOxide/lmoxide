@@ -1,0 +1,22 @@
+{
+  "id": "npc/troll-ranged-war",
+  "name": "Troll Ranged War",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 331170
+  },
+  "level": 9,
+  "stats": {
+    "health": 453
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/spear-throw",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

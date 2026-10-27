@@ -1,0 +1,13 @@
+{
+  "id": "achievement/medusa-ancient-ruins",
+  "lore": 3616,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Ancient Ruins",
+  "title": "Medusa: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Medusa.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/medusa",
+  "source": "client"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "achievement/dino-exploration",
+  "lore": 1535,
+  "parent": "achievement/dino-world",
+  "client_name": "Dino_Exploration",
+  "kind": "category",
+  "source": "client"
+}

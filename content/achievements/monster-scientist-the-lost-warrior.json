@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-scientist-the-lost-warrior",
+  "lore": 4634,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Lost Creations_Get to Level 10",
+  "title": "Monster Scientist, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Monster Scientist.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/monster-scientist",
+  "n": 10,
+  "source": "client"
+}

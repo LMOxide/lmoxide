@@ -1,0 +1,18 @@
+{
+  "id": "item/merc-engineer-shot-projectile",
+  "name": "merc engineer shot projectile",
+  "kind": "projectile",
+  "template": 374160,
+  "effect_package": 390817,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 374161
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,76 @@
+{
+  "portals": [
+    {
+      "id": "portal/4200/to-pirate-storage",
+      "pos": [394.67, 67.59, 242.25],
+      "window": 12,
+      "to": {
+        "world": "world/pirate-storage"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-jacket-cellar",
+      "pos": [233.05, 66.3, 302.01],
+      "window": 43,
+      "to": {
+        "world": "world/jacket-cellar"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-natives-hollow",
+      "pos": [252.9, 75.64, 441.72],
+      "window": 44,
+      "to": {
+        "world": "world/natives-hollow"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-dragoon-dwelling",
+      "pos": [154.4, 67.6, 275.44],
+      "window": 45,
+      "to": {
+        "world": "world/dragoon-dwelling"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-monkey-cave",
+      "pos": [94.04, 70.48, 108.84],
+      "window": 56,
+      "to": {
+        "world": "world/monkey-cave"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-treasure-island",
+      "pos": [450.25, 67.89, 125.32],
+      "window": 16,
+      "to": {
+        "world": "world/treasure-island"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-the-peglegged-mermaid-tavern",
+      "pos": [439.65, 71.13, 170.1],
+      "window": 35,
+      "to": {
+        "world": "world/the-peglegged-mermaid-tavern"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4200/to-volcano-island",
+      "pos": [446.9, 68.39, 145.45],
+      "window": 21,
+      "to": {
+        "world": "world/volcano-island"
+      },
+      "source": "client"
+    }
+  ]
+}

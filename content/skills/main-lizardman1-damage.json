@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-lizardman1-damage",
+  "name": "main lizardman1 damage",
+  "client": {
+    "spell": 595624,
+    "stats": {
+      "EffectPackage": 600621,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

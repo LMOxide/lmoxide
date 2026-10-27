@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-cliffside",
+  "lore": 3379,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Cliffside",
+  "title": "Mr. Gold: Cliffside",
+  "text": "Conquer the Cliffside as Mr. Gold.",
+  "points": 50,
+  "kind": "target",
+  "target": "Cliffside",
+  "minifigure": "minifig/mr-gold",
+  "source": "client"
+}

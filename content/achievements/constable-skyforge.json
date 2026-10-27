@@ -1,0 +1,13 @@
+{
+  "id": "achievement/constable-skyforge",
+  "lore": 3025,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Skyforge",
+  "title": "Constable: Skyforge",
+  "text": "Conquer the Skyforge as Constable.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/constable",
+  "source": "client"
+}

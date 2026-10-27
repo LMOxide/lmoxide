@@ -1,0 +1,10 @@
+{
+  "id": "object/jumpie-1-chain-2-target",
+  "name": "jumpie_1_chain_2_target",
+  "kind": "scenery",
+  "render": {
+    "look": "jumpie_1_chain_2_target",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

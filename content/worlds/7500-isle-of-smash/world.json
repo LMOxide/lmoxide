@@ -1,0 +1,12 @@
+{
+  "id": "world/isle-of-smash",
+  "name": "Isle of Smash",
+  "playfield": 7500,
+  "kind": "other",
+  "arrival": {
+    "pos": [187.5, 152.19, 147.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/astronaut-chug",
+  "lore": 5094,
+  "parent": "achievement/astronaut",
+  "client_name": "Astronaut_Chug",
+  "title": "Astronaut: Chug",
+  "text": "Defeat Chug as Astronaut.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chug",
+  "minifigure": "minifig/astronaut",
+  "source": "client"
+}

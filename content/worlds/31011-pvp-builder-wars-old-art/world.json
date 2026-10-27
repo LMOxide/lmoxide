@@ -1,0 +1,12 @@
+{
+  "id": "world/pvp-builder-wars-old-art",
+  "name": "PvP - Builder Wars Old Art",
+  "playfield": 31011,
+  "kind": "other",
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

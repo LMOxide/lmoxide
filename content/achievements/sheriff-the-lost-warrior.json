@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sheriff-the-lost-warrior",
+  "lore": 3974,
+  "parent": "achievement/sheriff",
+  "client_name": "Sheriff_Lost Creations_Get to Level 10",
+  "title": "Sheriff, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Sheriff.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/sheriff",
+  "n": 10,
+  "source": "client"
+}

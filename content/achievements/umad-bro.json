@@ -1,0 +1,12 @@
+{
+  "id": "achievement/umad-bro",
+  "lore": 773,
+  "parent": "achievement/trial-by-combat",
+  "client_name": "Medieval_Combat_Champion_Umad Thundercrusher",
+  "title": "Umad, Bro?",
+  "text": "Defeat Umad Thundercrusher in the Medieval World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Umad Thundercrusher",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/flying-warrior-quicksword-billy",
+  "lore": 5173,
+  "parent": "achievement/flying-warrior",
+  "client_name": "Flying Warrior_Quicksword Billy",
+  "title": "Flying Warrior: Quicksword Billy",
+  "text": "Defeat Quicksword Billy as Flying Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Quicksword Billy",
+  "minifigure": "minifig/flying-warrior",
+  "source": "client"
+}

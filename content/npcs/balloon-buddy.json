@@ -1,0 +1,11 @@
+{
+  "id": "npc/balloon-buddy",
+  "name": "Balloon Buddy",
+  "kind": "summon",
+  "render": {
+    "monster_data": 186269
+  },
+  "lifetime": "15s",
+  "source": "server",
+  "comment": "The summoned monster's template isn't in the client data: its look was chosen by name (summons.json)."
+}

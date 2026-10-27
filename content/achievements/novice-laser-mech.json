@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-laser-mech",
+  "lore": 5256,
+  "parent": "achievement/laser-mech",
+  "client_name": "Laser Mech_Upgrade 3",
+  "title": "Novice Laser Mech",
+  "text": "Get the third Laser Mech upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/laser-mech",
+  "n": 3,
+  "source": "client"
+}

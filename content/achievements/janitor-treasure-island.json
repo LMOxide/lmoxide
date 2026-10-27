@@ -1,0 +1,13 @@
+{
+  "id": "achievement/janitor-treasure-island",
+  "lore": 5204,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Treasure Island",
+  "title": "Janitor: Treasure Island",
+  "text": "Conquer the Treasure Island as Janitor.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/janitor",
+  "source": "client"
+}

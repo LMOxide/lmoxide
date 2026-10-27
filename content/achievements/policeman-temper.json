@@ -1,0 +1,13 @@
+{
+  "id": "achievement/policeman-temper",
+  "lore": 2771,
+  "parent": "achievement/policeman",
+  "client_name": "Policeman_Temper",
+  "title": "Policeman: Temper",
+  "text": "Defeat Temper as Policeman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Temper",
+  "minifigure": "minifig/policeman",
+  "source": "client"
+}

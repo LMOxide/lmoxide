@@ -1,0 +1,13 @@
+{
+  "id": "achievement/banshee-wind-shrine",
+  "lore": 4403,
+  "parent": "achievement/banshee",
+  "client_name": "Banshee_Wind Shrine",
+  "title": "Banshee: Wind Shrine",
+  "text": "Conquer the Wind Shrine as Banshee.",
+  "points": 25,
+  "kind": "target",
+  "target": "Wind Shrine",
+  "minifigure": "minifig/banshee",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "npc/monster-scientist-2",
+  "name": "Monster Scientist",
+  "kind": "trigger",
+  "render": {
+    "monster_data": 51057,
+    "npc_template": 2941,
+    "look": "invisible_monsterdata",
+    "cars_group": 5
+  },
+  "level": 15,
+  "stats": {
+    "health": 1971
+  },
+  "source": "client"
+}

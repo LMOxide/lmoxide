@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skydiver-mysterious-crystal-cave",
+  "lore": 3481,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Mysterious Crystal Cave",
+  "title": "Skydiver: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Skydiver.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/skydiver",
+  "source": "client"
+}

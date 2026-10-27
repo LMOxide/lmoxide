@@ -1,0 +1,10 @@
+{
+  "id": "object/exit-particle-1",
+  "name": "exit particle 1",
+  "kind": "scenery",
+  "render": {
+    "look": "exit particle 1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

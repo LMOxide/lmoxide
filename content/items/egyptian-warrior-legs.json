@@ -1,0 +1,16 @@
+{
+  "id": "item/egyptian-warrior-legs",
+  "name": "Egyptian Warrior Legs",
+  "kind": "part",
+  "template": 576094,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31305,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/egyptian-warrior",
+  "location": "Legs",
+  "source": "client"
+}

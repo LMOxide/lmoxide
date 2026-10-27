@@ -1,0 +1,17 @@
+{
+  "id": "achievement/skydiver-the-guide",
+  "lore": 3492,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Build 30 Signs",
+  "title": "Skydiver, the Guide",
+  "text": "Build 30 Signs with Skydiver.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/skydiver",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

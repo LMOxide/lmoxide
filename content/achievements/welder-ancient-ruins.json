@@ -1,0 +1,13 @@
+{
+  "id": "achievement/welder-ancient-ruins",
+  "lore": 2786,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Ancient Ruins",
+  "title": "Welder: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Welder.",
+  "points": 50,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/welder",
+  "source": "client"
+}

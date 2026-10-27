@@ -1,0 +1,16 @@
+{
+  "id": "achievement/holiday-elf-the-master-builder",
+  "lore": 2970,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Build 1000 Buildies",
+  "title": "Holiday Elf, the Master Builder",
+  "text": "Build 1000 buildies as Holiday Elf.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/holiday-elf",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

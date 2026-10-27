@@ -1,0 +1,16 @@
+{
+  "id": "item/hollywood-starlet-head",
+  "name": "Hollywood Starlet Head",
+  "kind": "part",
+  "template": 483583,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10908,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/hollywood-starlet",
+  "location": "Head",
+  "source": "client"
+}

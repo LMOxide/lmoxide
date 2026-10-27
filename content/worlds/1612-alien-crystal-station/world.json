@@ -1,0 +1,30 @@
+{
+  "id": "world/alien-crystal-station",
+  "name": "Alien Crystal Station",
+  "playfield": 1612,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "arrival": {
+    "pos": [202.88, 34.49, 258.31],
+    "rot": 4.71
+  },
+  "arrival_guid": 405740,
+  "arrival_from": {
+    "world/planet-s-dark-side": {
+      "pos": [209.09, 36.65, 237.25],
+      "rot": 0.0
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 405740,
+      "pos": [202.88, 34.49, 258.31],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

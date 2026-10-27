@@ -1,0 +1,29 @@
+{
+  "id": "achievement/decorator",
+  "lore": 3333,
+  "parent": "achievement/series-10",
+  "client_name": "Decorator",
+  "title": "Decorator",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-decorator",
+    "achievement/legendary-decorator",
+    "achievement/novice-decorator",
+    "achievement/expert-decorator",
+    "achievement/decorator-swamp-tunnel",
+    "achievement/decorator-infested-keep",
+    "achievement/decorator-alien-command-center",
+    "achievement/decorator-temper",
+    "achievement/decorator-kruun-super-genius",
+    "achievement/decorator-crone-of-the-maze",
+    "achievement/decorator-the-builder",
+    "achievement/decorator-the-master-builder",
+    "achievement/decorator-the-speed-freak",
+    "achievement/decorator-the-lost-challenger",
+    "achievement/decorator-the-lost-warrior",
+    "achievement/decorator-the-lost-champion"
+  ],
+  "minifigure": "minifig/decorator",
+  "source": "client"
+}

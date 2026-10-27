@@ -1,0 +1,16 @@
+{
+  "id": "item/goblin-head",
+  "name": "Goblin Head",
+  "kind": "part",
+  "template": 576164,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11309,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/goblin",
+  "location": "Head",
+  "source": "client"
+}

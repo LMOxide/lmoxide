@@ -1,0 +1,17 @@
+{
+  "id": "achievement/kendo-fighter-the-gardener",
+  "lore": 5247,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Smash 50 Triffids",
+  "title": "Kendo Fighter the Gardener",
+  "text": "Smash 50 Monster Plants as Kendo Fighter.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/kendo-fighter",
+  "counts": {
+    "match": "Triffid",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/faun-the-lost-champion",
+  "lore": 5164,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Lost Creations_Get to level 15",
+  "title": "Faun, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Faun.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/faun",
+  "n": 15,
+  "source": "client"
+}

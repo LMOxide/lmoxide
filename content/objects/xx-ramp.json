@@ -1,0 +1,31 @@
+{
+  "id": "object/xx-ramp",
+  "name": "XX_Ramp",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 240441,
+    "template": 240621,
+    "look": "pier_ramp_a_2x2_pirate_buildie",
+    "cars_group": 1,
+    "visual": [1010201, 0]
+  },
+  "level": 1,
+  "health": 20,
+  "build": {
+    "points": 1600,
+    "built_visual": 240251
+  },
+  "states": ["unbuilt", "built"],
+  "client": {
+    "display_name": "<remoteformat id=\"240621\" category=\"50200\" key=\"W!@ZGR1sh1DUL@ZW(1`0\" knubot=\"0\"  ></remoteformat>",
+    "dynel_type": 51321,
+    "loot_table": 203,
+    "particles": [
+      [160433, 0, 0, 0, 0]
+    ],
+    "bounds": [-1.501001, -1.5258789e-7, -0.10490429, 1.4999963, 4.3688164, 1.1374621],
+    "destructible": [1.0, 0],
+    "tail": [0, 0.10000000149011612, 0.0, 0, 1.0]
+  },
+  "source": "client"
+}

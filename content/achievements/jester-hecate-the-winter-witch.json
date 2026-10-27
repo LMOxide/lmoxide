@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jester-hecate-the-winter-witch",
+  "lore": 3145,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Hecate, the Winter Witch",
+  "title": "Jester: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Jester.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/jester",
+  "source": "client"
+}

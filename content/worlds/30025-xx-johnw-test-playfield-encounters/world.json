@@ -1,0 +1,32 @@
+{
+  "id": "world/xx-johnw-test-playfield-encounters",
+  "name": "XX_Johnw Test Playfield Encounters",
+  "playfield": 30025,
+  "kind": "other",
+  "arrival": {
+    "pos": [34.01, 24.0, 53.46],
+    "rot": 0.0
+  },
+  "arrival_guid": 588138,
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 359088,
+      "pos": [207.43, 0.0, 218.96],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "TwoStageBoss",
+      "guid": 588138,
+      "pos": [34.01, 24.0, 53.46],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

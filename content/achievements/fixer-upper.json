@@ -1,0 +1,12 @@
+{
+  "id": "achievement/fixer-upper",
+  "lore": 786,
+  "parent": "achievement/space-commander",
+  "client_name": "Space_Combat_Champion_Bishop, Master Technician",
+  "title": "Fixer Upper",
+  "text": "Defeat Bishop, Master Technician in the Space World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Bishop, Master Technician",
+  "source": "client"
+}

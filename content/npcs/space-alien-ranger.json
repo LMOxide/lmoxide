@@ -1,0 +1,22 @@
+{
+  "id": "npc/space-alien-ranger",
+  "name": "Space Alien Ranger",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 383512
+  },
+  "level": 14,
+  "stats": {
+    "health": 1002
+  },
+  "attack": "skill/alien-ranger-shot-castable",
+  "skills": [
+    {
+      "skill": "skill/alien-ranger-shot-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

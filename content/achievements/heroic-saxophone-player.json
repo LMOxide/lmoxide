@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-saxophone-player",
+  "lore": 2934,
+  "parent": "achievement/saxophone-player",
+  "client_name": "Saxophone Player_Complete Any 5",
+  "title": "Heroic Saxophone Player",
+  "text": "Complete any 5 Saxophone Player achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/saxophone-player",
+  "n": 5,
+  "source": "client"
+}

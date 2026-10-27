@@ -1,0 +1,45 @@
+{
+  "id": "skill/rampage-319891",
+  "name": "Rampage",
+  "client": {
+    "spell": 319891,
+    "stats": {
+      "AIPowerrating": 15,
+      "AISpellCategory": 512,
+      "AttackRange": 50,
+      "ChannelingInterval": 100,
+      "ChannelingTicks": 3,
+      "EffectPackage": 153852,
+      "ItemDelay": 150,
+      "RechargeDelay": 100,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 319891,
+            "Value": 1000
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 180,
+            "AngleStart": -90,
+            "ApplyOn": 1,
+            "Ascending": 1,
+            "NanoTemplate": 319892,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wacky-witch-hecate-the-winter-witch",
+  "lore": 4459,
+  "parent": "achievement/wacky-witch",
+  "client_name": "Wacky Witch_Hecate, the Winter Witch",
+  "title": "Wacky Witch: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Wacky Witch.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/wacky-witch",
+  "source": "client"
+}

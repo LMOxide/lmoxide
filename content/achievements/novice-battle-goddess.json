@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-battle-goddess",
+  "lore": 3063,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Upgrade 3",
+  "title": "Novice Battle Goddess",
+  "text": "Get the third Battle Goddess upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/battle-goddess",
+  "n": 3,
+  "source": "client"
+}

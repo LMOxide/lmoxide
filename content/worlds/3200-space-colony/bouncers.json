@@ -1,0 +1,412 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/3200/jumpie-1",
+      "name": "jumpie_1",
+      "template": "object/jump-pad",
+      "pos": [66.08, 141.99, 11.39],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [126.18, 81.88, 14.55],
+      "target_by": "name",
+      "client": {
+        "guid": 385725,
+        "tag": "JUMP",
+        "script_group": 176,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-1-back",
+      "name": "jumpie_1_back",
+      "template": "object/jump-pad",
+      "pos": [123.32, 80.33, 11.96],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [63.14, 142.0, 11.36],
+      "target_by": "name",
+      "client": {
+        "guid": 385726,
+        "tag": "JUMP",
+        "script_group": 177,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-2",
+      "name": "jumpie_2",
+      "template": "object/jump-pad",
+      "pos": [146.47, 79.94, 33.07],
+      "rot": [0.0, 0.4263, 0.0, -0.9046],
+      "target": [159.65, 95.71, 76.6],
+      "target_by": "name",
+      "client": {
+        "guid": 385727,
+        "tag": "JUMP",
+        "script_group": 178,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-2-back",
+      "name": "jumpie_2_back",
+      "template": "object/jump-pad",
+      "pos": [155.48, 95.92, 74.9],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [143.16, 80.0, 33.01],
+      "target_by": "name",
+      "client": {
+        "guid": 385728,
+        "tag": "JUMP",
+        "script_group": 179,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-3",
+      "name": "jumpie_3",
+      "template": "object/jump-pad",
+      "pos": [195.44, 98.03, 92.86],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [223.19, 93.74, 83.85],
+      "target_by": "name",
+      "client": {
+        "guid": 385729,
+        "tag": "JUMP",
+        "script_group": 180,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-3-back",
+      "name": "jumpie_3_back",
+      "template": "object/jump-pad",
+      "pos": [220.06, 94.0, 84.67],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [195.92, 98.04, 94.74],
+      "target_by": "name",
+      "client": {
+        "guid": 385730,
+        "tag": "JUMP",
+        "script_group": 181,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-4",
+      "name": "jumpie_4",
+      "template": "object/jump-pad",
+      "pos": [276.55, 97.97, 27.98],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [284.04, 112.0, 44.58],
+      "target_by": "name",
+      "client": {
+        "guid": 385731,
+        "tag": "JUMP",
+        "script_group": 182,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-4-back",
+      "name": "jumpie_4_back",
+      "template": "object/jump-pad",
+      "pos": [280.5, 111.99, 45.5],
+      "rot": [0.0, 0.9239, 0.0, 0.3827],
+      "target": [275.38, 97.61, 31.6],
+      "target_by": "name",
+      "client": {
+        "guid": 385732,
+        "tag": "JUMP",
+        "script_group": 183,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-5",
+      "name": "jumpie_5",
+      "template": "object/jump-pad",
+      "pos": [309.25, 114.0, 28.06],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [350.59, 80.0, 19.51],
+      "target_by": "name",
+      "client": {
+        "guid": 385733,
+        "tag": "JUMP",
+        "script_group": 184,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-5-back",
+      "name": "jumpie_5_back",
+      "template": "object/jump-pad",
+      "pos": [345.86, 80.49, 19.92],
+      "rot": [0.0, 0.4651, 0.0, 0.8852],
+      "target": [306.15, 113.75, 29.85],
+      "target_by": "name",
+      "client": {
+        "guid": 385734,
+        "tag": "JUMP",
+        "script_group": 185,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-6",
+      "name": "jumpie_6",
+      "template": "object/jump-pad",
+      "pos": [356.55, 105.91, 59.74],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [381.5, 104.01, 44.68],
+      "target_by": "name",
+      "client": {
+        "guid": 385735,
+        "tag": "JUMP",
+        "script_group": 186,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-6-back",
+      "name": "jumpie_6_back",
+      "template": "object/jump-pad",
+      "pos": [379.18, 104.02, 42.64],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [356.41, 105.75, 63.48],
+      "target_by": "name",
+      "client": {
+        "guid": 385736,
+        "tag": "JUMP",
+        "script_group": 187,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-7",
+      "name": "jumpie_7",
+      "template": "object/jump-pad",
+      "pos": [391.44, 104.0, 40.58],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [422.86, 108.0, 35.53],
+      "target_by": "name",
+      "client": {
+        "guid": 385737,
+        "tag": "JUMP",
+        "script_group": 188,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-7-back",
+      "name": "jumpie_7_back",
+      "template": "object/jump-pad",
+      "pos": [420.98, 108.0, 32.68],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [387.79, 104.35, 40.76],
+      "target_by": "name",
+      "client": {
+        "guid": 385738,
+        "tag": "JUMP",
+        "script_group": 189,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-8",
+      "name": "jumpie_8",
+      "template": "object/jump-pad",
+      "pos": [443.97, 110.01, 31.75],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [479.97, 119.73, 29.07],
+      "target_by": "name",
+      "client": {
+        "guid": 385739,
+        "tag": "JUMP",
+        "script_group": 190,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-8-back",
+      "name": "jumpie_8_back",
+      "template": "object/jump-pad",
+      "pos": [476.56, 119.81, 28.81],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [441.36, 109.59, 34.29],
+      "target_by": "name",
+      "client": {
+        "guid": 385740,
+        "tag": "JUMP",
+        "script_group": 191,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-9",
+      "name": "jumpie_9",
+      "template": "object/jump-pad",
+      "pos": [396.79, 119.78, 221.47],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [384.26, 119.97, 199.23],
+      "target_by": "name",
+      "client": {
+        "guid": 385741,
+        "tag": "JUMP",
+        "script_group": 192,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-9-back",
+      "name": "jumpie_9_back",
+      "template": "object/jump-pad",
+      "pos": [387.81, 119.85, 200.8],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [399.93, 119.66, 222.03],
+      "target_by": "name",
+      "client": {
+        "guid": 385742,
+        "tag": "JUMP",
+        "script_group": 193,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-10",
+      "name": "jumpie_10",
+      "template": "object/jump-pad",
+      "pos": [366.63, 121.39, 181.23],
+      "rot": [0.0, -0.3273, 0.0, 0.9449],
+      "target": [341.04, 132.0, 197.72],
+      "target_by": "name",
+      "client": {
+        "guid": 385743,
+        "tag": "JUMP",
+        "script_group": 194,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-10-back",
+      "name": "jumpie_10_back",
+      "template": "object/jump-pad",
+      "pos": [344.21, 132.0, 197.39],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [368.05, 123.67, 176.29],
+      "target_by": "name",
+      "client": {
+        "guid": 385744,
+        "tag": "JUMP",
+        "script_group": 195,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-11",
+      "name": "jumpie_11",
+      "template": "object/jump-pad",
+      "pos": [265.45, 134.19, 248.59],
+      "rot": [0.0, -0.3374, 0.0, 0.9414],
+      "target": [244.08, 138.0, 236.7],
+      "target_by": "name",
+      "client": {
+        "guid": 385745,
+        "tag": "JUMP",
+        "script_group": 196,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-11-back",
+      "name": "jumpie_11_back",
+      "template": "object/jump-pad",
+      "pos": [244.12, 138.0, 240.87],
+      "rot": [0.0, 0.2353, 0.0, 0.9719],
+      "target": [264.83, 134.0, 246.62],
+      "target_by": "name",
+      "client": {
+        "guid": 385746,
+        "tag": "JUMP",
+        "script_group": 197,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-13",
+      "name": "jumpie_13",
+      "template": "object/jump-pad",
+      "pos": [190.72, 131.81, 272.49],
+      "rot": [0.0, -0.535, 0.0, 0.8448],
+      "target": [191.6, 127.36, 299.93],
+      "target_by": "name",
+      "client": {
+        "guid": 385749,
+        "tag": "JUMP",
+        "script_group": 198,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/3200/jumpie-13-back",
+      "name": "jumpie_13_back",
+      "template": "object/jump-pad",
+      "pos": [187.78, 127.89, 300.52],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "target": [190.75, 132.0, 269.4],
+      "target_by": "name",
+      "client": {
+        "guid": 385750,
+        "tag": "JUMP",
+        "script_group": 199,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    }
+  ]
+}

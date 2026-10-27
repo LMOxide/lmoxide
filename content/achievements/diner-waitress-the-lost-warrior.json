@@ -1,0 +1,13 @@
+{
+  "id": "achievement/diner-waitress-the-lost-warrior",
+  "lore": 2812,
+  "parent": "achievement/diner-waitress",
+  "client_name": "Diner Waitress_Lost Creations_Get to Level 10",
+  "title": "Diner Waitress, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Diner Waitress.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/diner-waitress",
+  "n": 10,
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "achievement/commandeer-the-bay",
+  "lore": 2373,
+  "parent": "achievement/a-pirate-life-for-me",
+  "client_name": "Pirate_Combat_Champion_Lieutenant Gruffy",
+  "title": "Commandeer the Bay",
+  "text": "Defeat Lieutenant Gruffy in the Pirate World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Lieutenant Gruffy",
+  "source": "client"
+}

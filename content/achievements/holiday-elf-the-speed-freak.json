@@ -1,0 +1,17 @@
+{
+  "id": "achievement/holiday-elf-the-speed-freak",
+  "lore": 2967,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Build 20 Speed Pads",
+  "title": "Holiday Elf, the Speed Freak",
+  "text": "Build 20 Speed Pads as Holiday Elf.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/holiday-elf",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

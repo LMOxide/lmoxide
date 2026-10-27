@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-farmer",
+  "lore": 5145,
+  "parent": "achievement/farmer",
+  "client_name": "Farmer_Upgrade 7",
+  "title": "Expert Farmer",
+  "text": "Get the seventh Farmer upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/farmer",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/siege-catapult-shoot-4",
+  "name": "siege catapult shoot 4",
+  "kind": "scenery",
+  "render": {
+    "look": "siege catapult shoot 4",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

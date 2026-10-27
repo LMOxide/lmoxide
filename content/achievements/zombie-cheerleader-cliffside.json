@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-cheerleader-cliffside",
+  "lore": 4438,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Cliffside",
+  "title": "Zombie Cheerleader: Cliffside",
+  "text": "Conquer the Cliffside as Zombie Cheerleader.",
+  "points": 50,
+  "kind": "target",
+  "target": "Cliffside",
+  "minifigure": "minifig/zombie-cheerleader",
+  "source": "client"
+}

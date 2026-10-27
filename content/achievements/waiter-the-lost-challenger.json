@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-the-lost-challenger",
+  "lore": 2726,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Lost Creations_Get to Level 5",
+  "title": "Waiter, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Waiter.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/waiter",
+  "n": 5,
+  "source": "client"
+}

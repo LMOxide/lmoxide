@@ -1,0 +1,25 @@
+{
+  "id": "skill/shield-stance-205339",
+  "name": "Shield Stance",
+  "client": {
+    "spell": 205339,
+    "stats": {
+      "EffectPackage": 224686,
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.5,
+            "Stat": 3000012
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

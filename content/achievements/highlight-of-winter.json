@@ -1,0 +1,21 @@
+{
+  "id": "achievement/highlight-of-winter",
+  "lore": 4045,
+  "parent": "achievement/global",
+  "client_name": "Seasonal_Winter Holidays",
+  "title": "Highlight of Winter",
+  "text": "Complete the Winter Holiday achievements.",
+  "points": 100,
+  "kind": "all",
+  "stars": 1000,
+  "children": [
+    "achievement/holiday-spirit",
+    "achievement/santa-s-helper",
+    "achievement/spirit-of-sharing",
+    "achievement/12-days-of-winter",
+    "achievement/snow-racer",
+    "achievement/ho-ho-ho",
+    "achievement/merrymaker"
+  ],
+  "source": "client"
+}

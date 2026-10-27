@@ -1,0 +1,17 @@
+{
+  "id": "achievement/zombie-pirate-the-demolisher",
+  "lore": 4621,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Smash 25 Minotaur Statues",
+  "title": "Zombie Pirate, the Demolisher",
+  "text": "Smash 25 Minotaur Statues as Zombie Pirate.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 25],
+  "minifigure": "minifig/zombie-pirate",
+  "counts": {
+    "match": "Minotaur Statue",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

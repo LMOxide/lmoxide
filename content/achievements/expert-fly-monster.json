@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-fly-monster",
+  "lore": 4512,
+  "parent": "achievement/fly-monster",
+  "client_name": "Fly Monster_Upgrade 7",
+  "title": "Expert Fly Monster",
+  "text": "Get the seventh Fly Monster upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/fly-monster",
+  "n": 7,
+  "source": "client"
+}

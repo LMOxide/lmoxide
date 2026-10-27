@@ -1,0 +1,13 @@
+{
+  "id": "achievement/goblin-black-widow",
+  "lore": 3883,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Black Widow",
+  "title": "Goblin: Black Widow",
+  "text": "Defeat Black Widow as Goblin.",
+  "points": 25,
+  "kind": "target",
+  "target": "Black Widow",
+  "minifigure": "minifig/goblin",
+  "source": "client"
+}

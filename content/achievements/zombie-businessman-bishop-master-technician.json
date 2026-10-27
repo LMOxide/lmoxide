@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-businessman-bishop-master-technician",
+  "lore": 4661,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Bishop, Master Technician",
+  "title": "Zombie Businessman: Bishop, Master Technician",
+  "text": "Defeat Bishop, Master Technician as Zombie Businessman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bishop, Master Technician",
+  "minifigure": "minifig/zombie-businessman",
+  "source": "client"
+}

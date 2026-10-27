@@ -1,0 +1,10 @@
+{
+  "id": "object/statue-3-finish",
+  "name": "statue 3 finish",
+  "kind": "scenery",
+  "render": {
+    "look": "statue 3 finish",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

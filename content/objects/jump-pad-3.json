@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-pad-3",
+  "name": "jump pad",
+  "kind": "bouncer",
+  "render": {
+    "look": "jump pad",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

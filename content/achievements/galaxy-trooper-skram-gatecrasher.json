@@ -1,0 +1,13 @@
+{
+  "id": "achievement/galaxy-trooper-skram-gatecrasher",
+  "lore": 3867,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Skram Gatecrasher",
+  "title": "Galaxy Trooper: Skram Gatecrasher",
+  "text": "Defeat Skram Gatecrasher as Galaxy Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Skram Gatecrasher",
+  "minifigure": "minifig/galaxy-trooper",
+  "source": "client"
+}

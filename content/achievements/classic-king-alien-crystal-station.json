@@ -1,0 +1,13 @@
+{
+  "id": "achievement/classic-king-alien-crystal-station",
+  "lore": 3794,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Alien Crystal Station",
+  "title": "Classic King: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Classic King.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/classic-king",
+  "source": "client"
+}

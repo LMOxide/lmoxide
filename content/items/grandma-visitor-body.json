@@ -1,0 +1,16 @@
+{
+  "id": "item/grandma-visitor-body",
+  "name": "Grandma Visitor Body",
+  "kind": "part",
+  "template": 483653,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20709,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/grandma-visitor",
+  "location": "Torso",
+  "source": "client"
+}

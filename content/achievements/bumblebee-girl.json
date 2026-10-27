@@ -1,0 +1,29 @@
+{
+  "id": "achievement/bumblebee-girl",
+  "lore": 3342,
+  "parent": "achievement/series-10",
+  "client_name": "Bumblebee Girl",
+  "title": "Bumblebee Girl",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-bumblebee-girl",
+    "achievement/legendary-bumblebee-girl",
+    "achievement/novice-bumblebee-girl",
+    "achievement/expert-bumblebee-girl",
+    "achievement/bumblebee-girl-crimson-chamber",
+    "achievement/bumblebee-girl-ancient-space-ruins",
+    "achievement/bumblebee-girl-treasure-island",
+    "achievement/bumblebee-girl-two-eyed-willy",
+    "achievement/bumblebee-girl-ponos-the-pitcher",
+    "achievement/bumblebee-girl-ridgeback-spitter",
+    "achievement/bumblebee-girl-the-smasher",
+    "achievement/bumblebee-girl-the-master-smasher",
+    "achievement/bumblebee-girl-the-sweet",
+    "achievement/bumblebee-girl-the-lost-challenger",
+    "achievement/bumblebee-girl-the-lost-warrior",
+    "achievement/bumblebee-girl-the-lost-champion"
+  ],
+  "minifigure": "minifig/bumblebee-girl",
+  "source": "client"
+}

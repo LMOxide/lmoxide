@@ -1,0 +1,13 @@
+{
+  "id": "achievement/carpenter-roar-the-gladiator",
+  "lore": 3782,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Roar the Gladiator",
+  "title": "Carpenter: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Carpenter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/carpenter",
+  "source": "client"
+}

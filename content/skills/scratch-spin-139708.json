@@ -1,0 +1,42 @@
+{
+  "id": "skill/scratch-spin-139708",
+  "name": "Scratch Spin",
+  "client": {
+    "spell": 139708,
+    "stats": {
+      "EffectPackage": 18494,
+      "TimeExist": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.699999988079071
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 359,
+            "Value": 51057
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

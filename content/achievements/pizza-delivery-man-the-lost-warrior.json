@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pizza-delivery-man-the-lost-warrior",
+  "lore": 3203,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Lost Creations_Get to Level 10",
+  "title": "Pizza Delivery Man, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Pizza Delivery Man.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/pizza-delivery-man",
+  "n": 10,
+  "source": "client"
+}

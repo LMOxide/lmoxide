@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roman-commander-quicksword-billy",
+  "lore": 3366,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Quicksword Billy",
+  "title": "Roman Commander: Quicksword Billy",
+  "text": "Defeat Quicksword Billy as Roman Commander.",
+  "points": 25,
+  "kind": "target",
+  "target": "Quicksword Billy",
+  "minifigure": "minifig/roman-commander",
+  "source": "client"
+}

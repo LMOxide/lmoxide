@@ -1,0 +1,32 @@
+{
+  "id": "skill/bonk",
+  "name": "Bonk",
+  "client": {
+    "spell": 34341,
+    "stats": {
+      "EffectPackage": 38626,
+      "ItemDelay": 36,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 14,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 34340,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Hollywood Starlet: Bonk ",
+  "source": "client"
+}

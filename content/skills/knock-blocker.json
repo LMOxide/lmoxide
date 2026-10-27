@@ -1,0 +1,13 @@
+{
+  "id": "skill/knock-blocker",
+  "name": "Knock_Blocker",
+  "client": {
+    "spell": 365804,
+    "stats": {
+      "MoreFlags": 33554432,
+      "TargetingMode": 5,
+      "TimeExist": 250
+    }
+  },
+  "source": "client"
+}

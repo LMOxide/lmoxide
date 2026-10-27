@@ -1,0 +1,26 @@
+{
+  "id": "skill/state-buff-messy",
+  "name": "state buff: messy",
+  "client": {
+    "spell": 504814,
+    "stats": {
+      "EffectPackage": 439203,
+      "TargetingMode": 5,
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "StatMultiplier",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": -10.0,
+            "Stat": 3000095
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

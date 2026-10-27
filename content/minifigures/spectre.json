@@ -1,0 +1,134 @@
+{
+  "id": "minifig/spectre",
+  "name": "Spectre",
+  "template": 641025,
+  "series": 14,
+  "series_index": 0,
+  "render": {
+    "monster_data": 641042
+  },
+  "stats": {
+    "life": 250,
+    "power": 7,
+    "defense": 2,
+    "creativity": 8,
+    "role": 3,
+    "element": 2
+  },
+  "normal": {
+    "skill": "skill/rattle-your-chain",
+    "hits": [
+      {
+        "skill": "skill/main-s14-spectre1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [641610]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/spectral-realm",
+    "hits": [
+      {
+        "skill": "skill/main-s14-spectre2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.6,
+        "damage_type": 1000,
+        "via": [641626, 642349]
+      }
+    ]
+  },
+  "click_spells": [641610, 641626],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530296"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-powered-barrier"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [4572, 4395, 4681, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/spectre-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/spectre-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/spectre-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-spectre",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/monster-trials"],
+    "text": "You can find me in the Monster Trials, LEGO Center.",
+    "location_text": 251325715,
+    "location_picture": 659005
+  },
+  "source": "client"
+}

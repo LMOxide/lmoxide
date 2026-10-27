@@ -1,0 +1,32 @@
+{
+  "id": "skill/dazzling-strike",
+  "name": "Dazzling Strike",
+  "client": {
+    "spell": 500483,
+    "stats": {
+      "EffectPackage": 506170,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 2,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 505086,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Swashbuckler: Dazzling Strike",
+  "source": "client"
+}

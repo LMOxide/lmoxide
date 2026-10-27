@@ -1,0 +1,13 @@
+{
+  "id": "achievement/rock-star-mercenary-assault-cruiser",
+  "lore": 3225,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Mercenary Assault Cruiser",
+  "title": "Rock Star: Mercenary Assault Cruiser",
+  "text": "Conquer the Mercenary Assault Cruiser as Rock Star.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Assault Cruiser",
+  "minifigure": "minifig/rock-star",
+  "source": "client"
+}

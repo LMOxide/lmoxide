@@ -1,0 +1,34 @@
+{
+  "id": "skill/main-pierrot2-orb-wrapper",
+  "name": "main pierrot2 orb wrapper",
+  "client": {
+    "spell": 245964,
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 222171
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 222197
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 222198
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Sad Clown: From Bad to Worse",
+  "source": "client"
+}

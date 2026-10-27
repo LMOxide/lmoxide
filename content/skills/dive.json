@@ -1,0 +1,28 @@
+{
+  "id": "skill/dive",
+  "name": "Dive",
+  "client": {
+    "spell": 301782,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Interval": 55,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 301783,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Skydiver: Skydive",
+  "source": "client"
+}

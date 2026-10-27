@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jester-derp-the-internet-troll",
+  "lore": 3147,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Derp the Internet Troll",
+  "title": "Jester: Derp the Internet Troll",
+  "text": "Defeat Derp the Internet Troll as Jester.",
+  "points": 25,
+  "kind": "target",
+  "target": "Derp the Internet Troll",
+  "minifigure": "minifig/jester",
+  "source": "client"
+}

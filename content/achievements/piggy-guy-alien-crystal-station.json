@@ -1,0 +1,13 @@
+{
+  "id": "achievement/piggy-guy-alien-crystal-station",
+  "lore": 3176,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Alien Crystal Station",
+  "title": "Piggy Guy: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Piggy Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/piggy-guy",
+  "source": "client"
+}

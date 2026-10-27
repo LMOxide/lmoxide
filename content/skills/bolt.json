@@ -1,0 +1,32 @@
+{
+  "id": "skill/bolt",
+  "name": "Bolt",
+  "client": {
+    "spell": 319424,
+    "stats": {
+      "AISpellCategory": 1025,
+      "AttackRange": 1000,
+      "EffectPackage": 338672,
+      "ItemDelay": 40,
+      "RechargeDelay": 160,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 2000,
+            "AttractorID": 38,
+            "ItemInstance": 319431,
+            "ProjectileType": 1,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,77 @@
+{
+  "id": "skill/main-rockstar2-slow",
+  "name": "main rockstar2 slow",
+  "client": {
+    "spell": 505014,
+    "stats": {
+      "MaxBuffCounters": 5,
+      "TargetingMode": 5,
+      "TimeExist": 150
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.949999988079071
+          },
+          "criteria": [
+            [0, 0, 18],
+            [505014, 1, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.8999999761581421
+          },
+          "criteria": [
+            [0, 0, 18],
+            [505014, 2, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.8500000238418579
+          },
+          "criteria": [
+            [0, 0, 18],
+            [505014, 3, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.800000011920929
+          },
+          "criteria": [
+            [0, 0, 18],
+            [505014, 4, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.75
+          },
+          "criteria": [
+            [0, 0, 18],
+            [505014, 5, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

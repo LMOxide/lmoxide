@@ -1,0 +1,396 @@
+{
+  "$defs": {
+    "Attack": {
+      "additionalProperties": false,
+      "properties": {
+        "hits": {
+          "items": {
+            "$ref": "#/$defs/Hit"
+          },
+          "type": "array"
+        },
+        "skill": {
+          "type": "string"
+        }
+      },
+      "required": ["skill"],
+      "type": "object"
+    },
+    "Hit": {
+      "additionalProperties": false,
+      "description": "One hit of an attack, as the extractor followed it through the client's spells.",
+      "properties": {
+        "ability_mod": {
+          "format": "float",
+          "type": ["number", "null"]
+        },
+        "damage_type": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "skill": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "via": {
+          "description": "The client spells it goes through.",
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["skill", "type"],
+      "type": "object"
+    },
+    "MinifigureObtain": {
+      "additionalProperties": false,
+      "properties": {
+        "achievement": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "location_picture": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "location_text": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "rarity": {
+          "description": "`common`, `rare`, `epic` (tunables.rarity).",
+          "type": ["string", "null"]
+        },
+        "regions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "source": {
+          "description": "`world`, `store`, `membership`, `achievement`, `event`, `club`.",
+          "type": "string"
+        },
+        "text": {
+          "description": "The client's \"You can find me in ...\" text.",
+          "type": "string"
+        }
+      },
+      "required": ["source"],
+      "type": "object"
+    },
+    "MinifigurePart": {
+      "additionalProperties": false,
+      "properties": {
+        "item": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        }
+      },
+      "required": ["location", "item"],
+      "type": "object"
+    },
+    "MinifigureStats": {
+      "additionalProperties": false,
+      "properties": {
+        "creativity": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "defense": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "element": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "life": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "power": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "role": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": ["life", "power", "defense", "creativity", "role", "element"],
+      "type": "object"
+    },
+    "Render": {
+      "additionalProperties": false,
+      "description": "How a template looks in the client.",
+      "properties": {
+        "cars_group": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "effect_package": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "look": {
+          "description": "The look's name, for reading.",
+          "type": ["string", "null"]
+        },
+        "monster_data": {
+          "description": "The look: client monster data (RDB 1010514).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "npc_template": {
+          "description": "Client NPC template (TDB 51000 name).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "scale": {
+          "format": "float",
+          "type": ["number", "null"]
+        },
+        "template": {
+          "description": "Client item template (smashables, buildies, chests, ...).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "visual": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": ["array", "null"]
+        }
+      },
+      "type": "object"
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    },
+    "Upgrade": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": true,
+        "bit": {
+          "description": "Its bit in the minifigure's upgrade mask (shop order).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "buff": {
+          "type": "string"
+        },
+        "price": {
+          "format": "float",
+          "type": ["number", "null"]
+        },
+        "slot": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        }
+      },
+      "required": ["bit", "buff"],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A playable minifigure: `minifigures/<slug>.json`. New ones need client patches (the\ncollection comes from the client's data); their numbers are free to change.",
+  "properties": {
+    "aura_tags": {
+      "description": "Achievement auras: the four lore tags.",
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "author": {
+      "type": "string"
+    },
+    "bag": {
+      "type": ["string", "null"]
+    },
+    "click_spells": {
+      "description": "The client's left/right click spells.",
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Its id: `minifig/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "normal": {
+      "$ref": "#/$defs/Attack"
+    },
+    "obtain": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MinifigureObtain"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "parts": {
+      "items": {
+        "$ref": "#/$defs/MinifigurePart"
+      },
+      "type": "array"
+    },
+    "render": {
+      "$ref": "#/$defs/Render"
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "series": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "series_index": {
+      "default": 0,
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "special": {
+      "$ref": "#/$defs/Attack"
+    },
+    "stats": {
+      "$ref": "#/$defs/MinifigureStats"
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "template": {
+      "description": "The client minifigure item template.",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "upgrades": {
+      "items": {
+        "$ref": "#/$defs/Upgrade"
+      },
+      "type": "array"
+    }
+  },
+  "required": ["id", "template", "series", "stats", "normal", "special"],
+  "title": "Minifigure",
+  "type": "object"
+}

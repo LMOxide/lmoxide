@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-jester2-teleport-lua",
+  "name": "main jester2 teleport lua",
+  "client": {
+    "spell": 509264,
+    "stats": {
+      "LuaScriptID": 1361
+    }
+  },
+  "source": "client"
+}

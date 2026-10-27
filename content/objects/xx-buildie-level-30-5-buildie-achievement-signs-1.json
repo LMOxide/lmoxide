@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-buildie-level-30-5-buildie-achievement-signs-1",
+  "name": "XX_Buildie : Level 30 : 5 Buildie Achievement : Signs : 1",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 152174,
+    "template": 550764,
+    "look": "signs_arrow_a_buildie",
+    "cars_group": 1
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 161
+  },
+  "source": "client"
+}

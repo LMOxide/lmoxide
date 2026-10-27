@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-galaxy-trooper",
+  "lore": 3869,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Upgrade 7",
+  "title": "Expert Galaxy Trooper",
+  "text": "Get the seventh Galaxy Trooper upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/galaxy-trooper",
+  "n": 7,
+  "source": "client"
+}

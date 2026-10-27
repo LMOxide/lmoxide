@@ -1,0 +1,16 @@
+{
+  "id": "achievement/lady-cyclops-the-striker",
+  "lore": 3925,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Smash 1000 Monsters",
+  "title": "Lady Cyclops, the Striker",
+  "text": "Smash 1000 monsters as Lady Cyclops.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/lady-cyclops",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

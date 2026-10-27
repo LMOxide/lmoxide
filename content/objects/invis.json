@@ -1,0 +1,10 @@
+{
+  "id": "object/invis",
+  "name": "invis",
+  "kind": "scenery",
+  "render": {
+    "look": "invis",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "npc/desperado",
+  "name": "Desperado",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 192742,
+    "npc_template": 873,
+    "look": "pirate_desperado",
+    "cars_group": 3
+  },
+  "level": 6,
+  "stats": {
+    "health": 234,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-237323",
+  "loot": "loot/enemy",
+  "source": "client"
+}

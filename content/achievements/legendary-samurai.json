@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-samurai",
+  "lore": 3946,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Complete Any 10",
+  "title": "Legendary Samurai",
+  "text": "Complete any 11 Samurai achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/samurai",
+  "n": 11,
+  "source": "client"
+}

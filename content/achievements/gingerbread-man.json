@@ -1,0 +1,29 @@
+{
+  "id": "achievement/gingerbread-man",
+  "lore": 2493,
+  "parent": "achievement/series-11",
+  "client_name": "Gingerbread Man",
+  "title": "Gingerbread Man",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-gingerbread-man",
+    "achievement/legendary-gingerbread-man",
+    "achievement/novice-gingerbread-man",
+    "achievement/expert-gingerbread-man",
+    "achievement/gingerbread-man-ancient-space-ruins",
+    "achievement/gingerbread-man-dark-alcove",
+    "achievement/gingerbread-man-alien-command-center",
+    "achievement/gingerbread-man-hecate-the-winter-witch",
+    "achievement/gingerbread-man-giant-spider",
+    "achievement/gingerbread-man-derp-the-internet-troll",
+    "achievement/gingerbread-man-the-builder",
+    "achievement/gingerbread-man-the-master-builder",
+    "achievement/gingerbread-man-the-guide",
+    "achievement/gingerbread-man-the-lost-challenger",
+    "achievement/gingerbread-man-the-lost-warrior",
+    "achievement/gingerbread-man-the-lost-champion"
+  ],
+  "minifigure": "minifig/gingerbread-man",
+  "source": "client"
+}

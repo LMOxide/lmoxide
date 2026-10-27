@@ -1,0 +1,17 @@
+{
+  "id": "object/xx-crate-2",
+  "name": "XX_Crate",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 152418,
+    "template": 153172
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 201
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-trendsetter",
+  "lore": 3503,
+  "parent": "achievement/trendsetter",
+  "client_name": "Trendsetter_Upgrade 3",
+  "title": "Novice Trendsetter",
+  "text": "Get the third Trendsetter upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/trendsetter",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-plant-monster",
+  "lore": 4555,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Complete Any 10",
+  "title": "Legendary Plant Monster",
+  "text": "Complete any 11 Plant Monster achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/plant-monster",
+  "n": 11,
+  "source": "client"
+}

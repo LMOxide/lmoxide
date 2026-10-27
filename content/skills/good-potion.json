@@ -1,0 +1,47 @@
+{
+  "id": "skill/good-potion",
+  "name": "Good Potion",
+  "client": {
+    "spell": 357891,
+    "stats": {
+      "EffectPackage": 362338,
+      "ItemDelay": 50,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 50,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 358623,
+            "Radius": 5
+          }
+        },
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 358710
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Type": 5007,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Mr. Good and Evil: Evil Potion",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-wacky-witch",
+  "lore": 4453,
+  "parent": "achievement/wacky-witch",
+  "client_name": "Wacky Witch_Complete Any 10",
+  "title": "Legendary Wacky Witch",
+  "text": "Complete any 11 Wacky Witch achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/wacky-witch",
+  "n": 11,
+  "source": "client"
+}

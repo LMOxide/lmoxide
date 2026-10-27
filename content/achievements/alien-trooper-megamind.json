@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-trooper-megamind",
+  "lore": 3764,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Megamind",
+  "title": "Alien Trooper: Megamind",
+  "text": "Defeat Megamind as Alien Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Megamind",
+  "minifigure": "minifig/alien-trooper",
+  "source": "client"
+}

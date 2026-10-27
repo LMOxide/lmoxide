@@ -1,0 +1,12 @@
+{
+  "id": "achievement/new-leadership",
+  "lore": 792,
+  "parent": "achievement/space-commander",
+  "client_name": "Space_Combat_Champion_Korard, Mercenary Captain",
+  "title": "New Leadership",
+  "text": "Defeat Korard, Mercenary Captain in the Space World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Korard, Mercenary Captain",
+  "source": "client"
+}

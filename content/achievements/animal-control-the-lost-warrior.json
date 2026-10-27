@@ -1,0 +1,13 @@
+{
+  "id": "achievement/animal-control-the-lost-warrior",
+  "lore": 5083,
+  "parent": "achievement/animal-control",
+  "client_name": "Animal Control_Lost Creations_Get to Level 10",
+  "title": "Animal Control, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Animal Control.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/animal-control",
+  "n": 10,
+  "source": "client"
+}

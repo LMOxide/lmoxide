@@ -1,0 +1,47 @@
+{
+  "id": "world/winter-pass",
+  "name": "Winter Pass",
+  "playfield": 1410,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [116.26, 81.48, 206.49],
+    "rot": 4.71
+  },
+  "arrival_guid": 578063,
+  "arrival_from": {
+    "world/isle-of-yarr": {
+      "pos": [381.98, 102.25, 170.34],
+      "rot": 2.356
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Winter Pass",
+      "guid": 578063,
+      "pos": [116.26, 81.48, 206.49],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Snow Trail",
+      "guid": 582588,
+      "pos": [233.12, 92.0, 157.04],
+      "rot": 4.71,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Snow Steppes",
+      "guid": 582589,
+      "pos": [298.61, 92.0, 156.38],
+      "rot": 4.71,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

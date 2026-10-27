@@ -1,0 +1,22 @@
+{
+  "id": "buff/upgrade-regenerate",
+  "name": "Upgrade: Regenerate",
+  "nano": 421240,
+  "effects": [
+    {
+      "proc": {
+        "on": "damaged",
+        "channelling": true,
+        "then": [
+          {
+            "heal": {
+              "amount": "2%",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

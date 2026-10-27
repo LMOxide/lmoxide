@@ -1,0 +1,16 @@
+{
+  "id": "achievement/motorcycle-mechanic-the-master-smasher",
+  "lore": 3410,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Smash 5000 Smashies",
+  "title": "Motorcycle Mechanic, the Master Smasher",
+  "text": "Smash 5000 smashies as Motorcycle Mechanic.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/motorcycle-mechanic",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

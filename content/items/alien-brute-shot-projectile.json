@@ -1,0 +1,18 @@
+{
+  "id": "item/alien-brute-shot-projectile",
+  "name": "alien brute shot projectile",
+  "kind": "projectile",
+  "template": 376386,
+  "effect_package": 380425,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 376388
+      }
+    }
+  ],
+  "source": "client"
+}

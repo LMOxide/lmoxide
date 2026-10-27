@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-mr-gold",
+  "lore": 3384,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Upgrade 3",
+  "title": "Novice Mr. Gold",
+  "text": "Get the third Mr. Gold upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/mr-gold",
+  "n": 3,
+  "source": "client"
+}

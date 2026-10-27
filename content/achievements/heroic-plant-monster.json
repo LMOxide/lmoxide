@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-plant-monster",
+  "lore": 4554,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Complete Any 5",
+  "title": "Heroic Plant Monster",
+  "text": "Complete any 5 Plant Monster achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/plant-monster",
+  "n": 5,
+  "source": "client"
+}

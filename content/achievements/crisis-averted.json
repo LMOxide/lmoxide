@@ -1,0 +1,12 @@
+{
+  "id": "achievement/crisis-averted",
+  "lore": 826,
+  "parent": "achievement/pocket-universe",
+  "client_name": "Space_Combat_PA_Cave of the Exiled",
+  "title": "Crisis Averted",
+  "text": "Clear the Cave of the Exiled in the Space World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Cave of the Exiled",
+  "source": "client"
+}

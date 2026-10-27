@@ -1,0 +1,13 @@
+{
+  "id": "achievement/judge-dragon-halls",
+  "lore": 2566,
+  "parent": "achievement/judge",
+  "client_name": "Judge_Dragon Halls",
+  "title": "Judge: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Judge.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/judge",
+  "source": "client"
+}

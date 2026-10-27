@@ -1,0 +1,10 @@
+{
+  "id": "object/catapult1",
+  "name": "catapult1",
+  "kind": "scenery",
+  "render": {
+    "look": "catapult1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

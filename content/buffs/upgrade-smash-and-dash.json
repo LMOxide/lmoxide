@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-smash-and-dash",
+  "name": "Upgrade: Smash and Dash",
+  "nano": 421249,
+  "effects": [
+    {
+      "proc": {
+        "on": "special_attack",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-sprint",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

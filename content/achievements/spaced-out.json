@@ -1,0 +1,11 @@
+{
+  "id": "achievement/spaced-out",
+  "lore": 852,
+  "parent": "achievement/legend-of-the-chicken-suit-guy",
+  "client_name": "Global_Space_Chicken Suit Guy",
+  "title": "Spaced Out",
+  "text": "Find the Chicken Suit Guy in the Space World.",
+  "points": 25,
+  "kind": "manual",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-the-lost-challenger",
+  "lore": 5290,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Lost Creations_Get to Level 5",
+  "title": "Shark Suit Guy, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Shark Suit Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/shark-suit-guy",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/boss-kraken-ink-bubble-effect",
+  "name": "boss kraken ink bubble effect",
+  "client": {
+    "spell": 186918,
+    "stats": {
+      "EffectPackage": 620172,
+      "TargetingMode": 5,
+      "TimeExist": 75
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.5
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

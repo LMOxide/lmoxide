@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-barrel-3",
+  "name": "XX_Barrel",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 238281,
+    "template": 238283,
+    "look": "lego_barrel_d_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 201
+  },
+  "source": "client"
+}

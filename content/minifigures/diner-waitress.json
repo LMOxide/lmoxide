@@ -1,0 +1,134 @@
+{
+  "id": "minifig/diner-waitress",
+  "name": "Diner Waitress",
+  "template": 464896,
+  "series": 11,
+  "series_index": 0,
+  "render": {
+    "monster_data": 276493
+  },
+  "stats": {
+    "life": 250,
+    "power": 9,
+    "defense": 1,
+    "creativity": 5,
+    "role": 1,
+    "element": 4
+  },
+  "normal": {
+    "skill": "skill/your-order",
+    "hits": [
+      {
+        "skill": "skill/main-dinerwaitress1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [465023]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/full-house",
+    "hits": [
+      {
+        "skill": "skill/main-dinerwaitress2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.65,
+        "damage_type": 1000,
+        "via": [465024]
+      }
+    ]
+  },
+  "click_spells": [465023, 465024],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fast-460978"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-hunter"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-technician"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530253"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-slippery-power"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2816, 2482, 3643, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/diner-waitress-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/diner-waitress-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/diner-waitress-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-diner-waitress",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/space-world"],
+    "text": "You can find me in the Space World.",
+    "location_text": 27328549,
+    "location_picture": 474079
+  },
+  "source": "client"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-12-tree-tops-art",
+  "name": "Dino World - 12_Tree Tops - Art",
+  "playfield": 6512,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [249.5, 78.9, 140.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

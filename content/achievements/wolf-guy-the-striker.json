@@ -1,0 +1,16 @@
+{
+  "id": "achievement/wolf-guy-the-striker",
+  "lore": 4602,
+  "parent": "achievement/wolf-guy",
+  "client_name": "Wolf Guy_Smash 1000 Monsters",
+  "title": "Wolf Guy, the Striker",
+  "text": "Smash 1000 monsters as Wolf Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/wolf-guy",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

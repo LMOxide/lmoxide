@@ -1,0 +1,17 @@
+{
+  "id": "achievement/plant-monster-the-stonemason",
+  "lore": 4570,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Build 15 Mythology Statues",
+  "title": "Plant Monster, the Stonemason",
+  "text": "Build 15 Mythology Statues as Plant Monster.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/plant-monster",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

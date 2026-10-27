@@ -1,0 +1,22 @@
+{
+  "id": "npc/troll-shaman-swamp",
+  "name": "Troll Shaman Swamp",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 331183
+  },
+  "level": 12,
+  "stats": {
+    "health": 750
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/bolt",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

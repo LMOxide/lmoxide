@@ -1,0 +1,29 @@
+{
+  "id": "achievement/alien-avenger",
+  "lore": 2476,
+  "parent": "achievement/series-9",
+  "client_name": "Alien Avenger",
+  "title": "Alien Avenger",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-alien-avenger",
+    "achievement/legendary-alien-avenger",
+    "achievement/novice-alien-avenger",
+    "achievement/expert-alien-avenger",
+    "achievement/alien-avenger-mercenary-troop-transport",
+    "achievement/alien-avenger-underground-cave",
+    "achievement/alien-avenger-alien-command-center",
+    "achievement/alien-avenger-roar-the-gladiator",
+    "achievement/alien-avenger-janos-the-unforgiving",
+    "achievement/alien-avenger-chunk-the-tiger",
+    "achievement/alien-avenger-the-striker",
+    "achievement/alien-avenger-the-master-striker",
+    "achievement/alien-avenger-the-witch-hunter",
+    "achievement/alien-avenger-the-lost-challenger",
+    "achievement/alien-avenger-the-lost-warrior",
+    "achievement/alien-avenger-the-lost-champion"
+  ],
+  "minifigure": "minifig/alien-avenger",
+  "source": "client"
+}

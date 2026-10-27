@@ -1,0 +1,36 @@
+{
+  "id": "world/the-peglegged-mermaid-tavern",
+  "name": "The Peglegged Mermaid Tavern",
+  "playfield": 4620,
+  "kind": "pocket",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [218.66, 42.1, 169.82],
+    "rot": 4.766
+  },
+  "arrival_guid": 447654,
+  "arrival_from": {
+    "world/isle-of-yarr": {
+      "pos": [225.94, 43.68, 146.42],
+      "rot": 6.021
+    },
+    "world/pirate-trials": {
+      "pos": [228.21, 40.48, 183.55],
+      "rot": 3.665
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "The Pegled Mermaid",
+      "guid": 447654,
+      "pos": [218.66, 42.1, 169.82],
+      "rot": 4.766,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

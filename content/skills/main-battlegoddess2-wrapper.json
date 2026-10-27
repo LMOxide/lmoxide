@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-battlegoddess2-wrapper",
+  "name": "main battlegoddess2 wrapper",
+  "client": {
+    "spell": 506552,
+    "stats": {
+      "TargetingMode": 11
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 506729
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 506730
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Battle Goddess: Divine Shield",
+  "source": "client"
+}

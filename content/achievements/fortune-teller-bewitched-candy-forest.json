@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fortune-teller-bewitched-candy-forest",
+  "lore": 2615,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Bewitched Candy Forest",
+  "title": "Fortune Teller: Bewitched Candy Forest",
+  "text": "Conquer the Bewitched Candy Forest as Fortune Teller.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bewitched Candy Forest",
+  "minifigure": "minifig/fortune-teller",
+  "source": "client"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "world/mythology-arena-art",
+  "name": "Mythology_Arena_Art",
+  "playfield": 2101,
+  "kind": "other",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [259.5, 71.97, 265.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

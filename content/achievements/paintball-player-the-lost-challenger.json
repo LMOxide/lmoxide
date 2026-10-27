@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paintball-player-the-lost-challenger",
+  "lore": 3591,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Lost Creations_Get to Level 5",
+  "title": "Paintball Player, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Paintball Player.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/paintball-player",
+  "n": 5,
+  "source": "client"
+}

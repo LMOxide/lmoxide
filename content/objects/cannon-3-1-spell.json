@@ -1,0 +1,10 @@
+{
+  "id": "object/cannon-3-1-spell",
+  "name": "cannon 3_1 spell",
+  "kind": "scenery",
+  "render": {
+    "look": "cannon 3_1 spell",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fortune-teller-hecate-the-winter-witch",
+  "lore": 2620,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Hecate, the Winter Witch",
+  "title": "Fortune Teller: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Fortune Teller.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/fortune-teller",
+  "source": "client"
+}

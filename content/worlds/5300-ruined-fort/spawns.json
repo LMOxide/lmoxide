@@ -1,0 +1,2006 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/5300/troll-warlord",
+      "name": "Troll Warlord",
+      "kind": "enemy",
+      "template": "npc/troll-warlord",
+      "pos": [353.91, 48.92, 279.8],
+      "anchor": "Res_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-melee-war",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [268.5, 48.77, 244.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [270.7, 48.77, 245.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-2",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [172.0, 39.07, 188.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Storage",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-ranged-war",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [174.2, 39.07, 189.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Storage",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-3",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [170.2, 39.07, 189.6],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Storage",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-ranged-war-2",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [314.5, 48.65, 259.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Graveyard",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-hornblower-war",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [316.7, 48.65, 260.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Graveyard",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-hornblower-war-2",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [231.5, 48.69, 244.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-wolf",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [233.7, 48.69, 245.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-hornblower-war-3",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [229.7, 48.69, 245.6],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-wolf-2",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [249.0, 46.84, 226.5],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-ogre-defender-melee-war",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [251.2, 46.84, 227.7],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-ogre-defender-melee-war-2",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [255.0, 48.79, 263.5],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-melee-war-2",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [257.2, 48.79, 264.7],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-ogre-defender-melee-war-3",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [253.2, 48.79, 265.1],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-melee-war-3",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [340.5, 48.08, 262.5],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Graveyard",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-4",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [342.7, 48.08, 263.7],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Graveyard",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-5",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [360.5, 50.78, 308.5],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-ranged-war-3",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [362.7, 51.99, 309.7],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-6",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [358.7, 50.78, 310.1],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-ranged-war-4",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [197.0, 40.72, 239.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Res_Tavern",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-hornblower-war-4",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [199.2, 40.72, 240.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Res_Tavern",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-hornblower-war-5",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [248.5, 48.77, 243.5],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-wolf-3",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [250.7, 48.78, 244.7],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-hornblower-war-6",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [246.7, 48.78, 245.1],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Armoury",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-wolf-4",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [329.5, 47.81, 276.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Graveyard",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-ogre-defender-melee-war-4",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [331.7, 47.81, 277.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Graveyard",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-ogre-defender-melee-war-5",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [184.0, 38.73, 180.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Storage",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-melee-war-4",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [186.2, 38.73, 181.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Storage",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/medieval-ogre-defender-melee-war-6",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [182.2, 38.73, 181.6],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "Quest_Storage",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-melee-war-5",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [163.5, 40.9, 246.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-7",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [165.7, 40.88, 247.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-8",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [180.5, 42.84, 146.0],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-ranged-war-5",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [182.7, 42.84, 147.2],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/troll-heavy-hitter-war-9",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [178.7, 42.84, 147.6],
+      "overrides": {
+        "level": 10,
+        "stats": {
+          "health": 538
+        }
+      },
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/court-jester",
+      "name": "Court Jester",
+      "kind": "npc",
+      "template": "npc/court-jester",
+      "pos": [349.81, 50.43, 315.87],
+      "rot": -2.635,
+      "anchor": "Cine_Jester1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/wizard",
+      "name": "Wizard",
+      "kind": "npc",
+      "template": "npc/wizard",
+      "pos": [347.39, 50.1, 315.7],
+      "rot": 1.258,
+      "anchor": "Cine_Wizard1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [165.0, 42.77, 219.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [165.8, 42.77, 220.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-table",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [164.4, 42.77, 220.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-chair-red",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [296.5, 48.68, 244.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [297.3, 48.68, 245.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [295.9, 48.68, 245.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [329.0, 48.72, 244.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-table-2",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [329.8, 48.72, 245.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-chair-red-2",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [328.4, 48.72, 245.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [185.5, 38.71, 203.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [186.3, 38.71, 204.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [184.9, 38.71, 204.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-table-3",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [181.0, 40.88, 238.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-chair-red-3",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [181.8, 40.88, 239.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [180.4, 40.88, 239.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [180.5, 41.43, 160.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [181.3, 41.43, 161.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-table-4",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [179.9, 41.43, 161.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-chair-red-4",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [148.0, 41.01, 140.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [148.8, 41.01, 141.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [147.4, 41.01, 141.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [168.5, 43.01, 140.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-table-5",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [169.3, 43.01, 141.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/xx-chair-red-5",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [167.9, 43.01, 141.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [180.74, 42.99, 228.03],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 343715,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [203.08, 40.99, 234.81],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 343716,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [227.08, 48.99, 246.94],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 343717,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [165.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319135,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [165.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319136,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [165.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319137,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-2",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [173.01, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321922,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-2",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [173.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321921,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-2",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [173.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321923,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-3",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [181.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321932,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-3",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [181.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321991,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-3",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [181.0, 38.1, 179.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321940,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-4",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [165.02, 38.1, 187.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321948,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-4",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [165.02, 38.1, 187.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321992,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-4",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [165.02, 38.1, 187.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321947,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-5",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [172.99, 38.1, 188.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321951,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-5",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [172.99, 38.1, 188.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321993,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-5",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [172.99, 38.1, 188.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321952,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-6",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [180.99, 38.1, 187.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321954,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-6",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [180.99, 38.1, 187.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321994,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-6",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [180.99, 38.1, 187.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321955,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-7",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [164.99, 38.1, 195.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321960,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-7",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [164.99, 38.1, 195.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321995,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-7",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [164.99, 38.1, 195.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321959,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-8",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [173.01, 38.1, 195.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321963,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-8",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [173.01, 38.1, 195.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321996,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-8",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [173.01, 38.1, 195.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321962,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-red-9",
+      "name": "pressureplate_red",
+      "kind": "scenery",
+      "template": "object/pressureplate-red",
+      "pos": [181.0, 38.1, 195.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321965,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346166],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-yellow-9",
+      "name": "pressureplate_yellow",
+      "kind": "scenery",
+      "template": "object/pressureplate-yellow",
+      "pos": [181.0, 38.1, 195.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321997,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346161],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/pressureplate-green-9",
+      "name": "pressureplate_green",
+      "kind": "scenery",
+      "template": "object/pressureplate-green",
+      "pos": [181.0, 38.1, 195.98],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 321964,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 346169],
+        "bounds": [-1.25, -0.0, -1.25, 1.25, 0.387, 1.25]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-4",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [173.43, 38.1, 187.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 322011,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-5",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [174.56, 38.1, 187.83],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 305277,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-6",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [169.97, 38.1, 184.65],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 314617,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-7",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [172.24, 38.1, 184.63],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 314618,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/lego-chest-large-a-smashie",
+      "name": "lego_chest_large_a_smashie",
+      "kind": "scenery",
+      "template": "object/lego-chest-large-a-smashie",
+      "pos": [170.06, 38.1, 184.64],
+      "rot": [0.0, 0.4119, 0.0, 0.9112],
+      "client": {
+        "guid": 314611,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 148846],
+        "bounds": [-0.962, -0.0, -0.5, 0.957, 1.155, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/lego-chest-large-a-smashie-2",
+      "name": "lego_chest_large_a_smashie",
+      "kind": "scenery",
+      "template": "object/lego-chest-large-a-smashie",
+      "pos": [172.2, 38.1, 184.68],
+      "rot": [0.0, -0.2471, 0.0, 0.969],
+      "client": {
+        "guid": 314612,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 148846],
+        "bounds": [-0.962, -0.0, -0.5, 0.957, 1.155, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/chest-active-dynel",
+      "name": "chest active dynel",
+      "kind": "scenery",
+      "template": "object/chest-active-dynel",
+      "pos": [171.46, 38.1, 186.11],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 314613,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/reward-chest-inactive-dynel",
+      "name": "reward chest inactive dynel",
+      "kind": "scenery",
+      "template": "object/reward-chest-inactive-dynel",
+      "pos": [170.95, 37.71, 183.91],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 314683,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-8",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [183.7, 38.87, 242.81],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319059,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/invisible-monsterdata-9",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [183.7, 38.87, 245.53],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319063,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [251.16, 48.54, 254.19],
+      "rot": [0.0, -0.698, 0.0, 0.7161],
+      "client": {
+        "guid": 295737,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-2",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [250.54, 48.54, 255.64],
+      "rot": [0.0, -0.9418, 0.0, 0.3361],
+      "client": {
+        "guid": 344276,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-3",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [261.32, 48.54, 252.12],
+      "rot": [0.0, -0.9258, 0.0, -0.3781],
+      "client": {
+        "guid": 344280,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-4",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [238.73, 48.77, 263.02],
+      "rot": [0.0, -0.9258, 0.0, -0.3781],
+      "client": {
+        "guid": 344284,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-5",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [237.12, 48.77, 262.97],
+      "rot": [0.0, 0.0281, 0.0, -0.9996],
+      "client": {
+        "guid": 344288,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-6",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [238.93, 48.77, 257.27],
+      "rot": [0.0, 0.0281, 0.0, -0.9996],
+      "client": {
+        "guid": 344292,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-7",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [248.06, 46.64, 238.34],
+      "rot": [0.0, -0.9814, 0.0, 0.1922],
+      "client": {
+        "guid": 344296,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-8",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [255.57, 46.72, 222.85],
+      "rot": [0.0, -0.064, 0.0, -0.9979],
+      "client": {
+        "guid": 344300,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-9",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [255.41, 46.72, 217.61],
+      "rot": [0.0, -0.8946, 0.0, -0.4469],
+      "client": {
+        "guid": 344304,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-10",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [240.05, 46.64, 238.33],
+      "rot": [0.0, -0.8252, 0.0, -0.5648],
+      "client": {
+        "guid": 344308,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-11",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [246.59, 48.77, 248.21],
+      "rot": [0.0, 0.0281, 0.0, -0.9996],
+      "client": {
+        "guid": 344312,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/explosive-crate-spell-point-12",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [246.7, 48.77, 249.71],
+      "rot": [0.0, -0.5928, 0.0, -0.8053],
+      "client": {
+        "guid": 344316,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard1",
+      "name": "graveyard1",
+      "kind": "scenery",
+      "template": "object/graveyard1",
+      "pos": [333.03, 47.71, 282.28],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311188,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard2",
+      "name": "graveyard2",
+      "kind": "scenery",
+      "template": "object/graveyard2",
+      "pos": [328.27, 47.42, 279.39],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311286,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard3",
+      "name": "graveyard3",
+      "kind": "scenery",
+      "template": "object/graveyard3",
+      "pos": [337.03, 47.26, 278.77],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311313,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard4",
+      "name": "graveyard4",
+      "kind": "scenery",
+      "template": "object/graveyard4",
+      "pos": [329.63, 46.22, 276.58],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311314,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard5",
+      "name": "graveyard5",
+      "kind": "scenery",
+      "template": "object/graveyard5",
+      "pos": [328.2, 46.22, 275.72],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311315,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard6",
+      "name": "graveyard6",
+      "kind": "scenery",
+      "template": "object/graveyard6",
+      "pos": [336.59, 46.22, 275.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311316,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard7",
+      "name": "graveyard7",
+      "kind": "scenery",
+      "template": "object/graveyard7",
+      "pos": [337.83, 46.22, 274.88],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311317,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard8",
+      "name": "graveyard8",
+      "kind": "scenery",
+      "template": "object/graveyard8",
+      "pos": [327.18, 46.22, 273.03],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311318,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard9",
+      "name": "graveyard9",
+      "kind": "scenery",
+      "template": "object/graveyard9",
+      "pos": [337.62, 46.22, 273.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311319,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard10",
+      "name": "graveyard10",
+      "kind": "scenery",
+      "template": "object/graveyard10",
+      "pos": [334.75, 46.22, 277.4],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 324513,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard11",
+      "name": "graveyard11",
+      "kind": "scenery",
+      "template": "object/graveyard11",
+      "pos": [330.41, 46.22, 277.14],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 324514,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard12",
+      "name": "graveyard12",
+      "kind": "scenery",
+      "template": "object/graveyard12",
+      "pos": [329.01, 46.22, 267.92],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 324515,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/graveyard13",
+      "name": "graveyard13",
+      "kind": "scenery",
+      "template": "object/graveyard13",
+      "pos": [337.34, 46.22, 268.56],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 324516,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossentranceshield-graveyard",
+      "name": "BossEntranceShield_Graveyard",
+      "kind": "scenery",
+      "template": "object/bossentranceshield-graveyard",
+      "pos": [332.67, 47.93, 262.51],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319117,
+        "tag": "----",
+        "script_group": 288,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossentrancevisualopen-graveyard",
+      "name": "BossEntranceVisualOpen_Graveyard",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen-graveyard",
+      "pos": [332.91, 47.78, 262.89],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319114,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossentrancevisualclosed-graveyard",
+      "name": "BossEntranceVisualClosed_Graveyard",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed-graveyard",
+      "pos": [332.91, 47.78, 262.89],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319116,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossexitshield-graveyard",
+      "name": "BossExitShield_Graveyard",
+      "kind": "scenery",
+      "template": "object/bossexitshield-graveyard",
+      "pos": [345.34, 47.62, 268.4],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 344077,
+        "tag": "----",
+        "script_group": 289,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossexitvisualclosed-graveyard",
+      "name": "BossExitVisualClosed_Graveyard",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-graveyard",
+      "pos": [345.03, 47.92, 268.09],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 344078,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossentranceshield-harlequin",
+      "name": "BossEntranceShield_Harlequin",
+      "kind": "scenery",
+      "template": "object/bossentranceshield-harlequin",
+      "pos": [348.98, 50.1, 296.11],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319411,
+        "tag": "----",
+        "script_group": 295,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossexitshield-harlequin",
+      "name": "BossExitShield_Harlequin",
+      "kind": "scenery",
+      "template": "object/bossexitshield-harlequin",
+      "pos": [361.71, 50.0, 308.25],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 319410,
+        "tag": "----",
+        "script_group": 296,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossentrancevisualopen-harlequin",
+      "name": "BossEntranceVisualOpen_Harlequin",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen-harlequin",
+      "pos": [348.89, 50.15, 295.78],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319408,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossexitvisualclosed-harlequin",
+      "name": "BossExitVisualClosed_Harlequin",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-harlequin",
+      "pos": [361.18, 50.44, 308.09],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 319409,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/bossentrancevisualclosed-harlequin",
+      "name": "BossEntranceVisualClosed_Harlequin",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed-harlequin",
+      "pos": [348.89, 50.15, 295.78],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 319407,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [147.74, 43.01, 99.36],
+      "rot": [-0.5, 0.5, -0.5, 0.5],
+      "scale": 3.0,
+      "client": {
+        "guid": 595178,
+        "tag": "----",
+        "script_group": 1,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5300/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [388.46, 54.02, 318.57],
+      "rot": [0.0, 0.0, -0.7071, 0.7071],
+      "scale": 2.0,
+      "client": {
+        "guid": 595179,
+        "tag": "----",
+        "script_group": 4,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

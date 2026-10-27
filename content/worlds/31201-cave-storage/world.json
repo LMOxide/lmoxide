@@ -1,0 +1,12 @@
+{
+  "id": "world/cave-storage",
+  "name": "Cave_storage",
+  "playfield": 31201,
+  "kind": "other",
+  "arrival": {
+    "pos": [189.5, 10.7, 247.75],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-the-lost-challenger",
+  "lore": 2692,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Lost Creations_Get to Level 5",
+  "title": "Battle Mech, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Battle Mech.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/battle-mech",
+  "n": 5,
+  "source": "client"
+}

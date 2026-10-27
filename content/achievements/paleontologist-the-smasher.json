@@ -1,0 +1,16 @@
+{
+  "id": "achievement/paleontologist-the-smasher",
+  "lore": 3942,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Smash 500 Smashies",
+  "title": "Paleontologist, the Smasher",
+  "text": "Smash 500 smashies as Paleontologist.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/paleontologist",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

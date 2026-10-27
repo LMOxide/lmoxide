@@ -1,0 +1,12 @@
+{
+  "id": "achievement/the-cursed-runner",
+  "lore": 4745,
+  "parent": "achievement/smash-test-dummy",
+  "client_name": "Trials_Solo_Cursed Grove Racer",
+  "title": "The Cursed Runner",
+  "text": "Complete the Cursed Grove in less than 1 minute 30 seconds while not in a team.",
+  "points": 50,
+  "kind": "manual",
+  "stars": 500,
+  "source": "client"
+}

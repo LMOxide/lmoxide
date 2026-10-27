@@ -1,0 +1,22 @@
+{
+  "id": "npc/space-merc-defender",
+  "name": "Space Merc Defender",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 379392
+  },
+  "level": 16,
+  "stats": {
+    "health": 1576
+  },
+  "attack": "skill/merc-defender-shot-castable",
+  "skills": [
+    {
+      "skill": "skill/merc-defender-shot-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

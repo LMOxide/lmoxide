@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-s15-jewelthief1-damage",
+  "name": "main s15 jewelthief1 damage",
+  "client": {
+    "spell": 667302,
+    "stats": {
+      "EffectPackage": 668730,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

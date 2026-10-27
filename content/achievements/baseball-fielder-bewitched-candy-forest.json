@@ -1,0 +1,13 @@
+{
+  "id": "achievement/baseball-fielder-bewitched-candy-forest",
+  "lore": 3463,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_Bewitched Candy Forest",
+  "title": "Baseball Fielder: Bewitched Candy Forest",
+  "text": "Conquer the Bewitched Candy Forest as Baseball Fielder.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bewitched Candy Forest",
+  "minifigure": "minifig/baseball-fielder",
+  "source": "client"
+}

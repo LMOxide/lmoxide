@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-graveyard",
+  "name": "BossExitVisualClosed_Graveyard",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Graveyard",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/kendo-fighter-giant-spider",
+  "lore": 5238,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Giant Spider",
+  "title": "Kendo Fighter: Giant Spider",
+  "text": "Defeat Giant Spider as Kendo Fighter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Giant Spider",
+  "minifigure": "minifig/kendo-fighter",
+  "source": "client"
+}

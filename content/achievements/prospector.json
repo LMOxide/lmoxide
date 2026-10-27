@@ -1,0 +1,29 @@
+{
+  "id": "achievement/prospector",
+  "lore": 2506,
+  "parent": "achievement/series-12",
+  "client_name": "Prospector",
+  "title": "Prospector",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-prospector",
+    "achievement/legendary-prospector",
+    "achievement/novice-prospector",
+    "achievement/expert-prospector",
+    "achievement/prospector-cave-of-the-exiled",
+    "achievement/prospector-mysterious-crystal-cave",
+    "achievement/prospector-alien-command-center",
+    "achievement/prospector-umad-thundercrusher",
+    "achievement/prospector-chlora-the-fungomancer",
+    "achievement/prospector-morduk-the-underhanded",
+    "achievement/prospector-the-builder",
+    "achievement/prospector-the-master-builder",
+    "achievement/prospector-the-guide",
+    "achievement/prospector-the-lost-challenger",
+    "achievement/prospector-the-lost-warrior",
+    "achievement/prospector-the-lost-champion"
+  ],
+  "minifigure": "minifig/prospector",
+  "source": "client"
+}

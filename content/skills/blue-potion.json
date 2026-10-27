@@ -1,0 +1,40 @@
+{
+  "id": "skill/blue-potion",
+  "name": "Blue Potion",
+  "client": {
+    "spell": 34583,
+    "stats": {
+      "EffectPackage": 360337,
+      "ItemDelay": 34,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 38997,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Scientist: Blue Potion",
+  "range": 12.5,
+  "projectile": {
+    "item": 38997,
+    "speed": 12.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "skill/magic-potion-95237",
+  "name": "Magic Potion",
+  "client": {
+    "spell": 95237,
+    "stats": {
+      "AISpellCategory": 1,
+      "AttackRange": 800,
+      "EffectPackage": 4796,
+      "ItemDelay": 75,
+      "RechargeDelay": 25,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 95235,
+            "ProjectileType": 2,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

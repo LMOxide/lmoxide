@@ -1,0 +1,13 @@
+{
+  "id": "achievement/motorcycle-mechanic-the-lost-champion",
+  "lore": 3411,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Lost Creations_Get to Level 15",
+  "title": "Motorcycle Mechanic, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Motorcycle Mechanic.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "n": 15,
+  "source": "client"
+}

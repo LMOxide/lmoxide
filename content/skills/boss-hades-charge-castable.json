@@ -1,0 +1,16 @@
+{
+  "id": "skill/boss-hades-charge-castable",
+  "name": "boss hades charge castable",
+  "client": {
+    "spell": 56522,
+    "stats": {
+      "AIPowerrating": 15,
+      "AISpellCategory": 1,
+      "AttackRange": 2500,
+      "EffectPackage": 624615,
+      "ItemDelay": 150,
+      "TargetingMode": 7
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/spartan-warrior-head",
+  "name": "Spartan Warrior Head",
+  "kind": "part",
+  "template": 599511,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10211,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/spartan-warrior",
+  "location": "Head",
+  "source": "client"
+}

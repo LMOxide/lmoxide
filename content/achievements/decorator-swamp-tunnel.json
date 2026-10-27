@@ -1,0 +1,13 @@
+{
+  "id": "achievement/decorator-swamp-tunnel",
+  "lore": 3446,
+  "parent": "achievement/decorator",
+  "client_name": "Decorator_Swamp Tunnel",
+  "title": "Decorator: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Decorator.",
+  "points": 25,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/decorator",
+  "source": "client"
+}

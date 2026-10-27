@@ -1,0 +1,18 @@
+{
+  "id": "npc/crimson-leg-crawler-2",
+  "name": "Crimson Leg Crawler",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 458318,
+    "npc_template": 2878,
+    "look": "spider_green_variation_small",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 1051,
+    "life_factor": 0.8
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/diner-waitress-the-lost-challenger",
+  "lore": 2811,
+  "parent": "achievement/diner-waitress",
+  "client_name": "Diner Waitress_Lost Creations_Get to Level 5",
+  "title": "Diner Waitress, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Diner Waitress.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/diner-waitress",
+  "n": 5,
+  "source": "client"
+}

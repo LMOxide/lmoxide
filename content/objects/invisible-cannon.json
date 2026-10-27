@@ -1,0 +1,10 @@
+{
+  "id": "object/invisible-cannon",
+  "name": "Invisible cannon",
+  "kind": "scenery",
+  "render": {
+    "look": "Invisible cannon",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

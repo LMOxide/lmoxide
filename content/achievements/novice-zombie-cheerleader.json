@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-zombie-cheerleader",
+  "lore": 4443,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Upgrade 3",
+  "title": "Novice Zombie Cheerleader",
+  "text": "Get the third Zombie Cheerleader upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/zombie-cheerleader",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/statue-3-particle",
+  "name": "statue 3 particle",
+  "kind": "scenery",
+  "render": {
+    "look": "statue 3 particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/snake-charmer-infested-keep",
+  "lore": 3982,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Infested Keep",
+  "title": "Snake Charmer: Infested Keep",
+  "text": "Conquer the Infested Keep as Snake Charmer.",
+  "points": 25,
+  "kind": "target",
+  "target": "Infested Keep",
+  "minifigure": "minifig/snake-charmer",
+  "source": "client"
+}

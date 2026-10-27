@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-disco-diva",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 575590,
+  "minifigure": "minifig/disco-diva",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "24Q1"
+      }
+    }
+  ],
+  "source": "client"
+}

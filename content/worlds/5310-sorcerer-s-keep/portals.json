@@ -1,0 +1,22 @@
+{
+  "portals": [
+    {
+      "id": "portal/5310/to-enchanted-forest",
+      "pos": [214.91, 34.0, 132.45],
+      "window": 20,
+      "to": {
+        "world": "world/enchanted-forest"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/5310/to-lego-center",
+      "pos": [387.33, 64.18, 312.65],
+      "window": 73,
+      "to": {
+        "world": "world/lego-center"
+      },
+      "source": "client"
+    }
+  ]
+}

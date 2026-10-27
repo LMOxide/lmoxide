@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-fencer",
+  "lore": 3851,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Upgrade 3",
+  "title": "Novice Fencer",
+  "text": "Get the third Fencer upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/fencer",
+  "n": 3,
+  "source": "client"
+}

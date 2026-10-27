@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-spooky-girl",
+  "lore": 3272,
+  "parent": "achievement/spooky-girl",
+  "client_name": "Spooky Girl_Complete Any 5",
+  "title": "Heroic Spooky Girl",
+  "text": "Complete any 5 Spooky Girl achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/spooky-girl",
+  "n": 5,
+  "source": "client"
+}

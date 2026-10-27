@@ -1,0 +1,14 @@
+[package]
+name = "lmoxide-content"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "The game's content: every template (worlds, NPCs, skills, buffs, loot, items, minifigures ...) in one editable tree, its loader, validator, formatter and JSON Schema"
+
+[dependencies]
+schemars.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+lmoxide-survey.workspace = true

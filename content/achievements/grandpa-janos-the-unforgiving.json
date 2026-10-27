@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandpa-janos-the-unforgiving",
+  "lore": 3433,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Janos the Unforgiving",
+  "title": "Grandpa: Janos the Unforgiving",
+  "text": "Defeat Janos the Unforgiving as Grandpa.",
+  "points": 25,
+  "kind": "target",
+  "target": "Janos the Unforgiving",
+  "minifigure": "minifig/grandpa",
+  "source": "client"
+}

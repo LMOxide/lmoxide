@@ -1,0 +1,10 @@
+{
+  "id": "object/dino-egg-2",
+  "name": "dino_egg_2",
+  "kind": "scenery",
+  "render": {
+    "look": "dino_egg_2",
+    "visual": [1010030, 528795]
+  },
+  "source": "client"
+}

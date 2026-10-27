@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wacky-witch-chlora-the-fungomancer",
+  "lore": 4457,
+  "parent": "achievement/wacky-witch",
+  "client_name": "Wacky Witch_Chlora the Fungomancer",
+  "title": "Wacky Witch: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Wacky Witch.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/wacky-witch",
+  "source": "client"
+}

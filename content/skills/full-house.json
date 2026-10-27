@@ -1,0 +1,57 @@
+{
+  "id": "skill/full-house",
+  "name": "Full House",
+  "client": {
+    "spell": 465024,
+    "stats": {
+      "ChannelingInterval": 35,
+      "ChannelingTicks": 5,
+      "ItemDelay": 1
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 465321
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 1,
+            "NPCSelectMode": 1,
+            "NanoTemplate": 465320,
+            "Radius": 4
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 465321
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 465024,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Diner Waitress: Full House",
+  "source": "client"
+}

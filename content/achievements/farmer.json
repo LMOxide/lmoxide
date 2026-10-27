@@ -1,0 +1,29 @@
+{
+  "id": "achievement/farmer",
+  "lore": 5061,
+  "parent": "achievement/series-15",
+  "client_name": "Farmer",
+  "title": "Farmer",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-farmer",
+    "achievement/legendary-farmer",
+    "achievement/farmer-mysterious-crystal-cave",
+    "achievement/farmer-cliffside",
+    "achievement/farmer-dragon-halls",
+    "achievement/farmer-deranged-raptor",
+    "achievement/farmer-the-triffid",
+    "achievement/farmer-the-weaver",
+    "achievement/novice-farmer",
+    "achievement/expert-farmer",
+    "achievement/farmer-the-lost-challenger",
+    "achievement/farmer-the-lost-warrior",
+    "achievement/farmer-the-lost-champion",
+    "achievement/farmer-the-builder",
+    "achievement/farmer-the-master-builder",
+    "achievement/farmer-the-speed-freak"
+  ],
+  "minifigure": "minifig/farmer",
+  "source": "client"
+}

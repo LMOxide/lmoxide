@@ -1,0 +1,16 @@
+{
+  "id": "achievement/mermaid-the-smasher",
+  "lore": 2558,
+  "parent": "achievement/mermaid",
+  "client_name": "Mermaid_Smash 500 Smashies",
+  "title": "Mermaid, the Smasher",
+  "text": "Smash 500 smashies as Mermaid.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/mermaid",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/thunderous-applause",
+  "lore": 868,
+  "parent": "achievement/mythology-combat",
+  "client_name": "Mythology_Combat_Epic_Defeat Stormhammer",
+  "title": "Thunderous Applause",
+  "text": "Defeat the master of the Forge.",
+  "points": 50,
+  "kind": "defeat",
+  "stars": 500,
+  "target": "Stormhammer",
+  "source": "client"
+}

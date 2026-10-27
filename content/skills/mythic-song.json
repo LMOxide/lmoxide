@@ -1,0 +1,16 @@
+{
+  "id": "skill/mythic-song",
+  "name": "Mythic Song",
+  "client": {
+    "spell": 663944,
+    "stats": {
+      "EffectPackage": 668532,
+      "ItemDelay": 32,
+      "LuaScriptID": 4621,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16
+    }
+  },
+  "minifigure": "Faun: Mythic Song",
+  "source": "client"
+}

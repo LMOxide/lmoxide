@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-wall",
+  "name": "XX_Wall",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 206963,
+    "template": 234310,
+    "look": "jacket_fort_wall_mid_8x4_broken_a_smashie_pirate",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 203
+  },
+  "source": "client"
+}

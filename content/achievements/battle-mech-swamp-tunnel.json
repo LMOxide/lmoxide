@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-swamp-tunnel",
+  "lore": 2684,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Swamp Tunnel",
+  "title": "Battle Mech: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Battle Mech.",
+  "points": 50,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/battle-mech",
+  "source": "client"
+}

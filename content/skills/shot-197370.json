@@ -1,0 +1,38 @@
+{
+  "id": "skill/shot-197370",
+  "name": "Shot",
+  "client": {
+    "spell": 197370,
+    "stats": {
+      "AttackRange": 1000,
+      "EffectPackage": 207444,
+      "ItemDelay": 8,
+      "RechargeDelay": 80,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 197369,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 197370,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

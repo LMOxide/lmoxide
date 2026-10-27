@@ -1,0 +1,8 @@
+{
+  "id": "achievement/global",
+  "lore": 746,
+  "client_name": "Achievements_Global",
+  "title": "Global",
+  "kind": "category",
+  "source": "client"
+}

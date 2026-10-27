@@ -1,0 +1,10 @@
+{
+  "id": "object/damnyou",
+  "name": "damnyou",
+  "kind": "scenery",
+  "render": {
+    "look": "damnyou",
+    "visual": [1010030, 54252]
+  },
+  "source": "client"
+}

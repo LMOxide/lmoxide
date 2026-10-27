@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-paintball-player",
+  "lore": 3595,
+  "parent": "achievement/paintball-player",
+  "client_name": "Paintball Player_Complete Any 5",
+  "title": "Heroic Paintball Player",
+  "text": "Complete any 5 Paintball Player achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/paintball-player",
+  "n": 5,
+  "source": "client"
+}

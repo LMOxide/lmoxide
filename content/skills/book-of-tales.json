@@ -1,0 +1,88 @@
+{
+  "id": "skill/book-of-tales",
+  "name": "Book of Tales",
+  "client": {
+    "spell": 317706,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 20,
+      "EffectPackage": 318721,
+      "ItemDelay": 25,
+      "MoreFlags": 2050,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 318386,
+            "Radius": 6
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 441815,
+            "Radius": 6
+          },
+          "criteria": [
+            [0, 441813, 91]
+          ]
+        }
+      ],
+      "33": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 318386,
+            "Radius": 6
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 441815,
+            "Radius": 6
+          },
+          "criteria": [
+            [0, 441813, 91]
+          ]
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 317706
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Librarian: Book of Tales",
+  "source": "client"
+}

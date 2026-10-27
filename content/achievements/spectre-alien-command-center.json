@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spectre-alien-command-center",
+  "lore": 4575,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Alien Command Center",
+  "title": "Spectre: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Spectre.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/spectre",
+  "source": "client"
+}

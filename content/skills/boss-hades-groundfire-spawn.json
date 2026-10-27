@@ -1,0 +1,25 @@
+{
+  "id": "skill/boss-hades-groundfire-spawn",
+  "name": "boss hades groundfire spawn",
+  "client": {
+    "spell": 623501,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "Arg3": 620170,
+            "HateValue": 1,
+            "String0": "IdentifyHadesFire",
+            "StringHash": "PRLO"
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

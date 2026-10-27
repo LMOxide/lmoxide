@@ -1,0 +1,40 @@
+{
+  "id": "skill/dragon-s-breath-321687",
+  "name": "Dragon's Breath",
+  "client": {
+    "spell": 321687,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 2000,
+      "EffectPackage": 342384,
+      "ItemDelay": 96,
+      "RechargeDelay": 104,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 38,
+            "ItemInstance": 321686,
+            "ProjectileType": 2,
+            "Speed": 1000
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 321687,
+            "Value": 750
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "skill/space-pd-policehq-boss-mech-minigun-buffcounter",
+  "name": "space pd policeHQ boss mech minigun buffcounter",
+  "client": {
+    "spell": 406837,
+    "stats": {
+      "TimeExist": 100
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/hot-dog-man-the-triffid",
+  "lore": 3900,
+  "parent": "achievement/hot-dog-man",
+  "client_name": "Hot Dog Man_The Triffid",
+  "title": "Hot Dog Man: The Triffid",
+  "text": "Defeat The Triffid as Hot Dog Man.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/hot-dog-man",
+  "source": "client"
+}

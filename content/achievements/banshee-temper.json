@@ -1,0 +1,13 @@
+{
+  "id": "achievement/banshee-temper",
+  "lore": 4406,
+  "parent": "achievement/banshee",
+  "client_name": "Banshee_Temper",
+  "title": "Banshee: Temper",
+  "text": "Defeat Temper as Banshee.",
+  "points": 25,
+  "kind": "target",
+  "target": "Temper",
+  "minifigure": "minifig/banshee",
+  "source": "client"
+}

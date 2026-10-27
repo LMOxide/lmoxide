@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-piggy-guy",
+  "lore": 3182,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Upgrade 3",
+  "title": "Novice Piggy Guy",
+  "text": "Get the third Piggy Guy upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/piggy-guy",
+  "n": 3,
+  "source": "client"
+}

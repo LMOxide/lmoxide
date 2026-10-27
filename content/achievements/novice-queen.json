@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-queen",
+  "lore": 5272,
+  "parent": "achievement/queen",
+  "client_name": "Queen_Upgrade 3",
+  "title": "Novice Queen",
+  "text": "Get the third Queen upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/queen",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "skill/bucket-art-318337",
+  "name": "Bucket Art",
+  "client": {
+    "spell": 318337,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 318338,
+            "Radius": 6
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

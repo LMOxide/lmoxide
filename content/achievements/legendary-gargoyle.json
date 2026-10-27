@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-gargoyle",
+  "lore": 4521,
+  "parent": "achievement/gargoyle",
+  "client_name": "Gargoyle_Complete Any 10",
+  "title": "Legendary Gargoyle",
+  "text": "Complete any 11 Gargoyle achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/gargoyle",
+  "n": 11,
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/ship-effect-spawner",
+  "name": "ship effect spawner",
+  "kind": "scenery",
+  "render": {
+    "look": "ship effect spawner",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

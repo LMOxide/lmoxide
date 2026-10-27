@@ -1,0 +1,23 @@
+{
+  "id": "skill/main-fairytaleprincess2-wrapper",
+  "name": "main fairytaleprincess2 wrapper",
+  "client": {
+    "spell": 505081,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 503534
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fairytale Princess: Frognado",
+  "source": "client"
+}

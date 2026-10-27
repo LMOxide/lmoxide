@@ -1,0 +1,133 @@
+{
+  "id": "minifig/cowboy",
+  "name": "Cowboy",
+  "template": 595239,
+  "series": 1,
+  "series_index": 0,
+  "render": {
+    "monster_data": 588238
+  },
+  "stats": {
+    "life": 250,
+    "power": 10,
+    "defense": 3,
+    "creativity": 1,
+    "role": 1,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/six-shooters",
+    "hits": [
+      {
+        "skill": "skill/main-cowboy1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [595633, 595631]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/wild-ride",
+    "hits": [
+      {
+        "skill": "skill/main-cowboy2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.2,
+        "damage_type": 1000,
+        "via": [596820, 596825, 596822]
+      }
+    ]
+  },
+  "click_spells": [595633, 596820],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-wild-ride"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-hunter"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-left-hook"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530252"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/cowboy-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/cowboy-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/cowboy-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-cowboy",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

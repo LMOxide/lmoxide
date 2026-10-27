@@ -1,0 +1,16 @@
+{
+  "id": "item/paintball-player-head",
+  "name": "Paintball Player Head",
+  "kind": "part",
+  "template": 483566,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11008,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/paintball-player",
+  "location": "Head",
+  "source": "client"
+}

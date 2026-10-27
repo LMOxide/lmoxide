@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-lady-liberty",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 598526,
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "LJVL"
+      }
+    }
+  ],
+  "source": "client",
+  "comment": "For minifigure template 595246 (Lady Liberty), which isn't a playable minifigure in the client's data."
+}

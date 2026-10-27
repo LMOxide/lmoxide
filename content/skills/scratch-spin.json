@@ -1,0 +1,64 @@
+{
+  "id": "skill/scratch-spin",
+  "name": "Scratch Spin",
+  "client": {
+    "spell": 14839,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 20,
+      "ItemDelay": 1,
+      "MoreFlags": 1207961600,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 139708
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 147077
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 1,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 14897,
+            "Radius": 2
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 139708
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 139708
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Ice Skater: Scratch Spin",
+  "source": "client"
+}

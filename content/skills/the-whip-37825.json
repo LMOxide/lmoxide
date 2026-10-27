@@ -1,0 +1,32 @@
+{
+  "id": "skill/the-whip-37825",
+  "name": "The Whip",
+  "client": {
+    "spell": 37825,
+    "stats": {
+      "EffectPackage": 80096,
+      "ItemDelay": 35,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 20,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 37823,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Roller Derby Girl: The Whip",
+  "source": "client"
+}

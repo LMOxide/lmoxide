@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spectre-hecate-the-winter-witch",
+  "lore": 4576,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Hecate, the Winter Witch",
+  "title": "Spectre: Hecate, the Winter Witch",
+  "text": "Defeat Hecate, the Winter Witch as Spectre.",
+  "points": 25,
+  "kind": "target",
+  "target": "Hecate, the Winter Witch",
+  "minifigure": "minifig/spectre",
+  "source": "client"
+}

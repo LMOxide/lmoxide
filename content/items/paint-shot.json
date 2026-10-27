@@ -1,0 +1,17 @@
+{
+  "id": "item/paint-shot",
+  "name": "Paint Shot",
+  "kind": "projectile",
+  "template": 204515,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 204516
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gargoyle-alien-command-center",
+  "lore": 4524,
+  "parent": "achievement/gargoyle",
+  "client_name": "Gargoyle_Alien Command Center",
+  "title": "Gargoyle: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Gargoyle.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/gargoyle",
+  "source": "client"
+}

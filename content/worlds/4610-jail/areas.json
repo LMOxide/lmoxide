@@ -1,0 +1,135 @@
+{
+  "areas": [
+    {
+      "id": "area/4610/tp-entrance",
+      "name": "TP_Entrance",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [220.09, 16.0, 256.72],
+          "rot": 2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/ai-spawnswashbuckler1",
+      "name": "AI_SpawnSwashbuckler1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [229.87, 16.57, 259.07],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/cine-weakwall",
+      "name": "Cine_WeakWall",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [230.0, 16.5, 259.0],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/tp-jail",
+      "name": "TP_Jail",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [220.91, 16.0, 255.11],
+          "rot": 0.785
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/cine-captain",
+      "name": "Cine_Captain",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [230.0, 16.5, 259.0],
+          "rot": 0.785
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/cine-gotoplayer1",
+      "name": "Cine_GotoPlayer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [224.68, 16.0, 257.51],
+          "rot": -2.012
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/cine-teleportplayer1",
+      "name": "Cine_TeleportPlayer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [222.04, 16.0, 257.01],
+          "rot": 1.286
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/cine-camerapos1",
+      "name": "Cine_CameraPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [223.28, 16.0, 256.53],
+          "rot": 1.286
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/ba-ambushhallway1",
+      "name": "BA_AmbushHallway1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [268.0, 239.71],
+            [267.27, 334.87],
+            [210.51, 329.29],
+            [231.05, 245.41]
+          ],
+          "heights": [-0.562983, 9.437017]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4610/ba-ambush2",
+      "name": "BA_Ambush2",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [254.61, 264.25],
+            [266.2, 264.25],
+            [267.84, 325.07],
+            [227.09, 324.04],
+            [228.33, 265.94]
+          ],
+          "heights": [12.416756, 22.416756]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "id": "minifig/jewel-thief",
+  "name": "Jewel Thief",
+  "template": 663919,
+  "series": 15,
+  "series_index": 0,
+  "render": {
+    "monster_data": 663906
+  },
+  "stats": {
+    "life": 250,
+    "power": 4,
+    "defense": 4,
+    "creativity": 8,
+    "role": 3,
+    "element": 2
+  },
+  "normal": {
+    "skill": "skill/flash-kick",
+    "hits": [
+      {
+        "skill": "skill/main-s15-jewelthief1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [663952]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/grappling-hook",
+    "hits": [
+      {
+        "skill": "skill/main-s15-jewelthief2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.8,
+        "damage_type": 1000,
+        "via": [663953, 667313]
+      }
+    ]
+  },
+  "click_spells": [663952, 663953],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-specialist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-jury-rigging"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530296"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-brute-force"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-harden-up"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [5217, 5066, 5328, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/jewel-thief-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/jewel-thief-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/jewel-thief-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-jewel-thief",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

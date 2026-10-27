@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-alientrooper1-marker",
+  "name": "main alientrooper1 marker",
+  "client": {
+    "spell": 550773,
+    "stats": {
+      "EffectPackage": 531685
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "world/space-mayhem",
+  "name": "Space Mayhem",
+  "playfield": 7105,
+  "kind": "other",
+  "arrival": {
+    "pos": [167.0, 153.41, 138.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "achievement/did-i-mention-paradise",
+  "lore": 1537,
+  "parent": "achievement/global",
+  "client_name": "Global_Boomboxes",
+  "title": "Did I Mention Paradise?",
+  "text": "Get your groove on by all the boomboxes in every world.",
+  "points": 100,
+  "kind": "all",
+  "stars": 500,
+  "children": [
+    "achievement/dino-paradise",
+    "achievement/volcanic-paradise",
+    "achievement/surfer-s-paradise",
+    "achievement/jester-s-paradise",
+    "achievement/enchanted-paradise",
+    "achievement/starry-paradise",
+    "achievement/dark-paradise",
+    "achievement/mythic-paradise"
+  ],
+  "source": "client"
+}

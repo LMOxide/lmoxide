@@ -1,0 +1,23 @@
+{
+  "id": "npc/pirate-specter-2",
+  "name": "Pirate Specter",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 207030,
+    "npc_template": 934
+  },
+  "level": 4,
+  "stats": {
+    "health": 132,
+    "life_factor": 2.25
+  },
+  "skills": [
+    {
+      "skill": "skill/shot-197338",
+      "weight": 1
+    }
+  ],
+  "skills_from": "recorded",
+  "loot": "loot/enemy",
+  "source": "client"
+}

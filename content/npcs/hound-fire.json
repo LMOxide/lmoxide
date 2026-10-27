@@ -1,0 +1,26 @@
+{
+  "id": "npc/hound-fire",
+  "name": "Hound Fire",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 195925
+  },
+  "level": 8,
+  "stats": {
+    "health": 367
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/fire-breath-16208",
+      "weight": 1
+    },
+    {
+      "skill": "skill/bite",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

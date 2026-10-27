@@ -1,0 +1,13 @@
+{
+  "id": "achievement/forest-maiden-the-lost-challenger",
+  "lore": 2641,
+  "parent": "achievement/forest-maiden",
+  "client_name": "Forest Maiden_Lost Creations_Get to Level 5",
+  "title": "Forest Maiden, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Forest Maiden.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/forest-maiden",
+  "n": 5,
+  "source": "client"
+}

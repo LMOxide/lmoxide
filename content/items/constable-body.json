@@ -1,0 +1,16 @@
+{
+  "id": "item/constable-body",
+  "name": "Constable Body",
+  "kind": "part",
+  "template": 483614,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21102,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/constable",
+  "location": "Torso",
+  "source": "client"
+}

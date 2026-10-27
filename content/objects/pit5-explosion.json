@@ -1,0 +1,10 @@
+{
+  "id": "object/pit5-explosion",
+  "name": "Pit5 explosion",
+  "kind": "scenery",
+  "render": {
+    "look": "Pit5 explosion",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

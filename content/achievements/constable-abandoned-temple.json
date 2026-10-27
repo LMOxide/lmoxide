@@ -1,0 +1,13 @@
+{
+  "id": "achievement/constable-abandoned-temple",
+  "lore": 3023,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Abandoned Temple",
+  "title": "Constable: Abandoned Temple",
+  "text": "Conquer the Abandoned Temple as Constable.",
+  "points": 25,
+  "kind": "target",
+  "target": "Abandoned Temple",
+  "minifigure": "minifig/constable",
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-judge2-damage",
+  "name": "main judge2 damage",
+  "client": {
+    "spell": 41447,
+    "stats": {
+      "EffectPackage": 636910,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.125,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

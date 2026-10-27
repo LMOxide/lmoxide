@@ -1,0 +1,48 @@
+{
+  "id": "skill/wings-of-divinity",
+  "name": "Wings of Divinity",
+  "client": {
+    "spell": 663947,
+    "stats": {
+      "EffectPackage": 668531,
+      "ItemDelay": 48,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 2,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 667221,
+            "ProjectileType": 1,
+            "Speed": 750
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 668727
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Flying Warrior: Wings of Divinity",
+  "range": 12.5,
+  "projectile": {
+    "item": 667221,
+    "speed": 7.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

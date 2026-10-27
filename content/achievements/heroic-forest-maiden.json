@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-forest-maiden",
+  "lore": 2645,
+  "parent": "achievement/forest-maiden",
+  "client_name": "Forest Maiden_Complete Any 5",
+  "title": "Heroic Forest Maiden",
+  "text": "Complete any 5 Forest Maiden achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/forest-maiden",
+  "n": 5,
+  "source": "client"
+}

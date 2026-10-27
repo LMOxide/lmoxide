@@ -1,0 +1,17 @@
+{
+  "id": "npc/xx-invisible-funhouse-poison-hazard-anchor-2",
+  "name": "XX_Invisible Funhouse Poison Hazard Anchor",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 51057,
+    "npc_template": 2963,
+    "look": "invisible_monsterdata",
+    "cars_group": 5
+  },
+  "level": 15,
+  "stats": {
+    "health": 1971
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

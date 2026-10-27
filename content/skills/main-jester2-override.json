@@ -1,0 +1,23 @@
+{
+  "id": "skill/main-jester2-override",
+  "name": "main jester2 override",
+  "client": {
+    "spell": 509375,
+    "stats": {
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 500460,
+            "TemplateID2": 509263
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

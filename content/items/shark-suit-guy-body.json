@@ -1,0 +1,16 @@
+{
+  "id": "item/shark-suit-guy-body",
+  "name": "Shark Suit Guy Body",
+  "kind": "part",
+  "template": 668659,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21514,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/shark-suit-guy",
+  "location": "Torso",
+  "source": "client"
+}

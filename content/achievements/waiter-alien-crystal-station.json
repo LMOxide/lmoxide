@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-alien-crystal-station",
+  "lore": 2717,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Alien Crystal Station",
+  "title": "Waiter: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Waiter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/waiter",
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-paleontologist",
+  "lore": 3928,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Complete Any 5",
+  "title": "Heroic Paleontologist",
+  "text": "Complete any 5 Paleontologist achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/paleontologist",
+  "n": 5,
+  "source": "client"
+}

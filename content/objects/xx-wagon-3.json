@@ -1,0 +1,15 @@
+{
+  "id": "object/xx-wagon-3",
+  "name": "XX_Wagon",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 160044,
+    "template": 241232,
+    "look": "lego_wagon_a_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "source": "client"
+}

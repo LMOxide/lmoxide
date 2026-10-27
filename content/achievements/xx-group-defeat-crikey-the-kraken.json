@@ -1,0 +1,14 @@
+{
+  "id": "achievement/xx-group-defeat-crikey-the-kraken",
+  "lore": 4063,
+  "parent": "achievement/pirate-combat",
+  "client_name": "Pirate_Combat_Group_Defeat Crikey the Kraken",
+  "title": "XX_Group: Defeat Crikey the Kraken",
+  "text": "XX_Defeat Crikey the Kraken in a group of 4.",
+  "points": 50,
+  "kind": "defeat",
+  "stars": 500,
+  "target": "Crikey the Kraken",
+  "invisible": true,
+  "source": "client"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "skill/little-recluse",
+  "name": "Little Recluse",
+  "client": {
+    "spell": 506059,
+    "stats": {
+      "EffectPackage": 514374,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 506060,
+            "ProjectileType": 1,
+            "Speed": 750
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 506059,
+            "Value": 100
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Spooky Girl: Anansi Girl",
+  "range": 12.5,
+  "source": "client"
+}

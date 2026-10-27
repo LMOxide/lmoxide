@@ -1,0 +1,13 @@
+{
+  "id": "skill/passive-dangerous-waters-marker-buff",
+  "name": "Passive dangerous waters marker buff",
+  "client": {
+    "spell": 447105,
+    "stats": {
+      "EffectPackage": 439205,
+      "LuaScriptID": 1049,
+      "TimeExist": 500
+    }
+  },
+  "source": "client"
+}

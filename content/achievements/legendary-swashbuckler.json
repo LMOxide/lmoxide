@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-swashbuckler",
+  "lore": 3290,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Complete Any 10",
+  "title": "Legendary Swashbuckler",
+  "text": "Complete any 11 Swashbuckler achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/swashbuckler",
+  "n": 11,
+  "source": "client"
+}

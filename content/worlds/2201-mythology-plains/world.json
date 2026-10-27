@@ -1,0 +1,15 @@
+{
+  "id": "world/mythology-plains",
+  "name": "Mythology - Plains",
+  "playfield": 2201,
+  "kind": "other",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [139.5, 48.52, 250.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

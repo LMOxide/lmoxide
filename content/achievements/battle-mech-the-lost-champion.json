@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-the-lost-champion",
+  "lore": 2699,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Lost Creations_Get to Level 15",
+  "title": "Battle Mech, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Battle Mech.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/battle-mech",
+  "n": 15,
+  "source": "client"
+}

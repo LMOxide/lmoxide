@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-alien-trooper",
+  "lore": 3767,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Upgrade 7",
+  "title": "Expert Alien Trooper",
+  "text": "Get the seventh Alien Trooper upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/alien-trooper",
+  "n": 7,
+  "source": "client"
+}

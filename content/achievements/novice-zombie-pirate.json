@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-zombie-pirate",
+  "lore": 4613,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Upgrade 3",
+  "title": "Novice Zombie Pirate",
+  "text": "Get the third Zombie Pirate upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/zombie-pirate",
+  "n": 3,
+  "source": "client"
+}

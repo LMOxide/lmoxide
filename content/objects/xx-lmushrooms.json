@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-lmushrooms",
+  "name": "XX_lMushrooms",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 320061,
+    "template": 320063,
+    "look": "lego_mushrooms_f1_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 201
+  },
+  "source": "client"
+}

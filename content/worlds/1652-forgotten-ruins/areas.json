@@ -1,0 +1,20 @@
+{
+  "areas": [
+    {
+      "id": "area/1652/ba-ambush",
+      "name": "BA_Ambush",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [213.06, 230.11],
+            [213.41, 251.92],
+            [206.55, 246.47]
+          ],
+          "heights": [7.719078, 17.719078]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

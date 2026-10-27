@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-cyclops",
+  "lore": 2662,
+  "parent": "achievement/cyclops",
+  "client_name": "Cyclops_Complete Any 5",
+  "title": "Heroic Cyclops",
+  "text": "Complete any 5 Cyclops achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/cyclops",
+  "n": 5,
+  "source": "client"
+}

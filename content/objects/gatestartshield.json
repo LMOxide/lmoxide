@@ -1,0 +1,10 @@
+{
+  "id": "object/gatestartshield",
+  "name": "GateStartShield",
+  "kind": "scenery",
+  "render": {
+    "look": "GateStartShield",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

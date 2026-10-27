@@ -1,0 +1,16 @@
+{
+  "id": "achievement/yeti-the-master-smasher",
+  "lore": 3055,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Smash 5000 Smashies",
+  "title": "Yeti, the Master Smasher",
+  "text": "Smash 5000 smashies as Yeti.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/yeti",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "world/the-pegleg-mermaid-tavern-art",
+  "name": "The Pegleg Mermaid Tavern - Art",
+  "playfield": 4621,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [225.0, 43.88, 168.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

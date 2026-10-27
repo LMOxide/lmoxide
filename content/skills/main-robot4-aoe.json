@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-robot4-aoe",
+  "name": "main robot4 aoe",
+  "client": {
+    "spell": 598122,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 1,
+            "NanoTemplate": 598121,
+            "Radius": 6
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

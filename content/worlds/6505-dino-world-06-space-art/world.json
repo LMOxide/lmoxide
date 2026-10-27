@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-06-space-art",
+  "name": "Dino World - 06_ Space - Art",
+  "playfield": 6505,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [167.0, 153.41, 138.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "buff/upgrade-second-wind",
+  "name": "Upgrade: Second Wind",
+  "nano": 464965,
+  "effects": [
+    {
+      "proc": {
+        "on": "health_below",
+        "below": "20%",
+        "lockout": "600s",
+        "then": [
+          {
+            "heal": {
+              "amount": "50%",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

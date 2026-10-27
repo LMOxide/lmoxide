@@ -1,0 +1,12 @@
+{
+  "id": "world/mercenary-troop-transport-art",
+  "name": "Mercenary Troop Transport - Art",
+  "playfield": 1621,
+  "kind": "other",
+  "arrival": {
+    "pos": [286.0, 39.45, 165.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

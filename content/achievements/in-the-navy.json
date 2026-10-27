@@ -1,0 +1,12 @@
+{
+  "id": "achievement/in-the-navy",
+  "lore": 2370,
+  "parent": "achievement/a-pirate-life-for-me",
+  "client_name": "Pirate_Combat_Champion_Karna Itta",
+  "title": "In the Navy",
+  "text": "Defeat Karna Itta, the \"Navy Commander,\" in the Pirate World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Karna Itta",
+  "source": "client"
+}

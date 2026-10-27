@@ -1,0 +1,28 @@
+{
+  "areas": [
+    {
+      "id": "area/30041/marcoscoolpoint1",
+      "name": "MarcosCoolPoint1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [245.0, 0.0, 255.0],
+          "rot": -0.557
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/30041/marcoscoolpoint2",
+      "name": "MarcosCoolPoint2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [243.94, 0.0, 258.09],
+          "rot": 0.0
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

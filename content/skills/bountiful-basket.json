@@ -1,0 +1,40 @@
+{
+  "id": "skill/bountiful-basket",
+  "name": "Bountiful Basket",
+  "client": {
+    "spell": 15427,
+    "stats": {
+      "EffectPackage": 18589,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 50738,
+            "ProjectileType": 2,
+            "Speed": 900
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Grandma Visitor: Bountiful Basket",
+  "range": 15.0,
+  "projectile": {
+    "item": 50738,
+    "speed": 9.0,
+    "kind": 2,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

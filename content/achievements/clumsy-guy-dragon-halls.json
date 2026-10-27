@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-dragon-halls",
+  "lore": 5124,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Dragon Halls",
+  "title": "Clumsy Guy: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Clumsy Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/clumsy-guy",
+  "source": "client"
+}

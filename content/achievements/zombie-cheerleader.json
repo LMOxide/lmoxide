@@ -1,0 +1,29 @@
+{
+  "id": "achievement/zombie-cheerleader",
+  "lore": 4387,
+  "parent": "achievement/series-14",
+  "client_name": "Zombie Cheerleader",
+  "title": "Zombie Cheerleader",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-zombie-cheerleader",
+    "achievement/legendary-zombie-cheerleader",
+    "achievement/zombie-cheerleader-mysterious-crystal-cave",
+    "achievement/zombie-cheerleader-cliffside",
+    "achievement/zombie-cheerleader-dragon-halls",
+    "achievement/zombie-cheerleader-deranged-raptor",
+    "achievement/zombie-cheerleader-the-triffid",
+    "achievement/zombie-cheerleader-the-weaver",
+    "achievement/novice-zombie-cheerleader",
+    "achievement/expert-zombie-cheerleader",
+    "achievement/zombie-cheerleader-the-lost-challenger",
+    "achievement/zombie-cheerleader-the-lost-warrior",
+    "achievement/zombie-cheerleader-the-lost-champion",
+    "achievement/zombie-cheerleader-the-builder",
+    "achievement/zombie-cheerleader-the-master-builder",
+    "achievement/zombie-cheerleader-the-speed-freak"
+  ],
+  "minifigure": "minifig/zombie-cheerleader",
+  "source": "client"
+}

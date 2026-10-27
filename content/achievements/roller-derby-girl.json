@@ -1,0 +1,29 @@
+{
+  "id": "achievement/roller-derby-girl",
+  "lore": 2479,
+  "parent": "achievement/series-9",
+  "client_name": "Roller Derby Girl",
+  "title": "Roller Derby Girl",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-roller-derby-girl",
+    "achievement/legendary-roller-derby-girl",
+    "achievement/novice-roller-derby-girl",
+    "achievement/expert-roller-derby-girl",
+    "achievement/roller-derby-girl-cliffside",
+    "achievement/roller-derby-girl-bewitched-candy-forest",
+    "achievement/roller-derby-girl-skyforge",
+    "achievement/roller-derby-girl-warchief-grogrog",
+    "achievement/roller-derby-girl-big-bad-wolf",
+    "achievement/roller-derby-girl-madcap-compy",
+    "achievement/roller-derby-girl-the-striker",
+    "achievement/roller-derby-girl-the-master-striker",
+    "achievement/roller-derby-girl-the-witch-hunter",
+    "achievement/roller-derby-girl-the-lost-challenger",
+    "achievement/roller-derby-girl-the-lost-warrior",
+    "achievement/roller-derby-girl-the-lost-champion"
+  ],
+  "minifigure": "minifig/roller-derby-girl",
+  "source": "client"
+}

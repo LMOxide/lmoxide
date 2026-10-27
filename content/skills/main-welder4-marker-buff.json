@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-welder4-marker-buff",
+  "name": "main welder4 marker buff",
+  "client": {
+    "spell": 482376,
+    "stats": {
+      "TimeExist": 5900
+    }
+  },
+  "source": "client"
+}

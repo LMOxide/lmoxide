@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-welder4-pge1",
+  "name": "main welder4 pge1",
+  "client": {
+    "spell": 482373,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 20,
+            "EffectPackage": 470791,
+            "Flags": 3,
+            "NanoTemplate": 482375,
+            "RelZPos": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

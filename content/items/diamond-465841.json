@@ -1,0 +1,14 @@
+{
+  "id": "item/diamond-465841",
+  "name": "Diamond",
+  "kind": "token",
+  "template": 465841,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 201,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "item/satyr-shaman-fire-ranged-projectile",
+  "name": "satyr shaman fire ranged projectile",
+  "kind": "projectile",
+  "template": 95031,
+  "effect_package": 153400,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 95047
+      }
+    }
+  ],
+  "source": "client"
+}

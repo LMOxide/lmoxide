@@ -1,0 +1,16 @@
+{
+  "id": "item/scarecrow-head",
+  "name": "Scarecrow Head",
+  "kind": "part",
+  "template": 483545,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11113,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/scarecrow",
+  "location": "Head",
+  "source": "client"
+}

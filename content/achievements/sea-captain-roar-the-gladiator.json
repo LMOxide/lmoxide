@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sea-captain-roar-the-gladiator",
+  "lore": 3536,
+  "parent": "achievement/sea-captain",
+  "client_name": "Sea Captain_Roar the Gladiator",
+  "title": "Sea Captain: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Sea Captain.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/sea-captain",
+  "source": "client"
+}

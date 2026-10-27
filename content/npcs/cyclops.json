@@ -1,0 +1,26 @@
+{
+  "id": "npc/cyclops",
+  "name": "Cyclops",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 2254
+  },
+  "level": 20,
+  "stats": {
+    "health": 26180
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/smash-319946",
+      "weight": 1
+    },
+    {
+      "skill": "skill/rock-chuck",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

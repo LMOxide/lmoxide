@@ -1,0 +1,25 @@
+{
+  "id": "item/boss-medusa-special-projectile",
+  "name": "boss medusa special projectile",
+  "kind": "projectile",
+  "template": 488280,
+  "effect_package": 489114,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 488282
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 488283
+      }
+    }
+  ],
+  "source": "client"
+}

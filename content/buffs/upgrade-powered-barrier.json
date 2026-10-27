@@ -1,0 +1,22 @@
+{
+  "id": "buff/upgrade-powered-barrier",
+  "name": "Upgrade: Powered Barrier ",
+  "nano": 531121,
+  "effects": [
+    {
+      "proc": {
+        "on": "attack",
+        "every": 5,
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-powered-barrier",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

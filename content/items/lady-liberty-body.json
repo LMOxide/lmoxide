@@ -1,0 +1,14 @@
+{
+  "id": "item/lady-liberty-body",
+  "name": "Lady Liberty Body",
+  "kind": "part",
+  "template": 599519,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20609,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

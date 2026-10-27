@@ -1,0 +1,134 @@
+{
+  "id": "minifig/grandpa",
+  "name": "Grandpa",
+  "template": 317713,
+  "series": 10,
+  "series_index": 0,
+  "render": {
+    "monster_data": 186254
+  },
+  "stats": {
+    "life": 250,
+    "power": 6,
+    "defense": 2,
+    "creativity": 9,
+    "role": 3,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/paper-plane",
+    "hits": [
+      {
+        "skill": "skill/paper-plane-318388",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [317711, 318387]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/back-to-basics",
+    "hits": [
+      {
+        "skill": "skill/back-to-the-basics",
+        "type": "WeaponHit",
+        "ability_mod": 1.5,
+        "damage_type": 1000,
+        "via": [317712, 318405, 318418]
+      }
+    ]
+  },
+  "click_spells": [317711, 317712],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-berserker"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460947"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-jury-rigging"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530297"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3443, 3332, 3642, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/grandpa-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/grandpa-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/grandpa-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-grandpa",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

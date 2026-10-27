@@ -1,0 +1,29 @@
+{
+  "id": "achievement/wrestling-champion",
+  "lore": 5071,
+  "parent": "achievement/series-15",
+  "client_name": "Wrestling Champion",
+  "title": "Wrestling Champion",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-wrestling-champion",
+    "achievement/legendary-wrestling-champion",
+    "achievement/wrestling-champion-mysterious-crystal-cave",
+    "achievement/wrestling-champion-cliffside",
+    "achievement/wrestling-champion-dragon-halls",
+    "achievement/wrestling-champion-deranged-raptor",
+    "achievement/wrestling-champion-the-triffid",
+    "achievement/wrestling-champion-the-weaver",
+    "achievement/novice-wrestling-champion",
+    "achievement/expert-wrestling-champion",
+    "achievement/wrestling-champion-the-lost-challenger",
+    "achievement/wrestling-champion-the-lost-warrior",
+    "achievement/wrestling-champion-the-lost-champion",
+    "achievement/wrestling-champion-the-smasher",
+    "achievement/wrestling-champion-the-master-smasher",
+    "achievement/wrestling-champion-the-demolisher"
+  ],
+  "minifigure": "minifig/wrestling-champion",
+  "source": "client"
+}

@@ -1,0 +1,85 @@
+{
+  "id": "skill/main-islandwarrior2-snare",
+  "name": "main islandwarrior2 snare",
+  "client": {
+    "spell": 470921,
+    "stats": {
+      "EffectPackage": 472246,
+      "MaxBuffCounters": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.8500000238418579
+          },
+          "criteria": [
+            [0, 0, 18],
+            [470921, 1, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.699999988079071
+          },
+          "criteria": [
+            [0, 0, 18],
+            [470921, 2, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.550000011920929
+          },
+          "criteria": [
+            [0, 0, 18],
+            [470921, 3, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.4000000059604645
+          },
+          "criteria": [
+            [0, 0, 18],
+            [470921, 4, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.25
+          },
+          "criteria": [
+            [0, 0, 18],
+            [470921, 5, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tribal-woman-ponos-the-pitcher",
+  "lore": 5302,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Ponos the Pitcher",
+  "title": "Tribal Woman: Ponos the Pitcher",
+  "text": "Defeat Ponos the Pitcher as Tribal Woman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ponos the Pitcher",
+  "minifigure": "minifig/tribal-woman",
+  "source": "client"
+}

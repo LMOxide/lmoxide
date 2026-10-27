@@ -1,0 +1,16 @@
+{
+  "id": "item/diner-waitress-legs",
+  "name": "Diner Waitress Legs",
+  "kind": "part",
+  "template": 483671,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31103,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/diner-waitress",
+  "location": "Legs",
+  "source": "client"
+}

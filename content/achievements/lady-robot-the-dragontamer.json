@@ -1,0 +1,17 @@
+{
+  "id": "achievement/lady-robot-the-dragontamer",
+  "lore": 2950,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Smash 50 Drakes",
+  "title": "Lady Robot the Dragontamer",
+  "text": "Smash 50 Drakes as Lady Robot.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/lady-robot",
+  "counts": {
+    "match": "Drake",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

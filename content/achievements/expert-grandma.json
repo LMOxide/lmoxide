@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-grandma",
+  "lore": 2979,
+  "parent": "achievement/grandma",
+  "client_name": "Grandma_Upgrade 7",
+  "title": "Expert Grandma",
+  "text": "Get the seventh Grandma upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/grandma",
+  "n": 7,
+  "source": "client"
+}

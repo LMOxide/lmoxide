@@ -1,0 +1,40 @@
+{
+  "id": "skill/bitter-tears",
+  "name": "Bitter Tears",
+  "client": {
+    "spell": 196058,
+    "stats": {
+      "EffectPackage": 233699,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 207740,
+            "ProjectileType": 1,
+            "Speed": 800
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Sad Clown: Bitter Tears",
+  "range": 15.0,
+  "projectile": {
+    "item": 207740,
+    "speed": 8.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

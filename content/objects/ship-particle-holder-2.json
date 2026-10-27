@@ -1,0 +1,10 @@
+{
+  "id": "object/ship-particle-holder-2",
+  "name": "ship_particle_holder_2",
+  "kind": "scenery",
+  "render": {
+    "look": "ship_particle_holder_2",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

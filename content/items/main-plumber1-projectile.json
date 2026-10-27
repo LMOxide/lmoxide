@@ -1,0 +1,24 @@
+{
+  "id": "item/main-plumber1-projectile",
+  "name": "main plumber1 projectile",
+  "kind": "projectile",
+  "template": 75781,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 36055
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 437069
+      }
+    }
+  ],
+  "source": "client"
+}

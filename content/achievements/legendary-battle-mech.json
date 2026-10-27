@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-battle-mech",
+  "lore": 2697,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Complete Any 10",
+  "title": "Legendary Battle Mech",
+  "text": "Complete any 11 Battle Mech achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/battle-mech",
+  "n": 11,
+  "source": "client"
+}

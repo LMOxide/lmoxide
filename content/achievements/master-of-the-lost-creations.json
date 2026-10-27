@@ -1,0 +1,12 @@
+{
+  "id": "achievement/master-of-the-lost-creations",
+  "lore": 4703,
+  "parent": "achievement/global",
+  "client_name": "Global_Lost Creations Master",
+  "title": "Master of the Lost Creations",
+  "text": "Complete level 30 in the Lost Creations.",
+  "points": 100,
+  "kind": "manual",
+  "stars": 1000,
+  "source": "client"
+}

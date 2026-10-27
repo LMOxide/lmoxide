@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-swashbuckler2-wrapper",
+  "name": "main swashbuckler2 wrapper",
+  "client": {
+    "spell": 505096,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 505097
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 505098
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Swashbuckler: Dazzling Swing",
+  "source": "client"
+}

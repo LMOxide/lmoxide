@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-bumblebee-girl",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 196132,
+  "minifigure": "minifig/bumblebee-girl",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "W7FL"
+      }
+    }
+  ],
+  "source": "client"
+}

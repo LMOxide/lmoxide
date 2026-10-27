@@ -1,0 +1,13 @@
+{
+  "id": "achievement/medusa-the-lost-warrior",
+  "lore": 3626,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Lost Creations_Get to Level 10",
+  "title": "Medusa, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Medusa.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/medusa",
+  "n": 10,
+  "source": "client"
+}

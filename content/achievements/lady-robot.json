@@ -1,0 +1,29 @@
+{
+  "id": "achievement/lady-robot",
+  "lore": 2490,
+  "parent": "achievement/series-11",
+  "client_name": "Lady Robot",
+  "title": "Lady Robot",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-lady-robot",
+    "achievement/legendary-lady-robot",
+    "achievement/novice-lady-robot",
+    "achievement/expert-lady-robot",
+    "achievement/lady-robot-unexplored-crystal-cave",
+    "achievement/lady-robot-swamp-tunnel",
+    "achievement/lady-robot-alien-command-center",
+    "achievement/lady-robot-korard-mercenary-captain",
+    "achievement/lady-robot-nyx-blackfeather",
+    "achievement/lady-robot-quicksword-billy",
+    "achievement/lady-robot-the-striker",
+    "achievement/lady-robot-the-master-striker",
+    "achievement/lady-robot-the-dragontamer",
+    "achievement/lady-robot-the-lost-challenger",
+    "achievement/lady-robot-the-lost-warrior",
+    "achievement/lady-robot-the-lost-champion"
+  ],
+  "minifigure": "minifig/lady-robot",
+  "source": "client"
+}

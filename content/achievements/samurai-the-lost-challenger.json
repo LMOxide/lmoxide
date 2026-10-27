@@ -1,0 +1,13 @@
+{
+  "id": "achievement/samurai-the-lost-challenger",
+  "lore": 3956,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Lost Creations_Get to Level 5",
+  "title": "Samurai, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Samurai.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/samurai",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,74 @@
+{
+  "id": "skill/fastball",
+  "name": "Fastball",
+  "client": {
+    "spell": 317732,
+    "stats": {
+      "EffectPackage": 318701,
+      "ItemDelay": 40,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 10,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 318450,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1200
+          },
+          "criteria": [
+            [0, 448001, 101],
+            [0, 448010, 101],
+            [0, 0, 4]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 318450,
+            "MaxRicochets": 2,
+            "ProjectileType": 1,
+            "Speed": 1700
+          },
+          "criteria": [
+            [0, 448001, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 700,
+            "ItemInstance": 448009,
+            "ProjectileType": 1,
+            "Speed": 800
+          },
+          "criteria": [
+            [0, 448010, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Baseball Fielder: Fastball",
+  "range": 15.0,
+  "projectile": {
+    "item": 318450,
+    "speed": 12.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

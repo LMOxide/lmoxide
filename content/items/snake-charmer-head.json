@@ -1,0 +1,16 @@
+{
+  "id": "item/snake-charmer-head",
+  "name": "Snake Charmer Head",
+  "kind": "part",
+  "template": 576165,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11315,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/snake-charmer",
+  "location": "Head",
+  "source": "client"
+}

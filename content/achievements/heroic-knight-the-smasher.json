@@ -1,0 +1,16 @@
+{
+  "id": "achievement/heroic-knight-the-smasher",
+  "lore": 2609,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Smash 500 Smashies",
+  "title": "Heroic Knight, the Smasher",
+  "text": "Smash 500 smashies as Heroic Knight.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/heroic-knight",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

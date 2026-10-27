@@ -1,0 +1,16 @@
+{
+  "id": "item/baseball-fielder-legs",
+  "name": "Baseball Fielder Legs",
+  "kind": "part",
+  "template": 483690,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31001,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/baseball-fielder",
+  "location": "Legs",
+  "source": "client"
+}

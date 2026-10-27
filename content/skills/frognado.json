@@ -1,0 +1,36 @@
+{
+  "id": "skill/frognado",
+  "name": "Frognado",
+  "client": {
+    "spell": 500464,
+    "stats": {
+      "EffectPackage": 505279,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 503532
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 500464,
+            "Value": 600
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fairytale Princess: Frognado",
+  "source": "client"
+}

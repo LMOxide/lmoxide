@@ -1,0 +1,88 @@
+{
+  "areas": [
+    {
+      "id": "area/8030/cine-defendpos1",
+      "name": "Cine_DefendPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [239.0, 42.3, 279.01],
+          "rot": 0.0
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/8030/cine-bosscamera1",
+      "name": "Cine_BossCamera1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [252.08, 44.01, 280.54],
+          "rot": -1.505
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/8030/cine-spawnscientistwin1",
+      "name": "Cine_SpawnScientistWin1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [245.01, 42.0, 279.54],
+          "rot": -1.64
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/8030/cine-player1",
+      "name": "Cine_Player1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [242.53, 42.0, 279.74],
+          "rot": 1.166
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/8030/cine-player2",
+      "name": "Cine_Player2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [242.73, 42.0, 278.54],
+          "rot": 1.166
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/8030/cine-player3",
+      "name": "Cine_Player3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [243.18, 42.0, 277.41],
+          "rot": 1.166
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/8030/cine-player4",
+      "name": "Cine_Player4",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [242.61, 42.0, 281.24],
+          "rot": 1.797
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

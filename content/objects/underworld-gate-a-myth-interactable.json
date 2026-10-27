@@ -1,0 +1,10 @@
+{
+  "id": "object/underworld-gate-a-myth-interactable",
+  "name": "underworld_gate_a_myth_interactable",
+  "kind": "interactable",
+  "render": {
+    "look": "underworld_gate_a_myth_interactable",
+    "visual": [1010201, 486387]
+  },
+  "source": "client"
+}

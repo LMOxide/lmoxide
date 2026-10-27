@@ -1,0 +1,30 @@
+{
+  "id": "world/cave-of-the-exiled",
+  "name": "Cave of the Exiled",
+  "playfield": 1602,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "arrival": {
+    "pos": [235.46, 17.24, 254.73],
+    "rot": 4.71
+  },
+  "arrival_guid": 475960,
+  "arrival_from": {
+    "world/planet-s-dark-side": {
+      "pos": [241.26, 20.39, 236.9],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 475960,
+      "pos": [235.46, 17.24, 254.73],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

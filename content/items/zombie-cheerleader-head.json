@@ -1,0 +1,16 @@
+{
+  "id": "item/zombie-cheerleader-head",
+  "name": "Zombie Cheerleader Head",
+  "kind": "part",
+  "template": 662032,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11415,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/zombie-cheerleader",
+  "location": "Head",
+  "source": "client"
+}

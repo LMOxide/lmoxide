@@ -1,0 +1,29 @@
+{
+  "id": "skill/main-lifeguardguy4-wrapper",
+  "name": "main lifeguardguy4 wrapper",
+  "client": {
+    "spell": 515549,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 446977
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 515548
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

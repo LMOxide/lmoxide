@@ -1,0 +1,134 @@
+{
+  "id": "minifig/policeman",
+  "name": "Policeman",
+  "template": 41896,
+  "series": 9,
+  "series_index": 0,
+  "render": {
+    "monster_data": 34370
+  },
+  "stats": {
+    "life": 350,
+    "power": 5,
+    "defense": 9,
+    "creativity": 2,
+    "role": 2,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/long-arm-of-the-law",
+    "hits": [
+      {
+        "skill": "skill/main-police1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1004,
+        "via": [41071]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/halt",
+    "hits": [
+      {
+        "skill": "skill/halt-301484",
+        "type": "WeaponHit",
+        "ability_mod": 0.33,
+        "damage_type": 1000,
+        "via": [36506, 36507]
+      }
+    ]
+  },
+  "click_spells": [41071, 36506],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-stalwart"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fast-460978"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-regenerate"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-second-wind"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-fortify"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2782, 2480, 3641, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/policeman-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/policeman-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/policeman-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-policeman",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/space-world"],
+    "text": "You can find me in the Space World.",
+    "location_text": 27328549,
+    "location_picture": 474079
+  },
+  "source": "client"
+}

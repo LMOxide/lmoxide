@@ -1,0 +1,17 @@
+{
+  "id": "item/starfish",
+  "name": "Starfish",
+  "kind": "projectile",
+  "template": 38981,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 34533
+      }
+    }
+  ],
+  "source": "client"
+}

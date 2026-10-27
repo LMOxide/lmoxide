@@ -1,0 +1,26 @@
+{
+  "id": "npc/alien-queen",
+  "name": "Alien Queen",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 369478
+  },
+  "level": 18,
+  "stats": {
+    "health": 21000
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/space-pd-port-boss-queen-blast-castable",
+      "weight": 1
+    },
+    {
+      "skill": "skill/space-pd-port-boss-queen-purge-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

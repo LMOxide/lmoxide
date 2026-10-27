@@ -1,0 +1,17 @@
+{
+  "id": "item/main-lizardman2-projectile-a",
+  "name": "main lizardman2 projectile a",
+  "kind": "projectile",
+  "template": 596801,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 596790
+      }
+    }
+  ],
+  "source": "client"
+}

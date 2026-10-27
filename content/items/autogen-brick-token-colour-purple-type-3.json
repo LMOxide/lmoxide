@@ -1,0 +1,30 @@
+{
+  "id": "item/autogen-brick-token-colour-purple-type-3",
+  "name": "XX_autogen brick token colour:purple type:3",
+  "kind": "token",
+  "template": 59684,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 3,
+      "amount": 1
+    },
+    {
+      "token": 11,
+      "amount": 1
+    },
+    {
+      "token": 19,
+      "amount": 1
+    },
+    {
+      "token": 27,
+      "amount": 1
+    },
+    {
+      "token": 35,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

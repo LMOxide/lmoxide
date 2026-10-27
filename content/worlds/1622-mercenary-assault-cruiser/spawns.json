@@ -1,0 +1,202 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/1622/space-merc-brawler",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [303.0, 37.85, 172.0],
+      "overrides": {
+        "level": 16,
+        "stats": {
+          "health": 1576
+        }
+      },
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/space-merc-defender",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [305.2, 37.78, 173.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/space-merc-defender-2",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [283.5, 36.98, 159.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/space-merc-engineer",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [285.7, 37.75, 160.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/space-merc-defender-3",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [284.1, 36.98, 157.3],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/space-merc-engineer-2",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [297.5, 40.1, 148.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/bot-battle-merc",
+      "name": "Bot Battle Merc",
+      "kind": "enemy",
+      "template": "npc/bot-battle-merc",
+      "pos": [299.7, 40.1, 149.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [295.5, 39.08, 161.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [296.3, 39.08, 162.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [294.9, 39.08, 162.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [281.5, 37.85, 169.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [282.3, 37.85, 170.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [280.9, 37.85, 170.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [286.0, 35.95, 150.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [286.8, 35.95, 151.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [285.4, 35.95, 151.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1622/teleporter-a-space",
+      "name": "teleporter_a_space",
+      "kind": "scenery",
+      "template": "object/teleporter-a-space",
+      "pos": [287.71, 41.15, 132.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 406542,
+        "tag": "JUMP",
+        "script_group": 19,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1622/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [281.02, 35.49, 123.83],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 406203,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1622/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [273.67, 37.48, 122.91],
+      "rot": [0.0, 0.0028, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 595036,
+        "tag": "----",
+        "script_group": 2,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

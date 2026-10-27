@@ -1,0 +1,16 @@
+{
+  "id": "achievement/sad-clown-the-master-builder",
+  "lore": 3563,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_Build 1000 Buildies",
+  "title": "Sad Clown, the Master Builder",
+  "text": "Build 1000 buildies as Sad Clown.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/sad-clown",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

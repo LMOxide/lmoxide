@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-goddess-cliffside",
+  "lore": 3058,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Cliffside",
+  "title": "Battle Goddess: Cliffside",
+  "text": "Conquer the Cliffside as Battle Goddess.",
+  "points": 50,
+  "kind": "target",
+  "target": "Cliffside",
+  "minifigure": "minifig/battle-goddess",
+  "source": "client"
+}

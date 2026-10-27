@@ -1,0 +1,13 @@
+{
+  "id": "achievement/decorator-the-lost-champion",
+  "lore": 3462,
+  "parent": "achievement/decorator",
+  "client_name": "Decorator_Lost Creations_Get to Level 15",
+  "title": "Decorator, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Decorator.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/decorator",
+  "n": 15,
+  "source": "client"
+}

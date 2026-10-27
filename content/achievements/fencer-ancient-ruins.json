@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fencer-ancient-ruins",
+  "lore": 3846,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Ancient Ruins",
+  "title": "Fencer: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Fencer.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/fencer",
+  "source": "client"
+}

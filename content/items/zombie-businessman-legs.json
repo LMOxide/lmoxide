@@ -1,0 +1,16 @@
+{
+  "id": "item/zombie-businessman-legs",
+  "name": "Zombie Businessman Legs",
+  "kind": "part",
+  "template": 662050,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31414,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/zombie-businessman",
+  "location": "Legs",
+  "source": "client"
+}

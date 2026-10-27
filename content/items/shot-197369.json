@@ -1,0 +1,18 @@
+{
+  "id": "item/shot-197369",
+  "name": "Shot",
+  "kind": "projectile",
+  "template": 197369,
+  "effect_package": 232864,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 197368
+      }
+    }
+  ],
+  "source": "client"
+}

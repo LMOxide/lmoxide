@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-hollywood-starlet",
+  "lore": 2595,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Complete Any 10",
+  "title": "Legendary Hollywood Starlet",
+  "text": "Complete any 11 Hollywood Starlet achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/hollywood-starlet",
+  "n": 11,
+  "source": "client"
+}

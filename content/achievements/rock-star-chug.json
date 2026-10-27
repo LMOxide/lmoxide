@@ -1,0 +1,13 @@
+{
+  "id": "achievement/rock-star-chug",
+  "lore": 3229,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Chug",
+  "title": "Rock Star: Chug",
+  "text": "Defeat Chug as Rock Star.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chug",
+  "minifigure": "minifig/rock-star",
+  "source": "client"
+}

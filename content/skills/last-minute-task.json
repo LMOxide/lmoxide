@@ -1,0 +1,40 @@
+{
+  "id": "skill/last-minute-task",
+  "name": "Last Minute Task",
+  "client": {
+    "spell": 641616,
+    "stats": {
+      "EffectPackage": 656268,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 642444,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Zombie Businessman: Last Minute Task",
+  "range": 12.5,
+  "projectile": {
+    "item": 642444,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

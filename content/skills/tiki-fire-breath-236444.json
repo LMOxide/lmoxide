@@ -1,0 +1,26 @@
+{
+  "id": "skill/tiki-fire-breath-236444",
+  "name": "Tiki Fire Breath",
+  "client": {
+    "spell": 236444,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 236445,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-rocker-roar-the-gladiator",
+  "lore": 4644,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Roar the Gladiator",
+  "title": "Monster Rocker: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Monster Rocker.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/monster-rocker",
+  "source": "client"
+}

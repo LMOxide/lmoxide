@@ -1,0 +1,29 @@
+{
+  "id": "achievement/paleontologist-3753",
+  "lore": 3753,
+  "parent": "achievement/series-13",
+  "client_name": "Paleontologist",
+  "title": "Paleontologist",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-paleontologist",
+    "achievement/legendary-paleontologist",
+    "achievement/novice-paleontologist",
+    "achievement/expert-paleontologist",
+    "achievement/paleontologist-spider-s-nest",
+    "achievement/paleontologist-mercenary-cave",
+    "achievement/paleontologist-dragon-halls",
+    "achievement/paleontologist-chunk-the-tiger",
+    "achievement/paleontologist-the-triffid",
+    "achievement/paleontologist-roar-the-gladiator",
+    "achievement/paleontologist-the-smasher",
+    "achievement/paleontologist-the-master-smasher",
+    "achievement/paleontologist-the-demolisher",
+    "achievement/paleontologist-the-lost-challenger",
+    "achievement/paleontologist-the-lost-warrior",
+    "achievement/paleontologist-the-lost-champion"
+  ],
+  "minifigure": "minifig/paleontologist",
+  "source": "client"
+}

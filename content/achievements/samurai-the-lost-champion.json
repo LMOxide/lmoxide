@@ -1,0 +1,13 @@
+{
+  "id": "achievement/samurai-the-lost-champion",
+  "lore": 3958,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Lost Creations_Get to level 15",
+  "title": "Samurai, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Samurai.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/samurai",
+  "n": 15,
+  "source": "client"
+}

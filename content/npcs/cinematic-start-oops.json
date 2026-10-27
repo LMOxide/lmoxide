@@ -1,0 +1,16 @@
+{
+  "id": "npc/cinematic-start-oops",
+  "name": "Cinematic Start Oops",
+  "kind": "trigger",
+  "render": {
+    "monster_data": 51057,
+    "npc_template": 1014,
+    "look": "invisible_monsterdata",
+    "cars_group": 5
+  },
+  "level": 30,
+  "stats": {
+    "health": 6813
+  },
+  "source": "client"
+}

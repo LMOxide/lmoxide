@@ -1,0 +1,13 @@
+{
+  "id": "achievement/video-game-guy-the-lost-warrior",
+  "lore": 3303,
+  "parent": "achievement/video-game-guy",
+  "client_name": "Video Game Guy_Lost Creations_Get to Level 10",
+  "title": "Video Game Guy, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Video Game Guy.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/video-game-guy",
+  "n": 10,
+  "source": "client"
+}

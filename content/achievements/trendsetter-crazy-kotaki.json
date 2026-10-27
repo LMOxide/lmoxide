@@ -1,0 +1,13 @@
+{
+  "id": "achievement/trendsetter-crazy-kotaki",
+  "lore": 3502,
+  "parent": "achievement/trendsetter",
+  "client_name": "Trendsetter_Crazy Kotaki",
+  "title": "Trendsetter: Crazy Kotaki",
+  "text": "Defeat Crazy Kotaki as Trendsetter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crazy Kotaki",
+  "minifigure": "minifig/trendsetter",
+  "source": "client"
+}

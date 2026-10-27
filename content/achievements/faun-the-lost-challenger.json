@@ -1,0 +1,13 @@
+{
+  "id": "achievement/faun-the-lost-challenger",
+  "lore": 5162,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Lost Creations_Get to Level 5",
+  "title": "Faun, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Faun.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/faun",
+  "n": 5,
+  "source": "client"
+}

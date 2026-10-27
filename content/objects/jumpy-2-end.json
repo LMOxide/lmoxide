@@ -1,0 +1,10 @@
+{
+  "id": "object/jumpy-2-end",
+  "name": "jumpy_2_end",
+  "kind": "scenery",
+  "render": {
+    "look": "jumpy_2_end",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/heroic-knight-the-lost-warrior",
+  "lore": 2608,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Lost Creations_Get to Level 10",
+  "title": "Heroic Knight, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Heroic Knight.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/heroic-knight",
+  "n": 10,
+  "source": "client"
+}

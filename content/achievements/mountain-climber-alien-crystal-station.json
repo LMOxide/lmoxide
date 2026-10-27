@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mountain-climber-alien-crystal-station",
+  "lore": 2820,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Alien Crystal Station",
+  "title": "Mountain Climber: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Mountain Climber.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/mountain-climber",
+  "source": "client"
+}

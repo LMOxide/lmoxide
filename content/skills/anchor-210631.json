@@ -1,0 +1,39 @@
+{
+  "id": "skill/anchor-210631",
+  "name": "Anchor",
+  "client": {
+    "spell": 210631,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 210630
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 238243
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Sea Captain: Anchor",
+  "source": "client"
+}

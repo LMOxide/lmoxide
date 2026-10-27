@@ -1,0 +1,12 @@
+{
+  "id": "skill/passive-dangerous-waters-checkspellline",
+  "name": "Passive dangerous waters checkSpellLine",
+  "client": {
+    "spell": 447106,
+    "stats": {
+      "LuaScriptID": 1048,
+      "TargetingMode": 5
+    }
+  },
+  "source": "client"
+}

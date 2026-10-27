@@ -1,0 +1,14 @@
+{
+  "id": "achievement/jester-s-house",
+  "lore": 757,
+  "parent": "achievement/wayfarer",
+  "client_name": "Medieval_Exploration_Watcher on the Wall",
+  "title": "Jester's House",
+  "text": "Find Jester's Family Home in the Kingdom.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/kingdom",
+  "find": "Achievement_Wall",
+  "place": "Jester's Family Home",
+  "source": "client"
+}

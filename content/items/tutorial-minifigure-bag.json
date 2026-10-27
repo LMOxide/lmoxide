@@ -1,0 +1,17 @@
+{
+  "id": "item/tutorial-minifigure-bag",
+  "name": "Tutorial Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 234940,
+  "controlled_loot_type": 4,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 1,
+        "Value": 236826
+      }
+    }
+  ],
+  "source": "client"
+}

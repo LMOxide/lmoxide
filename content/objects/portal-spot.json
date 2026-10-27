@@ -1,0 +1,10 @@
+{
+  "id": "object/portal-spot",
+  "name": "portal spot",
+  "kind": "scenery",
+  "render": {
+    "look": "portal spot",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

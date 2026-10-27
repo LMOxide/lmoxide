@@ -1,0 +1,16 @@
+{
+  "id": "item/galaxy-trooper-body",
+  "name": "Galaxy Trooper Body",
+  "kind": "part",
+  "template": 576117,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21308,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/galaxy-trooper",
+  "location": "Torso",
+  "source": "client"
+}

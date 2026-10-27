@@ -1,0 +1,23 @@
+{
+  "id": "world/hub-sound",
+  "name": "Hub - SOUND",
+  "playfield": 1202,
+  "kind": "pocket",
+  "arrival": {
+    "pos": [295.65, 54.0, 43.05],
+    "rot": 5.651
+  },
+  "arrival_guid": 346086,
+  "respawn_points": [
+    {
+      "name": "Hearthstone",
+      "guid": 346086,
+      "pos": [295.65, 54.0, 43.05],
+      "rot": 5.651,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

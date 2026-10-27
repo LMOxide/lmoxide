@@ -1,0 +1,33 @@
+{
+  "id": "skill/main-scientist1-pge-wrapper-2",
+  "name": "main scientist1 pge wrapper 2",
+  "client": {
+    "spell": 35540,
+    "stats": {
+      "EffectPackage": 366596,
+      "TargetingMode": 6
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 34724
+          }
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 50,
+            "Arg2": 4,
+            "NanoTemplate": 35661
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Scientist: Blue Potion",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-gingerbread-man",
+  "lore": 2995,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Upgrade 3",
+  "title": "Novice Gingerbread Man",
+  "text": "Get the third Gingerbread Man upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/gingerbread-man",
+  "n": 3,
+  "source": "client"
+}

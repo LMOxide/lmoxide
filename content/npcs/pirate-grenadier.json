@@ -1,0 +1,27 @@
+{
+  "id": "npc/pirate-grenadier",
+  "name": "Pirate Grenadier",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 192821
+  },
+  "level": 5,
+  "stats": {
+    "health": 168,
+    "life_factor": 0.75
+  },
+  "attack": "skill/spell-237324",
+  "skills": [
+    {
+      "skill": "skill/grenade-throw",
+      "weight": 1
+    },
+    {
+      "skill": "skill/slash-238115",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "skill/passive-marker-buff-friend-zone",
+  "name": "Passive marker buff friend zone",
+  "client": {
+    "spell": 447386,
+    "stats": {
+      "LuaScriptID": 1050,
+      "TimeExist": 500
+    }
+  },
+  "source": "client"
+}

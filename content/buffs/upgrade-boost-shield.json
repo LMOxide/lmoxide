@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-boost-shield",
+  "name": "Upgrade: Boost Shield",
+  "nano": 531640,
+  "effects": [
+    {
+      "proc": {
+        "on": "kill",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-boost-shield",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

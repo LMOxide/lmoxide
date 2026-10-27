@@ -1,0 +1,17 @@
+{
+  "id": "item/main-cowboy2-projectile",
+  "name": "main cowboy2 projectile",
+  "kind": "projectile",
+  "template": 596822,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 596823
+      }
+    }
+  ],
+  "source": "client"
+}

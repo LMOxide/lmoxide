@@ -1,0 +1,15 @@
+{
+  "id": "world/startup-cutscene",
+  "name": "Startup_CutScene",
+  "playfield": 4001,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [220.0, 39.86, 249.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

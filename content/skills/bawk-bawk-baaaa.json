@@ -1,0 +1,51 @@
+{
+  "id": "skill/bawk-bawk-baaaa",
+  "name": "Bawk Bawk Baaaa!",
+  "client": {
+    "spell": 32422,
+    "stats": {
+      "ChannelingInterval": 40,
+      "ChannelingTicks": 1,
+      "EffectPackage": 38595,
+      "ItemDelay": 50,
+      "MoreFlags": 536872960,
+      "RechargeDelay": 50,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 446852,
+            "ProjectileType": 1,
+            "Speed": 650
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 32422,
+            "Value": 750
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Chicken Suit Guy: Bawk Bawk Baaaa!",
+  "range": 12.5,
+  "projectile": {
+    "item": 446852,
+    "speed": 6.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

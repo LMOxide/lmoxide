@@ -1,0 +1,26 @@
+{
+  "id": "npc/troll-melee-war",
+  "name": "Troll Melee War",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 327844
+  },
+  "level": 9,
+  "stats": {
+    "health": 453
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/smash-238037",
+      "weight": 1
+    },
+    {
+      "skill": "skill/wild-swing",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

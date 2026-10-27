@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-s15-ballerina2-projectile-damage",
+  "name": "main s15 ballerina2 projectile damage",
+  "client": {
+    "spell": 667136,
+    "stats": {
+      "EffectPackage": 668717,
+      "TargetingMode": 5,
+      "TimeExist": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.800000011920929,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

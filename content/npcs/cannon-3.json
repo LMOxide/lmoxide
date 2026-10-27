@@ -1,0 +1,14 @@
+{
+  "id": "npc/cannon-3",
+  "name": "Cannon",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 195759
+  },
+  "level": 4,
+  "stats": {
+    "life_factor": 1.0
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

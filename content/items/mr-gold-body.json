@@ -1,0 +1,16 @@
+{
+  "id": "item/mr-gold-body",
+  "name": "Mr. Gold Body",
+  "kind": "part",
+  "template": 483625,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21017,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/mr-gold",
+  "location": "Torso",
+  "source": "client"
+}

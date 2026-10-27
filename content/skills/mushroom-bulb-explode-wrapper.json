@@ -1,0 +1,29 @@
+{
+  "id": "skill/mushroom-bulb-explode-wrapper",
+  "name": "mushroom bulb explode wrapper",
+  "client": {
+    "spell": 380319,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 380318
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 380320
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

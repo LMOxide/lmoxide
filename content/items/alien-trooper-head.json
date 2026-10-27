@@ -1,0 +1,16 @@
+{
+  "id": "item/alien-trooper-head",
+  "name": "Alien Trooper Head",
+  "kind": "part",
+  "template": 576159,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11301,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/alien-trooper",
+  "location": "Head",
+  "source": "client"
+}

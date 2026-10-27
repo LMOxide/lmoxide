@@ -174,6 +174,7 @@ See [docs/PATCHING.md](docs/PATCHING.md) and
 |---|---|
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | test runs, in-game test commands, scripts, reverse-engineering tools |
 | [PROTOCOL.md](docs/PROTOCOL.md) | how the client talks to the server: boot, framing, RPCs, login, game systems |
+| [CONTENT.md](docs/CONTENT.md) | the game's data in one editable tree (`content/`): its format, commands, what the import did |
 | [TUNABLES.md](docs/TUNABLES.md) | values that are guessed because the client data doesn't contain them |
 | [SECURITY.md](docs/SECURITY.md) | what is protected, what can't be, and a deployment checklist |
 | [PATCHING.md](docs/PATCHING.md) | the patch server and the patcher protocol |

@@ -1,0 +1,28 @@
+{
+  "id": "skill/space-pd-port-boss-queen-defense-tether",
+  "name": "space pd port boss queen defense tether",
+  "client": {
+    "spell": 367043,
+    "stats": {
+      "EffectPackage": 367044
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "DamageRedirect",
+          "args": {
+            "ApplyOn": 3,
+            "Flags": 144,
+            "FloatValue1": 0.10000000149011612,
+            "FloatValue2": 0.0010000000474974513,
+            "MaxAmount": 10000,
+            "Stat": 2000406,
+            "Time": 1.0,
+            "Value": 9999999
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

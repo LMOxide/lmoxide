@@ -1,0 +1,134 @@
+{
+  "id": "minifig/sad-clown",
+  "name": "Sad Clown",
+  "template": 196056,
+  "series": 10,
+  "series_index": 0,
+  "render": {
+    "monster_data": 186269
+  },
+  "stats": {
+    "life": 250,
+    "power": 5,
+    "defense": 3,
+    "creativity": 9,
+    "role": 3,
+    "element": 2
+  },
+  "normal": {
+    "skill": "skill/bitter-tears",
+    "hits": [
+      {
+        "skill": "skill/bitter-tears-207761",
+        "type": "WeaponHit",
+        "ability_mod": 0.9,
+        "damage_type": 1000,
+        "via": [196058, 207740, 222210]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/from-bad-to-worse",
+    "hits": [
+      {
+        "skill": "skill/from-bad-to-worse-222209",
+        "type": "WeaponHit",
+        "ability_mod": 0.5,
+        "damage_type": 1000,
+        "via": [196059, 245949, 245964, 222171, 222206, 222207]
+      }
+    ]
+  },
+  "click_spells": [196058, 196059],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-reconstruct"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530296"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3562, 3339, 3642, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/sad-clown-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/sad-clown-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/sad-clown-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-sad-clown",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/pirate-world"],
+    "text": "You can find me in the Pirate World.",
+    "location_text": 182907829,
+    "location_picture": 473019
+  },
+  "source": "client"
+}

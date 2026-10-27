@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-chunk-the-tiger",
+  "lore": 2909,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Chunk the Tiger",
+  "title": "Scientist: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Scientist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/scientist",
+  "source": "client"
+}

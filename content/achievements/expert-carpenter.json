@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-carpenter",
+  "lore": 3784,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Upgrade 7",
+  "title": "Expert Carpenter",
+  "text": "Get the seventh Carpenter upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/carpenter",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/wizard",
+  "lore": 2512,
+  "parent": "achievement/series-12",
+  "client_name": "Wizard",
+  "title": "Wizard",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-wizard",
+    "achievement/legendary-wizard",
+    "achievement/novice-wizard",
+    "achievement/expert-wizard",
+    "achievement/wizard-bewitched-candy-forest",
+    "achievement/wizard-cave-of-the-exiled",
+    "achievement/wizard-dragon-halls",
+    "achievement/wizard-chlora-the-fungomancer",
+    "achievement/wizard-the-weaver",
+    "achievement/wizard-hecate-the-winter-witch",
+    "achievement/wizard-the-striker",
+    "achievement/wizard-the-master-striker",
+    "achievement/wizard-the-witch-hunter",
+    "achievement/wizard-the-lost-challenger",
+    "achievement/wizard-the-lost-warrior",
+    "achievement/wizard-the-lost-champion"
+  ],
+  "minifigure": "minifig/wizard",
+  "source": "client"
+}

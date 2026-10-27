@@ -1,0 +1,70 @@
+{
+  "id": "skill/cats-out-the-bag",
+  "name": "Cats out the Bag",
+  "client": {
+    "spell": 357879,
+    "stats": {
+      "EffectPackage": 366655,
+      "ItemDelay": 50,
+      "RechargeDelay": 50,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 357879,
+            "Value": 500
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 360406,
+            "ProjectileType": 1,
+            "Speed": 650
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 360406,
+            "ProjectileType": 1,
+            "RotY": -30,
+            "Speed": 550
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 360406,
+            "ProjectileType": 1,
+            "RotY": 30,
+            "Speed": 550
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Grandma: Cats out the Bag",
+  "range": 10.0,
+  "projectile": {
+    "item": 360406,
+    "speed": 6.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

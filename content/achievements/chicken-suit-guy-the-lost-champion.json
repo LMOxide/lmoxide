@@ -1,0 +1,13 @@
+{
+  "id": "achievement/chicken-suit-guy-the-lost-champion",
+  "lore": 2682,
+  "parent": "achievement/chicken-suit-guy",
+  "client_name": "Chicken Suit Guy_Lost Creations_Get to Level 15",
+  "title": "Chicken Suit Guy, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Chicken Suit Guy.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/chicken-suit-guy",
+  "n": 15,
+  "source": "client"
+}

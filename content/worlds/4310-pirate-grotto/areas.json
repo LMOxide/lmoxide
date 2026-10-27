@@ -1,0 +1,398 @@
+{
+  "areas": [
+    {
+      "id": "area/4310/sapperpoint-1",
+      "name": "SapperPoint_1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [363.26, 58.0, 137.28],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/sapperpoint-2",
+      "name": "SapperPoint_2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [367.97, 58.0, 133.81],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/sapperdeath",
+      "name": "SapperDeath",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [363.99, 58.0, 149.82],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/outsidebossarea",
+      "name": "OutsideBossArea",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [348.61, 58.64, 118.79],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/sapperdeath0",
+      "name": "SapperDeath0",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [380.37, 58.0, 135.25],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-dreadlegappears1",
+      "name": "Cine_DreadlegAppears1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [281.5, 40.0, 170.5],
+          "rot": -2.851
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-dreadleg1",
+      "name": "Cine_Dreadleg1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [354.79, 59.13, 124.73],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-escape1",
+      "name": "Cine_Escape1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [374.59, 58.0, 143.78],
+          "rot": -2.356
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-swashbuckleratpreboss1",
+      "name": "Cine_SwashbucklerAtPreBoss1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [351.85, 59.15, 122.83],
+          "rot": 0.639
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-playeratpreboss1",
+      "name": "Cine_PlayerAtPreBoss1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [352.76, 59.22, 122.05],
+          "rot": 0.639
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-dummyspawn1",
+      "name": "Cine_DummySpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [387.0, 58.0, 157.0],
+          "rot": -2.43
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-player1",
+      "name": "Cine_Player1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [383.59, 58.0, 154.42],
+          "rot": 0.861
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-player2",
+      "name": "Cine_Player2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [384.61, 58.0, 153.42],
+          "rot": 0.678
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-player3",
+      "name": "Cine_Player3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [382.61, 58.0, 155.6],
+          "rot": 1.108
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-player4",
+      "name": "Cine_Player4",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [385.83, 58.0, 152.49],
+          "rot": 0.287
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-petespawn1",
+      "name": "Cine_PeteSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [386.58, 58.0, 156.59],
+          "rot": -2.43
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-swashbucklerspawn1",
+      "name": "Cine_SwashbucklerSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [384.89, 58.0, 157.29],
+          "rot": -3.1
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-gamerspawn1",
+      "name": "Cine_GamerSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [387.77, 58.0, 154.65],
+          "rot": -2.02
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-wizardspawn1",
+      "name": "Cine_WizardSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [387.75, 58.0, 154.66],
+          "rot": -2.02
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-dreadlegspawn1",
+      "name": "Cine_DreadlegSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [386.54, 58.0, 156.6],
+          "rot": -2.43
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-revosoldierspawn1",
+      "name": "Cine_RevoSoldierSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [383.29, 58.0, 158.44],
+          "rot": 2.746
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/cine-islandwarriorspawn1",
+      "name": "Cine_IslandWarriorSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [382.34, 58.0, 156.97],
+          "rot": 1.82
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/minibossencounter-start-skimpybob-skimpybob",
+      "name": "MiniBossEncounter_Start_SkimpyBob",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [350.91, 206.12],
+            [349.24, 206.13],
+            [349.11, 197.36],
+            [350.73, 197.36]
+          ],
+          "heights": [37.676636, 47.676636]
+        }
+      },
+      "suffix": "SkimpyBob",
+      "doors": {
+        "open": [356527],
+        "closed": [356529],
+        "exit": [356528]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/bossencounter-start-dreadleg-dreadleg",
+      "name": "BossEncounter_Start_Dreadleg",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [357.42, 133.55],
+            [356.23, 132.37],
+            [362.34, 126.07],
+            [363.48, 127.22]
+          ],
+          "heights": [58.849915, 68.849915]
+        }
+      },
+      "suffix": "Dreadleg",
+      "doors": {
+        "open": [188952],
+        "closed": [188951],
+        "exit": [188953]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/bossencounter-start-blackheart-blackheart",
+      "name": "BossEncounter_Start_Blackheart",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [357.42, 133.55],
+            [356.23, 132.37],
+            [362.34, 126.07],
+            [363.48, 127.22]
+          ],
+          "heights": [58.849915, 68.849915]
+        }
+      },
+      "suffix": "Blackheart",
+      "doors": {},
+      "source": "client"
+    },
+    {
+      "id": "area/4310/ba-entrance-ambush",
+      "name": "BA_Entrance_Ambush",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [293.83, 170.86],
+            [301.7, 187.43],
+            [285.38, 191.98],
+            [286.8, 171.02]
+          ],
+          "heights": [37.53019, 47.53019]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/ba-passage-ambush-1",
+      "name": "BA_Passage_Ambush_1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [321.47, 180.42],
+            [321.08, 185.2],
+            [315.29, 186.98]
+          ],
+          "heights": [38.735622, 48.735622]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/ba-passage-ambush-2",
+      "name": "BA_Passage_Ambush_2",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [329.76, 185.2],
+            [328.36, 194.7],
+            [320.99, 193.19]
+          ],
+          "heights": [38.726223, 48.726223]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4310/ba-bridge-ambush",
+      "name": "BA_Bridge_Ambush",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [321.46, 212.69],
+            [331.89, 211.24],
+            [331.34, 213.36]
+          ],
+          "heights": [57.787426, 67.78743]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

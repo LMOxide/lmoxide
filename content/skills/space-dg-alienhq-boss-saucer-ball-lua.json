@@ -1,0 +1,11 @@
+{
+  "id": "skill/space-dg-alienhq-boss-saucer-ball-lua",
+  "name": "space dg alienhq boss saucer ball lua",
+  "client": {
+    "spell": 398788,
+    "stats": {
+      "TargetingMode": 5
+    }
+  },
+  "source": "client"
+}

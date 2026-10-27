@@ -1,0 +1,29 @@
+{
+  "id": "achievement/sea-captain",
+  "lore": 3338,
+  "parent": "achievement/series-10",
+  "client_name": "Sea Captain",
+  "title": "Sea Captain",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-sea-captain",
+    "achievement/legendary-sea-captain",
+    "achievement/novice-sea-captain",
+    "achievement/expert-sea-captain",
+    "achievement/sea-captain-spider-s-nest",
+    "achievement/sea-captain-mercenary-cave",
+    "achievement/sea-captain-dragon-halls",
+    "achievement/sea-captain-chunk-the-tiger",
+    "achievement/sea-captain-the-triffid",
+    "achievement/sea-captain-roar-the-gladiator",
+    "achievement/sea-captain-the-smasher",
+    "achievement/sea-captain-the-master-smasher",
+    "achievement/sea-captain-the-sweet",
+    "achievement/sea-captain-the-lost-challenger",
+    "achievement/sea-captain-the-lost-warrior",
+    "achievement/sea-captain-the-lost-champion"
+  ],
+  "minifigure": "minifig/sea-captain",
+  "source": "client"
+}

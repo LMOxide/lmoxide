@@ -1,0 +1,16 @@
+{
+  "id": "achievement/baseball-fielder-the-striker",
+  "lore": 3474,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_Smash 1000 Monsters",
+  "title": "Baseball Fielder, the Striker",
+  "text": "Smash 1000 monsters as Baseball Fielder.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/baseball-fielder",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

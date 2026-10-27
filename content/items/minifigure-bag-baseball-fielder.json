@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-baseball-fielder",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 356170,
+  "minifigure": "minifig/baseball-fielder",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "UKUP"
+      }
+    }
+  ],
+  "source": "client"
+}

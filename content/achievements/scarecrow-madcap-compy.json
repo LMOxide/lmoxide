@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scarecrow-madcap-compy",
+  "lore": 2857,
+  "parent": "achievement/scarecrow",
+  "client_name": "Scarecrow_Madcap Compy",
+  "title": "Scarecrow: Madcap Compy",
+  "text": "Defeat Madcap Compy as Scarecrow.",
+  "points": 25,
+  "kind": "target",
+  "target": "Madcap Compy",
+  "minifigure": "minifig/scarecrow",
+  "source": "client"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-reconstruct",
+  "name": "Upgrade: Reconstruct",
+  "nano": 421222,
+  "effects": [
+    {
+      "proc": {
+        "on": "kill",
+        "then": [
+          {
+            "heal": {
+              "amount": "5%",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

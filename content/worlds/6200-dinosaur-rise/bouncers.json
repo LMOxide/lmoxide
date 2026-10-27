@@ -1,0 +1,701 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/6200/swamptovolcano1",
+      "name": "SwampToVolcano1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [89.81, 64.0, 155.56],
+      "rot": [0.0, -0.7611, 0.0, 0.6486],
+      "target": [73.22, 56.95, 159.13],
+      "target_by": "chain",
+      "client": {
+        "guid": 515440,
+        "tag": "JUMP",
+        "script_group": 72,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/swamptovolcano2",
+      "name": "SwampToVolcano2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [73.22, 56.95, 159.13],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [59.64, 78.0, 185.13],
+      "target_by": "chain",
+      "client": {
+        "guid": 515397,
+        "tag": "JUMP",
+        "script_group": 73,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/hubtovolcano1",
+      "name": "HubToVolcano1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [158.19, 64.57, 173.6],
+      "rot": [0.0, -0.9324, 0.0, 0.3615],
+      "target": [143.13, 69.71, 165.16],
+      "target_by": "chain",
+      "client": {
+        "guid": 515442,
+        "tag": "JUMP",
+        "script_group": 74,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/hubtovolcano2",
+      "name": "HubToVolcano2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [143.13, 69.71, 165.16],
+      "rot": [0.0, -0.8505, 0.0, 0.526],
+      "target": [109.19, 76.0, 185.81],
+      "target_by": "chain",
+      "client": {
+        "guid": 522608,
+        "tag": "JUMP",
+        "script_group": 75,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/swamptotarpit1",
+      "name": "SwampToTarpit1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [231.93, 63.58, 160.41],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [249.04, 70.23, 155.74],
+      "target_by": "chain",
+      "client": {
+        "guid": 515444,
+        "tag": "JUMP",
+        "script_group": 76,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/swamptotarpit2",
+      "name": "SwampToTarpit2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [249.04, 70.23, 155.74],
+      "rot": [0.0, 0.2907, 0.0, 0.9568],
+      "target": [265.85, 80.0, 164.67],
+      "target_by": "chain",
+      "client": {
+        "guid": 530545,
+        "tag": "JUMP",
+        "script_group": 77,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/swamptopond1",
+      "name": "SwampToPond1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [231.66, 62.2, 129.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [237.33, 32.65, 113.1],
+      "target_by": "chain",
+      "client": {
+        "guid": 504807,
+        "tag": "JUMP",
+        "script_group": 78,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/swamptopond2",
+      "name": "SwampToPond2",
+      "template": "object/jump-pad-5",
+      "pos": [237.33, 32.65, 113.1],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [268.64, 31.51, 79.5],
+      "target_by": "chain",
+      "client": {
+        "guid": 504801,
+        "tag": "JUMP",
+        "script_group": 79,
+        "visual": [1010030, 193788],
+        "bounds": [-0.5, 0.0, -0.5, 0.5, 1.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/swamptopond3",
+      "name": "SwampToPond3",
+      "template": "object/jump-pad-5",
+      "pos": [268.64, 31.51, 79.5],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [254.85, 37.02, 80.7],
+      "target_by": "chain",
+      "client": {
+        "guid": 505078,
+        "tag": "JUMP",
+        "script_group": 80,
+        "visual": [1010030, 193788],
+        "bounds": [-0.5, 0.0, -0.5, 0.5, 1.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtotarpit1",
+      "name": "PondToTarpit1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [261.0, 39.2, 100.25],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [265.15, 53.53, 88.3],
+      "target_by": "chain",
+      "client": {
+        "guid": 515365,
+        "tag": "JUMP",
+        "script_group": 81,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtotarpit2",
+      "name": "PondToTarpit2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [265.15, 53.53, 88.3],
+      "rot": [0.0, 0.6656, 0.0, 0.7463],
+      "target": [282.86, 58.67, 109.75],
+      "target_by": "chain",
+      "client": {
+        "guid": 515348,
+        "tag": "JUMP",
+        "script_group": 82,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtotarpit3",
+      "name": "PondToTarpit3",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [282.86, 58.67, 109.75],
+      "rot": [0.0, -0.6907, 0.0, 0.7231],
+      "target": [285.45, 78.0, 126.54],
+      "target_by": "chain",
+      "client": {
+        "guid": 515346,
+        "tag": "JUMP",
+        "script_group": 83,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tarpittopond1",
+      "name": "TarpitToPond1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [282.41, 78.0, 126.89],
+      "rot": [0.0, -0.8702, 0.0, 0.4926],
+      "target": [266.82, 72.0, 126.17],
+      "target_by": "chain",
+      "client": {
+        "guid": 515366,
+        "tag": "JUMP",
+        "script_group": 84,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tarpittopond2",
+      "name": "TarpitToPond2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [266.82, 72.0, 126.17],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [267.66, 49.29, 106.69],
+      "target_by": "chain",
+      "client": {
+        "guid": 515349,
+        "tag": "JUMP",
+        "script_group": 85,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tarpittopond3",
+      "name": "TarpitToPond3",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [267.66, 49.29, 106.69],
+      "rot": [0.0, -0.4537, 0.0, 0.8912],
+      "target": [256.69, 38.53, 98.17],
+      "target_by": "chain",
+      "client": {
+        "guid": 515350,
+        "tag": "JUMP",
+        "script_group": 86,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tarpittoswamp1",
+      "name": "TarpitToSwamp1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [265.64, 80.0, 160.66],
+      "rot": [0.0, 0.7004, 0.0, 0.7138],
+      "target": [229.11, 63.57, 160.23],
+      "target_by": "chain",
+      "client": {
+        "guid": 515445,
+        "tag": "JUMP",
+        "script_group": 87,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcanotoswamp1",
+      "name": "VolcanoToSwamp1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [66.45, 78.0, 184.35],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [86.48, 70.02, 165.7],
+      "target_by": "chain",
+      "client": {
+        "guid": 515441,
+        "tag": "JUMP",
+        "script_group": 92,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcanotoswamp2",
+      "name": "VolcanoToSwamp2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [86.48, 70.02, 165.7],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [93.23, 64.0, 156.1],
+      "target_by": "chain",
+      "client": {
+        "guid": 515399,
+        "tag": "JUMP",
+        "script_group": 93,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcanotohub1",
+      "name": "VolcanoToHub1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [108.03, 76.0, 184.07],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [124.86, 78.72, 172.68],
+      "target_by": "chain",
+      "client": {
+        "guid": 515443,
+        "tag": "JUMP",
+        "script_group": 94,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtoswamp1",
+      "name": "PondToSwamp1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [256.67, 36.73, 83.62],
+      "rot": [-0.0329, -0.1029, -0.1083, 0.9882],
+      "target": [269.39, 32.54, 79.23],
+      "target_by": "chain",
+      "client": {
+        "guid": 521805,
+        "tag": "JUMP",
+        "script_group": 95,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtoswamp2",
+      "name": "PondToSwamp2",
+      "template": "object/jump-pad-5",
+      "pos": [269.39, 32.54, 79.23],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [235.74, 32.04, 113.27],
+      "target_by": "chain",
+      "client": {
+        "guid": 521797,
+        "tag": "JUMP",
+        "script_group": 96,
+        "visual": [1010030, 193788],
+        "bounds": [-0.5, 0.0, -0.5, 0.5, 1.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtoswamp3",
+      "name": "PondToSwamp3",
+      "template": "object/jump-pad-5",
+      "pos": [235.74, 32.04, 113.27],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [243.83, 51.53, 113.46],
+      "target_by": "chain",
+      "client": {
+        "guid": 521798,
+        "tag": "JUMP",
+        "script_group": 97,
+        "visual": [1010030, 193788],
+        "bounds": [-0.5, 0.0, -0.5, 0.5, 1.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pondtoswamp4",
+      "name": "PondToSwamp4",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [243.83, 51.53, 113.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [228.51, 62.2, 128.82],
+      "target_by": "chain",
+      "client": {
+        "guid": 521799,
+        "tag": "JUMP",
+        "script_group": 98,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcanotohub2",
+      "name": "VolcanoToHub2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [124.86, 78.72, 172.68],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [160.61, 64.57, 172.35],
+      "target_by": "chain",
+      "client": {
+        "guid": 522610,
+        "tag": "JUMP",
+        "script_group": 99,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-6",
+      "name": "Tar 6",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [266.16, 84.21, 220.61],
+      "rot": [0.0, -0.9926, 0.0, 0.1211],
+      "target": [266.55, 86.0, 199.91],
+      "target_by": "name",
+      "client": {
+        "guid": 514593,
+        "tag": "JUMP",
+        "script_group": 100,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-8",
+      "name": "Tar 8",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [371.01, 80.0, 154.5],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [391.61, 74.6, 152.52],
+      "target_by": "name",
+      "client": {
+        "guid": 516021,
+        "tag": "JUMP",
+        "script_group": 102,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-3",
+      "name": "Tar 3",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [330.87, 82.2, 223.05],
+      "rot": [0.0, -0.9963, 0.0, 0.0863],
+      "target": [333.75, 79.78, 209.21],
+      "target_by": "name",
+      "client": {
+        "guid": 514590,
+        "tag": "JUMP",
+        "script_group": 105,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-1",
+      "name": "Tar 1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [306.39, 82.08, 185.16],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [336.73, 79.77, 164.47],
+      "target_by": "name",
+      "client": {
+        "guid": 514479,
+        "tag": "JUMP",
+        "script_group": 107,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-2",
+      "name": "Tar 2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [325.71, 78.0, 182.68],
+      "rot": [0.0, -0.8791, 0.0, 0.4767],
+      "target": [339.51, 80.7, 189.2],
+      "target_by": "name",
+      "client": {
+        "guid": 514480,
+        "tag": "JUMP",
+        "script_group": 108,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-4",
+      "name": "Tar 4",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [350.53, 82.2, 235.9],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [350.87, 79.78, 248.74],
+      "target_by": "name",
+      "client": {
+        "guid": 514591,
+        "tag": "JUMP",
+        "script_group": 109,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-5",
+      "name": "Tar 5",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [308.96, 80.0, 219.35],
+      "rot": [0.0, -0.9363, 0.0, 0.3513],
+      "target": [315.99, 80.0, 202.44],
+      "target_by": "name",
+      "client": {
+        "guid": 514592,
+        "tag": "JUMP",
+        "script_group": 110,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-7",
+      "name": "Tar 7",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [270.28, 86.2, 189.31],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [271.1, 80.0, 178.26],
+      "target_by": "name",
+      "client": {
+        "guid": 514594,
+        "tag": "JUMP",
+        "script_group": 111,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/tar-9",
+      "name": "Tar 9",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [389.11, 74.87, 151.95],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [371.82, 79.98, 156.96],
+      "target_by": "name",
+      "client": {
+        "guid": 516022,
+        "tag": "JUMP",
+        "script_group": 112,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcano-5",
+      "name": "Volcano 5",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [76.93, 86.0, 222.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [77.58, 82.99, 212.94],
+      "target_by": "name",
+      "client": {
+        "guid": 515539,
+        "tag": "JUMP",
+        "script_group": 113,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcano-1",
+      "name": "Volcano 1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [52.22, 78.0, 217.19],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [55.53, 86.0, 227.8],
+      "target_by": "name",
+      "client": {
+        "guid": 515535,
+        "tag": "JUMP",
+        "script_group": 114,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcano-2",
+      "name": "Volcano 2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [51.2, 86.0, 227.71],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [52.04, 78.0, 214.27],
+      "target_by": "name",
+      "client": {
+        "guid": 515536,
+        "tag": "JUMP",
+        "script_group": 115,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcano-3",
+      "name": "Volcano 3",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [90.91, 86.0, 227.23],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [103.65, 76.0, 215.12],
+      "target_by": "name",
+      "client": {
+        "guid": 515537,
+        "tag": "JUMP",
+        "script_group": 116,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcano-4",
+      "name": "Volcano 4",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [105.52, 76.0, 217.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [88.67, 86.0, 228.13],
+      "target_by": "name",
+      "client": {
+        "guid": 515538,
+        "tag": "JUMP",
+        "script_group": 117,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/volcano-6",
+      "name": "Volcano 6",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [82.04, 82.99, 210.22],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [90.85, 76.2, 203.98],
+      "target_by": "name",
+      "client": {
+        "guid": 515540,
+        "tag": "JUMP",
+        "script_group": 118,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pond-1",
+      "name": "Pond 1",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [213.29, 39.0, 11.73],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [235.11, 37.38, 17.07],
+      "target_by": "name",
+      "client": {
+        "guid": 515541,
+        "tag": "JUMP",
+        "script_group": 120,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/6200/pond-2",
+      "name": "Pond 2",
+      "template": "object/jump-pad-plane-a-buildie",
+      "pos": [235.22, 37.24, 13.94],
+      "rot": [-0.1076, 0.137, 0.1637, 0.971],
+      "target": [212.41, 39.17, 15.66],
+      "target_by": "name",
+      "client": {
+        "guid": 515542,
+        "tag": "JUMP",
+        "script_group": 122,
+        "visual": [1010201, 522028],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    }
+  ]
+}

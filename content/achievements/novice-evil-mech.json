@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-evil-mech",
+  "lore": 3012,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Upgrade 3",
+  "title": "Novice Evil Mech",
+  "text": "Get the third Evil Mech upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/evil-mech",
+  "n": 3,
+  "source": "client"
+}

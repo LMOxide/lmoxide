@@ -1,0 +1,43 @@
+{
+  "id": "skill/blaster-shot",
+  "name": "Blaster Shot",
+  "client": {
+    "spell": 38125,
+    "stats": {
+      "EffectPackage": 50833,
+      "ItemDelay": 34,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 1,
+            "DisplaceMentZ": 100,
+            "ItemInstance": 38408,
+            "MaxRicochets": 2,
+            "ProjectileType": 1,
+            "Speed": 2000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Alien Avenger: Blaster Shot",
+  "range": 15.0,
+  "projectile": {
+    "item": 38408,
+    "speed": 20.0,
+    "kind": 1,
+    "attractor": 1,
+    "offset_z": 1.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

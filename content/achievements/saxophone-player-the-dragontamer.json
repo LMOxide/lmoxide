@@ -1,0 +1,17 @@
+{
+  "id": "achievement/saxophone-player-the-dragontamer",
+  "lore": 2933,
+  "parent": "achievement/saxophone-player",
+  "client_name": "Saxophone Player_Smash 50 Drakes",
+  "title": "Saxophone Player the Dragontamer",
+  "text": "Smash 50 Drakes as Saxophone Player.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/saxophone-player",
+  "counts": {
+    "match": "Drake",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

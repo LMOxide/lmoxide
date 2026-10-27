@@ -1,0 +1,13 @@
+{
+  "id": "achievement/genie-girl-nyx-blackfeather",
+  "lore": 3112,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Nyx Blackfeather",
+  "title": "Genie Girl: Nyx Blackfeather",
+  "text": "Defeat Nyx Blackfeather as Genie Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Nyx Blackfeather",
+  "minifigure": "minifig/genie-girl",
+  "source": "client"
+}

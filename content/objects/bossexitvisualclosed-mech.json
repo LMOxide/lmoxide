@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-mech",
+  "name": "BossExitVisualClosed_Mech",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Mech",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

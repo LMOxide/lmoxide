@@ -1,0 +1,16 @@
+{
+  "id": "item/plumber-head",
+  "name": "Plumber Head",
+  "kind": "part",
+  "template": 483579,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10912,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/plumber",
+  "location": "Head",
+  "source": "client"
+}

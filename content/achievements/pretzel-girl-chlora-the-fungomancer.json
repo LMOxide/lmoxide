@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pretzel-girl-chlora-the-fungomancer",
+  "lore": 2891,
+  "parent": "achievement/pretzel-girl",
+  "client_name": "Pretzel Girl_Chlora the Fungomancer",
+  "title": "Pretzel Girl: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Pretzel Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/pretzel-girl",
+  "source": "client"
+}

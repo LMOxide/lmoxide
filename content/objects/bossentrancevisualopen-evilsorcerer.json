@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-evilsorcerer",
+  "name": "BossEntranceVisualOpen_EvilSorcerer",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_EvilSorcerer",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

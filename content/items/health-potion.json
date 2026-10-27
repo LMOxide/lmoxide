@@ -1,0 +1,14 @@
+{
+  "id": "item/health-potion",
+  "name": "Health Potion",
+  "kind": "token",
+  "template": 399661,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 150,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

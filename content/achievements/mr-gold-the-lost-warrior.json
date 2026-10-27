@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-the-lost-warrior",
+  "lore": 3388,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Lost Creations_Get to Level 10",
+  "title": "Mr. Gold, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Mr. Gold.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/mr-gold",
+  "n": 10,
+  "source": "client"
+}

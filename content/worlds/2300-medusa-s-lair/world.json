@@ -1,0 +1,42 @@
+{
+  "id": "world/medusa-s-lair",
+  "name": "Medusa's Lair",
+  "playfield": 2300,
+  "kind": "pocket",
+  "region": "region/mythology-world",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [61.92, 32.0, 357.25],
+    "rot": 4.667
+  },
+  "arrival_guid": 16082,
+  "arrival_from": {
+    "world/mythology-mountains": {
+      "pos": [253.32, 4.73, 255.83],
+      "rot": 5.236
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 16082,
+      "pos": [61.92, 32.0, 357.25],
+      "rot": 4.667,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 474452,
+      "pos": [151.62, 12.0, 269.76],
+      "rot": 4.667,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

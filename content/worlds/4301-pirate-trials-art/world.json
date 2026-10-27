@@ -1,0 +1,15 @@
+{
+  "id": "world/pirate-trials-art",
+  "name": "Pirate Trials - Art",
+  "playfield": 4301,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [188.75, 41.85, 264.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roman-commander-swamp-tunnel",
+  "lore": 3362,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Swamp Tunnel",
+  "title": "Roman Commander: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Roman Commander.",
+  "points": 50,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/roman-commander",
+  "source": "client"
+}

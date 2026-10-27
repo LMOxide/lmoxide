@@ -1,0 +1,13 @@
+{
+  "id": "achievement/saxophone-player-ancient-ruins",
+  "lore": 2921,
+  "parent": "achievement/saxophone-player",
+  "client_name": "Saxophone Player_Ancient Ruins",
+  "title": "Saxophone Player: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Saxophone Player.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/saxophone-player",
+  "source": "client"
+}

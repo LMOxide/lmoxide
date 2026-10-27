@@ -1,0 +1,23 @@
+{
+  "id": "world/zoo",
+  "name": "Zoo",
+  "playfield": 30001,
+  "kind": "other",
+  "arrival": {
+    "pos": [124.0, 64.5, 124.0],
+    "rot": 0.0
+  },
+  "arrival_guid": 94431,
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 94431,
+      "pos": [124.0, 64.5, 124.0],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-goddess-mysterious-crystal-cave",
+  "lore": 3057,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Mysterious Crystal Cave",
+  "title": "Battle Goddess: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Battle Goddess.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/battle-goddess",
+  "source": "client"
+}

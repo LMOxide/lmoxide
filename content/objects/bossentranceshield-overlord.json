@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentranceshield-overlord",
+  "name": "BossEntranceShield_Overlord",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceShield_Overlord",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

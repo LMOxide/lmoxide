@@ -1,0 +1,11 @@
+{
+  "id": "object/crystal-compass-2",
+  "name": "Crystal Compass",
+  "kind": "scenery",
+  "render": {
+    "template": 611816,
+    "look": "crystal_compass",
+    "visual": [1010201, 635274]
+  },
+  "source": "demo"
+}

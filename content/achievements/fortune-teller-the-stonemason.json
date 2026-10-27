@@ -1,0 +1,17 @@
+{
+  "id": "achievement/fortune-teller-the-stonemason",
+  "lore": 2627,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Build 15 Mythology Statues",
+  "title": "Fortune Teller, the Stonemason",
+  "text": "Build 15 Mythology Statues as Fortune Teller.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/fortune-teller",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

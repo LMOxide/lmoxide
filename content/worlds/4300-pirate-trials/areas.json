@@ -1,0 +1,168 @@
+{
+  "areas": [
+    {
+      "id": "area/4300/cine-captain1",
+      "name": "Cine_Captain1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [84.2, 40.1, 270.06],
+          "rot": 0.0
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-captainspawn1",
+      "name": "Cine_CaptainSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [84.24, 40.1, 267.72],
+          "rot": 0.0
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-petewin1",
+      "name": "Cine_PeteWin1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [88.9, 41.1, 254.12],
+          "rot": -1.464
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-player1",
+      "name": "Cine_Player1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [85.06, 40.0, 255.57],
+          "rot": 1.528
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-player2",
+      "name": "Cine_Player2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [85.03, 40.1, 254.23],
+          "rot": 1.528
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-player3",
+      "name": "Cine_Player3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [85.21, 40.1, 257.03],
+          "rot": 1.528
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-player4",
+      "name": "Cine_Player4",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [85.21, 40.0, 253.09],
+          "rot": 1.528
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-swashbuckler1",
+      "name": "Cine_Swashbuckler1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [88.91, 41.1, 256.07],
+          "rot": -1.952
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/cine-islandwarriorspawn1",
+      "name": "Cine_IslandWarriorSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [91.67, 40.1, 255.59],
+          "rot": -1.952
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/bossencounter-start-pete-pete",
+      "name": "BossEncounter_Start_Pete",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [89.44, 266.4],
+            [78.44, 266.4],
+            [78.44, 265.9],
+            [89.44, 265.9]
+          ],
+          "heights": [38.299522, 48.299522]
+        }
+      },
+      "suffix": "Pete",
+      "doors": {
+        "open": [566131],
+        "closed": [566132],
+        "exit": [233794, 228238, 234110, 233147, 234115]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/ba-ghostambush1",
+      "name": "BA_GhostAmbush1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [169.77, 275.3],
+            [181.75, 263.41],
+            [193.11, 269.09],
+            [184.16, 275.29]
+          ],
+          "heights": [38.753582, 48.753582]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/4300/achievement-tempdefeatedpete",
+      "name": "Achievement_TempDefeatedPete",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [69.85, 240.48],
+            [79.11, 234.22],
+            [81.01, 241.02]
+          ],
+          "heights": [36.988663, 46.988663]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

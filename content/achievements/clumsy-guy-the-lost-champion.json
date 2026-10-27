@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-the-lost-champion",
+  "lore": 5132,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Lost Creations_Get to level 15",
+  "title": "Clumsy Guy, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Clumsy Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/clumsy-guy",
+  "n": 15,
+  "source": "client"
+}

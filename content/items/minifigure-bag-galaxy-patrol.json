@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-galaxy-patrol",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 19859,
+  "minifigure": "minifig/galaxy-patrol",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "5CWC"
+      }
+    }
+  ],
+  "source": "client"
+}

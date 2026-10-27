@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-island-warrior",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 464968,
+  "minifigure": "minifig/island-warrior",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "JW2W"
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/foot-5",
+  "name": "foot 5",
+  "kind": "scenery",
+  "render": {
+    "look": "foot 5",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/space-miner-siege-command-room",
+  "lore": 3242,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Siege Command Room",
+  "title": "Space Miner: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Space Miner.",
+  "points": 25,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/space-miner",
+  "source": "client"
+}

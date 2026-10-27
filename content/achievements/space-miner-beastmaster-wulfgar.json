@@ -1,0 +1,13 @@
+{
+  "id": "achievement/space-miner-beastmaster-wulfgar",
+  "lore": 3247,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Beastmaster Wulfgar",
+  "title": "Space Miner: Beastmaster Wulfgar",
+  "text": "Defeat Beastmaster Wulfgar as Space Miner.",
+  "points": 25,
+  "kind": "target",
+  "target": "Beastmaster Wulfgar",
+  "minifigure": "minifig/space-miner",
+  "source": "client"
+}

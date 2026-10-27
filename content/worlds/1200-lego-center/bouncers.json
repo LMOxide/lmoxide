@@ -1,0 +1,250 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/1200/jump-pad-1",
+      "name": "jump_pad_1",
+      "template": "object/jump-pad-wind-fan-a-idle-2",
+      "pos": [329.84, 54.0, 96.73],
+      "rot": [0.0, -0.7723, 0.0, 0.6352],
+      "target": [331.81, 48.0, 81.79],
+      "target_by": "name",
+      "client": {
+        "guid": 239669,
+        "tag": "JUMP",
+        "script_group": 6,
+        "visual": [1010201, 273496],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-4",
+      "name": "jump_pad_4",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [320.81, 54.06, 113.69],
+      "rot": [0.0, 0.2277, 0.0, 0.9737],
+      "target": [316.34, 48.0, 111.84],
+      "target_by": "name",
+      "client": {
+        "guid": 239650,
+        "tag": "JUMP",
+        "script_group": 7,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-9",
+      "name": "jump_pad_9",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [331.53, 48.0, 83.97],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [331.23, 54.0, 98.24],
+      "target_by": "name",
+      "client": {
+        "guid": 239672,
+        "tag": "JUMP",
+        "script_group": 8,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-16",
+      "name": "jump_pad_16",
+      "template": "object/jump-pad-wind-fan-a-idle-2",
+      "pos": [318.01, 48.0, 54.97],
+      "rot": [0.0, 0.9247, 0.0, 0.3807],
+      "target": [293.33, 48.45, 50.46],
+      "target_by": "demo",
+      "apex": 6.0,
+      "flight": "2.254s",
+      "client": {
+        "guid": 239671,
+        "tag": "JUMP",
+        "script_group": 9,
+        "visual": [1010201, 273496],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-19",
+      "name": "jump_pad_19",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [346.45, 48.0, 68.36],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [360.59, 48.58, 72.55],
+      "target_by": "demo",
+      "apex": 3.0,
+      "flight": "1.637s",
+      "client": {
+        "guid": 656830,
+        "tag": "JUMP",
+        "script_group": 10,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-20",
+      "name": "jump_pad_20",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [358.08, 48.55, 72.45],
+      "rot": [0.0, 0.3689, 0.0, -0.9295],
+      "target": [343.46, 48.0, 68.43],
+      "target_by": "demo",
+      "apex": 3.0,
+      "flight": "1.637s",
+      "client": {
+        "guid": 656832,
+        "tag": "JUMP",
+        "script_group": 11,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-5",
+      "name": "jump_pad_5",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [321.5, 48.75, 109.25],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [324.75, 54.0, 114.75],
+      "target_by": "name",
+      "client": {
+        "guid": 239646,
+        "tag": "JUMP",
+        "script_group": 15,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-11",
+      "name": "jump_pad_11",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [310.0, 48.0, 97.0],
+      "rot": [0.0, 0.3413, 0.0, 0.94],
+      "target": [295.45, 54.0, 99.52],
+      "target_by": "name",
+      "client": {
+        "guid": 239647,
+        "tag": "JUMP",
+        "script_group": 16,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-17",
+      "name": "jump_pad_17",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [296.48, 54.0, 96.7],
+      "rot": [0.0, 0.3426, 0.0, 0.9395],
+      "target": [310.09, 48.0, 99.51],
+      "target_by": "name",
+      "client": {
+        "guid": 239651,
+        "tag": "JUMP",
+        "script_group": 18,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-s2m",
+      "name": "jump_pad_s2m",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [282.38, 54.0, 117.47],
+      "rot": [0.0, 0.2672, 0.0, 0.9636],
+      "target": [276.35, 49.75, 115.2],
+      "target_by": "name",
+      "client": {
+        "guid": 488327,
+        "tag": "JUMP",
+        "script_group": 21,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-10",
+      "name": "jump_pad_10",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [274.23, 48.0, 97.23],
+      "rot": [0.0, 0.4072, 0.0, 0.9134],
+      "target": [283.55, 46.25, 79.99],
+      "target_by": "name",
+      "client": {
+        "guid": 239649,
+        "tag": "JUMP",
+        "script_group": 22,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-10-2",
+      "name": "jump_pad_10",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [278.38, 49.75, 114.3],
+      "rot": [0.0, 0.4072, 0.0, 0.9134],
+      "target": [283.55, 46.25, 79.99],
+      "target_by": "name",
+      "client": {
+        "guid": 527033,
+        "tag": "JUMP",
+        "script_group": 24,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-10-3",
+      "name": "jump_pad_10",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [281.8, 46.25, 81.93],
+      "rot": [0.0, 0.1094, 0.0, 0.994],
+      "target": [271.48, 48.0, 97.19],
+      "target_by": "demo",
+      "apex": 4.0,
+      "flight": "1.987s",
+      "client": {
+        "guid": 527034,
+        "tag": "JUMP",
+        "script_group": 27,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/1200/jump-pad-10-4",
+      "name": "jump_pad_10",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [295.38, 48.45, 50.4],
+      "rot": [0.0, 0.4072, 0.0, 0.9134],
+      "target": [271.48, 48.0, 97.19],
+      "target_by": "name",
+      "client": {
+        "guid": 527035,
+        "tag": "JUMP",
+        "script_group": 28,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    }
+  ]
+}

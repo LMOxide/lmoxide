@@ -1,0 +1,16 @@
+{
+  "id": "item/pretzel-girl-legs",
+  "name": "Pretzel Girl Legs",
+  "kind": "part",
+  "template": 483661,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31111,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/pretzel-girl",
+  "location": "Legs",
+  "source": "client"
+}

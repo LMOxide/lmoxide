@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-pete",
+  "name": "BossExitVisualClosed_Pete",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Pete",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

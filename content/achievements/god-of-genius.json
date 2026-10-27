@@ -1,0 +1,14 @@
+{
+  "id": "achievement/god-of-genius",
+  "lore": 766,
+  "parent": "achievement/deep-space-explorer",
+  "client_name": "Space_Exploration_Altar of Genius",
+  "title": "God of Genius",
+  "text": "Find the Altar of Genius in the Space World.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/planet-s-dark-side",
+  "find": "Achievement_Genius",
+  "place": "Altar of Genius",
+  "source": "client"
+}

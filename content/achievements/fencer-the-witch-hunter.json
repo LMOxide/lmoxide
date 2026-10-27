@@ -1,0 +1,17 @@
+{
+  "id": "achievement/fencer-the-witch-hunter",
+  "lore": 3859,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Smash 50 Witches",
+  "title": "Fencer, the Witch Hunter",
+  "text": "Smash 50 Witches as Fencer.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/fencer",
+  "counts": {
+    "match": "Witch",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

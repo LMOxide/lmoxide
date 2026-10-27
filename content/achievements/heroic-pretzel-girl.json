@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-pretzel-girl",
+  "lore": 2900,
+  "parent": "achievement/pretzel-girl",
+  "client_name": "Pretzel Girl_Complete Any 5",
+  "title": "Heroic Pretzel Girl",
+  "text": "Complete any 5 Pretzel Girl achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/pretzel-girl",
+  "n": 5,
+  "source": "client"
+}

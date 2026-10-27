@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-zombie-pirate",
+  "lore": 4606,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Complete Any 10",
+  "title": "Legendary Zombie Pirate",
+  "text": "Complete any 11 Zombie Pirate achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/zombie-pirate",
+  "n": 11,
+  "source": "client"
+}

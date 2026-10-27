@@ -1,0 +1,10 @@
+{
+  "id": "object/stairs-1-particle-7",
+  "name": "stairs 1 particle 7",
+  "kind": "scenery",
+  "render": {
+    "look": "stairs 1 particle 7",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

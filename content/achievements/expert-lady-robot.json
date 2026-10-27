@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-lady-robot",
+  "lore": 2945,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Upgrade 7",
+  "title": "Expert Lady Robot",
+  "text": "Get the seventh Lady Robot upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/lady-robot",
+  "n": 7,
+  "source": "client"
+}

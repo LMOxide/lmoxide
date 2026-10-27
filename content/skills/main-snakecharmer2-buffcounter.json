@@ -1,0 +1,23 @@
+{
+  "id": "skill/main-snakecharmer2-buffcounter",
+  "name": "main snakecharmer2 buffcounter",
+  "client": {
+    "spell": 551010,
+    "stats": {
+      "MaxBuffCounters": 4
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.800000011920929
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

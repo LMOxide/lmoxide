@@ -1,0 +1,26 @@
+{
+  "id": "npc/troll-heavy-hitter-war",
+  "name": "Troll Heavy Hitter War",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 327846
+  },
+  "level": 9,
+  "stats": {
+    "health": 453
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/smash-319946",
+      "weight": 1
+    },
+    {
+      "skill": "skill/rampage",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

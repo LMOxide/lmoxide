@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tiger-woman-the-lost-warrior",
+  "lore": 4430,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Lost Creations_Get to Level 10",
+  "title": "Tiger Woman, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Tiger Woman.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/tiger-woman",
+  "n": 10,
+  "source": "client"
+}

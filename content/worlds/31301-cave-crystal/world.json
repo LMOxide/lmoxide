@@ -1,0 +1,12 @@
+{
+  "id": "world/cave-crystal",
+  "name": "Cave_crystal",
+  "playfield": 31301,
+  "kind": "other",
+  "arrival": {
+    "pos": [246.5, 18.13, 222.75],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-roman-commander",
+  "lore": 3367,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Upgrade 3",
+  "title": "Novice Roman Commander",
+  "text": "Get the third Roman Commander upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/roman-commander",
+  "n": 3,
+  "source": "client"
+}

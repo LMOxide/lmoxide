@@ -1,0 +1,58 @@
+{
+  "id": "skill/alien-brute-shot-castable",
+  "name": "alien brute shot castable",
+  "client": {
+    "spell": 376387,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 400,
+      "EffectPackage": 389227,
+      "ItemDelay": 32,
+      "RechargeDelay": 168,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 700,
+            "AttractorID": 1,
+            "ItemInstance": 376386,
+            "ProjectileType": 1,
+            "Speed": 900
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 700,
+            "AttractorID": 1,
+            "ItemInstance": 376386,
+            "ProjectileType": 1,
+            "RotY": -15,
+            "Speed": 900
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 700,
+            "AttractorID": 1,
+            "ItemInstance": 376386,
+            "ProjectileType": 1,
+            "RotY": 15,
+            "Speed": 900
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

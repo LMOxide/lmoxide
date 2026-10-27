@@ -1,0 +1,16 @@
+{
+  "id": "item/mr-good-and-evil-legs",
+  "name": "Mr. Good and Evil Legs",
+  "kind": "part",
+  "template": 483696,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30911,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/mr-good-and-evil",
+  "location": "Legs",
+  "source": "client"
+}

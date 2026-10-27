@@ -1,0 +1,10 @@
+{
+  "id": "object/fireball-ambush-5",
+  "name": "fireball ambush 5",
+  "kind": "scenery",
+  "render": {
+    "look": "fireball ambush 5",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

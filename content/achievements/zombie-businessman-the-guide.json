@@ -1,0 +1,17 @@
+{
+  "id": "achievement/zombie-businessman-the-guide",
+  "lore": 4400,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Build 30 Signs",
+  "title": "Zombie Businessman, the Guide",
+  "text": "Build 30 Signs with Zombie Businessman.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/zombie-businessman",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

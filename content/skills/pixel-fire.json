@@ -1,0 +1,98 @@
+{
+  "id": "skill/pixel-fire",
+  "name": "Pixel Fire",
+  "client": {
+    "spell": 500488,
+    "stats": {
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 3,
+      "EffectPackage": 513564,
+      "ItemDelay": 50,
+      "MoreFlags": 1610614784,
+      "RechargeDelay": 25,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "33": [
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 505499,
+            "Value": 1
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg2": 1,
+            "DelayTime": 50,
+            "EffectPackage": 514822,
+            "NanoTemplate": 505500
+          },
+          "criteria": [
+            [0, 0, 19],
+            [505499, 1, 166]
+          ]
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg2": 1,
+            "DelayTime": 50,
+            "EffectPackage": 514826,
+            "NanoTemplate": 505501
+          },
+          "criteria": [
+            [0, 0, 19],
+            [505499, 2, 166]
+          ]
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg2": 1,
+            "DelayTime": 50,
+            "EffectPackage": 514828,
+            "NanoTemplate": 505502
+          },
+          "criteria": [
+            [0, 0, 19],
+            [505499, 3, 166]
+          ]
+        },
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 505499
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 500488,
+            "Value": 700
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 514822
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Video Game Guy: Pixel Fire",
+  "source": "client"
+}

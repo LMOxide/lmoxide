@@ -1,0 +1,33 @@
+{
+  "id": "world/jail",
+  "name": "Jail",
+  "playfield": 4610,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [223.2, 16.0, 256.86],
+    "rot": 4.712
+  },
+  "arrival_guid": 234162,
+  "arrival_from": {
+    "world/isle-of-yarr": {
+      "pos": [236.26, 14.49, 314.38],
+      "rot": 3.927
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "ResurrectionAIPoint0",
+      "guid": 234162,
+      "pos": [223.2, 16.0, 256.86],
+      "rot": 4.712,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

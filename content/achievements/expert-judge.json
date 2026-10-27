@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-judge",
+  "lore": 2571,
+  "parent": "achievement/judge",
+  "client_name": "Judge_Upgrade 7",
+  "title": "Expert Judge",
+  "text": "Get the seventh Judge upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/judge",
+  "n": 7,
+  "source": "client"
+}

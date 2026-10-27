@@ -1,0 +1,29 @@
+{
+  "id": "skill/main-jekyll2-good-wrapper",
+  "name": "main jekyll2 good wrapper",
+  "client": {
+    "spell": 358623,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 358624
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 358625
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

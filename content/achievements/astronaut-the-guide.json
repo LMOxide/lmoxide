@@ -1,0 +1,17 @@
+{
+  "id": "achievement/astronaut-the-guide",
+  "lore": 5103,
+  "parent": "achievement/astronaut",
+  "client_name": "Astronaut_Build 30 Signs",
+  "title": "Astronaut, the Guide",
+  "text": "Build 30 Signs with Astronaut.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/astronaut",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

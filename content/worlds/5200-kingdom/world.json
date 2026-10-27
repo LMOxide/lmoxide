@@ -1,0 +1,101 @@
+{
+  "id": "world/kingdom",
+  "name": "Kingdom",
+  "playfield": 5200,
+  "kind": "open",
+  "region": "region/medieval-world",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [87.9, 24.5, 256.1],
+    "rot": 1.54
+  },
+  "arrival_guid": 289435,
+  "arrival_from": {
+    "world/ruined-fort": {
+      "pos": [496.08, 40.64, 318.08],
+      "rot": 4.451
+    }
+  },
+  "window": 9,
+  "respawn_points": [
+    {
+      "name": "Res_Village",
+      "guid": 289435,
+      "pos": [87.95, 24.5, 256.08],
+      "rot": 1.536,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Farm",
+      "guid": 289436,
+      "pos": [189.41, 14.18, 89.47],
+      "rot": 3.451,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Fortification",
+      "guid": 289437,
+      "pos": [322.22, 26.69, 164.07],
+      "rot": 5.567,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_CandyKingdom",
+      "guid": 289438,
+      "pos": [396.87, 20.3, 78.82],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_MountainClimb",
+      "guid": 289439,
+      "pos": [462.58, 40.23, 299.62],
+      "rot": 3.303,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_CandyKingdom2",
+      "guid": 356113,
+      "pos": [444.0, 22.13, 198.67],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_DragonHill",
+      "guid": 458321,
+      "pos": [285.68, 20.33, 153.79],
+      "rot": 0.329,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Village2",
+      "guid": 636548,
+      "pos": [103.35, 16.06, 198.52],
+      "rot": 1.324,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "npc_fights": {
+    "about": "outside the town gate (bounded areas Quest_Siege, BA_Head_Trolls1, BA_SiegeCatapult1): Knights of the Crown fight the proposed troll siege camp; the story Knight at the gate (Cine_KnightSpawn2) fights the proposed camp next to it (BA_CastleAmbush1)",
+    "armed_npcs": ["Knight"]
+  },
+  "source": "client"
+}

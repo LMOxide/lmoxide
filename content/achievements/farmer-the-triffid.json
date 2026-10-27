@@ -1,0 +1,13 @@
+{
+  "id": "achievement/farmer-the-triffid",
+  "lore": 5142,
+  "parent": "achievement/farmer",
+  "client_name": "Farmer_The Triffid",
+  "title": "Farmer: The Triffid",
+  "text": "Defeat The Triffid as Farmer.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/farmer",
+  "source": "client"
+}

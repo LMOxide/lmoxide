@@ -1,0 +1,16 @@
+{
+  "id": "item/spectre-head",
+  "name": "Spectre Head",
+  "kind": "part",
+  "template": 662039,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11408,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/spectre",
+  "location": "Head",
+  "source": "client"
+}

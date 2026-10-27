@@ -1,0 +1,17 @@
+{
+  "id": "item/main-sheriff1-projectile",
+  "name": "main sheriff1 projectile",
+  "kind": "projectile",
+  "template": 564262,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 564264
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-tiger-woman",
+  "lore": 4427,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Upgrade 7",
+  "title": "Expert Tiger Woman",
+  "text": "Get the seventh Tiger Woman upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/tiger-woman",
+  "n": 7,
+  "source": "client"
+}

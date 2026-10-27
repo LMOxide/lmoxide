@@ -1,0 +1,10 @@
+{
+  "id": "object/pond-group-2-corruption-3",
+  "name": "pond group 2 corruption 3",
+  "kind": "scenery",
+  "render": {
+    "look": "pond group 2 corruption 3",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

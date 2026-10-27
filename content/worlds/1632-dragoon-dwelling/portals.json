@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/1632/to-isle-of-yarr",
+      "pos": [131.4, 73.71, 149.48],
+      "window": 23,
+      "to": {
+        "world": "world/isle-of-yarr"
+      },
+      "source": "client"
+    }
+  ]
+}

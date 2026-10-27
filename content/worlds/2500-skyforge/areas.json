@@ -1,0 +1,344 @@
+{
+  "areas": [
+    {
+      "id": "area/2500/bossencounter-start-daleatrhys-daleatrhys",
+      "name": "BossEncounter_Start_DaleAtRhys",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [339.22, 401.34],
+            [338.03, 400.16],
+            [344.14, 393.87],
+            [345.28, 395.02]
+          ],
+          "heights": [109.530914, 119.530914]
+        }
+      },
+      "suffix": "DaleAtRhys",
+      "doors": {
+        "open": [164429],
+        "closed": [164428],
+        "exit": [164430]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/gorgonzola-start-gorgonzola",
+      "name": "Gorgonzola_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [181.72, 143.85],
+            [181.72, 132.85],
+            [182.64, 132.85],
+            [182.64, 143.85]
+          ],
+          "heights": [44.150875, 54.15087]
+        }
+      },
+      "suffix": "Gorgonzola",
+      "doors": {
+        "open": [495133],
+        "closed": [495134],
+        "exit": [495132]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/satyr-start-satyr",
+      "name": "Satyr_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [316.56, 245.57],
+            [316.56, 234.57],
+            [317.47, 234.57],
+            [317.47, 245.57]
+          ],
+          "heights": [56.234123, 66.23412]
+        }
+      },
+      "suffix": "Satyr",
+      "doors": {
+        "open": [495148],
+        "closed": [495147],
+        "exit": [495150]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/entrance-satyr-ambush-1",
+      "name": "Entrance_Satyr_Ambush_1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [71.92, 130.13],
+            [75.81, 130.3],
+            [75.59, 134.83],
+            [71.82, 134.77]
+          ],
+          "heights": [19.967066, 29.967066]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/entrance-satyr-ambush-2",
+      "name": "Entrance_Satyr_Ambush_2",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [113.39, 121.12],
+            [115.29, 121.1],
+            [115.14, 137.79],
+            [112.85, 138.09]
+          ],
+          "heights": [24.119492, 34.11949]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/firstforge-satyr-ambush-1",
+      "name": "FirstForge_Satyr_Ambush_1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [144.85, 104.52],
+            [154.08, 104.79],
+            [152.85, 107.03],
+            [145.41, 106.83]
+          ],
+          "heights": [44.24433, 54.24433]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/cliffs-harpy-ambush-1",
+      "name": "Cliffs_Harpy_Ambush_1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [209.1, 227.01],
+            [211.0, 226.98],
+            [210.85, 243.68],
+            [208.56, 243.98]
+          ],
+          "heights": [50.782375, 60.782375]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/cliffs-harpy-ambush-3",
+      "name": "Cliffs_Harpy_Ambush_3",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [224.54, 227.01],
+            [226.44, 226.98],
+            [226.29, 243.68],
+            [224.0, 243.98]
+          ],
+          "heights": [50.782375, 60.782375]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-1",
+      "name": "Bluffs_Harpy_Ambush_1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [309.02, 314.3],
+            [311.01, 312.64],
+            [317.5, 316.93],
+            [317.3, 318.14]
+          ],
+          "heights": [73.620674, 83.620674]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-2",
+      "name": "Bluffs_Harpy_Ambush_2",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [309.01, 314.31],
+            [311.01, 312.65],
+            [317.49, 316.94],
+            [317.3, 318.15]
+          ],
+          "heights": [73.29707, 83.29707]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-3",
+      "name": "Bluffs_Harpy_Ambush_3",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [311.73, 352.32],
+            [310.53, 350.14],
+            [318.92, 344.43],
+            [319.86, 346.17]
+          ],
+          "heights": [80.96757, 90.96757]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-4",
+      "name": "Bluffs_Harpy_Ambush_4",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [357.75, 364.68],
+            [355.19, 364.63],
+            [352.21, 356.09],
+            [352.73, 355.2]
+          ],
+          "heights": [90.10144, 100.10144]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-5",
+      "name": "Bluffs_Harpy_Ambush_5",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [372.71, 324.77],
+            [372.65, 327.33],
+            [363.98, 331.4],
+            [363.2, 329.73]
+          ],
+          "heights": [97.084724, 107.084724]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-6",
+      "name": "Bluffs_Harpy_Ambush_6",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [372.72, 324.69],
+            [372.66, 327.25],
+            [363.99, 331.32],
+            [363.21, 329.66]
+          ],
+          "heights": [96.9491, 106.9491]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-7",
+      "name": "Bluffs_Harpy_Ambush_7",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [330.26, 358.09],
+            [329.37, 361.5],
+            [313.38, 360.67],
+            [313.4, 357.76]
+          ],
+          "heights": [105.75309, 115.75309]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/bluffs-harpy-ambush-8",
+      "name": "Bluffs_Harpy_Ambush_8",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [328.1, 371.7],
+            [328.48, 375.21],
+            [313.25, 380.15],
+            [312.24, 377.43]
+          ],
+          "heights": [106.32189, 116.32189]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/nest-harpy-ambush-1",
+      "name": "Nest_Harpy_Ambush_1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [347.53, 329.2],
+            [351.19, 341.4],
+            [332.8, 343.57],
+            [332.06, 333.89]
+          ],
+          "heights": [102.64021, 112.64021]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/cliffs-harpy-ambush-4",
+      "name": "Cliffs_Harpy_Ambush_4",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [282.95, 231.43],
+            [284.85, 231.43],
+            [284.96, 248.11],
+            [282.67, 248.41]
+          ],
+          "heights": [55.06754, 65.067535]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2500/ba-explore-forge",
+      "name": "BA_Explore_Forge",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [67.38, 121.27],
+            [67.53, 143.05],
+            [61.26, 131.05]
+          ],
+          "heights": [21.022556, 31.022556]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

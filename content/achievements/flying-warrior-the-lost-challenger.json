@@ -1,0 +1,13 @@
+{
+  "id": "achievement/flying-warrior-the-lost-challenger",
+  "lore": 5178,
+  "parent": "achievement/flying-warrior",
+  "client_name": "Flying Warrior_Lost Creations_Get to Level 5",
+  "title": "Flying Warrior, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Flying Warrior.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/flying-warrior",
+  "n": 5,
+  "source": "client"
+}

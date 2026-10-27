@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paleontologist-spider-s-nest",
+  "lore": 3930,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Spider's Nest",
+  "title": "Paleontologist: Spider's Nest",
+  "text": "Conquer the Spider's Nest as Paleontologist.",
+  "points": 50,
+  "kind": "target",
+  "target": "Spider's Nest",
+  "minifigure": "minifig/paleontologist",
+  "source": "client"
+}

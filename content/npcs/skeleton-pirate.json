@@ -1,0 +1,26 @@
+{
+  "id": "npc/skeleton-pirate",
+  "name": "Skeleton Pirate",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 207001
+  },
+  "level": 1,
+  "stats": {
+    "health": 60,
+    "life_factor": 0.5
+  },
+  "skills": [
+    {
+      "skill": "skill/shot-197370",
+      "weight": 1
+    },
+    {
+      "skill": "skill/slash-197365",
+      "weight": 1
+    }
+  ],
+  "skills_from": "recorded",
+  "loot": "loot/enemy",
+  "source": "client"
+}

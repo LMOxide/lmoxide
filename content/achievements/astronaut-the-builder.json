@@ -1,0 +1,16 @@
+{
+  "id": "achievement/astronaut-the-builder",
+  "lore": 5101,
+  "parent": "achievement/astronaut",
+  "client_name": "Astronaut_Build 100 buildies",
+  "title": "Astronaut, the Builder",
+  "text": "Build 100 buildies as Astronaut.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/astronaut",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

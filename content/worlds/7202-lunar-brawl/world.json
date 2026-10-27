@@ -1,0 +1,12 @@
+{
+  "id": "world/lunar-brawl",
+  "name": "Lunar Brawl",
+  "playfield": 7202,
+  "kind": "other",
+  "arrival": {
+    "pos": [231.5, 43.87, 280.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

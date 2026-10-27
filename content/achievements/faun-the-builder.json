@@ -1,0 +1,16 @@
+{
+  "id": "achievement/faun-the-builder",
+  "lore": 5165,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Build 100 buildies",
+  "title": "Faun, the Builder",
+  "text": "Build 100 buildies as Faun.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/faun",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

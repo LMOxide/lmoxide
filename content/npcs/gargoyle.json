@@ -1,0 +1,19 @@
+{
+  "id": "npc/gargoyle",
+  "name": "Gargoyle",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 660085,
+    "npc_template": 2894,
+    "look": "gargoyle_npc",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 1314,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

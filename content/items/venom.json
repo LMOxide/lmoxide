@@ -1,0 +1,18 @@
+{
+  "id": "item/venom",
+  "name": "Venom",
+  "kind": "projectile",
+  "template": 342477,
+  "effect_package": 212586,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 342478
+      }
+    }
+  ],
+  "source": "client"
+}

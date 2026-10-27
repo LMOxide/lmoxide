@@ -1,0 +1,20 @@
+{
+  "id": "skill/main-mech1-switch-combo-1-to-3",
+  "name": "main mech1 switch combo 1 to 3",
+  "client": {
+    "spell": 209205,
+    "actions": {
+      "0": [
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 36861,
+            "TemplateID2": 209203
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

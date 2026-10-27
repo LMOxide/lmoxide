@@ -1,0 +1,10 @@
+{
+  "id": "object/volcano5-forward-landing",
+  "name": "volcano5 forward landing",
+  "kind": "scenery",
+  "render": {
+    "look": "volcano5 forward landing",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

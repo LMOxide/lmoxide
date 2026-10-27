@@ -1,0 +1,24 @@
+{
+  "id": "skill/main-s15-janitor2-damage",
+  "name": "main s15 janitor2 damage",
+  "client": {
+    "spell": 668606,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.30000001192092896,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

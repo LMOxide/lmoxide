@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spider-lady-the-lost-warrior",
+  "lore": 4481,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Lost Creations_Get to Level 10",
+  "title": "Spider Lady, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Spider Lady.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/spider-lady",
+  "n": 10,
+  "source": "client"
+}

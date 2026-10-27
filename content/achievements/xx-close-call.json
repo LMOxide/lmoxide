@@ -1,0 +1,11 @@
+{
+  "id": "achievement/xx-close-call",
+  "lore": 3681,
+  "parent": "achievement/global",
+  "client_name": "XX_Barely Alive",
+  "title": "XX_Close Call!",
+  "text": "XX_Use a health potion while under 5% health!",
+  "kind": "manual",
+  "invisible": true,
+  "source": "client"
+}

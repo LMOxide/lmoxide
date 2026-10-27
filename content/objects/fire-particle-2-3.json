@@ -1,0 +1,10 @@
+{
+  "id": "object/fire-particle-2-3",
+  "name": "fire particle 2_3",
+  "kind": "scenery",
+  "render": {
+    "look": "fire particle 2_3",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

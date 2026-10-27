@@ -1,0 +1,13 @@
+{
+  "id": "achievement/heroic-knight-scorched-ruins",
+  "lore": 2599,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Scorched Ruins",
+  "title": "Heroic Knight: Scorched Ruins",
+  "text": "Conquer the Scorched Ruins as Heroic Knight.",
+  "points": 50,
+  "kind": "target",
+  "target": "Scorched Ruins",
+  "minifigure": "minifig/heroic-knight",
+  "source": "client"
+}

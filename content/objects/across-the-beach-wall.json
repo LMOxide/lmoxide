@@ -1,0 +1,10 @@
+{
+  "id": "object/across-the-beach-wall",
+  "name": "across the beach wall",
+  "kind": "scenery",
+  "render": {
+    "look": "across the beach wall",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

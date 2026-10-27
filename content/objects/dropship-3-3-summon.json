@@ -1,0 +1,10 @@
+{
+  "id": "object/dropship-3-3-summon",
+  "name": "dropship 3_3 summon",
+  "kind": "scenery",
+  "render": {
+    "look": "dropship 3_3 summon",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

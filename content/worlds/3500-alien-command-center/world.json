@@ -1,0 +1,60 @@
+{
+  "id": "world/alien-command-center",
+  "name": "Alien Command Center",
+  "playfield": 3500,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [73.98, 76.96, 80.02],
+    "rot": 4.638
+  },
+  "arrival_guid": 27706,
+  "arrival_from": {
+    "world/planet-s-dark-side": {
+      "pos": [306.5, 112.67, 425.52],
+      "rot": 1.047
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 27706,
+      "pos": [73.98, 76.96, 80.02],
+      "rot": 4.638,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Biomancer",
+      "guid": 30832,
+      "pos": [125.79, 74.96, 216.02],
+      "rot": 1.605,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 30833,
+      "pos": [294.0, 111.09, 356.03],
+      "rot": 4.558,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Crystal",
+      "guid": 390052,
+      "pos": [248.03, 89.08, 217.96],
+      "rot": 3.141,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

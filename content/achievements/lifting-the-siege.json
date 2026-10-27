@@ -1,0 +1,12 @@
+{
+  "id": "achievement/lifting-the-siege",
+  "lore": 816,
+  "parent": "achievement/cave-dweller",
+  "client_name": "Medieval_Combat_PA_Clear the Siege Command Room",
+  "title": "Lifting the Siege",
+  "text": "Clear the Siege Command Room in the Medieval World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Siege Command Room",
+  "source": "client"
+}

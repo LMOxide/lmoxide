@@ -1,0 +1,17 @@
+{
+  "id": "npc/patrolling-pirate-2",
+  "name": "Patrolling Pirate",
+  "kind": "npc",
+  "render": {
+    "monster_data": 241333,
+    "npc_template": 1064,
+    "look": "pirate_good_b",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

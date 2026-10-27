@@ -1,0 +1,13 @@
+{
+  "id": "achievement/trendsetter-the-lost-challenger",
+  "lore": 3506,
+  "parent": "achievement/trendsetter",
+  "client_name": "Trendsetter_Lost Creations_Get to Level 5",
+  "title": "Trendsetter, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Trendsetter.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/trendsetter",
+  "n": 5,
+  "source": "client"
+}

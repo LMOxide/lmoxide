@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-lifeguard-guy",
+  "lore": 3165,
+  "parent": "achievement/lifeguard-guy",
+  "client_name": "Lifeguard Guy_Upgrade 3",
+  "title": "Novice Lifeguard Guy",
+  "text": "Get the third Lifeguard Guy upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/lifeguard-guy",
+  "n": 3,
+  "source": "client"
+}

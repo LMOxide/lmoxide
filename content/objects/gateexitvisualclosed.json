@@ -1,0 +1,10 @@
+{
+  "id": "object/gateexitvisualclosed",
+  "name": "GateExitVisualClosed",
+  "kind": "scenery",
+  "render": {
+    "look": "GateExitVisualClosed",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

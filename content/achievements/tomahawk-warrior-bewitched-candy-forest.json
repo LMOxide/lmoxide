@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tomahawk-warrior-bewitched-candy-forest",
+  "lore": 3515,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Bewitched Candy Forest",
+  "title": "Tomahawk Warrior: Bewitched Candy Forest",
+  "text": "Conquer the Bewitched Candy Forest as Tomahawk Warrior.",
+  "points": 50,
+  "kind": "target",
+  "target": "Bewitched Candy Forest",
+  "minifigure": "minifig/tomahawk-warrior",
+  "source": "client"
+}

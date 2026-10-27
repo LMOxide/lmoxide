@@ -1,0 +1,32 @@
+{
+  "id": "skill/order",
+  "name": "Order!",
+  "client": {
+    "spell": 41170,
+    "stats": {
+      "EffectPackage": 38628,
+      "ItemDelay": 36,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 41171,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Judge: Order!",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/fairytale-princess-the-stonemason",
+  "lore": 3103,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Build 15 Mythology Statues",
+  "title": "Fairytale Princess, the Stonemason",
+  "text": "Build 15 Mythology Statues as Fairytale Princess.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/fairytale-princess",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

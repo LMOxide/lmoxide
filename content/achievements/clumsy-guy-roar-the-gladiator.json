@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-roar-the-gladiator",
+  "lore": 5127,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Roar the Gladiator",
+  "title": "Clumsy Guy: Roar the Gladiator",
+  "text": "Defeat Roar the Gladiator as Clumsy Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Roar the Gladiator",
+  "minifigure": "minifig/clumsy-guy",
+  "source": "client"
+}

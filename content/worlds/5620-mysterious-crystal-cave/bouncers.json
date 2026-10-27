@@ -1,0 +1,72 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/5620/jumpie-1",
+      "name": "jumpie_1",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [227.17, 32.0, 251.22],
+      "rot": [0.0, -0.4263, 0.0, 0.9046],
+      "target": [233.06, 30.15, 241.46],
+      "target_by": "name",
+      "client": {
+        "guid": 352202,
+        "tag": "JUMP",
+        "script_group": 34,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/5620/jumpie-1-back",
+      "name": "jumpie_1_back",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [252.31, 24.58, 257.37],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [234.12, 32.0, 257.49],
+      "target_by": "name",
+      "client": {
+        "guid": 352204,
+        "tag": "JUMP",
+        "script_group": 35,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/5620/jumpie-1-chain-1",
+      "name": "jumpie_1_chain_1",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [233.08, 29.29, 240.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [228.34, 25.99, 224.64],
+      "target_by": "name",
+      "client": {
+        "guid": 352206,
+        "tag": "JUMP",
+        "script_group": 36,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/5620/jumpie-1-chain-2",
+      "name": "jumpie_1_chain_2",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [228.35, 25.48, 224.48],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [225.65, 22.73, 208.25],
+      "target_by": "name",
+      "client": {
+        "guid": 352208,
+        "tag": "JUMP",
+        "script_group": 37,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    }
+  ]
+}

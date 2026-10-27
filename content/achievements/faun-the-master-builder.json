@@ -1,0 +1,16 @@
+{
+  "id": "achievement/faun-the-master-builder",
+  "lore": 5166,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Build 1000 buildies",
+  "title": "Faun, the Master Builder",
+  "text": "Build 1000 buildies as Faun.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/faun",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

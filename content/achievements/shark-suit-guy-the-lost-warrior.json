@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-the-lost-warrior",
+  "lore": 5291,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Lost Creations_Get to Level 10",
+  "title": "Shark Suit Guy, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Shark Suit Guy.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/shark-suit-guy",
+  "n": 10,
+  "source": "client"
+}

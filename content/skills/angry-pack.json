@@ -1,0 +1,49 @@
+{
+  "id": "skill/angry-pack",
+  "name": "Angry Pack",
+  "client": {
+    "spell": 561712,
+    "stats": {
+      "EffectPackage": 577408,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 561712
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 562558,
+            "MaxChains": 5,
+            "MaxRicochets": 5,
+            "ProjectileType": 1,
+            "Speed": 700
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Paleontologist: Angry Pack",
+  "range": 12.5,
+  "projectile": {
+    "item": 562558,
+    "speed": 7.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

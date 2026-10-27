@@ -1,0 +1,16 @@
+{
+  "id": "achievement/piggy-guy-the-smasher",
+  "lore": 3187,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Smash 500 Smashies",
+  "title": "Piggy Guy, the Smasher",
+  "text": "Smash 500 smashies as Piggy Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/piggy-guy",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

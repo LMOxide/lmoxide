@@ -1,0 +1,22 @@
+{
+  "portals": [
+    {
+      "id": "portal/1300/to-pirate-world",
+      "pos": [263.92, 29.0, 274.85],
+      "window": 74,
+      "to": {
+        "world": "world/pirate-world"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/1300/to-pirate-world-2",
+      "pos": [263.61, 29.21, 268.73],
+      "window": 74,
+      "to": {
+        "world": "world/pirate-world"
+      },
+      "source": "client"
+    }
+  ]
+}

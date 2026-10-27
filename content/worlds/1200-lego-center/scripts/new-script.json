@@ -1,0 +1,14 @@
+{
+  "id": "script/1200/new-script",
+  "name": "New script",
+  "waves": [
+    {
+      "id": "w-web-de48aac530de5a71",
+      "name": "wave 1"
+    }
+  ],
+  "status": "unreviewed",
+  "source": "surveyed",
+  "author": "host",
+  "updated": 1793083456
+}

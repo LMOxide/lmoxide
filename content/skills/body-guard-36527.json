@@ -1,0 +1,26 @@
+{
+  "id": "skill/body-guard-36527",
+  "name": "Body Guard",
+  "client": {
+    "spell": 36527,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Distance": 2,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 36528,
+            "Value": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Roman Emperor: Body Guard",
+  "source": "client"
+}

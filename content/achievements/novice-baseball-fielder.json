@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-baseball-fielder",
+  "lore": 3469,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_Upgrade 3",
+  "title": "Novice Baseball Fielder",
+  "text": "Get the third Baseball Fielder upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/baseball-fielder",
+  "n": 3,
+  "source": "client"
+}

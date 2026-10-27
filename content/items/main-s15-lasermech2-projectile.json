@@ -1,0 +1,17 @@
+{
+  "id": "item/main-s15-lasermech2-projectile",
+  "name": "main s15 lasermech2 projectile",
+  "kind": "projectile",
+  "template": 667318,
+  "radius": 1.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 667317
+      }
+    }
+  ],
+  "source": "client"
+}

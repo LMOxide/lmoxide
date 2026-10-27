@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-hot-dog-man",
+  "lore": 3903,
+  "parent": "achievement/hot-dog-man",
+  "client_name": "Hot Dog Man_Upgrade 7",
+  "title": "Expert Hot Dog Man",
+  "text": "Get the seventh Hot Dog Man upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/hot-dog-man",
+  "n": 7,
+  "source": "client"
+}

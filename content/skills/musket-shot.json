@@ -1,0 +1,42 @@
+{
+  "id": "skill/musket-shot",
+  "name": "Musket Shot",
+  "client": {
+    "spell": 196044,
+    "stats": {
+      "EffectPackage": 208799,
+      "ItemDelay": 34,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": 20,
+            "DisplaceMentY": -25,
+            "ItemInstance": 38897,
+            "ProjectileType": 1,
+            "Speed": 1500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Revolutionary Soldier: Musket Shot",
+  "range": 15.0,
+  "projectile": {
+    "item": 38897,
+    "speed": 15.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

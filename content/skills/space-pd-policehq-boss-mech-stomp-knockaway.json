@@ -1,0 +1,26 @@
+{
+  "id": "skill/space-pd-policehq-boss-mech-stomp-knockaway",
+  "name": "space pd policeHQ boss mech stomp knockaway",
+  "client": {
+    "spell": 361458,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Distance": 10,
+            "PowerRating": 9001,
+            "Speed": 25
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

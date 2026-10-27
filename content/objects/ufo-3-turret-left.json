@@ -1,0 +1,10 @@
+{
+  "id": "object/ufo-3-turret-left",
+  "name": "ufo 3 turret left",
+  "kind": "scenery",
+  "render": {
+    "look": "ufo 3 turret left",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

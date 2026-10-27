@@ -1,0 +1,40 @@
+{
+  "id": "skill/true-aim",
+  "name": "True Aim",
+  "client": {
+    "spell": 500461,
+    "stats": {
+      "EffectPackage": 501531,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 501493,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Dino Tracker: True Aim",
+  "range": 12.0,
+  "projectile": {
+    "item": 501493,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

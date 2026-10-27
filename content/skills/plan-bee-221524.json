@@ -1,0 +1,28 @@
+{
+  "id": "skill/plan-bee-221524",
+  "name": "Plan Bee",
+  "client": {
+    "spell": 221524,
+    "stats": {
+      "EffectPackage": 222285,
+      "TargetingMode": 5,
+      "TimeExist": 200
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.25,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Duration": -1,
+            "Interval": 50,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

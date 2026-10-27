@@ -1,0 +1,10 @@
+{
+  "id": "object/minibossexitvisualclosed-mech",
+  "name": "MinibossExitVisualClosed_Mech",
+  "kind": "scenery",
+  "render": {
+    "look": "MinibossExitVisualClosed_Mech",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "skill/big-bad-wolf-435725",
+  "name": "Big Bad Wolf",
+  "client": {
+    "spell": 435725,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 297727
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Grandma Visitor: Big Bad Wolf",
+  "source": "client"
+}

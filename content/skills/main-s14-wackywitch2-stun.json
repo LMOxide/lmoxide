@@ -1,0 +1,49 @@
+{
+  "id": "skill/main-s14-wackywitch2-stun",
+  "name": "main s14 wackywitch2 stun",
+  "client": {
+    "spell": 642235,
+    "stats": {
+      "TargetingMode": 5,
+      "TimeExist": 350
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 804,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "Stun",
+          "client": true,
+          "args": {
+            "ApplyOn": 3
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 359,
+            "Value": 643139
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 412
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

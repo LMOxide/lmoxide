@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-medusa",
+  "lore": 3629,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Complete Any 5",
+  "title": "Heroic Medusa",
+  "text": "Complete any 5 Medusa achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/medusa",
+  "n": 5,
+  "source": "client"
+}

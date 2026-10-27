@@ -1,0 +1,13 @@
+{
+  "id": "achievement/yeti-the-triffid",
+  "lore": 3044,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_The Triffid",
+  "title": "Yeti: The Triffid",
+  "text": "Defeat The Triffid as Yeti.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/yeti",
+  "source": "client"
+}

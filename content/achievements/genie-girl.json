@@ -1,0 +1,29 @@
+{
+  "id": "achievement/genie-girl",
+  "lore": 2500,
+  "parent": "achievement/series-12",
+  "client_name": "Genie Girl",
+  "title": "Genie Girl",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-genie-girl",
+    "achievement/legendary-genie-girl",
+    "achievement/novice-genie-girl",
+    "achievement/expert-genie-girl",
+    "achievement/genie-girl-unexplored-crystal-cave",
+    "achievement/genie-girl-swamp-tunnel",
+    "achievement/genie-girl-alien-command-center",
+    "achievement/genie-girl-korard-mercenary-captain",
+    "achievement/genie-girl-nyx-blackfeather",
+    "achievement/genie-girl-quicksword-billy",
+    "achievement/genie-girl-the-builder",
+    "achievement/genie-girl-the-master-builder",
+    "achievement/genie-girl-the-speed-freak",
+    "achievement/genie-girl-the-lost-challenger",
+    "achievement/genie-girl-the-lost-warrior",
+    "achievement/genie-girl-the-lost-champion"
+  ],
+  "minifigure": "minifig/genie-girl",
+  "source": "client"
+}

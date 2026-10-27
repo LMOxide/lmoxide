@@ -1,0 +1,14 @@
+{
+  "id": "npc/deep-sea-diver",
+  "name": "Deep Sea Diver",
+  "kind": "npc",
+  "render": {
+    "monster_data": 522157,
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 100
+  },
+  "source": "client"
+}

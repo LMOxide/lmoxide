@@ -1,0 +1,16 @@
+{
+  "id": "achievement/zombie-cheerleader-the-master-builder",
+  "lore": 4450,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Build 1000 buildies",
+  "title": "Zombie Cheerleader, the Master Builder",
+  "text": "Build 1000 buildies as Zombie Cheerleader.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/zombie-cheerleader",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

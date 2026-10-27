@@ -1,0 +1,10 @@
+{
+  "id": "object/pit5-buildup-particle",
+  "name": "Pit5 buildup particle",
+  "kind": "scenery",
+  "render": {
+    "look": "Pit5 buildup particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

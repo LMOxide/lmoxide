@@ -1,0 +1,40 @@
+{
+  "areas": [
+    {
+      "id": "area/1410/minibossencounter-start",
+      "name": "MiniBossEncounter_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [244.25, 161.31],
+            [244.25, 150.31],
+            [244.75, 150.31],
+            [244.75, 161.31]
+          ],
+          "heights": [90.42982, 100.42982]
+        }
+      },
+      "doors": {},
+      "source": "client"
+    },
+    {
+      "id": "area/1410/bossencounter-start",
+      "name": "BossEncounter_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [313.75, 161.4],
+            [313.75, 150.4],
+            [314.25, 150.4],
+            [314.25, 161.4]
+          ],
+          "heights": [93.964005, 103.964005]
+        }
+      },
+      "doors": {},
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wizard-bewitched-candy-forest",
+  "lore": 3310,
+  "parent": "achievement/wizard",
+  "client_name": "Wizard_Bewitched Candy Forest",
+  "title": "Wizard: Bewitched Candy Forest",
+  "text": "Conquer the Bewitched Candy Forest as Wizard.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bewitched Candy Forest",
+  "minifigure": "minifig/wizard",
+  "source": "client"
+}

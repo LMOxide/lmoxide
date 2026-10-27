@@ -1,0 +1,25 @@
+{
+  "id": "skill/orb-3",
+  "name": "Orb 3",
+  "client": {
+    "spell": 222198,
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": 150,
+            "DisplaceMentY": 50,
+            "ItemInstance": 222206,
+            "ProjectileType": 3,
+            "RotY": 240,
+            "Speed": 200
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

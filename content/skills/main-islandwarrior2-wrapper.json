@@ -1,0 +1,31 @@
+{
+  "id": "skill/main-islandwarrior2-wrapper",
+  "name": "main islandwarrior2 wrapper",
+  "client": {
+    "spell": 470918,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 470919
+          }
+        },
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 470921,
+            "Value": 5
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Island Warrior: Ancient Bolas",
+  "source": "client"
+}

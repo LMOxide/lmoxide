@@ -1,0 +1,17 @@
+{
+  "id": "achievement/jewel-thief-the-speed-freak",
+  "lore": 5231,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Build 20 Speed Pads",
+  "title": "Jewel Thief, the Speed Freak",
+  "text": "Build 20 Speed Pads as Jewel Thief.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/jewel-thief",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

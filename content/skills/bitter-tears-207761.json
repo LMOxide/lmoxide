@@ -1,0 +1,24 @@
+{
+  "id": "skill/bitter-tears-207761",
+  "name": "Bitter Tears",
+  "client": {
+    "spell": 207761,
+    "stats": {
+      "EffectPackage": 637031
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.8999999761581421,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

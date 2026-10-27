@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-tiki",
+  "name": "BossEntranceVisualOpen_Tiki",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_Tiki",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

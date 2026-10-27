@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-yeti2-aoe",
+  "name": "main yeti2 aoe",
+  "client": {
+    "spell": 470679,
+    "stats": {
+      "TargetingMode": 3
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 467931,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

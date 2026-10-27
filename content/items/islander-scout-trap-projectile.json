@@ -1,0 +1,22 @@
+{
+  "id": "item/islander-scout-trap-projectile",
+  "name": "islander scout trap projectile",
+  "kind": "projectile",
+  "template": 447902,
+  "effect_package": 458901,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "PlaceTrap",
+      "args": {
+        "ApplyOn": 3,
+        "Arg1": 237810,
+        "Level": 1,
+        "NanoTemplate": 194626,
+        "StringHash": "SZEB",
+        "TimedLength": 10
+      }
+    }
+  ],
+  "source": "client"
+}

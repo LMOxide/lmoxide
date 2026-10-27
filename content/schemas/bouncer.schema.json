@@ -1,0 +1,297 @@
+{
+  "$defs": {
+    "Duration": {
+      "anyOf": [
+        {
+          "pattern": "^\\s*-?[0-9.]+\\s*(ms|s|m|h)?\\s*$",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "A length of time: \"1.5s\", \"200ms\", \"2m\", \"1h\", or a number of seconds"
+    },
+    "Rot": {
+      "anyOf": [
+        {
+          "format": "float",
+          "type": "number"
+        },
+        {
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        }
+      ],
+      "description": "Which way something faces: a heading (radians about the up axis) or a quaternion\n`[x, y, z, w]` as the client stores it."
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    },
+    "SpawnClient": {
+      "additionalProperties": false,
+      "description": "Client placement details the server sends as they are.",
+      "properties": {
+        "actor_alias": {
+          "type": ["string", "null"]
+        },
+        "ai_point": {
+          "type": ["string", "null"]
+        },
+        "bounds": {
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 6,
+          "minItems": 6,
+          "type": ["array", "null"]
+        },
+        "cars_group": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "cinematic": {
+          "type": ["boolean", "null"]
+        },
+        "dynel_type": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "flags": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "guid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "hidden": {
+          "type": ["boolean", "null"]
+        },
+        "interaction_radius": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "item_template": {
+          "description": "Cinematic actors: their item template, AI point and alias.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "look": {
+          "type": ["string", "null"]
+        },
+        "script_group": {
+          "format": "int32",
+          "type": ["integer", "null"]
+        },
+        "tag": {
+          "type": ["string", "null"]
+        },
+        "visual": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": ["array", "null"]
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A jump pad placed in a world: `worlds/<world>/bouncers.json`.",
+  "properties": {
+    "apex": {
+      "description": "Arc height (m) and flight time as recorded.",
+      "format": "float",
+      "type": ["number", "null"]
+    },
+    "author": {
+      "type": "string"
+    },
+    "client": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SpawnClient"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "comment": {
+      "type": "string"
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "flight": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Duration"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "description": "Its id: `bouncer/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "pos": {
+      "items": {
+        "format": "float",
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "removed": {
+      "type": "boolean"
+    },
+    "replaces": {
+      "description": "The world-editor bouncer this one replaced.",
+      "type": ["string", "null"]
+    },
+    "requires_built": {
+      "description": "Works only after this buildie spawn is built.",
+      "type": ["string", "null"]
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Rot"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scale": {
+      "format": "float",
+      "type": "number"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "target": {
+      "description": "Where it throws you; none: it doesn't launch (shown only).",
+      "items": {
+        "format": "float",
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": ["array", "null"]
+    },
+    "target_by": {
+      "description": "How the landing point was found (`name`, `adjacent`, `chain`, `demo`, `onward`, ...).",
+      "type": ["string", "null"]
+    },
+    "template": {
+      "description": "Its kind (`object/...` with `bouncer`): look and launch.",
+      "type": ["string", "null"]
+    },
+    "then": {
+      "description": "The next pad of a route (thrown on without stopping).",
+      "type": ["string", "null"]
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": ["id", "pos"],
+  "title": "Bouncer",
+  "type": "object"
+}

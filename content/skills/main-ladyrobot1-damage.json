@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-ladyrobot1-damage",
+  "name": "main ladyrobot1 damage",
+  "client": {
+    "spell": 360325,
+    "stats": {
+      "EffectPackage": 637056,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.8999999761581421,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

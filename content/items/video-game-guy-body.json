@@ -1,0 +1,16 @@
+{
+  "id": "item/video-game-guy-body",
+  "name": "Video Game Guy Body",
+  "kind": "part",
+  "template": 576134,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21215,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/video-game-guy",
+  "location": "Torso",
+  "source": "client"
+}

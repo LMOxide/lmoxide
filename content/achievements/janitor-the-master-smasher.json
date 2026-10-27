@@ -1,0 +1,16 @@
+{
+  "id": "achievement/janitor-the-master-smasher",
+  "lore": 5214,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Smash 5000 Smashies",
+  "title": "Janitor, the Master Smasher",
+  "text": "Smash 5000 smashies as Janitor.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/janitor",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

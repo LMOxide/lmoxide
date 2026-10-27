@@ -1,0 +1,16 @@
+{
+  "id": "achievement/prospector-the-builder",
+  "lore": 3219,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Build 100 Buildies",
+  "title": "Prospector, the Builder",
+  "text": "Build 100 buildies as Prospector.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/prospector",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

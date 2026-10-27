@@ -1,0 +1,12 @@
+{
+  "id": "achievement/the-fearless",
+  "lore": 4744,
+  "parent": "achievement/smash-test-dummy",
+  "client_name": "Trials_Haunted Grove_Dark",
+  "title": "The Fearless",
+  "text": "Complete the Haunted Grove without picking up a light.",
+  "points": 50,
+  "kind": "manual",
+  "stars": 500,
+  "source": "client"
+}

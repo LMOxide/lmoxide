@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/1650/to-volcano-island",
+      "pos": [241.79, 21.0, 232.45],
+      "window": 21,
+      "to": {
+        "world": "world/volcano-island"
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/sheriff-legs",
+  "name": "Sheriff Legs",
+  "kind": "part",
+  "template": 576093,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31314,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/sheriff",
+  "location": "Legs",
+  "source": "client"
+}

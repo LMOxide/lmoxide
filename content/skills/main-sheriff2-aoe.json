@@ -1,0 +1,38 @@
+{
+  "id": "skill/main-sheriff2-aoe",
+  "name": "main sheriff2 aoe",
+  "client": {
+    "spell": 564282,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 564285,
+            "Radius": 3
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "MinimumAttackRange": 2,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 579783,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

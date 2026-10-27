@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-spookygirl1-damage-spider",
+  "name": "main spookygirl1 damage spider",
+  "client": {
+    "spell": 506062,
+    "stats": {
+      "EffectPackage": 520129,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.75,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

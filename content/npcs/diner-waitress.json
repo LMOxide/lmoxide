@@ -1,0 +1,17 @@
+{
+  "id": "npc/diner-waitress",
+  "name": "Diner Waitress",
+  "kind": "npc",
+  "render": {
+    "monster_data": 276493,
+    "npc_template": 2631,
+    "look": "diner_waitress",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

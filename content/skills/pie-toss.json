@@ -1,0 +1,39 @@
+{
+  "id": "skill/pie-toss",
+  "name": "Pie Toss",
+  "client": {
+    "spell": 500475,
+    "stats": {
+      "EffectPackage": 509396,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 504827,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pizza Delivery Man: Pie Toss",
+  "range": 15.0,
+  "projectile": {
+    "item": 504827,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

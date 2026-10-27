@@ -1,0 +1,16 @@
+{
+  "id": "item/wacky-witch-head",
+  "name": "Wacky Witch Head",
+  "kind": "part",
+  "template": 662035,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11412,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/wacky-witch",
+  "location": "Head",
+  "source": "client"
+}

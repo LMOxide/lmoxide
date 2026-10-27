@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wolf-guy-maggut-the-beast-tamer",
+  "lore": 4595,
+  "parent": "achievement/wolf-guy",
+  "client_name": "Wolf Guy_Maggut the Beast Tamer",
+  "title": "Wolf Guy: Maggut the Beast Tamer",
+  "text": "Defeat Maggut the Beast Tamer as Wolf Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Maggut the Beast Tamer",
+  "minifigure": "minifig/wolf-guy",
+  "source": "client"
+}

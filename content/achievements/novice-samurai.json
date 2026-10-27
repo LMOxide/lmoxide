@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-samurai",
+  "lore": 3953,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Upgrade 3",
+  "title": "Novice Samurai",
+  "text": "Get the third Samurai upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/samurai",
+  "n": 3,
+  "source": "client"
+}

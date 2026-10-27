@@ -1,0 +1,28 @@
+{
+  "id": "skill/main-elf2-counter",
+  "name": "main elf2 counter",
+  "client": {
+    "spell": 596255,
+    "stats": {
+      "EffectPackage": 600400,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 596253,
+            "Radius": 4
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Elf: Elven Defense",
+  "source": "client"
+}

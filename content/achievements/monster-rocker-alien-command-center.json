@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-rocker-alien-command-center",
+  "lore": 4643,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Alien Command Center",
+  "title": "Monster Rocker: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Monster Rocker.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/monster-rocker",
+  "source": "client"
+}

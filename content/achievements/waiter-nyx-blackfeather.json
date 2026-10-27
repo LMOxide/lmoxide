@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-nyx-blackfeather",
+  "lore": 2722,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Nyx Blackfeather",
+  "title": "Waiter: Nyx Blackfeather",
+  "text": "Defeat Nyx Blackfeather as Waiter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Nyx Blackfeather",
+  "minifigure": "minifig/waiter",
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "skill/mount-up",
+  "name": "Mount Up!",
+  "client": {
+    "spell": 500468,
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 505576
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 505955,
+            "Value": 10
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Hun Warrior: Mount Up!",
+  "source": "client"
+}

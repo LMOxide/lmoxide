@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-goddess-the-lost-challenger",
+  "lore": 3066,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Lost Creations_Get to Level 5",
+  "title": "Battle Goddess, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Battle Goddess.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/battle-goddess",
+  "n": 5,
+  "source": "client"
+}

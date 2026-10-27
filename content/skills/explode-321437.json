@@ -1,0 +1,39 @@
+{
+  "id": "skill/explode-321437",
+  "name": "Explode",
+  "client": {
+    "spell": 321437,
+    "stats": {
+      "AISpellCategory": 1,
+      "AttackRange": 50,
+      "EffectPackage": 350324,
+      "ItemDelay": 100,
+      "RechargeDelay": 100,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 321436,
+            "Radius": 3
+          }
+        },
+        {
+          "type": "Set",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 27
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-block",
+  "name": "Upgrade: Block",
+  "nano": 421250,
+  "effects": [
+    {
+      "proc": {
+        "on": "special_attack",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-block",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

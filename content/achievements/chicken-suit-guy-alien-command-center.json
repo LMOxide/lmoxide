@@ -1,0 +1,13 @@
+{
+  "id": "achievement/chicken-suit-guy-alien-command-center",
+  "lore": 2668,
+  "parent": "achievement/chicken-suit-guy",
+  "client_name": "Chicken Suit Guy_Alien Command Center",
+  "title": "Chicken Suit Guy: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Chicken Suit Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/chicken-suit-guy",
+  "source": "client"
+}

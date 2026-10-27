@@ -1,0 +1,16 @@
+{
+  "id": "item/mermaid-body",
+  "name": "Mermaid Body",
+  "kind": "part",
+  "template": 483639,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20910,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/mermaid",
+  "location": "Torso",
+  "source": "client"
+}

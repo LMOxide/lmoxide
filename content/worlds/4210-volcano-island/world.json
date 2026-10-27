@@ -1,0 +1,117 @@
+{
+  "id": "world/volcano-island",
+  "name": "Volcano Island",
+  "playfield": 4210,
+  "kind": "open",
+  "region": "region/pirate-world",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [96.0, 65.0, 45.5],
+    "rot": 3.0
+  },
+  "arrival_guid": 197764,
+  "arrival_from": {
+    "world/beach-cave": {
+      "pos": [104.4, 65.37, 115.63],
+      "rot": 4.451
+    },
+    "world/crimson-chamber": {
+      "pos": [302.48, 57.45, 420.23],
+      "rot": 3.927
+    },
+    "world/isle-of-yarr": {
+      "pos": [73.25, 65.54, 35.5],
+      "rot": 1.047
+    },
+    "world/pirate-grotto": {
+      "pos": [465.35, 67.76, 475.85],
+      "rot": 3.927
+    },
+    "world/scorched-ruins": {
+      "pos": [460.74, 78.24, 384.51],
+      "rot": 3.927
+    },
+    "world/wind-shrine": {
+      "pos": [176.6, 70.59, 144.64],
+      "rot": 3.142
+    }
+  },
+  "window": 21,
+  "respawn_points": [
+    {
+      "name": "Beach",
+      "guid": 197764,
+      "pos": [95.97, 65.0, 45.53],
+      "rot": 3.003,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "River Crossing",
+      "guid": 197765,
+      "pos": [167.2, 74.0, 112.47],
+      "rot": 3.762,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Volcano Entrance",
+      "guid": 197766,
+      "pos": [246.46, 100.03, 281.59],
+      "rot": 1.721,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Scorched City",
+      "guid": 197767,
+      "pos": [386.87, 80.04, 350.13],
+      "rot": 4.285,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Pirate Grotto",
+      "guid": 197768,
+      "pos": [447.3, 69.71, 485.68],
+      "rot": 5.779,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Foot of the Volcano",
+      "guid": 448306,
+      "pos": [102.41, 76.0, 198.68],
+      "rot": 3.762,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Volcano End",
+      "guid": 448307,
+      "pos": [271.63, 99.12, 362.47],
+      "rot": 0.241,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Start",
+      "guid": 636117,
+      "pos": [70.6, 65.15, 32.66],
+      "rot": 3.897,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

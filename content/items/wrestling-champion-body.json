@@ -1,0 +1,16 @@
+{
+  "id": "item/wrestling-champion-body",
+  "name": "Wrestling Champion Body",
+  "kind": "part",
+  "template": 668657,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21516,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/wrestling-champion",
+  "location": "Torso",
+  "source": "client"
+}

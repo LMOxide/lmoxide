@@ -1,0 +1,16 @@
+{
+  "id": "achievement/square-foot-the-smasher",
+  "lore": 4551,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Smash 500 Smashies",
+  "title": "Square Foot, the Smasher",
+  "text": "Smash 500 smashies as Square Foot.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/square-foot",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

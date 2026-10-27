@@ -1,0 +1,13 @@
+{
+  "id": "achievement/laser-mech-underground-cave",
+  "lore": 5251,
+  "parent": "achievement/laser-mech",
+  "client_name": "Laser Mech_Underground Cave",
+  "title": "Laser Mech: Underground Cave",
+  "text": "Conquer the Underground Cave as Laser Mech.",
+  "points": 50,
+  "kind": "target",
+  "target": "Underground Cave",
+  "minifigure": "minifig/laser-mech",
+  "source": "client"
+}

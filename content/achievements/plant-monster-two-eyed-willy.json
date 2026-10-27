@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plant-monster-two-eyed-willy",
+  "lore": 4559,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Two-Eyed Willy",
+  "title": "Plant Monster: Two-Eyed Willy",
+  "text": "Defeat Two-Eyed Willy as Plant Monster.",
+  "points": 25,
+  "kind": "target",
+  "target": "Two-Eyed Willy",
+  "minifigure": "minifig/plant-monster",
+  "source": "client"
+}

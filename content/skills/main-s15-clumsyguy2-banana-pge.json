@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-s15-clumsyguy2-banana-pge",
+  "name": "main s15 clumsyguy2 banana pge",
+  "client": {
+    "spell": 668596,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 6,
+            "EffectPackage": 668700,
+            "NanoTemplate": 668595,
+            "TemplateID": 668601
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Clumsy Guy: Peels of Fury",
+  "source": "client"
+}

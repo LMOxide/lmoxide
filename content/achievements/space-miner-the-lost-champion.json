@@ -1,0 +1,13 @@
+{
+  "id": "achievement/space-miner-the-lost-champion",
+  "lore": 3258,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Lost Creations_Get to Level 15",
+  "title": "Space Miner, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Space Miner.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/space-miner",
+  "n": 15,
+  "source": "client"
+}

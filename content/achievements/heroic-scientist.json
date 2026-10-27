@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-scientist",
+  "lore": 2917,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Complete Any 5",
+  "title": "Heroic Scientist",
+  "text": "Complete any 5 Scientist achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/scientist",
+  "n": 5,
+  "source": "client"
+}

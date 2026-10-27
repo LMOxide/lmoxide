@@ -1,0 +1,13 @@
+{
+  "id": "achievement/baseball-fielder-dragon-halls",
+  "lore": 3465,
+  "parent": "achievement/baseball-fielder",
+  "client_name": "Baseball Fielder_Dragon Halls",
+  "title": "Baseball Fielder: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Baseball Fielder.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/baseball-fielder",
+  "source": "client"
+}

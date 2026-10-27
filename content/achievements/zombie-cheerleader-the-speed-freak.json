@@ -1,0 +1,17 @@
+{
+  "id": "achievement/zombie-cheerleader-the-speed-freak",
+  "lore": 4451,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Build 20 Speed Pads",
+  "title": "Zombie Cheerleader, the Speed Freak",
+  "text": "Build 20 Speed Pads as Zombie Cheerleader.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/zombie-cheerleader",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/evil-mech-beastmaster-wulfgar",
+  "lore": 3011,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Beastmaster Wulfgar",
+  "title": "Evil Mech: Beastmaster Wulfgar",
+  "text": "Defeat Beastmaster Wulfgar as Evil Mech.",
+  "points": 25,
+  "kind": "target",
+  "target": "Beastmaster Wulfgar",
+  "minifigure": "minifig/evil-mech",
+  "source": "client"
+}

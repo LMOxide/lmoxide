@@ -1,0 +1,13 @@
+{
+  "id": "achievement/yeti-mercenary-cave",
+  "lore": 3041,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Mercenary Cave",
+  "title": "Yeti: Mercenary Cave",
+  "text": "Conquer the Mercenary Cave as Yeti.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mercenary Cave",
+  "minifigure": "minifig/yeti",
+  "source": "client"
+}

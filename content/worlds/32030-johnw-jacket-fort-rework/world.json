@@ -1,0 +1,32 @@
+{
+  "id": "world/johnw-jacket-fort-rework",
+  "name": "Johnw Jacket Fort Rework",
+  "playfield": 32030,
+  "kind": "other",
+  "arrival": {
+    "pos": [94.93, 70.78, 15.7],
+    "rot": 3.927
+  },
+  "arrival_guid": 601693,
+  "respawn_points": [
+    {
+      "name": "ResurrectionAIPoint0",
+      "guid": 601693,
+      "pos": [94.93, 70.78, 15.7],
+      "rot": 3.927,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Fort",
+      "guid": 630220,
+      "pos": [288.83, 70.0, 319.71],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

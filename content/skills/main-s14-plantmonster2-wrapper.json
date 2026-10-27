@@ -1,0 +1,23 @@
+{
+  "id": "skill/main-s14-plantmonster2-wrapper",
+  "name": "main s14 plantmonster2 wrapper",
+  "client": {
+    "spell": 642251,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642252
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Plant Monster: Monstrous Roots",
+  "source": "client"
+}

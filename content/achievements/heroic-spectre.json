@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-spectre",
+  "lore": 4571,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Complete Any 5",
+  "title": "Heroic Spectre",
+  "text": "Complete any 5 Spectre achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/spectre",
+  "n": 5,
+  "source": "client"
+}

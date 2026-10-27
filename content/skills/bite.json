@@ -1,0 +1,36 @@
+{
+  "id": "skill/bite",
+  "name": "Bite",
+  "client": {
+    "spell": 16203,
+    "stats": {
+      "AISpellCategory": 513,
+      "AttackRange": 200,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1003,
+            "Value": 1
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 16203,
+            "Value": 100
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

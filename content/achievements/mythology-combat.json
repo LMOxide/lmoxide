@@ -1,0 +1,8 @@
+{
+  "id": "achievement/mythology-combat",
+  "lore": 866,
+  "parent": "achievement/mythology-world",
+  "client_name": "Mythology_Combat",
+  "kind": "category",
+  "source": "client"
+}

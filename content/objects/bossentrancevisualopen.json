@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen",
+  "name": "BossEntranceVisualOpen",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

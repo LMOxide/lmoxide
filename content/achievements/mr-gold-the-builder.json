@@ -1,0 +1,16 @@
+{
+  "id": "achievement/mr-gold-the-builder",
+  "lore": 3389,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Build 100 Buildies",
+  "title": "Mr. Gold, the Builder",
+  "text": "Build 100 buildies as Mr. Gold.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/mr-gold",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

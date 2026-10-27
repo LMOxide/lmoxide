@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-trooper-beastmaster-wulfgar",
+  "lore": 3765,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Beastmaster Wulfgar",
+  "title": "Alien Trooper: Beastmaster Wulfgar",
+  "text": "Defeat Beastmaster Wulfgar as Alien Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Beastmaster Wulfgar",
+  "minifigure": "minifig/alien-trooper",
+  "source": "client"
+}

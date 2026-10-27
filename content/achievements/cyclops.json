@@ -1,0 +1,29 @@
+{
+  "id": "achievement/cyclops",
+  "lore": 2473,
+  "parent": "achievement/series-9",
+  "client_name": "Cyclops",
+  "title": "Cyclops",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-cyclops",
+    "achievement/legendary-cyclops",
+    "achievement/novice-cyclops",
+    "achievement/expert-cyclops",
+    "achievement/cyclops-ancient-space-ruins",
+    "achievement/cyclops-dark-alcove",
+    "achievement/cyclops-alien-command-center",
+    "achievement/cyclops-hecate-the-winter-witch",
+    "achievement/cyclops-giant-spider",
+    "achievement/cyclops-derp-the-internet-troll",
+    "achievement/cyclops-the-striker",
+    "achievement/cyclops-the-master-striker",
+    "achievement/cyclops-the-witch-hunter",
+    "achievement/cyclops-the-lost-challenger",
+    "achievement/cyclops-the-lost-warrior",
+    "achievement/cyclops-the-lost-champion"
+  ],
+  "minifigure": "minifig/cyclops",
+  "source": "client"
+}

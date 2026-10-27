@@ -1,0 +1,15 @@
+{
+  "id": "skill/main-scientist2-buff",
+  "name": "main scientist2 buff",
+  "client": {
+    "spell": 34724,
+    "stats": {
+      "EffectPackage": 366118,
+      "MaxBuffCounters": 3,
+      "MoreFlags": 67108864,
+      "TargetingMode": 5,
+      "TimeExist": 200
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/astronaut-legs",
+  "name": "Astronaut Legs",
+  "kind": "part",
+  "template": 668655,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31502,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/astronaut",
+  "location": "Legs",
+  "source": "client"
+}

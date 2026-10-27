@@ -1,0 +1,12 @@
+{
+  "id": "achievement/mad-as-a-hatter",
+  "lore": 1608,
+  "parent": "achievement/dino-tamer",
+  "client_name": "Dino_Combat_Defeat Swamp Champion",
+  "title": "Mad as a Hatter",
+  "text": "Defeat the Madcap Compy.",
+  "points": 50,
+  "kind": "defeat",
+  "target": "Swamp Champion",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gargoyle-cave-of-the-exiled",
+  "lore": 4522,
+  "parent": "achievement/gargoyle",
+  "client_name": "Gargoyle_Cave of the Exiled",
+  "title": "Gargoyle: Cave of the Exiled",
+  "text": "Conquer the Cave of the Exiled as Gargoyle.",
+  "points": 50,
+  "kind": "target",
+  "target": "Cave of the Exiled",
+  "minifigure": "minifig/gargoyle",
+  "source": "client"
+}

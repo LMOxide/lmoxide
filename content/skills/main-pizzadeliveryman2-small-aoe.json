@@ -1,0 +1,28 @@
+{
+  "id": "skill/main-pizzadeliveryman2-small-aoe",
+  "name": "main pizzadeliveryman2 small aoe",
+  "client": {
+    "spell": 504864,
+    "stats": {
+      "EffectPackage": 512902,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 504863,
+            "Radius": 1
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pizza Delivery Man: Special Delivery",
+  "source": "client"
+}

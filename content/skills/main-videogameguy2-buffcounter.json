@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-videogameguy2-buffcounter",
+  "name": "main videogameguy2 buffcounter",
+  "client": {
+    "spell": 505499,
+    "stats": {
+      "MaxBuffCounters": 3
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "skill/zombie-project-management",
+  "name": "Zombie Project Management",
+  "client": {
+    "spell": 641632,
+    "stats": {
+      "EffectPackage": 656269,
+      "ItemDelay": 25,
+      "RechargeDelay": 25
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642449
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642453
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641632,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Zombie Businessman: Zombie Project Management",
+  "source": "client"
+}

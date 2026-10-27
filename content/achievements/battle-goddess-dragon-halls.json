@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-goddess-dragon-halls",
+  "lore": 3059,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Dragon Halls",
+  "title": "Battle Goddess: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Battle Goddess.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/battle-goddess",
+  "source": "client"
+}

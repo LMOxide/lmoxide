@@ -1,0 +1,16 @@
+{
+  "id": "item/cowboy-legs",
+  "name": "Cowboy Legs",
+  "kind": "part",
+  "template": 599524,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30104,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/cowboy",
+  "location": "Legs",
+  "source": "client"
+}

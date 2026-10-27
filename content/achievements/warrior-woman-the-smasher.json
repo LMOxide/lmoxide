@@ -1,0 +1,16 @@
+{
+  "id": "achievement/warrior-woman-the-smasher",
+  "lore": 3355,
+  "parent": "achievement/warrior-woman",
+  "client_name": "Warrior Woman_Smash 500 Smashies",
+  "title": "Warrior Woman, the Smasher",
+  "text": "Smash 500 smashies as Warrior Woman.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/warrior-woman",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

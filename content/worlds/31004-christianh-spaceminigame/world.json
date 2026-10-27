@@ -1,0 +1,12 @@
+{
+  "id": "world/christianh-spaceminigame",
+  "name": "ChristianH_SpaceMinigame",
+  "playfield": 31004,
+  "kind": "other",
+  "arrival": {
+    "pos": [158.0, 25.75, 324.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,43 @@
+{
+  "id": "skill/honey-pot-221541",
+  "name": "Honey Pot",
+  "client": {
+    "spell": 221541,
+    "stats": {
+      "EffectPackage": 636979,
+      "MoreFlags": 67108864
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.5
+          }
+        }
+      ],
+      "37": [
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 636980
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandma-the-lost-champion",
+  "lore": 2988,
+  "parent": "achievement/grandma",
+  "client_name": "Grandma_Lost Creations_Get to Level 15",
+  "title": "Grandma, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Grandma.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/grandma",
+  "n": 15,
+  "source": "client"
+}

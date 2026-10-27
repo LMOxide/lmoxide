@@ -1,0 +1,65 @@
+{
+  "id": "skill/space-dg-alienhq-boss-saucer-bolt-castable",
+  "name": "space dg alienhq boss saucer bolt castable",
+  "client": {
+    "spell": 367651,
+    "stats": {
+      "AIPowerrating": 5,
+      "AISpellCategory": 1024,
+      "AttackRange": 3000,
+      "EffectPackage": 397389,
+      "ItemDelay": 36,
+      "RechargeDelay": 164,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "DisplaceMentX": -80,
+            "DisplaceMentZ": 50,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": -10,
+            "Speed": 800
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "DisplaceMentZ": 125,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "Speed": 800
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "DisplaceMentX": 80,
+            "DisplaceMentZ": 50,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 10,
+            "Speed": 800
+          }
+        }
+      ]
+    }
+  },
+  "projectile": {
+    "item": 367713,
+    "speed": 8.0
+  },
+  "source": "client"
+}

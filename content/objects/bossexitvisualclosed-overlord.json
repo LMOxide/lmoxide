@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-overlord",
+  "name": "BossExitVisualClosed_Overlord",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Overlord",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

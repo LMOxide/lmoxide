@@ -1,0 +1,13 @@
+{
+  "id": "achievement/dino-tracker-ancient-space-ruins",
+  "lore": 3075,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Ancient Space Ruins",
+  "title": "Dino Tracker: Ancient Space Ruins",
+  "text": "Conquer the Ancient Space Ruins as Dino Tracker.",
+  "points": 50,
+  "kind": "target",
+  "target": "Ancient Space Ruins",
+  "minifigure": "minifig/dino-tracker",
+  "source": "client"
+}

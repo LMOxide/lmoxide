@@ -1,0 +1,64 @@
+{
+  "id": "world/underworld",
+  "name": "Underworld",
+  "playfield": 2320,
+  "kind": "pocket",
+  "region": "region/mythology-world",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [231.34, 104.5, 291.63],
+    "rot": 1.57
+  },
+  "arrival_guid": 41024,
+  "arrival_from": {
+    "world/lego-center": {
+      "pos": [357.04, 25.57, 408.9],
+      "rot": 3.927
+    },
+    "world/mythology-mountains": {
+      "pos": [357.04, 25.57, 408.9],
+      "rot": 3.927
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 41024,
+      "pos": [231.34, 104.5, 291.63],
+      "rot": 1.57,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Hades",
+      "guid": 84360,
+      "pos": [364.22, 16.61, 279.47],
+      "rot": 1.588,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boatman",
+      "guid": 104931,
+      "pos": [174.06, 53.04, 157.85],
+      "rot": 4.712,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Witches",
+      "guid": 493334,
+      "pos": [113.23, 64.22, 256.72],
+      "rot": 1.57,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

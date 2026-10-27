@@ -1,0 +1,13 @@
+{
+  "id": "achievement/motorcycle-mechanic-mercenary-assault-cruiser",
+  "lore": 3395,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Mercenary Assault Cruiser",
+  "title": "Motorcycle Mechanic: Mercenary Assault Cruiser",
+  "text": "Conquer the Mercenary Assault Cruiser as Motorcycle Mechanic.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Assault Cruiser",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "source": "client"
+}

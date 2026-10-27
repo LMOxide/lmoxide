@@ -1,0 +1,23 @@
+{
+  "id": "achievement/master-pickpocket",
+  "lore": 799,
+  "parent": "achievement/pirate-combat",
+  "client_name": "Pirate_Combat_Complete Pirate Pocket Adventures",
+  "title": "Master Pickpocket",
+  "text": "Complete all Pirate World Pocket Adventures.",
+  "points": 100,
+  "kind": "all",
+  "stars": 500,
+  "children": [
+    "achievement/hidden-dragoon",
+    "achievement/jacket-on-jacket-off",
+    "achievement/tribes-descend",
+    "achievement/i-feel-cold",
+    "achievement/calm-after-the-storm",
+    "achievement/barrel-roll",
+    "achievement/turned-tables",
+    "achievement/surfer-s-haven",
+    "achievement/dragonhearth"
+  ],
+  "source": "client"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "npc/harpy-queen",
+  "name": "Harpy Queen",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 82601
+  },
+  "level": 20,
+  "stats": {
+    "health": 26180,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/feather-fling",
+      "weight": 1
+    },
+    {
+      "skill": "skill/smack-196231",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

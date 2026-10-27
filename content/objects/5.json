@@ -1,0 +1,10 @@
+{
+  "id": "object/5",
+  "name": "5",
+  "kind": "scenery",
+  "render": {
+    "look": "5",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

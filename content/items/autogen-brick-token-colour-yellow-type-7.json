@@ -1,0 +1,30 @@
+{
+  "id": "item/autogen-brick-token-colour-yellow-type-7",
+  "name": "XX_autogen brick token colour:yellow type:7",
+  "kind": "token",
+  "template": 59696,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 7,
+      "amount": 1
+    },
+    {
+      "token": 15,
+      "amount": 1
+    },
+    {
+      "token": 23,
+      "amount": 1
+    },
+    {
+      "token": 31,
+      "amount": 1
+    },
+    {
+      "token": 39,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

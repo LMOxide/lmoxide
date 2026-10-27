@@ -1,0 +1,38 @@
+{
+  "id": "skill/main-barbarian2-knocktowards",
+  "name": "main barbarian2 knocktowards",
+  "client": {
+    "spell": 388455,
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 365804
+          }
+        },
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Arg2": 5,
+            "Distance": 5,
+            "PowerRating": 9001,
+            "Speed": 25
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 461604
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

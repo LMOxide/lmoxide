@@ -1,0 +1,11 @@
+{
+  "id": "object/xx-invisible-8",
+  "name": "XX_Invisible",
+  "kind": "scenery",
+  "render": {
+    "template": 249343,
+    "look": "XX_Invisible",
+    "visual": [1010030, 663668]
+  },
+  "source": "live"
+}

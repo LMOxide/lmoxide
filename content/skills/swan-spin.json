@@ -1,0 +1,101 @@
+{
+  "id": "skill/swan-spin",
+  "name": "Swan Spin",
+  "client": {
+    "spell": 663939,
+    "stats": {
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 20,
+      "ItemDelay": 25,
+      "MoreFlags": 1073741824,
+      "RechargeDelay": 25
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 668547
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 668547
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 1,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 667126,
+            "Radius": 3
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1250,
+            "ItemInstance": 667130,
+            "ProjectileType": 1,
+            "RotY": 15,
+            "Speed": 600
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1250,
+            "ItemInstance": 667130,
+            "ProjectileType": 1,
+            "RotY": -15,
+            "Speed": 600
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1250,
+            "ItemInstance": 667130,
+            "ProjectileType": 1,
+            "Speed": 650
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 668547
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Ballerina: Swan Spin",
+  "range": 3.0,
+  "projectile": {
+    "item": 667130,
+    "speed": 6.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 12.5,
+    "ricochets": 0
+  },
+  "source": "client"
+}

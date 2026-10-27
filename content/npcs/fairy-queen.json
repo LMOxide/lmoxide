@@ -1,0 +1,14 @@
+{
+  "id": "npc/fairy-queen",
+  "name": "Fairy Queen",
+  "kind": "npc",
+  "render": {
+    "monster_data": 352166,
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 100
+  },
+  "source": "client"
+}

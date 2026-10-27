@@ -1,0 +1,13 @@
+{
+  "id": "achievement/smashtastic",
+  "lore": 3647,
+  "parent": "achievement/global",
+  "client_name": "Global_Smash 10000 Smashies",
+  "title": "Smashtastic!",
+  "text": "Smash 10000 Smashies.",
+  "points": 50,
+  "kind": "counter",
+  "stars": 500,
+  "counter": [3000126, 10000],
+  "source": "client"
+}

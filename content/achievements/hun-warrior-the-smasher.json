@@ -1,0 +1,16 @@
+{
+  "id": "achievement/hun-warrior-the-smasher",
+  "lore": 3136,
+  "parent": "achievement/hun-warrior",
+  "client_name": "Hun Warrior_Smash 500 Smashies",
+  "title": "Hun Warrior, the Smasher",
+  "text": "Smash 500 smashies as Hun Warrior.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/hun-warrior",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

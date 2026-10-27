@@ -1,0 +1,12 @@
+{
+  "id": "world/pirate-mayhem",
+  "name": "Pirate Mayhem",
+  "playfield": 7103,
+  "kind": "other",
+  "arrival": {
+    "pos": [317.5, 53.08, 111.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

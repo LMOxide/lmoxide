@@ -1,0 +1,13 @@
+{
+  "id": "achievement/unicorn-girl-the-lost-warrior",
+  "lore": 4008,
+  "parent": "achievement/unicorn-girl",
+  "client_name": "Unicorn Girl_Lost Creations_Get to Level 10",
+  "title": "Unicorn Girl, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Unicorn Girl.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/unicorn-girl",
+  "n": 10,
+  "source": "client"
+}

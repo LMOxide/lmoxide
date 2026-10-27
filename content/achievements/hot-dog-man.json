@@ -1,0 +1,29 @@
+{
+  "id": "achievement/hot-dog-man",
+  "lore": 3751,
+  "parent": "achievement/series-13",
+  "client_name": "Hot Dog Man",
+  "title": "Hot Dog Man",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-hot-dog-man",
+    "achievement/legendary-hot-dog-man",
+    "achievement/novice-hot-dog-man",
+    "achievement/expert-hot-dog-man",
+    "achievement/hot-dog-man-mysterious-crystal-cave",
+    "achievement/hot-dog-man-cliffside",
+    "achievement/hot-dog-man-dragon-halls",
+    "achievement/hot-dog-man-deranged-raptor",
+    "achievement/hot-dog-man-the-triffid",
+    "achievement/hot-dog-man-the-weaver",
+    "achievement/hot-dog-man-the-builder",
+    "achievement/hot-dog-man-the-master-builder",
+    "achievement/hot-dog-man-the-speed-freak",
+    "achievement/hot-dog-man-the-lost-challenger",
+    "achievement/hot-dog-man-the-lost-warrior",
+    "achievement/hot-dog-man-the-lost-champion"
+  ],
+  "minifigure": "minifig/hot-dog-man",
+  "source": "client"
+}

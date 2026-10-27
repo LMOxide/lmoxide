@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spectre-giant-spider",
+  "lore": 4577,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Giant Spider",
+  "title": "Spectre: Giant Spider",
+  "text": "Defeat Giant Spider as Spectre.",
+  "points": 25,
+  "kind": "target",
+  "target": "Giant Spider",
+  "minifigure": "minifig/spectre",
+  "source": "client"
+}

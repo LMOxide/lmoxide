@@ -1,0 +1,17 @@
+{
+  "id": "achievement/snake-charmer-the-sweet",
+  "lore": 3995,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Smash 50 Magic Candy",
+  "title": "Snake Charmer, the Sweet",
+  "text": "Smash 50 Sweets as Snake Charmer.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/snake-charmer",
+  "counts": {
+    "match": "Magic Candy",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/empty-monsterdata",
+  "name": "empty_monsterdata",
+  "kind": "scenery",
+  "render": {
+    "look": "empty_monsterdata",
+    "visual": [1010201, 237187]
+  },
+  "source": "client"
+}

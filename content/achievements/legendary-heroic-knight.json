@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-heroic-knight",
+  "lore": 2612,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Complete Any 10",
+  "title": "Legendary Heroic Knight",
+  "text": "Complete any 11 Heroic Knight achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/heroic-knight",
+  "n": 11,
+  "source": "client"
+}

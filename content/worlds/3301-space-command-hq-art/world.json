@@ -1,0 +1,15 @@
+{
+  "id": "world/space-command-hq-art",
+  "name": "Space Command HQ - Art",
+  "playfield": 3301,
+  "kind": "other",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [117.0, 31.98, 100.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

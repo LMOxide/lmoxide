@@ -1,0 +1,8 @@
+{
+  "id": "achievement/mythology-world",
+  "lore": 744,
+  "client_name": "Achievements_Mythology World",
+  "title": "Mythology World",
+  "kind": "category",
+  "source": "client"
+}

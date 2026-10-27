@@ -1,0 +1,17 @@
+{
+  "id": "item/main-fairytaleprincess1-projectile",
+  "name": "main fairytaleprincess1 projectile",
+  "kind": "projectile",
+  "template": 503443,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 503461
+      }
+    }
+  ],
+  "source": "client"
+}

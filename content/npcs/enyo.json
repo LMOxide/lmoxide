@@ -1,0 +1,14 @@
+{
+  "id": "npc/enyo",
+  "name": "Enyo",
+  "kind": "npc",
+  "render": {
+    "monster_data": 485830,
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 100
+  },
+  "source": "client"
+}

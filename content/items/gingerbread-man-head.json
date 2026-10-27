@@ -1,0 +1,16 @@
+{
+  "id": "item/gingerbread-man-head",
+  "name": "Gingerbread Man Head",
+  "kind": "part",
+  "template": 483553,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11105,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/gingerbread-man",
+  "location": "Head",
+  "source": "client"
+}

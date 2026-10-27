@@ -1,0 +1,29 @@
+{
+  "id": "achievement/scarecrow",
+  "lore": 2485,
+  "parent": "achievement/series-11",
+  "client_name": "Scarecrow",
+  "title": "Scarecrow",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-scarecrow",
+    "achievement/legendary-scarecrow",
+    "achievement/novice-scarecrow",
+    "achievement/expert-scarecrow",
+    "achievement/scarecrow-scorched-ruins",
+    "achievement/scarecrow-abandoned-temple",
+    "achievement/scarecrow-treasure-island",
+    "achievement/scarecrow-crone-of-the-maze",
+    "achievement/scarecrow-madcap-compy",
+    "achievement/scarecrow-john-the-greedy",
+    "achievement/scarecrow-the-smasher",
+    "achievement/scarecrow-the-master-smasher",
+    "achievement/scarecrow-the-tiki-smasher",
+    "achievement/scarecrow-the-lost-challenger",
+    "achievement/scarecrow-the-lost-warrior",
+    "achievement/scarecrow-the-lost-champion"
+  ],
+  "minifigure": "minifig/scarecrow",
+  "source": "client"
+}

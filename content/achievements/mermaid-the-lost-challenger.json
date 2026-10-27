@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mermaid-the-lost-challenger",
+  "lore": 2556,
+  "parent": "achievement/mermaid",
+  "client_name": "Mermaid_Lost Creations_Get to Level 5",
+  "title": "Mermaid, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Mermaid.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/mermaid",
+  "n": 5,
+  "source": "client"
+}

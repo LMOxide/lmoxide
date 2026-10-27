@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gargoyle-chlora-the-fungomancer",
+  "lore": 4526,
+  "parent": "achievement/gargoyle",
+  "client_name": "Gargoyle_Chlora the Fungomancer",
+  "title": "Gargoyle: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Gargoyle.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/gargoyle",
+  "source": "client"
+}

@@ -1,0 +1,64 @@
+{
+  "id": "skill/orbweaver",
+  "name": "Orbweaver",
+  "client": {
+    "spell": 506078,
+    "stats": {
+      "EffectPackage": 234172,
+      "ItemDelay": 50,
+      "RechargeDelay": 50,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Blink",
+          "args": {
+            "ApplyOn": 3,
+            "Distance": 8
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 506078,
+            "Value": 200
+          }
+        }
+      ],
+      "1": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 506089
+          }
+        }
+      ],
+      "39": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 517100
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 517103, 91]
+          ]
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 506089
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Spooky Girl: Anansi Girl",
+  "source": "client"
+}

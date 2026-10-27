@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-mr-good-and-evil",
+  "lore": 2537,
+  "parent": "achievement/mr-good-and-evil",
+  "client_name": "Mr. Good and Evil_Upgrade 7",
+  "title": "Expert Mr. Good and Evil",
+  "text": "Get the seventh Mr. Good and Evil upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/mr-good-and-evil",
+  "n": 7,
+  "source": "client"
+}

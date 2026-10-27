@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jester-dark-alcove",
+  "lore": 3143,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Dark Alcove",
+  "title": "Jester: Dark Alcove",
+  "text": "Conquer the Dark Alcove as Jester.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dark Alcove",
+  "minifigure": "minifig/jester",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wacky-witch-dragon-halls",
+  "lore": 4456,
+  "parent": "achievement/wacky-witch",
+  "client_name": "Wacky Witch_Dragon Halls",
+  "title": "Wacky Witch: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Wacky Witch.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/wacky-witch",
+  "source": "client"
+}

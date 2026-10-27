@@ -1,0 +1,134 @@
+{
+  "id": "minifig/tiger-woman",
+  "name": "Tiger Woman",
+  "template": 641016,
+  "series": 14,
+  "series_index": 0,
+  "render": {
+    "monster_data": 641043
+  },
+  "stats": {
+    "life": 250,
+    "power": 10,
+    "defense": 1,
+    "creativity": 3,
+    "role": 1,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/extended-strikes",
+    "hits": [
+      {
+        "skill": "skill/main-s14-tigerwoman1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [641613]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/swirling-flurry",
+    "hits": [
+      {
+        "skill": "skill/main-s14-tigerwoman2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.75,
+        "damage_type": 1000,
+        "via": [641629]
+      }
+    ]
+  },
+  "click_spells": [641613, 641629],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fast-460978"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530221"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460945"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-personal-space"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [4419, 4386, 4681, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/tiger-woman-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/tiger-woman-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/tiger-woman-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-tiger-woman",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/monster-trials"],
+    "text": "You can find me in the Monster Trials, LEGO Center.",
+    "location_text": 251325715,
+    "location_picture": 659005
+  },
+  "source": "client"
+}

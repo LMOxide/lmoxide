@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pizza-delivery-man-the-lost-challenger",
+  "lore": 3202,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Lost Creations_Get to Level 5",
+  "title": "Pizza Delivery Man, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Pizza Delivery Man.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/pizza-delivery-man",
+  "n": 5,
+  "source": "client"
+}

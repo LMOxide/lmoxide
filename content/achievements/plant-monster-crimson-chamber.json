@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plant-monster-crimson-chamber",
+  "lore": 4556,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Crimson Chamber ",
+  "title": "Plant Monster: Crimson Chamber",
+  "text": "Conquer the Crimson Chamber as Plant Monster.",
+  "points": 50,
+  "kind": "target",
+  "target": "Crimson Chamber",
+  "minifigure": "minifig/plant-monster",
+  "source": "client"
+}

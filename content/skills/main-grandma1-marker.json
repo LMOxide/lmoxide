@@ -1,0 +1,13 @@
+{
+  "id": "skill/main-grandma1-marker",
+  "name": "main grandma1 marker",
+  "client": {
+    "spell": 360405,
+    "stats": {
+      "EffectPackage": 367159,
+      "TargetingMode": 5,
+      "TimeExist": 400
+    }
+  },
+  "source": "client"
+}

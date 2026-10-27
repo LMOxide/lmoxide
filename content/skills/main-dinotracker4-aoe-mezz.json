@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-dinotracker4-aoe-mezz",
+  "name": "main dinotracker4 aoe mezz",
+  "client": {
+    "spell": 514378,
+    "stats": {
+      "EffectPackage": 519957,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 514377,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

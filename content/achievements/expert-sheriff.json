@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-sheriff",
+  "lore": 3971,
+  "parent": "achievement/sheriff",
+  "client_name": "Sheriff_Upgrade 7",
+  "title": "Expert Sheriff",
+  "text": "Get the seventh Sheriff upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/sheriff",
+  "n": 7,
+  "source": "client"
+}

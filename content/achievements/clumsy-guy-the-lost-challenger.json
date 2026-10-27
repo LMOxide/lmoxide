@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-the-lost-challenger",
+  "lore": 5130,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Lost Creations_Get to Level 5",
+  "title": "Clumsy Guy, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Clumsy Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/clumsy-guy",
+  "n": 5,
+  "source": "client"
+}

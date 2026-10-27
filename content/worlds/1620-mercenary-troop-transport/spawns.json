@@ -1,0 +1,250 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/1620/space-alien-brute-a",
+      "name": "Space Alien Brute A",
+      "kind": "enemy",
+      "template": "npc/space-alien-brute-a",
+      "pos": [303.5, 37.48, 172.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-alien-ranger",
+      "name": "Space Alien Ranger",
+      "kind": "enemy",
+      "template": "npc/space-alien-ranger",
+      "pos": [301.7, 37.48, 173.6],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-alien-ranger-2",
+      "name": "Space Alien Ranger",
+      "kind": "enemy",
+      "template": "npc/space-alien-ranger",
+      "pos": [283.75, 36.68, 159.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-alien-reaper",
+      "name": "Space Alien Reaper",
+      "kind": "enemy",
+      "template": "npc/space-alien-reaper",
+      "pos": [285.95, 37.45, 160.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-alien-ranger-3",
+      "name": "Space Alien Ranger",
+      "kind": "enemy",
+      "template": "npc/space-alien-ranger",
+      "pos": [281.95, 37.48, 161.1],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-alien-reaper-2",
+      "name": "Space Alien Reaper",
+      "kind": "enemy",
+      "template": "npc/space-alien-reaper",
+      "pos": [297.75, 39.8, 148.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-buzzer",
+      "name": "Space Buzzer",
+      "kind": "enemy",
+      "template": "npc/space-buzzer",
+      "pos": [299.95, 39.8, 149.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-buzzer-2",
+      "name": "Space Buzzer",
+      "kind": "enemy",
+      "template": "npc/space-buzzer",
+      "pos": [281.25, 37.55, 173.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-merc-brawler",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [279.45, 37.75, 175.1],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/space-buzzer-3",
+      "name": "Space Buzzer",
+      "kind": "enemy",
+      "template": "npc/space-buzzer",
+      "pos": [281.85, 37.82, 171.3],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [295.75, 38.91, 160.75],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [296.55, 38.91, 161.95],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [295.15, 38.91, 162.15],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [285.75, 35.77, 150.25],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [286.55, 35.77, 151.45],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [285.15, 35.77, 151.65],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [297.75, 39.82, 140.75],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [298.55, 39.82, 141.95],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [297.15, 39.82, 142.15],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [284.25, 37.82, 167.25],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [285.05, 37.82, 168.45],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [283.65, 37.82, 168.65],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1620/teleporter-a-space",
+      "name": "teleporter_a_space",
+      "kind": "scenery",
+      "template": "object/teleporter-a-space",
+      "pos": [287.71, 41.15, 132.54],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 406198,
+        "tag": "JUMP",
+        "script_group": 28,
+        "visual": [1010030, 352178],
+        "bounds": [-1.875, -0.06, -1.811, 1.875, 0.44, 1.811]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1620/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [281.02, 35.49, 123.83],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 406193,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1620/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [274.4, 37.39, 122.39],
+      "rot": [0.0, 0.0028, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 595025,
+        "tag": "----",
+        "script_group": 2,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

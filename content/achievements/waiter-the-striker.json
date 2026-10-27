@@ -1,0 +1,16 @@
+{
+  "id": "achievement/waiter-the-striker",
+  "lore": 2728,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Smash 1000 Monsters",
+  "title": "Waiter, the Striker",
+  "text": "Smash 1000 monsters as Waiter.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/waiter",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

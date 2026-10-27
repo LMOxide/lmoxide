@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pizza-delivery-man-natives-hollow",
+  "lore": 3193,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Natives' Hollow",
+  "title": "Pizza Delivery Man: Natives' Hollow",
+  "text": "Conquer the Natives' Hollow as Pizza Delivery Man.",
+  "points": 25,
+  "kind": "target",
+  "target": "Natives' Hollow",
+  "minifigure": "minifig/pizza-delivery-man",
+  "source": "client"
+}

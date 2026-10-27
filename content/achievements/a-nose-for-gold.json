@@ -1,0 +1,12 @@
+{
+  "id": "achievement/a-nose-for-gold",
+  "lore": 2421,
+  "parent": "achievement/pirate-collectibles",
+  "client_name": "Pirate_Collectibles_Goblets",
+  "title": "A Nose for Gold",
+  "text": "Sniff out all the buried treasure in the Pirate World.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000119, 3],
+  "source": "client"
+}

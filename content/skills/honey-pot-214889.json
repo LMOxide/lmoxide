@@ -1,0 +1,27 @@
+{
+  "id": "skill/honey-pot-214889",
+  "name": "Honey Pot",
+  "client": {
+    "spell": 214889,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 50,
+            "Arg2": 19,
+            "EffectPackage": 194839,
+            "NanoTemplate": 238240,
+            "TemplateID": 238238
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Bumblebee Girl: Honey Pot ",
+  "source": "client"
+}

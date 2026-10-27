@@ -1,0 +1,13 @@
+{
+  "id": "achievement/judge-the-weaver",
+  "lore": 2569,
+  "parent": "achievement/judge",
+  "client_name": "Judge_The Weaver",
+  "title": "Judge: The Weaver",
+  "text": "Defeat The Weaver as Judge.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Weaver",
+  "minifigure": "minifig/judge",
+  "source": "client"
+}

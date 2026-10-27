@@ -1,0 +1,10 @@
+{
+  "id": "object/bomb-machine-a-red-light-2-3",
+  "name": "bomb_machine_a_red_light 2_3",
+  "kind": "scenery",
+  "render": {
+    "look": "bomb_machine_a_red_light 2_3",
+    "visual": [1010030, 635896]
+  },
+  "source": "client"
+}

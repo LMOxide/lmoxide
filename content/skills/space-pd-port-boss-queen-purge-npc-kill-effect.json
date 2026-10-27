@@ -1,0 +1,27 @@
+{
+  "id": "skill/space-pd-port-boss-queen-purge-npc-kill-effect",
+  "name": "space pd port boss queen purge npc kill effect",
+  "client": {
+    "spell": 366591,
+    "stats": {
+      "TargetingMode": 1
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Set",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 27
+          },
+          "criteria": [
+            [0, 0, 18],
+            [356, 827218518, 0]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/the-first",
+  "lore": 762,
+  "parent": "achievement/deep-space-explorer",
+  "client_name": "Space_Exploration_Find the Tree of Life",
+  "title": "The First",
+  "text": "Find the Tree of Life in the Space World.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/space-colony",
+  "find": "Achievement_Tree of Life",
+  "place": "Tree of Life",
+  "source": "client"
+}

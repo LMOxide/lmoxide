@@ -1,0 +1,11 @@
+{
+  "id": "object/invisible-monsterdata-4",
+  "name": "XX_GoToArrow",
+  "kind": "scenery",
+  "render": {
+    "template": 249652,
+    "look": "invisible_monsterdata",
+    "visual": [1010201, 51057]
+  },
+  "source": "live"
+}

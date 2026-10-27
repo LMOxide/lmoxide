@@ -1,0 +1,14 @@
+{
+  "id": "npc/zookeeper",
+  "name": "Zookeeper",
+  "kind": "npc",
+  "render": {
+    "monster_data": 522160,
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 100
+  },
+  "source": "client"
+}

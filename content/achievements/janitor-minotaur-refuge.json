@@ -1,0 +1,13 @@
+{
+  "id": "achievement/janitor-minotaur-refuge",
+  "lore": 5203,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Minotaur Refuge",
+  "title": "Janitor: Minotaur Refuge",
+  "text": "Conquer the Minotaur Refuge as Janitor.",
+  "points": 50,
+  "kind": "target",
+  "target": "Minotaur Refuge",
+  "minifigure": "minifig/janitor",
+  "source": "client"
+}

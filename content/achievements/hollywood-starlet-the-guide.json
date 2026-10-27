@@ -1,0 +1,17 @@
+{
+  "id": "achievement/hollywood-starlet-the-guide",
+  "lore": 2593,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Build 30 Signs",
+  "title": "Hollywood Starlet, the Guide",
+  "text": "Build 30 Signs with Hollywood Starlet.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/hollywood-starlet",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

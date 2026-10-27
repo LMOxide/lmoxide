@@ -1,0 +1,235 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/1680/gremlin-melee-greenforest",
+      "name": "Gremlin Melee Greenforest",
+      "kind": "enemy",
+      "template": "npc/gremlin-melee-greenforest",
+      "pos": [243.5, 24.65, 296.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/gremlin-warlock-lvl1",
+      "name": "Gremlin Warlock Lvl1",
+      "kind": "enemy",
+      "template": "npc/gremlin-warlock-lvl1",
+      "pos": [245.7, 24.65, 297.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/gremlin-warlock-lvl1-2",
+      "name": "Gremlin Warlock Lvl1",
+      "kind": "enemy",
+      "template": "npc/gremlin-warlock-lvl1",
+      "pos": [218.5, 24.48, 278.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/treant-brown",
+      "name": "Treant Brown",
+      "kind": "enemy",
+      "template": "npc/treant-brown",
+      "pos": [220.7, 24.33, 279.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/gremlin-warlock-lvl1-3",
+      "name": "Gremlin Warlock Lvl1",
+      "kind": "enemy",
+      "template": "npc/gremlin-warlock-lvl1",
+      "pos": [221.1, 24.33, 277.1],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/treant-brown-2",
+      "name": "Treant Brown",
+      "kind": "enemy",
+      "template": "npc/treant-brown",
+      "pos": [235.5, 21.46, 281.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/mushroom-runner",
+      "name": "Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/mushroom-runner",
+      "pos": [237.7, 21.46, 282.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/mushroom-runner-2",
+      "name": "Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/mushroom-runner",
+      "pos": [255.5, 24.65, 287.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/medieval-leafscreamer-greenforest",
+      "name": "Medieval Leafscreamer Greenforest",
+      "kind": "enemy",
+      "template": "npc/medieval-leafscreamer-greenforest",
+      "pos": [257.7, 24.65, 288.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/mushroom-runner-3",
+      "name": "Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/mushroom-runner",
+      "pos": [253.7, 24.65, 288.6],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [225.0, 24.65, 288.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [225.8, 24.65, 289.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-table",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [224.4, 24.65, 289.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-chair-red",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [234.5, 22.85, 273.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [235.3, 22.85, 274.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [233.9, 22.85, 274.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [236.0, 24.65, 293.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-table-2",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [236.8, 24.65, 294.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-chair-red-2",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [235.4, 24.65, 294.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [251.0, 24.65, 291.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [251.8, 24.65, 292.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [250.4, 24.65, 292.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/1680/jumpie-1-target",
+      "name": "Jumpie_1_target",
+      "kind": "scenery",
+      "template": "object/jumpie-1-target-3",
+      "pos": [242.11, 21.65, 262.83],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 439815,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/1680/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [241.79, 20.0, 233.25],
+      "rot": [0.0, -0.6874, 0.0, 0.7263],
+      "scale": 3.0,
+      "client": {
+        "guid": 595018,
+        "tag": "----",
+        "script_group": 2,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

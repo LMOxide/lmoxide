@@ -1,0 +1,15 @@
+{
+  "id": "world/dino-world-13-arena-volcano-art",
+  "name": "Dino World - 13_Arena Volcano - Art",
+  "playfield": 6513,
+  "kind": "other",
+  "level": {
+    "cap": 30
+  },
+  "arrival": {
+    "pos": [268.5, 43.9, 281.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

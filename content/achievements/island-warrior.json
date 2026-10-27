@@ -1,0 +1,29 @@
+{
+  "id": "achievement/island-warrior",
+  "lore": 2484,
+  "parent": "achievement/series-11",
+  "client_name": "Island Warrior",
+  "title": "Island Warrior",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-island-warrior",
+    "achievement/legendary-island-warrior",
+    "achievement/novice-island-warrior",
+    "achievement/expert-island-warrior",
+    "achievement/island-warrior-cliffside",
+    "achievement/island-warrior-bewitched-candy-forest",
+    "achievement/island-warrior-skyforge",
+    "achievement/island-warrior-warchief-grogrog",
+    "achievement/island-warrior-big-bad-wolf",
+    "achievement/island-warrior-madcap-compy",
+    "achievement/island-warrior-the-smasher",
+    "achievement/island-warrior-the-master-smasher",
+    "achievement/island-warrior-the-tiki-smasher",
+    "achievement/island-warrior-the-lost-challenger",
+    "achievement/island-warrior-the-lost-warrior",
+    "achievement/island-warrior-the-lost-champion"
+  ],
+  "minifigure": "minifig/island-warrior",
+  "source": "client"
+}

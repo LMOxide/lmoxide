@@ -1,0 +1,12 @@
+{
+  "id": "achievement/breadcrumbs",
+  "lore": 809,
+  "parent": "achievement/cave-dweller",
+  "client_name": "Medieval_Combat_PA_Clear the Bewitched Candy Forest",
+  "title": "Breadcrumbs?",
+  "text": "Clear the Bewitched Candy Forest in the Medieval World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Bewitched Candy Forest",
+  "source": "client"
+}

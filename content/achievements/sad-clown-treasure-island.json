@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sad-clown-treasure-island",
+  "lore": 3550,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_Treasure Island",
+  "title": "Sad Clown: Treasure Island",
+  "text": "Conquer the Treasure Island as Sad Clown.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/sad-clown",
+  "source": "client"
+}

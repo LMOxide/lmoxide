@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-paleontologist",
+  "lore": 3929,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Complete Any 10",
+  "title": "Legendary Paleontologist",
+  "text": "Complete any 11 Paleontologist achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/paleontologist",
+  "n": 11,
+  "source": "client"
+}

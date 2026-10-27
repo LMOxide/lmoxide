@@ -1,0 +1,10 @@
+{
+  "id": "object/altar5-castpoint",
+  "name": "altar5 castpoint",
+  "kind": "scenery",
+  "render": {
+    "look": "altar5 castpoint",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

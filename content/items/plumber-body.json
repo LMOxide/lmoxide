@@ -1,0 +1,16 @@
+{
+  "id": "item/plumber-body",
+  "name": "Plumber Body",
+  "kind": "part",
+  "template": 483637,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20912,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/plumber",
+  "location": "Torso",
+  "source": "client"
+}

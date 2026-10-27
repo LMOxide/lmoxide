@@ -1,0 +1,16 @@
+{
+  "id": "item/sad-clown-legs",
+  "name": "Sad Clown Legs",
+  "kind": "part",
+  "template": 483679,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31011,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/sad-clown",
+  "location": "Legs",
+  "source": "client"
+}

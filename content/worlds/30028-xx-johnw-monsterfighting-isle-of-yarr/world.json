@@ -1,0 +1,86 @@
+{
+  "id": "world/xx-johnw-monsterfighting-isle-of-yarr",
+  "name": "XX_Johnw_Monsterfighting_Isle of Yarr",
+  "playfield": 30028,
+  "kind": "other",
+  "arrival": {
+    "pos": [208.38, 80.0, 182.99],
+    "rot": 0.228
+  },
+  "arrival_guid": 467834,
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 467834,
+      "pos": [208.38, 80.0, 182.99],
+      "rot": 0.228,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_JacketBeachNorth",
+      "guid": 467835,
+      "pos": [167.07, 67.09, 277.78],
+      "rot": 5.624,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_NativeJungle",
+      "guid": 467836,
+      "pos": [285.44, 75.28, 407.23],
+      "rot": 1.052,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_PirateJungle",
+      "guid": 467837,
+      "pos": [417.93, 66.81, 243.81],
+      "rot": 5.889,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_PirateTown",
+      "guid": 467838,
+      "pos": [427.63, 68.77, 160.2],
+      "rot": 4.814,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_NativeTemp",
+      "guid": 467839,
+      "pos": [255.76, 75.09, 376.92],
+      "rot": 0.439,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_JacketBridge",
+      "guid": 467840,
+      "pos": [134.4, 71.25, 202.07],
+      "rot": 1.374,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_PirateIsland",
+      "guid": 467841,
+      "pos": [389.96, 67.1, 319.77],
+      "rot": 1.104,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fairytale-princess-the-lost-champion",
+  "lore": 3107,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Lost Creations_Get to Level 15",
+  "title": "Fairytale Princess, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Fairytale Princess.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/fairytale-princess",
+  "n": 15,
+  "source": "client"
+}

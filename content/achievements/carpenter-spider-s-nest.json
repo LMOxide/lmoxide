@@ -1,0 +1,13 @@
+{
+  "id": "achievement/carpenter-spider-s-nest",
+  "lore": 3777,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Spider's Nest",
+  "title": "Carpenter: Spider's Nest",
+  "text": "Conquer the Spider's Nest as Carpenter.",
+  "points": 50,
+  "kind": "target",
+  "target": "Spider's Nest",
+  "minifigure": "minifig/carpenter",
+  "source": "client"
+}

@@ -1,0 +1,33 @@
+{
+  "id": "skill/main-s14-werewolf2-selfsnare",
+  "name": "main s14 werewolf2 selfsnare",
+  "client": {
+    "spell": 642297,
+    "stats": {
+      "EffectPackage": 645002,
+      "TimeExist": 30
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.699999988079071
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

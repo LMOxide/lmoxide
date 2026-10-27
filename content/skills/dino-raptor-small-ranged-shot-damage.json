@@ -1,0 +1,24 @@
+{
+  "id": "skill/dino-raptor-small-ranged-shot-damage",
+  "name": "dino raptor small ranged shot damage",
+  "client": {
+    "spell": 521191,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

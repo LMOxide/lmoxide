@@ -1,0 +1,77 @@
+{
+  "id": "skill/body-guard-344482",
+  "name": "Body Guard",
+  "client": {
+    "spell": 344482,
+    "stats": {
+      "EffectPackage": 636942,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1004,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 18],
+            [0, 116254, 101]
+          ]
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 57655
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 55748
+          },
+          "criteria": [
+            [0, 445653, 101]
+          ]
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 445629
+          },
+          "criteria": [
+            [0, 445653, 91]
+          ]
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 116254
+          }
+        },
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 18],
+            [0, 0, 168]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

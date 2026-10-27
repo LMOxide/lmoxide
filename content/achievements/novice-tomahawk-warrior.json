@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-tomahawk-warrior",
+  "lore": 3520,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Upgrade 3",
+  "title": "Novice Tomahawk Warrior",
+  "text": "Get the third Tomahawk Warrior upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/tomahawk-warrior",
+  "n": 3,
+  "source": "client"
+}

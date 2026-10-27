@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-cyclops-the-lost-champion",
+  "lore": 3924,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Lost Creations_Get to level 15",
+  "title": "Lady Cyclops, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Lady Cyclops.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/lady-cyclops",
+  "n": 15,
+  "source": "client"
+}

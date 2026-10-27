@@ -1,0 +1,29 @@
+{
+  "id": "achievement/samurai",
+  "lore": 3754,
+  "parent": "achievement/series-13",
+  "client_name": "Samurai",
+  "title": "Samurai",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-samurai",
+    "achievement/legendary-samurai",
+    "achievement/novice-samurai",
+    "achievement/expert-samurai",
+    "achievement/samurai-crimson-chamber",
+    "achievement/samurai-ancient-space-ruins",
+    "achievement/samurai-treasure-island",
+    "achievement/samurai-two-eyed-willy",
+    "achievement/samurai-ponos-the-pitcher",
+    "achievement/samurai-ridgeback-spitter",
+    "achievement/samurai-the-striker",
+    "achievement/samurai-the-master-striker",
+    "achievement/samurai-the-witch-hunter",
+    "achievement/samurai-the-lost-challenger",
+    "achievement/samurai-the-lost-warrior",
+    "achievement/samurai-the-lost-champion"
+  ],
+  "minifigure": "minifig/samurai",
+  "source": "client"
+}

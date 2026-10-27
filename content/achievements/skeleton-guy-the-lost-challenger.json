@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skeleton-guy-the-lost-challenger",
+  "lore": 4497,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Lost Creations_Get to Level 5",
+  "title": "Skeleton Guy, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Skeleton Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/skeleton-guy",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "npc/jungle-trickster-3",
+  "name": "Jungle Trickster",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 220120,
+    "npc_template": 853,
+    "look": "monkey",
+    "cars_group": 3
+  },
+  "level": 3,
+  "stats": {
+    "health": 114,
+    "life_factor": 1.0
+  },
+  "skills": [
+    {
+      "skill": "skill/banana",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

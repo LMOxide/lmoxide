@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-policeman",
+  "lore": 2782,
+  "parent": "achievement/policeman",
+  "client_name": "Policeman_Complete Any 10",
+  "title": "Legendary Policeman",
+  "text": "Complete any 11 Policeman achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/policeman",
+  "n": 11,
+  "source": "client"
+}

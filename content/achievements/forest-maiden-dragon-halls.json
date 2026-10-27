@@ -1,0 +1,13 @@
+{
+  "id": "achievement/forest-maiden-dragon-halls",
+  "lore": 2634,
+  "parent": "achievement/forest-maiden",
+  "client_name": "Forest Maiden_Dragon Halls",
+  "title": "Forest Maiden: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Forest Maiden.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/forest-maiden",
+  "source": "client"
+}

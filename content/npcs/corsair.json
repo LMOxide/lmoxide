@@ -1,0 +1,26 @@
+{
+  "id": "npc/corsair",
+  "name": "Corsair",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 192880,
+    "npc_template": 874,
+    "look": "pirate_corsair",
+    "cars_group": 3
+  },
+  "level": 6,
+  "stats": {
+    "health": 280,
+    "life_factor": 1.2
+  },
+  "attack": "skill/pirate-corsair-spin-castable",
+  "skills": [
+    {
+      "skill": "skill/pirate-corsair-spin-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

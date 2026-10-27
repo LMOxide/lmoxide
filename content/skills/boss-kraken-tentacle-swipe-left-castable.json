@@ -1,0 +1,39 @@
+{
+  "id": "skill/boss-kraken-tentacle-swipe-left-castable",
+  "name": "boss kraken tentacle swipe left castable",
+  "client": {
+    "spell": 186273,
+    "stats": {
+      "AIPowerrating": 15,
+      "AISpellCategory": 1024,
+      "AttackRange": 1500,
+      "ChannelingInterval": 10,
+      "ChannelingTicks": 21,
+      "EffectPackage": 225753,
+      "ItemDelay": 150
+    },
+    "actions": {
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 186275
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 186273,
+            "Value": 300
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

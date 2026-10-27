@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-wizard",
+  "lore": 3317,
+  "parent": "achievement/wizard",
+  "client_name": "Wizard_Upgrade 7",
+  "title": "Expert Wizard",
+  "text": "Get the seventh Wizard upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/wizard",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-lady-cyclops",
+  "lore": 3919,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Upgrade 3",
+  "title": "Novice Lady Cyclops",
+  "text": "Get the third Lady Cyclops upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/lady-cyclops",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/1674/to-enchanted-forest",
+      "pos": [242.04, 21.14, 232.54],
+      "window": 20,
+      "to": {
+        "world": "world/enchanted-forest"
+      },
+      "source": "client"
+    }
+  ]
+}

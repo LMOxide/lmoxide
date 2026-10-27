@@ -1,0 +1,167 @@
+{
+  "$defs": {
+    "Destination": {
+      "additionalProperties": false,
+      "description": "Where a portal, trigger or teleport takes a player.",
+      "properties": {
+        "args": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "command": {
+          "description": "A server command instead of a place, e.g. `lost_creations.advance` (the server lists its\ncommands and their arguments).",
+          "type": ["string", "null"]
+        },
+        "point": {
+          "description": "A named arrival point of that world (`arrival_from` key or respawn point name).",
+          "type": ["string", "null"]
+        },
+        "pos": {
+          "description": "An exact position (instead of a point).",
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": ["array", "null"]
+        },
+        "prompt": {
+          "description": "Ask first (\"Do you want to travel to X?\").",
+          "type": ["string", "null"]
+        },
+        "world": {
+          "description": "The world (`world/...`); none: the same world.",
+          "type": ["string", "null"]
+        }
+      },
+      "type": "object"
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A portal: `worlds/<world>/portals.json`.",
+  "properties": {
+    "author": {
+      "type": "string"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Its id: `portal/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "pos": {
+      "items": {
+        "format": "float",
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "radius": {
+      "description": "Walk-in radius (m).",
+      "format": "float",
+      "type": ["number", "null"]
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "to": {
+      "$ref": "#/$defs/Destination"
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "window": {
+      "description": "The client teleport window it opens (none: straight to `to`).",
+      "format": "uint32",
+      "minimum": 0,
+      "type": ["integer", "null"]
+    }
+  },
+  "required": ["id", "pos", "to"],
+  "title": "Portal",
+  "type": "object"
+}

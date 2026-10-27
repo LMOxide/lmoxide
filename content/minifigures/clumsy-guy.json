@@ -1,0 +1,134 @@
+{
+  "id": "minifig/clumsy-guy",
+  "name": "Clumsy Guy",
+  "template": 663927,
+  "series": 15,
+  "series_index": 0,
+  "render": {
+    "monster_data": 663912
+  },
+  "stats": {
+    "life": 350,
+    "power": 4,
+    "defense": 8,
+    "creativity": 4,
+    "role": 2,
+    "element": 5
+  },
+  "normal": {
+    "skill": "skill/crutch-fu",
+    "hits": [
+      {
+        "skill": "skill/main-s15-clumsyguy1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [663940]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/peels-of-fury",
+    "hits": [
+      {
+        "skill": "skill/main-s15-clumsyguy2-banana-effect-impact",
+        "type": "WeaponHit",
+        "ability_mod": 0.75,
+        "damage_type": 1000,
+        "via": [663941, 668593, 668592, 668596, 668601]
+      }
+    ]
+  },
+  "click_spells": [663940, 663941],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-regenerate"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530280"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-second-wind"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [5121, 5060, 5328, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/clumsy-guy-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/clumsy-guy-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/clumsy-guy-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-clumsy-guy",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

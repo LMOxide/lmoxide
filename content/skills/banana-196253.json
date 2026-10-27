@@ -1,0 +1,25 @@
+{
+  "id": "skill/banana-196253",
+  "name": "Banana",
+  "client": {
+    "spell": 196253,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 1,
+            "EffectPackage": 241102,
+            "TemplateID": 196256
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

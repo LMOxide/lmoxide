@@ -1,0 +1,17 @@
+{
+  "id": "item/main-pretzelgirl1-projectile",
+  "name": "main pretzelgirl1 projectile",
+  "kind": "projectile",
+  "template": 467882,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 467883
+      }
+    }
+  ],
+  "source": "client"
+}

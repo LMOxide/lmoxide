@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-overlord",
+  "name": "BossEntranceVisualOpen_Overlord",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_Overlord",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

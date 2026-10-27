@@ -1,0 +1,16 @@
+{
+  "id": "skill/elbow-press-drop",
+  "name": "Elbow Press Drop",
+  "client": {
+    "spell": 663965,
+    "stats": {
+      "EffectPackage": 667566,
+      "ItemDelay": 1,
+      "LuaScriptID": 4622,
+      "RechargeDelay": 25,
+      "TargetingMode": 7
+    }
+  },
+  "minifigure": "Wrestling Champion: Elbow Press Drop",
+  "source": "client"
+}

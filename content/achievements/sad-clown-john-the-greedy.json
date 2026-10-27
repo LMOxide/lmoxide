@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sad-clown-john-the-greedy",
+  "lore": 3553,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_John the Greedy",
+  "title": "Sad Clown: John the Greedy",
+  "text": "Defeat John the Greedy as Sad Clown.",
+  "points": 25,
+  "kind": "target",
+  "target": "John the Greedy",
+  "minifigure": "minifig/sad-clown",
+  "source": "client"
+}

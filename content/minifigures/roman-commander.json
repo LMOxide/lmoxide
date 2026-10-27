@@ -1,0 +1,148 @@
+{
+  "id": "minifig/roman-commander",
+  "name": "Roman Commander",
+  "template": 317609,
+  "series": 10,
+  "series_index": 0,
+  "render": {
+    "monster_data": 266785
+  },
+  "stats": {
+    "life": 250,
+    "power": 8,
+    "defense": 4,
+    "creativity": 4,
+    "role": 1,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/gladius-slash",
+    "hits": [
+      {
+        "skill": "skill/gladius-slash-317743",
+        "type": "WeaponHit",
+        "ability_mod": 0.93,
+        "damage_type": 1000,
+        "via": [317739]
+      },
+      {
+        "skill": "skill/gladius-slash-317745",
+        "type": "WeaponHit",
+        "ability_mod": 1.08,
+        "damage_type": 1000,
+        "via": [317740, 317740]
+      },
+      {
+        "skill": "skill/gladius-slash-318181",
+        "type": "WeaponHit",
+        "ability_mod": 1.23,
+        "damage_type": 1000,
+        "via": [317741, 317741, 317744]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/for-rome",
+    "hits": [
+      {
+        "skill": "skill/for-rome-318156",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [317592, 318167]
+      }
+    ]
+  },
+  "click_spells": [317739, 317592],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-specialist"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-knockback"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530221"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-brute-force"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-boost-shield"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3375, 3328, 3642, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/roman-commander-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/roman-commander-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/roman-commander-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-roman-commander",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/medieval-world"],
+    "text": "You can find me in the Medieval World.",
+    "location_text": 232051452,
+    "location_picture": 473028
+  },
+  "source": "client"
+}

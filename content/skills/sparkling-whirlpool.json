@@ -1,0 +1,29 @@
+{
+  "id": "skill/sparkling-whirlpool",
+  "name": "Sparkling Whirlpool",
+  "client": {
+    "spell": 500472,
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 504556
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 500472,
+            "Value": 700
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Lifeguard Guy: Sparkling Whirlpool",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-rocker-chunk-the-tiger",
+  "lore": 4646,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Chunk the Tiger",
+  "title": "Monster Rocker: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Monster Rocker.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/monster-rocker",
+  "source": "client"
+}

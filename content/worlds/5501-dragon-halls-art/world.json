@@ -1,0 +1,15 @@
+{
+  "id": "world/dragon-halls-art",
+  "name": "Dragon Halls Art",
+  "playfield": 5501,
+  "kind": "other",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [432.0, 119.89, 480.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

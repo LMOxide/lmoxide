@@ -1,0 +1,16 @@
+{
+  "id": "item/motorcycle-mechanic-body",
+  "name": "Motorcycle Mechanic Body",
+  "kind": "part",
+  "template": 483626,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21007,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/motorcycle-mechanic",
+  "location": "Torso",
+  "source": "client"
+}

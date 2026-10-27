@@ -1,0 +1,22 @@
+{
+  "id": "npc/boom-shroom",
+  "name": "Boom Shroom",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 387626
+  },
+  "level": 13,
+  "stats": {
+    "health": 876
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/mushroom-bulb-explode-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

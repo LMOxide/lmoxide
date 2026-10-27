@@ -1,0 +1,12 @@
+{
+  "id": "achievement/ouch",
+  "lore": 771,
+  "parent": "achievement/trial-by-combat",
+  "client_name": "Medieval_Combat_Champion_Ouch Ouch",
+  "title": "Ouch!",
+  "text": "Defeat Ouch Ouch in the Medieval World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Ouch Ouch",
+  "source": "client"
+}

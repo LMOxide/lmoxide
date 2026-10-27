@@ -1,0 +1,18 @@
+{
+  "id": "npc/sylph",
+  "name": "Sylph",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 474978,
+    "npc_template": 2900,
+    "look": "wisp",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 1314,
+    "life_factor": 1.0
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "achievement/spirit-of-sharing",
+  "lore": 4050,
+  "parent": "achievement/highlight-of-winter",
+  "client_name": "Winter Holidays_Spiritual",
+  "title": "Spirit of Sharing",
+  "text": "Deliver 5 Holiday Spirits to Santa.",
+  "points": 25,
+  "kind": "counter",
+  "counter": [3000140, 5],
+  "source": "client"
+}

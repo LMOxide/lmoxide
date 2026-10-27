@@ -1,0 +1,13 @@
+{
+  "id": "achievement/bumblebee-girl-the-lost-warrior",
+  "lore": 3609,
+  "parent": "achievement/bumblebee-girl",
+  "client_name": "Bumblebee Girl_Lost Creations_Get to Level 10",
+  "title": "Bumblebee Girl, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Bumblebee Girl.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/bumblebee-girl",
+  "n": 10,
+  "source": "client"
+}

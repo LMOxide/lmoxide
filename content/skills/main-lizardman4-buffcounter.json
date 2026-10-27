@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-lizardman4-buffcounter",
+  "name": "main lizardman4 buffcounter",
+  "client": {
+    "spell": 596891,
+    "stats": {
+      "MaxBuffCounters": 8
+    }
+  },
+  "source": "client"
+}

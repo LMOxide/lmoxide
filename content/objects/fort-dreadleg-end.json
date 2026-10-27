@@ -1,0 +1,10 @@
+{
+  "id": "object/fort-dreadleg-end",
+  "name": "fort dreadleg end",
+  "kind": "scenery",
+  "render": {
+    "look": "fort dreadleg end",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "skill/main-s14-flymonster2-damage",
+  "name": "main s14 flymonster2 damage",
+  "client": {
+    "spell": 642257,
+    "stats": {
+      "EffectPackage": 654012,
+      "TargetingMode": 5,
+      "TimeExist": 25
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.25,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

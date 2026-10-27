@@ -1,0 +1,29 @@
+{
+  "id": "skill/alien-reaper-slash-castable",
+  "name": "alien reaper slash castable",
+  "client": {
+    "spell": 379345,
+    "stats": {
+      "AISpellCategory": 512,
+      "AttackRange": 50,
+      "EffectPackage": 388786,
+      "ItemDelay": 34,
+      "RechargeDelay": 164,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

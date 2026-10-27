@@ -1,0 +1,17 @@
+{
+  "id": "npc/pete-s-pirate",
+  "name": "Pete's Pirate",
+  "kind": "npc",
+  "render": {
+    "monster_data": 245482,
+    "npc_template": 1054,
+    "look": "pirate_good_c_armed",
+    "cars_group": 2
+  },
+  "level": 12,
+  "stats": {
+    "health": 750,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

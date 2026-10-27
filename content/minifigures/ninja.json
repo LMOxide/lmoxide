@@ -1,0 +1,133 @@
+{
+  "id": "minifig/ninja",
+  "name": "Ninja",
+  "template": 595237,
+  "series": 1,
+  "series_index": 0,
+  "render": {
+    "monster_data": 590574
+  },
+  "stats": {
+    "life": 250,
+    "power": 9,
+    "defense": 5,
+    "creativity": 1,
+    "role": 1,
+    "element": 2
+  },
+  "normal": {
+    "skill": "skill/ninja-technique",
+    "hits": [
+      {
+        "skill": "skill/main-ninja1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [595263]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/smoke-bomb",
+    "hits": [
+      {
+        "skill": "skill/passive-ninja-clonebomb-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [595264, 595266]
+      }
+    ]
+  },
+  "click_spells": [595263, 595264],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-shuriken-hurricane"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-technician"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-left-hook"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-specialist"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530251"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-slippery-power"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-hunter"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/ninja-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/ninja-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/ninja-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-ninja",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

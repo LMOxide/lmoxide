@@ -1,0 +1,17 @@
+{
+  "id": "achievement/roller-derby-girl-the-witch-hunter",
+  "lore": 2763,
+  "parent": "achievement/roller-derby-girl",
+  "client_name": "Roller Derby Girl_Smash 50 Witches",
+  "title": "Roller Derby Girl, the Witch Hunter",
+  "text": "Smash 50 Witches as Roller Derby Girl.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/roller-derby-girl",
+  "counts": {
+    "match": "Witch",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

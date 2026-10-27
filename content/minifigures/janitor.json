@@ -1,0 +1,134 @@
+{
+  "id": "minifig/janitor",
+  "name": "Janitor",
+  "template": 663931,
+  "series": 15,
+  "series_index": 0,
+  "render": {
+    "monster_data": 663914
+  },
+  "stats": {
+    "life": 350,
+    "power": 3,
+    "defense": 8,
+    "creativity": 5,
+    "role": 2,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/wet-mop",
+    "hits": [
+      {
+        "skill": "skill/main-s15-janitor1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [663950]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/mop-slide",
+    "hits": [
+      {
+        "skill": "skill/main-s15-janitor2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.3,
+        "damage_type": 1000,
+        "via": [663951, 668605]
+      }
+    ]
+  },
+  "click_spells": [663950, 663951],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-true-grit"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-specialist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-shields-up"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530278"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-crowd-control"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [5201, 5065, 5328, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/janitor-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/janitor-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/janitor-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-janitor",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

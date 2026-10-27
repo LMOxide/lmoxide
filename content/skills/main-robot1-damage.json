@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-robot1-damage",
+  "name": "main robot1 damage",
+  "client": {
+    "spell": 595628,
+    "stats": {
+      "EffectPackage": 599362,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

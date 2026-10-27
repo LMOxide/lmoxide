@@ -1,0 +1,16 @@
+{
+  "id": "achievement/tiger-woman-the-striker",
+  "lore": 4432,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Smash 1000 Monsters",
+  "title": "Tiger Woman, the Striker",
+  "text": "Smash 1000 monsters as Tiger Woman.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/tiger-woman",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

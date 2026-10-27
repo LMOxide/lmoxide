@@ -1,0 +1,11 @@
+{
+  "id": "achievement/holiday-spirit",
+  "lore": 4047,
+  "parent": "achievement/highlight-of-winter",
+  "client_name": "Winter Holidays_Holiday Spirit",
+  "title": "Holiday Spirit!",
+  "text": "Find a Holiday Spirit in the Winter Pass.",
+  "points": 25,
+  "kind": "manual",
+  "source": "client"
+}

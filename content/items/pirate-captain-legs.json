@@ -1,0 +1,16 @@
+{
+  "id": "item/pirate-captain-legs",
+  "name": "Pirate Captain Legs",
+  "kind": "part",
+  "template": 577129,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30812,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/pirate-captain",
+  "location": "Legs",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sheriff-warchief-grogrog",
+  "lore": 3967,
+  "parent": "achievement/sheriff",
+  "client_name": "Sheriff_Warchief Grogrog",
+  "title": "Sheriff: Warchief Grogrog",
+  "text": "Defeat Warchief Grogrog as Sheriff.",
+  "points": 25,
+  "kind": "target",
+  "target": "Warchief Grogrog",
+  "minifigure": "minifig/sheriff",
+  "source": "client"
+}

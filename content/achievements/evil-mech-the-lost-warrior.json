@@ -1,0 +1,13 @@
+{
+  "id": "achievement/evil-mech-the-lost-warrior",
+  "lore": 3016,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Lost Creations_Get to Level 10",
+  "title": "Evil Mech, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Evil Mech.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/evil-mech",
+  "n": 10,
+  "source": "client"
+}

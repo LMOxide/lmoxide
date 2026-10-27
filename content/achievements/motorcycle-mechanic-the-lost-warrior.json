@@ -1,0 +1,13 @@
+{
+  "id": "achievement/motorcycle-mechanic-the-lost-warrior",
+  "lore": 3405,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Lost Creations_Get to Level 10",
+  "title": "Motorcycle Mechanic, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Motorcycle Mechanic.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "n": 10,
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-unicorngirl2-damage",
+  "name": "main unicorngirl2 damage",
+  "client": {
+    "spell": 566275,
+    "stats": {
+      "EffectPackage": 578156,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.17499999701976776,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

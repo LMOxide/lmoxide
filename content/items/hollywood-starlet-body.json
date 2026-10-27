@@ -1,0 +1,16 @@
+{
+  "id": "item/hollywood-starlet-body",
+  "name": "Hollywood Starlet Body",
+  "kind": "part",
+  "template": 483641,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20908,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/hollywood-starlet",
+  "location": "Torso",
+  "source": "client"
+}

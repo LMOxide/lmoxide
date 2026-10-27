@@ -1,0 +1,32 @@
+{
+  "id": "skill/halt-36507",
+  "name": "Halt!",
+  "client": {
+    "spell": 36507,
+    "stats": {
+      "EffectPackage": 4180,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 301484
+          }
+        },
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 301485,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Policeman: Halt!",
+  "source": "client"
+}

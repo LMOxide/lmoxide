@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-lady-cyclops",
+  "lore": 3911,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Complete Any 5",
+  "title": "Heroic Lady Cyclops",
+  "text": "Complete any 5 Lady Cyclops achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/lady-cyclops",
+  "n": 5,
+  "source": "client"
+}

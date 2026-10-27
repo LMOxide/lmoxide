@@ -1,0 +1,16 @@
+{
+  "id": "item/bumblebee-girl-head",
+  "name": "Bumblebee Girl Head",
+  "kind": "part",
+  "template": 483573,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11002,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/bumblebee-girl",
+  "location": "Head",
+  "source": "client"
+}

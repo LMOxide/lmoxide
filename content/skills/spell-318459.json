@@ -1,0 +1,9 @@
+{
+  "id": "skill/spell-318459",
+  "name": "spell 318459",
+  "client": {
+    "spell": 318459
+  },
+  "source": "client",
+  "tags": ["no-client-definition"]
+}

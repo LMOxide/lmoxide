@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-evilwizard2-damage",
+  "name": "main evilwizard2 damage",
+  "client": {
+    "spell": 578380,
+    "stats": {
+      "EffectPackage": 577653,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 2.25,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

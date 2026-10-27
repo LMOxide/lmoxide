@@ -1,0 +1,29 @@
+{
+  "id": "achievement/goblin",
+  "lore": 3750,
+  "parent": "achievement/series-13",
+  "client_name": "Goblin",
+  "title": "Goblin",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-goblin",
+    "achievement/legendary-goblin",
+    "achievement/novice-goblin",
+    "achievement/expert-goblin",
+    "achievement/goblin-ancient-ruins",
+    "achievement/goblin-siege-command-room",
+    "achievement/goblin-skyforge",
+    "achievement/goblin-lord-minos-the-lich",
+    "achievement/goblin-black-widow",
+    "achievement/goblin-ouch-ouch",
+    "achievement/goblin-the-smasher",
+    "achievement/goblin-the-master-smasher",
+    "achievement/goblin-the-tiki-smasher",
+    "achievement/goblin-the-lost-challenger",
+    "achievement/goblin-the-lost-warrior",
+    "achievement/goblin-the-lost-champion"
+  ],
+  "minifigure": "minifig/goblin",
+  "source": "client"
+}

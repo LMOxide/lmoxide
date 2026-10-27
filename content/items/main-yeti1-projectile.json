@@ -1,0 +1,24 @@
+{
+  "id": "item/main-yeti1-projectile",
+  "name": "main yeti1 projectile",
+  "kind": "projectile",
+  "template": 467916,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 635424
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 467918
+      }
+    }
+  ],
+  "source": "client"
+}

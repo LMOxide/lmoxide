@@ -1,0 +1,17 @@
+{
+  "id": "buff/proc-berserker-strike",
+  "name": "Berserker Strike",
+  "nano": 423317,
+  "ends_on": "hit",
+  "effects": [
+    {
+      "stat": {
+        "stat": "damage",
+        "op": "add",
+        "value": 1.0
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
+}

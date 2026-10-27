@@ -1,0 +1,13 @@
+{
+  "id": "achievement/constable-the-lost-challenger",
+  "lore": 3032,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Lost Creations_Get to Level 5",
+  "title": "Constable, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Constable.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/constable",
+  "n": 5,
+  "source": "client"
+}

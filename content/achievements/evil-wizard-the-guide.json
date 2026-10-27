@@ -1,0 +1,17 @@
+{
+  "id": "achievement/evil-wizard-the-guide",
+  "lore": 3842,
+  "parent": "achievement/evil-wizard",
+  "client_name": "Evil Wizard_Build 30 Signs",
+  "title": "Evil Wizard, the Guide",
+  "text": "Build 30 Signs with Evil Wizard.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/evil-wizard",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

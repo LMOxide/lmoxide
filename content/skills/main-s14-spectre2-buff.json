@@ -1,0 +1,50 @@
+{
+  "id": "skill/main-s14-spectre2-buff",
+  "name": "main s14 spectre2 buff",
+  "client": {
+    "spell": 642347,
+    "stats": {
+      "EffectPackage": 645143
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 1.0,
+            "Stat": 3000012
+          }
+        },
+        {
+          "type": "NanoResistance",
+          "args": {
+            "ApplyOn": 1,
+            "Strain": 800,
+            "Value": 200
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 359,
+            "Value": 645001
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

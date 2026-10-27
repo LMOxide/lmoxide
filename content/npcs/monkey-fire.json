@@ -1,0 +1,22 @@
+{
+  "id": "npc/monkey-fire",
+  "name": "Monkey Fire",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 234301
+  },
+  "level": 8,
+  "stats": {
+    "health": 367
+  },
+  "attack": "skill/spell-240436",
+  "skills": [
+    {
+      "skill": "skill/tiki-fire-breath",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

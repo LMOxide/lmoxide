@@ -1,0 +1,10 @@
+{
+  "id": "object/pond-2-end",
+  "name": "Pond 2 end",
+  "kind": "scenery",
+  "render": {
+    "look": "Pond 2 end",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

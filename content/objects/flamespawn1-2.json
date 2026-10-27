@@ -1,0 +1,10 @@
+{
+  "id": "object/flamespawn1-2",
+  "name": "FlameSpawn1_2",
+  "kind": "scenery",
+  "render": {
+    "look": "FlameSpawn1_2",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

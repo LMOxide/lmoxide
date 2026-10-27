@@ -1,0 +1,13 @@
+{
+  "id": "achievement/janitor-siege-command-room",
+  "lore": 5202,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Siege Command Room",
+  "title": "Janitor: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Janitor.",
+  "points": 25,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/janitor",
+  "source": "client"
+}

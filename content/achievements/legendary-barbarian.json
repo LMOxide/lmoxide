@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-barbarian",
+  "lore": 2884,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Complete Any 10",
+  "title": "Legendary Barbarian",
+  "text": "Complete any 11 Barbarian achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/barbarian",
+  "n": 11,
+  "source": "client"
+}

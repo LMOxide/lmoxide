@@ -1,0 +1,157 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/4300/jump-pad-wind-fan-a-idle",
+      "name": "jump_pad_wind_fan_a_idle",
+      "template": "object/jump-pad-wind-fan-a-idle-2",
+      "pos": [84.77, 40.1, 213.53],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [92.47, 32.1, 186.16],
+      "target_by": "nearest",
+      "client": {
+        "guid": 240176,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 273496],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [174.92, 34.89, 299.98],
+      "rot": [0.0, -0.5351, 0.0, 0.8448],
+      "target": [174.75, 36.03, 299.64],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 234055,
+        "tag": "K28B",
+        "script_group": -1,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-2",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [156.22, 34.89, 299.51],
+      "rot": [0.0, -0.5624, 0.0, 0.8269],
+      "target": [156.08, 35.99, 299.19],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 234082,
+        "tag": "K28B",
+        "script_group": -1,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-3",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [172.99, 34.89, 300.36],
+      "rot": [0.0, -0.6, 0.0, 0.8],
+      "target": [157.19, 36.31, 297.71],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 234057,
+        "tag": "K28B",
+        "script_group": -1,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-4",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [158.03, 34.89, 299.4],
+      "rot": [0.0, -0.5751, 0.0, 0.8181],
+      "target": [157.89, 36.06, 299.06],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 234083,
+        "tag": "K28B",
+        "script_group": -1,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-5",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [161.65, 37.88, 299.07],
+      "rot": [0.0, -0.575, 0.0, 0.8181],
+      "target": [161.28, 38.67, 297.97],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 234084,
+        "tag": "K28B",
+        "script_group": -1,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-6",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [178.31, 37.88, 299.34],
+      "rot": [0.0, -0.4267, 0.0, 0.9044],
+      "target": [178.09, 38.97, 299.06],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 234056,
+        "tag": "K28B",
+        "script_group": -1,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-qzda",
+      "name": "jump_pad_mortar_a_buildie_qzda",
+      "template": "object/jump-pad-mortar-a-buildie-2",
+      "pos": [162.79, 36.12, 274.76],
+      "rot": [0.0, 0.9995, 0.0, -0.0305],
+      "target": [172.84, 38.24, 274.08],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 271670,
+        "tag": "JUMP",
+        "script_group": 197,
+        "visual": [1010201, 212668],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/4300/jump-pad-mortar-a-buildie-qzda-2",
+      "name": "jump_pad_mortar_a_buildie_qzda",
+      "template": "object/jump-pad-mortar-a-buildie-2",
+      "pos": [92.53, 34.53, 173.64],
+      "rot": [0.0, 0.7208, 0.0, 0.6931],
+      "target": [92.47, 32.1, 186.16],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 271665,
+        "tag": "JUMP",
+        "script_group": 419,
+        "visual": [1010201, 212668],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    }
+  ]
+}

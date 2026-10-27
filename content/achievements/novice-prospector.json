@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-prospector",
+  "lore": 3214,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Upgrade 3",
+  "title": "Novice Prospector",
+  "text": "Get the third Prospector upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/prospector",
+  "n": 3,
+  "source": "client"
+}

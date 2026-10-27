@@ -1,0 +1,49 @@
+{
+  "id": "skill/mountain-avalanche",
+  "name": "Mountain Avalanche",
+  "client": {
+    "spell": 482725,
+    "stats": {
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 10,
+      "EffectPackage": 470694,
+      "ItemDelay": 32,
+      "MoreFlags": 536872962,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 482721
+          }
+        },
+        {
+          "type": "CoreRandomPointAreaFormula",
+          "args": {
+            "ApplyOn": 3,
+            "FloatRadius": 5.0,
+            "FloatRadius2": 2.0,
+            "Max1": 10,
+            "NanoTemplate": 482724
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 482725
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pretzel Girl: Mountain Avalanche",
+  "source": "client"
+}

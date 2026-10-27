@@ -1,0 +1,64 @@
+{
+  "id": "world/pirate-trials",
+  "name": "Pirate Trials",
+  "playfield": 4300,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [46.46, 40.29, 157.16],
+    "rot": 3.142
+  },
+  "arrival_guid": 82570,
+  "arrival_from": {
+    "world/isle-of-yarr": {
+      "pos": [80.07, 40.9, 212.3],
+      "rot": 4.451
+    },
+    "world/the-peglegged-mermaid-tavern": {
+      "pos": [37.91, 39.5, 171.63],
+      "rot": 1.571
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 82570,
+      "pos": [46.46, 40.29, 157.16],
+      "rot": 3.142,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boarwalk2",
+      "guid": 185147,
+      "pos": [92.56, 34.44, 171.26],
+      "rot": 3.098,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 185148,
+      "pos": [69.09, 38.29, 275.45],
+      "rot": 3.142,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boarwalk3",
+      "guid": 245886,
+      "pos": [206.07, 40.52, 249.92],
+      "rot": 1.65,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

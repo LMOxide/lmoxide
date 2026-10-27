@@ -1,0 +1,24 @@
+{
+  "id": "item/main-ladyrobot1-projectile",
+  "name": "main ladyrobot1 projectile",
+  "kind": "projectile",
+  "template": 360324,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 360325
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 360326
+      }
+    }
+  ],
+  "source": "client"
+}

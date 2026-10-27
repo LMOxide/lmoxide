@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-skyforge",
+  "lore": 2719,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Skyforge",
+  "title": "Waiter: Skyforge",
+  "text": "Conquer the Skyforge as Waiter.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/waiter",
+  "source": "client"
+}

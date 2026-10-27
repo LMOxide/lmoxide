@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-good-and-evil-dragon-halls",
+  "lore": 2532,
+  "parent": "achievement/mr-good-and-evil",
+  "client_name": "Mr. Good and Evil_Dragon Halls",
+  "title": "Mr. Good and Evil: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Mr. Good and Evil.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/mr-good-and-evil",
+  "source": "client"
+}

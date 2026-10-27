@@ -1,0 +1,11 @@
+{
+  "id": "skill/system-seasonevent-xmas-2014-ogre-counter",
+  "name": "system seasonevent xmas 2014 ogre counter",
+  "client": {
+    "spell": 581459,
+    "stats": {
+      "LuaScriptID": 3720
+    }
+  },
+  "source": "client"
+}

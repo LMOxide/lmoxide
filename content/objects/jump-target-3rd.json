@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-target-3rd",
+  "name": "jump_target_3rd",
+  "kind": "scenery",
+  "render": {
+    "look": "jump_target_3rd",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

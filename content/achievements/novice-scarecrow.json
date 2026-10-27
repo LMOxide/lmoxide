@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-scarecrow",
+  "lore": 2859,
+  "parent": "achievement/scarecrow",
+  "client_name": "Scarecrow_Upgrade 3",
+  "title": "Novice Scarecrow",
+  "text": "Get the third Scarecrow upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/scarecrow",
+  "n": 3,
+  "source": "client"
+}

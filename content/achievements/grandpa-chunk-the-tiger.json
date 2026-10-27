@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandpa-chunk-the-tiger",
+  "lore": 3434,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Chunk the Tiger",
+  "title": "Grandpa: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Grandpa.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/grandpa",
+  "source": "client"
+}

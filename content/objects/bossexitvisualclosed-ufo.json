@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-ufo",
+  "name": "BossExitVisualClosed_UFO",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_UFO",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

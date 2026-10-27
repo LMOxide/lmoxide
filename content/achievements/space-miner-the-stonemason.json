@@ -1,0 +1,17 @@
+{
+  "id": "achievement/space-miner-the-stonemason",
+  "lore": 3254,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Build 15 Mythology Statues",
+  "title": "Space Miner, the Stonemason",
+  "text": "Build 15 Mythology Statues as Space Miner.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/space-miner",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

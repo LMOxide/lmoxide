@@ -1,0 +1,13 @@
+{
+  "id": "achievement/flying-warrior-alien-crystal-station",
+  "lore": 5170,
+  "parent": "achievement/flying-warrior",
+  "client_name": "Flying Warrior_Alien Crystal Station",
+  "title": "Flying Warrior: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Flying Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/flying-warrior",
+  "source": "client"
+}

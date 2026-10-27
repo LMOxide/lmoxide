@@ -1,0 +1,18 @@
+{
+  "id": "item/merc-defender-shot-projectile",
+  "name": "merc defender shot projectile",
+  "kind": "projectile",
+  "template": 373110,
+  "effect_package": 390816,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 373111
+      }
+    }
+  ],
+  "source": "client"
+}

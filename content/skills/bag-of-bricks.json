@@ -1,0 +1,48 @@
+{
+  "id": "skill/bag-of-bricks",
+  "name": "Bag of Bricks",
+  "client": {
+    "spell": 550945,
+    "stats": {
+      "EffectPackage": 550984,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 550946,
+            "ProjectileType": 2,
+            "Speed": 1250
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 550945,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Goblin: Bag of Bricks",
+  "range": 12.5,
+  "projectile": {
+    "item": 550946,
+    "speed": 12.5,
+    "kind": 2,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

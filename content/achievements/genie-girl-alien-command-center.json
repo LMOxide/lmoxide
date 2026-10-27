@@ -1,0 +1,13 @@
+{
+  "id": "achievement/genie-girl-alien-command-center",
+  "lore": 3110,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Alien Command Center",
+  "title": "Genie Girl: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Genie Girl.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/genie-girl",
+  "source": "client"
+}

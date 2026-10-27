@@ -1,0 +1,13 @@
+{
+  "id": "achievement/swashbuckler-uggluk-gatekeeper",
+  "lore": 3279,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Uggluk Gatekeeper",
+  "title": "Swashbuckler: Uggluk Gatekeeper",
+  "text": "Defeat Uggluk Gatekeeper as Swashbuckler.",
+  "points": 25,
+  "kind": "target",
+  "target": "Uggluk Gatekeeper",
+  "minifigure": "minifig/swashbuckler",
+  "source": "client"
+}

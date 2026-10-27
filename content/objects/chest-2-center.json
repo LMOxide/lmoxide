@@ -1,0 +1,10 @@
+{
+  "id": "object/chest-2-center",
+  "name": "chest 2 center",
+  "kind": "scenery",
+  "render": {
+    "look": "chest 2 center",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

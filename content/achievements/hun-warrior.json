@@ -1,0 +1,29 @@
+{
+  "id": "achievement/hun-warrior",
+  "lore": 2501,
+  "parent": "achievement/series-12",
+  "client_name": "Hun Warrior",
+  "title": "Hun Warrior",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-hun-warrior",
+    "achievement/legendary-hun-warrior",
+    "achievement/novice-hun-warrior",
+    "achievement/expert-hun-warrior",
+    "achievement/hun-warrior-infested-keep",
+    "achievement/hun-warrior-mercenary-assault-cruiser",
+    "achievement/hun-warrior-dragon-halls",
+    "achievement/hun-warrior-sir-hector",
+    "achievement/hun-warrior-smuggy-totembound",
+    "achievement/hun-warrior-maggut-the-beast-tamer",
+    "achievement/hun-warrior-the-smasher",
+    "achievement/hun-warrior-the-master-smasher",
+    "achievement/hun-warrior-the-machinist",
+    "achievement/hun-warrior-the-lost-challenger",
+    "achievement/hun-warrior-the-lost-warrior",
+    "achievement/hun-warrior-the-lost-champion"
+  ],
+  "minifigure": "minifig/hun-warrior",
+  "source": "client"
+}

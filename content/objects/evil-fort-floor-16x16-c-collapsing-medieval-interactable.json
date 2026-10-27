@@ -1,0 +1,10 @@
+{
+  "id": "object/evil-fort-floor-16x16-c-collapsing-medieval-interactable",
+  "name": "evil_fort_floor_16x16_c_collapsing_medieval_interactable",
+  "kind": "interactable",
+  "render": {
+    "look": "evil_fort_floor_16x16_c_collapsing_medieval_interactable",
+    "visual": [1010201, 493501]
+  },
+  "source": "client"
+}

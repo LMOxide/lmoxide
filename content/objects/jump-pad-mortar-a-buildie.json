@@ -1,0 +1,11 @@
+{
+  "id": "object/jump-pad-mortar-a-buildie",
+  "name": "Jumper",
+  "kind": "scenery",
+  "render": {
+    "template": 86651,
+    "look": "jump_pad_mortar_a_buildie",
+    "visual": [1010201, 212668]
+  },
+  "source": "demo"
+}

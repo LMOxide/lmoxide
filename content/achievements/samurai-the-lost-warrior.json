@@ -1,0 +1,13 @@
+{
+  "id": "achievement/samurai-the-lost-warrior",
+  "lore": 3957,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Lost Creations_Get to Level 10",
+  "title": "Samurai, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Samurai.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/samurai",
+  "n": 10,
+  "source": "client"
+}

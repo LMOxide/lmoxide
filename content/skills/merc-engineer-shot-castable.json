@@ -1,0 +1,33 @@
+{
+  "id": "skill/merc-engineer-shot-castable",
+  "name": "merc engineer shot castable",
+  "client": {
+    "spell": 374159,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 1100,
+      "EffectPackage": 388456,
+      "ItemDelay": 8,
+      "RechargeDelay": 192,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "AttackRange": 1500,
+            "AttractorID": 1,
+            "ItemInstance": 374160,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

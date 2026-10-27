@@ -1,0 +1,16 @@
+{
+  "id": "item/evil-dwarf-body",
+  "name": "Evil Dwarf Body",
+  "kind": "part",
+  "template": 599521,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20505,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/evil-dwarf",
+  "location": "Torso",
+  "source": "client"
+}

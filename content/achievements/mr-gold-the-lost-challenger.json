@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-the-lost-challenger",
+  "lore": 3387,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Lost Creations_Get to Level 5",
+  "title": "Mr. Gold, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Mr. Gold.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/mr-gold",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "skill/shot-331628",
+  "name": "Shot",
+  "client": {
+    "spell": 331628,
+    "stats": {
+      "AIPowerrating": 10,
+      "AISpellCategory": 1024,
+      "AttackRange": 1000,
+      "EffectPackage": 353329,
+      "ItemDelay": 56,
+      "RechargeDelay": 144,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1500,
+            "ItemInstance": 331629,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

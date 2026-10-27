@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-genie-girl",
+  "lore": 3122,
+  "parent": "achievement/genie-girl",
+  "client_name": "Genie Girl_Complete Any 10",
+  "title": "Legendary Genie Girl",
+  "text": "Complete any 11 Genie Girl achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/genie-girl",
+  "n": 11,
+  "source": "client"
+}

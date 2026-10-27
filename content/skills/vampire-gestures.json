@@ -1,0 +1,32 @@
+{
+  "id": "skill/vampire-gestures",
+  "name": "Vampire Gestures",
+  "client": {
+    "spell": 641611,
+    "stats": {
+      "EffectPackage": 653880,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642236,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Spider Lady: Vampire Gestures",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-forest-maiden",
+  "lore": 2646,
+  "parent": "achievement/forest-maiden",
+  "client_name": "Forest Maiden_Complete Any 10",
+  "title": "Legendary Forest Maiden",
+  "text": "Complete any 11 Forest Maiden achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/forest-maiden",
+  "n": 11,
+  "source": "client"
+}

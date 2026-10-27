@@ -1,0 +1,12 @@
+{
+  "id": "achievement/tribal-vengeance",
+  "lore": 2375,
+  "parent": "achievement/a-pirate-life-for-me",
+  "client_name": "Pirate_Combat_Champion_Crazy Kotaki",
+  "title": "Tribal Vengeance",
+  "text": "Defeat Crazy Kotaki in the Pirate World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Crazy Kotaki",
+  "source": "client"
+}

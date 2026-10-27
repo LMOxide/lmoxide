@@ -1,0 +1,13 @@
+{
+  "id": "achievement/carpenter-the-lost-warrior",
+  "lore": 3787,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Lost Creations_Get to Level 10",
+  "title": "Carpenter, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Carpenter.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/carpenter",
+  "n": 10,
+  "source": "client"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "skill/divine-spear",
+  "name": "Divine Spear",
+  "client": {
+    "spell": 500465,
+    "stats": {
+      "EffectPackage": 509298,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 3,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 506242,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Battle Goddess: Divine Spear",
+  "source": "client"
+}

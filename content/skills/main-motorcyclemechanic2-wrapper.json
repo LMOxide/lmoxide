@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-motorcyclemechanic2-wrapper",
+  "name": "main motorcyclemechanic2 wrapper",
+  "client": {
+    "spell": 345997,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 345998
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 345999
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Motorcycle Mechanic: Custom Job",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "achievement/forest-maiden-the-smasher",
+  "lore": 2643,
+  "parent": "achievement/forest-maiden",
+  "client_name": "Forest Maiden_Smash 500 Smashies",
+  "title": "Forest Maiden, the Smasher",
+  "text": "Smash 500 smashies as Forest Maiden.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/forest-maiden",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-ancient-space-ruins",
+  "lore": 5283,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Ancient Space Ruins",
+  "title": "Shark Suit Guy: Ancient Space Ruins",
+  "text": "Conquer the Ancient Space Ruins as Shark Suit Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Space Ruins",
+  "minifigure": "minifig/shark-suit-guy",
+  "source": "client"
+}

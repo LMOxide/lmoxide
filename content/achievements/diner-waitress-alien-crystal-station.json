@@ -1,0 +1,13 @@
+{
+  "id": "achievement/diner-waitress-alien-crystal-station",
+  "lore": 2802,
+  "parent": "achievement/diner-waitress",
+  "client_name": "Diner Waitress_Alien Crystal Station",
+  "title": "Diner Waitress: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Diner Waitress.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/diner-waitress",
+  "source": "client"
+}

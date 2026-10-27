@@ -1,0 +1,17 @@
+{
+  "id": "achievement/faun-the-speed-freak",
+  "lore": 5167,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Build 20 Speed Pads",
+  "title": "Faun, the Speed Freak",
+  "text": "Build 20 Speed Pads as Faun.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/faun",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "buff/proc-boost-shield",
+  "name": "Boost Shield",
+  "nano": 531641,
+  "ends_on": "damaged",
+  "effects": [
+    {
+      "stat": {
+        "stat": "defense",
+        "op": "add",
+        "value": 0.33
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
+}

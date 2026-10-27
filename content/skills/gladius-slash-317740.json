@@ -1,0 +1,48 @@
+{
+  "id": "skill/gladius-slash-317740",
+  "name": "Gladius Slash",
+  "client": {
+    "spell": 317740,
+    "stats": {
+      "EffectPackage": 318811,
+      "ItemDelay": 37,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 13,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 317745,
+            "Radius": 2
+          }
+        }
+      ],
+      "39": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 317746
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 317747
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Roman Commander: Gladius Slash",
+  "source": "client"
+}

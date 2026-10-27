@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-constable",
+  "lore": 3036,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Complete Any 5",
+  "title": "Heroic Constable",
+  "text": "Complete any 5 Constable achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/constable",
+  "n": 5,
+  "source": "client"
+}

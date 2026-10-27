@@ -1,0 +1,60 @@
+{
+  "id": "skill/smoke-bomb",
+  "name": "Smoke Bomb",
+  "client": {
+    "spell": 595264,
+    "stats": {
+      "ItemDelay": 5,
+      "RechargeDelay": 5,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 8,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "Value1": 596178
+          }
+        }
+      ],
+      "39": [
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "CollisionFlag": 1,
+            "HateValue": 1,
+            "NanoTemplate": 595266,
+            "StringHash": "XVC4"
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 595264,
+            "Value": 700
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Ninja: Smoke Bomb",
+  "dash": {
+    "distance": 8.0,
+    "radius": 1.0,
+    "effect": 596178
+  },
+  "summon": {
+    "npc": "npc/shadow-ninja",
+    "count": 1,
+    "lifetime": "15s"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/banshee-the-lost-challenger",
+  "lore": 4412,
+  "parent": "achievement/banshee",
+  "client_name": "Banshee_Lost Creations_Get to Level 5",
+  "title": "Banshee, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Banshee.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/banshee",
+  "n": 5,
+  "source": "client"
+}

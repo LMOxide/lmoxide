@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-pretzelgirl3-aoe",
+  "name": "main pretzelgirl3 aoe",
+  "client": {
+    "spell": 482721,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NanoTemplate": 482720,
+            "Radius": 5
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

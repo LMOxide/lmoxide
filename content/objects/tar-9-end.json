@@ -1,0 +1,10 @@
+{
+  "id": "object/tar-9-end",
+  "name": "Tar 9 end",
+  "kind": "scenery",
+  "render": {
+    "look": "Tar 9 end",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

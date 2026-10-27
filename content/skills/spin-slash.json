@@ -1,0 +1,94 @@
+{
+  "id": "skill/spin-slash",
+  "name": "Spin Slash",
+  "client": {
+    "spell": 357869,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 20,
+      "ItemDelay": 1,
+      "MoreFlags": 1207961600,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 388509
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 388509
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Min": 2,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 388455,
+            "Radius": 4
+          },
+          "criteria": [
+            [0, 459325, 91]
+          ]
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 459329,
+            "Radius": 2
+          },
+          "criteria": [
+            [0, 459642, 91]
+          ]
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 358483,
+            "Radius": 2
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 388509
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 357869
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Barbarian: Spin Slash",
+  "source": "client"
+}

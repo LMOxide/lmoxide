@@ -1,0 +1,39 @@
+{
+  "id": "skill/rainbow",
+  "name": "Rainbow",
+  "client": {
+    "spell": 566236,
+    "stats": {
+      "EffectPackage": 576255,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 566235,
+            "ProjectileType": 2,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Unicorn Girl: Rainbow",
+  "range": 12.5,
+  "projectile": {
+    "item": 566235,
+    "speed": 10.0,
+    "kind": 2,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

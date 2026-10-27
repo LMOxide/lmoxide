@@ -1,0 +1,1332 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/2320/hades",
+      "name": "Hades",
+      "kind": "enemy",
+      "template": "npc/hades",
+      "pos": [358.04, 17.34, 275.8],
+      "anchor": "Res_hades",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/charon",
+      "name": "Charon",
+      "kind": "enemy",
+      "template": "npc/charon",
+      "pos": [179.5, 53.15, 157.98],
+      "anchor": "Res_boatman",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/deino",
+      "name": "Deino",
+      "kind": "enemy",
+      "template": "npc/deino-2",
+      "pos": [105.56, 64.95, 259.37],
+      "anchor": "Res_witches",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-axe",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [167.5, 64.65, 215.5],
+      "anchor": "BA_SkeletonAmbushA",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-archer",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [169.7, 64.65, 216.7],
+      "anchor": "BA_SkeletonAmbushA",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-archer-2",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [337.5, 16.95, 302.5],
+      "anchor": "BA_SkeletonHadesEvent",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-trident",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [339.7, 16.95, 303.7],
+      "anchor": "BA_SkeletonHadesEvent",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-archer-3",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [335.7, 16.95, 304.1],
+      "anchor": "BA_SkeletonHadesEvent",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-trident-2",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [357.5, 15.11, 244.0],
+      "anchor": "BA_SkeletonAmbushF",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/harpy",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [359.7, 15.11, 245.2],
+      "anchor": "BA_SkeletonAmbushF",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/harpy-2",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [120.5, 64.66, 226.5],
+      "anchor": "Quest_Witches",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [122.7, 64.64, 227.7],
+      "anchor": "Quest_Witches",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/harpy-3",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [121.1, 64.66, 224.3],
+      "anchor": "Quest_Witches",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-2",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [179.0, 64.65, 205.0],
+      "anchor": "BA_SkeletonAmbushA",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-shaman",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [177.2, 64.65, 206.6],
+      "anchor": "BA_SkeletonAmbushA",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-shaman-2",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [161.0, 77.22, 356.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/gorgon",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [163.2, 77.22, 357.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-shaman-3",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [159.2, 77.22, 357.6],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/gorgon-2",
+      "name": "Gorgon",
+      "kind": "enemy",
+      "template": "npc/gorgon",
+      "pos": [80.0, 61.47, 307.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/hound",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [82.2, 61.47, 308.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/hound-2",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [142.5, 65.45, 301.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/ogre",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [144.7, 65.45, 302.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/hound-3",
+      "name": "Hound",
+      "kind": "enemy",
+      "template": "npc/hound",
+      "pos": [140.7, 65.45, 302.6],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/ogre-2",
+      "name": "Ogre",
+      "kind": "enemy",
+      "template": "npc/ogre",
+      "pos": [172.0, 63.37, 268.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-axe-2",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [174.2, 63.37, 269.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-axe-3",
+      "name": "Skeleton Axe",
+      "kind": "enemy",
+      "template": "npc/skeleton-axe",
+      "pos": [371.5, 25.76, 375.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-archer-4",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [372.1, 25.76, 372.8],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-archer-5",
+      "name": "Skeleton Archer",
+      "kind": "enemy",
+      "template": "npc/skeleton-archer",
+      "pos": [186.5, 81.59, 324.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-trident-3",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [188.7, 81.59, 325.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-trident-4",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [364.5, 24.94, 342.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/harpy-4",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [366.7, 25.1, 343.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/skeleton-trident-5",
+      "name": "Skeleton Trident",
+      "kind": "enemy",
+      "template": "npc/skeleton-trident",
+      "pos": [362.7, 24.65, 343.6],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/harpy-5",
+      "name": "Harpy",
+      "kind": "enemy",
+      "template": "npc/harpy",
+      "pos": [352.0, 1.21, 213.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-3",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [354.2, 1.21, 214.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-4",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [113.5, 65.22, 291.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-shaman-4",
+      "name": "Satyr Shaman",
+      "kind": "enemy",
+      "template": "npc/satyr-shaman",
+      "pos": [115.7, 65.22, 292.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/satyr-5",
+      "name": "Satyr",
+      "kind": "enemy",
+      "template": "npc/satyr",
+      "pos": [111.7, 65.22, 293.1],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/swashbuckler",
+      "name": "Swashbuckler",
+      "kind": "npc",
+      "template": "npc/swashbuckler",
+      "pos": [188.4, 52.28, 160.27],
+      "rot": 1.79,
+      "anchor": "Cine_BoatSwashbuckler1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/island-warrior",
+      "name": "Island Warrior",
+      "kind": "npc",
+      "template": "npc/island-warrior",
+      "pos": [186.35, 52.28, 160.31],
+      "rot": 2.146,
+      "anchor": "Cine_BoatIslandWarrior1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/video-game-guy",
+      "name": "Video Game Guy",
+      "kind": "npc",
+      "template": "npc/video-game-guy-3",
+      "pos": [390.74, 24.0, 341.79],
+      "rot": 2.539,
+      "anchor": "Cine_VGGUnderworld1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [145.5, 64.89, 239.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [146.3, 64.89, 240.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [144.9, 64.89, 240.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [169.5, 63.67, 295.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [170.3, 63.67, 296.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [168.9, 63.67, 296.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [159.5, 74.37, 329.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [160.3, 74.37, 330.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [158.9, 74.37, 330.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [82.0, 61.24, 283.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [82.8, 61.24, 284.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [81.4, 61.24, 284.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [184.0, 81.22, 354.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [184.8, 81.22, 355.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [183.4, 81.22, 355.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [349.0, 20.77, 320.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [349.8, 20.77, 321.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-small-chest-5",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [348.4, 20.77, 321.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [99.5, 65.27, 309.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [100.3, 65.27, 310.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-11",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [98.9, 65.27, 310.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-small-chest-6",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [204.5, 83.77, 324.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-barrel-6",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [205.3, 83.77, 325.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/xx-crate-12",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [203.9, 83.77, 325.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/2320/bossentrancevisualopen",
+      "name": "BossEntranceVisualOpen",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen",
+      "pos": [365.98, 24.1, 336.52],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "client": {
+        "guid": 164368,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossexitvisualclosed",
+      "name": "BossExitVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed",
+      "pos": [371.52, 24.0, 371.39],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 164369,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentrancevisualclosed",
+      "name": "BossEntranceVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed",
+      "pos": [365.98, 24.1, 336.52],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "client": {
+        "guid": 164367,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentranceshield",
+      "name": "BossEntranceShield",
+      "kind": "scenery",
+      "template": "object/bossentranceshield",
+      "pos": [365.23, 24.11, 336.55],
+      "rot": [0.0, 0.3873, 0.0, 0.922],
+      "client": {
+        "guid": 60858,
+        "tag": "----",
+        "script_group": 20,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossexitshield",
+      "name": "BossExitShield",
+      "kind": "scenery",
+      "template": "object/bossexitshield",
+      "pos": [372.01, 24.0, 371.91],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 66119,
+        "tag": "----",
+        "script_group": 21,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/door-collision",
+      "name": "door collision",
+      "kind": "scenery",
+      "template": "object/door-collision",
+      "pos": [228.04, 104.5, 310.97],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 493750,
+        "tag": "28EI",
+        "script_group": 78,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/underworld-gate-a-myth-interactable",
+      "name": "underworld_gate_a_myth_interactable",
+      "kind": "interactable",
+      "template": "object/underworld-gate-a-myth-interactable",
+      "pos": [228.19, 104.5, 311.65],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 491018,
+        "tag": "28EI",
+        "script_group": 84,
+        "visual": [1010201, 486387],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/door-target",
+      "name": "door target",
+      "kind": "scenery",
+      "template": "object/door-target",
+      "pos": [228.08, 104.62, 310.56],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 493447,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/effect-mesh-loot-gold-crystal-key",
+      "name": "effect_mesh_loot_gold_crystal_key",
+      "kind": "scenery",
+      "template": "object/effect-mesh-loot-gold-crystal-key",
+      "pos": [228.01, 105.65, 300.22],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 496460,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 495231],
+        "bounds": [-0.188, 0.15, -0.152, 0.188, 0.666, 0.152]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/pedestal",
+      "name": "pedestal",
+      "kind": "interactable",
+      "template": "object/pedestal",
+      "pos": [228.06, 104.5, 300.29],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "scale": 25.0,
+      "client": {
+        "guid": 491019,
+        "tag": "----",
+        "script_group": 90,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/pedestal-target",
+      "name": "pedestal target",
+      "kind": "scenery",
+      "template": "object/pedestal-target",
+      "pos": [228.1, 104.5, 300.35],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 496469,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/evil-fort-floor-16x16-c-collapsing-medieval-interactable",
+      "name": "evil_fort_floor_16x16_c_collapsing_medieval_interactable",
+      "kind": "interactable",
+      "template": "object/evil-fort-floor-16x16-c-collapsing-medieval-interactable",
+      "pos": [228.0, 104.5, 320.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 493368,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 493501],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/jump-to-location",
+      "name": "jump to location",
+      "kind": "scenery",
+      "template": "object/jump-to-location",
+      "pos": [228.43, 88.5, 321.83],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491021,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [223.97, 105.28, 312.77],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491022,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/jump-spell-aoe",
+      "name": "jump spell aoe",
+      "kind": "scenery",
+      "template": "object/jump-spell-aoe",
+      "pos": [226.67, 104.57, 316.84],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491023,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/module-floor-8x8-grate-myth-interactable",
+      "name": "module_floor_8x8_grate_myth_interactable",
+      "kind": "interactable",
+      "template": "object/module-floor-8x8-grate-myth-interactable",
+      "pos": [136.0, 64.1, 300.0],
+      "rot": [0.0, 0.0, -1.0, -0.0],
+      "client": {
+        "guid": 491850,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 494940],
+        "bounds": [3.4028235e+38, 3.4028235e+38, 3.4028235e+38, -3.4028235e+38, -3.4028235e+38, -3.4028235e+38]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-1",
+      "name": "statue 1",
+      "kind": "scenery",
+      "template": "object/statue-1",
+      "pos": [143.62, 66.1, 300.11],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 161454,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-2",
+      "name": "statue 2",
+      "kind": "scenery",
+      "template": "object/statue-2",
+      "pos": [135.99, 66.12, 307.13],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 161453,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-3",
+      "name": "statue 3",
+      "kind": "scenery",
+      "template": "object/statue-3",
+      "pos": [128.69, 66.1, 300.11],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 161455,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-4",
+      "name": "statue 4",
+      "kind": "scenery",
+      "template": "object/statue-4",
+      "pos": [135.55, 66.1, 293.79],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 491857,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-3-finish",
+      "name": "statue 3 finish",
+      "kind": "scenery",
+      "template": "object/statue-3-finish",
+      "pos": [128.69, 66.87, 300.11],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 161499,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-2-finish",
+      "name": "statue 2 finish",
+      "kind": "scenery",
+      "template": "object/statue-2-finish",
+      "pos": [135.99, 66.63, 307.13],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 161500,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/statue-1-finish",
+      "name": "statue 1 finish",
+      "kind": "scenery",
+      "template": "object/statue-1-finish",
+      "pos": [143.62, 66.61, 300.11],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 161501,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [135.6, 60.85, 300.25],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 492131,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossexitvisualclosed-2",
+      "name": "BossExitVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed",
+      "pos": [123.81, 63.83, 296.52],
+      "rot": [0.0, -0.7053, 0.0, 0.7089],
+      "client": {
+        "guid": 492080,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentrancevisualopen-2",
+      "name": "BossEntranceVisualOpen",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen",
+      "pos": [143.95, 63.82, 306.65],
+      "rot": [0.0, -0.9438, 0.0, 0.3304],
+      "client": {
+        "guid": 492081,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentrancevisualclosed-2",
+      "name": "BossEntranceVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed",
+      "pos": [143.95, 63.82, 306.65],
+      "rot": [0.0, -0.9438, 0.0, 0.3304],
+      "client": {
+        "guid": 492082,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentranceshield-2",
+      "name": "BossEntranceShield",
+      "kind": "scenery",
+      "template": "object/bossentranceshield",
+      "pos": [144.29, 63.32, 307.19],
+      "rot": [0.0, -0.9422, 0.0, 0.3351],
+      "scale": 1.5,
+      "client": {
+        "guid": 492083,
+        "tag": "28EI",
+        "script_group": 133,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossexitshield-2",
+      "name": "BossExitShield",
+      "kind": "scenery",
+      "template": "object/bossexitshield",
+      "pos": [123.26, 64.22, 296.44],
+      "rot": [0.0, 0.7089, 0.0, 0.7053],
+      "client": {
+        "guid": 492084,
+        "tag": "28EI",
+        "script_group": 134,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossexitvisualclosed-3",
+      "name": "BossExitVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed",
+      "pos": [123.37, 63.83, 239.3],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 487721,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentrancevisualopen-3",
+      "name": "BossEntranceVisualOpen",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen",
+      "pos": [104.8, 63.82, 244.45],
+      "rot": [0.0, 0.9949, 0.0, 0.1008],
+      "client": {
+        "guid": 487722,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentrancevisualclosed-3",
+      "name": "BossEntranceVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed",
+      "pos": [104.8, 63.82, 244.45],
+      "rot": [0.0, 0.9949, 0.0, 0.1008],
+      "client": {
+        "guid": 487723,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossentranceshield-3",
+      "name": "BossEntranceShield",
+      "kind": "scenery",
+      "template": "object/bossentranceshield",
+      "pos": [104.6, 63.32, 245.05],
+      "rot": [0.0, 0.9954, 0.0, 0.0958],
+      "scale": 1.5,
+      "client": {
+        "guid": 487724,
+        "tag": "28EI",
+        "script_group": 217,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/bossexitshield-3",
+      "name": "BossExitShield",
+      "kind": "scenery",
+      "template": "object/bossexitshield",
+      "pos": [123.92, 63.42, 239.39],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 487725,
+        "tag": "28EI",
+        "script_group": 218,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/skeleton-spawn-1",
+      "name": "skeleton spawn 1",
+      "kind": "scenery",
+      "template": "object/skeleton-spawn-1",
+      "pos": [173.36, 64.05, 214.69],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 159875,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/skeleton-spawn-2",
+      "name": "skeleton spawn 2",
+      "kind": "scenery",
+      "template": "object/skeleton-spawn-2",
+      "pos": [177.49, 64.05, 210.58],
+      "rot": [0.0, 0.0348, 0.0, 0.9994],
+      "client": {
+        "guid": 159911,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/jumppad-1-a-end",
+      "name": "JumpPad_1_a_end",
+      "kind": "scenery",
+      "template": "object/jumppad-1-a-end",
+      "pos": [223.19, 40.51, 169.11],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157552,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-1-b-end",
+      "name": "JumpPad_1_b_end",
+      "kind": "scenery",
+      "template": "object/jumppad-1-b-end",
+      "pos": [196.18, 52.21, 155.08],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157553,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-2-a-end",
+      "name": "JumpPad_2_a_end",
+      "kind": "scenery",
+      "template": "object/jumppad-2-a-end",
+      "pos": [271.23, 30.01, 192.55],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157554,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-2-b-end",
+      "name": "JumpPad_2_b_end",
+      "kind": "scenery",
+      "template": "object/jumppad-2-b-end",
+      "pos": [231.05, 40.51, 168.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157555,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-3-a-end",
+      "name": "JumpPad_3_a_end",
+      "kind": "scenery",
+      "template": "object/jumppad-3-a-end",
+      "pos": [315.29, 8.51, 213.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157556,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-3-b-end",
+      "name": "JumpPad_3_b_end",
+      "kind": "scenery",
+      "template": "object/jumppad-3-b-end",
+      "pos": [280.42, 30.13, 182.0],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157557,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-4-a-end",
+      "name": "JumpPad_4_a_end",
+      "kind": "scenery",
+      "template": "object/jumppad-4-a-end",
+      "pos": [352.19, 1.5, 207.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157558,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/jumppad-4-b-end",
+      "name": "JumpPad_4_b_end",
+      "kind": "scenery",
+      "template": "object/jumppad-4-b-end",
+      "pos": [333.97, 8.51, 193.42],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 157559,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/2320/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [216.43, 106.06, 292.01],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 595224,
+        "tag": "----",
+        "script_group": 8,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/2320/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [360.58, 25.11, 412.44],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 2.0,
+      "client": {
+        "guid": 595225,
+        "tag": "----",
+        "script_group": 10,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

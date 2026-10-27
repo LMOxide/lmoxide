@@ -1,0 +1,16 @@
+{
+  "id": "item/frightening-knight-head",
+  "name": "Frightening Knight Head",
+  "kind": "part",
+  "template": 668681,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11508,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/frightening-knight",
+  "location": "Head",
+  "source": "client"
+}

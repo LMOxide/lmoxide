@@ -1,0 +1,30 @@
+{
+  "id": "skill/stab",
+  "name": "Stab",
+  "client": {
+    "spell": 194198,
+    "stats": {
+      "AIPowerrating": 10,
+      "AISpellCategory": 512,
+      "AttackRange": 50,
+      "EffectPackage": 237212,
+      "ItemDelay": 40,
+      "RechargeDelay": 160,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

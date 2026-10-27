@@ -1,0 +1,16 @@
+{
+  "id": "item/diner-waitress-head",
+  "name": "Diner Waitress Head",
+  "kind": "part",
+  "template": 483555,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11103,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/diner-waitress",
+  "location": "Head",
+  "source": "client"
+}

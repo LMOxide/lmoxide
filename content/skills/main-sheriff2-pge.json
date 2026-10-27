@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-sheriff2-pge",
+  "name": "main sheriff2 pge",
+  "client": {
+    "spell": 564280,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 12,
+            "EffectPackage": 565297,
+            "NanoTemplate": 564282,
+            "TemplateID": 564292
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Sheriff: Jail House",
+  "source": "client"
+}

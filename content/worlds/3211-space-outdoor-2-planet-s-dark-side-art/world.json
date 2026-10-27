@@ -1,0 +1,15 @@
+{
+  "id": "world/space-outdoor-2-planet-s-dark-side-art",
+  "name": "Space Outdoor 2 - Planet's Dark Side - Art",
+  "playfield": 3211,
+  "kind": "other",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [126.25, 504.74, 222.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

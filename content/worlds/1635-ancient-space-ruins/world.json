@@ -1,0 +1,30 @@
+{
+  "id": "world/ancient-space-ruins",
+  "name": "Ancient Space Ruins",
+  "playfield": 1635,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "arrival": {
+    "pos": [132.22, 72.0, 140.01],
+    "rot": 4.71
+  },
+  "arrival_guid": 462389,
+  "arrival_from": {
+    "world/planet-s-dark-side": {
+      "pos": [131.95, 72.69, 145.25],
+      "rot": 3.142
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 462389,
+      "pos": [132.22, 72.0, 140.01],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

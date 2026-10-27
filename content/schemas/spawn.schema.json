@@ -1,0 +1,376 @@
+{
+  "$defs": {
+    "Duration": {
+      "anyOf": [
+        {
+          "pattern": "^\\s*-?[0-9.]+\\s*(ms|s|m|h)?\\s*$",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "description": "A length of time: \"1.5s\", \"200ms\", \"2m\", \"1h\", or a number of seconds"
+    },
+    "FightRole": {
+      "oneOf": [
+        {
+          "const": "enemy",
+          "description": "Fights the world's NPCs (`npc_fights`).",
+          "type": "string"
+        },
+        {
+          "const": "fighter",
+          "description": "An NPC that fights back.",
+          "type": "string"
+        }
+      ]
+    },
+    "Rot": {
+      "anyOf": [
+        {
+          "format": "float",
+          "type": "number"
+        },
+        {
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        }
+      ],
+      "description": "Which way something faces: a heading (radians about the up axis) or a quaternion\n`[x, y, z, w]` as the client stores it."
+    },
+    "Source": {
+      "description": "Where a value came from, so guesses stay visible next to what live did.",
+      "oneOf": [
+        {
+          "const": "client",
+          "description": "Extracted from the game client's data.",
+          "type": "string"
+        },
+        {
+          "const": "live",
+          "description": "Seen in a capture of the live server (LMO_Captures.cap).",
+          "type": "string"
+        },
+        {
+          "const": "demo",
+          "description": "Seen in the recorded 2015 demo session.",
+          "type": "string"
+        },
+        {
+          "const": "footage",
+          "description": "Taken from video footage of live.",
+          "type": "string"
+        },
+        {
+          "const": "server",
+          "description": "Values the server used before they were moved into content (docs/TUNABLES.md).",
+          "type": "string"
+        },
+        {
+          "const": "proposed",
+          "description": "Proposed by a tool from client data (navmesh, names, ...), not seen live.",
+          "type": "string"
+        },
+        {
+          "const": "surveyed",
+          "description": "Placed or confirmed by someone in the world editor.",
+          "type": "string"
+        },
+        {
+          "const": "guess",
+          "description": "A plain guess.",
+          "type": "string"
+        }
+      ]
+    },
+    "SpawnClient": {
+      "additionalProperties": false,
+      "description": "Client placement details the server sends as they are.",
+      "properties": {
+        "actor_alias": {
+          "type": ["string", "null"]
+        },
+        "ai_point": {
+          "type": ["string", "null"]
+        },
+        "bounds": {
+          "items": {
+            "format": "float",
+            "type": "number"
+          },
+          "maxItems": 6,
+          "minItems": 6,
+          "type": ["array", "null"]
+        },
+        "cars_group": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "cinematic": {
+          "type": ["boolean", "null"]
+        },
+        "dynel_type": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "flags": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "guid": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "hidden": {
+          "type": ["boolean", "null"]
+        },
+        "interaction_radius": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "item_template": {
+          "description": "Cinematic actors: their item template, AI point and alias.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": ["integer", "null"]
+        },
+        "look": {
+          "type": ["string", "null"]
+        },
+        "script_group": {
+          "format": "int32",
+          "type": ["integer", "null"]
+        },
+        "tag": {
+          "type": ["string", "null"]
+        },
+        "visual": {
+          "items": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "type": ["array", "null"]
+        }
+      },
+      "type": "object"
+    },
+    "SpawnKind": {
+      "oneOf": [
+        {
+          "enum": ["enemy", "npc", "smashable", "buildie", "door"],
+          "type": "string"
+        },
+        {
+          "const": "interactable",
+          "description": "Levers, chests, plates, mirrors: things players use.",
+          "type": "string"
+        },
+        {
+          "const": "scenery",
+          "description": "Scenery the server sends (simple dynels: markers, signs, props).",
+          "type": "string"
+        },
+        {
+          "const": "trigger",
+          "description": "An invisible NPC that starts a cinematic or dialogue when players come near.",
+          "type": "string"
+        },
+        {
+          "const": "actor",
+          "description": "A cinematic actor the client places itself (its AI point).",
+          "type": "string"
+        }
+      ]
+    },
+    "WaveRef": {
+      "additionalProperties": false,
+      "description": "A spawn's script wave: it spawns when that wave starts.",
+      "properties": {
+        "script": {
+          "type": "string"
+        },
+        "wave": {
+          "type": "string"
+        }
+      },
+      "required": ["script", "wave"],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One thing placed in a world: `worlds/<world>/spawns.json`.",
+  "properties": {
+    "anchor": {
+      "description": "The named area or point it was proposed for (navmesh anchor, cinematic point).",
+      "type": ["string", "null"]
+    },
+    "appeared_at": {
+      "description": "Seconds into the live capture it appeared (spawned during play, not at start).",
+      "format": "double",
+      "type": ["number", "null"]
+    },
+    "author": {
+      "type": "string"
+    },
+    "client": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SpawnClient"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "comment": {
+      "type": "string"
+    },
+    "extends": {
+      "description": "Another record of the same kind this one starts from: its fields, then this one's on top.",
+      "type": ["string", "null"]
+    },
+    "feature": {
+      "description": "The feature it belongs to: `live` (recreating live), `feature/...` or `other/...`.\nA record with the id of one in a parent feature changes it while this feature is on.",
+      "type": "string"
+    },
+    "fight": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FightRole"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "description": "Its id: `spawn/<slug>`. Stable: other records refer to it.",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/SpawnKind"
+    },
+    "name": {
+      "type": "string"
+    },
+    "overrides": {
+      "description": "Changes to the template for this spawn only (any of its fields: `level`, `ai`, `loot` ...)."
+    },
+    "patrol": {
+      "description": "Patrol route (positions in order; looped).",
+      "items": {
+        "items": {
+          "format": "float",
+          "type": "number"
+        },
+        "maxItems": 3,
+        "minItems": 3,
+        "type": "array"
+      },
+      "type": "array"
+    },
+    "pos": {
+      "items": {
+        "format": "float",
+        "type": "number"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "removed": {
+      "description": "Deleted in this feature (the spawn it replaces is gone too).",
+      "type": "boolean"
+    },
+    "replaces": {
+      "description": "A world-editor placement that replaced a proposed spawn: that spawn's id.",
+      "type": ["string", "null"]
+    },
+    "respawn": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Duration"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "rev": {
+      "description": "Revision, raised by every saved edit (for merging concurrent edits).",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rot": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Rot"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scale": {
+      "format": "float",
+      "type": "number"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Source"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tags": {
+      "description": "Labels for sorting work out (\"approximate\", \"todo\", \"verified\", ...).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "template": {
+      "description": "What it is: `npc/...` for enemies, NPCs and triggers, `object/...` for the rest.",
+      "type": ["string", "null"]
+    },
+    "updated": {
+      "description": "Unix time of the last edit.",
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "wave": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WaveRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Spawned by a script wave instead of with the world."
+    }
+  },
+  "required": ["id", "kind", "pos"],
+  "title": "Spawn",
+  "type": "object"
+}

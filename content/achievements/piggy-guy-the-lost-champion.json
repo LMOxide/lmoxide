@@ -1,0 +1,13 @@
+{
+  "id": "achievement/piggy-guy-the-lost-champion",
+  "lore": 3192,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Lost Creations_Get to Level 15",
+  "title": "Piggy Guy, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Piggy Guy.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/piggy-guy",
+  "n": 15,
+  "source": "client"
+}

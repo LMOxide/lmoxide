@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mr-gold-the-lost-champion",
+  "lore": 3394,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Lost Creations_Get to Level 15",
+  "title": "Mr. Gold, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Mr. Gold.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/mr-gold",
+  "n": 15,
+  "source": "client"
+}

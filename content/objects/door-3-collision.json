@@ -1,0 +1,10 @@
+{
+  "id": "object/door-3-collision",
+  "name": "door 3 collision",
+  "kind": "scenery",
+  "render": {
+    "look": "door 3 collision",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

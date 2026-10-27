@@ -1,0 +1,17 @@
+{
+  "id": "achievement/spider-lady-the-gardener",
+  "lore": 4485,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Smash 50 Triffids",
+  "title": "Spider Lady the Gardener",
+  "text": "Smash 50 Monster Plants as Spider Lady.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/spider-lady",
+  "counts": {
+    "match": "Triffid",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

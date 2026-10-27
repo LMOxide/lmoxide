@@ -1,0 +1,78 @@
+{
+  "id": "skill/rope-arrow",
+  "name": "Rope Arrow",
+  "client": {
+    "spell": 33022,
+    "stats": {
+      "EffectPackage": 301718,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 293211,
+            "ProjectileType": 2,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 441813, 101],
+            [0, 459325, 101]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 462796,
+            "ProjectileType": 2,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 441813, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 464673,
+            "ProjectileType": 2,
+            "Speed": 1200
+          },
+          "criteria": [
+            [0, 459325, 91]
+          ]
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 33022,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Forest Maiden: Rope Arrow",
+  "range": 12.5,
+  "projectile": {
+    "item": 293211,
+    "speed": 15.0,
+    "kind": 2,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

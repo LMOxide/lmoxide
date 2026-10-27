@@ -1,0 +1,26 @@
+{
+  "id": "item/main-scientist1-projectile",
+  "name": "main scientist1 projectile",
+  "kind": "projectile",
+  "template": 38997,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "WeaponHit",
+      "args": {
+        "AbilityMod": 0.25,
+        "ApplyOn": 3,
+        "DamageType": 1000,
+        "Value": 1
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 34584
+      }
+    }
+  ],
+  "source": "client"
+}

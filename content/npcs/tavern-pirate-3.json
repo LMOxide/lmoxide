@@ -1,0 +1,17 @@
+{
+  "id": "npc/tavern-pirate-3",
+  "name": "Tavern Pirate",
+  "kind": "npc",
+  "render": {
+    "monster_data": 241332,
+    "npc_template": 1035,
+    "look": "pirate_good_a",
+    "cars_group": 2
+  },
+  "level": 6,
+  "stats": {
+    "health": 234,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

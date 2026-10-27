@@ -1,0 +1,53 @@
+{
+  "id": "skill/main-ninja2-shadownbuff",
+  "name": "main ninja2 shadownbuff",
+  "client": {
+    "spell": 595266,
+    "stats": {
+      "EffectPackage": 595576,
+      "TargetingMode": 5,
+      "TimeExist": 250
+    },
+    "actions": {
+      "20": [
+        {
+          "type": "Set",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 27
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 595355,
+            "Radius": 5
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 595356, 91]
+          ]
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg2": 1,
+            "EffectPackage": 595590
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 595356, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Ninja: Smoke Bomb",
+  "source": "client"
+}

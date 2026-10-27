@@ -1,0 +1,16 @@
+{
+  "id": "achievement/roller-derby-girl-the-striker",
+  "lore": 2762,
+  "parent": "achievement/roller-derby-girl",
+  "client_name": "Roller Derby Girl_Smash 1000 Monsters",
+  "title": "Roller Derby Girl, the Striker",
+  "text": "Smash 1000 monsters as Roller Derby Girl.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/roller-derby-girl",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

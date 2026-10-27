@@ -1,0 +1,16 @@
+{
+  "id": "item/hot-dog-man-body",
+  "name": "Hot Dog Man Body",
+  "kind": "part",
+  "template": 576130,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21310,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/hot-dog-man",
+  "location": "Torso",
+  "source": "client"
+}

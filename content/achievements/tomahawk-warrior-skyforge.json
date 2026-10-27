@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tomahawk-warrior-skyforge",
+  "lore": 3516,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Skyforge",
+  "title": "Tomahawk Warrior: Skyforge",
+  "text": "Conquer the Skyforge as Tomahawk Warrior.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/tomahawk-warrior",
+  "source": "client"
+}

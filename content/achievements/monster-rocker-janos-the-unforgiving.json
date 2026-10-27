@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-rocker-janos-the-unforgiving",
+  "lore": 4645,
+  "parent": "achievement/monster-rocker",
+  "client_name": "Monster Rocker_Janos the Unforgiving",
+  "title": "Monster Rocker: Janos the Unforgiving",
+  "text": "Defeat Janos the Unforgiving as Monster Rocker.",
+  "points": 25,
+  "kind": "target",
+  "target": "Janos the Unforgiving",
+  "minifigure": "minifig/monster-rocker",
+  "source": "client"
+}

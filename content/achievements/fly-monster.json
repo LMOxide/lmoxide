@@ -1,0 +1,29 @@
+{
+  "id": "achievement/fly-monster",
+  "lore": 4391,
+  "parent": "achievement/series-14",
+  "client_name": "Fly Monster",
+  "title": "Fly Monster",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-fly-monster",
+    "achievement/legendary-fly-monster",
+    "achievement/fly-monster-cliffside",
+    "achievement/fly-monster-bewitched-candy-forest",
+    "achievement/fly-monster-skyforge",
+    "achievement/fly-monster-warchief-grogrog",
+    "achievement/fly-monster-big-bad-wolf",
+    "achievement/fly-monster-madcap-compy",
+    "achievement/novice-fly-monster",
+    "achievement/expert-fly-monster",
+    "achievement/fly-monster-the-lost-challenger",
+    "achievement/fly-monster-the-lost-warrior",
+    "achievement/fly-monster-the-lost-champion",
+    "achievement/fly-monster-the-striker",
+    "achievement/fly-monster-the-master-striker",
+    "achievement/fly-monster-the-hexer"
+  ],
+  "minifigure": "minifig/fly-monster",
+  "source": "client"
+}

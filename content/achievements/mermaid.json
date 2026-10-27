@@ -1,0 +1,29 @@
+{
+  "id": "achievement/mermaid",
+  "lore": 2467,
+  "parent": "achievement/series-9",
+  "client_name": "Mermaid",
+  "title": "Mermaid",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-mermaid",
+    "achievement/legendary-mermaid",
+    "achievement/novice-mermaid",
+    "achievement/expert-mermaid",
+    "achievement/mermaid-swamp-tunnel",
+    "achievement/mermaid-infested-keep",
+    "achievement/mermaid-alien-command-center",
+    "achievement/mermaid-temper",
+    "achievement/mermaid-kruun-super-genius",
+    "achievement/mermaid-crone-of-the-maze",
+    "achievement/mermaid-the-smasher",
+    "achievement/mermaid-the-master-smasher",
+    "achievement/mermaid-the-machinist",
+    "achievement/mermaid-the-lost-challenger",
+    "achievement/mermaid-the-lost-warrior",
+    "achievement/mermaid-the-lost-champion"
+  ],
+  "minifigure": "minifig/mermaid",
+  "source": "client"
+}

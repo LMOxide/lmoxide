@@ -1,0 +1,12 @@
+{
+  "id": "achievement/neither-lost-nor-forgotten",
+  "lore": 882,
+  "parent": "achievement/corycian-caver",
+  "client_name": "Mythology_Combat_PA_Clear the Ancient Ruins",
+  "title": "Neither Lost nor Forgotten",
+  "text": "Clear the Ancient Ruins in Mythology World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Ancient Ruins",
+  "source": "client"
+}

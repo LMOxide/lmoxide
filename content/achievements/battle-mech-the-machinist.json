@@ -1,0 +1,17 @@
+{
+  "id": "achievement/battle-mech-the-machinist",
+  "lore": 2695,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Smash 50 Alien Machines",
+  "title": "Battle Mech, the Machinist",
+  "text": "Smash 50 Alien Machines as Battle Mech.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/battle-mech",
+  "counts": {
+    "match": "Alien Machine",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

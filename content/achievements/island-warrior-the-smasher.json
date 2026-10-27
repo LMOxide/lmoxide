@@ -1,0 +1,16 @@
+{
+  "id": "achievement/island-warrior-the-smasher",
+  "lore": 2847,
+  "parent": "achievement/island-warrior",
+  "client_name": "Island Warrior_Smash 500 Smashies",
+  "title": "Island Warrior, the Smasher",
+  "text": "Smash 500 smashies as Island Warrior.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/island-warrior",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

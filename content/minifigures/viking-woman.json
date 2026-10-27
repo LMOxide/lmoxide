@@ -1,0 +1,123 @@
+{
+  "id": "minifig/viking-woman",
+  "name": "Viking Woman",
+  "template": 14766,
+  "series": 7,
+  "series_index": 0,
+  "render": {
+    "monster_data": 10403
+  },
+  "stats": {
+    "life": 350,
+    "power": 5,
+    "defense": 10,
+    "creativity": 1,
+    "role": 2,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/sword-strike",
+    "hits": [
+      {
+        "skill": "skill/sword-strike-20165",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [13932]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/battle-crescendo"
+  },
+  "click_spells": [13932, 13966],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-fortify"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-reconstruct"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-second-wind"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460941"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460945"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/viking-woman-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/viking-woman-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/viking-woman-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-viking-woman",
+  "obtain": {
+    "source": "membership",
+    "text": "You could unlock me as part of the long term membership benefits.",
+    "location_text": 64426304,
+    "location_picture": 663642
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/classic-king-nyx-blackfeather",
+  "lore": 3799,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Nyx Blackfeather",
+  "title": "Classic King: Nyx Blackfeather",
+  "text": "Defeat Nyx Blackfeather as Classic King.",
+  "points": 25,
+  "kind": "target",
+  "target": "Nyx Blackfeather",
+  "minifigure": "minifig/classic-king",
+  "source": "client"
+}

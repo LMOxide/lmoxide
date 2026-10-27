@@ -1,0 +1,22 @@
+{
+  "id": "npc/satyr-shaman",
+  "name": "Satyr Shaman",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 94792
+  },
+  "level": 18,
+  "stats": {
+    "health": 2100
+  },
+  "attack": "skill/satyr-shaman-fire-ranged-castable",
+  "skills": [
+    {
+      "skill": "skill/satyr-shaman-fire-ranged-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

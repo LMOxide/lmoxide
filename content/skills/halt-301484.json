@@ -1,0 +1,24 @@
+{
+  "id": "skill/halt-301484",
+  "name": "Halt!",
+  "client": {
+    "spell": 301484,
+    "stats": {
+      "EffectPackage": 308995
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.33000001311302185,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/motorcycle-mechanic-swamp-tunnel",
+  "lore": 3396,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Swamp Tunnel",
+  "title": "Motorcycle Mechanic: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Motorcycle Mechanic.",
+  "points": 50,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "source": "client"
+}

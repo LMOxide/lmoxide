@@ -1,0 +1,134 @@
+{
+  "id": "minifig/barbarian",
+  "name": "Barbarian",
+  "template": 357916,
+  "series": 11,
+  "series_index": 0,
+  "render": {
+    "monster_data": 275856
+  },
+  "stats": {
+    "life": 250,
+    "power": 9,
+    "defense": 4,
+    "creativity": 2,
+    "role": 1,
+    "element": 5
+  },
+  "normal": {
+    "skill": "skill/sword-swings",
+    "hits": [
+      {
+        "skill": "skill/main-barbarian1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.6,
+        "damage_type": 1000,
+        "via": [357868]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/spin-slash",
+    "hits": [
+      {
+        "skill": "skill/main-barbarian2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.35,
+        "damage_type": 1000,
+        "via": [357869]
+      }
+    ]
+  },
+  "click_spells": [357868, 357869],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-athletic"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-stalwart"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-harden-up"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-charge-up"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-vortex"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530254"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2884, 2486, 3643, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/barbarian-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/barbarian-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/barbarian-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-barbarian",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/mythology-world"],
+    "text": "You can find me in the Mythology World.",
+    "location_text": 224781705,
+    "location_picture": 496203
+  },
+  "source": "client"
+}

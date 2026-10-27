@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-hunter",
+  "name": "Upgrade: Hunter",
+  "nano": 421238,
+  "effects": [
+    {
+      "proc": {
+        "on": "kill",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-speed-on-kill",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

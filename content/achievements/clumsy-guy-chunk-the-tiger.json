@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-chunk-the-tiger",
+  "lore": 5125,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Chunk the Tiger",
+  "title": "Clumsy Guy: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Clumsy Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/clumsy-guy",
+  "source": "client"
+}

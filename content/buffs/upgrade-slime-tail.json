@@ -1,0 +1,18 @@
+{
+  "id": "buff/upgrade-slime-tail",
+  "name": "Upgrade: Slime Tail",
+  "nano": 421248,
+  "effects": [
+    {
+      "client": {
+        "type": "CastNano",
+        "args": {
+          "Duration": -1,
+          "Interval": 10,
+          "Value": 440458
+        }
+      }
+    }
+  ],
+  "source": "client"
+}

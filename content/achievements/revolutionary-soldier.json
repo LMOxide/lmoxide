@@ -1,0 +1,29 @@
+{
+  "id": "achievement/revolutionary-soldier",
+  "lore": 3340,
+  "parent": "achievement/series-10",
+  "client_name": "Revolutionary Soldier",
+  "title": "Revolutionary Soldier",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-revolutionary-soldier",
+    "achievement/legendary-revolutionary-soldier",
+    "achievement/novice-revolutionary-soldier",
+    "achievement/expert-revolutionary-soldier",
+    "achievement/revolutionary-soldier-wind-shrine",
+    "achievement/revolutionary-soldier-ancient-ruins",
+    "achievement/revolutionary-soldier-treasure-island",
+    "achievement/revolutionary-soldier-temper",
+    "achievement/revolutionary-soldier-the-bridge-troll",
+    "achievement/revolutionary-soldier-kruun-super-genius",
+    "achievement/revolutionary-soldier-the-striker",
+    "achievement/revolutionary-soldier-the-master-striker",
+    "achievement/revolutionary-soldier-the-hexer",
+    "achievement/revolutionary-soldier-the-lost-challenger",
+    "achievement/revolutionary-soldier-the-lost-warrior",
+    "achievement/revolutionary-soldier-the-lost-champion"
+  ],
+  "minifigure": "minifig/revolutionary-soldier",
+  "source": "client"
+}

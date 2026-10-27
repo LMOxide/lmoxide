@@ -1,0 +1,33 @@
+{
+  "id": "skill/merc-defender-shot-castable",
+  "name": "merc defender shot castable",
+  "client": {
+    "spell": 373106,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 800,
+      "EffectPackage": 387863,
+      "ItemDelay": 36,
+      "RechargeDelay": 164,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1500,
+            "AttractorID": 38,
+            "ItemInstance": 373110,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

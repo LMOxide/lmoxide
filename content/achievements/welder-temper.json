@@ -1,0 +1,13 @@
+{
+  "id": "achievement/welder-temper",
+  "lore": 2788,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Temper",
+  "title": "Welder: Temper",
+  "text": "Defeat Temper as Welder.",
+  "points": 25,
+  "kind": "target",
+  "target": "Temper",
+  "minifigure": "minifig/welder",
+  "source": "client"
+}

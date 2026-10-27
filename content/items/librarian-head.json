@@ -1,0 +1,16 @@
+{
+  "id": "item/librarian-head",
+  "name": "Librarian Head",
+  "kind": "part",
+  "template": 483570,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11005,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/librarian",
+  "location": "Head",
+  "source": "client"
+}

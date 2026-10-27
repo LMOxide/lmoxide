@@ -1,0 +1,190 @@
+{
+  "id": "minifig/scientist",
+  "name": "Scientist",
+  "template": 357987,
+  "series": 11,
+  "series_index": 0,
+  "render": {
+    "monster_data": 267790
+  },
+  "stats": {
+    "life": 250,
+    "power": 6,
+    "defense": 1,
+    "creativity": 10,
+    "role": 3,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/blue-potion",
+    "hits": [
+      {
+        "skill": "skill/spell-38997",
+        "type": "WeaponHit",
+        "ability_mod": 0.25,
+        "damage_type": 1000,
+        "via": [34583]
+      },
+      {
+        "skill": "skill/main-scientist1-projectile-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.25,
+        "damage_type": 1000,
+        "via": [34583, 38997, 34584]
+      },
+      {
+        "skill": "skill/main-scientist1-aoe-effect-1",
+        "type": "WeaponHit",
+        "ability_mod": 0.5,
+        "damage_type": 1000,
+        "via": [34583, 38997, 34584, 35546, 35660]
+      },
+      {
+        "skill": "skill/main-scientist1-aoe-effect-2",
+        "type": "WeaponHit",
+        "ability_mod": 0.7,
+        "damage_type": 1000,
+        "via": [34583, 38997, 34584, 35540, 35661]
+      },
+      {
+        "skill": "skill/main-scientist1-aoe-effect-3",
+        "type": "WeaponHit",
+        "ability_mod": 0.9,
+        "damage_type": 1000,
+        "via": [34583, 38997, 34584, 35539, 35662]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/yellow-potion",
+    "hits": [
+      {
+        "skill": "skill/spell-39041",
+        "type": "WeaponHit",
+        "ability_mod": 0.25,
+        "damage_type": 1000,
+        "via": [34726]
+      },
+      {
+        "skill": "skill/main-scientist2-pojectile-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.25,
+        "damage_type": 1000,
+        "via": [34726, 39041, 34725]
+      },
+      {
+        "skill": "skill/main-scientist2-detonation-effect-1",
+        "type": "WeaponHit",
+        "ability_mod": 0.9,
+        "damage_type": 1000,
+        "via": [34726, 39041, 34725, 34851]
+      },
+      {
+        "skill": "skill/main-scientist2-detonation-effect-2",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [34726, 39041, 34725, 34748]
+      },
+      {
+        "skill": "skill/main-scientist2-detonation-effect-3",
+        "type": "WeaponHit",
+        "ability_mod": 1.5,
+        "damage_type": 1000,
+        "via": [34726, 39041, 34725, 34747]
+      }
+    ]
+  },
+  "click_spells": [34583, 34726],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-reconstruct"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-puff-of-smoke"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful-461237"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530297"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-personal-space"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2918, 2488, 3643, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/scientist-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/scientist-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/scientist-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-scientist",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/space-world"],
+    "text": "You can find me in the Space World.",
+    "location_text": 27328549,
+    "location_picture": 474079
+  },
+  "source": "client"
+}

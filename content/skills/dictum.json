@@ -1,0 +1,25 @@
+{
+  "id": "skill/dictum",
+  "name": "Dictum",
+  "client": {
+    "spell": 36518,
+    "stats": {
+      "EffectPackage": 636943,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

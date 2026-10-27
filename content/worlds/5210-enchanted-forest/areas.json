@@ -1,0 +1,98 @@
+{
+  "areas": [
+    {
+      "id": "area/5210/cine-fairyqueen1",
+      "name": "Cine_FairyQueen1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [290.89, 50.8, 153.22],
+          "rot": -1.628
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5210/cine-playerpos1",
+      "name": "Cine_PlayerPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [287.42, 50.0, 153.31],
+          "rot": 1.359
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5210/cine-wizardspawn1",
+      "name": "Cine_WizardSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [288.35, 50.0, 154.88],
+          "rot": 1.96
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5210/cine-jesterspawn1",
+      "name": "Cine_JesterSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [288.42, 50.0, 151.58],
+          "rot": 1.218
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5210/cine-camerapos1",
+      "name": "Cine_CameraPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [289.02, 50.66, 153.15],
+          "rot": 1.96
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5210/achievement-shortcut",
+      "name": "Achievement_Shortcut",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [187.51, 196.95],
+            [192.22, 195.02],
+            [193.18, 197.17],
+            [188.22, 199.07]
+          ],
+          "heights": [50.837337, 60.837337]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5210/achievement-cauldron",
+      "name": "Achievement_Cauldron",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [441.59, 141.76],
+            [449.45, 142.98],
+            [449.38, 151.76],
+            [441.83, 151.76]
+          ],
+          "heights": [52.59315, 62.59315]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

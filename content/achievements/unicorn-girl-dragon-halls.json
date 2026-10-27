@@ -1,0 +1,13 @@
+{
+  "id": "achievement/unicorn-girl-dragon-halls",
+  "lore": 4000,
+  "parent": "achievement/unicorn-girl",
+  "client_name": "Unicorn Girl_Dragon Halls",
+  "title": "Unicorn Girl: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Unicorn Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/unicorn-girl",
+  "source": "client"
+}

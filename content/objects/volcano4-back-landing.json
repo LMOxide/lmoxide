@@ -1,0 +1,10 @@
+{
+  "id": "object/volcano4-back-landing",
+  "name": "volcano4 back landing",
+  "kind": "scenery",
+  "render": {
+    "look": "volcano4 back landing",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-egyptian-warrior",
+  "lore": 4014,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Complete Any 5",
+  "title": "Heroic Egyptian Warrior",
+  "text": "Complete any 5 Egyptian Warrior achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/egyptian-warrior",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-spooky-girl",
+  "lore": 3266,
+  "parent": "achievement/spooky-girl",
+  "client_name": "Spooky Girl_Upgrade 7",
+  "title": "Expert Spooky Girl",
+  "text": "Get the seventh Spooky Girl upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/spooky-girl",
+  "n": 7,
+  "source": "client"
+}

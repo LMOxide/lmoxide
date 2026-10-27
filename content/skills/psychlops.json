@@ -1,0 +1,25 @@
+{
+  "id": "skill/psychlops",
+  "name": "Psychlops",
+  "client": {
+    "spell": 32463,
+    "stats": {
+      "EffectPackage": 150723,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1001,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-piggyguy2-wrapper",
+  "name": "main piggyguy2 wrapper",
+  "client": {
+    "spell": 504813,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 579710
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 504818
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Piggy Guy: Mud Pit",
+  "source": "client"
+}

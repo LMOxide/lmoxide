@@ -1,0 +1,8 @@
+{
+  "id": "achievement/space-world",
+  "lore": 743,
+  "client_name": "Achievements_Space World",
+  "title": "Space World",
+  "kind": "category",
+  "source": "client"
+}

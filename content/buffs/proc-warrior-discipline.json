@@ -1,0 +1,17 @@
+{
+  "id": "buff/proc-warrior-discipline",
+  "name": "Warrior Discipline",
+  "nano": 429771,
+  "duration": "3s",
+  "effects": [
+    {
+      "stat": {
+        "stat": "damage",
+        "op": "add",
+        "value": 0.1
+      }
+    }
+  ],
+  "source": "server",
+  "comment": "Applied by an upgrade's proc (procs.rs); values from the client's \"XX_passive generic\" nanos or assumed (docs/TUNABLES.md)."
+}

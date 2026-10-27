@@ -1,0 +1,13 @@
+{
+  "id": "achievement/defeat-crikey-the-kraken",
+  "lore": 860,
+  "parent": "achievement/pirate-combat",
+  "client_name": "Pirate_Combat_Epic_Defeat Crikey the Kraken",
+  "title": "Defeat Crikey the Kraken",
+  "text": "Defeat Crikey the Kraken in the Pirate World.",
+  "points": 50,
+  "kind": "defeat",
+  "stars": 500,
+  "target": "Crikey the Kraken",
+  "source": "client"
+}

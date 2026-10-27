@@ -1,0 +1,35 @@
+{
+  "id": "skill/anansi-girl",
+  "name": "Anansi Girl",
+  "client": {
+    "spell": 500486,
+    "stats": {
+      "EffectPackage": 514508,
+      "ItemDelay": 1,
+      "MoreFlags": 134217728,
+      "RechargeDelay": 1
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 506058
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 506078,
+            "Value": 10
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Spooky Girl: Anansi Girl",
+  "source": "client"
+}

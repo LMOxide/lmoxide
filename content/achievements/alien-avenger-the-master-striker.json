@@ -1,0 +1,16 @@
+{
+  "id": "achievement/alien-avenger-the-master-striker",
+  "lore": 2715,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Smash 10000 Monsters",
+  "title": "Alien Avenger, the Master Striker",
+  "text": "Smash 10000 monsters as Alien Avenger.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/alien-avenger",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

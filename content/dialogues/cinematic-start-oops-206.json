@@ -1,0 +1,10 @@
+{
+  "id": "dialogue/cinematic-start-oops-206",
+  "name": "Cinematic Start Oops",
+  "texts": [206, 207, 208, 209, 210, 211],
+  "world": "world/pirate-world",
+  "npc_name": 1014,
+  "npc": "Cinematic Start Oops",
+  "seen_live": true,
+  "source": "demo"
+}

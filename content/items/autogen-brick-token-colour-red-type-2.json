@@ -1,0 +1,30 @@
+{
+  "id": "item/autogen-brick-token-colour-red-type-2",
+  "name": "XX_autogen brick token colour:red type:2",
+  "kind": "token",
+  "template": 59717,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 2,
+      "amount": 1
+    },
+    {
+      "token": 10,
+      "amount": 1
+    },
+    {
+      "token": 18,
+      "amount": 1
+    },
+    {
+      "token": 26,
+      "amount": 1
+    },
+    {
+      "token": 34,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

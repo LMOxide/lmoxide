@@ -1,0 +1,16 @@
+{
+  "id": "item/skydiver-head",
+  "name": "Skydiver Head",
+  "kind": "part",
+  "template": 483561,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11013,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/skydiver",
+  "location": "Head",
+  "source": "client"
+}

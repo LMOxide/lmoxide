@@ -1,0 +1,30 @@
+{
+  "id": "world/jacket-cellar",
+  "name": "Jacket Cellar",
+  "playfield": 1670,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [235.07, 19.49, 246.48],
+    "rot": 4.71
+  },
+  "arrival_guid": 425291,
+  "arrival_from": {
+    "world/isle-of-yarr": {
+      "pos": [240.75, 20.65, 237.37],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 425291,
+      "pos": [235.07, 19.49, 246.48],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

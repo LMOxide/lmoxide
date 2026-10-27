@@ -1,0 +1,64 @@
+{
+  "id": "world/shadow-centurion-base",
+  "name": "Shadow Centurion Base",
+  "playfield": 3310,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [201.23, 32.21, 125.71],
+    "rot": 4.703
+  },
+  "arrival_guid": 50816,
+  "arrival_from": {
+    "world/lego-center": {
+      "pos": [330.27, 14.67, 393.15],
+      "rot": 2.618
+    },
+    "world/planet-s-dark-side": {
+      "pos": [330.27, 14.67, 393.15],
+      "rot": 2.618
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 50816,
+      "pos": [201.23, 32.21, 125.71],
+      "rot": 4.703,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_ControlRoom",
+      "guid": 403940,
+      "pos": [188.7, 32.19, 224.68],
+      "rot": 3.017,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Teleporter",
+      "guid": 403941,
+      "pos": [233.07, 35.93, 204.7],
+      "rot": 0.185,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 403942,
+      "pos": [320.05, 12.61, 331.95],
+      "rot": 3.017,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

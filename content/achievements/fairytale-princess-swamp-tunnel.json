@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fairytale-princess-swamp-tunnel",
+  "lore": 3091,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Swamp Tunnel",
+  "title": "Fairytale Princess: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Fairytale Princess.",
+  "points": 25,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/fairytale-princess",
+  "source": "client"
+}

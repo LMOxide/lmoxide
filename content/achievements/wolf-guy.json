@@ -1,0 +1,29 @@
+{
+  "id": "achievement/wolf-guy",
+  "lore": 4396,
+  "parent": "achievement/series-14",
+  "client_name": "Wolf Guy",
+  "title": "Wolf Guy",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-wolf-guy",
+    "achievement/legendary-wolf-guy",
+    "achievement/wolf-guy-infested-keep",
+    "achievement/wolf-guy-mercenary-assault-cruiser",
+    "achievement/wolf-guy-dragon-halls",
+    "achievement/wolf-guy-sir-hector",
+    "achievement/wolf-guy-smuggy-totembound",
+    "achievement/wolf-guy-maggut-the-beast-tamer",
+    "achievement/novice-wolf-guy",
+    "achievement/expert-wolf-guy",
+    "achievement/wolf-guy-the-lost-challenger",
+    "achievement/wolf-guy-the-lost-warrior",
+    "achievement/wolf-guy-the-lost-champion",
+    "achievement/wolf-guy-the-striker",
+    "achievement/wolf-guy-the-master-striker",
+    "achievement/wolf-guy-the-dragontamer"
+  ],
+  "minifigure": "minifig/wolf-guy",
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/starry-paradise",
+  "lore": 946,
+  "parent": "achievement/did-i-mention-paradise",
+  "client_name": "[Space Colony] Boombox",
+  "title": "Starry Paradise",
+  "text": "Get your groove on at the Space Colony.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/space-colony",
+  "find": "boombox 1",
+  "place": "Boombox",
+  "source": "client"
+}

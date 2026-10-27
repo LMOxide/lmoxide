@@ -1,0 +1,32 @@
+{
+  "id": "skill/main-spookygirl2-blink-protection-spider",
+  "name": "main spookygirl2 blink protection spider",
+  "client": {
+    "spell": 506089,
+    "stats": {
+      "TimeExist": 150
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 1.0,
+            "Stat": 3000012
+          }
+        },
+        {
+          "type": "NanoResistance",
+          "args": {
+            "ApplyOn": 1,
+            "Strain": 800,
+            "Value": 200
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "achievement/lightningblast-s-garden",
+  "lore": 3701,
+  "parent": "achievement/mythology-story",
+  "client_name": "Mythology_Story_Find Lightningblast's Arboratory",
+  "title": "Lightningblast's Garden",
+  "text": "Find Lightningblast's Garden in the Armory.",
+  "points": 100,
+  "kind": "find",
+  "world": "world/skyforge",
+  "find": "BA_Explore_Forge",
+  "place": "Lightningblast's Garden",
+  "stars": 500,
+  "source": "client"
+}

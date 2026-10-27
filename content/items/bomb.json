@@ -1,0 +1,18 @@
+{
+  "id": "item/bomb",
+  "name": "Bomb",
+  "kind": "projectile",
+  "template": 238201,
+  "effect_package": 239182,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 238200
+      }
+    }
+  ],
+  "source": "client"
+}

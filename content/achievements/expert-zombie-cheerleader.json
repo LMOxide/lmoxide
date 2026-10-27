@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-zombie-cheerleader",
+  "lore": 4444,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Upgrade 7",
+  "title": "Expert Zombie Cheerleader",
+  "text": "Get the seventh Zombie Cheerleader upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/zombie-cheerleader",
+  "n": 7,
+  "source": "client"
+}

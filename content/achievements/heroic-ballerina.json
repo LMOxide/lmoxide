@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-ballerina",
+  "lore": 5104,
+  "parent": "achievement/ballerina",
+  "client_name": "Ballerina_Complete Any 5",
+  "title": "Heroic Ballerina",
+  "text": "Complete any 5 Ballerina achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/ballerina",
+  "n": 5,
+  "source": "client"
+}

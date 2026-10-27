@@ -1,0 +1,16 @@
+{
+  "id": "achievement/kendo-fighter-the-striker",
+  "lore": 5245,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Smash 1000 Monsters",
+  "title": "Kendo Fighter, the Striker",
+  "text": "Smash 1000 monsters as Kendo Fighter.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/kendo-fighter",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

@@ -1,0 +1,38 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/5500/jump-pad-catapult-b-buildie",
+      "name": "jump_pad_catapult_b_buildie",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [440.06, 117.57, 476.09],
+      "rot": [0.0, -0.9963, 0.0, -0.0859],
+      "target": [490.84, 91.89, 493.23],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 316663,
+        "tag": "JUMP",
+        "script_group": 127,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/5500/jump-pad-catapult-b-buildie-2",
+      "name": "jump_pad_catapult_b_buildie",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [490.67, 91.54, 495.41],
+      "rot": [0.0, 0.0123, 0.0, -0.9999],
+      "target": [438.06, 118.0, 478.36],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 316673,
+        "tag": "JUMP",
+        "script_group": 128,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    }
+  ]
+}

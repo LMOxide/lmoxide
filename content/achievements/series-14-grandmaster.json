@@ -1,0 +1,12 @@
+{
+  "id": "achievement/series-14-grandmaster",
+  "lore": 4681,
+  "parent": "achievement/global",
+  "client_name": "Global_Minifigures_Series 14",
+  "title": "Series 14 Grandmaster",
+  "text": "Master all Series 14 Minifigures.",
+  "points": 100,
+  "kind": "series",
+  "series": 14,
+  "source": "client"
+}

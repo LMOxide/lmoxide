@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-hollywood-starlet",
+  "lore": 2594,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Complete Any 5",
+  "title": "Heroic Hollywood Starlet",
+  "text": "Complete any 5 Hollywood Starlet achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/hollywood-starlet",
+  "n": 5,
+  "source": "client"
+}

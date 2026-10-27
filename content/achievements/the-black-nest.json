@@ -1,0 +1,14 @@
+{
+  "id": "achievement/the-black-nest",
+  "lore": 748,
+  "parent": "achievement/treasure-chaser",
+  "client_name": "Pirate_Exploration_Find Blackbird's Ship",
+  "title": "The Black Nest",
+  "text": "Find Blackbeard's Ship in the Pirate World.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/isle-of-yarr",
+  "find": "Achievement_Ship",
+  "place": "Blackbeard's Ship",
+  "source": "client"
+}

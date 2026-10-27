@@ -1,0 +1,29 @@
+{
+  "id": "achievement/clumsy-guy",
+  "lore": 5060,
+  "parent": "achievement/series-15",
+  "client_name": "Clumsy Guy",
+  "title": "Clumsy Guy",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-clumsy-guy",
+    "achievement/legendary-clumsy-guy",
+    "achievement/clumsy-guy-spider-s-nest",
+    "achievement/clumsy-guy-mercenary-cave",
+    "achievement/clumsy-guy-dragon-halls",
+    "achievement/clumsy-guy-chunk-the-tiger",
+    "achievement/clumsy-guy-the-triffid",
+    "achievement/clumsy-guy-roar-the-gladiator",
+    "achievement/novice-clumsy-guy",
+    "achievement/expert-clumsy-guy",
+    "achievement/clumsy-guy-the-lost-challenger",
+    "achievement/clumsy-guy-the-lost-warrior",
+    "achievement/clumsy-guy-the-lost-champion",
+    "achievement/clumsy-guy-the-smasher",
+    "achievement/clumsy-guy-the-master-smasher",
+    "achievement/clumsy-guy-the-demolisher"
+  ],
+  "minifigure": "minifig/clumsy-guy",
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "item/dragon-s-breath",
+  "name": "Dragon's Breath",
+  "kind": "projectile",
+  "template": 321686,
+  "effect_package": 342383,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 321685
+      }
+    }
+  ],
+  "source": "client"
+}

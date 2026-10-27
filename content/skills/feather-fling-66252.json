@@ -1,0 +1,27 @@
+{
+  "id": "skill/feather-fling-66252",
+  "name": "Feather Fling",
+  "client": {
+    "spell": 66252,
+    "stats": {
+      "AISpellCategory": 1025,
+      "AttackRange": 800,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1004,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

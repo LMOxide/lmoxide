@@ -1,0 +1,13 @@
+{
+  "id": "achievement/prospector-alien-command-center",
+  "lore": 3210,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Alien Command Center",
+  "title": "Prospector: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Prospector.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/prospector",
+  "source": "client"
+}

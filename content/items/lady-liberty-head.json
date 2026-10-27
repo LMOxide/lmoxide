@@ -1,0 +1,14 @@
+{
+  "id": "item/lady-liberty-head",
+  "name": "Lady Liberty Head",
+  "kind": "part",
+  "template": 599508,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10609,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

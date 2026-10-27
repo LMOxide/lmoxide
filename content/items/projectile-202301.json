@@ -1,0 +1,7 @@
+{
+  "id": "item/projectile-202301",
+  "kind": "projectile",
+  "template": 202301,
+  "radius": 0.5,
+  "source": "client"
+}

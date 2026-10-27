@@ -1,0 +1,17 @@
+{
+  "id": "achievement/librarian-the-sweet",
+  "lore": 3424,
+  "parent": "achievement/librarian",
+  "client_name": "Librarian_Smash 50 Magic Candy",
+  "title": "Librarian, the Sweet",
+  "text": "Smash 50 Sweets as Librarian.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/librarian",
+  "counts": {
+    "match": "Magic Candy",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

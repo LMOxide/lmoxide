@@ -1,0 +1,1157 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/4600/musketeer",
+      "name": "Musketeer",
+      "kind": "enemy",
+      "template": "npc/musketeer-2",
+      "pos": [77.89, 73.0, 84.04],
+      "rot": -2.462,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "patrol": [
+        [77.8, 73.02, 82.65],
+        [78.16, 74.04, 78.51],
+        [78.18, 73.99, 73.43],
+        [78.16, 74.04, 78.51]
+      ],
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/musketeer-2",
+      "name": "Musketeer",
+      "kind": "enemy",
+      "template": "npc/musketeer-2",
+      "pos": [103.72, 70.0, 78.6],
+      "rot": -1.636,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "patrol": [
+        [96.47, 70.0, 76.79],
+        [102.75, 69.95, 78.14]
+      ],
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/musketeer-3",
+      "name": "Musketeer",
+      "kind": "enemy",
+      "template": "npc/musketeer-2",
+      "pos": [127.71, 75.0, 76.53],
+      "rot": -1.523,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "patrol": [
+        [127.5, 75.0, 76.6],
+        [127.51, 74.95, 68.13]
+      ],
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/musketeer-4",
+      "name": "Musketeer",
+      "kind": "enemy",
+      "template": "npc/musketeer-2",
+      "pos": [87.5, 70.0, 90.98],
+      "rot": 1.636,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "patrol": [
+        [89.14, 70.0, 90.38],
+        [94.71, 69.95, 94.43]
+      ],
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/musketeer-5",
+      "name": "Musketeer",
+      "kind": "enemy",
+      "template": "npc/musketeer-2",
+      "pos": [110.42, 70.03, 90.15],
+      "rot": -1.523,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "patrol": [
+        [110.38, 70.0, 88.36],
+        [110.75, 69.95, 79.94]
+      ],
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/musketeer-6",
+      "name": "Musketeer",
+      "kind": "enemy",
+      "template": "npc/musketeer-2",
+      "pos": [111.15, 71.75, 112.84],
+      "rot": 2.919,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/video-game-guy",
+      "name": "Video Game Guy",
+      "kind": "npc",
+      "template": "npc/video-game-guy-4",
+      "pos": [107.78, 70.32, 29.02],
+      "rot": 0.24,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/pirate",
+      "name": "Pirate",
+      "kind": "npc",
+      "template": "npc/pirate",
+      "pos": [105.37, 69.94, 47.85],
+      "rot": 1.441,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/tavern-pirate",
+      "name": "Tavern Pirate",
+      "kind": "npc",
+      "template": "npc/tavern-pirate-5",
+      "pos": [112.49, 70.78, 32.15],
+      "rot": -2.063,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/tavern-pirate-2",
+      "name": "Tavern Pirate",
+      "kind": "npc",
+      "template": "npc/tavern-pirate-3",
+      "pos": [112.59, 70.78, 30.43],
+      "rot": -1.162,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/tavern-pirate-3",
+      "name": "Tavern Pirate",
+      "kind": "npc",
+      "template": "npc/tavern-pirate-5",
+      "pos": [129.42, 73.06, 37.15],
+      "rot": -0.801,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/tavern-pirate-4",
+      "name": "Tavern Pirate",
+      "kind": "npc",
+      "template": "npc/tavern-pirate-4",
+      "pos": [127.75, 70.81, 31.72],
+      "rot": -1.636,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/tavern-pirate-5",
+      "name": "Tavern Pirate",
+      "kind": "npc",
+      "template": "npc/tavern-pirate-5",
+      "pos": [126.25, 70.04, 41.64],
+      "rot": -3.042,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/tavern-pirate-6",
+      "name": "Tavern Pirate",
+      "kind": "npc",
+      "template": "npc/tavern-pirate-3",
+      "pos": [130.46, 72.99, 37.58],
+      "rot": -1.311,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/pirate-2",
+      "name": "Pirate",
+      "kind": "npc",
+      "template": "npc/pirate-2",
+      "pos": [125.31, 70.87, 35.63],
+      "rot": 2.899,
+      "overrides": {
+        "level": 2,
+        "stats": {
+          "health": 90
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/cinematic-start-oops",
+      "name": "Cinematic Start Oops",
+      "kind": "trigger",
+      "template": "npc/cinematic-start-oops",
+      "pos": [105.4, 70.0, 96.49],
+      "rot": -2.899,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [102.53, 69.76, 46.98],
+      "rot": -1.582,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [113.67, 70.71, 27.99],
+      "rot": -0.932,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [101.14, 69.94, 47.35],
+      "rot": -2.352,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [101.92, 69.93, 48.29],
+      "rot": -0.912,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-pirate-flag",
+      "name": "XX_Pirate Flag",
+      "kind": "smashable",
+      "template": "object/xx-pirate-flag",
+      "pos": [106.32, 70.0, 50.42],
+      "rot": 0.828,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [107.38, 70.05, 34.98],
+      "rot": -1.992,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [102.85, 70.0, 74.55],
+      "rot": 0.161,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [107.15, 69.98, 75.99],
+      "rot": -0.526,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [87.96, 74.13, 58.77],
+      "rot": 0.0,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [88.88, 74.1, 58.13],
+      "rot": 1.187,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-bonfire",
+      "name": "XX_Bonfire",
+      "kind": "smashable",
+      "template": "object/xx-bonfire",
+      "pos": [94.52, 69.67, 52.17],
+      "rot": 0.056,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [84.99, 70.0, 79.55],
+      "rot": -0.653,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell-2",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [96.01, 70.0, 73.73],
+      "rot": -1.023,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell-3",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [99.24, 70.0, 74.32],
+      "rot": -0.24,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [89.29, 69.99, 74.14],
+      "rot": -0.865,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [88.92, 69.94, 71.47],
+      "rot": -1.523,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [88.67, 70.0, 70.23],
+      "rot": 0.0,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [105.45, 69.99, 94.21],
+      "rot": -1.892,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate-2",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [117.32, 70.04, 97.96],
+      "rot": -0.844,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-bonfire-2",
+      "name": "XX_Bonfire",
+      "kind": "smashable",
+      "template": "object/xx-bonfire",
+      "pos": [113.11, 69.91, 93.07],
+      "rot": -0.06,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell-4",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [113.13, 69.76, 83.24],
+      "rot": -2.037,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell-5",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [112.98, 69.88, 86.05],
+      "rot": -1.14,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [116.73, 69.75, 94.53],
+      "rot": 1.142,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [85.63, 70.01, 90.8],
+      "rot": -1.364,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell-6",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [90.54, 70.0, 94.94],
+      "rot": 1.924,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-prison-cell-7",
+      "name": "XX_Prison Cell",
+      "kind": "smashable",
+      "template": "object/xx-prison-cell-2",
+      "pos": [87.88, 70.0, 94.1],
+      "rot": -3.062,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [99.2, 70.02, 105.24],
+      "rot": -0.124,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [86.32, 70.0, 80.02],
+      "rot": 0.0,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate-3",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [72.27, 73.0, 79.2],
+      "rot": -1.855,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate-4",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [72.4, 73.0, 84.91],
+      "rot": -1.189,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [79.91, 69.61, 77.7],
+      "rot": 0.931,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel-6",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [73.01, 73.0, 86.24],
+      "rot": 1.212,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [72.68, 74.1, 58.22],
+      "rot": 1.187,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate-5",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [78.73, 74.0, 57.75],
+      "rot": -0.08,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate-6",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [71.76, 74.0, 59.64],
+      "rot": -0.887,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-ball-crate-7",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [71.52, 74.0, 64.78],
+      "rot": 1.608,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-small-chest-5",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [76.7, 69.44, 67.7],
+      "rot": 0.718,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-barrel-7",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [72.45, 74.13, 65.4],
+      "rot": 0.0,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [100.16, 70.0, 105.52],
+      "rot": -1.442,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-wall",
+      "name": "XX_Wall",
+      "kind": "smashable",
+      "template": "object/xx-wall",
+      "pos": [112.65, 70.06, 104.73],
+      "rot": -2.352,
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-buildie-level-01-1-normal",
+      "name": "XX_Buildie : Level 01 : 1 Normal",
+      "kind": "buildie",
+      "template": "object/xx-buildie-level-01-1-normal",
+      "pos": [109.0, 69.84, 48.34],
+      "rot": [-0.009557672, 0.7522561, -0.018363234, 0.65854555],
+      "client": {
+        "cars_group": 1
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-buildie-level-02-0-no-drop",
+      "name": "XX_Buildie : Level 02 : 0 No Drop",
+      "kind": "buildie",
+      "template": "object/xx-buildie-level-02-0-no-drop",
+      "pos": [103.78, 70.02, 95.72],
+      "rot": [-0.0028760566, 0.37674803, 0.0012049987, -0.9263106],
+      "client": {
+        "cars_group": 1
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [94.41, 70.65, 52.1],
+      "rot": [-0.0307, 0.033, 0.0733, 0.9963],
+      "client": {
+        "guid": 234169,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [113.15, 70.89, 93.01],
+      "rot": [-0.0249, -0.0291, -0.0022, 0.9993],
+      "client": {
+        "guid": 234171,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/lego-cannon-a-buildie",
+      "name": "lego_cannon_a_buildie",
+      "kind": "scenery",
+      "template": "object/lego-cannon-a-buildie",
+      "pos": [103.78, 70.02, 95.72],
+      "rot": [-0.0029, 0.3767, 0.0012, -0.9263],
+      "client": {
+        "guid": 221434,
+        "tag": "SCKC",
+        "script_group": 54,
+        "visual": [1010030, 197802],
+        "bounds": [-1.423, -0.035, -0.654, 1.344, 2.361, 0.654]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/cannon-muzzle",
+      "name": "Cannon muzzle",
+      "kind": "scenery",
+      "template": "object/cannon-muzzle",
+      "pos": [104.91, 70.82, 96.86],
+      "rot": [0.0102, -0.0047, -0.022, 0.9997],
+      "client": {
+        "guid": 221433,
+        "tag": "SCKC",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/cannon-muzzle-2",
+      "name": "Cannon muzzle 2",
+      "kind": "scenery",
+      "template": "object/cannon-muzzle-2",
+      "pos": [104.9, 71.09, 96.81],
+      "rot": [0.667, 0.2558, -0.2791, 0.6418],
+      "client": {
+        "guid": 234306,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/invisible-cannon",
+      "name": "Invisible cannon",
+      "kind": "scenery",
+      "template": "object/invisible-cannon",
+      "pos": [111.84, 71.26, 103.61],
+      "rot": [0.667, 0.2558, -0.2791, 0.6418],
+      "client": {
+        "guid": 249658,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata-2",
+      "pos": [106.46, 73.23, 99.94],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 463918,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 51057],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/arrow-pointer",
+      "name": "arrow pointer",
+      "kind": "scenery",
+      "template": "object/arrow-pointer",
+      "pos": [103.72, 71.39, 95.62],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576927,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/invisible-monsterdata-4",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [109.94, 76.0, 55.74],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 623075,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/xx-invisible",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [109.94, 76.0, 55.74],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/jumper",
+      "name": "Jumper",
+      "kind": "interactable",
+      "template": "object/jump-pad-mortar-a-buildie",
+      "pos": [109.0, 69.84, 48.34],
+      "rot": 1.697,
+      "client": {
+        "cars_group": 3,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-invisible-2",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [94.41, 70.65, 52.1],
+      "rot": 0.056,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon",
+      "name": "XX_Cannon",
+      "kind": "interactable",
+      "template": "object/xx-cannon",
+      "pos": [103.78, 70.02, 95.72],
+      "rot": -0.782,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": true
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-cannon-2",
+      "name": "XX_Cannon",
+      "kind": "interactable",
+      "template": "object/xx-cannon-2",
+      "pos": [104.91, 70.82, 96.86],
+      "rot": -0.0,
+      "client": {
+        "cars_group": 0,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-invisible-3",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [104.9, 71.09, 96.81],
+      "rot": -2.232,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-invisible-4",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/invisible-monsterdata-5",
+      "pos": [106.46, 73.23, 99.94],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-invisible-5",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [103.72, 71.39, 95.62],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-invisible-6",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [113.15, 70.89, 93.01],
+      "rot": -0.06,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/xx-invisible-7",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [111.84, 71.26, 103.61],
+      "rot": -2.232,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "demo"
+    },
+    {
+      "id": "spawn/4600/pirate-3",
+      "name": "Pirate",
+      "kind": "actor",
+      "pos": [112.48, 70.8, 32.14],
+      "rot": 1.328,
+      "anchor": "Cine_SpawnInvisPirate1",
+      "client": {
+        "item_template": 634030,
+        "ai_point": "Cine_SpawnInvisPirate1",
+        "actor_alias": "Pirate",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/dev-anchor-point",
+      "name": "DEV Anchor Point",
+      "kind": "actor",
+      "pos": [109.8, 71.0, 101.94],
+      "rot": -2.851,
+      "anchor": "Cine_Camera1",
+      "client": {
+        "item_template": 234061,
+        "ai_point": "Cine_Camera1",
+        "actor_alias": "InvisAnchor",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/jacket-guard",
+      "name": "Jacket Guard",
+      "kind": "actor",
+      "pos": [116.51, 71.0, 110.44],
+      "rot": -2.851,
+      "anchor": "Cine_Guard1",
+      "client": {
+        "item_template": 198602,
+        "ai_point": "Cine_Guard1",
+        "actor_alias": "Guard1",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/jacket-guard-2",
+      "name": "Jacket Guard",
+      "kind": "actor",
+      "pos": [114.56, 71.0, 106.91],
+      "rot": -2.851,
+      "anchor": "Cine_Guard2",
+      "client": {
+        "item_template": 198602,
+        "ai_point": "Cine_Guard2",
+        "actor_alias": "Guard2",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/jacket-guard-3",
+      "name": "Jacket Guard",
+      "kind": "actor",
+      "pos": [117.88, 71.0, 105.35],
+      "rot": -2.851,
+      "anchor": "Cine_Guard3",
+      "client": {
+        "item_template": 198602,
+        "ai_point": "Cine_Guard3",
+        "actor_alias": "Guard3",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4600/jacket-officer",
+      "name": "Jacket Officer",
+      "kind": "actor",
+      "pos": [116.57, 71.0, 109.11],
+      "rot": -2.851,
+      "anchor": "Cine_Officer1",
+      "client": {
+        "item_template": 198601,
+        "ai_point": "Cine_Officer1",
+        "actor_alias": "Officer",
+        "cinematic": true
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/galaxy-trooper-the-lost-challenger",
+  "lore": 3871,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Lost Creations_Get to Level 5",
+  "title": "Galaxy Trooper, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Galaxy Trooper.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/galaxy-trooper",
+  "n": 5,
+  "source": "client"
+}

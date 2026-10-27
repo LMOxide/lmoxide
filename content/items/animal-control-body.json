@@ -1,0 +1,16 @@
+{
+  "id": "item/animal-control-body",
+  "name": "Animal Control Body",
+  "kind": "part",
+  "template": 668672,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21501,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/animal-control",
+  "location": "Torso",
+  "source": "client"
+}

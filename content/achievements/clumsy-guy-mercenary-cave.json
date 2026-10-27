@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-mercenary-cave",
+  "lore": 5123,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Mercenary Cave",
+  "title": "Clumsy Guy: Mercenary Cave",
+  "text": "Conquer the Mercenary Cave as Clumsy Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mercenary Cave",
+  "minifigure": "minifig/clumsy-guy",
+  "source": "client"
+}

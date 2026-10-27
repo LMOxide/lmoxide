@@ -1,0 +1,13 @@
+{
+  "id": "item/586951",
+  "kind": "token",
+  "template": 586951,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 100,
+      "amount": 10000
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,47 @@
+{
+  "id": "skill/special-delivery",
+  "name": "Special Delivery",
+  "client": {
+    "spell": 500476,
+    "stats": {
+      "EffectPackage": 513124,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 500476,
+            "Value": 750
+          }
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 10,
+            "Arg2": 6,
+            "EffectPackage": 513035,
+            "NanoTemplate": 504840
+          }
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 20,
+            "Arg2": 4,
+            "NanoTemplate": 504840
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pizza Delivery Man: Special Delivery",
+  "source": "client"
+}

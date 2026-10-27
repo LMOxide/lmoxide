@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-fortune-teller",
+  "lore": 2621,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Upgrade 3",
+  "title": "Novice Fortune Teller",
+  "text": "Get the third Fortune Teller upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/fortune-teller",
+  "n": 3,
+  "source": "client"
+}

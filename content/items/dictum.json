@@ -1,0 +1,17 @@
+{
+  "id": "item/dictum",
+  "name": "Dictum",
+  "kind": "projectile",
+  "template": 38996,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 36518
+      }
+    }
+  ],
+  "source": "client"
+}

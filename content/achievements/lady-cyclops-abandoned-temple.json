@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-cyclops-abandoned-temple",
+  "lore": 3914,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Abandoned Temple",
+  "title": "Lady Cyclops: Abandoned Temple",
+  "text": "Conquer the Abandoned Temple as Lady Cyclops.",
+  "points": 25,
+  "kind": "target",
+  "target": "Abandoned Temple",
+  "minifigure": "minifig/lady-cyclops",
+  "source": "client"
+}

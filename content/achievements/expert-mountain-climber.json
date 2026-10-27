@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-mountain-climber",
+  "lore": 2826,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Upgrade 7",
+  "title": "Expert Mountain Climber",
+  "text": "Get the seventh Mountain Climber upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/mountain-climber",
+  "n": 7,
+  "source": "client"
+}

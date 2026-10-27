@@ -1,0 +1,17 @@
+{
+  "id": "achievement/hot-dog-man-the-speed-freak",
+  "lore": 3910,
+  "parent": "achievement/hot-dog-man",
+  "client_name": "Hot Dog Man_Build 20 Speed Pads",
+  "title": "Hot Dog Man, the Speed Freak",
+  "text": "Build 20 Speed Pads as Hot Dog Man.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/hot-dog-man",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

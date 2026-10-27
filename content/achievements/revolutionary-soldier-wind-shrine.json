@@ -1,0 +1,13 @@
+{
+  "id": "achievement/revolutionary-soldier-wind-shrine",
+  "lore": 3565,
+  "parent": "achievement/revolutionary-soldier",
+  "client_name": "Revolutionary Soldier_Wind Shrine",
+  "title": "Revolutionary Soldier: Wind Shrine",
+  "text": "Conquer the Wind Shrine as Revolutionary Soldier.",
+  "points": 25,
+  "kind": "target",
+  "target": "Wind Shrine",
+  "minifigure": "minifig/revolutionary-soldier",
+  "source": "client"
+}

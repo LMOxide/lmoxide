@@ -1,0 +1,31 @@
+{
+  "id": "skill/bolt-330144",
+  "name": "Bolt",
+  "client": {
+    "spell": 330144,
+    "stats": {
+      "AISpellCategory": 1025,
+      "AttackRange": 700,
+      "EffectPackage": 103279,
+      "ItemDelay": 100,
+      "RechargeDelay": 100,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 38,
+            "ItemInstance": 330145,
+            "ProjectileType": 1,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

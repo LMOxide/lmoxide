@@ -1,0 +1,16 @@
+{
+  "id": "achievement/tomahawk-warrior-the-master-striker",
+  "lore": 3529,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Smash 10000 Monsters",
+  "title": "Tomahawk Warrior, the Master Striker",
+  "text": "Smash 10000 monsters as Tomahawk Warrior.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/tomahawk-warrior",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

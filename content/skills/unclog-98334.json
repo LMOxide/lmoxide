@@ -1,0 +1,12 @@
+{
+  "id": "skill/unclog-98334",
+  "name": "Unclog",
+  "client": {
+    "spell": 98334,
+    "stats": {
+      "TargetingMode": 5,
+      "TimeExist": 100
+    }
+  },
+  "source": "client"
+}

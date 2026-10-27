@@ -1,0 +1,18 @@
+{
+  "id": "item/bolt",
+  "name": "Bolt",
+  "kind": "projectile",
+  "template": 319431,
+  "effect_package": 338719,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 319432
+      }
+    }
+  ],
+  "source": "client"
+}

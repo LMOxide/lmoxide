@@ -1,0 +1,22 @@
+{
+  "id": "npc/space-mushroom-runner",
+  "name": "Space Mushroom Runner",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 387628
+  },
+  "level": 16,
+  "stats": {
+    "health": 1576
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/explode-321437",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

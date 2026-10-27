@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-dino-tracker",
+  "lore": 3087,
+  "parent": "achievement/dino-tracker",
+  "client_name": "Dino Tracker_Complete Any 5",
+  "title": "Heroic Dino Tracker",
+  "text": "Complete any 5 Dino Tracker achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/dino-tracker",
+  "n": 5,
+  "source": "client"
+}

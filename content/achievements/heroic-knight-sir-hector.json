@@ -1,0 +1,13 @@
+{
+  "id": "achievement/heroic-knight-sir-hector",
+  "lore": 2602,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Sir Hector",
+  "title": "Heroic Knight: Sir Hector",
+  "text": "Defeat Sir Hector as Heroic Knight.",
+  "points": 25,
+  "kind": "target",
+  "target": "Sir Hector",
+  "minifigure": "minifig/heroic-knight",
+  "source": "client"
+}

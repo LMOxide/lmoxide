@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-fairytaleprincess2-aoe",
+  "name": "main fairytaleprincess2 aoe",
+  "client": {
+    "spell": 503533,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 505081,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fairytale Princess: Frognado",
+  "source": "client"
+}

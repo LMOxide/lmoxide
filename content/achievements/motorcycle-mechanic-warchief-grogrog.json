@@ -1,0 +1,13 @@
+{
+  "id": "achievement/motorcycle-mechanic-warchief-grogrog",
+  "lore": 3398,
+  "parent": "achievement/motorcycle-mechanic",
+  "client_name": "Motorcycle Mechanic_Warchief Grogrog",
+  "title": "Motorcycle Mechanic: Warchief Grogrog",
+  "text": "Defeat Warchief Grogrog as Motorcycle Mechanic.",
+  "points": 25,
+  "kind": "target",
+  "target": "Warchief Grogrog",
+  "minifigure": "minifig/motorcycle-mechanic",
+  "source": "client"
+}

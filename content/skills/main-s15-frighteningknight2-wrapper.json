@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-s15-frighteningknight2-wrapper",
+  "name": "main s15 frighteningknight2 wrapper",
+  "client": {
+    "spell": 667298,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667299
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667301
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Frightening Knight: Sundering Smash",
+  "source": "client"
+}

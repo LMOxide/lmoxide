@@ -1,0 +1,30 @@
+{
+  "id": "world/wind-shrine",
+  "name": "Wind Shrine",
+  "playfield": 1650,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [235.19, 18.49, 258.62],
+    "rot": 4.71
+  },
+  "arrival_guid": 421720,
+  "arrival_from": {
+    "world/volcano-island": {
+      "pos": [240.5, 20.35, 237.28],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 421720,
+      "pos": [235.19, 18.49, 258.62],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

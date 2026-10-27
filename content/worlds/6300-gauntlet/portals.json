@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/6300/to-dinosaur-rise",
+      "pos": [498.71, 60.25, 258.74],
+      "window": 70,
+      "to": {
+        "world": "world/dinosaur-rise"
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "achievement/mountain-climber-the-smasher",
+  "lore": 2830,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Smash 500 Smashies",
+  "title": "Mountain Climber, the Smasher",
+  "text": "Smash 500 smashies as Mountain Climber.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 500],
+  "minifigure": "minifig/mountain-climber",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

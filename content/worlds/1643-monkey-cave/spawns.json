@@ -1,0 +1,596 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/1643/jungle-trickster",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [259.62, 18.45, 262.03],
+      "rot": -0.607,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-2",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-2",
+      "pos": [285.29, 18.11, 253.5],
+      "rot": 1.092,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-3",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-2",
+      "pos": [324.27, 18.61, 273.65],
+      "rot": 2.157,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/monkey-kong",
+      "name": "Monkey Kong",
+      "kind": "enemy",
+      "template": "npc/monkey-kong",
+      "pos": [329.04, 18.61, 273.95],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-4",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-2",
+      "pos": [334.06, 18.6, 272.1],
+      "rot": -2.03,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-5",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [268.77, 18.44, 268.82],
+      "rot": 1.389,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-6",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [266.53, 18.45, 266.66],
+      "rot": -2.776,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-7",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [327.6, 18.6, 254.17],
+      "rot": 1.76,
+      "patrol": [
+        [324.71, 18.6, 250.35],
+        [324.49, 18.6, 252.17],
+        [325.92, 18.6, 253.93],
+        [327.74, 18.6, 254.14],
+        [329.44, 18.6, 252.75],
+        [329.51, 18.6, 250.84],
+        [328.21, 18.6, 249.29],
+        [326.2, 18.6, 249.18]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-8",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [324.67, 18.6, 252.6],
+      "rot": 0.484,
+      "patrol": [
+        [329.44, 18.6, 252.75],
+        [329.51, 18.6, 250.84],
+        [328.21, 18.6, 249.29],
+        [326.2, 18.6, 249.18],
+        [324.71, 18.6, 250.35],
+        [324.49, 18.6, 252.17],
+        [325.92, 18.6, 253.93],
+        [327.74, 18.6, 254.14]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-9",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [326.08, 18.6, 249.22],
+      "rot": -1.212,
+      "patrol": [
+        [328.21, 18.6, 249.29],
+        [326.2, 18.6, 249.18],
+        [324.71, 18.6, 250.35],
+        [324.49, 18.6, 252.17],
+        [325.92, 18.6, 253.93],
+        [327.74, 18.6, 254.14],
+        [329.44, 18.6, 252.75],
+        [329.51, 18.6, 250.84]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-10",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster",
+      "pos": [329.58, 18.6, 251.06],
+      "rot": -2.919,
+      "patrol": [
+        [325.92, 18.6, 253.93],
+        [327.74, 18.6, 254.14],
+        [329.44, 18.6, 252.75],
+        [329.51, 18.6, 250.84],
+        [328.21, 18.6, 249.29],
+        [326.2, 18.6, 249.18],
+        [324.71, 18.6, 250.35],
+        [324.49, 18.6, 252.17]
+      ],
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/combat-dummy",
+      "name": "Combat Dummy",
+      "kind": "trigger",
+      "template": "npc/combat-dummy",
+      "pos": [288.75, 18.44, 256.48],
+      "rot": -2.861,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-cinematic-rescue-island-warrior",
+      "name": "XX__Cinematic Rescue Island Warrior",
+      "kind": "trigger",
+      "template": "npc/xx-cinematic-rescue-island-warrior",
+      "pos": [333.62, 18.62, 277.26],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-11",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [292.7, 18.45, 246.99],
+      "rot": -1.523,
+      "appeared_at": 323.0829753,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-12",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [290.74, 18.47, 250.43],
+      "rot": -1.957,
+      "appeared_at": 323.0843516,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-13",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [284.67, 17.85, 248.78],
+      "rot": 1.236,
+      "appeared_at": 323.0853825,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-14",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [285.16, 17.89, 244.63],
+      "rot": 1.236,
+      "appeared_at": 323.0863552,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-15",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [318.84, 18.61, 269.45],
+      "rot": 1.551,
+      "appeared_at": 325.9185497,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-16",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [322.17, 18.6, 264.71],
+      "rot": 1.236,
+      "appeared_at": 325.919537,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/jungle-trickster-17",
+      "name": "Jungle Trickster",
+      "kind": "enemy",
+      "template": "npc/jungle-trickster-3",
+      "pos": [340.37, 18.62, 271.98],
+      "rot": -1.724,
+      "appeared_at": 325.9205401,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [244.23, 18.0, 248.95],
+      "rot": 0.361,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-2",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [242.84, 17.0, 253.7],
+      "rot": 1.415,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-tiki-statue",
+      "name": "XX_Tiki Statue",
+      "kind": "smashable",
+      "template": "object/xx-tiki-statue-2",
+      "pos": [277.89, 18.05, 255.66],
+      "rot": 2.122,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-3",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [285.14, 18.32, 259.49],
+      "rot": 0.528,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [292.67, 18.46, 250.37],
+      "rot": 1.468,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-4",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [287.63, 17.96, 240.85],
+      "rot": -2.433,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-5",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [268.05, 18.45, 255.59],
+      "rot": -2.944,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-6",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [291.93, 18.45, 254.04],
+      "rot": 0.735,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-7",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [258.35, 18.45, 263.24],
+      "rot": -3.082,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-tiki-statue-2",
+      "name": "XX_Tiki Statue",
+      "kind": "smashable",
+      "template": "object/xx-tiki-statue-2",
+      "pos": [275.34, 18.45, 262.76],
+      "rot": 0.957,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-4",
+      "pos": [261.76, 18.46, 263.62],
+      "rot": 0.1,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-8",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [282.5, 18.45, 262.1],
+      "rot": 0.361,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-9",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [269.28, 18.45, 262.53],
+      "rot": -1.957,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-large-chest",
+      "name": "XX_Large Chest",
+      "kind": "smashable",
+      "template": "object/xx-large-chest",
+      "pos": [305.39, 17.88, 242.43],
+      "rot": 2.087,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-tiki-statue-3",
+      "name": "XX_Tiki Statue",
+      "kind": "smashable",
+      "template": "object/xx-tiki-statue-2",
+      "pos": [316.91, 18.51, 256.89],
+      "rot": 0.463,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-4",
+      "pos": [342.91, 18.47, 274.94],
+      "rot": -1.524,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-bonfire",
+      "name": "XX_Bonfire",
+      "kind": "smashable",
+      "template": "object/xx-bonfire",
+      "pos": [340.78, 18.6, 265.58],
+      "rot": 0.0,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [342.07, 18.63, 273.17],
+      "rot": 2.147,
+      "overrides": {
+        "render": {
+          "cars_group": 3
+        }
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-large-chest-2",
+      "name": "XX_Large Chest",
+      "kind": "smashable",
+      "template": "object/xx-large-chest",
+      "pos": [336.78, 18.24, 280.5],
+      "rot": 0.506,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-10",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [324.5, 18.54, 275.97],
+      "rot": -3.082,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-banana-crate-11",
+      "name": "XX_Banana Crate",
+      "kind": "smashable",
+      "template": "object/xx-banana-crate",
+      "pos": [329.11, 18.62, 259.03],
+      "rot": -2.104,
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/exit-particle-1",
+      "name": "exit particle 1",
+      "kind": "scenery",
+      "template": "object/exit-particle-1",
+      "pos": [344.63, 19.22, 281.36],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 634360,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1643/exit-particle-2",
+      "name": "exit particle 2",
+      "kind": "scenery",
+      "template": "object/exit-particle-2",
+      "pos": [343.59, 19.22, 283.92],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 641956,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1643/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [340.81, 19.59, 265.57],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 444246,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1643/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [344.49, 18.91, 281.79],
+      "rot": [0.0, -0.3339, 0.0, 0.9426],
+      "scale": 3.0,
+      "client": {
+        "guid": 634358,
+        "tag": "----",
+        "script_group": 8,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1643/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [241.79, 20.48, 231.73],
+      "rot": [0.0, -0.6874, 0.0, 0.7263],
+      "scale": 3.0,
+      "client": {
+        "guid": 594988,
+        "tag": "----",
+        "script_group": 16,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1643/empty-monsterdata-1x1x1-3",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [344.49, 18.91, 281.79],
+      "rot": -0.671,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": true
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/empty-monsterdata-1x1x1-4",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "interactable",
+      "template": "object/empty-monsterdata-1x1x1-2",
+      "pos": [241.79, 20.48, 231.73],
+      "rot": -1.523,
+      "client": {
+        "cars_group": 1,
+        "dynel_type": 51016,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-invisible",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [340.81, 19.59, 265.57],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/xx-invisible-2",
+      "name": "XX_Invisible",
+      "kind": "interactable",
+      "template": "object/xx-invisible",
+      "pos": [343.59, 19.22, 283.92],
+      "rot": 0.0,
+      "client": {
+        "cars_group": 5,
+        "dynel_type": 51320,
+        "hidden": false
+      },
+      "source": "live"
+    },
+    {
+      "id": "spawn/1643/island-warrior",
+      "name": "Island Warrior",
+      "kind": "actor",
+      "pos": [329.02, 19.54, 278.49],
+      "rot": 2.954,
+      "anchor": "Cine_IslandWarriorSpawn1",
+      "client": {
+        "item_template": 618094,
+        "ai_point": "Cine_IslandWarriorSpawn1",
+        "actor_alias": "IslandWarrior",
+        "cinematic": true
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/1643/swashbuckler",
+      "name": "Swashbuckler",
+      "kind": "actor",
+      "pos": [329.85, 18.71, 272.54],
+      "rot": 0.829,
+      "anchor": "Cine_Swashbuckler1",
+      "client": {
+        "item_template": 234400,
+        "ai_point": "Cine_Swashbuckler1",
+        "actor_alias": "Swashbuckler",
+        "cinematic": true
+      },
+      "source": "client"
+    }
+  ]
+}

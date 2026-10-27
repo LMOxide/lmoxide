@@ -1,0 +1,31 @@
+{
+  "id": "skill/satyr-shaman-fire-ranged-castable",
+  "name": "satyr shaman fire ranged castable",
+  "client": {
+    "spell": 95024,
+    "stats": {
+      "AISpellCategory": 1025,
+      "AttackRange": 1000,
+      "EffectPackage": 153422,
+      "ItemDelay": 36,
+      "RechargeDelay": 164,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 38,
+            "ItemInstance": 95031,
+            "ProjectileType": 2,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

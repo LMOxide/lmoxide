@@ -1,0 +1,16 @@
+{
+  "id": "item/jester-head",
+  "name": "Jester Head",
+  "kind": "part",
+  "template": 576189,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11201,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/jester",
+  "location": "Head",
+  "source": "client"
+}

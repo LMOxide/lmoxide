@@ -1,0 +1,22 @@
+{
+  "id": "buff/upgrade-harden-up",
+  "name": "Upgrade: Harden Up",
+  "nano": 447636,
+  "effects": [
+    {
+      "proc": {
+        "on": "normal_attack",
+        "every": 3,
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-harden-up",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

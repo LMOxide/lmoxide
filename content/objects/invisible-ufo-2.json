@@ -1,0 +1,10 @@
+{
+  "id": "object/invisible-ufo-2",
+  "name": "invisible_ufo 2",
+  "kind": "scenery",
+  "render": {
+    "look": "invisible_ufo 2",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

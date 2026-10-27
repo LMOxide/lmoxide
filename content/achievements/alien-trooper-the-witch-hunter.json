@@ -1,0 +1,17 @@
+{
+  "id": "achievement/alien-trooper-the-witch-hunter",
+  "lore": 3774,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Smash 50 Witches",
+  "title": "Alien Trooper, the Witch Hunter",
+  "text": "Smash 50 Witches as Alien Trooper.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/alien-trooper",
+  "counts": {
+    "match": "Witch",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

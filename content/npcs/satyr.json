@@ -1,0 +1,22 @@
+{
+  "id": "npc/satyr",
+  "name": "Satyr",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 90185
+  },
+  "level": 18,
+  "stats": {
+    "health": 2100
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/stab",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

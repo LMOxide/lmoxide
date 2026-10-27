@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-two-eyed-willy",
+  "lore": 5285,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Two-Eyed Willy",
+  "title": "Shark Suit Guy: Two-Eyed Willy",
+  "text": "Defeat Two-Eyed Willy as Shark Suit Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Two-Eyed Willy",
+  "minifigure": "minifig/shark-suit-guy",
+  "source": "client"
+}

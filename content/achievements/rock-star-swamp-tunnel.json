@@ -1,0 +1,13 @@
+{
+  "id": "achievement/rock-star-swamp-tunnel",
+  "lore": 3226,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Swamp Tunnel",
+  "title": "Rock Star: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Rock Star.",
+  "points": 50,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/rock-star",
+  "source": "client"
+}

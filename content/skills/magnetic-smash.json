@@ -1,0 +1,29 @@
+{
+  "id": "skill/magnetic-smash",
+  "name": "Magnetic Smash",
+  "client": {
+    "spell": 357889,
+    "stats": {
+      "EffectPackage": 362828,
+      "ItemDelay": 45
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 358626,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Mr. Good and Evil: Evil Potion",
+  "source": "client"
+}

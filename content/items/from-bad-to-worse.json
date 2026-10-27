@@ -1,0 +1,17 @@
+{
+  "id": "item/from-bad-to-worse",
+  "name": "From Bad to Worse",
+  "kind": "projectile",
+  "template": 222206,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 222207
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-sarcophagus-3",
+  "name": "XX_Sarcophagus",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 319125,
+    "template": 319126,
+    "look": "lego_sarcophagus_a_smashie",
+    "cars_group": 5
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

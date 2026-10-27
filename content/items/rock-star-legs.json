@@ -1,0 +1,16 @@
+{
+  "id": "item/rock-star-legs",
+  "name": "Rock Star Legs",
+  "kind": "part",
+  "template": 576106,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31211,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/rock-star",
+  "location": "Legs",
+  "source": "client"
+}

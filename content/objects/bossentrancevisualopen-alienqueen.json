@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-alienqueen",
+  "name": "BossEntranceVisualOpen_AlienQueen",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_AlienQueen",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

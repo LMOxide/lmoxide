@@ -1,0 +1,26 @@
+{
+  "id": "skill/boss-hades-attackright-normal-wrapper",
+  "name": "boss hades attackright normal wrapper",
+  "client": {
+    "spell": 58001,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 100,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 56587,
+            "Radius": 5
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,33 @@
+{
+  "id": "skill/myth-pd-armory-champ-ogre-lightningblast-melee-castable",
+  "name": "myth pd armory champ ogre lightningblast melee castable",
+  "client": {
+    "spell": 491322,
+    "stats": {
+      "AIPowerrating": 15,
+      "AISpellCategory": 1,
+      "AttackRange": 100,
+      "EffectPackage": 161759,
+      "ItemDelay": 150,
+      "RechargeDelay": 100,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 90,
+            "AngleStart": -45,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 491327,
+            "Radius": 4
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "item/dart",
+  "name": "Dart",
+  "kind": "projectile",
+  "template": 194219,
+  "effect_package": 236788,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 194220
+      }
+    }
+  ],
+  "source": "client"
+}

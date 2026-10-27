@@ -1,0 +1,33 @@
+{
+  "id": "skill/for-rome-318169",
+  "name": "For Rome!",
+  "client": {
+    "spell": 318169,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 365804
+          }
+        },
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Distance": 1,
+            "PowerRating": 9001,
+            "Speed": 15
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

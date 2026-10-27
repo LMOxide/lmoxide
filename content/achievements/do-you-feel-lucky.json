@@ -1,0 +1,14 @@
+{
+  "id": "achievement/do-you-feel-lucky",
+  "lore": 750,
+  "parent": "achievement/treasure-chaser",
+  "client_name": "Pirate_Exploration_Find Gunslinger Joe",
+  "title": "Do You Feel Lucky?",
+  "text": "Find Gunslinger Joe in the Pirate World.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/isle-of-yarr",
+  "find": "Achievement_Gunslinger",
+  "place": "Gunslinger Joe",
+  "source": "client"
+}

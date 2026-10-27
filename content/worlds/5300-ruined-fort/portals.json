@@ -1,0 +1,31 @@
+{
+  "portals": [
+    {
+      "id": "portal/5300/to-kingdom",
+      "pos": [147.93, 43.03, 100.26],
+      "window": 29,
+      "to": {
+        "world": "world/kingdom"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/5300/to-kingdom-2",
+      "pos": [389.09, 53.72, 318.75],
+      "window": 29,
+      "to": {
+        "world": "world/kingdom"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/5300/to-enchanted-forest",
+      "pos": [388.87, 53.3, 318.86],
+      "window": 20,
+      "to": {
+        "world": "world/enchanted-forest"
+      },
+      "source": "client"
+    }
+  ]
+}

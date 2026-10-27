@@ -1,0 +1,10 @@
+{
+  "id": "object/evil-fort-wall-trap-4x4-medieval-interactable",
+  "name": "evil_fort_wall_trap_4x4_medieval_interactable",
+  "kind": "interactable",
+  "render": {
+    "look": "evil_fort_wall_trap_4x4_medieval_interactable",
+    "visual": [1010201, 512647]
+  },
+  "source": "client"
+}

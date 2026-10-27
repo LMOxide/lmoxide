@@ -1,0 +1,13 @@
+{
+  "id": "achievement/egyptian-warrior-the-lost-champion",
+  "lore": 4026,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Lost Creations_Get to level 15",
+  "title": "Egyptian Warrior, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Egyptian Warrior.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/egyptian-warrior",
+  "n": 15,
+  "source": "client"
+}

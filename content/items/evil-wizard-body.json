@@ -1,0 +1,16 @@
+{
+  "id": "item/evil-wizard-body",
+  "name": "Evil Wizard Body",
+  "kind": "part",
+  "template": 576128,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21306,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/evil-wizard",
+  "location": "Torso",
+  "source": "client"
+}

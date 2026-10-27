@@ -1,0 +1,17 @@
+{
+  "id": "item/back-to-the-basics",
+  "name": "Back to the Basics",
+  "kind": "projectile",
+  "template": 318405,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 318418
+      }
+    }
+  ],
+  "source": "client"
+}

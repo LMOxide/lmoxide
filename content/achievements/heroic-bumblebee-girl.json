@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-bumblebee-girl",
+  "lore": 3612,
+  "parent": "achievement/bumblebee-girl",
+  "client_name": "Bumblebee Girl_Complete Any 5",
+  "title": "Heroic Bumblebee Girl",
+  "text": "Complete any 5 Bumblebee Girl achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/bumblebee-girl",
+  "n": 5,
+  "source": "client"
+}

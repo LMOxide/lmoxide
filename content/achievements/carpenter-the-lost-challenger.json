@@ -1,0 +1,13 @@
+{
+  "id": "achievement/carpenter-the-lost-challenger",
+  "lore": 3786,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_Lost Creations_Get to Level 5",
+  "title": "Carpenter, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Carpenter.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/carpenter",
+  "n": 5,
+  "source": "client"
+}

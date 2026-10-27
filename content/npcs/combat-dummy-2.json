@@ -1,0 +1,17 @@
+{
+  "id": "npc/combat-dummy-2",
+  "name": "Combat Dummy",
+  "kind": "npc",
+  "render": {
+    "monster_data": 238248,
+    "npc_template": 1067,
+    "look": "raft_c_lego",
+    "cars_group": 5
+  },
+  "level": 12,
+  "stats": {
+    "health": 75,
+    "life_factor": 0.1
+  },
+  "source": "client"
+}

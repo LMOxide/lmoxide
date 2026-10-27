@@ -1,0 +1,16 @@
+{
+  "id": "achievement/hollywood-starlet-the-builder",
+  "lore": 2592,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Build 100 Buildies",
+  "title": "Hollywood Starlet, the Builder",
+  "text": "Build 100 buildies as Hollywood Starlet.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/hollywood-starlet",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

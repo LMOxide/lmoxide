@@ -1,0 +1,58 @@
+{
+  "id": "skill/rapid-fire",
+  "name": "Rapid Fire",
+  "client": {
+    "spell": 357872,
+    "stats": {
+      "EffectPackage": 365705,
+      "ItemDelay": 28,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 20
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 1,
+            "ItemInstance": 360320,
+            "ProjectileType": 1,
+            "Speed": 2000
+          },
+          "criteria": [
+            [0, 448001, 101]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 1,
+            "ItemInstance": 360320,
+            "MaxRicochets": 2,
+            "ProjectileType": 1,
+            "Speed": 2500
+          },
+          "criteria": [
+            [0, 448001, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Evil Mech: Rapid Fire",
+  "range": 15.0,
+  "projectile": {
+    "item": 360320,
+    "speed": 20.0,
+    "kind": 1,
+    "attractor": 1,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

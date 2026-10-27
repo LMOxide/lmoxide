@@ -1,0 +1,42 @@
+{
+  "id": "skill/main-s14-banshee2-selfsnare",
+  "name": "main s14 banshee2 selfsnare",
+  "client": {
+    "spell": 642225,
+    "stats": {
+      "EffectPackage": 642867,
+      "TimeExist": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.699999988079071
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 359,
+            "Value": 642849
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

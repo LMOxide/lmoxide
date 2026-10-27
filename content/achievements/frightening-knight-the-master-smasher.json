@@ -1,0 +1,16 @@
+{
+  "id": "achievement/frightening-knight-the-master-smasher",
+  "lore": 5198,
+  "parent": "achievement/frightening-knight",
+  "client_name": "Frightening Knight_Smash 5000 Smashies",
+  "title": "Frightening Knight, the Master Smasher",
+  "text": "Smash 5000 smashies as Frightening Knight.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/frightening-knight",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

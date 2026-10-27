@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-astronaut",
+  "lore": 5089,
+  "parent": "achievement/astronaut",
+  "client_name": "Astronaut_Complete Any 10",
+  "title": "Legendary Astronaut",
+  "text": "Complete any 11 Astronaut achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/astronaut",
+  "n": 11,
+  "source": "client"
+}

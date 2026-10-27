@@ -1,0 +1,22 @@
+{
+  "id": "npc/hound",
+  "name": "Hound",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 94791
+  },
+  "level": 18,
+  "stats": {
+    "health": 2100
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/bite",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

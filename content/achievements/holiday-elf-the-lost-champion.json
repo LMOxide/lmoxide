@@ -1,0 +1,13 @@
+{
+  "id": "achievement/holiday-elf-the-lost-champion",
+  "lore": 2971,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Lost Creations_Get to Level 15",
+  "title": "Holiday Elf, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Holiday Elf.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/holiday-elf",
+  "n": 15,
+  "source": "client"
+}

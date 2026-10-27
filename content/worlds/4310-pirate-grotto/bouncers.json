@@ -1,0 +1,21 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/4310/jump-pad-mortar-a-buildie",
+      "name": "jump_pad_mortar_a_buildie",
+      "template": "object/jump-pad-2",
+      "pos": [376.58, 37.52, 246.25],
+      "rot": [0.0, 1.0, 0.0, 0.0022],
+      "target": [406.25, 55.75, 249.5],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 186145,
+        "tag": "JUMP",
+        "script_group": 15,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/hollywood-starlet-legs",
+  "name": "Hollywood Starlet Legs",
+  "kind": "part",
+  "template": 483699,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30908,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/hollywood-starlet",
+  "location": "Legs",
+  "source": "client"
+}

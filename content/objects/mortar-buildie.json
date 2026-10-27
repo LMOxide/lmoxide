@@ -1,0 +1,31 @@
+{
+  "id": "object/mortar-buildie",
+  "name": "Mortar Buildie",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 212668,
+    "template": 222213,
+    "look": "jump_pad_mortar_a_buildie",
+    "cars_group": 1,
+    "visual": [1010201, 0]
+  },
+  "level": 1,
+  "health": 20,
+  "build": {
+    "points": 1600,
+    "built_visual": 212668
+  },
+  "states": ["unbuilt", "built"],
+  "client": {
+    "display_name": "<remoteformat id=\"222213\" category=\"50200\" key=\"pt6HN?&quot;tDP6wffhyxZ&#36;z\" knubot=\"0\"  ></remoteformat>",
+    "dynel_type": 51321,
+    "loot_table": 203,
+    "particles": [
+      [160433, 0, 0, 0, 0]
+    ],
+    "bounds": [-0.7505627, -0.034888078, -0.79999876, 0.99999875, 1.4084114, 0.9094294],
+    "destructible": [1.0, 0],
+    "tail": [0, 0.10000000149011612, 0.0, 0, 1.0]
+  },
+  "source": "client"
+}

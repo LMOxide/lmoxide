@@ -1,0 +1,19 @@
+{
+  "id": "npc/cannon-2",
+  "name": "Cannon",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 195759,
+    "npc_template": 856,
+    "look": "cannon_turret",
+    "cars_group": 3
+  },
+  "level": 3,
+  "stats": {
+    "health": 114,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

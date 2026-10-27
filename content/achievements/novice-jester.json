@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-jester",
+  "lore": 3148,
+  "parent": "achievement/jester",
+  "client_name": "Jester_Upgrade 3",
+  "title": "Novice Jester",
+  "text": "Get the third Jester upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/jester",
+  "n": 3,
+  "source": "client"
+}

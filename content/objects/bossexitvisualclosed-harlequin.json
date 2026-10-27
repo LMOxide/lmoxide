@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-harlequin",
+  "name": "BossExitVisualClosed_Harlequin",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Harlequin",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

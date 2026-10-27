@@ -1,0 +1,15 @@
+{
+  "id": "world/pirate-beach-art",
+  "name": "Pirate Beach - Art",
+  "playfield": 4601,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [83.0, 71.64, 109.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

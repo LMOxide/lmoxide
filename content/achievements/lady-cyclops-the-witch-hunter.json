@@ -1,0 +1,17 @@
+{
+  "id": "achievement/lady-cyclops-the-witch-hunter",
+  "lore": 3927,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_Smash 50 Witches",
+  "title": "Lady Cyclops, the Witch Hunter",
+  "text": "Smash 50 Witches as Lady Cyclops.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/lady-cyclops",
+  "counts": {
+    "match": "Witch",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/module-wall-portcullis-door-a-myth-interactable",
+  "name": "module_wall_portcullis_door_a_myth_interactable",
+  "kind": "interactable",
+  "render": {
+    "look": "module_wall_portcullis_door_a_myth_interactable",
+    "visual": [1010201, 483508]
+  },
+  "source": "client"
+}

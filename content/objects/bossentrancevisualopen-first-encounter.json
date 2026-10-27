@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualopen-first-encounter",
+  "name": "BossEntranceVisualOpen_First_Encounter",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualOpen_First_Encounter",
+    "visual": [1010030, 155858]
+  },
+  "source": "client"
+}

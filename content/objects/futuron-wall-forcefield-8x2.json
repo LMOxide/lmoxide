@@ -1,0 +1,10 @@
+{
+  "id": "object/futuron-wall-forcefield-8x2",
+  "name": "futuron_wall_forcefield_8x2",
+  "kind": "scenery",
+  "render": {
+    "look": "futuron_wall_forcefield_8x2",
+    "visual": [1010030, 389644]
+  },
+  "source": "client"
+}

@@ -1,0 +1,76 @@
+{
+  "id": "skill/oi",
+  "name": "Oi!",
+  "client": {
+    "spell": 357870,
+    "stats": {
+      "ChannelingInterval": 25,
+      "ChannelingTicks": 20,
+      "EffectPackage": 361428,
+      "ItemDelay": 1,
+      "MoreFlags": 1610614784,
+      "RechargeDelay": 1,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 359153,
+            "Radius": 5
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 359153,
+            "Radius": 5
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 438837
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 446818
+          },
+          "criteria": [
+            [0, 446836, 91]
+          ]
+        }
+      ],
+      "36": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 464655
+          },
+          "criteria": [
+            [0, 446836, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Constable: Oi!",
+  "source": "client"
+}

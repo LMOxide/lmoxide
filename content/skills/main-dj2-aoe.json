@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-dj2-aoe",
+  "name": "main dj2 aoe",
+  "client": {
+    "spell": 3680,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 600598,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "None: Bass Drop",
+  "source": "client"
+}

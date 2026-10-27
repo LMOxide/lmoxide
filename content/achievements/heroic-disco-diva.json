@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-disco-diva",
+  "lore": 3809,
+  "parent": "achievement/disco-diva",
+  "client_name": "Disco Diva_Complete Any 5",
+  "title": "Heroic Disco Diva",
+  "text": "Complete any 5 Disco Diva achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/disco-diva",
+  "n": 5,
+  "source": "client"
+}

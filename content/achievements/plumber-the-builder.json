@@ -1,0 +1,16 @@
+{
+  "id": "achievement/plumber-the-builder",
+  "lore": 2524,
+  "parent": "achievement/plumber",
+  "client_name": "Plumber_Build 100 Buildies",
+  "title": "Plumber, the Builder",
+  "text": "Build 100 buildies as Plumber.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/plumber",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

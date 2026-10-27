@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-target-s2m",
+  "name": "jump_target_s2m",
+  "kind": "scenery",
+  "render": {
+    "look": "jump_target_s2m",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

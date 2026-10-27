@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spider-lady-the-lost-champion",
+  "lore": 4482,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Lost Creations_Get to level 15",
+  "title": "Spider Lady, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Spider Lady.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/spider-lady",
+  "n": 15,
+  "source": "client"
+}

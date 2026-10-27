@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skeleton-guy-the-lost-champion",
+  "lore": 4499,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Lost Creations_Get to level 15",
+  "title": "Skeleton Guy, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Skeleton Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/skeleton-guy",
+  "n": 15,
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "achievement/skitter-scatter",
+  "lore": 2374,
+  "parent": "achievement/a-pirate-life-for-me",
+  "client_name": "Pirate_Combat_Champion_The Weaver",
+  "title": "Skitter Scatter!",
+  "text": "Defeat The Weaver in the Pirate World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "The Weaver",
+  "source": "client"
+}

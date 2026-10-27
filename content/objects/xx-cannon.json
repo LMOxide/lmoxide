@@ -1,0 +1,11 @@
+{
+  "id": "object/xx-cannon",
+  "name": "XX_Cannon",
+  "kind": "scenery",
+  "render": {
+    "template": 239555,
+    "look": "XX_Cannon",
+    "visual": [1010030, 197802]
+  },
+  "source": "demo"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "world/shadow-centurion-base-art",
+  "name": "Shadow Centurion Base - Art",
+  "playfield": 3311,
+  "kind": "other",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [211.5, 36.2, 235.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

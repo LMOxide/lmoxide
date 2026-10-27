@@ -1,0 +1,16 @@
+{
+  "id": "achievement/tribal-woman-the-master-builder",
+  "lore": 5310,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Build 1000 buildies",
+  "title": "Tribal Woman, the Master Builder",
+  "text": "Build 1000 buildies as Tribal Woman.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/tribal-woman",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

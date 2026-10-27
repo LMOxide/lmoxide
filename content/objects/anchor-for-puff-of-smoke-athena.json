@@ -1,0 +1,10 @@
+{
+  "id": "object/anchor-for-puff-of-smoke-athena",
+  "name": "anchor for puff of smoke athena",
+  "kind": "scenery",
+  "render": {
+    "look": "anchor for puff of smoke athena",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

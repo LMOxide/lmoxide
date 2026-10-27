@@ -1,0 +1,16 @@
+{
+  "id": "item/tribal-woman-legs",
+  "name": "Tribal Woman Legs",
+  "kind": "part",
+  "template": 668643,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31515,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/tribal-woman",
+  "location": "Legs",
+  "source": "client"
+}

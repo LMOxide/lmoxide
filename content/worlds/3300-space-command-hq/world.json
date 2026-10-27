@@ -1,0 +1,60 @@
+{
+  "id": "world/space-command-hq",
+  "name": "Space Command HQ",
+  "playfield": 3300,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [32.82, 28.71, 67.96],
+    "rot": 4.857
+  },
+  "arrival_guid": 50823,
+  "arrival_from": {
+    "world/space-colony": {
+      "pos": [289.39, 39.38, 238.89],
+      "rot": 4.189
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 50823,
+      "pos": [32.82, 28.71, 67.96],
+      "rot": 4.857,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Platform",
+      "guid": 367787,
+      "pos": [127.38, 28.56, 76.15],
+      "rot": 1.572,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 367788,
+      "pos": [223.6, 27.56, 178.21],
+      "rot": 4.794,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_TechLab",
+      "guid": 367789,
+      "pos": [191.88, 24.38, 132.22],
+      "rot": 1.743,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/grandma-head",
+  "name": "Grandma Head",
+  "kind": "part",
+  "template": 483552,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11106,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/grandma",
+  "location": "Head",
+  "source": "client"
+}

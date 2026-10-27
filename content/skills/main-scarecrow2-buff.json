@@ -1,0 +1,62 @@
+{
+  "id": "skill/main-scarecrow2-buff",
+  "name": "main scarecrow2 buff",
+  "client": {
+    "spell": 359101,
+    "stats": {
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 359027,
+            "ProjectileType": 3,
+            "Speed": 275
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "DisplaceMentX": 200,
+            "ItemInstance": 359027,
+            "ProjectileType": 3,
+            "RotY": 180,
+            "Speed": 250
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "DisplaceMentX": 300,
+            "ItemInstance": 359027,
+            "ProjectileType": 3,
+            "RotY": 270,
+            "Speed": 150
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "DisplaceMentX": 400,
+            "ItemInstance": 359027,
+            "ProjectileType": 3,
+            "RotY": 90,
+            "Speed": 75
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Scarecrow: Flock of Birds",
+  "source": "client"
+}

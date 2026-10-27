@@ -1,0 +1,23 @@
+{
+  "id": "achievement/iron-will-of-the-gods",
+  "lore": 867,
+  "parent": "achievement/mythology-combat",
+  "client_name": "Mythology_Combat_Defeat Mythology World Champions",
+  "title": "Iron Will of the Gods",
+  "text": "Defeat all Mythology World Champions.",
+  "points": 100,
+  "kind": "all",
+  "stars": 500,
+  "children": [
+    "achievement/light-as-a-feather",
+    "achievement/unforgiven",
+    "achievement/cold-case",
+    "achievement/homerun",
+    "achievement/ironfisted",
+    "achievement/lesser-of-two-evils",
+    "achievement/eternal-winter",
+    "achievement/smashing-victory",
+    "achievement/the-risen-one"
+  ],
+  "source": "client"
+}

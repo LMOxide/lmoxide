@@ -1,0 +1,22 @@
+{
+  "portals": [
+    {
+      "id": "portal/4620/to-isle-of-yarr",
+      "pos": [227.23, 43.21, 141.59],
+      "window": 23,
+      "to": {
+        "world": "world/isle-of-yarr"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4620/to-pirate-trials",
+      "pos": [230.71, 40.51, 187.88],
+      "window": 36,
+      "to": {
+        "world": "world/pirate-trials"
+      },
+      "source": "client"
+    }
+  ]
+}

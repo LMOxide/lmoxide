@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-goblin2-damage-impact",
+  "name": "main goblin2 damage impact",
+  "client": {
+    "spell": 550947,
+    "stats": {
+      "EffectPackage": 550990,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

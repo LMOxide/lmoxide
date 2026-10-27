@@ -1,0 +1,25 @@
+{
+  "id": "skill/i-ll-fix-this-318206",
+  "name": "I'll fix this!",
+  "client": {
+    "spell": 318206,
+    "stats": {
+      "EffectPackage": 320591,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

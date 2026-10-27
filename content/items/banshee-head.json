@@ -1,0 +1,16 @@
+{
+  "id": "item/banshee-head",
+  "name": "Banshee Head",
+  "kind": "part",
+  "template": 662046,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11401,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/banshee",
+  "location": "Head",
+  "source": "client"
+}

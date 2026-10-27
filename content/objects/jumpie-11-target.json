@@ -1,0 +1,10 @@
+{
+  "id": "object/jumpie-11-target",
+  "name": "jumpie_11_target",
+  "kind": "scenery",
+  "render": {
+    "look": "jumpie_11_target",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

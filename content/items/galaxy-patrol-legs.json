@@ -1,0 +1,16 @@
+{
+  "id": "item/galaxy-patrol-legs",
+  "name": "Galaxy Patrol Legs",
+  "kind": "part",
+  "template": 483712,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30708,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/galaxy-patrol",
+  "location": "Legs",
+  "source": "client"
+}

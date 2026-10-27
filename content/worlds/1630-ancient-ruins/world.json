@@ -1,0 +1,24 @@
+{
+  "id": "world/ancient-ruins",
+  "name": "Ancient Ruins",
+  "playfield": 1630,
+  "kind": "pocket",
+  "region": "region/mythology-world",
+  "arrival": {
+    "pos": [131.84, 72.0, 139.77],
+    "rot": 4.71
+  },
+  "arrival_guid": 418291,
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 418291,
+      "pos": [131.84, 72.0, 139.77],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

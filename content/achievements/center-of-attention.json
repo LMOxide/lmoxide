@@ -1,0 +1,14 @@
+{
+  "id": "achievement/center-of-attention",
+  "lore": 756,
+  "parent": "achievement/wayfarer",
+  "client_name": "Medieval_Exploration_Center of Attention",
+  "title": "Center of Attention",
+  "text": "Stand in the middle of the training grounds.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/kingdom",
+  "find": "Achievement_CenterofAttention",
+  "place": "Middle of the training grounds",
+  "source": "client"
+}

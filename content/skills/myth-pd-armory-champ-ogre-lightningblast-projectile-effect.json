@@ -1,0 +1,24 @@
+{
+  "id": "skill/myth-pd-armory-champ-ogre-lightningblast-projectile-effect",
+  "name": "myth pd armory champ ogre lightningblast projectile effect",
+  "client": {
+    "spell": 491345,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/hun-warrior-head",
+  "name": "Hun Warrior Head",
+  "kind": "part",
+  "template": 576185,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11205,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/hun-warrior",
+  "location": "Head",
+  "source": "client"
+}

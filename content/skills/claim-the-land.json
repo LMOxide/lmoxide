@@ -1,0 +1,36 @@
+{
+  "id": "skill/claim-the-land",
+  "name": "Claim the Land",
+  "client": {
+    "spell": 663937,
+    "stats": {
+      "EffectPackage": 668635,
+      "MoreFlags": 536870912,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 20,
+            "Arg2": 25,
+            "NanoTemplate": 668612
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 663937,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Astronaut: Claim the Land",
+  "source": "client"
+}

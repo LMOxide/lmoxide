@@ -1,0 +1,12 @@
+{
+  "id": "skill/skyward-smash",
+  "name": "Skyward Smash",
+  "client": {
+    "spell": 595406,
+    "stats": {
+      "LuaScriptID": 3821
+    }
+  },
+  "minifigure": "Evil Dwarf: Skyward Smash",
+  "source": "client"
+}

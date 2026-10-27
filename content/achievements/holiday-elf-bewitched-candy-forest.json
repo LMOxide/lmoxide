@@ -1,0 +1,13 @@
+{
+  "id": "achievement/holiday-elf-bewitched-candy-forest",
+  "lore": 2955,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Bewitched Candy Forest",
+  "title": "Holiday Elf: Bewitched Candy Forest",
+  "text": "Conquer the Bewitched Candy Forest as Holiday Elf.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bewitched Candy Forest",
+  "minifigure": "minifig/holiday-elf",
+  "source": "client"
+}

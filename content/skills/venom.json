@@ -1,0 +1,30 @@
+{
+  "id": "skill/venom",
+  "name": "Venom",
+  "client": {
+    "spell": 342476,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 800,
+      "ItemDelay": 100,
+      "RechargeDelay": 100,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 1500,
+            "ItemInstance": 342477,
+            "ProjectileType": 1,
+            "Speed": 900
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

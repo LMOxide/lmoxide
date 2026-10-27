@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-yeti",
+  "lore": 3053,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Complete Any 5",
+  "title": "Heroic Yeti",
+  "text": "Complete any 5 Yeti achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/yeti",
+  "n": 5,
+  "source": "client"
+}

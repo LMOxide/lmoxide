@@ -1,0 +1,35 @@
+{
+  "id": "skill/flame-spitter",
+  "name": "Flame Spitter",
+  "client": {
+    "spell": 465044,
+    "stats": {
+      "EffectPackage": 472980,
+      "ItemDelay": 50,
+      "MoreFlags": 536870912,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 471954
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 465044,
+            "Value": 100
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Welder: Flame Spitter",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/ballerina-nyx-blackfeather",
+  "lore": 5110,
+  "parent": "achievement/ballerina",
+  "client_name": "Ballerina_Nyx Blackfeather",
+  "title": "Ballerina: Nyx Blackfeather",
+  "text": "Defeat Nyx Blackfeather as Ballerina.",
+  "points": 25,
+  "kind": "target",
+  "target": "Nyx Blackfeather",
+  "minifigure": "minifig/ballerina",
+  "source": "client"
+}

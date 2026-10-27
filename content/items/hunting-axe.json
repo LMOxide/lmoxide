@@ -1,0 +1,24 @@
+{
+  "id": "item/hunting-axe",
+  "name": "Hunting Axe",
+  "kind": "projectile",
+  "template": 302192,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 302200
+      }
+    },
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 302193
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "achievement/the-golden-ticket",
+  "lore": 4722,
+  "parent": "achievement/smash-test-dummy",
+  "client_name": "Trials_GoldenTicket",
+  "title": "The Golden Ticket!",
+  "text": "Receive an invitation to the Monster Trials!",
+  "points": 50,
+  "kind": "manual",
+  "stars": 500,
+  "source": "client"
+}

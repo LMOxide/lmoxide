@@ -1,0 +1,10 @@
+{
+  "id": "object/intropit-particle",
+  "name": "IntroPit Particle",
+  "kind": "scenery",
+  "render": {
+    "look": "IntroPit Particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

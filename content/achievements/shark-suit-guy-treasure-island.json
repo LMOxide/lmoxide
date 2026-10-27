@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-treasure-island",
+  "lore": 5284,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Treasure Island",
+  "title": "Shark Suit Guy: Treasure Island",
+  "text": "Conquer the Treasure Island as Shark Suit Guy.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/shark-suit-guy",
+  "source": "client"
+}

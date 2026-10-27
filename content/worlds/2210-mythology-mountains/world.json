@@ -1,0 +1,126 @@
+{
+  "id": "world/mythology-mountains",
+  "name": "Mythology Mountains",
+  "playfield": 2210,
+  "kind": "open",
+  "region": "region/mythology-world",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [42.1, 13.0, 200.8],
+    "rot": 1.51
+  },
+  "arrival_guid": 21291,
+  "arrival_from": {
+    "world/abandoned-temple": {
+      "pos": [252.88, 80.75, 404.0],
+      "rot": 3.665
+    },
+    "world/ancient-ruins": {
+      "pos": [348.59, 92.65, 450.6],
+      "rot": 3.665
+    },
+    "world/armory": {
+      "pos": [251.14, 60.61, 337.7],
+      "rot": 3.927
+    },
+    "world/cliffside": {
+      "pos": [51.46, 48.63, 406.39],
+      "rot": 4.451
+    },
+    "world/medusa-s-lair": {
+      "pos": [100.05, 54.21, 490.48],
+      "rot": 4.451
+    },
+    "world/minotaur-refuge": {
+      "pos": [156.66, 41.2, 350.53],
+      "rot": 3.665
+    },
+    "world/skyforge": {
+      "pos": [294.57, 66.97, 334.42],
+      "rot": 4.189
+    },
+    "world/underworld": {
+      "pos": [467.16, 98.21, 473.2],
+      "rot": 4.189
+    }
+  },
+  "window": 67,
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 21291,
+      "pos": [42.05, 13.0, 200.8],
+      "rot": 1.507,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Canyon",
+      "guid": 21292,
+      "pos": [207.73, 45.68, 314.39],
+      "rot": 1.566,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Armory",
+      "guid": 21293,
+      "pos": [277.17, 81.06, 405.4],
+      "rot": 0.2,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Underworld",
+      "guid": 151750,
+      "pos": [462.11, 98.92, 492.23],
+      "rot": 0.485,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Forge",
+      "guid": 162816,
+      "pos": [299.45, 68.84, 347.3],
+      "rot": 1.566,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Medusa",
+      "guid": 176017,
+      "pos": [90.58, 54.35, 497.3],
+      "rot": 0.192,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Satyr",
+      "guid": 486809,
+      "pos": [82.48, 42.05, 424.92],
+      "rot": 0.192,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Witches",
+      "guid": 636124,
+      "pos": [46.45, 49.0, 351.01],
+      "rot": 3.242,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client",
+  "comment": "spawns the live server sent (tools/re/live_playfield.py); proposed ones only where the player never came within 40 m (visits 1, seen radius 40.0 m)"
+}

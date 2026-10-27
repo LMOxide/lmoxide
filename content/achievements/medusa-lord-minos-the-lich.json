@@ -1,0 +1,13 @@
+{
+  "id": "achievement/medusa-lord-minos-the-lich",
+  "lore": 3619,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Lord Minos, the Lich",
+  "title": "Medusa: Lord Minos, the Lich",
+  "text": "Defeat Lord Minos, the Lich as Medusa.",
+  "points": 25,
+  "kind": "target",
+  "target": "Lord Minos, the Lich",
+  "minifigure": "minifig/medusa",
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-scarecrow2-damage",
+  "name": "main scarecrow2 damage",
+  "client": {
+    "spell": 359127,
+    "stats": {
+      "EffectPackage": 637060,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.699999988079071,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

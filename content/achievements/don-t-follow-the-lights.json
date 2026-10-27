@@ -1,0 +1,12 @@
+{
+  "id": "achievement/don-t-follow-the-lights",
+  "lore": 815,
+  "parent": "achievement/cave-dweller",
+  "client_name": "Medieval_Combat_PA_Clear the Swamp Tunnel",
+  "title": "Don't Follow the Lights",
+  "text": "Clear the Swamp Tunnel in the Medieval World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Swamp Tunnel",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "achievement/plant-monster-the-master-builder",
+  "lore": 4569,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Build 1000 buildies",
+  "title": "Plant Monster, the Master Builder",
+  "text": "Build 1000 buildies as Plant Monster.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/plant-monster",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/santa-head",
+  "name": "Santa Head",
+  "kind": "part",
+  "template": 577134,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10814,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/santa",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-janitor",
+  "lore": 5200,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Complete Any 5",
+  "title": "Heroic Janitor",
+  "text": "Complete any 5 Janitor achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/janitor",
+  "n": 5,
+  "source": "client"
+}

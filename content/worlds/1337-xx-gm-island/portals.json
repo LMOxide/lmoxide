@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/1337/to-lego-center",
+      "pos": [42.76, 3.0, 43.39],
+      "window": 73,
+      "to": {
+        "world": "world/lego-center"
+      },
+      "source": "client"
+    }
+  ]
+}

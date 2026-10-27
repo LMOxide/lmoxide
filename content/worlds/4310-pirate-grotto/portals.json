@@ -1,0 +1,22 @@
+{
+  "portals": [
+    {
+      "id": "portal/4310/to-volcano-island",
+      "pos": [408.9, 56.7, 123.6],
+      "window": 21,
+      "to": {
+        "world": "world/volcano-island"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/4310/to-lego-center",
+      "pos": [408.91, 56.7, 123.61],
+      "window": 73,
+      "to": {
+        "world": "world/lego-center"
+      },
+      "source": "client"
+    }
+  ]
+}

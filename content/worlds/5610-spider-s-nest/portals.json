@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/5610/to-kingdom",
+      "pos": [242.25, 20.45, 233.99],
+      "window": 13,
+      "to": {
+        "world": "world/kingdom"
+      },
+      "source": "client"
+    }
+  ]
+}

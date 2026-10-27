@@ -1,0 +1,12 @@
+{
+  "id": "achievement/under-the-radar",
+  "lore": 825,
+  "parent": "achievement/pocket-universe",
+  "client_name": "Space_Combat_PA_Mercenary Cave",
+  "title": "Under the Radar",
+  "text": "Clear the Mercenary Cave in the Space World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Mercenary Cave",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "npc/video-game-guy-4",
+  "name": "Video Game Guy",
+  "kind": "npc",
+  "render": {
+    "monster_data": 436747,
+    "npc_template": 2730,
+    "look": "gamer_story_npc",
+    "cars_group": 5
+  },
+  "level": 1,
+  "stats": {
+    "health": 93,
+    "life_factor": 1.35
+  },
+  "source": "client"
+}

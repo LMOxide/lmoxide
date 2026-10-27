@@ -1,0 +1,49 @@
+{
+  "id": "skill/shield-of-the-golden-eagle",
+  "name": "Shield of the Golden Eagle",
+  "client": {
+    "spell": 1567,
+    "stats": {
+      "EffectPackage": 1763,
+      "ItemDelay": 28,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 24,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 50699,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 1567,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Aztec Warrior: Shield of the Golden Eagle",
+  "range": 10.0,
+  "projectile": {
+    "item": 50699,
+    "speed": 12.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

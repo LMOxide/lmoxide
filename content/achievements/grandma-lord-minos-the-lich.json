@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandma-lord-minos-the-lich",
+  "lore": 2977,
+  "parent": "achievement/grandma",
+  "client_name": "Grandma_Lord Minos, the Lich",
+  "title": "Grandma: Lord Minos, the Lich",
+  "text": "Defeat Lord Minos, the Lich as Grandma.",
+  "points": 25,
+  "kind": "target",
+  "target": "Lord Minos, the Lich",
+  "minifigure": "minifig/grandma",
+  "source": "client"
+}

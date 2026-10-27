@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-tomahawk-warrior",
+  "lore": 3528,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Complete Any 10",
+  "title": "Legendary Tomahawk Warrior",
+  "text": "Complete any 11 Tomahawk Warrior achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/tomahawk-warrior",
+  "n": 11,
+  "source": "client"
+}

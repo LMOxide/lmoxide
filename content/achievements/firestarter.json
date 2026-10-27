@@ -1,0 +1,13 @@
+{
+  "id": "achievement/firestarter",
+  "lore": 681,
+  "parent": "achievement/medieval-combat",
+  "client_name": "Medieval_Combat_Epic_Defeat Redwing the Firequeen",
+  "title": "Firestarter",
+  "text": "Become the champion of the Dragon Halls.",
+  "points": 100,
+  "kind": "defeat",
+  "stars": 500,
+  "target": "Redwing the Firequeen",
+  "source": "client"
+}

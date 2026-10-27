@@ -1,0 +1,17 @@
+{
+  "id": "achievement/barbarian-the-dragontamer",
+  "lore": 2882,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Smash 50 Drakes",
+  "title": "Barbarian the Dragontamer",
+  "text": "Smash 50 Drakes as Barbarian.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/barbarian",
+  "counts": {
+    "match": "Drake",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

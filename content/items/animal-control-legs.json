@@ -1,0 +1,16 @@
+{
+  "id": "item/animal-control-legs",
+  "name": "Animal Control Legs",
+  "kind": "part",
+  "template": 668656,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31501,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/animal-control",
+  "location": "Legs",
+  "source": "client"
+}

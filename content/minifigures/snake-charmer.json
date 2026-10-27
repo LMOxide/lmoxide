@@ -1,0 +1,155 @@
+{
+  "id": "minifig/snake-charmer",
+  "name": "Snake Charmer",
+  "template": 550359,
+  "series": 13,
+  "series_index": 0,
+  "render": {
+    "monster_data": 539435
+  },
+  "stats": {
+    "life": 350,
+    "power": 5,
+    "defense": 8,
+    "creativity": 4,
+    "role": 2,
+    "element": 4
+  },
+  "normal": {
+    "skill": "skill/ground-crawler",
+    "hits": [
+      {
+        "skill": "skill/main-snakecharmer1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [551007, 551006]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/snakes-everywhere",
+    "hits": [
+      {
+        "skill": "skill/main-snakecharmer2-one-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.9,
+        "damage_type": 1000,
+        "via": [551009, 551011]
+      },
+      {
+        "skill": "skill/main-snakecharmer2-two-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.4,
+        "damage_type": 1000,
+        "via": [551009, 551012]
+      },
+      {
+        "skill": "skill/main-snakecharmer2-three-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.9,
+        "damage_type": 1000,
+        "via": [551009, 551013]
+      },
+      {
+        "skill": "skill/main-snakecharmer2-four-damage",
+        "type": "WeaponHit",
+        "ability_mod": 2.4,
+        "damage_type": 1000,
+        "via": [551009, 551019]
+      }
+    ]
+  },
+  "click_spells": [551007, 551009],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-stalwart"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530293"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-regenerate"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-second-wind"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3980, 3756, 4044, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/snake-charmer-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/snake-charmer-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/snake-charmer-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-snake-charmer",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/space-world"],
+    "text": "You can find me in the Space World.",
+    "location_text": 27328549,
+    "location_picture": 474079
+  },
+  "source": "client"
+}

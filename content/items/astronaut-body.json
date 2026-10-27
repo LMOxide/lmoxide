@@ -1,0 +1,16 @@
+{
+  "id": "item/astronaut-body",
+  "name": "Astronaut Body",
+  "kind": "part",
+  "template": 668671,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21502,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/astronaut",
+  "location": "Torso",
+  "source": "client"
+}

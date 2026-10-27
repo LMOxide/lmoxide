@@ -1,0 +1,18 @@
+{
+  "id": "item/snake-shot",
+  "name": "Snake Shot",
+  "kind": "projectile",
+  "template": 100145,
+  "effect_package": 105789,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 100146
+      }
+    }
+  ],
+  "source": "client"
+}

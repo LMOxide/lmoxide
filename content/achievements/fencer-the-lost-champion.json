@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fencer-the-lost-champion",
+  "lore": 3856,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Lost Creations_Get to level 15",
+  "title": "Fencer, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Fencer.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/fencer",
+  "n": 15,
+  "source": "client"
+}

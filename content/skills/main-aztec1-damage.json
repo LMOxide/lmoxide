@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-aztec1-damage",
+  "name": "main aztec1 damage",
+  "client": {
+    "spell": 99063,
+    "stats": {
+      "EffectPackage": 162605,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.3499999940395355,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

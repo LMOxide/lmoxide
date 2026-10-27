@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-jekyll1-good-damage",
+  "name": "main jekyll1 good damage",
+  "client": {
+    "spell": 358628,
+    "stats": {
+      "EffectPackage": 636926,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.800000011920929,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

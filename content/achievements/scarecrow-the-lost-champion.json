@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scarecrow-the-lost-champion",
+  "lore": 2869,
+  "parent": "achievement/scarecrow",
+  "client_name": "Scarecrow_Lost Creations_Get to Level 15",
+  "title": "Scarecrow, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Scarecrow.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/scarecrow",
+  "n": 15,
+  "source": "client"
+}

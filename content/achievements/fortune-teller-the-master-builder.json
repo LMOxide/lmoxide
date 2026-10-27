@@ -1,0 +1,16 @@
+{
+  "id": "achievement/fortune-teller-the-master-builder",
+  "lore": 2630,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Build 1000 Buildies",
+  "title": "Fortune Teller, the Master Builder",
+  "text": "Build 1000 buildies as Fortune Teller.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/fortune-teller",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

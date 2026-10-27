@@ -1,0 +1,22 @@
+{
+  "id": "achievement/space-commander",
+  "lore": 785,
+  "parent": "achievement/space-combat",
+  "client_name": "Space_Combat_Defeat Space World Champions",
+  "title": "Space Commander",
+  "text": "Defeat all the Space World Champions.",
+  "points": 100,
+  "kind": "all",
+  "stars": 500,
+  "children": [
+    "achievement/fixer-upper",
+    "achievement/my-crystals",
+    "achievement/sneaky-snirk",
+    "achievement/willpower",
+    "achievement/mind-over-matter",
+    "achievement/check-mate",
+    "achievement/new-leadership",
+    "achievement/day-of-the-triffid"
+  ],
+  "source": "client"
+}

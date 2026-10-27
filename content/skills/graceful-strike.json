@@ -1,0 +1,31 @@
+{
+  "id": "skill/graceful-strike",
+  "name": "Graceful Strike",
+  "client": {
+    "spell": 663938,
+    "stats": {
+      "EffectPackage": 668526,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 667125,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Ballerina: Graceful Strike",
+  "source": "client"
+}

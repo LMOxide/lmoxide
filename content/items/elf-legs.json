@@ -1,0 +1,16 @@
+{
+  "id": "item/elf-legs",
+  "name": "Elf Legs",
+  "kind": "part",
+  "template": 599526,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 30302,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/elf",
+  "location": "Legs",
+  "source": "client"
+}

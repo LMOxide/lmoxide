@@ -1,0 +1,13 @@
+{
+  "id": "achievement/animal-control-ridgeback-spitter",
+  "lore": 5079,
+  "parent": "achievement/animal-control",
+  "client_name": "Animal Control_Ridgeback Spitter",
+  "title": "Animal Control: Ridgeback Spitter",
+  "text": "Defeat Ridgeback Spitter as Animal Control.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ridgeback Spitter",
+  "minifigure": "minifig/animal-control",
+  "source": "client"
+}

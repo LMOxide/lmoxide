@@ -1,0 +1,17 @@
+{
+  "id": "item/aimed-shot",
+  "name": "Aimed Shot",
+  "kind": "projectile",
+  "template": 50716,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 20173
+      }
+    }
+  ],
+  "source": "client"
+}

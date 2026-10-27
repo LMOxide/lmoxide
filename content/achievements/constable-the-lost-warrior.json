@@ -1,0 +1,13 @@
+{
+  "id": "achievement/constable-the-lost-warrior",
+  "lore": 3033,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Lost Creations_Get to Level 10",
+  "title": "Constable, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Constable.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/constable",
+  "n": 10,
+  "source": "client"
+}

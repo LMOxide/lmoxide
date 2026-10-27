@@ -1,0 +1,10 @@
+{
+  "id": "object/particle-3-altar-3",
+  "name": "particle 3 altar 3",
+  "kind": "scenery",
+  "render": {
+    "look": "particle 3 altar 3",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

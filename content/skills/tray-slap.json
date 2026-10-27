@@ -1,0 +1,26 @@
+{
+  "id": "skill/tray-slap",
+  "name": "Tray Slap",
+  "client": {
+    "spell": 36529,
+    "stats": {
+      "EffectPackage": 307518,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "AttackLength": 1.0,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

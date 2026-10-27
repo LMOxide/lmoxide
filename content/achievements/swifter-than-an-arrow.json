@@ -1,0 +1,12 @@
+{
+  "id": "achievement/swifter-than-an-arrow",
+  "lore": 1607,
+  "parent": "achievement/dino-tamer",
+  "client_name": "Dino_Combat_Defeat Pond Champion",
+  "title": "Swifter than an Arrow",
+  "text": "Defeat the Poison-Tongued Raptor.",
+  "points": 50,
+  "kind": "defeat",
+  "target": "Pond Champion",
+  "source": "client"
+}

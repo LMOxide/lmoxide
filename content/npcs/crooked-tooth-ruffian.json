@@ -1,0 +1,25 @@
+{
+  "id": "npc/crooked-tooth-ruffian",
+  "name": "Crooked Tooth Ruffian",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 344488,
+    "npc_template": 2892,
+    "look": "gremlin_melee_greenforest",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 525,
+    "life_factor": 0.4
+  },
+  "skills": [
+    {
+      "skill": "skill/smack-196232",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

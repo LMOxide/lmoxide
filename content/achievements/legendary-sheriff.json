@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-sheriff",
+  "lore": 3963,
+  "parent": "achievement/sheriff",
+  "client_name": "Sheriff_Complete Any 10",
+  "title": "Legendary Sheriff",
+  "text": "Complete any 11 Sheriff achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/sheriff",
+  "n": 11,
+  "source": "client"
+}

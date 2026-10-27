@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-decorator",
+  "lore": 3452,
+  "parent": "achievement/decorator",
+  "client_name": "Decorator_Upgrade 3",
+  "title": "Novice Decorator",
+  "text": "Get the third Decorator upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/decorator",
+  "n": 3,
+  "source": "client"
+}

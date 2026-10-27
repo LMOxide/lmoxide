@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-tiger-woman",
+  "lore": 4419,
+  "parent": "achievement/tiger-woman",
+  "client_name": "Tiger Woman_Complete Any 10",
+  "title": "Legendary Tiger Woman",
+  "text": "Complete any 11 Tiger Woman achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/tiger-woman",
+  "n": 11,
+  "source": "client"
+}

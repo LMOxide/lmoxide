@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-evilknight1-damage",
+  "name": "main evilknight1 damage",
+  "client": {
+    "spell": 585556,
+    "stats": {
+      "EffectPackage": 585968,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

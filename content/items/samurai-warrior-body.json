@@ -1,0 +1,16 @@
+{
+  "id": "item/samurai-warrior-body",
+  "name": "Samurai Warrior Body",
+  "kind": "part",
+  "template": 599516,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20310,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/samurai-warrior",
+  "location": "Torso",
+  "source": "client"
+}

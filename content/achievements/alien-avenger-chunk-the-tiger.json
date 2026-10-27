@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-avenger-chunk-the-tiger",
+  "lore": 2705,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Chunk the Tiger",
+  "title": "Alien Avenger: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Alien Avenger.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/alien-avenger",
+  "source": "client"
+}

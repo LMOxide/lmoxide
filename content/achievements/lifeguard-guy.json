@@ -1,0 +1,29 @@
+{
+  "id": "achievement/lifeguard-guy",
+  "lore": 2503,
+  "parent": "achievement/series-12",
+  "client_name": "Lifeguard Guy",
+  "title": "Lifeguard Guy",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-lifeguard-guy",
+    "achievement/legendary-lifeguard-guy",
+    "achievement/novice-lifeguard-guy",
+    "achievement/expert-lifeguard-guy",
+    "achievement/lifeguard-guy-spider-s-nest",
+    "achievement/lifeguard-guy-mercenary-cave",
+    "achievement/lifeguard-guy-dragon-halls",
+    "achievement/lifeguard-guy-chunk-the-tiger",
+    "achievement/lifeguard-guy-the-triffid",
+    "achievement/lifeguard-guy-roar-the-gladiator",
+    "achievement/lifeguard-guy-the-smasher",
+    "achievement/lifeguard-guy-the-master-smasher",
+    "achievement/lifeguard-guy-the-demolisher",
+    "achievement/lifeguard-guy-the-lost-challenger",
+    "achievement/lifeguard-guy-the-lost-warrior",
+    "achievement/lifeguard-guy-the-lost-champion"
+  ],
+  "minifigure": "minifig/lifeguard-guy",
+  "source": "client"
+}

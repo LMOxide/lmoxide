@@ -1,0 +1,63 @@
+{
+  "id": "skill/ice-slide",
+  "name": "Ice Slide",
+  "client": {
+    "spell": 465046,
+    "stats": {
+      "ItemDelay": 5,
+      "MoreFlags": 536872960,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 1,
+            "Arg1": 25,
+            "Arg2": 20,
+            "EffectPackage": 482647,
+            "NanoTemplate": 470679
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 482539, 91]
+          ]
+        },
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "Radius": 1,
+            "TemplateID": 500756,
+            "TemplateID2": 500757,
+            "Value1": 466718
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 465046,
+            "Value": 600
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Yeti: Ice Slide",
+  "dash": {
+    "distance": 10.0,
+    "radius": 1.0,
+    "effect": 466718,
+    "path_mod": 0.5,
+    "arrival_mod": 1.5,
+    "arrival_radius": 2.0
+  },
+  "source": "client"
+}

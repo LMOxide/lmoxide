@@ -1,0 +1,13 @@
+{
+  "id": "achievement/evil-mech-bishop-master-technician",
+  "lore": 3009,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Bishop, Master Technician",
+  "title": "Evil Mech: Bishop, Master Technician",
+  "text": "Defeat Bishop, Master Technician as Evil Mech.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bishop, Master Technician",
+  "minifigure": "minifig/evil-mech",
+  "source": "client"
+}

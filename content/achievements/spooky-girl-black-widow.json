@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spooky-girl-black-widow",
+  "lore": 3263,
+  "parent": "achievement/spooky-girl",
+  "client_name": "Spooky Girl_Black Widow",
+  "title": "Spooky Girl: Black Widow",
+  "text": "Defeat Black Widow as Spooky Girl.",
+  "points": 25,
+  "kind": "target",
+  "target": "Black Widow",
+  "minifigure": "minifig/spooky-girl",
+  "source": "client"
+}

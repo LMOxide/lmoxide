@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentrancevisualclosed-dragon",
+  "name": "BossEntranceVisualClosed_Dragon",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceVisualClosed_Dragon",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/evil-mech-legs",
+  "name": "Evil Mech Legs",
+  "kind": "part",
+  "template": 483670,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31104,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/evil-mech",
+  "location": "Legs",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/holiday-elf-body",
+  "name": "Holiday Elf Body",
+  "kind": "part",
+  "template": 483609,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21107,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/holiday-elf",
+  "location": "Torso",
+  "source": "client"
+}

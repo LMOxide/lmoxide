@@ -1,0 +1,17 @@
+{
+  "id": "object/clay-vase",
+  "name": "Clay Vase",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 152350,
+    "template": 153143
+  },
+  "level": 1,
+  "health": 10,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

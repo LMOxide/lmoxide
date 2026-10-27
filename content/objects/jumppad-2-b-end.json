@@ -1,0 +1,10 @@
+{
+  "id": "object/jumppad-2-b-end",
+  "name": "JumpPad_2_b_end",
+  "kind": "scenery",
+  "render": {
+    "look": "JumpPad_2_b_end",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

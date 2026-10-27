@@ -1,0 +1,17 @@
+{
+  "id": "achievement/classic-king-the-hexer",
+  "lore": 3808,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Smash 50 Witch Doctors",
+  "title": "Classic King, the Hexer",
+  "text": "Smash 50 Witch Doctors as Classic King.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/classic-king",
+  "counts": {
+    "match": "Witch Doctor",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

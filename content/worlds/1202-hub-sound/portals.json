@@ -1,0 +1,40 @@
+{
+  "portals": [
+    {
+      "id": "portal/1202/to-isle-of-yarr",
+      "pos": [376.88, 0.0, 162.46],
+      "window": 23,
+      "to": {
+        "world": "world/isle-of-yarr"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/1202/to-volcano-island",
+      "pos": [376.43, 0.0, 160.65],
+      "window": 21,
+      "to": {
+        "world": "world/volcano-island"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/1202/to-kingdom",
+      "pos": [375.67, 0.0, 159.4],
+      "window": 9,
+      "to": {
+        "world": "world/kingdom"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/1202/to-enchanted-forest",
+      "pos": [374.24, 0.0, 157.38],
+      "window": 20,
+      "to": {
+        "world": "world/enchanted-forest"
+      },
+      "source": "client"
+    }
+  ]
+}

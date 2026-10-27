@@ -1,0 +1,24 @@
+{
+  "id": "skill/bash",
+  "name": "Bash",
+  "client": {
+    "spell": 301742,
+    "stats": {
+      "EffectPackage": 637033
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1004,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

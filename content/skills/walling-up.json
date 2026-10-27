@@ -1,0 +1,180 @@
+{
+  "id": "skill/walling-up",
+  "name": "Walling Up",
+  "client": {
+    "spell": 41897,
+    "stats": {
+      "EffectPackage": 80097,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 50
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": 65,
+            "DisplaceMentZ": -300,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 101]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": -65,
+            "DisplaceMentZ": -300,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 101]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": -200,
+            "DisplaceMentZ": -400,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 101]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": 200,
+            "DisplaceMentZ": -400,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 101]
+          ]
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 41897,
+            "Value": 500
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentZ": -300,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": 135,
+            "DisplaceMentZ": -350,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": -135,
+            "DisplaceMentZ": -350,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": 270,
+            "DisplaceMentZ": -450,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 91]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "DisplaceMentX": -270,
+            "DisplaceMentZ": -450,
+            "ItemInstance": 42070,
+            "MaxRicochets": 1,
+            "ProjectileType": 1,
+            "Speed": 1500
+          },
+          "criteria": [
+            [0, 421182, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Roller Derby Girl: Walling Up",
+  "range": 15.0,
+  "projectile": {
+    "item": 42070,
+    "speed": 15.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": -3.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

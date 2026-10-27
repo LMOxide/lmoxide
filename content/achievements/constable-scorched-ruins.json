@@ -1,0 +1,13 @@
+{
+  "id": "achievement/constable-scorched-ruins",
+  "lore": 3024,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Scorched Ruins",
+  "title": "Constable: Scorched Ruins",
+  "text": "Conquer the Scorched Ruins as Constable.",
+  "points": 50,
+  "kind": "target",
+  "target": "Scorched Ruins",
+  "minifigure": "minifig/constable",
+  "source": "client"
+}

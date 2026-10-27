@@ -1,0 +1,55 @@
+{
+  "id": "world/ruined-fort",
+  "name": "Ruined Fort",
+  "playfield": 5300,
+  "kind": "pocket",
+  "region": "region/medieval-world",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [142.96, 42.18, 108.28],
+    "rot": 4.621
+  },
+  "arrival_guid": 295829,
+  "arrival_from": {
+    "world/enchanted-forest": {
+      "pos": [385.33, 53.96, 315.32],
+      "rot": 3.927
+    },
+    "world/kingdom": {
+      "pos": [385.55, 53.96, 315.21],
+      "rot": 3.927
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 295829,
+      "pos": [142.96, 42.18, 108.28],
+      "rot": 4.621,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Tavern",
+      "guid": 304721,
+      "pos": [197.03, 40.56, 255.5],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 304722,
+      "pos": [342.36, 48.91, 283.57],
+      "rot": 4.661,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

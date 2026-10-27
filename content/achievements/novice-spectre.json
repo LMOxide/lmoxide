@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-spectre",
+  "lore": 4579,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Upgrade 3",
+  "title": "Novice Spectre",
+  "text": "Get the third Spectre upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/spectre",
+  "n": 3,
+  "source": "client"
+}

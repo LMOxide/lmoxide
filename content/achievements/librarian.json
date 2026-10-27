@@ -1,0 +1,29 @@
+{
+  "id": "achievement/librarian",
+  "lore": 3331,
+  "parent": "achievement/series-10",
+  "client_name": "Librarian",
+  "title": "Librarian",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-librarian",
+    "achievement/legendary-librarian",
+    "achievement/novice-librarian",
+    "achievement/expert-librarian",
+    "achievement/librarian-natives-hollow",
+    "achievement/librarian-ancient-ruins",
+    "achievement/librarian-treasure-island",
+    "achievement/librarian-karna-itta",
+    "achievement/librarian-megamind",
+    "achievement/librarian-lord-minos-the-lich",
+    "achievement/librarian-the-smasher",
+    "achievement/librarian-the-master-smasher",
+    "achievement/librarian-the-sweet",
+    "achievement/librarian-the-lost-challenger",
+    "achievement/librarian-the-lost-warrior",
+    "achievement/librarian-the-lost-champion"
+  ],
+  "minifigure": "minifig/librarian",
+  "source": "client"
+}

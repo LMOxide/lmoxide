@@ -1,0 +1,17 @@
+{
+  "id": "item/main-elf1-projectile",
+  "name": "main elf1 projectile",
+  "kind": "projectile",
+  "template": 595635,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 595636
+      }
+    }
+  ],
+  "source": "client"
+}

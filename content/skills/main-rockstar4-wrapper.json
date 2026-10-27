@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-rockstar4-wrapper",
+  "name": "main rockstar4 wrapper",
+  "client": {
+    "spell": 516696,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 516695
+          }
+        },
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 3,
+            "TemplateID": 516694,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

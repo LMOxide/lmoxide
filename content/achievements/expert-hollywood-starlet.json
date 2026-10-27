@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-hollywood-starlet",
+  "lore": 2588,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Upgrade 7",
+  "title": "Expert Hollywood Starlet",
+  "text": "Get the seventh Hollywood Starlet upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/hollywood-starlet",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "buff/upgrade-lionhearted",
+  "name": "Upgrade: Lionhearted",
+  "nano": 421224,
+  "effects": [
+    {
+      "proc": {
+        "on": "special_attack",
+        "then": [
+          {
+            "apply_buff": {
+              "buff": "buff/proc-warrior-discipline",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

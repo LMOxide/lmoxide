@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roman-commander-korard-mercenary-captain",
+  "lore": 3364,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Korard, Mercenary Captain",
+  "title": "Roman Commander: Korard, Mercenary Captain",
+  "text": "Defeat Korard, Mercenary Captain as Roman Commander.",
+  "points": 25,
+  "kind": "target",
+  "target": "Korard, Mercenary Captain",
+  "minifigure": "minifig/roman-commander",
+  "source": "client"
+}

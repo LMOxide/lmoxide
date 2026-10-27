@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-roman-emperor",
+  "lore": 2747,
+  "parent": "achievement/roman-emperor",
+  "client_name": "Roman Emperor_Complete Any 5",
+  "title": "Heroic Roman Emperor",
+  "text": "Complete any 5 Roman Emperor achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/roman-emperor",
+  "n": 5,
+  "source": "client"
+}

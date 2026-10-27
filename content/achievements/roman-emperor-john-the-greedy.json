@@ -1,0 +1,13 @@
+{
+  "id": "achievement/roman-emperor-john-the-greedy",
+  "lore": 2739,
+  "parent": "achievement/roman-emperor",
+  "client_name": "Roman Emperor_John the Greedy",
+  "title": "Roman Emperor: John the Greedy",
+  "text": "Defeat John the Greedy as Roman Emperor.",
+  "points": 25,
+  "kind": "target",
+  "target": "John the Greedy",
+  "minifigure": "minifig/roman-emperor",
+  "source": "client"
+}

@@ -1,0 +1,134 @@
+{
+  "id": "minifig/decorator",
+  "name": "Decorator",
+  "template": 317704,
+  "series": 10,
+  "series_index": 0,
+  "render": {
+    "monster_data": 267277
+  },
+  "stats": {
+    "life": 250,
+    "power": 3,
+    "defense": 4,
+    "creativity": 10,
+    "role": 3,
+    "element": 4
+  },
+  "normal": {
+    "skill": "skill/paint-roll",
+    "hits": [
+      {
+        "skill": "skill/paint-roll-318241",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [317702]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/bucket-art",
+    "hits": [
+      {
+        "skill": "skill/bucket-art-318251",
+        "type": "WeaponHit",
+        "ability_mod": 0.75,
+        "damage_type": 1000,
+        "via": [317703]
+      }
+    ]
+  },
+  "click_spells": [317702, 317703],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-smart-460942"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-puff-of-smoke"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-left-hook"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-knockback"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fast-460978"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-escape-artist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-charge-up"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530298"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3460, 3333, 3642, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/decorator-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/decorator-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/decorator-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-decorator",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/pirate-world"],
+    "text": "You can find me in the Pirate World.",
+    "location_text": 182907829,
+    "location_picture": 473019
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/bossentranceshield-first-encounter",
+  "name": "BossEntranceShield_First_Encounter",
+  "kind": "scenery",
+  "render": {
+    "look": "BossEntranceShield_First_Encounter",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

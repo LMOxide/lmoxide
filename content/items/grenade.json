@@ -1,0 +1,18 @@
+{
+  "id": "item/grenade",
+  "name": "Grenade",
+  "kind": "projectile",
+  "template": 238118,
+  "effect_package": 272222,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 238121
+      }
+    }
+  ],
+  "source": "client"
+}

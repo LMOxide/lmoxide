@@ -1,0 +1,16 @@
+{
+  "id": "item/mountain-climber-head",
+  "name": "Mountain Climber Head",
+  "kind": "part",
+  "template": 483548,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11110,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/mountain-climber",
+  "location": "Head",
+  "source": "client"
+}

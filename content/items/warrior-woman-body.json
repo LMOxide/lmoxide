@@ -1,0 +1,16 @@
+{
+  "id": "item/warrior-woman-body",
+  "name": "Warrior Woman Body",
+  "kind": "part",
+  "template": 483616,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21016,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/warrior-woman",
+  "location": "Torso",
+  "source": "client"
+}

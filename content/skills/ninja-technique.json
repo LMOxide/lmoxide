@@ -1,0 +1,31 @@
+{
+  "id": "skill/ninja-technique",
+  "name": "Ninja Technique",
+  "client": {
+    "spell": 595263,
+    "stats": {
+      "EffectPackage": 596198,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 595265,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Ninja: Ninja Technique",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/holiday-elf-the-lost-challenger",
+  "lore": 2964,
+  "parent": "achievement/holiday-elf",
+  "client_name": "Holiday Elf_Lost Creations_Get to Level 5",
+  "title": "Holiday Elf, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Holiday Elf.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/holiday-elf",
+  "n": 5,
+  "source": "client"
+}

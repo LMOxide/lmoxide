@@ -1,0 +1,13 @@
+{
+  "id": "achievement/plant-monster-treasure-island",
+  "lore": 4558,
+  "parent": "achievement/plant-monster",
+  "client_name": "Plant Monster_Treasure Island",
+  "title": "Plant Monster: Treasure Island",
+  "text": "Conquer the Treasure Island as Plant Monster.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/plant-monster",
+  "source": "client"
+}

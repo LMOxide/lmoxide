@@ -1,0 +1,20 @@
+{
+  "id": "skill/main-romancommander1-switch-combo-1-to-2",
+  "name": "main romancommander1 switch combo 1 to 2",
+  "client": {
+    "spell": 317746,
+    "actions": {
+      "0": [
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 317739,
+            "TemplateID2": 317740
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

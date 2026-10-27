@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-goblin",
+  "lore": 3885,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Upgrade 3",
+  "title": "Novice Goblin",
+  "text": "Get the third Goblin upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/goblin",
+  "n": 3,
+  "source": "client"
+}

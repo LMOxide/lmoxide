@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fortune-teller-chlora-the-fungomancer",
+  "lore": 2618,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Chlora the Fungomancer",
+  "title": "Fortune Teller: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Fortune Teller.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/fortune-teller",
+  "source": "client"
+}

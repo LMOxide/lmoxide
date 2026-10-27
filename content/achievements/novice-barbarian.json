@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-barbarian",
+  "lore": 2876,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Upgrade 3",
+  "title": "Novice Barbarian",
+  "text": "Get the third Barbarian upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/barbarian",
+  "n": 3,
+  "source": "client"
+}

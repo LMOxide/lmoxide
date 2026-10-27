@@ -1,0 +1,12 @@
+{
+  "id": "world/jungle-arena",
+  "name": "Jungle Arena",
+  "playfield": 7400,
+  "kind": "other",
+  "arrival": {
+    "pos": [243.5, 44.15, 279.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

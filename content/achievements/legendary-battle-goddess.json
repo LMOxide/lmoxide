@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-battle-goddess",
+  "lore": 3071,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Complete Any 10",
+  "title": "Legendary Battle Goddess",
+  "text": "Complete any 11 Battle Goddess achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/battle-goddess",
+  "n": 11,
+  "source": "client"
+}

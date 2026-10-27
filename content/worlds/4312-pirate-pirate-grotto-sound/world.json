@@ -1,0 +1,53 @@
+{
+  "id": "world/pirate-pirate-grotto-sound",
+  "name": "Pirate - Pirate Grotto - sound",
+  "playfield": 4312,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [262.41, 41.43, 171.32],
+    "rot": 4.712
+  },
+  "arrival_guid": 208682,
+  "respawn_points": [
+    {
+      "name": "Res_Entrance",
+      "guid": 208682,
+      "pos": [262.41, 41.43, 171.32],
+      "rot": 4.712,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Ship",
+      "guid": 208683,
+      "pos": [406.47, 58.55, 238.08],
+      "rot": 3.142,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Corner",
+      "guid": 208684,
+      "pos": [327.79, 56.0, 275.85],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Boss",
+      "guid": 208685,
+      "pos": [361.97, 59.3, 106.86],
+      "rot": 1.57,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

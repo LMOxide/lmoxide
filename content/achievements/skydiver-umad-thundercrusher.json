@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skydiver-umad-thundercrusher",
+  "lore": 3483,
+  "parent": "achievement/skydiver",
+  "client_name": "Skydiver_Umad Thundercrusher",
+  "title": "Skydiver: Umad Thundercrusher",
+  "text": "Defeat Umad Thundercrusher as Skydiver.",
+  "points": 25,
+  "kind": "target",
+  "target": "Umad Thundercrusher",
+  "minifigure": "minifig/skydiver",
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "item/ticket",
+  "name": "Ticket",
+  "kind": "token",
+  "template": 659094,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 202,
+      "amount": 1
+    }
+  ],
+  "source": "client"
+}

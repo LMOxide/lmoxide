@@ -1,0 +1,13 @@
+{
+  "id": "achievement/policeman-wind-shrine",
+  "lore": 2768,
+  "parent": "achievement/policeman",
+  "client_name": "Policeman_Wind Shrine",
+  "title": "Policeman: Wind Shrine",
+  "text": "Conquer the Wind Shrine as Policeman.",
+  "points": 25,
+  "kind": "target",
+  "target": "Wind Shrine",
+  "minifigure": "minifig/policeman",
+  "source": "client"
+}

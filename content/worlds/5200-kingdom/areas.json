@@ -1,0 +1,247 @@
+{
+  "areas": [
+    {
+      "id": "area/5200/tp-throneroom",
+      "name": "TP_ThroneRoom",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [119.18, 25.0, 272.29],
+          "rot": 0.777
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-dummyspawn1",
+      "name": "Cine_DummySpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [122.87, 26.12, 275.88],
+          "rot": -2.43
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-wizardspawn1",
+      "name": "Cine_WizardSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [121.27, 25.0, 272.34],
+          "rot": -1.634
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-knightspawn2",
+      "name": "Cine_KnightSpawn2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [97.55, 13.9, 175.58],
+          "rot": -1.015
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-sirloinmove1",
+      "name": "Cine_SirLoinMove1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [333.24, 21.89, 140.11],
+          "rot": -1.637
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-jesterspawn1",
+      "name": "Cine_JesterSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [340.71, 21.66, 145.98],
+          "rot": -1.637
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-jestermove1",
+      "name": "Cine_JesterMove1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [340.37, 21.75, 141.92],
+          "rot": -1.687
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-jestermove2",
+      "name": "Cine_JesterMove2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [339.88, 21.95, 137.28],
+          "rot": -1.753
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-jestermove3",
+      "name": "Cine_JesterMove3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [335.84, 19.67, 123.55],
+          "rot": -2.874
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-sirloinstart1",
+      "name": "Cine_SirLoinStart1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [334.22, 22.0, 144.03],
+          "rot": -2.553
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-sirloinplayerpos1",
+      "name": "Cine_SirLoinPlayerPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [328.5, 23.03, 139.22],
+          "rot": 1.473
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-sirloinwizardpos1",
+      "name": "Cine_SirLoinWizardPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [328.51, 23.03, 141.02],
+          "rot": 1.473
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-sirloinplayerpos2",
+      "name": "Cine_SirLoinPlayerPos2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [331.25, 22.0, 139.33],
+          "rot": 1.473
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/cine-sirloinwizardpos2",
+      "name": "Cine_SirLoinWizardPos2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [331.25, 22.0, 140.91],
+          "rot": 1.473
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/ba-castleambush1",
+      "name": "BA_CastleAmbush1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [85.09, 187.25],
+            [86.03, 165.43],
+            [77.89, 141.55],
+            [112.15, 140.89],
+            [106.15, 158.36],
+            [89.76, 158.03],
+            [89.7, 160.9],
+            [119.65, 159.75],
+            [114.55, 181.93],
+            [105.89, 182.92],
+            [101.96, 190.0],
+            [89.51, 190.1]
+          ],
+          "heights": [11.915268, 21.915268]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/achievement-centerofattention",
+      "name": "Achievement_CenterofAttention",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [98.72, 223.44],
+            [101.29, 223.47],
+            [100.04, 225.78]
+          ],
+          "heights": [15.026033, 25.026033]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/achievement-wall",
+      "name": "Achievement_Wall",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [50.69, 168.37],
+            [53.97, 168.21],
+            [59.4, 183.85],
+            [51.62, 197.28]
+          ],
+          "heights": [12.0, 22.0]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5200/achievement-overlook",
+      "name": "Achievement_Overlook",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [447.38, 320.04],
+            [450.29, 320.27],
+            [450.29, 325.97],
+            [447.41, 326.16]
+          ],
+          "heights": [39.473488, 49.473488]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

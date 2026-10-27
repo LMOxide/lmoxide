@@ -1,0 +1,16 @@
+{
+  "id": "achievement/fencer-the-master-striker",
+  "lore": 3858,
+  "parent": "achievement/fencer",
+  "client_name": "Fencer_Smash 10000 Monsters",
+  "title": "Fencer, the Master Striker",
+  "text": "Smash 10000 monsters as Fencer.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/fencer",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "achievement/minifigure-world-champion",
+  "lore": 3645,
+  "parent": "achievement/global",
+  "client_name": "Global_Minifigures_All",
+  "title": "Minifigure World Champion",
+  "text": "Master all Minifigures.",
+  "points": 100,
+  "kind": "series",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/unicorn-girl-the-lost-champion",
+  "lore": 4009,
+  "parent": "achievement/unicorn-girl",
+  "client_name": "Unicorn Girl_Lost Creations_Get to level 15",
+  "title": "Unicorn Girl, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Unicorn Girl.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/unicorn-girl",
+  "n": 15,
+  "source": "client"
+}

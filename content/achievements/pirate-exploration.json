@@ -1,0 +1,8 @@
+{
+  "id": "achievement/pirate-exploration",
+  "lore": 834,
+  "parent": "achievement/pirate-world",
+  "client_name": "Pirate_Exploration",
+  "kind": "category",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sad-clown-the-lost-challenger",
+  "lore": 3557,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_Lost Creations_Get to Level 5",
+  "title": "Sad Clown, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Sad Clown.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/sad-clown",
+  "n": 5,
+  "source": "client"
+}

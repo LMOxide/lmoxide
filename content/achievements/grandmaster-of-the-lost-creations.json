@@ -1,0 +1,12 @@
+{
+  "id": "achievement/grandmaster-of-the-lost-creations",
+  "lore": 4702,
+  "parent": "achievement/global",
+  "client_name": "Global_Lost Creations Grandmaster",
+  "title": "Grandmaster of the Lost Creations",
+  "text": "Complete level 35 in the Lost Creations.",
+  "points": 100,
+  "kind": "manual",
+  "stars": 5000,
+  "source": "client"
+}

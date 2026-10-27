@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-monster-scientist",
+  "lore": 4630,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Upgrade 3",
+  "title": "Novice Monster Scientist",
+  "text": "Get the third Monster Scientist upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/monster-scientist",
+  "n": 3,
+  "source": "client"
+}

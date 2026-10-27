@@ -1,0 +1,17 @@
+{
+  "id": "achievement/yeti-the-machinist",
+  "lore": 3052,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Smash 50 Alien Machines",
+  "title": "Yeti, the Machinist",
+  "text": "Smash 50 Alien Machines as Yeti.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/yeti",
+  "counts": {
+    "match": "Alien Machine",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

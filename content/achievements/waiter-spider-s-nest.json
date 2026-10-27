@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-spider-s-nest",
+  "lore": 2718,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Spider's Nest",
+  "title": "Waiter: Spider's Nest",
+  "text": "Conquer the Spider's Nest as Waiter.",
+  "points": 50,
+  "kind": "target",
+  "target": "Spider's Nest",
+  "minifigure": "minifig/waiter",
+  "source": "client"
+}

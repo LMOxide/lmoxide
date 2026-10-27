@@ -1,0 +1,39 @@
+{
+  "id": "skill/boss-hades-bolt-castable",
+  "name": "boss hades bolt castable",
+  "client": {
+    "spell": 56521,
+    "stats": {
+      "AIPowerrating": 5,
+      "AISpellCategory": 1,
+      "AttackRange": 4000,
+      "EffectPackage": 149462,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 44,
+            "ItemInstance": 56630,
+            "ProjectileType": 2,
+            "Speed": 800
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 56521,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

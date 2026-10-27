@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-barbarian",
+  "lore": 2877,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Upgrade 7",
+  "title": "Expert Barbarian",
+  "text": "Get the seventh Barbarian upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/barbarian",
+  "n": 7,
+  "source": "client"
+}

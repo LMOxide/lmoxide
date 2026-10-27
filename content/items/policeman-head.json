@@ -1,0 +1,16 @@
+{
+  "id": "item/policeman-head",
+  "name": "Policeman Head",
+  "kind": "part",
+  "template": 483578,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10913,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/policeman",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lifeguard-guy-the-lost-challenger",
+  "lore": 3168,
+  "parent": "achievement/lifeguard-guy",
+  "client_name": "Lifeguard Guy_Lost Creations_Get to Level 5",
+  "title": "Lifeguard Guy, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Lifeguard Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/lifeguard-guy",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/hollywood-starlet-the-lost-champion",
+  "lore": 2597,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Lost Creations_Get to Level 15",
+  "title": "Hollywood Starlet, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Hollywood Starlet.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/hollywood-starlet",
+  "n": 15,
+  "source": "client"
+}

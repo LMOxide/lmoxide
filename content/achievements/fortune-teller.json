@@ -1,0 +1,29 @@
+{
+  "id": "achievement/fortune-teller",
+  "lore": 2471,
+  "parent": "achievement/series-9",
+  "client_name": "Fortune Teller",
+  "title": "Fortune Teller",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-fortune-teller",
+    "achievement/legendary-fortune-teller",
+    "achievement/novice-fortune-teller",
+    "achievement/expert-fortune-teller",
+    "achievement/fortune-teller-bewitched-candy-forest",
+    "achievement/fortune-teller-cave-of-the-exiled",
+    "achievement/fortune-teller-dragon-halls",
+    "achievement/fortune-teller-chlora-the-fungomancer",
+    "achievement/fortune-teller-the-weaver",
+    "achievement/fortune-teller-hecate-the-winter-witch",
+    "achievement/fortune-teller-the-builder",
+    "achievement/fortune-teller-the-master-builder",
+    "achievement/fortune-teller-the-stonemason",
+    "achievement/fortune-teller-the-lost-challenger",
+    "achievement/fortune-teller-the-lost-warrior",
+    "achievement/fortune-teller-the-lost-champion"
+  ],
+  "minifigure": "minifig/fortune-teller",
+  "source": "client"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "world/mercenary-assault-cruiser",
+  "name": "Mercenary Assault Cruiser",
+  "playfield": 1622,
+  "kind": "pocket",
+  "region": "region/space-world",
+  "arrival": {
+    "pos": [280.38, 36.08, 123.12],
+    "rot": 4.71
+  },
+  "arrival_guid": 406553,
+  "arrival_from": {
+    "world/planet-s-dark-side": {
+      "pos": [278.67, 36.98, 122.91],
+      "rot": 1.571
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 406553,
+      "pos": [280.38, 36.08, 123.12],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

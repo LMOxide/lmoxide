@@ -1,0 +1,25 @@
+{
+  "id": "skill/for-rome-318156",
+  "name": "For Rome!",
+  "client": {
+    "spell": 318156,
+    "stats": {
+      "EffectPackage": 465746,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

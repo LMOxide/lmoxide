@@ -1,0 +1,16 @@
+{
+  "id": "item/scarecrow-legs",
+  "name": "Scarecrow Legs",
+  "kind": "part",
+  "template": 483659,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31113,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/scarecrow",
+  "location": "Legs",
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/skeleton-guy-head",
+  "name": "Skeleton Guy Head",
+  "kind": "part",
+  "template": 662040,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11407,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/skeleton-guy",
+  "location": "Head",
+  "source": "client"
+}

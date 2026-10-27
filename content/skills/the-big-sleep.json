@@ -1,0 +1,49 @@
+{
+  "id": "skill/the-big-sleep",
+  "name": "The Big Sleep",
+  "client": {
+    "spell": 514409,
+    "stats": {
+      "EffectPackage": 504687,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 514379,
+            "MinimumAttackRange": 250,
+            "ProjectileType": 2,
+            "Speed": 1000
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 514409,
+            "Value": 700
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Dino Tracker: The Big Sleep",
+  "range": 12.5,
+  "projectile": {
+    "item": 514379,
+    "speed": 10.0,
+    "kind": 2,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "item/unlimited-monthly-3000-stars",
+  "name": "Unlimited monthly (3000 Stars)",
+  "kind": "token",
+  "template": 668525,
+  "dynel_type": 30046,
+  "tokens": [
+    {
+      "token": 100,
+      "amount": 3000
+    }
+  ],
+  "source": "client"
+}

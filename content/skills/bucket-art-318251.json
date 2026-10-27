@@ -1,0 +1,24 @@
+{
+  "id": "skill/bucket-art-318251",
+  "name": "Bucket Art",
+  "client": {
+    "spell": 318251,
+    "stats": {
+      "EffectPackage": 320643
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.75,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

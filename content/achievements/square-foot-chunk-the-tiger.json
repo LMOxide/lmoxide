@@ -1,0 +1,13 @@
+{
+  "id": "achievement/square-foot-chunk-the-tiger",
+  "lore": 4542,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Chunk the Tiger",
+  "title": "Square Foot: Chunk the Tiger",
+  "text": "Defeat Chunk the Tiger as Square Foot.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chunk the Tiger",
+  "minifigure": "minifig/square-foot",
+  "source": "client"
+}

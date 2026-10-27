@@ -1,0 +1,21 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/1674/jumpie-1",
+      "name": "jumpie_1",
+      "template": "object/jump-pad-catapult-b-buildie",
+      "pos": [256.25, 20.0, 255.29],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [247.38, 18.0, 252.63],
+      "target_by": "name",
+      "client": {
+        "guid": 459878,
+        "tag": "JUMP",
+        "script_group": 32,
+        "visual": [1010201, 459643],
+        "bounds": [-1.25, 0.0, -0.8, 1.176, 1.5, 0.856]
+      },
+      "source": "client"
+    }
+  ]
+}

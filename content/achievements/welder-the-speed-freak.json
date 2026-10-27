@@ -1,0 +1,17 @@
+{
+  "id": "achievement/welder-the-speed-freak",
+  "lore": 2797,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Build 20 Speed Pads",
+  "title": "Welder, the Speed Freak",
+  "text": "Build 20 Speed Pads as Welder.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 20],
+  "minifigure": "minifig/welder",
+  "counts": {
+    "match": "Speed Pad",
+    "what": "builds"
+  },
+  "source": "client"
+}

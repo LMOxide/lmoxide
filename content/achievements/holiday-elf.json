@@ -1,0 +1,29 @@
+{
+  "id": "achievement/holiday-elf",
+  "lore": 2491,
+  "parent": "achievement/series-11",
+  "client_name": "Holiday Elf",
+  "title": "Holiday Elf",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-holiday-elf",
+    "achievement/legendary-holiday-elf",
+    "achievement/novice-holiday-elf",
+    "achievement/expert-holiday-elf",
+    "achievement/holiday-elf-bewitched-candy-forest",
+    "achievement/holiday-elf-cave-of-the-exiled",
+    "achievement/holiday-elf-dragon-halls",
+    "achievement/holiday-elf-chlora-the-fungomancer",
+    "achievement/holiday-elf-the-weaver",
+    "achievement/holiday-elf-hecate-the-winter-witch",
+    "achievement/holiday-elf-the-builder",
+    "achievement/holiday-elf-the-master-builder",
+    "achievement/holiday-elf-the-speed-freak",
+    "achievement/holiday-elf-the-lost-challenger",
+    "achievement/holiday-elf-the-lost-warrior",
+    "achievement/holiday-elf-the-lost-champion"
+  ],
+  "minifigure": "minifig/holiday-elf",
+  "source": "client"
+}

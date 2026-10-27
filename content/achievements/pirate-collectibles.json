@@ -1,0 +1,8 @@
+{
+  "id": "achievement/pirate-collectibles",
+  "lore": 2366,
+  "parent": "achievement/pirate-world",
+  "client_name": "Pirate_Collectibles",
+  "kind": "category",
+  "source": "client"
+}

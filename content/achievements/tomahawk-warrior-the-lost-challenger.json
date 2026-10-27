@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tomahawk-warrior-the-lost-challenger",
+  "lore": 3523,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Lost Creations_Get to Level 5",
+  "title": "Tomahawk Warrior, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Tomahawk Warrior.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/tomahawk-warrior",
+  "n": 5,
+  "source": "client"
+}

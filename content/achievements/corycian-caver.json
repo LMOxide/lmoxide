@@ -1,0 +1,18 @@
+{
+  "id": "achievement/corycian-caver",
+  "lore": 878,
+  "parent": "achievement/mythology-combat",
+  "client_name": "Mythology_Combat_Complete Mythology Pocket Adventures",
+  "title": "Corycian Caver",
+  "text": "Complete all Mythology World Pocket Adventures.",
+  "points": 100,
+  "kind": "all",
+  "stars": 500,
+  "children": [
+    "achievement/king-of-the-hill",
+    "achievement/grab-the-bull-by-the-horns",
+    "achievement/refurbish",
+    "achievement/neither-lost-nor-forgotten"
+  ],
+  "source": "client"
+}

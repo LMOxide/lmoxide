@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-evil-wizard",
+  "lore": 3835,
+  "parent": "achievement/evil-wizard",
+  "client_name": "Evil Wizard_Upgrade 7",
+  "title": "Expert Evil Wizard",
+  "text": "Get the seventh Evil Wizard upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/evil-wizard",
+  "n": 7,
+  "source": "client"
+}

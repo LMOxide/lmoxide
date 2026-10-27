@@ -1,0 +1,22 @@
+{
+  "portals": [
+    {
+      "id": "portal/2320/to-mythology-mountains",
+      "pos": [360.58, 25.11, 412.44],
+      "window": 67,
+      "to": {
+        "world": "world/mythology-mountains"
+      },
+      "source": "client"
+    },
+    {
+      "id": "portal/2320/to-lego-center",
+      "pos": [360.58, 25.11, 412.44],
+      "window": 73,
+      "to": {
+        "world": "world/lego-center"
+      },
+      "source": "client"
+    }
+  ]
+}

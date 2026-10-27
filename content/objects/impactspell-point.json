@@ -1,0 +1,10 @@
+{
+  "id": "object/impactspell-point",
+  "name": "ImpactSpell_ Point",
+  "kind": "scenery",
+  "render": {
+    "look": "ImpactSpell_ Point",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

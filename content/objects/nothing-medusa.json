@@ -1,0 +1,10 @@
+{
+  "id": "object/nothing-medusa",
+  "name": "nothing medusa",
+  "kind": "scenery",
+  "render": {
+    "look": "nothing medusa",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

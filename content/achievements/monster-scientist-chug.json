@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-scientist-chug",
+  "lore": 4628,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Chug",
+  "title": "Monster Scientist: Chug",
+  "text": "Defeat Chug as Monster Scientist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chug",
+  "minifigure": "minifig/monster-scientist",
+  "source": "client"
+}

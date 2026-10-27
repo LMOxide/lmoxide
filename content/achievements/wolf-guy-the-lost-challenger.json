@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wolf-guy-the-lost-challenger",
+  "lore": 4599,
+  "parent": "achievement/wolf-guy",
+  "client_name": "Wolf Guy_Lost Creations_Get to Level 5",
+  "title": "Wolf Guy, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Wolf Guy.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/wolf-guy",
+  "n": 5,
+  "source": "client"
+}

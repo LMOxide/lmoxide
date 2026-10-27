@@ -1,0 +1,16 @@
+{
+  "id": "item/battle-goddess-body",
+  "name": "Battle Goddess Body",
+  "kind": "part",
+  "template": 576145,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21204,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/battle-goddess",
+  "location": "Torso",
+  "source": "client"
+}

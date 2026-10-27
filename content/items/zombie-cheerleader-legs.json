@@ -1,0 +1,16 @@
+{
+  "id": "item/zombie-cheerleader-legs",
+  "name": "Zombie Cheerleader Legs",
+  "kind": "part",
+  "template": 662049,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31415,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/zombie-cheerleader",
+  "location": "Legs",
+  "source": "client"
+}

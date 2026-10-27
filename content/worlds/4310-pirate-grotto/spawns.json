@@ -1,0 +1,1670 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/4310/captain-blackheart",
+      "name": "Captain Blackheart",
+      "kind": "enemy",
+      "template": "npc/captain-blackheart",
+      "pos": [349.4, 58.35, 109.13],
+      "anchor": "res_boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-hunter",
+      "name": "Pirate Islander Hunter",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-hunter",
+      "pos": [327.0, 57.64, 268.0],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "res_corner",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-witch-doctor",
+      "name": "Pirate Islander Witch Doctor",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-witch-doctor",
+      "pos": [329.2, 57.64, 269.2],
+      "anchor": "res_corner",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-witch-doctor-2",
+      "name": "Pirate Islander Witch Doctor",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-witch-doctor",
+      "pos": [350.0, 38.79, 202.0],
+      "anchor": "Quest_LeftHand",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-scout",
+      "name": "Pirate Islander Scout",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-scout",
+      "pos": [352.2, 38.79, 203.2],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_LeftHand",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-witch-doctor-3",
+      "name": "Pirate Islander Witch Doctor",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-witch-doctor",
+      "pos": [348.2, 38.79, 203.6],
+      "anchor": "Quest_LeftHand",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-scout-2",
+      "name": "Pirate Islander Scout",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-scout",
+      "pos": [383.75, 55.58, 287.5],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/monkey-fire",
+      "name": "Monkey Fire",
+      "kind": "enemy",
+      "template": "npc/monkey-fire",
+      "pos": [385.95, 56.08, 288.7],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/monkey-fire-2",
+      "name": "Monkey Fire",
+      "kind": "enemy",
+      "template": "npc/monkey-fire",
+      "pos": [319.0, 60.96, 153.0],
+      "anchor": "Quest_Prison",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/hound-fire",
+      "name": "Hound Fire",
+      "kind": "enemy",
+      "template": "npc/hound-fire",
+      "pos": [321.2, 60.96, 154.2],
+      "anchor": "Quest_Prison",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/monkey-fire-3",
+      "name": "Monkey Fire",
+      "kind": "enemy",
+      "template": "npc/monkey-fire",
+      "pos": [317.2, 61.47, 154.6],
+      "anchor": "Quest_Prison",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/hound-fire-2",
+      "name": "Hound Fire",
+      "kind": "enemy",
+      "template": "npc/hound-fire",
+      "pos": [319.0, 40.35, 184.5],
+      "anchor": "BA_Passage_Ambush_1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-ancient-attacker",
+      "name": "Skeleton Ancient Attacker",
+      "kind": "enemy",
+      "template": "npc/skeleton-ancient-attacker",
+      "pos": [321.2, 40.67, 185.7],
+      "anchor": "BA_Passage_Ambush_1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-ancient-attacker-2",
+      "name": "Skeleton Ancient Attacker",
+      "kind": "enemy",
+      "template": "npc/skeleton-ancient-attacker",
+      "pos": [357.75, 53.51, 263.25],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/spider-red",
+      "name": "Spider Red",
+      "kind": "enemy",
+      "template": "npc/spider-red",
+      "pos": [359.95, 53.31, 264.45],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-ancient-attacker-3",
+      "name": "Skeleton Ancient Attacker",
+      "kind": "enemy",
+      "template": "npc/skeleton-ancient-attacker",
+      "pos": [358.35, 53.51, 261.05],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/spider-red-2",
+      "name": "Spider Red",
+      "kind": "enemy",
+      "template": "npc/spider-red",
+      "pos": [346.75, 56.21, 287.5],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-pirate-2",
+      "name": "Skeleton Pirate 2",
+      "kind": "enemy",
+      "template": "npc/skeleton-pirate-2",
+      "pos": [348.95, 56.21, 288.7],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-pirate-2-2",
+      "name": "Skeleton Pirate 2",
+      "kind": "enemy",
+      "template": "npc/skeleton-pirate-2",
+      "pos": [379.25, 58.73, 137.25],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-hunter-2",
+      "name": "Pirate Islander Hunter",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-hunter",
+      "pos": [381.45, 58.73, 138.45],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-pirate-2-3",
+      "name": "Skeleton Pirate 2",
+      "kind": "enemy",
+      "template": "npc/skeleton-pirate-2",
+      "pos": [377.45, 58.73, 138.85],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-hunter-3",
+      "name": "Pirate Islander Hunter",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-hunter",
+      "pos": [327.25, 60.48, 213.0],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "BA_Bridge_Ambush",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-witch-doctor-4",
+      "name": "Pirate Islander Witch Doctor",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-witch-doctor",
+      "pos": [329.45, 60.48, 214.2],
+      "anchor": "BA_Bridge_Ambush",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-witch-doctor-5",
+      "name": "Pirate Islander Witch Doctor",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-witch-doctor",
+      "pos": [406.25, 56.67, 258.0],
+      "anchor": "res_ship",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-scout-3",
+      "name": "Pirate Islander Scout",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-scout",
+      "pos": [408.45, 56.67, 259.2],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "res_ship",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-witch-doctor-6",
+      "name": "Pirate Islander Witch Doctor",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-witch-doctor",
+      "pos": [404.45, 56.67, 259.6],
+      "anchor": "res_ship",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/pirate-islander-scout-4",
+      "name": "Pirate Islander Scout",
+      "kind": "enemy",
+      "template": "npc/pirate-islander-scout",
+      "pos": [333.5, 60.96, 165.0],
+      "overrides": {
+        "level": 8,
+        "stats": {
+          "health": 367
+        }
+      },
+      "anchor": "Quest_Prison",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/monkey-fire-4",
+      "name": "Monkey Fire",
+      "kind": "enemy",
+      "template": "npc/monkey-fire",
+      "pos": [335.7, 60.96, 166.2],
+      "anchor": "Quest_Prison",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/monkey-fire-5",
+      "name": "Monkey Fire",
+      "kind": "enemy",
+      "template": "npc/monkey-fire",
+      "pos": [374.75, 54.15, 270.5],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/hound-fire-3",
+      "name": "Hound Fire",
+      "kind": "enemy",
+      "template": "npc/hound-fire",
+      "pos": [376.95, 54.15, 271.7],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/monkey-fire-6",
+      "name": "Monkey Fire",
+      "kind": "enemy",
+      "template": "npc/monkey-fire",
+      "pos": [372.95, 54.15, 272.1],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/hound-fire-4",
+      "name": "Hound Fire",
+      "kind": "enemy",
+      "template": "npc/hound-fire",
+      "pos": [360.75, 58.61, 131.0],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-ancient-attacker-4",
+      "name": "Skeleton Ancient Attacker",
+      "kind": "enemy",
+      "template": "npc/skeleton-ancient-attacker",
+      "pos": [362.95, 58.61, 132.2],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-ancient-attacker-5",
+      "name": "Skeleton Ancient Attacker",
+      "kind": "enemy",
+      "template": "npc/skeleton-ancient-attacker",
+      "pos": [366.0, 55.58, 289.0],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/spider-red-3",
+      "name": "Spider Red",
+      "kind": "enemy",
+      "template": "npc/spider-red",
+      "pos": [368.2, 55.58, 290.2],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/skeleton-ancient-attacker-6",
+      "name": "Skeleton Ancient Attacker",
+      "kind": "enemy",
+      "template": "npc/skeleton-ancient-attacker",
+      "pos": [366.6, 55.35, 286.8],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/swashbuckler",
+      "name": "Swashbuckler",
+      "kind": "npc",
+      "template": "npc/swashbuckler",
+      "pos": [351.85, 59.15, 122.83],
+      "rot": 0.639,
+      "anchor": "Cine_SwashbucklerAtPreBoss1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/wizard",
+      "name": "Wizard",
+      "kind": "npc",
+      "template": "npc/wizard",
+      "pos": [387.75, 58.0, 154.66],
+      "rot": -2.02,
+      "anchor": "Cine_WizardSpawn1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/revolutionary-soldier",
+      "name": "Revolutionary Soldier",
+      "kind": "npc",
+      "template": "npc/revolutionary-soldier",
+      "pos": [383.29, 58.0, 158.44],
+      "rot": 2.746,
+      "anchor": "Cine_RevoSoldierSpawn1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/island-warrior",
+      "name": "Island Warrior",
+      "kind": "npc",
+      "template": "npc/island-warrior",
+      "pos": [382.34, 58.0, 156.97],
+      "rot": 1.82,
+      "anchor": "Cine_IslandWarriorSpawn1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [335.75, 60.3, 238.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [336.55, 60.3, 239.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [335.15, 60.3, 239.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [376.5, 37.75, 246.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-cannon-ball-crate",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [377.3, 37.75, 247.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [375.9, 37.75, 247.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [327.25, 60.05, 132.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [328.05, 60.05, 133.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [326.65, 60.05, 133.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [400.75, 56.53, 276.75],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-cannon-ball-crate-2",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [401.55, 56.53, 277.95],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [400.15, 56.53, 278.15],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [298.0, 39.77, 176.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [298.8, 39.77, 177.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [297.4, 39.77, 177.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [335.5, 40.63, 196.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-cannon-ball-crate-3",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [336.3, 40.63, 197.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [334.9, 40.63, 197.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [367.25, 58.61, 148.5],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-11",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [368.05, 58.61, 149.7],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [366.65, 58.61, 149.9],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [344.75, 56.57, 273.0],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-cannon-ball-crate-4",
+      "name": "XX_Cannon Ball Crate",
+      "kind": "smashable",
+      "template": "object/xx-cannon-ball-crate",
+      "pos": [345.55, 56.57, 274.2],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/xx-crate-12",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [344.15, 56.57, 274.4],
+      "anchor": "Quest_LoadingBay",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [406.25, 55.75, 249.5],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 79871,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-1",
+      "name": "Cannon 1",
+      "kind": "scenery",
+      "template": "object/cannon-1-2",
+      "pos": [317.6, 60.06, 165.78],
+      "rot": [0.0, 0.5859, 0.0, 0.8104],
+      "client": {
+        "guid": 79903,
+        "tag": "JUMP",
+        "script_group": 17,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/landing-1",
+      "name": "Landing 1",
+      "kind": "scenery",
+      "template": "object/landing-1",
+      "pos": [309.76, 52.0, 199.56],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 79872,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/4310/cannon-2",
+      "name": "Cannon 2",
+      "kind": "scenery",
+      "template": "object/cannon-2",
+      "pos": [316.79, 52.06, 200.14],
+      "rot": [0.0, -0.9524, 0.0, 0.3048],
+      "client": {
+        "guid": 79904,
+        "tag": "JUMP",
+        "script_group": 18,
+        "visual": [1010030, 196049],
+        "bounds": [-0.751, -0.035, -0.8, 1.0, 1.408, 0.909]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/landing-2",
+      "name": "Landing 2",
+      "kind": "scenery",
+      "template": "object/landing-2",
+      "pos": [325.53, 59.25, 172.47],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 79873,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/4310/cannon3",
+      "name": "cannon3",
+      "kind": "scenery",
+      "template": "object/cannon3",
+      "pos": [320.58, 46.75, 190.17],
+      "rot": [0.0, -0.2521, 0.0, 0.9677],
+      "client": {
+        "guid": 227957,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [318.51, 46.72, 190.43],
+      "rot": [0.0, 0.7976, 0.0, 0.6032],
+      "client": {
+        "guid": 228619,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon1",
+      "name": "cannon1",
+      "kind": "scenery",
+      "template": "object/cannon1",
+      "pos": [314.37, 46.59, 185.17],
+      "rot": [0.0115, -0.3998, 0.1635, 0.9018],
+      "client": {
+        "guid": 227881,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-2",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [312.86, 46.86, 185.33],
+      "rot": [0.0, 0.7496, 0.0, 0.6619],
+      "client": {
+        "guid": 227956,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon4",
+      "name": "cannon4",
+      "kind": "scenery",
+      "template": "object/cannon4",
+      "pos": [322.08, 46.75, 191.85],
+      "rot": [0.0, -0.2077, 0.0, 0.9782],
+      "client": {
+        "guid": 227958,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-3",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [320.24, 46.72, 192.21],
+      "rot": [0.0, 0.8243, 0.0, 0.5662],
+      "client": {
+        "guid": 228620,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon8",
+      "name": "cannon8",
+      "kind": "scenery",
+      "template": "object/cannon8",
+      "pos": [319.27, 46.75, 179.75],
+      "rot": [0.0, 0.9739, 0.0, -0.2269],
+      "client": {
+        "guid": 227947,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-4",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [319.58, 46.72, 178.48],
+      "rot": [0.0, -0.0715, 0.0, 0.9974],
+      "client": {
+        "guid": 228621,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon7",
+      "name": "cannon7",
+      "kind": "scenery",
+      "template": "object/cannon7",
+      "pos": [320.9, 46.9, 180.89],
+      "rot": [0.0, 0.8655, 0.0, -0.5009],
+      "client": {
+        "guid": 227946,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-5",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [320.63, 46.72, 179.54],
+      "rot": [0.0, -0.0696, 0.0, 0.9976],
+      "client": {
+        "guid": 228622,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon5",
+      "name": "cannon5",
+      "kind": "scenery",
+      "template": "object/cannon5",
+      "pos": [326.06, 46.75, 186.6],
+      "rot": [0.0, 0.9821, 0.0, -0.1881],
+      "client": {
+        "guid": 227959,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-6",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [326.71, 46.72, 184.85],
+      "rot": [0.0, -0.1109, 0.0, 0.9938],
+      "client": {
+        "guid": 228623,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon2",
+      "name": "cannon2",
+      "kind": "scenery",
+      "template": "object/cannon2",
+      "pos": [316.13, 47.27, 187.33],
+      "rot": [0.0, -0.3988, 0.0, 0.917],
+      "client": {
+        "guid": 227942,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-7",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [314.47, 46.72, 187.37],
+      "rot": [0.0, 0.7769, 0.0, 0.6296],
+      "client": {
+        "guid": 228624,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon6",
+      "name": "cannon6",
+      "kind": "scenery",
+      "template": "object/cannon6",
+      "pos": [324.27, 46.75, 184.67],
+      "rot": [0.0, 0.9758, 0.0, -0.2186],
+      "client": {
+        "guid": 227960,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/cannon-turret-ghost-8",
+      "name": "cannon_turret_ghost",
+      "kind": "scenery",
+      "template": "object/cannon-turret-ghost",
+      "pos": [325.1, 46.72, 183.24],
+      "rot": [0.0, -0.0799, 0.0, 0.9968],
+      "client": {
+        "guid": 228625,
+        "tag": "TB6I",
+        "script_group": -1,
+        "visual": [1010030, 202871],
+        "bounds": [-0.462, 0.1, -0.725, 0.462, 0.871, 1.247]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossentranceshield-skimpybob",
+      "name": "BossEntranceShield_SkimpyBob",
+      "kind": "scenery",
+      "template": "object/bossentranceshield-skimpybob",
+      "pos": [348.61, 38.1, 201.52],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 356525,
+        "tag": "----",
+        "script_group": 43,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossexitshield-skimpybob",
+      "name": "BossExitShield_SkimpyBob",
+      "kind": "scenery",
+      "template": "object/bossexitshield-skimpybob",
+      "pos": [361.83, 38.1, 221.57],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 356526,
+        "tag": "----",
+        "script_group": 44,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossentrancevisualopen-skimpybob",
+      "name": "BossEntranceVisualOpen_SkimpyBob",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen-skimpybob",
+      "pos": [349.09, 37.92, 201.89],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 356527,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossexitvisualclosed-skimpybob",
+      "name": "BossExitVisualClosed_SkimpyBob",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-skimpybob",
+      "pos": [362.01, 38.45, 221.03],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 356528,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossentrancevisualclosed-skimpybob",
+      "name": "BossEntranceVisualClosed_SkimpyBob",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed-skimpybob",
+      "pos": [349.09, 37.92, 201.89],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 356529,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon1",
+      "name": "Ghost cannon1",
+      "kind": "scenery",
+      "template": "object/ghost-cannon1",
+      "pos": [332.02, 63.16, 204.82],
+      "rot": [0.0348, -0.3508, 0.1573, 0.9225],
+      "client": {
+        "guid": 246087,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon2",
+      "name": "Ghost cannon2",
+      "kind": "scenery",
+      "template": "object/ghost-cannon2",
+      "pos": [331.86, 63.32, 203.47],
+      "rot": [0.0348, -0.3508, 0.1573, 0.9225],
+      "client": {
+        "guid": 246091,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon3",
+      "name": "Ghost cannon3",
+      "kind": "scenery",
+      "template": "object/ghost-cannon3",
+      "pos": [331.34, 63.46, 202.19],
+      "rot": [0.0461, -0.283, 0.1543, 0.9455],
+      "client": {
+        "guid": 246092,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon4",
+      "name": "Ghost cannon4",
+      "kind": "scenery",
+      "template": "object/ghost-cannon4",
+      "pos": [331.1, 63.69, 201.02],
+      "rot": [0.0461, -0.283, 0.1543, 0.9455],
+      "client": {
+        "guid": 246093,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon5",
+      "name": "Ghost cannon5",
+      "kind": "scenery",
+      "template": "object/ghost-cannon5",
+      "pos": [330.76, 63.92, 199.63],
+      "rot": [0.0296, -0.2969, 0.1612, 0.9407],
+      "client": {
+        "guid": 246094,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon6",
+      "name": "Ghost cannon6",
+      "kind": "scenery",
+      "template": "object/ghost-cannon6",
+      "pos": [330.56, 64.58, 196.14],
+      "rot": [0.0296, -0.2969, 0.1612, 0.9407],
+      "client": {
+        "guid": 246095,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon7",
+      "name": "Ghost cannon7",
+      "kind": "scenery",
+      "template": "object/ghost-cannon7",
+      "pos": [330.01, 64.32, 192.85],
+      "rot": [0.0236, -0.332, 0.1622, 0.9289],
+      "client": {
+        "guid": 246096,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/ghost-cannon8",
+      "name": "Ghost cannon8",
+      "kind": "scenery",
+      "template": "object/ghost-cannon8",
+      "pos": [329.82, 64.25, 191.62],
+      "rot": [0.0236, -0.332, 0.1622, 0.9289],
+      "client": {
+        "guid": 246097,
+        "tag": "1G49",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [327.81, 60.69, 212.38],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 488229,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/prison-cell-1",
+      "name": "prison cell 1",
+      "kind": "scenery",
+      "template": "object/prison-cell-1",
+      "pos": [334.46, 63.2, 164.94],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 464929,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/prison-cell-2",
+      "name": "prison cell 2",
+      "kind": "scenery",
+      "template": "object/prison-cell-2",
+      "pos": [334.74, 63.2, 156.96],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 464931,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/prison-cell-3",
+      "name": "prison cell 3",
+      "kind": "scenery",
+      "template": "object/prison-cell-3",
+      "pos": [317.91, 63.2, 158.93],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 464935,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/prison-cell-4",
+      "name": "prison cell 4",
+      "kind": "scenery",
+      "template": "object/prison-cell-4",
+      "pos": [317.95, 63.2, 152.95],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 464938,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/prison-cell-5",
+      "name": "prison cell 5",
+      "kind": "scenery",
+      "template": "object/prison-cell-5",
+      "pos": [317.87, 63.2, 146.99],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 464940,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossentranceshield-dreadleg",
+      "name": "BossEntranceShield_Dreadleg",
+      "kind": "scenery",
+      "template": "object/bossentranceshield-dreadleg",
+      "pos": [358.99, 58.19, 128.62],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "client": {
+        "guid": 188955,
+        "tag": "----",
+        "script_group": 89,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossexitshield-dreadleg",
+      "name": "BossExitShield_Dreadleg",
+      "kind": "scenery",
+      "template": "object/bossexitshield-dreadleg",
+      "pos": [396.5, 58.17, 147.54],
+      "rot": [0.0, 0.3827, 0.0, -0.9239],
+      "client": {
+        "guid": 188954,
+        "tag": "----",
+        "script_group": 90,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossentrancevisualopen-dreadleg",
+      "name": "BossEntranceVisualOpen_Dreadleg",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen-dreadleg",
+      "pos": [359.16, 58.31, 128.57],
+      "rot": [0.0, 0.3549, 0.0, 0.9349],
+      "client": {
+        "guid": 188952,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossexitvisualclosed-dreadleg",
+      "name": "BossExitVisualClosed_Dreadleg",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-dreadleg",
+      "pos": [396.06, 58.58, 147.81],
+      "rot": [0.0, 0.3827, 0.0, -0.9239],
+      "client": {
+        "guid": 188953,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bossentrancevisualclosed-dreadleg",
+      "name": "BossEntranceVisualClosed_Dreadleg",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed-dreadleg",
+      "pos": [359.16, 58.31, 128.57],
+      "rot": [0.0, 0.3549, 0.0, 0.9349],
+      "client": {
+        "guid": 188951,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bosscannon-b",
+      "name": "BossCannon_B",
+      "kind": "buildie",
+      "template": "object/lego-cannon-a-boss-buildie",
+      "pos": [380.07, 58.0, 149.84],
+      "rot": [0.0, 0.9239, 0.0, 0.3827],
+      "client": {
+        "guid": 189007,
+        "tag": "----",
+        "script_group": 91,
+        "visual": [1010201, 234506],
+        "bounds": [-1.423, -0.035, -0.654, 1.344, 2.361, 0.654]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/bridge-wall",
+      "name": "Bridge Wall",
+      "kind": "scenery",
+      "template": "object/bridge-wall",
+      "pos": [376.03, 57.77, 145.5],
+      "rot": [0.0, 0.9239, 0.0, -0.3827],
+      "client": {
+        "guid": 190616,
+        "tag": "----",
+        "script_group": 92,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [403.62, 56.99, 280.24],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 241809,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-4",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [315.24, 52.99, 204.24],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 241810,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-5",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [350.0, 58.99, 105.64],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 241811,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [362.41, 37.24, 246.92],
+      "rot": [0.0, 0.7695, 0.0, -0.6387],
+      "client": {
+        "guid": 241528,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-2",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [362.3, 37.24, 245.17],
+      "rot": [0.0, 0.9239, 0.0, 0.3827],
+      "client": {
+        "guid": 242019,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-3",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [356.47, 53.64, 270.24],
+      "rot": [0.0, 0.9951, 0.0, 0.0985],
+      "client": {
+        "guid": 242071,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-4",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [356.62, 53.64, 272.03],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "client": {
+        "guid": 242075,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-5",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [377.78, 53.64, 269.11],
+      "rot": [0.0, 0.9526, 0.0, 0.3044],
+      "client": {
+        "guid": 242079,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-6",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [358.78, 55.54, 288.53],
+      "rot": [0.0, 0.6362, 0.0, 0.7715],
+      "client": {
+        "guid": 242083,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-7",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [384.78, 55.64, 274.81],
+      "rot": [0.0, 0.8792, 0.0, -0.4764],
+      "client": {
+        "guid": 242087,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/explosive-crate-spell-point-8",
+      "name": "explosive crate spell point",
+      "kind": "scenery",
+      "template": "object/explosive-crate-spell-point",
+      "pos": [373.76, 55.64, 287.46],
+      "rot": [0.0, 0.8568, 0.0, 0.5157],
+      "client": {
+        "guid": 246080,
+        "tag": "65UM",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-6",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [376.83, 55.48, 286.47],
+      "rot": [0.0, -0.7308, 0.0, 0.6826],
+      "client": {
+        "guid": 241813,
+        "tag": "1MLN",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-7",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [367.33, 55.48, 284.61],
+      "rot": [0.0, -0.7308, 0.0, 0.6826],
+      "client": {
+        "guid": 241814,
+        "tag": "1MLN",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-8",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [367.31, 53.48, 271.57],
+      "rot": [0.0, -0.7308, 0.0, 0.6826],
+      "client": {
+        "guid": 241815,
+        "tag": "1MLN",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/invisible-monsterdata-9",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [355.59, 55.48, 283.34],
+      "rot": [0.0, -0.7308, 0.0, 0.6826],
+      "client": {
+        "guid": 241816,
+        "tag": "1MLN",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [408.91, 56.73, 123.6],
+      "rot": [0.0, -0.3824, 0.0, 0.924],
+      "scale": 3.0,
+      "client": {
+        "guid": 594998,
+        "tag": "----",
+        "script_group": 2,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/4310/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [280.45, 43.1, 156.42],
+      "rot": [-0.7071, 0.0, 0.0, 0.7071],
+      "scale": 3.0,
+      "client": {
+        "guid": 594999,
+        "tag": "----",
+        "script_group": 3,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

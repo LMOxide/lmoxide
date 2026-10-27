@@ -1,0 +1,30 @@
+{
+  "id": "skill/bitter-tears-222210",
+  "name": "Bitter Tears",
+  "client": {
+    "spell": 222210,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 207761
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 222211
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Sad Clown: Bitter Tears",
+  "source": "client"
+}

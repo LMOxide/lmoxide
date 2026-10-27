@@ -1,0 +1,62 @@
+{
+  "id": "world/medieval-kingdom-sound",
+  "name": "Medieval - Kingdom - SOUND",
+  "playfield": 5202,
+  "kind": "pocket",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [103.49, 16.3, 198.28],
+    "rot": 1.536
+  },
+  "arrival_guid": 324252,
+  "respawn_points": [
+    {
+      "name": "Res_Village",
+      "guid": 324252,
+      "pos": [103.49, 16.3, 198.28],
+      "rot": 1.536,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Farm",
+      "guid": 324253,
+      "pos": [194.91, 13.99, 91.93],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Fortification",
+      "guid": 324254,
+      "pos": [339.99, 26.69, 155.21],
+      "rot": 2.117,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_CandyKingdom",
+      "guid": 324255,
+      "pos": [399.68, 20.0, 103.16],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_MountainClimb",
+      "guid": 324256,
+      "pos": [465.8, 40.0, 320.96],
+      "rot": 0.0,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

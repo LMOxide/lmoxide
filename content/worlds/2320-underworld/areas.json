@@ -1,0 +1,555 @@
+{
+  "areas": [
+    {
+      "id": "area/2320/cine-underworld1",
+      "name": "Cine_Underworld1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [106.3, 64.0, 249.17],
+          "rot": -0.254
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-underworld2",
+      "name": "Cine_Underworld2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [104.86, 64.0, 247.97],
+          "rot": -0.254
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-underworld3",
+      "name": "Cine_Underworld3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [103.56, 64.0, 249.14],
+          "rot": -0.254
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-bgunderworld2",
+      "name": "Cine_BGUnderworld2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [105.1, 64.02, 252.54],
+          "rot": 2.935
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-bgunderworld1",
+      "name": "Cine_BGUnderworld1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [104.03, 64.0, 239.05],
+          "rot": 0.202
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-pointatboat1",
+      "name": "Cine_PointAtBoat1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [195.39, 52.53, 154.94],
+          "rot": -0.254
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-boatplayerpos1",
+      "name": "Cine_BoatPlayerPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [187.93, 52.28, 158.6],
+          "rot": 1.273
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-boatswashbuckler1",
+      "name": "Cine_BoatSwashbuckler1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [188.4, 52.28, 160.27],
+          "rot": 1.79
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-boatbattlegoddess1",
+      "name": "Cine_BoatBattleGoddess1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [189.33, 52.28, 157.15],
+          "rot": 0.927
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-boatislandwarrior1",
+      "name": "Cine_BoatIslandWarrior1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [186.35, 52.28, 160.31],
+          "rot": 2.146
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-hadestease1",
+      "name": "Cine_HadesTease1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [361.71, 24.48, 332.66],
+          "rot": -2.282
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-hadestease2",
+      "name": "Cine_HadesTease2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [372.43, 24.11, 342.81],
+          "rot": 0.782
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-prehadesplayerpos1",
+      "name": "Cine_PreHadesPlayerPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [358.31, 23.87, 328.66],
+          "rot": 0.758
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-prehadesbattlegoddess1",
+      "name": "Cine_PreHadesBattleGoddess1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [358.86, 24.02, 330.31],
+          "rot": 0.985
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-prehadescamerapos1",
+      "name": "Cine_PreHadesCameraPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [359.84, 24.18, 330.8],
+          "rot": 0.758
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-hades1",
+      "name": "Cine_Hades1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [384.6, 24.75, 355.33],
+          "rot": -1.857
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-bgunderworld3",
+      "name": "Cine_BGUnderworld3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [382.55, 24.75, 356.31],
+          "rot": 3.074
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-zeusunderworld1",
+      "name": "Cine_ZeusUnderworld1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [385.52, 24.75, 353.44],
+          "rot": -1.77
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-vggunderworld1",
+      "name": "Cine_VGGUnderworld1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [390.74, 24.0, 341.79],
+          "rot": 2.539
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-vggunderworld2",
+      "name": "Cine_VGGUnderworld2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [385.36, 24.75, 350.43],
+          "rot": -1.539
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-player1",
+      "name": "Cine_Player1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [381.82, 24.75, 354.06],
+          "rot": 0.81
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-player2",
+      "name": "Cine_Player2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [382.93, 24.75, 352.93],
+          "rot": 0.81
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-player3",
+      "name": "Cine_Player3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [381.26, 24.75, 354.98],
+          "rot": 0.81
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-player4",
+      "name": "Cine_Player4",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [383.98, 24.75, 352.4],
+          "rot": 0.81
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-hades2",
+      "name": "Cine_Hades2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [384.61, 24.75, 355.28],
+          "rot": 3.117
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/cine-zeusunderworld2",
+      "name": "Cine_ZeusUnderworld2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [385.5, 24.75, 353.41],
+          "rot": -1.326
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/bossencounter-start",
+      "name": "BossEncounter_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [364.77, 340.61],
+            [363.58, 339.43],
+            [368.09, 334.73],
+            [369.27, 335.84]
+          ],
+          "heights": [24.110521, 34.11052]
+        }
+      },
+      "doors": {
+        "open": [164368],
+        "closed": [164367],
+        "exit": [164369]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/harpyencounter-start-harpyencounter",
+      "name": "HarpyEncounter_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [147.88, 302.75],
+            [139.28, 309.61],
+            [138.97, 309.22],
+            [147.57, 302.36]
+          ],
+          "heights": [62.305458, 72.30546]
+        }
+      },
+      "suffix": "HarpyEncounter",
+      "doors": {
+        "open": [492081],
+        "closed": [492082],
+        "exit": [492080]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/witchencounter-start-witchencounter",
+      "name": "WitchEncounter_Start",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [110.31, 244.96],
+            [99.53, 242.76],
+            [99.63, 242.27],
+            [110.41, 244.47]
+          ],
+          "heights": [62.305458, 72.30546]
+        }
+      },
+      "suffix": "WitchEncounter",
+      "doors": {
+        "open": [487722],
+        "closed": [487723],
+        "exit": [487721]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-secretambush1",
+      "name": "BA_SecretAmbush1",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [166.67, 304.47],
+            [170.97, 302.77],
+            [173.5, 301.2],
+            [175.02, 309.24],
+            [165.61, 308.49]
+          ],
+          "heights": [72.09847, 77.09847]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambusha",
+      "name": "BA_SkeletonAmbushA",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [178.55, 198.12],
+            [185.08, 204.5],
+            [167.27, 222.16],
+            [162.3, 214.53]
+          ],
+          "heights": [64.0, 69.0]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambushb",
+      "name": "BA_SkeletonAmbushB",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [273.35, 183.06],
+            [284.99, 195.16],
+            [281.06, 198.47],
+            [270.18, 185.52]
+          ],
+          "heights": [28.956522, 33.95652]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambushc",
+      "name": "BA_SkeletonAmbushC",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [323.13, 205.99],
+            [320.72, 220.84],
+            [317.39, 221.25],
+            [317.99, 204.38]
+          ],
+          "heights": [7.423126, 12.423126]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambushd",
+      "name": "BA_SkeletonAmbushD",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [335.12, 203.07],
+            [330.81, 205.82],
+            [320.87, 198.66],
+            [323.36, 193.91]
+          ],
+          "heights": [7.423126, 12.423126]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambushe",
+      "name": "BA_SkeletonAmbushE",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [365.11, 223.19],
+            [362.86, 227.12],
+            [350.02, 227.34],
+            [349.15, 223.67]
+          ],
+          "heights": [3.358948, 8.358948]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambushf",
+      "name": "BA_SkeletonAmbushF",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [364.38, 242.94],
+            [363.77, 246.5],
+            [351.09, 246.44],
+            [351.17, 243.68]
+          ],
+          "heights": [13.067427, 18.067427]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-skeletonambushg",
+      "name": "BA_SkeletonAmbushG",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [366.08, 280.39],
+            [360.07, 284.99],
+            [351.83, 279.49],
+            [352.16, 273.11],
+            [360.47, 271.93]
+          ],
+          "heights": [15.374868, 20.374868]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-explore-underworld",
+      "name": "BA_Explore_Underworld",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [204.3, 317.11],
+            [204.33, 329.26],
+            [196.71, 323.87]
+          ],
+          "heights": [80.18471, 90.18471]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/2320/ba-explore-roof",
+      "name": "BA_Explore_Roof",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [162.27, 280.22],
+            [162.82, 265.12],
+            [181.51, 283.08],
+            [176.51, 288.08]
+          ],
+          "heights": [60.09771, 70.09771]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

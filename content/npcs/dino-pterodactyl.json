@@ -1,0 +1,22 @@
+{
+  "id": "npc/dino-pterodactyl",
+  "name": "Dino Pterodactyl",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 525982
+  },
+  "level": 19,
+  "stats": {
+    "health": 2362
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/smack-196231",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

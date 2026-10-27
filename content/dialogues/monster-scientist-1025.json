@@ -1,0 +1,11 @@
+{
+  "id": "dialogue/monster-scientist-1025",
+  "name": "Monster Scientist",
+  "texts": [1025, 1026, 1042, 1043, 1044, 1027],
+  "world": "world/lego-center",
+  "npc_name": 2921,
+  "npc": "Monster Scientist",
+  "start": "arrival",
+  "pos": [365.7982, 48.5822, 68.6658],
+  "source": "live"
+}

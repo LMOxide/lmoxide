@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-pirate-maggut-the-beast-tamer",
+  "lore": 4612,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Maggut the Beast Tamer",
+  "title": "Zombie Pirate: Maggut the Beast Tamer",
+  "text": "Defeat Maggut the Beast Tamer as Zombie Pirate.",
+  "points": 25,
+  "kind": "target",
+  "target": "Maggut the Beast Tamer",
+  "minifigure": "minifig/zombie-pirate",
+  "source": "client"
+}

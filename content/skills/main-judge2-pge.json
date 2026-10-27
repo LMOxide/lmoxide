@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-judge2-pge",
+  "name": "main judge2 pge",
+  "client": {
+    "spell": 98596,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 35,
+            "Arg2": 1,
+            "EffectPackage": 49420,
+            "NanoTemplate": 41442
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

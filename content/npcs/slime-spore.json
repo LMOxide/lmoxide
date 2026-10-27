@@ -1,0 +1,19 @@
+{
+  "id": "npc/slime-spore",
+  "name": "Slime Spore",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 388218,
+    "npc_template": 1984,
+    "look": "space_alien_bulb",
+    "cars_group": 3
+  },
+  "level": 26,
+  "stats": {
+    "health": 3854,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

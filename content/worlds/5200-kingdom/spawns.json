@@ -1,0 +1,2912 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/5200/troll-melee-war",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [348.0, 33.18, 273.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [350.2, 33.18, 274.2],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-2",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [346.2, 33.18, 274.6],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-2",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [483.5, 18.65, 116.5],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [485.7, 18.65, 117.7],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-3",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [481.7, 18.71, 118.1],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-2",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [99.5, 13.82, 90.5],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [101.7, 13.82, 91.7],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-3",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [97.7, 14.21, 92.1],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-2",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [343.0, 20.66, 21.5],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [341.2, 20.66, 23.1],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-3",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [343.6, 20.66, 19.3],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-2",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [423.0, 19.14, 11.0],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [425.2, 18.65, 12.2],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-3",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [421.2, 19.14, 12.6],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-2",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [405.5, 22.61, 149.5],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-3",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [407.7, 22.61, 150.7],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-3",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [403.7, 22.61, 151.1],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-4",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [494.0, 30.79, 233.5],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-4",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [492.2, 30.65, 235.1],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-5",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [494.6, 31.25, 231.3],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-5",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [368.5, 33.0, 207.5],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-4",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [370.7, 31.9, 208.7],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-6",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [371.1, 31.9, 206.1],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-5",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [429.0, 34.19, 260.5],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-4",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [431.2, 33.67, 261.7],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-6",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [429.6, 33.9, 258.3],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-5",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [152.5, 14.65, 117.5],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-4",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [153.1, 14.51, 115.3],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-6",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [155.1, 14.65, 116.1],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-5",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [314.5, 34.79, 221.5],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-4",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [316.7, 34.73, 222.7],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-6",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [315.1, 34.79, 219.3],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-5",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [42.5, 16.54, 228.5],
+      "anchor": "Quest_Village",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-6",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [44.7, 16.54, 229.7],
+      "anchor": "Quest_Village",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-6",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [40.7, 16.54, 230.1],
+      "anchor": "Quest_Village",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-7",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [141.0, 16.71, 57.5],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-7",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [143.2, 16.71, 58.7],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-8",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [139.2, 16.05, 59.1],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-8",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [429.0, 19.34, 102.0],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-7",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [431.2, 19.34, 103.2],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-9",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [427.2, 19.34, 103.6],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-8",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [106.5, 14.25, 143.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-7",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [104.7, 14.25, 144.6],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-9",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [104.1, 14.25, 142.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-8",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [352.0, 20.66, 70.5],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-7",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [350.2, 20.66, 72.1],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-9",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [349.6, 20.27, 69.5],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-8",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [453.0, 21.99, 162.0],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-7",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [451.2, 21.99, 163.6],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-9",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [453.6, 21.99, 159.8],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-8",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [491.0, 34.94, 283.5],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-9",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [489.2, 34.94, 285.1],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-9",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [491.6, 34.94, 281.3],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-10",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [400.5, 21.0, 47.5],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-10",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [402.7, 19.77, 48.7],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-11",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [403.1, 19.77, 46.1],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-11",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [473.5, 40.63, 324.0],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-10",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [475.7, 40.63, 325.2],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-12",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [471.7, 40.63, 325.6],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-11",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [477.0, 28.83, 197.0],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-10",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [479.2, 28.83, 198.2],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-12",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [475.2, 28.83, 198.6],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-11",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [303.5, 32.4, 186.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-10",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [305.7, 32.4, 187.2],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-12",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [301.7, 32.4, 187.6],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-11",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [90.5, 16.9, 217.5],
+      "anchor": "Quest_VillageKnight",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-10",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [92.7, 16.9, 218.7],
+      "anchor": "Quest_VillageKnight",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-12",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [91.1, 16.82, 215.3],
+      "anchor": "Quest_VillageKnight",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-11",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [340.0, 33.93, 187.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-12",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [342.2, 33.93, 188.2],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-12",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [338.2, 33.93, 188.6],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-13",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [372.0, 36.73, 242.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-13",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [374.2, 36.73, 243.2],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-14",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [370.2, 36.73, 243.6],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-14",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [73.0, 16.72, 111.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-13",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [75.2, 16.72, 112.2],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-15",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [71.2, 16.72, 112.6],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-14",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [368.5, 18.55, 42.0],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-13",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [370.7, 18.55, 43.2],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-15",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [366.7, 18.55, 43.6],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-14",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [111.5, 14.72, 178.5],
+      "anchor": "BA_CastleAmbush1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-13",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [113.7, 14.72, 179.7],
+      "anchor": "BA_CastleAmbush1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-15",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [109.7, 14.72, 180.1],
+      "anchor": "BA_CastleAmbush1",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-14",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [322.5, 25.13, 138.0],
+      "anchor": "ClearHate_Fortification",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-13",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [324.7, 25.13, 139.2],
+      "anchor": "ClearHate_Fortification",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-15",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [320.7, 25.13, 139.6],
+      "anchor": "ClearHate_Fortification",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-14",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [458.0, 33.02, 271.5],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-15",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [460.2, 33.02, 272.7],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-15",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [456.2, 33.02, 273.1],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-16",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [159.5, 14.58, 87.5],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-16",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [161.7, 14.58, 88.7],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-17",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [157.7, 14.58, 89.1],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-17",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [480.0, 20.65, 148.5],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-16",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [478.2, 20.65, 150.1],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-18",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [480.6, 20.65, 146.3],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-17",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [457.5, 18.65, 93.0],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-16",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [459.7, 18.65, 94.2],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-18",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [455.7, 18.65, 94.6],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-17",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [338.5, 36.79, 245.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-16",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [339.1, 35.94, 242.8],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-18",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [336.1, 37.11, 244.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-17",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [281.5, 20.56, 139.5],
+      "anchor": "Res_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-16",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [283.7, 20.56, 140.7],
+      "anchor": "Res_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-wolf-18",
+      "name": "Medieval Wolf",
+      "kind": "enemy",
+      "template": "npc/medieval-wolf",
+      "pos": [279.7, 20.39, 141.1],
+      "anchor": "Res_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-17",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [457.0, 18.63, 126.5],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-18",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [459.2, 18.63, 127.7],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/medieval-ogre-defender-melee-war-18",
+      "name": "Medieval Ogre Defender Melee War",
+      "kind": "enemy",
+      "template": "npc/medieval-ogre-defender-melee-war",
+      "pos": [455.2, 18.65, 128.1],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-19",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [130.0, 12.64, 101.5],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-19",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [130.6, 13.66, 99.3],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-melee-war-20",
+      "name": "Troll Melee War",
+      "kind": "enemy",
+      "template": "npc/troll-melee-war",
+      "pos": [127.6, 12.64, 100.5],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-20",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [431.5, 20.38, 143.5],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-19",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [433.7, 20.23, 144.7],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-heavy-hitter-war-21",
+      "name": "Troll Heavy Hitter War",
+      "kind": "enemy",
+      "template": "npc/troll-heavy-hitter-war",
+      "pos": [432.1, 20.44, 141.3],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-20",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [482.5, 35.13, 257.5],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-hornblower-war-19",
+      "name": "Troll Hornblower War",
+      "kind": "enemy",
+      "template": "npc/troll-hornblower-war",
+      "pos": [484.7, 35.13, 258.7],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/troll-ranged-war-21",
+      "name": "Troll Ranged War",
+      "kind": "enemy",
+      "template": "npc/troll-ranged-war",
+      "pos": [480.7, 35.13, 259.1],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/wizard",
+      "name": "Wizard",
+      "kind": "npc",
+      "template": "npc/wizard",
+      "pos": [121.27, 25.0, 272.34],
+      "rot": -1.634,
+      "anchor": "Cine_WizardSpawn1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/knight",
+      "name": "Knight",
+      "kind": "npc",
+      "template": "npc/knight",
+      "pos": [97.55, 13.9, 175.58],
+      "rot": -1.015,
+      "anchor": "Cine_KnightSpawn2",
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/court-jester",
+      "name": "Court Jester",
+      "kind": "npc",
+      "template": "npc/court-jester",
+      "pos": [340.71, 21.66, 145.98],
+      "rot": -1.637,
+      "anchor": "Cine_JesterSpawn1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/sir-loin",
+      "name": "Sir Loin",
+      "kind": "npc",
+      "template": "npc/sir-loin",
+      "pos": [334.22, 22.0, 144.03],
+      "rot": -2.553,
+      "anchor": "Cine_SirLoinStart1",
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/knight-of-the-crown",
+      "name": "Knight of the Crown",
+      "kind": "npc",
+      "template": "npc/knight-of-the-crown",
+      "pos": [97.0, 15.0, 147.5],
+      "fight": "fighter",
+      "source": "server"
+    },
+    {
+      "id": "spawn/5200/knight-of-the-crown-2",
+      "name": "Knight of the Crown",
+      "kind": "npc",
+      "template": "npc/knight-of-the-crown-2",
+      "pos": [95.0, 15.0, 148.8],
+      "fight": "fighter",
+      "source": "server"
+    },
+    {
+      "id": "spawn/5200/knight-of-the-crown-3",
+      "name": "Knight of the Crown",
+      "kind": "npc",
+      "template": "npc/knight-of-the-crown",
+      "pos": [98.5, 14.25, 144.5],
+      "fight": "fighter",
+      "source": "server"
+    },
+    {
+      "id": "spawn/5200/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [189.0, 13.49, 191.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [189.8, 13.49, 192.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [188.4, 13.49, 192.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [34.0, 14.82, 177.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [34.8, 14.82, 178.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [33.4, 14.82, 178.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [226.0, 16.34, 132.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-2",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [226.8, 16.34, 133.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-2",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [225.4, 16.34, 133.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [245.0, 13.62, 218.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [245.8, 13.62, 219.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [244.4, 13.62, 219.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-3",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [401.5, 24.66, 186.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-3",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [402.3, 24.66, 187.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [400.9, 24.66, 187.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [359.0, 20.79, 112.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [359.8, 20.79, 113.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-4",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [358.4, 20.79, 113.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-4",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [179.5, 15.38, 136.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [180.3, 15.38, 137.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [178.9, 15.38, 137.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [249.0, 14.18, 170.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-5",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [249.8, 14.18, 171.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-5",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [248.4, 14.18, 171.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-5",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [65.0, 16.45, 210.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [65.8, 16.45, 211.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-6",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [64.4, 16.45, 211.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-6",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [98.5, 14.72, 118.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-6",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [99.3, 14.72, 119.2],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-6",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [97.9, 14.72, 119.4],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [121.0, 14.88, 74.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-7",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [121.8, 14.88, 75.2],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-7",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [120.4, 14.88, 75.4],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-7",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [336.5, 18.65, 50.5],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-7",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [337.3, 18.65, 51.7],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [335.9, 18.65, 51.9],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-8",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [21.0, 16.65, 220.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-8",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [21.8, 16.65, 221.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-8",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [20.4, 16.65, 221.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-8",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [402.5, 18.94, 21.5],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [403.3, 18.94, 22.7],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-9",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [401.9, 18.94, 22.9],
+      "anchor": "Quest_TrollCamp",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-9",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [405.5, 21.8, 127.0],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-9",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [406.3, 21.8, 128.2],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-9",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [404.9, 21.8, 128.4],
+      "anchor": "Quest_CandyWitch",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [345.0, 36.53, 223.5],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-10",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [345.8, 36.53, 224.7],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-10",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [344.4, 36.53, 224.9],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-10",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [443.0, 31.06, 243.0],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-10",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [443.8, 31.06, 244.2],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-11",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [442.4, 31.06, 244.4],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-11",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [47.0, 16.9, 251.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-11",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [47.8, 16.9, 252.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-11",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [46.4, 16.9, 252.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-11",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [303.0, 20.65, 128.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-12",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [303.8, 20.65, 129.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-12",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [302.4, 20.65, 129.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-12",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [492.5, 31.29, 213.0],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-12",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [493.3, 31.29, 214.2],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-12",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [491.9, 31.29, 214.4],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-13",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [264.5, 14.45, 128.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-13",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [265.3, 14.45, 129.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-13",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [263.9, 14.45, 129.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-13",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [134.0, 14.62, 123.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-13",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [134.8, 14.62, 124.2],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-14",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [133.4, 14.62, 124.4],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-14",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [76.5, 14.38, 175.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-14",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [77.3, 14.38, 176.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-14",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [75.9, 14.38, 176.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-14",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [436.5, 23.22, 175.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-15",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [437.3, 23.22, 176.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-15",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [435.9, 23.22, 176.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-15",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [315.5, 34.73, 241.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-15",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [316.3, 34.73, 242.2],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-15",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [314.9, 34.73, 242.4],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-16",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [311.5, 32.67, 203.5],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-16",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [312.3, 32.67, 204.7],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-16",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [310.9, 32.67, 204.9],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-16",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [167.0, 14.75, 104.0],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-16",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [167.8, 14.75, 105.2],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-17",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [166.4, 14.75, 105.4],
+      "anchor": "Quest_Siege",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-17",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [368.0, 19.92, 79.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-17",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [368.8, 19.92, 80.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-17",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [367.4, 19.92, 80.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-17",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [455.5, 41.01, 323.0],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-crate-18",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-3",
+      "pos": [456.3, 41.01, 324.2],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-barrel-18",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [454.9, 41.01, 324.4],
+      "anchor": "Quest_MountainClimb",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-table-18",
+      "name": "XX_Table",
+      "kind": "smashable",
+      "template": "object/xx-table",
+      "pos": [367.5, 30.79, 187.0],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-chair-red-18",
+      "name": "XX_Chair Red",
+      "kind": "smashable",
+      "template": "object/xx-chair-red",
+      "pos": [368.3, 30.79, 188.2],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/xx-small-chest-18",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [366.9, 30.79, 188.4],
+      "anchor": "Quest_DragonHill",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/5200/boombox-1",
+      "name": "boombox 1",
+      "kind": "scenery",
+      "template": "object/boombox-1",
+      "pos": [282.59, 14.51, 103.59],
+      "rot": [0.0082, -0.2676, -0.0122, -0.9634],
+      "client": {
+        "guid": 488260,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/boombox-2",
+      "name": "boombox 2",
+      "kind": "scenery",
+      "template": "object/boombox-2",
+      "pos": [282.21, 14.47, 102.66],
+      "rot": [0.0082, -0.2676, -0.0122, -0.9634],
+      "client": {
+        "guid": 488261,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [100.43, 16.0, 210.27],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576950,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream-2",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [198.38, 14.0, 88.81],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576951,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream-3",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [328.71, 26.1, 167.04],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576952,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream-4",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [288.22, 19.95, 148.25],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576953,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream-5",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [413.39, 20.0, 84.61],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576954,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream-6",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [452.61, 21.98, 197.5],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576955,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-2x2x2-icecream-7",
+      "name": "empty_monsterdata_2x2x2_icecream",
+      "kind": "scenery",
+      "template": "object/empty-monsterdata-2x2x2-icecream",
+      "pos": [469.25, 40.06, 302.66],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 576956,
+        "tag": "5MHR",
+        "script_group": -1,
+        "visual": [1010201, 564580],
+        "bounds": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [41.6, 19.5, 193.4],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311657,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-2",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [72.04, 13.63, 176.58],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311658,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-3",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [82.63, 25.0, 256.05],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311659,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-4",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [70.63, 18.5, 255.92],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311660,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-1",
+      "name": "siege catapult shoot 1",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-1",
+      "pos": [85.78, 16.34, 132.28],
+      "rot": [0.0, -0.0949, 0.0, 0.9955],
+      "client": {
+        "guid": 337817,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-2",
+      "name": "siege catapult shoot 2",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-2",
+      "pos": [106.41, 16.28, 125.61],
+      "rot": [0.0, -0.4432, 0.0, 0.8964],
+      "client": {
+        "guid": 337927,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-3",
+      "name": "siege catapult shoot 3",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-3",
+      "pos": [122.35, 16.39, 130.61],
+      "rot": [0.0, -0.2928, 0.0, 0.9562],
+      "client": {
+        "guid": 337938,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-4",
+      "name": "siege catapult shoot 4",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-4",
+      "pos": [100.82, 14.24, 88.54],
+      "rot": [0.0, -0.2344, 0.0, 0.9721],
+      "client": {
+        "guid": 337955,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-5",
+      "name": "siege catapult shoot 5",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-5",
+      "pos": [84.71, 16.49, 101.55],
+      "rot": [0.0, -0.0726, 0.0, 0.9974],
+      "client": {
+        "guid": 337965,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-6",
+      "name": "siege catapult shoot 6",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-6",
+      "pos": [138.65, 14.25, 88.47],
+      "rot": [0.0, -0.4432, 0.0, 0.8964],
+      "client": {
+        "guid": 337986,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/siege-catapult-shoot-7",
+      "name": "siege catapult shoot 7",
+      "kind": "scenery",
+      "template": "object/siege-catapult-shoot-7",
+      "pos": [132.91, 14.12, 87.11],
+      "rot": [0.0, -0.3264, 0.0, 0.9452],
+      "client": {
+        "guid": 337994,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-5",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [264.45, 14.0, 127.16],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311650,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-6",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [280.19, 14.0, 115.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311649,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-7",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [368.44, 27.99, 181.46],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 295931,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-8",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [338.86, 27.51, 179.37],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 295932,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-9",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [337.29, 27.3, 165.25],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 295933,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-10",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [355.26, 24.63, 177.9],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 295934,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-11",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [365.4, 29.91, 185.88],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 301608,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-12",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [348.12, 32.5, 272.14],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 312296,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-13",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [403.78, 20.0, 78.87],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 301679,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-14",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [400.97, 23.62, 65.78],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 301680,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-15",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [371.22, 15.0, 162.75],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311647,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-16",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [339.75, 27.3, 160.77],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 311648,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-17",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [491.68, 20.0, 167.9],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 461535,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/jump-location-invisible-18",
+      "name": "jump location invisible",
+      "kind": "scenery",
+      "template": "object/jump-location-invisible",
+      "pos": [477.16, 20.0, 151.39],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 461536,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/5200/mountain-catapult-shoot-1",
+      "name": "mountain catapult shoot 1",
+      "kind": "scenery",
+      "template": "object/mountain-catapult-shoot-1",
+      "pos": [483.46, 36.84, 250.45],
+      "rot": [0.0, -0.9663, 0.0, -0.2573],
+      "client": {
+        "guid": 338016,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/mountain-catapult-shoot-2",
+      "name": "mountain catapult shoot 2",
+      "kind": "scenery",
+      "template": "object/mountain-catapult-shoot-2",
+      "pos": [478.72, 36.86, 250.56],
+      "rot": [0.0, -0.9663, 0.0, -0.2573],
+      "client": {
+        "guid": 338025,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/mountain-catapult-shoot-3",
+      "name": "mountain catapult shoot 3",
+      "kind": "scenery",
+      "template": "object/mountain-catapult-shoot-3",
+      "pos": [431.99, 35.61, 259.62],
+      "rot": [0.0, -0.8861, 0.0, -0.4635],
+      "client": {
+        "guid": 338033,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/mountain-catapult-shoot-4",
+      "name": "mountain catapult shoot 4",
+      "kind": "scenery",
+      "template": "object/mountain-catapult-shoot-4",
+      "pos": [438.93, 35.6, 259.46],
+      "rot": [0.0, -0.8926, 0.0, -0.4509],
+      "client": {
+        "guid": 338041,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/mountain-catapult-shoot-5",
+      "name": "mountain catapult shoot 5",
+      "kind": "scenery",
+      "template": "object/mountain-catapult-shoot-5",
+      "pos": [473.49, 42.26, 311.82],
+      "rot": [0.0, -0.9304, 0.0, -0.3665],
+      "client": {
+        "guid": 338056,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [109.21, 17.69, 108.61],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 328964,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [111.15, 14.87, 121.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 329028,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-3",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [99.96, 14.19, 110.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 329029,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-4",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [215.59, 17.0, 136.61],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 331122,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-5",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [88.34, 14.99, 109.3],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 337608,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-6",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [138.25, 14.99, 73.47],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 337609,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-7",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [342.89, 34.93, 200.67],
+      "rot": [0.0, 0.1305, 0.0, 0.9914],
+      "client": {
+        "guid": 337611,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-8",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [365.44, 15.93, 165.78],
+      "rot": [0.0, 0.5, 0.0, 0.866],
+      "client": {
+        "guid": 337613,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-9",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [340.57, 18.99, 61.1],
+      "rot": [0.0, 0.5, 0.0, 0.866],
+      "client": {
+        "guid": 337619,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-10",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [400.32, 18.99, 21.41],
+      "rot": [0.0, 0.5, 0.0, 0.866],
+      "client": {
+        "guid": 337623,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-11",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [186.35, 13.99, 185.56],
+      "rot": [0.0, 0.9659, 0.0, 0.2588],
+      "client": {
+        "guid": 337626,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-12",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [372.04, 37.11, 243.32],
+      "rot": [0.0, 1.0, 0.0, 0.0],
+      "client": {
+        "guid": 337630,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-13",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [357.16, 18.99, 22.45],
+      "rot": [0.0, 1.0, 0.0, 0.0],
+      "client": {
+        "guid": 337638,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-14",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [402.0, 22.99, 151.4],
+      "rot": [0.0, 0.866, 0.0, -0.5],
+      "client": {
+        "guid": 337640,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/invisible-monsterdata-15",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [409.39, 22.99, 164.58],
+      "rot": [0.0, 0.6088, 0.0, -0.7934],
+      "client": {
+        "guid": 338350,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/genesisdoordynel",
+      "name": "GenesisDoorDynel",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [347.99, 33.62, 283.4],
+      "rot": [0.7071, 0.0, 0.0, 0.7071],
+      "scale": 3.0,
+      "client": {
+        "guid": 530755,
+        "tag": "----",
+        "script_group": 0,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [500.91, 40.88, 319.37],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 2.0,
+      "client": {
+        "guid": 530756,
+        "tag": "----",
+        "script_group": 1,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [146.81, 17.13, 58.34],
+      "rot": [0.5139, 0.4857, -0.4857, 0.5139],
+      "scale": 3.0,
+      "client": {
+        "guid": 530757,
+        "tag": "----",
+        "script_group": 4,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-1x1x1-3",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [386.89, 16.3, 163.83],
+      "rot": [0.4891, 0.5107, -0.5107, 0.4891],
+      "scale": 3.0,
+      "client": {
+        "guid": 531631,
+        "tag": "----",
+        "script_group": 5,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-1x1x1-4",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [497.54, 21.07, 175.95],
+      "rot": [0.703, 0.0757, -0.0757, 0.703],
+      "scale": 3.0,
+      "client": {
+        "guid": 530758,
+        "tag": "----",
+        "script_group": 6,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/5200/empty-monsterdata-1x1x1-5",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [276.89, 14.75, 178.46],
+      "rot": [0.0, -0.1274, 0.0, 0.9918],
+      "scale": 3.0,
+      "client": {
+        "guid": 530759,
+        "tag": "----",
+        "script_group": 7,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

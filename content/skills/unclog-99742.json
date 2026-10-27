@@ -1,0 +1,37 @@
+{
+  "id": "skill/unclog-99742",
+  "name": "Unclog",
+  "client": {
+    "spell": 99742,
+    "stats": {
+      "TargetingMode": 6
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg2": 1,
+            "NanoTemplate": 99750
+          }
+        },
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 18],
+            [0, 0, 168]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Plumber: Unclog",
+  "source": "client"
+}

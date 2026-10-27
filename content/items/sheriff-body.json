@@ -1,0 +1,16 @@
+{
+  "id": "item/sheriff-body",
+  "name": "Sheriff Body",
+  "kind": "part",
+  "template": 576126,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21314,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/sheriff",
+  "location": "Torso",
+  "source": "client"
+}

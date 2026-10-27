@@ -1,0 +1,10 @@
+{
+  "id": "object/piston-3-5",
+  "name": "piston 3_5",
+  "kind": "scenery",
+  "render": {
+    "look": "piston 3_5",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

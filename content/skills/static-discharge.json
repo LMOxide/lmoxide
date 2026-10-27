@@ -1,0 +1,39 @@
+{
+  "id": "skill/static-discharge",
+  "name": "Static Discharge",
+  "client": {
+    "spell": 641623,
+    "stats": {
+      "EffectPackage": 642424,
+      "ItemDelay": 25,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnFormula",
+          "args": {
+            "ApplyOn": 3,
+            "Distance": 7,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642227,
+            "Value": 1
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641623,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Monster Rocker: Static Discharge",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/roman-commander-the-hexer",
+  "lore": 3373,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Smash 50 Witch Doctors",
+  "title": "Roman Commander, the Hexer",
+  "text": "Smash 50 Witch Doctors as Roman Commander.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/roman-commander",
+  "counts": {
+    "match": "Witch Doctor",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

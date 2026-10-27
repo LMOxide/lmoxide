@@ -1,0 +1,13 @@
+{
+  "id": "achievement/cyclops-alien-command-center",
+  "lore": 2651,
+  "parent": "achievement/cyclops",
+  "client_name": "Cyclops_Alien Command Center",
+  "title": "Cyclops: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Cyclops.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/cyclops",
+  "source": "client"
+}

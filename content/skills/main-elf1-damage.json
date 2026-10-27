@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-elf1-damage",
+  "name": "main elf1 damage",
+  "client": {
+    "spell": 595636,
+    "stats": {
+      "EffectPackage": 656360,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.6600000262260437,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

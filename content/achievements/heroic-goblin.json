@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-goblin",
+  "lore": 3877,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Complete Any 5",
+  "title": "Heroic Goblin",
+  "text": "Complete any 5 Goblin achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/goblin",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "achievement/mythology-collectibles",
+  "lore": 2430,
+  "parent": "achievement/mythology-world",
+  "client_name": "Mythology_Collectibles",
+  "kind": "category",
+  "source": "client"
+}

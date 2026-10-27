@@ -1,0 +1,17 @@
+{
+  "id": "buff/upgrade-cannonball-roll",
+  "name": "Upgrade: Cannonball Roll",
+  "nano": 438830,
+  "effects": [
+    {
+      "client": {
+        "type": "RegisterSubSpellForSpellLine",
+        "args": {
+          "TemplateID": 438831,
+          "Value": 7001
+        }
+      }
+    }
+  ],
+  "source": "client"
+}

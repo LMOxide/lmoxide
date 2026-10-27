@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tomahawk-warrior-madcap-compy",
+  "lore": 3519,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Madcap Compy",
+  "title": "Tomahawk Warrior: Madcap Compy",
+  "text": "Defeat Madcap Compy as Tomahawk Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Madcap Compy",
+  "minifigure": "minifig/tomahawk-warrior",
+  "source": "client"
+}

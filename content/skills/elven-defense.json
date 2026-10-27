@@ -1,0 +1,53 @@
+{
+  "id": "skill/elven-defense",
+  "name": "Elven Defense",
+  "client": {
+    "spell": 596256,
+    "stats": {
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 4,
+      "EffectPackage": 598654,
+      "ItemDelay": 1,
+      "MoreFlags": 1073743872,
+      "RechargeDelay": 15
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 596254
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "RemoveBuff",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 596254
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 596255
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 596256,
+            "Value": 100
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Elf: Elven Defense",
+  "source": "client"
+}

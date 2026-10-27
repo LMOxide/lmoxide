@@ -1,0 +1,50 @@
+{
+  "id": "skill/main-cowboy2-selfsnare",
+  "name": "main cowboy2 selfsnare",
+  "client": {
+    "spell": 596821,
+    "stats": {
+      "EffectPackage": 598562,
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.5
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 359,
+            "Value": 51057
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 598562
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/genie-girl-body",
+  "name": "Genie Girl Body",
+  "kind": "part",
+  "template": 576143,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21206,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/genie-girl",
+  "location": "Torso",
+  "source": "client"
+}

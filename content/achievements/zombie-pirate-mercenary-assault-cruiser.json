@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-pirate-mercenary-assault-cruiser",
+  "lore": 4608,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Mercenary Assault Cruiser",
+  "title": "Zombie Pirate: Mercenary Assault Cruiser",
+  "text": "Conquer the Mercenary Assault Cruiser as Zombie Pirate.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mercenary Assault Cruiser",
+  "minifigure": "minifig/zombie-pirate",
+  "source": "client"
+}

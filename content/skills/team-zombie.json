@@ -1,0 +1,68 @@
+{
+  "id": "skill/team-zombie",
+  "name": "Team Zombie",
+  "client": {
+    "spell": 641633,
+    "stats": {
+      "EffectPackage": 643150,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "Arg3": 659775,
+            "HateValue": 1,
+            "NanoTemplate": 642804,
+            "StringHash": "QTVR",
+            "Value": 1,
+            "Value2": 1
+          }
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "Arg3": 659775,
+            "HateValue": 1,
+            "NanoTemplate": 642804,
+            "StringHash": "QTVR",
+            "Value": 1
+          }
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "Arg3": 659775,
+            "HateValue": 1,
+            "NanoTemplate": 642804,
+            "StringHash": "QTVR",
+            "Value": 1
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641633,
+            "Value": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Zombie Cheerleader: Team Zombie",
+  "summon": {
+    "npc": "npc/zombie-player",
+    "count": 1,
+    "lifetime": "15s"
+  },
+  "source": "client"
+}

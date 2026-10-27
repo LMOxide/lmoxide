@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spectre-the-lost-champion",
+  "lore": 4584,
+  "parent": "achievement/spectre",
+  "client_name": "Spectre_Lost Creations_Get to level 15",
+  "title": "Spectre, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Spectre.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/spectre",
+  "n": 15,
+  "source": "client"
+}

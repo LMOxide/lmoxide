@@ -1,0 +1,10 @@
+{
+  "id": "object/minibossentrancevisualclosed-port",
+  "name": "MinibossEntranceVisualClosed_Port",
+  "kind": "scenery",
+  "render": {
+    "look": "MinibossEntranceVisualClosed_Port",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

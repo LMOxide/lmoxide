@@ -1,0 +1,12 @@
+{
+  "id": "world/valley-of-the-lost-champions",
+  "name": "Valley of the Lost Champions",
+  "playfield": 7300,
+  "kind": "other",
+  "arrival": {
+    "pos": [354.5, 57.89, 134.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

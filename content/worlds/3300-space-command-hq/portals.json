@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/3300/to-space-colony",
+      "pos": [293.72, 39.72, 241.39],
+      "window": 8,
+      "to": {
+        "world": "world/space-colony"
+      },
+      "source": "client"
+    }
+  ]
+}

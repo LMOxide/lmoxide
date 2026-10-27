@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandpa-underground-cave",
+  "lore": 3430,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Underground Cave",
+  "title": "Grandpa: Underground Cave",
+  "text": "Conquer the Underground Cave as Grandpa.",
+  "points": 50,
+  "kind": "target",
+  "target": "Underground Cave",
+  "minifigure": "minifig/grandpa",
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/skull-spell-n-1",
+  "name": "Skull_Spell_N_1",
+  "kind": "scenery",
+  "render": {
+    "look": "Skull_Spell_N_1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

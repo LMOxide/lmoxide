@@ -1,0 +1,13 @@
+{
+  "id": "achievement/skeleton-guy-swamp-tunnel",
+  "lore": 4488,
+  "parent": "achievement/skeleton-guy",
+  "client_name": "Skeleton Guy_Swamp Tunnel",
+  "title": "Skeleton Guy: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Skeleton Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/skeleton-guy",
+  "source": "client"
+}

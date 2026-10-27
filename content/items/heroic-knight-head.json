@@ -1,0 +1,16 @@
+{
+  "id": "item/heroic-knight-head",
+  "name": "Heroic Knight Head",
+  "kind": "part",
+  "template": 483584,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10907,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/heroic-knight",
+  "location": "Head",
+  "source": "client"
+}

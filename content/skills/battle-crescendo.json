@@ -1,0 +1,35 @@
+{
+  "id": "skill/battle-crescendo",
+  "name": "Battle Crescendo",
+  "client": {
+    "spell": 13966,
+    "stats": {
+      "EffectPackage": 18590,
+      "ItemDelay": 25,
+      "MoreFlags": 134217728,
+      "RechargeDelay": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 207451
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 13966,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Viking Woman: Battle Crescendo",
+  "source": "client"
+}

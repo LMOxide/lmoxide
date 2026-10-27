@@ -1,0 +1,13 @@
+{
+  "id": "achievement/swashbuckler-skyforge",
+  "lore": 3278,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Skyforge",
+  "title": "Swashbuckler: Skyforge",
+  "text": "Conquer the Skyforge as Swashbuckler.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/swashbuckler",
+  "source": "client"
+}

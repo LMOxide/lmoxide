@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jewel-thief-skyforge",
+  "lore": 5220,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Skyforge",
+  "title": "Jewel Thief: Skyforge",
+  "text": "Conquer the Skyforge as Jewel Thief.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/jewel-thief",
+  "source": "client"
+}

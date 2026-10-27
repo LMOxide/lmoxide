@@ -1,0 +1,134 @@
+{
+  "id": "minifig/holiday-elf",
+  "name": "Holiday Elf",
+  "template": 464893,
+  "series": 11,
+  "series_index": 0,
+  "render": {
+    "monster_data": 300502
+  },
+  "stats": {
+    "life": 250,
+    "power": 6,
+    "defense": 4,
+    "creativity": 8,
+    "role": 3,
+    "element": 4
+  },
+  "normal": {
+    "skill": "skill/snowball",
+    "hits": [
+      {
+        "skill": "skill/main-holidayelf1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [465027, 465867]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/gift-box",
+    "hits": [
+      {
+        "skill": "skill/main-holidayelf2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.7,
+        "damage_type": 1000,
+        "via": [465028, 465883]
+      }
+    ]
+  },
+  "click_spells": [465027, 465028],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-smart"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fast-460978"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fast-460979"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-escape-artist"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530298"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-slippery-power"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2969, 2491, 3643, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/holiday-elf-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/holiday-elf-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/holiday-elf-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-holiday-elf",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/mythology-world"],
+    "text": "You can find me in the Mythology World.",
+    "location_text": 224781705,
+    "location_picture": 496203
+  },
+  "source": "client"
+}

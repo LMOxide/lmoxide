@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-waiter",
+  "lore": 2731,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Complete Any 10",
+  "title": "Legendary Waiter",
+  "text": "Complete any 11 Waiter achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/waiter",
+  "n": 11,
+  "source": "client"
+}

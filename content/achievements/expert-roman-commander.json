@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-roman-commander",
+  "lore": 3368,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Upgrade 7",
+  "title": "Expert Roman Commander",
+  "text": "Get the seventh Roman Commander upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/roman-commander",
+  "n": 7,
+  "source": "client"
+}

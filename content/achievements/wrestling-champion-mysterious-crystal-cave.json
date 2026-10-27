@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wrestling-champion-mysterious-crystal-cave",
+  "lore": 5314,
+  "parent": "achievement/wrestling-champion",
+  "client_name": "Wrestling Champion_Mysterious Crystal Cave",
+  "title": "Wrestling Champion: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Wrestling Champion.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/wrestling-champion",
+  "source": "client"
+}

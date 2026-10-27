@@ -1,0 +1,13 @@
+{
+  "id": "achievement/spider-lady-the-lost-challenger",
+  "lore": 4480,
+  "parent": "achievement/spider-lady",
+  "client_name": "Spider Lady_Lost Creations_Get to Level 5",
+  "title": "Spider Lady, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Spider Lady.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/spider-lady",
+  "n": 5,
+  "source": "client"
+}

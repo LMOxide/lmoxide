@@ -1,0 +1,13 @@
+{
+  "id": "achievement/hollywood-starlet-swamp-tunnel",
+  "lore": 2582,
+  "parent": "achievement/hollywood-starlet",
+  "client_name": "Hollywood Starlet_Swamp Tunnel",
+  "title": "Hollywood Starlet: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Hollywood Starlet.",
+  "points": 50,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/hollywood-starlet",
+  "source": "client"
+}

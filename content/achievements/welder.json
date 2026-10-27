@@ -1,0 +1,29 @@
+{
+  "id": "achievement/welder",
+  "lore": 2481,
+  "parent": "achievement/series-11",
+  "client_name": "Welder",
+  "title": "Welder",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-welder",
+    "achievement/legendary-welder",
+    "achievement/novice-welder",
+    "achievement/expert-welder",
+    "achievement/welder-wind-shrine",
+    "achievement/welder-ancient-ruins",
+    "achievement/welder-treasure-island",
+    "achievement/welder-temper",
+    "achievement/welder-the-bridge-troll",
+    "achievement/welder-kruun-super-genius",
+    "achievement/welder-the-builder",
+    "achievement/welder-the-master-builder",
+    "achievement/welder-the-speed-freak",
+    "achievement/welder-the-lost-challenger",
+    "achievement/welder-the-lost-warrior",
+    "achievement/welder-the-lost-champion"
+  ],
+  "minifigure": "minifig/welder",
+  "source": "client"
+}

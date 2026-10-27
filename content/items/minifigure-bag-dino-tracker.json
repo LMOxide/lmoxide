@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-dino-tracker",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 519382,
+  "minifigure": "minifig/dino-tracker",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "B3LV"
+      }
+    }
+  ],
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/galaxy-trooper-dragon-halls",
+  "lore": 3864,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Dragon Halls",
+  "title": "Galaxy Trooper: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Galaxy Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/galaxy-trooper",
+  "source": "client"
+}

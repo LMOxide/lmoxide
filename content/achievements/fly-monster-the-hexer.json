@@ -1,0 +1,17 @@
+{
+  "id": "achievement/fly-monster-the-hexer",
+  "lore": 4519,
+  "parent": "achievement/fly-monster",
+  "client_name": "Fly Monster_Smash 50 Witch Doctors",
+  "title": "Fly Monster, the Hexer",
+  "text": "Smash 50 Witch Doctors as Fly Monster.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/fly-monster",
+  "counts": {
+    "match": "Witch Doctor",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

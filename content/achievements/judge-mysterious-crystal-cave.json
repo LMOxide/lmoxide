@@ -1,0 +1,13 @@
+{
+  "id": "achievement/judge-mysterious-crystal-cave",
+  "lore": 2564,
+  "parent": "achievement/judge",
+  "client_name": "Judge_Mysterious Crystal Cave",
+  "title": "Judge: Mysterious Crystal Cave",
+  "text": "Conquer the Mysterious Crystal Cave as Judge.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mysterious Crystal Cave",
+  "minifigure": "minifig/judge",
+  "source": "client"
+}

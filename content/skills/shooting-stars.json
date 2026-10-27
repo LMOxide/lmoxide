@@ -1,0 +1,17 @@
+{
+  "id": "skill/shooting-stars",
+  "name": "Shooting Stars",
+  "client": {
+    "spell": 16195,
+    "stats": {
+      "EffectPackage": 18585,
+      "ItemDelay": 36,
+      "LuaScriptID": 462,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    }
+  },
+  "minifigure": "Fairy: Shooting Stars",
+  "source": "client"
+}

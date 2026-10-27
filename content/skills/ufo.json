@@ -1,0 +1,51 @@
+{
+  "id": "skill/ufo",
+  "name": "UFO",
+  "client": {
+    "spell": 550774,
+    "stats": {
+      "EffectPackage": 532205,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 550774,
+            "Value": 500
+          }
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "CollisionFlag": 1,
+            "HateValue": 1,
+            "StringHash": "8W1V"
+          }
+        },
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 20,
+            "DelayTime": 25,
+            "EffectPackage": 585227,
+            "NanoTemplate": 585102
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Alien Trooper: UFO",
+  "summon": {
+    "npc": "npc/saucer",
+    "count": 1,
+    "lifetime": "15s"
+  },
+  "source": "client"
+}

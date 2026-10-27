@@ -1,0 +1,13 @@
+{
+  "id": "achievement/librarian-karna-itta",
+  "lore": 3415,
+  "parent": "achievement/librarian",
+  "client_name": "Librarian_Karna Itta",
+  "title": "Librarian: Karna Itta",
+  "text": "Defeat Karna Itta as Librarian.",
+  "points": 25,
+  "kind": "target",
+  "target": "Karna Itta",
+  "minifigure": "minifig/librarian",
+  "source": "client"
+}

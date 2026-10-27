@@ -1,0 +1,31 @@
+{
+  "id": "skill/alien-ranger-shot-castable",
+  "name": "alien ranger shot castable",
+  "client": {
+    "spell": 376922,
+    "stats": {
+      "AISpellCategory": 1024,
+      "AttackRange": 1500,
+      "EffectPackage": 389419,
+      "ItemDelay": 32,
+      "RechargeDelay": 168,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 2000,
+            "ItemInstance": 376931,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

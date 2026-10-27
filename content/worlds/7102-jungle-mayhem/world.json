@@ -1,0 +1,12 @@
+{
+  "id": "world/jungle-mayhem",
+  "name": "Jungle Mayhem",
+  "playfield": 7102,
+  "kind": "other",
+  "arrival": {
+    "pos": [169.0, 40.05, 136.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "skill/main-scientist1-buff",
+  "name": "main scientist1 buff",
+  "client": {
+    "spell": 34585,
+    "stats": {
+      "EffectPackage": 366119,
+      "MaxBuffCounters": 3,
+      "MoreFlags": 67108864,
+      "TimeExist": 200
+    }
+  },
+  "source": "client"
+}

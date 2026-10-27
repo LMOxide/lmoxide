@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-tribal-woman",
+  "lore": 5297,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Complete Any 10",
+  "title": "Legendary Tribal Woman",
+  "text": "Complete any 11 Tribal Woman achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/tribal-woman",
+  "n": 11,
+  "source": "client"
+}

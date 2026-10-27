@@ -1,0 +1,13 @@
+{
+  "id": "achievement/faun-skyforge",
+  "lore": 5156,
+  "parent": "achievement/faun",
+  "client_name": "Faun_Skyforge",
+  "title": "Faun: Skyforge",
+  "text": "Conquer the Skyforge as Faun.",
+  "points": 50,
+  "kind": "target",
+  "target": "Skyforge",
+  "minifigure": "minifig/faun",
+  "source": "client"
+}

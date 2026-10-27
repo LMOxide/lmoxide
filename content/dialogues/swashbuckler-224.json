@@ -1,0 +1,12 @@
+{
+  "id": "dialogue/swashbuckler-224",
+  "name": "Swashbuckler",
+  "texts": [224, 225, 229],
+  "world": "world/jail",
+  "npc_name": 961,
+  "npc": "Swashbuckler",
+  "start": "after_dialogue",
+  "pos": [229.8686, 16.0289, 259.068],
+  "follows": 79,
+  "source": "live"
+}

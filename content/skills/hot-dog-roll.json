@@ -1,0 +1,39 @@
+{
+  "id": "skill/hot-dog-roll",
+  "name": "Hot Dog Roll",
+  "client": {
+    "spell": 564123,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 8,
+            "FloatValue1": 1.0,
+            "NPCSelectMode": 3,
+            "Radius": 1,
+            "TemplateID": 578908,
+            "TemplateID2": 578927,
+            "Value1": 577476
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Hot Dog Man: Hot Dog Roll",
+  "dash": {
+    "distance": 8.0,
+    "radius": 1.0,
+    "effect": 577476,
+    "path_mod": 0.8,
+    "path_visuals": [
+      [564124, 637107, null]
+    ]
+  },
+  "source": "client"
+}

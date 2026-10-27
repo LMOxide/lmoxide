@@ -1,0 +1,25 @@
+{
+  "id": "skill/snake-wave-212521",
+  "name": "Snake Wave",
+  "client": {
+    "spell": 212521,
+    "stats": {
+      "EffectPackage": 214644,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.6499999761581421,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

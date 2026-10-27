@@ -1,0 +1,13 @@
+{
+  "id": "achievement/hun-warrior-maggut-the-beast-tamer",
+  "lore": 3130,
+  "parent": "achievement/hun-warrior",
+  "client_name": "Hun Warrior_Maggut the Beast Tamer",
+  "title": "Hun Warrior: Maggut the Beast Tamer",
+  "text": "Defeat Maggut the Beast Tamer as Hun Warrior.",
+  "points": 25,
+  "kind": "target",
+  "target": "Maggut the Beast Tamer",
+  "minifigure": "minifig/hun-warrior",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/waiter-ponos-the-pitcher",
+  "lore": 2721,
+  "parent": "achievement/waiter",
+  "client_name": "Waiter_Ponos the Pitcher",
+  "title": "Waiter: Ponos the Pitcher",
+  "text": "Defeat Ponos the Pitcher as Waiter.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ponos the Pitcher",
+  "minifigure": "minifig/waiter",
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/fencer",
+  "lore": 3748,
+  "parent": "achievement/series-13",
+  "client_name": "Fencer",
+  "title": "Fencer",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-fencer",
+    "achievement/legendary-fencer",
+    "achievement/novice-fencer",
+    "achievement/expert-fencer",
+    "achievement/fencer-wind-shrine",
+    "achievement/fencer-ancient-ruins",
+    "achievement/fencer-treasure-island",
+    "achievement/fencer-temper",
+    "achievement/fencer-the-bridge-troll",
+    "achievement/fencer-kruun-super-genius",
+    "achievement/fencer-the-striker",
+    "achievement/fencer-the-master-striker",
+    "achievement/fencer-the-witch-hunter",
+    "achievement/fencer-the-lost-challenger",
+    "achievement/fencer-the-lost-warrior",
+    "achievement/fencer-the-lost-champion"
+  ],
+  "minifigure": "minifig/fencer",
+  "source": "client"
+}

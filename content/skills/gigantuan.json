@@ -1,0 +1,45 @@
+{
+  "id": "skill/gigantuan",
+  "name": "Gigantuan",
+  "client": {
+    "spell": 641620,
+    "stats": {
+      "EffectPackage": 642863,
+      "ItemDelay": 32,
+      "MoreFlags": 671088640,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "Arg3": 654690,
+            "HateValue": 1,
+            "NanoTemplate": 654691,
+            "StringHash": "JXNM",
+            "Value": 1
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 641620,
+            "Value": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Monster Scientist: Gigantuan",
+  "summon": {
+    "npc": "npc/monster",
+    "count": 1,
+    "lifetime": "15s"
+  },
+  "source": "client"
+}

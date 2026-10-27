@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-grandma",
+  "lore": 2986,
+  "parent": "achievement/grandma",
+  "client_name": "Grandma_Complete Any 10",
+  "title": "Legendary Grandma",
+  "text": "Complete any 11 Grandma achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/grandma",
+  "n": 11,
+  "source": "client"
+}

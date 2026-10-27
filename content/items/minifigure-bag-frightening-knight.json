@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-frightening-knight",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 669620,
+  "minifigure": "minifig/frightening-knight",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "2Z41"
+      }
+    }
+  ],
+  "source": "client"
+}

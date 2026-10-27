@@ -1,0 +1,13 @@
+{
+  "id": "achievement/disco-diva-the-lost-champion",
+  "lore": 3822,
+  "parent": "achievement/disco-diva",
+  "client_name": "Disco Diva_Lost Creations_Get to level 15",
+  "title": "Disco Diva, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Disco Diva.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/disco-diva",
+  "n": 15,
+  "source": "client"
+}

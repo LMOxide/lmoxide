@@ -1,0 +1,25 @@
+{
+  "id": "buff/upgrade-star-fall",
+  "name": "Star Fall",
+  "nano": 516861,
+  "effects": [
+    {
+      "client": {
+        "type": "CastNano",
+        "args": {
+          "Value": 516859
+        }
+      }
+    },
+    {
+      "client": {
+        "type": "AddBuffCounter",
+        "args": {
+          "TemplateID": 516860,
+          "Value": 1
+        }
+      }
+    }
+  ],
+  "source": "client"
+}

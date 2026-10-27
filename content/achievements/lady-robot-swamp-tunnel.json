@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-robot-swamp-tunnel",
+  "lore": 2939,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Swamp Tunnel",
+  "title": "Lady Robot: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Lady Robot.",
+  "points": 50,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/lady-robot",
+  "source": "client"
+}

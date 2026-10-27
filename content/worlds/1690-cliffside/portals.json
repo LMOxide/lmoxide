@@ -1,0 +1,13 @@
+{
+  "portals": [
+    {
+      "id": "portal/1690/to-mythology-mountains",
+      "pos": [366.14, 44.0, 183.51],
+      "window": 67,
+      "to": {
+        "world": "world/mythology-mountains"
+      },
+      "source": "client"
+    }
+  ]
+}

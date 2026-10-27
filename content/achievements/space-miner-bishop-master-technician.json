@@ -1,0 +1,13 @@
+{
+  "id": "achievement/space-miner-bishop-master-technician",
+  "lore": 3245,
+  "parent": "achievement/space-miner",
+  "client_name": "Space Miner_Bishop, Master Technician",
+  "title": "Space Miner: Bishop, Master Technician",
+  "text": "Defeat Bishop, Master Technician as Space Miner.",
+  "points": 25,
+  "kind": "target",
+  "target": "Bishop, Master Technician",
+  "minifigure": "minifig/space-miner",
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-s14-flymonster2-buff",
+  "name": "main s14 flymonster2 buff",
+  "client": {
+    "spell": 642254,
+    "stats": {
+      "TimeExist": 250
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Duration": -1,
+            "Interval": 10,
+            "Value": 642255
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fly Monster: Toxic Goop",
+  "source": "client"
+}

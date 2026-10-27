@@ -1,0 +1,16 @@
+{
+  "id": "buff/upgrade-maelstrom",
+  "name": "Maelstrom",
+  "nano": 515551,
+  "effects": [
+    {
+      "client": {
+        "type": "CastNano",
+        "args": {
+          "Value": 515550
+        }
+      }
+    }
+  ],
+  "source": "client"
+}

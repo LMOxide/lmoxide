@@ -1,0 +1,59 @@
+{
+  "id": "skill/the-wheel-of-fortune",
+  "name": "The Wheel of Fortune",
+  "client": {
+    "spell": 212666,
+    "stats": {
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 212696,
+            "ProjectileType": 3,
+            "Speed": 300
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 212696,
+            "ProjectileType": 3,
+            "RotY": 180,
+            "Speed": 300
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 212696,
+            "ProjectileType": 3,
+            "RotY": 270,
+            "Speed": 300
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 212696,
+            "ProjectileType": 3,
+            "RotY": 90,
+            "Speed": 300
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fortune Teller: Wheel of Fortune",
+  "source": "client"
+}

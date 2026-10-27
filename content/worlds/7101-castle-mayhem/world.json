@@ -1,0 +1,12 @@
+{
+  "id": "world/castle-mayhem",
+  "name": "Castle Mayhem",
+  "playfield": 7101,
+  "kind": "other",
+  "arrival": {
+    "pos": [280.0, 45.75, 135.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-roman-emperor",
+  "lore": 2741,
+  "parent": "achievement/roman-emperor",
+  "client_name": "Roman Emperor_Upgrade 7",
+  "title": "Expert Roman Emperor",
+  "text": "Get the seventh Roman Emperor upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/roman-emperor",
+  "n": 7,
+  "source": "client"
+}

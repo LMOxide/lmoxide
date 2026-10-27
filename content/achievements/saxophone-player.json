@@ -1,0 +1,29 @@
+{
+  "id": "achievement/saxophone-player",
+  "lore": 2489,
+  "parent": "achievement/series-11",
+  "client_name": "Saxophone Player",
+  "title": "Saxophone Player",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-saxophone-player",
+    "achievement/legendary-saxophone-player",
+    "achievement/novice-saxophone-player",
+    "achievement/expert-saxophone-player",
+    "achievement/saxophone-player-ancient-ruins",
+    "achievement/saxophone-player-siege-command-room",
+    "achievement/saxophone-player-skyforge",
+    "achievement/saxophone-player-lord-minos-the-lich",
+    "achievement/saxophone-player-black-widow",
+    "achievement/saxophone-player-ouch-ouch",
+    "achievement/saxophone-player-the-striker",
+    "achievement/saxophone-player-the-master-striker",
+    "achievement/saxophone-player-the-dragontamer",
+    "achievement/saxophone-player-the-lost-challenger",
+    "achievement/saxophone-player-the-lost-warrior",
+    "achievement/saxophone-player-the-lost-champion"
+  ],
+  "minifigure": "minifig/saxophone-player",
+  "source": "client"
+}

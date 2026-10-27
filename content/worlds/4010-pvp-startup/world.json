@@ -1,0 +1,15 @@
+{
+  "id": "world/pvp-startup",
+  "name": "PvP Startup",
+  "playfield": 4010,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [0.0, 0.0, 0.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "origin",
+  "source": "client"
+}

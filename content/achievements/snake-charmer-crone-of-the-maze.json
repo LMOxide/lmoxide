@@ -1,0 +1,13 @@
+{
+  "id": "achievement/snake-charmer-crone-of-the-maze",
+  "lore": 3986,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Crone of the Maze",
+  "title": "Snake Charmer: Crone of the Maze",
+  "text": "Defeat Crone of the Maze as Snake Charmer.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crone of the Maze",
+  "minifigure": "minifig/snake-charmer",
+  "source": "client"
+}

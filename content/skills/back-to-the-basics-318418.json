@@ -1,0 +1,27 @@
+{
+  "id": "skill/back-to-the-basics-318418",
+  "name": "Back to the Basics",
+  "client": {
+    "spell": 318418,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 318415,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Grandpa: Back to Basics",
+  "source": "client"
+}

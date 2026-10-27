@@ -1,0 +1,10 @@
+{
+  "id": "object/pedestal",
+  "name": "pedestal",
+  "kind": "interactable",
+  "render": {
+    "look": "pedestal",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

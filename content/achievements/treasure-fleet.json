@@ -1,0 +1,14 @@
+{
+  "id": "achievement/treasure-fleet",
+  "lore": 1611,
+  "parent": "achievement/paleontologist",
+  "client_name": "Dino_Exploration_Lost Pirates",
+  "title": "Treasure Fleet",
+  "text": "Find the lost Pirate Ship in Dinosaur Rise.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/dinosaur-rise",
+  "find": "Achievement_Swamp",
+  "place": "Lost Pirate Ship",
+  "source": "client"
+}

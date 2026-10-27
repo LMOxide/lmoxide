@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-robot-quicksword-billy",
+  "lore": 2943,
+  "parent": "achievement/lady-robot",
+  "client_name": "Lady Robot_Quicksword Billy",
+  "title": "Lady Robot: Quicksword Billy",
+  "text": "Defeat Quicksword Billy as Lady Robot.",
+  "points": 25,
+  "kind": "target",
+  "target": "Quicksword Billy",
+  "minifigure": "minifig/lady-robot",
+  "source": "client"
+}

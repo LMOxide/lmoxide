@@ -1,0 +1,28 @@
+{
+  "id": "skill/main-prospector2-offence-aoe",
+  "name": "main prospector2 offence aoe",
+  "client": {
+    "spell": 507879,
+    "stats": {
+      "EffectPackage": 516219,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 507880,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Prospector: Gold Crush",
+  "source": "client"
+}

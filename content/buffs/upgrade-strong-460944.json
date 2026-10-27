@@ -1,0 +1,15 @@
+{
+  "id": "buff/upgrade-strong-460944",
+  "name": "Upgrade: Strong",
+  "nano": 460944,
+  "effects": [
+    {
+      "stat": {
+        "stat": "FinalDamageMultiplier",
+        "op": "add",
+        "value": 0.03
+      }
+    }
+  ],
+  "source": "client"
+}

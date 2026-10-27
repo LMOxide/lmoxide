@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-pad-catapult-a-buildie",
+  "name": "jump_pad_catapult_a_buildie",
+  "kind": "bouncer",
+  "render": {
+    "look": "jump_pad_catapult_a_buildie",
+    "visual": [1010201, 280812]
+  },
+  "source": "client"
+}

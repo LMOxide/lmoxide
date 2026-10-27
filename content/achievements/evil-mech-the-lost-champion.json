@@ -1,0 +1,13 @@
+{
+  "id": "achievement/evil-mech-the-lost-champion",
+  "lore": 3022,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Lost Creations_Get to Level 15",
+  "title": "Evil Mech, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Evil Mech.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/evil-mech",
+  "n": 15,
+  "source": "client"
+}

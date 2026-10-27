@@ -1,0 +1,19 @@
+{
+  "id": "buff/upgrade-mighty-charge",
+  "name": "Upgrade: Mighty Charge",
+  "nano": 441817,
+  "effects": [
+    {
+      "client": {
+        "type": "RegisterSubSpellForSpellLine",
+        "args": {
+          "Arg1": 1,
+          "RunOnTarget": 1,
+          "TemplateID": 441818,
+          "Value": 6160
+        }
+      }
+    }
+  ],
+  "source": "client"
+}

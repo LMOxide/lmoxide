@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-medusa",
+  "lore": 3623,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Upgrade 7",
+  "title": "Expert Medusa",
+  "text": "Get the seventh Medusa upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/medusa",
+  "n": 7,
+  "source": "client"
+}

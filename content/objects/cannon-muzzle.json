@@ -1,0 +1,10 @@
+{
+  "id": "object/cannon-muzzle",
+  "name": "Cannon muzzle",
+  "kind": "scenery",
+  "render": {
+    "look": "Cannon muzzle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "skill/hunters-dash",
+  "name": "Hunters Dash",
+  "client": {
+    "spell": 302191,
+    "stats": {
+      "RechargeDelay": 25,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 302191,
+            "Value": 750
+          }
+        },
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 10,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "TemplateID2": 342394,
+            "Value1": 351781
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Tomahawk Warrior: Hunters Dash",
+  "dash": {
+    "distance": 10.0,
+    "radius": 1.0,
+    "effect": 351781,
+    "arrival_mod": 0.8,
+    "arrival_radius": 2.0
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-trooper-treasure-island",
+  "lore": 3762,
+  "parent": "achievement/alien-trooper",
+  "client_name": "Alien Trooper_Treasure Island",
+  "title": "Alien Trooper: Treasure Island",
+  "text": "Conquer the Treasure Island as Alien Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/alien-trooper",
+  "source": "client"
+}

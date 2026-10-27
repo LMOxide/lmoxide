@@ -1,0 +1,107 @@
+{
+  "id": "skill/space-pd-port-boss-queen-purge-castable",
+  "name": "space pd port boss queen purge castable",
+  "client": {
+    "spell": 366110,
+    "stats": {
+      "AttackRange": 3000,
+      "ChannelingInterval": 100,
+      "ChannelingTicks": 15,
+      "EffectPackage": 411023,
+      "ItemDelay": 100,
+      "RechargeDelay": 100
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "HateValue": 1,
+            "RelYPos": 1,
+            "StringHash": "47LU",
+            "Value": 1
+          }
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "HateValue": 1,
+            "RelYPos": 1,
+            "StringHash": "47LU",
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 76, 153]
+          ]
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "HateValue": 1,
+            "RelYPos": 1,
+            "StringHash": "47LU",
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 51, 153]
+          ]
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "HateValue": 1,
+            "RelYPos": 1,
+            "StringHash": "47LU",
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 26, 153]
+          ]
+        },
+        {
+          "type": "SpawnMonster",
+          "args": {
+            "ApplyOn": 3,
+            "CollisionFlag": 1,
+            "HateValue": 1,
+            "NanoTemplate": 366112,
+            "StringHash": "1NZV"
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 366589
+          }
+        },
+        {
+          "type": "SetSpellLineRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Type": 1020,
+            "Value": 1250
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 367050
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

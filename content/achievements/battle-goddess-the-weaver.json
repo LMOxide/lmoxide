@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-goddess-the-weaver",
+  "lore": 3062,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_The Weaver",
+  "title": "Battle Goddess: The Weaver",
+  "text": "Defeat The Weaver as Battle Goddess.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Weaver",
+  "minifigure": "minifig/battle-goddess",
+  "source": "client"
+}

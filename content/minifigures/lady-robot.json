@@ -1,0 +1,134 @@
+{
+  "id": "minifig/lady-robot",
+  "name": "Lady Robot",
+  "template": 357977,
+  "series": 11,
+  "series_index": 0,
+  "render": {
+    "monster_data": 271650
+  },
+  "stats": {
+    "life": 250,
+    "power": 9,
+    "defense": 1,
+    "creativity": 5,
+    "role": 1,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/come-dance-with-me",
+    "hits": [
+      {
+        "skill": "skill/main-ladyrobot1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.9,
+        "damage_type": 1000,
+        "via": [357884, 360324]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/robo-popping",
+    "hits": [
+      {
+        "skill": "skill/main-ladyrobot2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 0.8,
+        "damage_type": 1000,
+        "via": [357885, 360371, 360399]
+      }
+    ]
+  },
+  "click_spells": [357884, 357885],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-professional"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-hunter"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-sponge"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530221"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [2952, 2490, 3643, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/lady-robot-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/lady-robot-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/lady-robot-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-lady-robot",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/space-world"],
+    "text": "You can find me in the Space World.",
+    "location_text": 27328549,
+    "location_picture": 474079
+  },
+  "source": "client"
+}

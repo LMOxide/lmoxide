@@ -1,0 +1,29 @@
+{
+  "id": "achievement/roman-commander",
+  "lore": 3328,
+  "parent": "achievement/series-10",
+  "client_name": "Roman Commander",
+  "title": "Roman Commander",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-roman-commander",
+    "achievement/legendary-roman-commander",
+    "achievement/novice-roman-commander",
+    "achievement/expert-roman-commander",
+    "achievement/roman-commander-unexplored-crystal-cave",
+    "achievement/roman-commander-swamp-tunnel",
+    "achievement/roman-commander-alien-command-center",
+    "achievement/roman-commander-korard-mercenary-captain",
+    "achievement/roman-commander-nyx-blackfeather",
+    "achievement/roman-commander-quicksword-billy",
+    "achievement/roman-commander-the-striker",
+    "achievement/roman-commander-the-master-striker",
+    "achievement/roman-commander-the-hexer",
+    "achievement/roman-commander-the-lost-challenger",
+    "achievement/roman-commander-the-lost-warrior",
+    "achievement/roman-commander-the-lost-champion"
+  ],
+  "minifigure": "minifig/roman-commander",
+  "source": "client"
+}

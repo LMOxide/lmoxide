@@ -1,0 +1,41 @@
+{
+  "id": "skill/hooves-of-steel",
+  "name": "Hooves of Steel",
+  "client": {
+    "spell": 505955,
+    "stats": {
+      "EffectPackage": 513816,
+      "ItemDelay": 50,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 90,
+            "AngleStart": -45,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 505630,
+            "Radius": 2
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 505955,
+            "Value": 200
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Hun Warrior: Mount Up!",
+  "source": "client"
+}

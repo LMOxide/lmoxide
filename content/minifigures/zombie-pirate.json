@@ -1,0 +1,125 @@
+{
+  "id": "minifig/zombie-pirate",
+  "name": "Zombie Pirate",
+  "template": 641027,
+  "series": 14,
+  "series_index": 0,
+  "render": {
+    "monster_data": 632066
+  },
+  "stats": {
+    "life": 350,
+    "power": 7,
+    "defense": 7,
+    "creativity": 2,
+    "role": 2,
+    "element": 2
+  },
+  "normal": {
+    "skill": "skill/rusty-cutlass",
+    "hits": [
+      {
+        "skill": "skill/main-s14-zombiepirate1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [641618]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/shark-shark"
+  },
+  "click_spells": [641618, 641634],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-fit"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-fit-460946"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-tough-460940"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-second-wind"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530279"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-skirmisher"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [4606, 4397, 4681, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/zombie-pirate-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/zombie-pirate-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/zombie-pirate-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-zombie-pirate",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/monster-trials"],
+    "text": "You can find me in the Monster Trials, LEGO Center.",
+    "location_text": 251325715,
+    "location_picture": 659005
+  },
+  "source": "client"
+}

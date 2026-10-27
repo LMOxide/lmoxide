@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-classicking1-damage-foot",
+  "name": "main classicking1 damage foot",
+  "client": {
+    "spell": 577184,
+    "stats": {
+      "EffectPackage": 579018,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.800000011920929,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

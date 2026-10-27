@@ -1,0 +1,13 @@
+{
+  "id": "achievement/monster-scientist-swamp-tunnel",
+  "lore": 4625,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Swamp Tunnel",
+  "title": "Monster Scientist: Swamp Tunnel",
+  "text": "Conquer the Swamp Tunnel as Monster Scientist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Swamp Tunnel",
+  "minifigure": "minifig/monster-scientist",
+  "source": "client"
+}

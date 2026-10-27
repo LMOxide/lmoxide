@@ -1,0 +1,13 @@
+{
+  "id": "achievement/policeman-the-lost-champion",
+  "lore": 2784,
+  "parent": "achievement/policeman",
+  "client_name": "Policeman_Lost Creations_Get to Level 15",
+  "title": "Policeman, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Policeman.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/policeman",
+  "n": 15,
+  "source": "client"
+}

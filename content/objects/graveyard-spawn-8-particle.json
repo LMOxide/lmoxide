@@ -1,0 +1,10 @@
+{
+  "id": "object/graveyard-spawn-8-particle",
+  "name": "graveyard spawn 8 particle",
+  "kind": "scenery",
+  "render": {
+    "look": "graveyard spawn 8 particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

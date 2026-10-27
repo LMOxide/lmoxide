@@ -1,0 +1,12 @@
+{
+  "id": "world/xx-house-of-hansbi",
+  "name": "XX_House of Hansbi",
+  "playfield": 30050,
+  "kind": "other",
+  "arrival": {
+    "pos": [290.0, 1.75, 156.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

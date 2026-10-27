@@ -1,0 +1,10 @@
+{
+  "id": "object/medusa-visible",
+  "name": "medusa visible",
+  "kind": "scenery",
+  "render": {
+    "look": "medusa visible",
+    "visual": [1010030, 492221]
+  },
+  "source": "client"
+}

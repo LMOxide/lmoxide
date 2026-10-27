@@ -1,0 +1,13 @@
+{
+  "id": "achievement/fairytale-princess-alien-command-center",
+  "lore": 3093,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Alien Command Center",
+  "title": "Fairytale Princess: Alien Command Center",
+  "text": "Conquer the Alien Command Center as Fairytale Princess.",
+  "points": 50,
+  "kind": "target",
+  "target": "Alien Command Center",
+  "minifigure": "minifig/fairytale-princess",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/monster-scientist-the-hexer",
+  "lore": 4638,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Smash 50 Witch Doctors",
+  "title": "Monster Scientist, the Hexer",
+  "text": "Smash 50 Witch Doctors as Monster Scientist.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/monster-scientist",
+  "counts": {
+    "match": "Witch Doctor",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

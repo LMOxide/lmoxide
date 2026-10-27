@@ -1,0 +1,24 @@
+{
+  "id": "skill/main-warriorwoman2-damage1",
+  "name": "main warriorwoman2 damage1",
+  "client": {
+    "spell": 317792,
+    "stats": {
+      "EffectPackage": 637038
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.5,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

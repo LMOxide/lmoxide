@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-islandwarrior2-impact-damage",
+  "name": "main islandwarrior2 impact damage",
+  "client": {
+    "spell": 470919,
+    "stats": {
+      "EffectPackage": 637055,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.8999999761581421,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

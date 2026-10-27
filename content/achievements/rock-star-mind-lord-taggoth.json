@@ -1,0 +1,13 @@
+{
+  "id": "achievement/rock-star-mind-lord-taggoth",
+  "lore": 3230,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Mind-Lord Taggoth",
+  "title": "Rock Star: Mind-Lord Taggoth",
+  "text": "Defeat Mind-Lord Taggoth as Rock Star.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mind-Lord Taggoth",
+  "minifigure": "minifig/rock-star",
+  "source": "client"
+}

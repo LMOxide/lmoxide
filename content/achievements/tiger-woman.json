@@ -1,0 +1,29 @@
+{
+  "id": "achievement/tiger-woman",
+  "lore": 4386,
+  "parent": "achievement/series-14",
+  "client_name": "Tiger Woman",
+  "title": "Tiger Woman",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-tiger-woman",
+    "achievement/legendary-tiger-woman",
+    "achievement/tiger-woman-abandoned-temple",
+    "achievement/tiger-woman-scorched-ruins",
+    "achievement/tiger-woman-skyforge",
+    "achievement/tiger-woman-uggluk-gatekeeper",
+    "achievement/tiger-woman-sir-hector",
+    "achievement/tiger-woman-crazy-kotaki",
+    "achievement/novice-tiger-woman",
+    "achievement/expert-tiger-woman",
+    "achievement/tiger-woman-the-lost-challenger",
+    "achievement/tiger-woman-the-lost-warrior",
+    "achievement/tiger-woman-the-lost-champion",
+    "achievement/tiger-woman-the-striker",
+    "achievement/tiger-woman-the-master-striker",
+    "achievement/tiger-woman-the-hexer"
+  ],
+  "minifigure": "minifig/tiger-woman",
+  "source": "client"
+}

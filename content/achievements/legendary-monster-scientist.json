@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-monster-scientist",
+  "lore": 4623,
+  "parent": "achievement/monster-scientist",
+  "client_name": "Monster Scientist_Complete Any 10",
+  "title": "Legendary Monster Scientist",
+  "text": "Complete any 11 Monster Scientist achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/monster-scientist",
+  "n": 11,
+  "source": "client"
+}

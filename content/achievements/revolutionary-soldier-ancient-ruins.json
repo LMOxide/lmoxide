@@ -1,0 +1,13 @@
+{
+  "id": "achievement/revolutionary-soldier-ancient-ruins",
+  "lore": 3566,
+  "parent": "achievement/revolutionary-soldier",
+  "client_name": "Revolutionary Soldier_Ancient Ruins",
+  "title": "Revolutionary Soldier: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Revolutionary Soldier.",
+  "points": 50,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/revolutionary-soldier",
+  "source": "client"
+}

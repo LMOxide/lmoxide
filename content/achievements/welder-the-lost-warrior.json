@@ -1,0 +1,13 @@
+{
+  "id": "achievement/welder-the-lost-warrior",
+  "lore": 2795,
+  "parent": "achievement/welder",
+  "client_name": "Welder_Lost Creations_Get to Level 10",
+  "title": "Welder, the Lost Warrior",
+  "text": "Complete level 10 in the Lost Creations with Welder.",
+  "points": 50,
+  "kind": "lost_creations",
+  "minifigure": "minifig/welder",
+  "n": 10,
+  "source": "client"
+}

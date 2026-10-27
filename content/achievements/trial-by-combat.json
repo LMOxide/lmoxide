@@ -1,0 +1,29 @@
+{
+  "id": "achievement/trial-by-combat",
+  "lore": 769,
+  "parent": "achievement/medieval-combat",
+  "client_name": "Medieval_Combat_Defeat Medieval World Champions",
+  "title": "Trial by Combat",
+  "text": "Defeat all the Medieval World Champions.",
+  "points": 100,
+  "kind": "all",
+  "stars": 500,
+  "children": [
+    "achievement/trollhunter",
+    "achievement/ouch",
+    "achievement/gatesmasher",
+    "achievement/umad-bro",
+    "achievement/brick-house",
+    "achievement/gobble-you-up",
+    "achievement/cursebreaker",
+    "achievement/beastmaster",
+    "achievement/taking-control",
+    "achievement/tame-the-beast",
+    "achievement/toast",
+    "achievement/pale-little-spider",
+    "achievement/chlora-the-explorer",
+    "achievement/saw-it-coming",
+    "achievement/trololol"
+  ],
+  "source": "client"
+}

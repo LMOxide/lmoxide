@@ -1,0 +1,13 @@
+{
+  "id": "achievement/decorator-temper",
+  "lore": 3449,
+  "parent": "achievement/decorator",
+  "client_name": "Decorator_Temper",
+  "title": "Decorator: Temper",
+  "text": "Defeat Temper as Decorator.",
+  "points": 25,
+  "kind": "target",
+  "target": "Temper",
+  "minifigure": "minifig/decorator",
+  "source": "client"
+}

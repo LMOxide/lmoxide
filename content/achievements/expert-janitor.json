@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-janitor",
+  "lore": 5209,
+  "parent": "achievement/janitor",
+  "client_name": "Janitor_Upgrade 7",
+  "title": "Expert Janitor",
+  "text": "Get the seventh Janitor upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/janitor",
+  "n": 7,
+  "source": "client"
+}

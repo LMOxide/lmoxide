@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sea-captain-the-lost-challenger",
+  "lore": 3540,
+  "parent": "achievement/sea-captain",
+  "client_name": "Sea Captain_Lost Creations_Get to Level 5",
+  "title": "Sea Captain, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Sea Captain.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/sea-captain",
+  "n": 5,
+  "source": "client"
+}

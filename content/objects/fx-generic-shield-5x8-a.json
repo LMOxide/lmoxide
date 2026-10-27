@@ -1,0 +1,10 @@
+{
+  "id": "object/fx-generic-shield-5x8-a",
+  "name": "fx_generic_shield_5x8_a",
+  "kind": "scenery",
+  "render": {
+    "look": "fx_generic_shield_5x8_a",
+    "visual": [1010030, 162353]
+  },
+  "source": "client"
+}

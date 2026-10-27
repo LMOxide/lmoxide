@@ -1,0 +1,17 @@
+{
+  "id": "achievement/bumblebee-girl-the-sweet",
+  "lore": 3611,
+  "parent": "achievement/bumblebee-girl",
+  "client_name": "Bumblebee Girl_Smash 50 Magic Candy",
+  "title": "Bumblebee Girl, the Sweet",
+  "text": "Smash 50 Sweets as Bumblebee Girl.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/bumblebee-girl",
+  "counts": {
+    "match": "Magic Candy",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

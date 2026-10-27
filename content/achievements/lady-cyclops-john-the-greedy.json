@@ -1,0 +1,13 @@
+{
+  "id": "achievement/lady-cyclops-john-the-greedy",
+  "lore": 3918,
+  "parent": "achievement/lady-cyclops",
+  "client_name": "Lady Cyclops_John the Greedy",
+  "title": "Lady Cyclops: John the Greedy",
+  "text": "Defeat John the Greedy as Lady Cyclops.",
+  "points": 25,
+  "kind": "target",
+  "target": "John the Greedy",
+  "minifigure": "minifig/lady-cyclops",
+  "source": "client"
+}

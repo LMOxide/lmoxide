@@ -1,0 +1,11 @@
+{
+  "id": "skill/main-samuraiwarrior2-lua",
+  "name": "main samuraiwarrior2 lua",
+  "client": {
+    "spell": 597608,
+    "stats": {
+      "LuaScriptID": 3825
+    }
+  },
+  "source": "client"
+}

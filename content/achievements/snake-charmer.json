@@ -1,0 +1,29 @@
+{
+  "id": "achievement/snake-charmer",
+  "lore": 3756,
+  "parent": "achievement/series-13",
+  "client_name": "Snake Charmer",
+  "title": "Snake Charmer",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-snake-charmer",
+    "achievement/legendary-snake-charmer",
+    "achievement/novice-snake-charmer",
+    "achievement/expert-snake-charmer",
+    "achievement/snake-charmer-swamp-tunnel",
+    "achievement/snake-charmer-infested-keep",
+    "achievement/snake-charmer-alien-command-center",
+    "achievement/snake-charmer-temper",
+    "achievement/snake-charmer-kruun-super-genius",
+    "achievement/snake-charmer-crone-of-the-maze",
+    "achievement/snake-charmer-the-smasher",
+    "achievement/snake-charmer-the-master-smasher",
+    "achievement/snake-charmer-the-sweet",
+    "achievement/snake-charmer-the-lost-challenger",
+    "achievement/snake-charmer-the-lost-warrior",
+    "achievement/snake-charmer-the-lost-champion"
+  ],
+  "minifigure": "minifig/snake-charmer",
+  "source": "client"
+}

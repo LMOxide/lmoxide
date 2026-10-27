@@ -1,0 +1,29 @@
+{
+  "id": "achievement/sheriff",
+  "lore": 3755,
+  "parent": "achievement/series-13",
+  "client_name": "Sheriff",
+  "title": "Sheriff",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-sheriff",
+    "achievement/legendary-sheriff",
+    "achievement/novice-sheriff",
+    "achievement/expert-sheriff",
+    "achievement/sheriff-mercenary-assault-cruiser",
+    "achievement/sheriff-swamp-tunnel",
+    "achievement/sheriff-skyforge",
+    "achievement/sheriff-warchief-grogrog",
+    "achievement/sheriff-chug",
+    "achievement/sheriff-mind-lord-taggoth",
+    "achievement/sheriff-the-smasher",
+    "achievement/sheriff-the-master-smasher",
+    "achievement/sheriff-the-tiki-smasher",
+    "achievement/sheriff-the-lost-challenger",
+    "achievement/sheriff-the-lost-warrior",
+    "achievement/sheriff-the-lost-champion"
+  ],
+  "minifigure": "minifig/sheriff",
+  "source": "client"
+}

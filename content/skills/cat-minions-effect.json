@@ -1,0 +1,77 @@
+{
+  "id": "skill/cat-minions-effect",
+  "name": "Cat Minions effect",
+  "client": {
+    "spell": 447776,
+    "stats": {
+      "EffectPackage": 537765,
+      "MaxBuffCounters": 5,
+      "TimeExist": 400
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.05000000074505806,
+            "Stat": 3000096
+          },
+          "criteria": [
+            [447776, 1, 166]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.10000000149011612,
+            "Stat": 3000096
+          },
+          "criteria": [
+            [447776, 2, 166]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.15000000596046448,
+            "Stat": 3000096
+          },
+          "criteria": [
+            [447776, 3, 166]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.20000000298023224,
+            "Stat": 3000096
+          },
+          "criteria": [
+            [447776, 4, 166]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "FloatValue1": 0.25,
+            "Stat": 3000096
+          },
+          "criteria": [
+            [447776, 5, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-sad-clown",
+  "lore": 3555,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_Upgrade 7",
+  "title": "Expert Sad Clown",
+  "text": "Get the seventh Sad Clown upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/sad-clown",
+  "n": 7,
+  "source": "client"
+}

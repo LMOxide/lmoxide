@@ -1,0 +1,28 @@
+{
+  "id": "skill/fortify-aoe-knockback",
+  "name": "Fortify aoe knockback",
+  "client": {
+    "spell": 464655,
+    "stats": {
+      "EffectPackage": 463633,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AreaKnockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Distance": 2,
+            "PowerRating": 9001,
+            "Radius": 2,
+            "Speed": 50
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

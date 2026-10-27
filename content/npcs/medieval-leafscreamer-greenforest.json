@@ -1,0 +1,23 @@
+{
+  "id": "npc/medieval-leafscreamer-greenforest",
+  "name": "Medieval Leafscreamer Greenforest",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 350740
+  },
+  "level": 12,
+  "stats": {
+    "health": 750,
+    "life_factor": 1.1
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/venom",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

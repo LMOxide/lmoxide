@@ -1,0 +1,10 @@
+{
+  "id": "object/arrow-pointer",
+  "name": "arrow pointer",
+  "kind": "scenery",
+  "render": {
+    "look": "arrow pointer",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

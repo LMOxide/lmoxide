@@ -1,0 +1,16 @@
+{
+  "id": "item/heroic-knight-body",
+  "name": "Heroic Knight Body",
+  "kind": "part",
+  "template": 483642,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20907,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/heroic-knight",
+  "location": "Torso",
+  "source": "client"
+}

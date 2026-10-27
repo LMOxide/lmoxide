@@ -1,0 +1,13 @@
+{
+  "id": "achievement/paleontologist-mercenary-cave",
+  "lore": 3931,
+  "parent": "achievement/paleontologist-3753",
+  "client_name": "Paleontologist_Mercenary Cave",
+  "title": "Paleontologist: Mercenary Cave",
+  "text": "Conquer the Mercenary Cave as Paleontologist.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Cave",
+  "minifigure": "minifig/paleontologist",
+  "source": "client"
+}

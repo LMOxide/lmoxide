@@ -1,0 +1,16 @@
+{
+  "id": "item/policeman-body",
+  "name": "Policeman Body",
+  "kind": "part",
+  "template": 483636,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 20913,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/policeman",
+  "location": "Torso",
+  "source": "client"
+}

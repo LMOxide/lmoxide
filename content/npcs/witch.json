@@ -1,0 +1,19 @@
+{
+  "id": "npc/witch",
+  "name": "Witch",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 660089,
+    "npc_template": 2868,
+    "look": "wacky_witch_npc",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 1314,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

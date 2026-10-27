@@ -1,0 +1,35 @@
+{
+  "id": "skill/main-s15-tribalwoman2-snare-buff",
+  "name": "main s15 tribalwoman2 snare buff",
+  "client": {
+    "spell": 667292,
+    "stats": {
+      "EffectPackage": 3984,
+      "MoreFlags": 33554432,
+      "TargetingMode": 5,
+      "TimeExist": 50
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.5
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

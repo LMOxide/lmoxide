@@ -1,0 +1,99 @@
+{
+  "id": "world/enchanted-forest",
+  "name": "Enchanted Forest",
+  "playfield": 5210,
+  "kind": "open",
+  "region": "region/medieval-world",
+  "level": {
+    "cap": 15
+  },
+  "arrival": {
+    "pos": [36.1, 80.1, 148.9],
+    "rot": 5.87
+  },
+  "arrival_guid": 289016,
+  "arrival_from": {
+    "world/dark-alcove": {
+      "pos": [183.31, 52.63, 103.05],
+      "rot": 3.927
+    },
+    "world/infested-keep": {
+      "pos": [410.43, 48.71, 109.06],
+      "rot": 4.712
+    },
+    "world/kingdom": {
+      "pos": [32.56, 80.33, 139.64],
+      "rot": 0.262
+    },
+    "world/mysterious-crystal-cave": {
+      "pos": [323.54, 44.42, 86.63],
+      "rot": 4.974
+    },
+    "world/sorcerer-s-keep": {
+      "pos": [430.01, 56.72, 355.55],
+      "rot": 3.403
+    },
+    "world/swamp-tunnel": {
+      "pos": [462.96, 46.68, 280.16],
+      "rot": 4.189
+    }
+  },
+  "window": 20,
+  "respawn_points": [
+    {
+      "name": "Res_Start",
+      "guid": 289016,
+      "pos": [36.08, 80.06, 148.89],
+      "rot": 5.865,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Grandma",
+      "guid": 289017,
+      "pos": [167.74, 54.22, 128.23],
+      "rot": 1.957,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Wolf",
+      "guid": 289018,
+      "pos": [243.99, 52.14, 108.98],
+      "rot": 0.859,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_Faerie",
+      "guid": 289019,
+      "pos": [279.78, 47.98, 191.68],
+      "rot": 0.283,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_SpiderCave",
+      "guid": 289020,
+      "pos": [426.25, 46.11, 163.31],
+      "rot": 1.017,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_TrollCamp",
+      "guid": 289021,
+      "pos": [445.36, 56.1, 340.93],
+      "rot": 0.465,
+      "discoverable": true,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

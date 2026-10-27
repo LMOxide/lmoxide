@@ -1,0 +1,17 @@
+{
+  "id": "item/main-dinotracker1-projectile",
+  "name": "main dinotracker1 projectile",
+  "kind": "projectile",
+  "template": 501493,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 501494
+      }
+    }
+  ],
+  "source": "client"
+}

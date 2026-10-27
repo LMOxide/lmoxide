@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-mech-mind-lord-taggoth",
+  "lore": 2688,
+  "parent": "achievement/battle-mech",
+  "client_name": "Battle Mech_Mind-Lord Taggoth",
+  "title": "Battle Mech: Mind-Lord Taggoth",
+  "text": "Defeat Mind-Lord Taggoth as Battle Mech.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mind-Lord Taggoth",
+  "minifigure": "minifig/battle-mech",
+  "source": "client"
+}

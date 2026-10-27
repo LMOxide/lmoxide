@@ -1,0 +1,59 @@
+{
+  "id": "world/lego-center",
+  "name": "LEGO Center",
+  "playfield": 1200,
+  "kind": "hub",
+  "arrival": {
+    "pos": [329.8, 48.1, 66.7],
+    "rot": 3.93
+  },
+  "arrival_guid": 239690,
+  "arrival_from": {
+    "world/dinosaur-rise": {
+      "pos": [288.87, 46.9, 75.82],
+      "rot": 0.524
+    },
+    "world/enchanted-forest": {
+      "pos": [320.11, 48.65, 96.5],
+      "rot": 3.665
+    },
+    "world/isle-of-yarr": {
+      "pos": [332.85, 54.81, 104.96],
+      "rot": 3.142
+    },
+    "world/kingdom": {
+      "pos": [313.81, 49.39, 114.88],
+      "rot": 2.88
+    },
+    "world/mythology-mountains": {
+      "pos": [277.5, 50.42, 117.61],
+      "rot": 2.356
+    },
+    "world/planet-s-dark-side": {
+      "pos": [289.23, 55.59, 117.67],
+      "rot": 3.142
+    },
+    "world/space-colony": {
+      "pos": [295.14, 54.68, 101.15],
+      "rot": 2.356
+    },
+    "world/volcano-island": {
+      "pos": [327.04, 54.74, 114.31],
+      "rot": 3.142
+    }
+  },
+  "window": 73,
+  "respawn_points": [
+    {
+      "name": "Hearthstone",
+      "guid": 239690,
+      "pos": [329.75, 48.1, 66.73],
+      "rot": 3.93,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client",
+  "comment": "spawns the live server sent (tools/re/live_playfield.py); proposed ones only where the player never came within 40 m (visits 4, seen radius 40.0 m)"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/center6",
+  "name": "center6",
+  "kind": "scenery",
+  "render": {
+    "look": "center6",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

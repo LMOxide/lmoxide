@@ -1,0 +1,12 @@
+{
+  "id": "world/winter-ice-troll-dungeon",
+  "name": "Winter - Ice troll Dungeon",
+  "playfield": 1411,
+  "kind": "other",
+  "arrival": {
+    "pos": [296.0, 93.84, 155.5],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

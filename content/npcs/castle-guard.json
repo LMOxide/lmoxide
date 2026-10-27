@@ -1,0 +1,17 @@
+{
+  "id": "npc/castle-guard",
+  "name": "Castle Guard",
+  "kind": "npc",
+  "render": {
+    "monster_data": 352446,
+    "npc_template": 1743,
+    "look": "medieval_npc_knight_a",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 0.15
+  },
+  "source": "client"
+}

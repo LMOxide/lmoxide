@@ -1,0 +1,10 @@
+{
+  "id": "object/lego-lever-a-interactable",
+  "name": "lego_lever_a_interactable",
+  "kind": "interactable",
+  "render": {
+    "look": "lego_lever_a_interactable",
+    "visual": [1010201, 520509]
+  },
+  "source": "client"
+}

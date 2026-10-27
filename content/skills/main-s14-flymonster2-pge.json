@@ -1,0 +1,27 @@
+{
+  "id": "skill/main-s14-flymonster2-pge",
+  "name": "main s14 flymonster2 pge",
+  "client": {
+    "spell": 642255,
+    "stats": {
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 25,
+            "Arg2": 12,
+            "EffectPackage": 645747,
+            "NanoTemplate": 642256,
+            "TemplateID": 642256
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Fly Monster: Toxic Goop",
+  "source": "client"
+}

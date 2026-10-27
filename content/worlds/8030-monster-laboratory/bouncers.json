@@ -1,0 +1,38 @@
+{
+  "bouncers": [
+    {
+      "id": "bouncer/8030/jump-pad-wind-fan-a-buildie",
+      "name": "jump_pad_wind_fan_a_buildie",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [247.68, 42.0, 277.95],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [253.46, 43.93, 280.27],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 658997,
+        "tag": "JUMP",
+        "script_group": 7,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "bouncer/8030/jump-pad-wind-fan-a-buildie-2",
+      "name": "jump_pad_wind_fan_a_buildie",
+      "template": "object/jump-pad-wind-fan-a-buildie-2",
+      "pos": [247.68, 42.0, 281.5],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "target": [248.02, 42.44, 273.58],
+      "target_by": "adjacent",
+      "client": {
+        "guid": 659713,
+        "tag": "JUMP",
+        "script_group": 8,
+        "visual": [1010201, 148906],
+        "bounds": [-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]
+      },
+      "source": "client"
+    }
+  ]
+}

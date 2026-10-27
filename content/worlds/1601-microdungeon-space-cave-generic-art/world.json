@@ -1,0 +1,12 @@
+{
+  "id": "world/microdungeon-space-cave-generic-art",
+  "name": "Microdungeon - Space Cave Generic - Art",
+  "playfield": 1601,
+  "kind": "other",
+  "arrival": {
+    "pos": [332.0, 19.58, 269.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

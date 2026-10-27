@@ -1,0 +1,87 @@
+{
+  "id": "skill/space-dg-alienhq-boss-saucer-ball-castable",
+  "name": "space dg alienhq boss saucer ball castable",
+  "client": {
+    "spell": 367652,
+    "stats": {
+      "AIPowerrating": 10,
+      "AISpellCategory": 1024,
+      "AttackRange": 3000,
+      "EffectPackage": 399225,
+      "ItemDelay": 75,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 399358,
+            "Value": 1
+          }
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 4,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 398788,
+            "Radius": 30
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 367652,
+            "Value": 500
+          },
+          "criteria": [
+            [0, 0, 19],
+            [399358, 1, 166],
+            [0, 66, 152],
+            [0, 0, 4]
+          ]
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 367652,
+            "Value": 500
+          },
+          "criteria": [
+            [0, 0, 19],
+            [399358, 3, 166],
+            [0, 32, 152],
+            [0, 67, 153],
+            [0, 0, 4],
+            [0, 0, 4]
+          ]
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 367652,
+            "Value": 500
+          },
+          "criteria": [
+            [0, 0, 19],
+            [399358, 5, 166],
+            [0, 33, 153],
+            [0, 0, 4]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tribal-woman-treasure-island",
+  "lore": 5300,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Treasure Island",
+  "title": "Tribal Woman: Treasure Island",
+  "text": "Conquer the Treasure Island as Tribal Woman.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/tribal-woman",
+  "source": "client"
+}

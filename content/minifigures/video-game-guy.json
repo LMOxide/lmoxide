@@ -1,0 +1,148 @@
+{
+  "id": "minifig/video-game-guy",
+  "name": "Video Game Guy",
+  "template": 498330,
+  "series": 12,
+  "series_index": 0,
+  "render": {
+    "monster_data": 324487
+  },
+  "stats": {
+    "life": 250,
+    "power": 9,
+    "defense": 3,
+    "creativity": 3,
+    "role": 1,
+    "element": 3
+  },
+  "normal": {
+    "skill": "skill/arcade-classics",
+    "hits": [
+      {
+        "skill": "skill/main-videogameguy1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [500487, 505472]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/pixel-fire",
+    "hits": [
+      {
+        "skill": "skill/main-videogameguy2-tier1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.0,
+        "damage_type": 1000,
+        "via": [500488, 505500]
+      },
+      {
+        "skill": "skill/main-videogameguy2-tier2-damage",
+        "type": "WeaponHit",
+        "ability_mod": 2.0,
+        "damage_type": 1000,
+        "via": [500488, 505501]
+      },
+      {
+        "skill": "skill/main-videogameguy2-tier3-damage",
+        "type": "WeaponHit",
+        "ability_mod": 3.0,
+        "damage_type": 1000,
+        "via": [500488, 505502]
+      }
+    ]
+  },
+  "click_spells": [500487, 500488],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-fast"
+    },
+    {
+      "bit": 3,
+      "slot": 104,
+      "buff": "buff/upgrade-upgrade"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-resourceful"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-technician"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460945"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-pickup-artist"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-smash-and-dash"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530252"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-meltdown"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "aura_tags": [3307, 2511, 3644, 3645],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/video-game-guy-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/video-game-guy-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/video-game-guy-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-video-game-guy",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/mythology-world"],
+    "text": "You can find me in the Mythology World.",
+    "location_text": 224781705,
+    "location_picture": 496203
+  },
+  "source": "client"
+}

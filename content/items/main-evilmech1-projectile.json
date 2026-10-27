@@ -1,0 +1,17 @@
+{
+  "id": "item/main-evilmech1-projectile",
+  "name": "main evilmech1 projectile",
+  "kind": "projectile",
+  "template": 360320,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 360321
+      }
+    }
+  ],
+  "source": "client"
+}

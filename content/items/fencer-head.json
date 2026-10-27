@@ -1,0 +1,16 @@
+{
+  "id": "item/fencer-head",
+  "name": "Fencer Head",
+  "kind": "part",
+  "template": 576162,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11307,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/fencer",
+  "location": "Head",
+  "source": "client"
+}

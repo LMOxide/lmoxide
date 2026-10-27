@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-square-foot",
+  "lore": 4537,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Complete Any 5",
+  "title": "Heroic Square Foot",
+  "text": "Complete any 5 Square Foot achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/square-foot",
+  "n": 5,
+  "source": "client"
+}

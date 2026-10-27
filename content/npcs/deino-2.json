@@ -1,0 +1,22 @@
+{
+  "id": "npc/deino-2",
+  "name": "Deino",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 485836
+  },
+  "level": 20,
+  "stats": {
+    "health": 26180
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/bolt-330144",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

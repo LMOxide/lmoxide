@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-frightening-knight",
+  "lore": 5184,
+  "parent": "achievement/frightening-knight",
+  "client_name": "Frightening Knight_Complete Any 5",
+  "title": "Heroic Frightening Knight",
+  "text": "Complete any 5 Frightening Knight achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/frightening-knight",
+  "n": 5,
+  "source": "client"
+}

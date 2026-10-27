@@ -1,0 +1,28 @@
+{
+  "id": "skill/main-ladyrobot2-bullet",
+  "name": "main ladyrobot2 bullet",
+  "client": {
+    "spell": 360371,
+    "stats": {
+      "EffectPackage": 373247,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 360399,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Lady Robot: Robo-Popping",
+  "range": 15.0,
+  "source": "client"
+}

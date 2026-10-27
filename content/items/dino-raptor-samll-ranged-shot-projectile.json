@@ -1,0 +1,18 @@
+{
+  "id": "item/dino-raptor-samll-ranged-shot-projectile",
+  "name": "dino raptor samll ranged shot projectile",
+  "kind": "projectile",
+  "template": 521192,
+  "effect_package": 522664,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 521191
+      }
+    }
+  ],
+  "source": "client"
+}

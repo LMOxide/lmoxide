@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scientist-underground-cave",
+  "lore": 2905,
+  "parent": "achievement/scientist",
+  "client_name": "Scientist_Underground Cave",
+  "title": "Scientist: Underground Cave",
+  "text": "Conquer the Underground Cave as Scientist.",
+  "points": 50,
+  "kind": "target",
+  "target": "Underground Cave",
+  "minifigure": "minifig/scientist",
+  "source": "client"
+}

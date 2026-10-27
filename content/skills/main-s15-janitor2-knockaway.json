@@ -1,0 +1,34 @@
+{
+  "id": "skill/main-s15-janitor2-knockaway",
+  "name": "main s15 janitor2 knockaway",
+  "client": {
+    "spell": 668607,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 365804
+          }
+        },
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Arg2": 7,
+            "Distance": 2,
+            "PowerRating": 9001,
+            "Speed": 25
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

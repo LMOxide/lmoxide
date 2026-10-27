@@ -1,0 +1,26 @@
+{
+  "id": "npc/gorgon",
+  "name": "Gorgon",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 98178
+  },
+  "level": 18,
+  "stats": {
+    "health": 2100
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/snake-shot",
+      "weight": 1
+    },
+    {
+      "skill": "skill/slash",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

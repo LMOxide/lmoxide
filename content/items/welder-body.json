@@ -1,0 +1,16 @@
+{
+  "id": "item/welder-body",
+  "name": "Welder Body",
+  "kind": "part",
+  "template": 483601,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21115,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/welder",
+  "location": "Torso",
+  "source": "client"
+}

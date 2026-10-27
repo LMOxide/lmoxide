@@ -1,0 +1,16 @@
+{
+  "id": "item/pizza-delivery-man-head",
+  "name": "Pizza Delivery Man Head",
+  "kind": "part",
+  "template": 576181,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11209,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/pizza-delivery-man",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/carpenter-the-triffid",
+  "lore": 3781,
+  "parent": "achievement/carpenter",
+  "client_name": "Carpenter_The Triffid",
+  "title": "Carpenter: The Triffid",
+  "text": "Defeat The Triffid as Carpenter.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/carpenter",
+  "source": "client"
+}

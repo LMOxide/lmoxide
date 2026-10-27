@@ -1,0 +1,16 @@
+{
+  "id": "achievement/judge-the-striker",
+  "lore": 2575,
+  "parent": "achievement/judge",
+  "client_name": "Judge_Smash 1000 Monsters",
+  "title": "Judge, the Striker",
+  "text": "Smash 1000 monsters as Judge.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/judge",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

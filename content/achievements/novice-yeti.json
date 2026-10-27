@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-yeti",
+  "lore": 3046,
+  "parent": "achievement/yeti",
+  "client_name": "Yeti_Upgrade 3",
+  "title": "Novice Yeti",
+  "text": "Get the third Yeti upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/yeti",
+  "n": 3,
+  "source": "client"
+}

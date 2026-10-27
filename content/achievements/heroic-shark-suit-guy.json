@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-shark-suit-guy",
+  "lore": 5280,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Complete Any 5",
+  "title": "Heroic Shark Suit Guy",
+  "text": "Complete any 5 Shark Suit Guy achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/shark-suit-guy",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,68 @@
+{
+  "id": "skill/main-evilknight2-damage",
+  "name": "main evilknight2 damage",
+  "client": {
+    "spell": 585580,
+    "stats": {
+      "EffectPackage": 585740,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [585574, 1, 166]
+          ]
+        },
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 2.4000000953674316,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [585574, 2, 166]
+          ]
+        },
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 3.5999999046325684,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [585574, 3, 166]
+          ]
+        },
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 4.800000190734863,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          },
+          "criteria": [
+            [0, 0, 19],
+            [585574, 4, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

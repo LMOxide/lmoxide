@@ -1,0 +1,16 @@
+{
+  "id": "item/roman-commander-body",
+  "name": "Roman Commander Body",
+  "kind": "part",
+  "template": 483622,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21010,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/roman-commander",
+  "location": "Torso",
+  "source": "client"
+}

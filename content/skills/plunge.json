@@ -1,0 +1,40 @@
+{
+  "id": "skill/plunge",
+  "name": "Plunge",
+  "client": {
+    "spell": 36054,
+    "stats": {
+      "EffectPackage": 38663,
+      "ItemDelay": 36,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 6
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 75781,
+            "ProjectileType": 1,
+            "Speed": 1250
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Plumber: Plunge",
+  "range": 15.0,
+  "projectile": {
+    "item": 75781,
+    "speed": 12.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

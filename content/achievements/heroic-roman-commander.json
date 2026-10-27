@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-roman-commander",
+  "lore": 3374,
+  "parent": "achievement/roman-commander",
+  "client_name": "Roman Commander_Complete Any 5",
+  "title": "Heroic Roman Commander",
+  "text": "Complete any 5 Roman Commander achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/roman-commander",
+  "n": 5,
+  "source": "client"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "skill/paint-roll",
+  "name": "Paint Roll",
+  "client": {
+    "spell": 317702,
+    "stats": {
+      "EffectPackage": 318718,
+      "ItemDelay": 25,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 25,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 318241,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Decorator: Paint Roll",
+  "source": "client"
+}

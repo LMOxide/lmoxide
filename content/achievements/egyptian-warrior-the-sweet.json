@@ -1,0 +1,17 @@
+{
+  "id": "achievement/egyptian-warrior-the-sweet",
+  "lore": 4029,
+  "parent": "achievement/egyptian-warrior",
+  "client_name": "Egyptian Warrior_Smash 50 Magic Candy",
+  "title": "Egyptian Warrior, the Sweet",
+  "text": "Smash 50 Sweets as Egyptian Warrior.",
+  "points": 100,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/egyptian-warrior",
+  "counts": {
+    "match": "Magic Candy",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "skill/heavy-hands",
+  "name": "Heavy Hands",
+  "client": {
+    "spell": 641606,
+    "stats": {
+      "EffectPackage": 642796,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 642420,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Gargoyle: Heavy Hands",
+  "source": "client"
+}

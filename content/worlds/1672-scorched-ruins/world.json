@@ -1,0 +1,30 @@
+{
+  "id": "world/scorched-ruins",
+  "name": "Scorched Ruins",
+  "playfield": 1672,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [235.07, 19.49, 246.48],
+    "rot": 4.71
+  },
+  "arrival_guid": 428708,
+  "arrival_from": {
+    "world/volcano-island": {
+      "pos": [240.75, 20.68, 237.37],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 428708,
+      "pos": [235.07, 19.49, 246.48],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

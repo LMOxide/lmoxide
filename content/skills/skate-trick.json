@@ -1,0 +1,32 @@
+{
+  "id": "skill/skate-trick",
+  "name": "Skate Trick",
+  "client": {
+    "spell": 595461,
+    "stats": {
+      "EffectPackage": 598785,
+      "ItemDelay": 48,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 2,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 595463,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Skater Girl: Skate Trick",
+  "source": "client"
+}

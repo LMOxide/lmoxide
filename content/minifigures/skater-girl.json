@@ -1,0 +1,124 @@
+{
+  "id": "minifig/skater-girl",
+  "name": "Skater Girl",
+  "template": 595242,
+  "series": 6,
+  "series_index": 0,
+  "render": {
+    "monster_data": 591094
+  },
+  "stats": {
+    "life": 250,
+    "power": 3,
+    "defense": 5,
+    "creativity": 9,
+    "role": 3,
+    "element": 1
+  },
+  "normal": {
+    "skill": "skill/skate-trick",
+    "hits": [
+      {
+        "skill": "skill/main-skatergirl1-damage",
+        "type": "WeaponHit",
+        "ability_mod": 1.2,
+        "damage_type": 1000,
+        "via": [595461]
+      }
+    ]
+  },
+  "special": {
+    "skill": "skill/air-time"
+  },
+  "click_spells": [595461, 595462],
+  "upgrades": [
+    {
+      "bit": 0,
+      "slot": 0,
+      "buff": "buff/upgrade-strong"
+    },
+    {
+      "bit": 1,
+      "slot": 0,
+      "buff": "buff/upgrade-strong-460944"
+    },
+    {
+      "bit": 2,
+      "slot": 0,
+      "buff": "buff/upgrade-tough"
+    },
+    {
+      "bit": 3,
+      "slot": 0,
+      "buff": "buff/upgrade-new-record"
+    },
+    {
+      "bit": 4,
+      "slot": 0,
+      "buff": "buff/upgrade-left-hook"
+    },
+    {
+      "bit": 5,
+      "slot": 0,
+      "buff": "buff/upgrade-harden-up"
+    },
+    {
+      "bit": 6,
+      "slot": 0,
+      "buff": "buff/upgrade-hunter"
+    },
+    {
+      "bit": 7,
+      "slot": 0,
+      "buff": "buff/upgrade-lionhearted"
+    },
+    {
+      "bit": 8,
+      "slot": 0,
+      "buff": "buff/upgrade-block"
+    },
+    {
+      "bit": 9,
+      "slot": 0,
+      "buff": "buff/upgrade-elemental-affinity-530295"
+    },
+    {
+      "bit": 10,
+      "slot": 0,
+      "buff": "buff/upgrade-slippery-power"
+    },
+    {
+      "bit": 11,
+      "slot": 0,
+      "buff": "buff/upgrade-escape-artist"
+    },
+    {
+      "bit": 12,
+      "slot": 0,
+      "buff": "buff/upgrade-no-upgrade-available"
+    }
+  ],
+  "parts": [
+    {
+      "location": "Head",
+      "item": "item/skater-girl-head"
+    },
+    {
+      "location": "Torso",
+      "item": "item/skater-girl-body"
+    },
+    {
+      "location": "Legs",
+      "item": "item/skater-girl-legs"
+    }
+  ],
+  "bag": "item/minifigure-bag-skater-girl",
+  "obtain": {
+    "source": "world",
+    "regions": ["region/dino-world"],
+    "text": "You can find me in the Lost Creations, Dino World.",
+    "location_text": 25681715,
+    "location_picture": 529168
+  },
+  "source": "client"
+}

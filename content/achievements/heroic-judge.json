@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-judge",
+  "lore": 2577,
+  "parent": "achievement/judge",
+  "client_name": "Judge_Complete Any 5",
+  "title": "Heroic Judge",
+  "text": "Complete any 5 Judge achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/judge",
+  "n": 5,
+  "source": "client"
+}

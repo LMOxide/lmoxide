@@ -1,0 +1,16 @@
+{
+  "id": "item/monster-rocker-head",
+  "name": "Monster Rocker Head",
+  "kind": "part",
+  "template": 662042,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11405,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/monster-rocker",
+  "location": "Head",
+  "source": "client"
+}

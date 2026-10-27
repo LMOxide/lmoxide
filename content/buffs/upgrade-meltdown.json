@@ -1,0 +1,28 @@
+{
+  "id": "buff/upgrade-meltdown",
+  "name": "Upgrade: Meltdown",
+  "nano": 421178,
+  "effects": [
+    {
+      "proc": {
+        "on": "special_kill",
+        "then": [
+          {
+            "command": {
+              "name": "upgrade.damage_field",
+              "args": {
+                "ability_mod": 0.05,
+                "at": "self",
+                "effect_package": 442041,
+                "every": "1s",
+                "pulses": 6,
+                "radius": 3.0
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "source": "server"
+}

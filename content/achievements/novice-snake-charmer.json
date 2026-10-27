@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-snake-charmer",
+  "lore": 3987,
+  "parent": "achievement/snake-charmer",
+  "client_name": "Snake Charmer_Upgrade 3",
+  "title": "Novice Snake Charmer",
+  "text": "Get the third Snake Charmer upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/snake-charmer",
+  "n": 3,
+  "source": "client"
+}

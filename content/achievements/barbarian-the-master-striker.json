@@ -1,0 +1,16 @@
+{
+  "id": "achievement/barbarian-the-master-striker",
+  "lore": 2885,
+  "parent": "achievement/barbarian",
+  "client_name": "Barbarian_Smash 10000 Monsters",
+  "title": "Barbarian, the Master Striker",
+  "text": "Smash 10000 monsters as Barbarian.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/barbarian",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

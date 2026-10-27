@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-rock-star",
+  "lore": 3238,
+  "parent": "achievement/rock-star",
+  "client_name": "Rock Star_Complete Any 5",
+  "title": "Heroic Rock Star",
+  "text": "Complete any 5 Rock Star achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/rock-star",
+  "n": 5,
+  "source": "client"
+}

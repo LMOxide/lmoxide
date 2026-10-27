@@ -1,0 +1,10 @@
+{
+  "id": "object/pit1",
+  "name": "Pit1",
+  "kind": "scenery",
+  "render": {
+    "look": "Pit1",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,33 @@
+{
+  "id": "skill/smash-319946",
+  "name": "Smash",
+  "client": {
+    "spell": 319946,
+    "stats": {
+      "AIPowerrating": 10,
+      "AISpellCategory": 512,
+      "AttackRange": 150,
+      "EffectPackage": 154034,
+      "ItemDelay": 150,
+      "RechargeDelay": 150,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 90,
+            "AngleStart": -45,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 319945,
+            "Radius": 4
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

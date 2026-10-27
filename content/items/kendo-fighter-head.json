@@ -1,0 +1,16 @@
+{
+  "id": "item/kendo-fighter-head",
+  "name": "Kendo Fighter Head",
+  "kind": "part",
+  "template": 668678,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11511,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/kendo-fighter",
+  "location": "Head",
+  "source": "client"
+}

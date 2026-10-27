@@ -1,0 +1,118 @@
+{
+  "id": "skill/main-redhood2-changed",
+  "name": "main redhood2 changed",
+  "client": {
+    "spell": 297727,
+    "actions": {
+      "0": [
+        {
+          "type": "NanoResistance",
+          "args": {
+            "ApplyOn": 1,
+            "Strain": 800,
+            "Value": 200
+          }
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1037,
+            "Value": 9999999
+          }
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 3000012,
+            "Value": 100
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 359,
+            "Value": 428225
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Stat": 240,
+            "Value": 50
+          }
+        },
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "Stat": 1435,
+            "Value": 4
+          }
+        },
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 15791,
+            "TemplateID2": 433889
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 433889,
+            "Value": 100
+          }
+        },
+        {
+          "type": "OverrideShortcut",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 15427,
+            "TemplateID2": 435725
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 435725,
+            "Value": 100
+          }
+        }
+      ],
+      "20": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 15791,
+            "Value": 500
+          }
+        },
+        {
+          "type": "StartEffect",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 435903
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

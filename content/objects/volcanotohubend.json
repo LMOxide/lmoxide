@@ -1,0 +1,10 @@
+{
+  "id": "object/volcanotohubend",
+  "name": "VolcanoToHubEnd",
+  "kind": "scenery",
+  "render": {
+    "look": "VolcanoToHubEnd",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

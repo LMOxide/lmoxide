@@ -1,0 +1,13 @@
+{
+  "id": "achievement/disco-diva-treasure-island",
+  "lore": 3813,
+  "parent": "achievement/disco-diva",
+  "client_name": "Disco Diva_Treasure Island",
+  "title": "Disco Diva: Treasure Island",
+  "text": "Conquer the Treasure Island as Disco Diva.",
+  "points": 25,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/disco-diva",
+  "source": "client"
+}

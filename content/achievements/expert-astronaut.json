@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-astronaut",
+  "lore": 5097,
+  "parent": "achievement/astronaut",
+  "client_name": "Astronaut_Upgrade 7",
+  "title": "Expert Astronaut",
+  "text": "Get the seventh Astronaut upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/astronaut",
+  "n": 7,
+  "source": "client"
+}

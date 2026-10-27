@@ -1,0 +1,21 @@
+{
+  "id": "script/1612/spawn-alien-ufo",
+  "name": "Spawn Alien UFO",
+  "waves": [
+    {
+      "id": "w-web-bc32963e25919da1",
+      "name": "wave 1"
+    },
+    {
+      "id": "w-web-34986f6b1dee74bb",
+      "name": "wave 2",
+      "trigger": {
+        "wave_cleared": "w-web-bc32963e25919da1"
+      }
+    }
+  ],
+  "status": "unreviewed",
+  "source": "surveyed",
+  "author": "host",
+  "updated": 1793126983
+}

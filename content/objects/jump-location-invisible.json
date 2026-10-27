@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-location-invisible",
+  "name": "jump location invisible",
+  "kind": "scenery",
+  "render": {
+    "look": "jump location invisible",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

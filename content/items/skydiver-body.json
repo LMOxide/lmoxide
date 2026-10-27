@@ -1,0 +1,16 @@
+{
+  "id": "item/skydiver-body",
+  "name": "Skydiver Body",
+  "kind": "part",
+  "template": 483619,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 21013,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/skydiver",
+  "location": "Torso",
+  "source": "client"
+}

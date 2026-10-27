@@ -1,0 +1,16 @@
+{
+  "id": "item/lifeguard-guy-legs",
+  "name": "Lifeguard Guy Legs",
+  "kind": "part",
+  "template": 576110,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31207,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/lifeguard-guy",
+  "location": "Legs",
+  "source": "client"
+}

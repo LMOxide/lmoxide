@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mountain-climber-mercenary-cave",
+  "lore": 2819,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Mercenary Cave",
+  "title": "Mountain Climber: Mercenary Cave",
+  "text": "Conquer the Mercenary Cave as Mountain Climber.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Cave",
+  "minifigure": "minifig/mountain-climber",
+  "source": "client"
+}

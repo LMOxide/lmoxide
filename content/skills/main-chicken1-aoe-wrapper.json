@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-chicken1-aoe-wrapper",
+  "name": "main chicken1 aoe wrapper",
+  "client": {
+    "spell": 430833,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 210427
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 32282
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Chicken Suit Guy: Eggxactly",
+  "source": "client"
+}

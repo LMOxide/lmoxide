@@ -1,0 +1,33 @@
+{
+  "id": "skill/mounted-archery",
+  "name": "Mounted Archery",
+  "client": {
+    "spell": 505615,
+    "stats": {
+      "EffectPackage": 513815,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 1,
+            "ItemInstance": 505618,
+            "ProjectileType": 2,
+            "RotX": 3,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Hun Warrior: Mount Up!",
+  "range": 12.5,
+  "source": "client"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "skill/boss-kraken-ink-bubble-pge",
+  "name": "boss kraken ink bubble pge",
+  "client": {
+    "spell": 186916,
+    "stats": {
+      "AttackRange": 1500,
+      "ItemDelay": 50,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 50,
+            "Arg2": 19,
+            "EffectPackage": 228785,
+            "NanoTemplate": 186917,
+            "TemplateID": 186917
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

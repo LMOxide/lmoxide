@@ -1,0 +1,15 @@
+{
+  "id": "buff/upgrade-fast-460978",
+  "name": "Upgrade: Fast",
+  "nano": 460978,
+  "effects": [
+    {
+      "stat": {
+        "stat": "MovementMultiplier",
+        "op": "add",
+        "value": 5
+      }
+    }
+  ],
+  "source": "client"
+}

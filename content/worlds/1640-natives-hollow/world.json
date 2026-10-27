@@ -1,0 +1,31 @@
+{
+  "id": "world/natives-hollow",
+  "name": "Natives' Hollow",
+  "playfield": 1640,
+  "kind": "pocket",
+  "region": "region/pirate-world",
+  "arrival": {
+    "pos": [235.44, 17.24, 254.75],
+    "rot": 4.71
+  },
+  "arrival_guid": 422123,
+  "arrival_from": {
+    "world/isle-of-yarr": {
+      "pos": [240.31, 19.65, 237.79],
+      "rot": 6.021
+    }
+  },
+  "respawn_points": [
+    {
+      "name": "Entrance",
+      "guid": 422123,
+      "pos": [235.44, 17.24, 254.75],
+      "rot": 4.71,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client",
+  "comment": "spawns the live server sent (tools/re/live_playfield.py); proposed ones only where the player never came within 40 m (visits 1, seen radius 40.0 m)"
+}

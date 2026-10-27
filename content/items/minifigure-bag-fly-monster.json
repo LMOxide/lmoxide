@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-fly-monster",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 642199,
+  "minifigure": "minifig/fly-monster",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "2GY5"
+      }
+    }
+  ],
+  "source": "client"
+}

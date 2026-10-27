@@ -1,0 +1,35 @@
+{
+  "id": "skill/healing-song",
+  "name": "Healing Song",
+  "client": {
+    "spell": 663945,
+    "stats": {
+      "EffectPackage": 668533,
+      "ItemDelay": 32,
+      "MoreFlags": 134217728,
+      "RechargeDelay": 16
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667243
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 663945,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Faun: Healing Song",
+  "source": "client"
+}

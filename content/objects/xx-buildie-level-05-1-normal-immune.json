@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-buildie-level-05-1-normal-immune",
+  "name": "XX_Buildie : Level 05 : 1 Normal : Immune",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 661814,
+    "template": 662097,
+    "look": "teslaactivator_buildie",
+    "cars_group": 1
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 161
+  },
+  "source": "client"
+}

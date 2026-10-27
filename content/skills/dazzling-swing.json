@@ -1,0 +1,36 @@
+{
+  "id": "skill/dazzling-swing",
+  "name": "Dazzling Swing",
+  "client": {
+    "spell": 500484,
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 8,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "Radius": 2,
+            "TemplateID": 505096,
+            "TemplateID2": 540524,
+            "Value1": 516246
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Swashbuckler: Dazzling Swing",
+  "dash": {
+    "distance": 8.0,
+    "radius": 2.0,
+    "effect": 516246,
+    "path_mod": 0.8,
+    "path_visuals": [
+      [505097, 516308, null]
+    ]
+  },
+  "source": "client"
+}

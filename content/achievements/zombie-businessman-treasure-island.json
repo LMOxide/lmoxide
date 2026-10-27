@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-businessman-treasure-island",
+  "lore": 4660,
+  "parent": "achievement/zombie-businessman",
+  "client_name": "Zombie Businessman_Treasure Island",
+  "title": "Zombie Businessman: Treasure Island",
+  "text": "Conquer the Treasure Island as Zombie Businessman.",
+  "points": 50,
+  "kind": "target",
+  "target": "Treasure Island",
+  "minifigure": "minifig/zombie-businessman",
+  "source": "client"
+}

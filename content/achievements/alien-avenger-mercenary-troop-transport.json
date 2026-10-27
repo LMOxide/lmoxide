@@ -1,0 +1,13 @@
+{
+  "id": "achievement/alien-avenger-mercenary-troop-transport",
+  "lore": 2700,
+  "parent": "achievement/alien-avenger",
+  "client_name": "Alien Avenger_Mercenary Troop Transport",
+  "title": "Alien Avenger: Mercenary Troop Transport",
+  "text": "Conquer the Mercenary Troop Transport as Alien Avenger.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Troop Transport",
+  "minifigure": "minifig/alien-avenger",
+  "source": "client"
+}

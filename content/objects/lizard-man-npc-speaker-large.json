@@ -1,0 +1,10 @@
+{
+  "id": "object/lizard-man-npc-speaker-large",
+  "name": "lizard_man_npc_speaker_large",
+  "kind": "scenery",
+  "render": {
+    "look": "lizard_man_npc_speaker_large",
+    "visual": [1010201, 617263]
+  },
+  "source": "client"
+}

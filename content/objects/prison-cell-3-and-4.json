@@ -1,0 +1,10 @@
+{
+  "id": "object/prison-cell-3-and-4",
+  "name": "prison cell 3 and 4",
+  "kind": "scenery",
+  "render": {
+    "look": "prison cell 3 and 4",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

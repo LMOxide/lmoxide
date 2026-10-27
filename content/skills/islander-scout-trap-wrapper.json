@@ -1,0 +1,29 @@
+{
+  "id": "skill/islander-scout-trap-wrapper",
+  "name": "islander scout trap wrapper",
+  "client": {
+    "spell": 194627,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 458902
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 458903
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

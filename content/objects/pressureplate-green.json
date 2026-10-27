@@ -1,0 +1,10 @@
+{
+  "id": "object/pressureplate-green",
+  "name": "pressureplate_green",
+  "kind": "scenery",
+  "render": {
+    "look": "pressureplate_green",
+    "visual": [1010030, 346169]
+  },
+  "source": "client"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "skill/troll-heavy-smash-turnrate",
+  "name": "troll heavy smash turnrate",
+  "client": {
+    "spell": 636737,
+    "stats": {
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "TempChangeStat",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.5,
+            "Stat": 1402
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

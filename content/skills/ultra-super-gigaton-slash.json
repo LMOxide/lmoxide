@@ -1,0 +1,40 @@
+{
+  "id": "skill/ultra-super-gigaton-slash",
+  "name": "Ultra Super Gigaton Slash",
+  "client": {
+    "spell": 663957,
+    "stats": {
+      "EffectPackage": 668545,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 667318,
+            "ProjectileType": 1,
+            "Speed": 1500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Laser Mech: Ultra Super Gigaton Slash",
+  "range": 12.5,
+  "projectile": {
+    "item": 667318,
+    "speed": 15.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

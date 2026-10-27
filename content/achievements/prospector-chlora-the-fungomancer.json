@@ -1,0 +1,13 @@
+{
+  "id": "achievement/prospector-chlora-the-fungomancer",
+  "lore": 3212,
+  "parent": "achievement/prospector",
+  "client_name": "Prospector_Chlora the Fungomancer",
+  "title": "Prospector: Chlora the Fungomancer",
+  "text": "Defeat Chlora the Fungomancer as Prospector.",
+  "points": 25,
+  "kind": "target",
+  "target": "Chlora the Fungomancer",
+  "minifigure": "minifig/prospector",
+  "source": "client"
+}

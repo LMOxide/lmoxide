@@ -1,0 +1,13 @@
+{
+  "id": "achievement/piggy-guy-ponos-the-pitcher",
+  "lore": 3180,
+  "parent": "achievement/piggy-guy",
+  "client_name": "Piggy Guy_Ponos the Pitcher",
+  "title": "Piggy Guy: Ponos the Pitcher",
+  "text": "Defeat Ponos the Pitcher as Piggy Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ponos the Pitcher",
+  "minifigure": "minifig/piggy-guy",
+  "source": "client"
+}

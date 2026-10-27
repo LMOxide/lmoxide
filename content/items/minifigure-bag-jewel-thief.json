@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-jewel-thief",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 669622,
+  "minifigure": "minifig/jewel-thief",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "F3PH"
+      }
+    }
+  ],
+  "source": "client"
+}

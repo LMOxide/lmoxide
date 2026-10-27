@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-square-foot",
+  "lore": 4546,
+  "parent": "achievement/square-foot",
+  "client_name": "Square Foot_Upgrade 7",
+  "title": "Expert Square Foot",
+  "text": "Get the seventh Square Foot upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/square-foot",
+  "n": 7,
+  "source": "client"
+}

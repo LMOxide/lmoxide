@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-ridgeback-spitter",
+  "lore": 5287,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Ridgeback Spitter",
+  "title": "Shark Suit Guy: Ridgeback Spitter",
+  "text": "Defeat Ridgeback Spitter as Shark Suit Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ridgeback Spitter",
+  "minifigure": "minifig/shark-suit-guy",
+  "source": "client"
+}

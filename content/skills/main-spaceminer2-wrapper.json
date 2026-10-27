@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-spaceminer2-wrapper",
+  "name": "main spaceminer2 wrapper",
+  "client": {
+    "spell": 505065,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 505066
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 505075
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Space Miner: Turbo Drill",
+  "source": "client"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-s15-flyingwarrior2-wrapper",
+  "name": "main s15 flyingwarrior2 wrapper",
+  "client": {
+    "spell": 667222,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667223
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 667224
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Flying Warrior: Wings of Divinity",
+  "source": "client"
+}

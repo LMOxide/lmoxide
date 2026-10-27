@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-evil-mech",
+  "lore": 3013,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Upgrade 7",
+  "title": "Expert Evil Mech",
+  "text": "Get the seventh Evil Mech upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/evil-mech",
+  "n": 7,
+  "source": "client"
+}

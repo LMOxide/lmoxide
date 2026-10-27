@@ -1,0 +1,16 @@
+{
+  "id": "item/wrestling-champion-legs",
+  "name": "Wrestling Champion Legs",
+  "kind": "part",
+  "template": 668640,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 31516,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/wrestling-champion",
+  "location": "Legs",
+  "source": "client"
+}

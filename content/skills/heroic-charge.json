@@ -1,0 +1,40 @@
+{
+  "id": "skill/heroic-charge",
+  "name": "Heroic Charge",
+  "client": {
+    "spell": 577188,
+    "stats": {
+      "MoreFlags": 536870912,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 12,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "Radius": 1,
+            "TemplateID": 577232,
+            "TemplateID2": 578178,
+            "Value1": 577646
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 577188,
+            "Value": 300
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Classic King: Royal Steed",
+  "source": "client"
+}

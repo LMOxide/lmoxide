@@ -1,0 +1,13 @@
+{
+  "id": "achievement/goblin-siege-command-room",
+  "lore": 3880,
+  "parent": "achievement/goblin",
+  "client_name": "Goblin_Siege Command Room",
+  "title": "Goblin: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Goblin.",
+  "points": 25,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/goblin",
+  "source": "client"
+}

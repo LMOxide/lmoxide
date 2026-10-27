@@ -1,0 +1,24 @@
+{
+  "id": "skill/smash-319945",
+  "name": "Smash",
+  "client": {
+    "spell": 319945,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1004,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

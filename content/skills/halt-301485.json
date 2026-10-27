@@ -1,0 +1,77 @@
+{
+  "id": "skill/halt-301485",
+  "name": "Halt!",
+  "client": {
+    "spell": 301485,
+    "stats": {
+      "MaxBuffCounters": 5,
+      "TargetingMode": 5,
+      "TimeExist": 150
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.800000011920929
+          },
+          "criteria": [
+            [0, 0, 18],
+            [301485, 1, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.6000000238418579
+          },
+          "criteria": [
+            [0, 0, 18],
+            [301485, 2, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.4000000059604645
+          },
+          "criteria": [
+            [0, 0, 18],
+            [301485, 3, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.20000000298023224
+          },
+          "criteria": [
+            [0, 0, 18],
+            [301485, 4, 166]
+          ]
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.009999999776482582
+          },
+          "criteria": [
+            [0, 0, 18],
+            [301485, 5, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

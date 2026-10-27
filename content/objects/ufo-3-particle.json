@@ -1,0 +1,10 @@
+{
+  "id": "object/ufo-3-particle",
+  "name": "ufo 3 particle",
+  "kind": "scenery",
+  "render": {
+    "look": "ufo 3 particle",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

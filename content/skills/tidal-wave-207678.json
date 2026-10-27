@@ -1,0 +1,30 @@
+{
+  "id": "skill/tidal-wave-207678",
+  "name": "Tidal Wave",
+  "client": {
+    "spell": 207678,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 436976
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 436977
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Mermaid: Tidal Wave",
+  "source": "client"
+}

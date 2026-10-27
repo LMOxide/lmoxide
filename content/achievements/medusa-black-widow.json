@@ -1,0 +1,13 @@
+{
+  "id": "achievement/medusa-black-widow",
+  "lore": 3620,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Black Widow",
+  "title": "Medusa: Black Widow",
+  "text": "Defeat Black Widow as Medusa.",
+  "points": 25,
+  "kind": "target",
+  "target": "Black Widow",
+  "minifigure": "minifig/medusa",
+  "source": "client"
+}

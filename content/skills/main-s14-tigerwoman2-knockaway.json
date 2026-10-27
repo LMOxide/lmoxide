@@ -1,0 +1,34 @@
+{
+  "id": "skill/main-s14-tigerwoman2-knockaway",
+  "name": "main s14 tigerwoman2 knockaway",
+  "client": {
+    "spell": 641796,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 365804
+          }
+        },
+        {
+          "type": "Knockaway",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "Arg1": 1,
+            "Arg2": 8,
+            "Distance": 4,
+            "PowerRating": 9001,
+            "Speed": 25
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

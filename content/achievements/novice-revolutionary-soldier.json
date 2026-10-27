@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-revolutionary-soldier",
+  "lore": 3571,
+  "parent": "achievement/revolutionary-soldier",
+  "client_name": "Revolutionary Soldier_Upgrade 3",
+  "title": "Novice Revolutionary Soldier",
+  "text": "Get the third Revolutionary Soldier upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/revolutionary-soldier",
+  "n": 3,
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "item/spear-throw-99054",
+  "name": "Spear Throw",
+  "kind": "projectile",
+  "template": 99054,
+  "effect_package": 98660,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 99053
+      }
+    }
+  ],
+  "source": "client"
+}

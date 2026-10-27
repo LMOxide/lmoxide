@@ -1,0 +1,16 @@
+{
+  "id": "item/dino-tracker-head",
+  "name": "Dino Tracker Head",
+  "kind": "part",
+  "template": 576188,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11202,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/dino-tracker",
+  "location": "Head",
+  "source": "client"
+}

@@ -1,0 +1,33 @@
+{
+  "id": "skill/bucket-art-318338",
+  "name": "Bucket Art",
+  "client": {
+    "spell": 318338,
+    "stats": {
+      "TargetingMode": 5,
+      "TimeExist": 50
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.6000000238418579
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

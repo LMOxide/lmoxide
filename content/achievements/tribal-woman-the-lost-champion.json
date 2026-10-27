@@ -1,0 +1,13 @@
+{
+  "id": "achievement/tribal-woman-the-lost-champion",
+  "lore": 5308,
+  "parent": "achievement/tribal-woman",
+  "client_name": "Tribal Woman_Lost Creations_Get to level 15",
+  "title": "Tribal Woman, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Tribal Woman.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/tribal-woman",
+  "n": 15,
+  "source": "client"
+}

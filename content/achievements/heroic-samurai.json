@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-samurai",
+  "lore": 3945,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Complete Any 5",
+  "title": "Heroic Samurai",
+  "text": "Complete any 5 Samurai achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/samurai",
+  "n": 5,
+  "source": "client"
+}

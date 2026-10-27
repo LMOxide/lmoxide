@@ -1,0 +1,13 @@
+{
+  "id": "achievement/galaxy-trooper-alien-crystal-station",
+  "lore": 3863,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Alien Crystal Station",
+  "title": "Galaxy Trooper: Alien Crystal Station",
+  "text": "Conquer the Alien Crystal Station as Galaxy Trooper.",
+  "points": 25,
+  "kind": "target",
+  "target": "Alien Crystal Station",
+  "minifigure": "minifig/galaxy-trooper",
+  "source": "client"
+}

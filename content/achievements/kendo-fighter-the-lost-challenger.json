@@ -1,0 +1,13 @@
+{
+  "id": "achievement/kendo-fighter-the-lost-challenger",
+  "lore": 5242,
+  "parent": "achievement/kendo-fighter",
+  "client_name": "Kendo Fighter_Lost Creations_Get to Level 5",
+  "title": "Kendo Fighter, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Kendo Fighter.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/kendo-fighter",
+  "n": 5,
+  "source": "client"
+}

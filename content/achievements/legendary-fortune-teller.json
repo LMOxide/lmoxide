@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-fortune-teller",
+  "lore": 2629,
+  "parent": "achievement/fortune-teller",
+  "client_name": "Fortune Teller_Complete Any 10",
+  "title": "Legendary Fortune Teller",
+  "text": "Complete any 11 Fortune Teller achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/fortune-teller",
+  "n": 11,
+  "source": "client"
+}

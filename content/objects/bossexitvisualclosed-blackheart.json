@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-blackheart",
+  "name": "BossExitVisualClosed_Blackheart",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Blackheart",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

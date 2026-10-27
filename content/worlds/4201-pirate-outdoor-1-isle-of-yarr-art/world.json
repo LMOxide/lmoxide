@@ -1,0 +1,15 @@
+{
+  "id": "world/pirate-outdoor-1-isle-of-yarr-art",
+  "name": "Pirate Outdoor 1 - Isle of Yarr - Art",
+  "playfield": 4201,
+  "kind": "other",
+  "level": {
+    "cap": 11
+  },
+  "arrival": {
+    "pos": [192.75, 78.45, 126.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

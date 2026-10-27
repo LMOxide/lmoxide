@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-s14-squarefoot2-wrapper",
+  "name": "main s14 squarefoot2 wrapper",
+  "client": {
+    "spell": 642244,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642245
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 642246
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Square Foot: Say Cheese!",
+  "source": "client"
+}

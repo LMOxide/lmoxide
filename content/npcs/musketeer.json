@@ -1,0 +1,26 @@
+{
+  "id": "npc/musketeer",
+  "name": "Musketeer",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 192826,
+    "npc_template": 1627,
+    "look": "pirate_musketeer",
+    "cars_group": 3
+  },
+  "level": 4,
+  "stats": {
+    "health": 132,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "skills": [
+    {
+      "skill": "skill/shot",
+      "weight": 1
+    }
+  ],
+  "skills_from": "recorded",
+  "loot": "loot/enemy",
+  "source": "client"
+}

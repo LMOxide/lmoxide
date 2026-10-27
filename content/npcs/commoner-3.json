@@ -1,0 +1,17 @@
+{
+  "id": "npc/commoner-3",
+  "name": "Commoner",
+  "kind": "npc",
+  "render": {
+    "monster_data": 486951,
+    "npc_template": 1825,
+    "look": "mythology_commoner_male_1",
+    "cars_group": 2
+  },
+  "level": 1,
+  "stats": {
+    "health": 62,
+    "life_factor": 1.0
+  },
+  "source": "client"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "skill/bonk-561590",
+  "name": "Bonk",
+  "client": {
+    "spell": 561590,
+    "stats": {
+      "EffectPackage": 564308,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 60,
+            "AngleStart": -30,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 561589,
+            "Radius": 2
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Paleontologist: Bonk",
+  "source": "client"
+}

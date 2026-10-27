@@ -1,0 +1,13 @@
+{
+  "id": "achievement/galaxy-trooper-the-lost-champion",
+  "lore": 3873,
+  "parent": "achievement/galaxy-trooper",
+  "client_name": "Galaxy Trooper_Lost Creations_Get to level 15",
+  "title": "Galaxy Trooper, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Galaxy Trooper.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/galaxy-trooper",
+  "n": 15,
+  "source": "client"
+}

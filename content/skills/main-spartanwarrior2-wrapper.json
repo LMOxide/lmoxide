@@ -1,0 +1,38 @@
+{
+  "id": "skill/main-spartanwarrior2-wrapper",
+  "name": "main spartanwarrior2 wrapper",
+  "client": {
+    "spell": 595641,
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 595639
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 595640
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 596898
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 597873, 91]
+          ]
+        }
+      ]
+    }
+  },
+  "minifigure": "Spartan Warrior: Might of Sparta",
+  "source": "client"
+}

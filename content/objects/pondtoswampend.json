@@ -1,0 +1,10 @@
+{
+  "id": "object/pondtoswampend",
+  "name": "PondToSwampEnd",
+  "kind": "scenery",
+  "render": {
+    "look": "PondToSwampEnd",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

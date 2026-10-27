@@ -1,0 +1,13 @@
+{
+  "id": "achievement/jewel-thief-ancient-ruins",
+  "lore": 5218,
+  "parent": "achievement/jewel-thief",
+  "client_name": "Jewel Thief_Ancient Ruins",
+  "title": "Jewel Thief: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Jewel Thief.",
+  "points": 50,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/jewel-thief",
+  "source": "client"
+}

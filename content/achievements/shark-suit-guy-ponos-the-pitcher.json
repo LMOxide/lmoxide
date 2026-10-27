@@ -1,0 +1,13 @@
+{
+  "id": "achievement/shark-suit-guy-ponos-the-pitcher",
+  "lore": 5286,
+  "parent": "achievement/shark-suit-guy",
+  "client_name": "Shark Suit Guy_Ponos the Pitcher",
+  "title": "Shark Suit Guy: Ponos the Pitcher",
+  "text": "Defeat Ponos the Pitcher as Shark Suit Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ponos the Pitcher",
+  "minifigure": "minifig/shark-suit-guy",
+  "source": "client"
+}

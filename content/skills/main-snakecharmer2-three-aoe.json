@@ -1,0 +1,28 @@
+{
+  "id": "skill/main-snakecharmer2-three-aoe",
+  "name": "main snakecharmer2 three aoe",
+  "client": {
+    "spell": 551013,
+    "stats": {
+      "EffectPackage": 551060,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 551016,
+            "Radius": 5
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Snake Charmer: Snakes Everywhere",
+  "source": "client"
+}

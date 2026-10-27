@@ -1,0 +1,13 @@
+{
+  "id": "achievement/wrestling-champion-deranged-raptor",
+  "lore": 5317,
+  "parent": "achievement/wrestling-champion",
+  "client_name": "Wrestling Champion_Deranged Raptor",
+  "title": "Wrestling Champion: Deranged Raptor",
+  "text": "Defeat Deranged Raptor as Wrestling Champion.",
+  "points": 25,
+  "kind": "target",
+  "target": "Deranged Raptor",
+  "minifigure": "minifig/wrestling-champion",
+  "source": "client"
+}

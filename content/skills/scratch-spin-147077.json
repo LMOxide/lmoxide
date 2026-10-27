@@ -1,0 +1,25 @@
+{
+  "id": "skill/scratch-spin-147077",
+  "name": "Scratch Spin",
+  "client": {
+    "spell": 147077,
+    "stats": {
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CorePersistentGroundEffect",
+          "args": {
+            "ApplyOn": 1,
+            "Arg1": 50,
+            "Arg2": 3,
+            "EffectPackage": 145098,
+            "NanoTemplate": 14840
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

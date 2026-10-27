@@ -1,0 +1,48 @@
+{
+  "id": "skill/circle-of-hearts",
+  "name": "Circle of Hearts",
+  "client": {
+    "spell": 300113,
+    "stats": {
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 2,
+      "EffectPackage": 302152,
+      "ItemDelay": 50,
+      "MoreFlags": 1610614784,
+      "RechargeDelay": 25
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 300286
+          }
+        }
+      ],
+      "33": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 300286
+          }
+        }
+      ],
+      "36": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 300113,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Trendsetter: Circle of Hearts",
+  "source": "client"
+}

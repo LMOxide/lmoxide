@@ -1,0 +1,10 @@
+{
+  "id": "object/caster-cauldronspellpoint",
+  "name": "caster_CauldronSpellPoint",
+  "kind": "scenery",
+  "render": {
+    "look": "caster_CauldronSpellPoint",
+    "visual": [1010030, 465834]
+  },
+  "source": "client"
+}

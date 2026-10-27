@@ -1,0 +1,31 @@
+{
+  "id": "skill/grenade-throw",
+  "name": "Grenade Throw",
+  "client": {
+    "spell": 238116,
+    "stats": {
+      "AISpellCategory": 1025,
+      "AttackRange": 1000,
+      "EffectPackage": 272221,
+      "ItemDelay": 32,
+      "RechargeDelay": 168,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttractorID": 38,
+            "ItemInstance": 238118,
+            "ProjectileType": 2,
+            "Speed": 750
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

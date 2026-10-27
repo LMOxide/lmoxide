@@ -1,0 +1,13 @@
+{
+  "id": "loot/health-orb",
+  "name": "Health Orb",
+  "rolls": 1,
+  "entries": [
+    {
+      "drop": {
+        "hearts": 1
+      }
+    }
+  ],
+  "source": "server"
+}

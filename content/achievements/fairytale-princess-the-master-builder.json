@@ -1,0 +1,16 @@
+{
+  "id": "achievement/fairytale-princess-the-master-builder",
+  "lore": 3106,
+  "parent": "achievement/fairytale-princess",
+  "client_name": "Fairytale Princess_Build 1000 Buildies",
+  "title": "Fairytale Princess, the Master Builder",
+  "text": "Build 1000 buildies as Fairytale Princess.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/fairytale-princess",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

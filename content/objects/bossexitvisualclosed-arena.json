@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitvisualclosed-arena",
+  "name": "BossExitVisualClosed_Arena",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitVisualClosed_Arena",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

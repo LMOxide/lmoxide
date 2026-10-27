@@ -1,0 +1,34 @@
+{
+  "id": "skill/mushroom-bulb-explode-slow",
+  "name": "mushroom bulb explode slow",
+  "client": {
+    "spell": 380320,
+    "stats": {
+      "EffectPackage": 3983,
+      "TargetingMode": 5,
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "AddDiminishingReturn",
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.3400000035762787,
+            "Type": 802,
+            "Value": 1000
+          }
+        },
+        {
+          "type": "AddSnare",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatMultiplier": 0.5
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "achievement/unicorn-girl",
+  "lore": 3757,
+  "parent": "achievement/series-13",
+  "client_name": "Unicorn Girl",
+  "title": "Unicorn Girl",
+  "points": 100,
+  "kind": "all",
+  "children": [
+    "achievement/heroic-unicorn-girl",
+    "achievement/legendary-unicorn-girl",
+    "achievement/novice-unicorn-girl",
+    "achievement/expert-unicorn-girl",
+    "achievement/unicorn-girl-bewitched-candy-forest",
+    "achievement/unicorn-girl-cave-of-the-exiled",
+    "achievement/unicorn-girl-dragon-halls",
+    "achievement/unicorn-girl-chlora-the-fungomancer",
+    "achievement/unicorn-girl-the-weaver",
+    "achievement/unicorn-girl-hecate-the-winter-witch",
+    "achievement/unicorn-girl-the-builder",
+    "achievement/unicorn-girl-the-master-builder",
+    "achievement/unicorn-girl-the-guide",
+    "achievement/unicorn-girl-the-lost-challenger",
+    "achievement/unicorn-girl-the-lost-warrior",
+    "achievement/unicorn-girl-the-lost-champion"
+  ],
+  "minifigure": "minifig/unicorn-girl",
+  "source": "client"
+}

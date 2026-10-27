@@ -1,0 +1,16 @@
+{
+  "id": "item/unicorn-girl-head",
+  "name": "Unicorn Girl Head",
+  "kind": "part",
+  "template": 576173,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11316,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/unicorn-girl",
+  "location": "Head",
+  "source": "client"
+}

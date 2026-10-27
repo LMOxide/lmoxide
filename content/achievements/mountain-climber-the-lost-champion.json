@@ -1,0 +1,13 @@
+{
+  "id": "achievement/mountain-climber-the-lost-champion",
+  "lore": 2835,
+  "parent": "achievement/mountain-climber",
+  "client_name": "Mountain Climber_Lost Creations_Get to Level 15",
+  "title": "Mountain Climber, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Mountain Climber.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/mountain-climber",
+  "n": 15,
+  "source": "client"
+}

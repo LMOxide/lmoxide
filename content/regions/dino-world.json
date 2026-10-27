@@ -1,0 +1,6 @@
+{
+  "id": "region/dino-world",
+  "name": "Dino World",
+  "worlds": ["world/dinosaur-rise", "world/gauntlet"],
+  "source": "client"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "npc/spider-egg-2",
+  "name": "Spider egg",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 237267,
+    "npc_template": 905,
+    "look": "spider_eggsack",
+    "cars_group": 3
+  },
+  "level": 4,
+  "stats": {
+    "health": 105,
+    "life_factor": 0.8
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

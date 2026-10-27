@@ -1,0 +1,18 @@
+{
+  "id": "npc/fire-spirit",
+  "name": "Fire Spirit",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 636609,
+    "npc_template": 2899,
+    "look": "fire_spirit",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 328,
+    "life_factor": 0.25
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/farmer-the-lost-challenger",
+  "lore": 5146,
+  "parent": "achievement/farmer",
+  "client_name": "Farmer_Lost Creations_Get to Level 5",
+  "title": "Farmer, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Farmer.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/farmer",
+  "n": 5,
+  "source": "client"
+}

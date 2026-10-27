@@ -1,0 +1,49 @@
+{
+  "id": "skill/bio-weapon",
+  "name": "Bio-Weapon",
+  "client": {
+    "spell": 663935,
+    "stats": {
+      "EffectPackage": 668535,
+      "ItemDelay": 32,
+      "MoreFlags": 536870912,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 667254,
+            "ProjectileType": 1,
+            "Speed": 650
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 663935,
+            "Value": 200
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Animal Control: Bio-Weapon",
+  "range": 12.5,
+  "projectile": {
+    "item": 667254,
+    "speed": 6.5,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

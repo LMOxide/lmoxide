@@ -1,0 +1,17 @@
+{
+  "id": "item/main-rockstar1-projectile",
+  "name": "main rockstar1 projectile",
+  "kind": "projectile",
+  "template": 504899,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 504934
+      }
+    }
+  ],
+  "source": "client"
+}

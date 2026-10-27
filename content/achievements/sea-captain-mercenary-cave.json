@@ -1,0 +1,13 @@
+{
+  "id": "achievement/sea-captain-mercenary-cave",
+  "lore": 3532,
+  "parent": "achievement/sea-captain",
+  "client_name": "Sea Captain_Mercenary Cave",
+  "title": "Sea Captain: Mercenary Cave",
+  "text": "Conquer the Mercenary Cave as Sea Captain.",
+  "points": 50,
+  "kind": "target",
+  "target": "Mercenary Cave",
+  "minifigure": "minifig/sea-captain",
+  "source": "client"
+}

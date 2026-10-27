@@ -1,0 +1,16 @@
+{
+  "id": "item/island-warrior-head",
+  "name": "Island Warrior Head",
+  "kind": "part",
+  "template": 483550,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 11108,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/island-warrior",
+  "location": "Head",
+  "source": "client"
+}

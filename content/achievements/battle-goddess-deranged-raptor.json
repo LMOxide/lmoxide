@@ -1,0 +1,13 @@
+{
+  "id": "achievement/battle-goddess-deranged-raptor",
+  "lore": 3060,
+  "parent": "achievement/battle-goddess",
+  "client_name": "Battle Goddess_Deranged Raptor",
+  "title": "Battle Goddess: Deranged Raptor",
+  "text": "Defeat Deranged Raptor as Battle Goddess.",
+  "points": 25,
+  "kind": "target",
+  "target": "Deranged Raptor",
+  "minifigure": "minifig/battle-goddess",
+  "source": "client"
+}

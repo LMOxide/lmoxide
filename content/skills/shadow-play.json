@@ -1,0 +1,38 @@
+{
+  "id": "skill/shadow-play",
+  "name": "Shadow Play",
+  "client": {
+    "spell": 509263,
+    "stats": {
+      "ItemDelay": 15,
+      "RechargeDelay": 15,
+      "TargetingMode": 4
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 509264,
+            "Radius": 20
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 509263,
+            "Value": 100
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Jester: Shadow Puppet",
+  "source": "client"
+}

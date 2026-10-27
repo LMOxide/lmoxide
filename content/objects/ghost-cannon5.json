@@ -1,0 +1,10 @@
+{
+  "id": "object/ghost-cannon5",
+  "name": "Ghost cannon5",
+  "kind": "scenery",
+  "render": {
+    "look": "Ghost cannon5",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

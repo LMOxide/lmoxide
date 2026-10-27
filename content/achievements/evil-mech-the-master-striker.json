@@ -1,0 +1,16 @@
+{
+  "id": "achievement/evil-mech-the-master-striker",
+  "lore": 3021,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Smash 10000 Monsters",
+  "title": "Evil Mech, the Master Striker",
+  "text": "Smash 10000 monsters as Evil Mech.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 10000],
+  "minifigure": "minifig/evil-mech",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

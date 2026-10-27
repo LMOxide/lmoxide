@@ -1,0 +1,17 @@
+{
+  "id": "achievement/island-warrior-the-tiki-smasher",
+  "lore": 2848,
+  "parent": "achievement/island-warrior",
+  "client_name": "Island Warrior_Smash 50 Tiki Totems",
+  "title": "Island Warrior the Tiki-Smasher",
+  "text": "Smash 50 Tiki Totems as Island Warrior.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/island-warrior",
+  "counts": {
+    "match": "Tiki Totem",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

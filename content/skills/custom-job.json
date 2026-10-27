@@ -1,0 +1,45 @@
+{
+  "id": "skill/custom-job",
+  "name": "Custom Job",
+  "client": {
+    "spell": 317700,
+    "stats": {
+      "ItemDelay": 1,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "ColumnDash",
+          "args": {
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Distance": 12,
+            "FloatValue1": 0.5,
+            "NPCSelectMode": 3,
+            "Radius": 1,
+            "TemplateID": 345997,
+            "Value1": 318699
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 317700,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Motorcycle Mechanic: Custom Job",
+  "dash": {
+    "distance": 12.0,
+    "radius": 1.0,
+    "effect": 318699,
+    "path_mod": 0.702
+  },
+  "source": "client"
+}

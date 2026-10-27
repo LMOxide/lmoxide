@@ -1,0 +1,16 @@
+{
+  "id": "achievement/heroic-knight-the-master-smasher",
+  "lore": 2613,
+  "parent": "achievement/heroic-knight",
+  "client_name": "Heroic Knight_Smash 5000 Smashies",
+  "title": "Heroic Knight, the Master Smasher",
+  "text": "Smash 5000 smashies as Heroic Knight.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/heroic-knight",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

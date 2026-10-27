@@ -1,0 +1,10 @@
+{
+  "id": "object/volcano6-back-landing",
+  "name": "volcano6 back landing",
+  "kind": "scenery",
+  "render": {
+    "look": "volcano6 back landing",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

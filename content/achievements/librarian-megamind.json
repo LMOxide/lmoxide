@@ -1,0 +1,13 @@
+{
+  "id": "achievement/librarian-megamind",
+  "lore": 3416,
+  "parent": "achievement/librarian",
+  "client_name": "Librarian_Megamind",
+  "title": "Librarian: Megamind",
+  "text": "Defeat Megamind as Librarian.",
+  "points": 25,
+  "kind": "target",
+  "target": "Megamind",
+  "minifigure": "minifig/librarian",
+  "source": "client"
+}

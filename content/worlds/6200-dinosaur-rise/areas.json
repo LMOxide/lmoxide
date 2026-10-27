@@ -1,0 +1,462 @@
+{
+  "areas": [
+    {
+      "id": "area/6200/cine-vgg1",
+      "name": "Cine_VGG1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [147.71, 64.0, 46.42],
+          "rot": -2.39
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-compy1",
+      "name": "Cine_Compy1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [138.07, 64.0, 54.22],
+          "rot": 2.545
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-compy2",
+      "name": "Cine_Compy2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [145.95, 64.0, 47.88],
+          "rot": 2.483
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-vgg2",
+      "name": "Cine_VGG2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [147.76, 64.0, 48.16],
+          "rot": 0.88
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-vggtalktocompy1",
+      "name": "Cine_VGGTalktoCompy1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [147.29, 64.0, 46.56],
+          "rot": -1.006
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-vgg3",
+      "name": "Cine_VGG3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [146.24, 64.0, 45.65],
+          "rot": -2.333
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-portal1",
+      "name": "Cine_portal1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [217.4, 73.68, 194.16],
+          "rot": -2.24
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurer1",
+      "name": "Cine_Adventurer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [200.18, 72.1, 183.1],
+          "rot": 1.668
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurer2",
+      "name": "Cine_Adventurer2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [199.71, 72.1, 181.46],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurer3",
+      "name": "Cine_Adventurer3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [202.75, 72.1, 178.1],
+          "rot": 0.686
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurer4",
+      "name": "Cine_Adventurer4",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [204.21, 72.1, 179.05],
+          "rot": -0.147
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurergo1",
+      "name": "Cine_AdventurerGo1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [202.56, 72.08, 203.07],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurergo2",
+      "name": "Cine_AdventurerGo2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [188.15, 68.9, 167.15],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurergo3",
+      "name": "Cine_AdventurerGo3",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [216.32, 72.95, 182.04],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurergo4",
+      "name": "Cine_AdventurerGo4",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [207.53, 72.23, 185.61],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurergo5",
+      "name": "Cine_AdventurerGo5",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [197.66, 72.2, 184.98],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-adventurergo6",
+      "name": "Cine_AdventurerGo6",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [196.28, 72.03, 174.56],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-dinotrackerstage1",
+      "name": "Cine_DinoTrackerStage1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [202.22, 72.1, 180.89],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-dinotrackerspawn1",
+      "name": "Cine_DinoTrackerSpawn1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [204.03, 72.1, 182.58],
+          "rot": -2.334
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-campplayerpos1",
+      "name": "Cine_CampPlayerPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [201.22, 72.1, 179.36],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-campswashbuckler1",
+      "name": "Cine_CampSwashbuckler1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [201.33, 72.1, 180.81],
+          "rot": 2.306
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-scubadiver1",
+      "name": "Cine_ScubaDiver1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [246.04, 36.87, 80.94],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-pond1",
+      "name": "Cine_Pond1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [240.79, 36.78, 80.51],
+          "rot": 0.99
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-pondplayerpos1",
+      "name": "Cine_PondPlayerPos1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [247.55, 36.97, 79.49],
+          "rot": -1.164
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-pondwizard1",
+      "name": "Cine_PondWizard1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [247.35, 36.96, 81.99],
+          "rot": -2.349
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-pondjester1",
+      "name": "Cine_PondJester1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [246.29, 36.92, 77.89],
+          "rot": -0.897
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-pondjester2",
+      "name": "Cine_PondJester2",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [244.49, 36.78, 78.72],
+          "rot": -1.38
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-caveman1",
+      "name": "Cine_Caveman1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [87.27, 76.2, 204.42],
+          "rot": 3.058
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-cavemanfacewall1",
+      "name": "Cine_CavemanFaceWall1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [86.77, 76.2, 204.47],
+          "rot": 0.028
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-cavemanfaceplayer1",
+      "name": "Cine_CavemanFacePlayer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [86.7, 76.2, 204.23],
+          "rot": 2.252
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-cavemangoddess1",
+      "name": "Cine_CavemanGoddess1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [89.92, 76.2, 204.1],
+          "rot": -2.364
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-cavemansorcerer1",
+      "name": "Cine_CavemanSorcerer1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [89.84, 76.2, 201.78],
+          "rot": -1.739
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-zookeeper1",
+      "name": "Cine_Zookeeper1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [277.34, 80.0, 161.88],
+          "rot": -1.702
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/cine-zoominer1",
+      "name": "Cine_ZooMiner1",
+      "role": "marker",
+      "shape": {
+        "point": {
+          "pos": [273.68, 80.0, 161.83],
+          "rot": -3.113
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/achievement-volcano",
+      "name": "Achievement_Volcano",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [77.06, 208.54],
+            [84.9, 210.51],
+            [79.78, 216.99]
+          ],
+          "heights": [81.55567, 91.55567]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/achievement-tarpit",
+      "name": "Achievement_Tarpit",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [417.51, 131.68],
+            [422.66, 127.1],
+            [429.01, 133.01],
+            [423.69, 138.12]
+          ],
+          "heights": [73.43313, 83.43313]
+        }
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/6200/achievement-swamp",
+      "name": "Achievement_Swamp",
+      "role": "explore",
+      "shape": {
+        "polygon": {
+          "points": [
+            [83.15, 63.16],
+            [77.2, 55.42],
+            [89.74, 55.49],
+            [90.14, 64.97]
+          ],
+          "heights": [54.682503, 64.6825]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "item/main-goblin2-projectile",
+  "name": "main goblin2 projectile",
+  "kind": "projectile",
+  "template": 550946,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CoreFilteredAreaFormula",
+      "args": {
+        "Angle": 360,
+        "ApplyOn": 3,
+        "Ascending": 1,
+        "NPCSelectMode": 3,
+        "NanoTemplate": 550947,
+        "Radius": 4
+      }
+    },
+    {
+      "type": "CorePersistentGroundEffect",
+      "args": {
+        "ApplyOn": 3,
+        "Arg1": 20,
+        "Arg2": 25,
+        "EffectPackage": 550981,
+        "NanoTemplate": 550948
+      }
+    }
+  ],
+  "source": "client"
+}

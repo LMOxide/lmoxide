@@ -1,0 +1,16 @@
+{
+  "id": "achievement/clumsy-guy-the-master-smasher",
+  "lore": 5134,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Smash 5000 Smashies",
+  "title": "Clumsy Guy, the Master Smasher",
+  "text": "Smash 5000 smashies as Clumsy Guy.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 5000],
+  "minifigure": "minifig/clumsy-guy",
+  "counts": {
+    "what": "smashes"
+  },
+  "source": "client"
+}

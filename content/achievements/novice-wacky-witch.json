@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-wacky-witch",
+  "lore": 4460,
+  "parent": "achievement/wacky-witch",
+  "client_name": "Wacky Witch_Upgrade 3",
+  "title": "Novice Wacky Witch",
+  "text": "Get the third Wacky Witch upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/wacky-witch",
+  "n": 3,
+  "source": "client"
+}

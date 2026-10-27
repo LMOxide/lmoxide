@@ -1,0 +1,25 @@
+{
+  "id": "skill/main-s15-animalcontrol2-damage",
+  "name": "main s15 animalcontrol2 damage",
+  "client": {
+    "spell": 667252,
+    "stats": {
+      "EffectPackage": 668705,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.699999988079071,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

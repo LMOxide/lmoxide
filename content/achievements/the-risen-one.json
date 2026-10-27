@@ -1,0 +1,12 @@
+{
+  "id": "achievement/the-risen-one",
+  "lore": 877,
+  "parent": "achievement/iron-will-of-the-gods",
+  "client_name": "Mythology_Combat_Champion_Sir Hector",
+  "title": "The Risen One",
+  "text": "Defeat Sir Hector in Mythology World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Sir Hector",
+  "source": "client"
+}

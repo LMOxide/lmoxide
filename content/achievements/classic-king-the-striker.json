@@ -1,0 +1,16 @@
+{
+  "id": "achievement/classic-king-the-striker",
+  "lore": 3806,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Smash 1000 Monsters",
+  "title": "Classic King, the Striker",
+  "text": "Smash 1000 monsters as Classic King.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/classic-king",
+  "counts": {
+    "what": "kills"
+  },
+  "source": "client"
+}

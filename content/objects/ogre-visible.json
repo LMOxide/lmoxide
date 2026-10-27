@@ -1,0 +1,10 @@
+{
+  "id": "object/ogre-visible",
+  "name": "ogre visible",
+  "kind": "scenery",
+  "render": {
+    "look": "ogre visible",
+    "visual": [1010030, 492296]
+  },
+  "source": "client"
+}

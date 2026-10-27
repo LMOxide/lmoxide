@@ -1,0 +1,24 @@
+{
+  "id": "skill/main-alientrooper2-damage-notmark-hit",
+  "name": "main alientrooper2 damage notmark hit",
+  "client": {
+    "spell": 585118,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.15000000596046448,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

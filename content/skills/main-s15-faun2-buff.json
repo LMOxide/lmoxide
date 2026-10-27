@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-s15-faun2-buff",
+  "name": "main s15 faun2 buff",
+  "client": {
+    "spell": 667243,
+    "stats": {
+      "EffectPackage": 668564,
+      "TargetingMode": 4,
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Duration": -1,
+            "Interval": 25,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 667242,
+            "Radius": 3
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

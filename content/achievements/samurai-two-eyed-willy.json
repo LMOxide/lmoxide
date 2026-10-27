@@ -1,0 +1,13 @@
+{
+  "id": "achievement/samurai-two-eyed-willy",
+  "lore": 3950,
+  "parent": "achievement/samurai",
+  "client_name": "Samurai_Two-Eyed Willy",
+  "title": "Samurai: Two-Eyed Willy",
+  "text": "Defeat Two-Eyed Willy as Samurai.",
+  "points": 25,
+  "kind": "target",
+  "target": "Two-Eyed Willy",
+  "minifigure": "minifig/samurai",
+  "source": "client"
+}

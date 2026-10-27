@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-plumber",
+  "lore": 2519,
+  "parent": "achievement/plumber",
+  "client_name": "Plumber_Upgrade 3",
+  "title": "Novice Plumber",
+  "text": "Get the third Plumber upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/plumber",
+  "n": 3,
+  "source": "client"
+}

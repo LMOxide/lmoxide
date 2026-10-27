@@ -1,0 +1,10 @@
+{
+  "id": "object/mirror-r",
+  "name": "mirror R +",
+  "kind": "scenery",
+  "render": {
+    "look": "mirror R +",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "item/viking-woman-head",
+  "name": "Viking Woman Head",
+  "kind": "part",
+  "template": 483593,
+  "dynel_type": 34002,
+  "tokens": [
+    {
+      "token": 10716,
+      "amount": 1
+    }
+  ],
+  "minifigure": "minifig/viking-woman",
+  "location": "Head",
+  "source": "client"
+}

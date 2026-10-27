@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-evil-mech",
+  "lore": 3020,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Complete Any 10",
+  "title": "Legendary Evil Mech",
+  "text": "Complete any 11 Evil Mech achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/evil-mech",
+  "n": 11,
+  "source": "client"
+}

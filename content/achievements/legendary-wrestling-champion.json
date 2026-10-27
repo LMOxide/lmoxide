@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-wrestling-champion",
+  "lore": 5313,
+  "parent": "achievement/wrestling-champion",
+  "client_name": "Wrestling Champion_Complete Any 10",
+  "title": "Legendary Wrestling Champion",
+  "text": "Complete any 11 Wrestling Champion achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/wrestling-champion",
+  "n": 11,
+  "source": "client"
+}

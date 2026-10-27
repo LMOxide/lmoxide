@@ -1,0 +1,39 @@
+{
+  "id": "skill/power-chord",
+  "name": "Power Chord",
+  "client": {
+    "spell": 500479,
+    "stats": {
+      "EffectPackage": 513176,
+      "ItemDelay": 32,
+      "RechargeDelay": 16,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 504899,
+            "ProjectileType": 1,
+            "Speed": 1000
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Rock Star: Power Chord",
+  "range": 12.5,
+  "projectile": {
+    "item": 504899,
+    "speed": 10.0,
+    "kind": 1,
+    "attractor": 0,
+    "offset_z": 0.0,
+    "range": 0.0,
+    "ricochets": 0
+  },
+  "source": "client"
+}

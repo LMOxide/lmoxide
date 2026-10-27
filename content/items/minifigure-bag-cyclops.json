@@ -1,0 +1,27 @@
+{
+  "id": "item/minifigure-bag-cyclops",
+  "name": "Minifigure Bag",
+  "kind": "minifig_bag",
+  "template": 50646,
+  "minifigure": "minifig/cyclops",
+  "controlled_loot_type": 3,
+  "actions": [
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "1E2L"
+      }
+    },
+    {
+      "type": "SpawnItemOnCharacter",
+      "args": {
+        "Level": 1,
+        "StackSize": 1,
+        "StringHash": "MQZ1"
+      }
+    }
+  ],
+  "source": "client"
+}

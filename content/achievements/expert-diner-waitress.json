@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-diner-waitress",
+  "lore": 2809,
+  "parent": "achievement/diner-waitress",
+  "client_name": "Diner Waitress_Upgrade 7",
+  "title": "Expert Diner Waitress",
+  "text": "Get the seventh Diner Waitress upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/diner-waitress",
+  "n": 7,
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/novice-frightening-knight",
+  "lore": 5192,
+  "parent": "achievement/frightening-knight",
+  "client_name": "Frightening Knight_Upgrade 3",
+  "title": "Novice Frightening Knight",
+  "text": "Get the third Frightening Knight upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/frightening-knight",
+  "n": 3,
+  "source": "client"
+}

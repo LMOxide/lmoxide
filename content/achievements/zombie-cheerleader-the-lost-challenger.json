@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-cheerleader-the-lost-challenger",
+  "lore": 4446,
+  "parent": "achievement/zombie-cheerleader",
+  "client_name": "Zombie Cheerleader_Lost Creations_Get to Level 5",
+  "title": "Zombie Cheerleader, the Lost Challenger",
+  "text": "Complete level 5 in the Lost Creations with Zombie Cheerleader.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/zombie-cheerleader",
+  "n": 5,
+  "source": "client"
+}

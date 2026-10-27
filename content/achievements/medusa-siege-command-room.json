@@ -1,0 +1,13 @@
+{
+  "id": "achievement/medusa-siege-command-room",
+  "lore": 3617,
+  "parent": "achievement/medusa",
+  "client_name": "Medusa_Siege Command Room",
+  "title": "Medusa: Siege Command Room",
+  "text": "Conquer the Siege Command Room as Medusa.",
+  "points": 50,
+  "kind": "target",
+  "target": "Siege Command Room",
+  "minifigure": "minifig/medusa",
+  "source": "client"
+}

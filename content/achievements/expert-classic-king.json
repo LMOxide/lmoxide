@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-classic-king",
+  "lore": 3801,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Upgrade 7",
+  "title": "Expert Classic King",
+  "text": "Get the seventh Classic King upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/classic-king",
+  "n": 7,
+  "source": "client"
+}

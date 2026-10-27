@@ -1,0 +1,25 @@
+{
+  "id": "skill/book-of-tales-318386",
+  "name": "Book of Tales",
+  "client": {
+    "spell": 318386,
+    "stats": {
+      "EffectPackage": 355903,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 0.30000001192092896,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

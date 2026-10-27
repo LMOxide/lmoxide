@@ -1,0 +1,19 @@
+{
+  "id": "npc/corrupted-chicken-suit-guy",
+  "name": "Corrupted Chicken Suit Guy",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 32338,
+    "npc_template": 2901,
+    "look": "chicken_suit_guy",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 1314,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-2029",
+  "loot": "loot/enemy",
+  "source": "client"
+}

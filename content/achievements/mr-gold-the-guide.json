@@ -1,0 +1,17 @@
+{
+  "id": "achievement/mr-gold-the-guide",
+  "lore": 3390,
+  "parent": "achievement/mr-gold",
+  "client_name": "Mr. Gold_Build 30 Signs",
+  "title": "Mr. Gold, the Guide",
+  "text": "Build 30 Signs with Mr. Gold.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 30],
+  "minifigure": "minifig/mr-gold",
+  "counts": {
+    "match": "Sign",
+    "what": "builds"
+  },
+  "source": "client"
+}

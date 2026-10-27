@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-bonfire",
+  "name": "XX_Bonfire",
+  "kind": "smashable",
+  "render": {
+    "monster_data": 161519,
+    "template": 161716,
+    "look": "lego_bonefire_b_smashie",
+    "cars_group": 3
+  },
+  "level": 1,
+  "health": 20,
+  "loot": "loot/smashable",
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 162
+  },
+  "source": "client"
+}

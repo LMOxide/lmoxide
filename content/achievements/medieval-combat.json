@@ -1,0 +1,8 @@
+{
+  "id": "achievement/medieval-combat",
+  "lore": 838,
+  "parent": "achievement/medieval-world",
+  "client_name": "Medieval_Combat",
+  "kind": "category",
+  "source": "client"
+}

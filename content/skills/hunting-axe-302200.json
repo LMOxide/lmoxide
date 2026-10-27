@@ -1,0 +1,12 @@
+{
+  "id": "skill/hunting-axe-302200",
+  "name": "Hunting Axe",
+  "client": {
+    "spell": 302200,
+    "stats": {
+      "EffectPackage": 305661,
+      "TimeExist": 300
+    }
+  },
+  "source": "client"
+}

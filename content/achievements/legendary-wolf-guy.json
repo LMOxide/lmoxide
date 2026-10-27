@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-wolf-guy",
+  "lore": 4589,
+  "parent": "achievement/wolf-guy",
+  "client_name": "Wolf Guy_Complete Any 10",
+  "title": "Legendary Wolf Guy",
+  "text": "Complete any 11 Wolf Guy achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/wolf-guy",
+  "n": 11,
+  "source": "client"
+}

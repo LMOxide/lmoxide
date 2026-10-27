@@ -1,0 +1,10 @@
+{
+  "id": "object/gauntlet-dancefloor-a-off-dino",
+  "name": "gauntlet_dancefloor_a_off_dino",
+  "kind": "scenery",
+  "render": {
+    "look": "gauntlet_dancefloor_a_off_dino",
+    "visual": [1010030, 526248]
+  },
+  "source": "client"
+}

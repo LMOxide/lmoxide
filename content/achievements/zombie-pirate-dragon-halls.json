@@ -1,0 +1,13 @@
+{
+  "id": "achievement/zombie-pirate-dragon-halls",
+  "lore": 4609,
+  "parent": "achievement/zombie-pirate",
+  "client_name": "Zombie Pirate_Dragon Halls",
+  "title": "Zombie Pirate: Dragon Halls",
+  "text": "Conquer the Dragon Halls as Zombie Pirate.",
+  "points": 50,
+  "kind": "target",
+  "target": "Dragon Halls",
+  "minifigure": "minifig/zombie-pirate",
+  "source": "client"
+}

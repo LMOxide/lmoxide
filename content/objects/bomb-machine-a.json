@@ -1,0 +1,10 @@
+{
+  "id": "object/bomb-machine-a",
+  "name": "bomb_machine_a",
+  "kind": "scenery",
+  "render": {
+    "look": "bomb_machine_a",
+    "visual": [1010030, 635894]
+  },
+  "source": "client"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "npc/spiderling-2",
+  "name": "Spiderling",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 212584,
+    "npc_template": 2877,
+    "look": "spiderling",
+    "cars_group": 3
+  },
+  "level": 15,
+  "stats": {
+    "health": 262,
+    "life_factor": 0.2
+  },
+  "loot": "loot/enemy",
+  "source": "client"
+}

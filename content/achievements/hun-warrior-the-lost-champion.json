@@ -1,0 +1,13 @@
+{
+  "id": "achievement/hun-warrior-the-lost-champion",
+  "lore": 3141,
+  "parent": "achievement/hun-warrior",
+  "client_name": "Hun Warrior_Lost Creations_Get to Level 15",
+  "title": "Hun Warrior, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Hun Warrior.",
+  "points": 100,
+  "kind": "lost_creations",
+  "minifigure": "minifig/hun-warrior",
+  "n": 15,
+  "source": "client"
+}

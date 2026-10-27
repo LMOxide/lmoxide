@@ -1,0 +1,30 @@
+{
+  "id": "skill/main-pizzadeliveryman2-wrapper",
+  "name": "main pizzadeliveryman2 wrapper",
+  "client": {
+    "spell": 504863,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 504868
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 504814
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Pizza Delivery Man: Special Delivery",
+  "source": "client"
+}

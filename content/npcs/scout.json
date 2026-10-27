@@ -1,0 +1,26 @@
+{
+  "id": "npc/scout",
+  "name": "Scout",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 201478,
+    "npc_template": 911,
+    "look": "pirate_islander_scout",
+    "cars_group": 3
+  },
+  "level": 4,
+  "stats": {
+    "health": 132,
+    "life_factor": 1.0
+  },
+  "attack": "skill/islander-scout-trap-castable",
+  "skills": [
+    {
+      "skill": "skill/islander-scout-trap-castable",
+      "weight": 1
+    }
+  ],
+  "skills_from": "named",
+  "loot": "loot/enemy",
+  "source": "client"
+}

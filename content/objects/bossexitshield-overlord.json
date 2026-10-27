@@ -1,0 +1,10 @@
+{
+  "id": "object/bossexitshield-overlord",
+  "name": "BossExitShield_Overlord",
+  "kind": "scenery",
+  "render": {
+    "look": "BossExitShield_Overlord",
+    "visual": [1010030, 60626]
+  },
+  "source": "client"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "world/mythology-elysium-fields",
+  "name": "Mythology - Elysium Fields",
+  "playfield": 2200,
+  "kind": "other",
+  "level": {
+    "cap": 21
+  },
+  "arrival": {
+    "pos": [61.0, 46.0, 107.0],
+    "rot": 0.0
+  },
+  "arrival_guid": 19746,
+  "respawn_points": [
+    {
+      "name": "Res_ZeusTemple",
+      "guid": 19746,
+      "pos": [61.0, 46.0, 107.0],
+      "rot": 0.0,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_TroyWall",
+      "guid": 24529,
+      "pos": [204.0, 43.75, 159.5],
+      "rot": 1.571,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    },
+    {
+      "name": "Res_TheOracle",
+      "guid": 24530,
+      "pos": [313.25, 61.5, 193.75],
+      "rot": 4.713,
+      "discoverable": false,
+      "restoration": 100,
+      "shady": false
+    }
+  ],
+  "source": "client"
+}

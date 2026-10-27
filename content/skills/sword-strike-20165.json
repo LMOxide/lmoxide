@@ -1,0 +1,25 @@
+{
+  "id": "skill/sword-strike-20165",
+  "name": "Sword Strike",
+  "client": {
+    "spell": 20165,
+    "stats": {
+      "EffectPackage": 43934,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.2000000476837158,
+            "ApplyOn": 3,
+            "DamageType": 1000,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

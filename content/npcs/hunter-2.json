@@ -1,0 +1,30 @@
+{
+  "id": "npc/hunter-2",
+  "name": "Hunter",
+  "kind": "enemy",
+  "render": {
+    "monster_data": 201477,
+    "npc_template": 2543,
+    "look": "pirate_islander_hunter",
+    "cars_group": 3
+  },
+  "level": 4,
+  "stats": {
+    "health": 132,
+    "life_factor": 1.0
+  },
+  "attack": "skill/spell-194207",
+  "skills": [
+    {
+      "skill": "skill/dart",
+      "weight": 1
+    },
+    {
+      "skill": "skill/stab",
+      "weight": 1
+    }
+  ],
+  "skills_from": "generic",
+  "loot": "loot/enemy",
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/pizza-delivery-man-ancient-ruins",
+  "lore": 3194,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Ancient Ruins",
+  "title": "Pizza Delivery Man: Ancient Ruins",
+  "text": "Conquer the Ancient Ruins as Pizza Delivery Man.",
+  "points": 50,
+  "kind": "target",
+  "target": "Ancient Ruins",
+  "minifigure": "minifig/pizza-delivery-man",
+  "source": "client"
+}

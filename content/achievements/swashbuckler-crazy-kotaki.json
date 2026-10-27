@@ -1,0 +1,13 @@
+{
+  "id": "achievement/swashbuckler-crazy-kotaki",
+  "lore": 3281,
+  "parent": "achievement/swashbuckler",
+  "client_name": "Swashbuckler_Crazy Kotaki",
+  "title": "Swashbuckler: Crazy Kotaki",
+  "text": "Defeat Crazy Kotaki as Swashbuckler.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crazy Kotaki",
+  "minifigure": "minifig/swashbuckler",
+  "source": "client"
+}

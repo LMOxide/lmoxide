@@ -1,0 +1,22 @@
+{
+  "id": "skill/main-fairytaleprincess4-wrapper",
+  "name": "main fairytaleprincess4 wrapper",
+  "client": {
+    "spell": 514715,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 514710
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

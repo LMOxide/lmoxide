@@ -1,0 +1,88 @@
+{
+  "areas": [
+    {
+      "id": "area/5500/minibossencounter-start-arena-arena",
+      "name": "MiniBossEncounter_Start_Arena",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [392.37, 305.41],
+            [392.37, 294.41],
+            [392.87, 294.41],
+            [392.87, 305.41]
+          ],
+          "heights": [71.38066, 81.38066]
+        }
+      },
+      "suffix": "Arena",
+      "doors": {
+        "open": [526022],
+        "closed": [526023],
+        "exit": [335145]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5500/minibossencounter-start-ritual-ritual",
+      "name": "MiniBossEncounter_Start_Ritual",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [208.12, 212.83],
+            [216.05, 212.83],
+            [216.05, 213.33],
+            [208.12, 213.33]
+          ],
+          "heights": [57.596493, 67.59649]
+        }
+      },
+      "suffix": "Ritual",
+      "doors": {
+        "open": [526009],
+        "closed": [526007],
+        "exit": [331133]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5500/bossencounter-start-dragon-dragon",
+      "name": "BossEncounter_Start_Dragon",
+      "role": "arena",
+      "shape": {
+        "polygon": {
+          "points": [
+            [424.88, 481.14],
+            [432.66, 473.36],
+            [433.01, 473.71],
+            [425.24, 481.49]
+          ],
+          "heights": [116.29663, 126.29663]
+        }
+      },
+      "suffix": "Dragon",
+      "doors": {
+        "open": [526073],
+        "closed": [526074]
+      },
+      "source": "client"
+    },
+    {
+      "id": "area/5500/ba-drakepitambush",
+      "name": "BA_DrakePitAmbush",
+      "role": "ambush",
+      "shape": {
+        "polygon": {
+          "points": [
+            [192.52, 82.84],
+            [200.98, 91.58],
+            [199.98, 102.48]
+          ],
+          "heights": [54.59297, 64.59297]
+        }
+      },
+      "source": "client"
+    }
+  ]
+}

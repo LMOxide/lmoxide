@@ -1,0 +1,10 @@
+{
+  "id": "object/blue-base-sign-arrow-a-pvp",
+  "name": "blue_base_sign_arrow_a_pvp",
+  "kind": "scenery",
+  "render": {
+    "look": "blue_base_sign_arrow_a_pvp",
+    "visual": [1010030, 297770]
+  },
+  "source": "client"
+}

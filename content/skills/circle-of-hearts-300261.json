@@ -1,0 +1,26 @@
+{
+  "id": "skill/circle-of-hearts-300261",
+  "name": "Circle of Hearts",
+  "client": {
+    "spell": 300261,
+    "stats": {
+      "EffectPackage": 302303,
+      "TimeExist": 500
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "ItemInstance": 300262,
+            "ProjectileType": 3,
+            "Speed": 175
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

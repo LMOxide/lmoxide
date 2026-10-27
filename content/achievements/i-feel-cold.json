@@ -1,0 +1,12 @@
+{
+  "id": "achievement/i-feel-cold",
+  "lore": 805,
+  "parent": "achievement/master-pickpocket",
+  "client_name": "Pirate_Combat_PA_Clear the Scorched Ruins",
+  "title": "I Feel... Cold",
+  "text": "Clear the Scorched Ruins in the Pirate World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Scorched Ruins",
+  "source": "client"
+}

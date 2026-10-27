@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-banshee",
+  "lore": 4410,
+  "parent": "achievement/banshee",
+  "client_name": "Banshee_Upgrade 7",
+  "title": "Expert Banshee",
+  "text": "Get the seventh Banshee upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/banshee",
+  "n": 7,
+  "source": "client"
+}

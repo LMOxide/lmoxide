@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-clumsy-guy",
+  "lore": 5120,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Complete Any 5",
+  "title": "Heroic Clumsy Guy",
+  "text": "Complete any 5 Clumsy Guy achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/clumsy-guy",
+  "n": 5,
+  "source": "client"
+}

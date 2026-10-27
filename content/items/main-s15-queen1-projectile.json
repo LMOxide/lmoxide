@@ -1,0 +1,17 @@
+{
+  "id": "item/main-s15-queen1-projectile",
+  "name": "main s15 queen1 projectile",
+  "kind": "projectile",
+  "template": 667150,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 667149
+      }
+    }
+  ],
+  "source": "client"
+}

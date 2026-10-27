@@ -1,0 +1,13 @@
+{
+  "id": "achievement/gingerbread-man-ancient-space-ruins",
+  "lore": 2989,
+  "parent": "achievement/gingerbread-man",
+  "client_name": "Gingerbread Man_Ancient Space Ruins",
+  "title": "Gingerbread Man: Ancient Space Ruins",
+  "text": "Conquer the Ancient Space Ruins as Gingerbread Man.",
+  "points": 25,
+  "kind": "target",
+  "target": "Ancient Space Ruins",
+  "minifigure": "minifig/gingerbread-man",
+  "source": "client"
+}

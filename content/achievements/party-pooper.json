@@ -1,0 +1,11 @@
+{
+  "id": "achievement/party-pooper",
+  "lore": 759,
+  "parent": "achievement/wayfarer",
+  "client_name": "Medieval_Exploration_Interrupt Chug's Birthday Party",
+  "title": "Party Pooper",
+  "text": "Find and interrupt Chug's birthday party.",
+  "points": 25,
+  "kind": "manual",
+  "source": "client"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "achievement/sad-clown-the-stonemason",
+  "lore": 3560,
+  "parent": "achievement/sad-clown",
+  "client_name": "Sad Clown_Build 15 Mythology Statues",
+  "title": "Sad Clown, the Stonemason",
+  "text": "Build 15 Mythology Statues as Sad Clown.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 15],
+  "minifigure": "minifig/sad-clown",
+  "counts": {
+    "match": "Mythology Statue",
+    "what": "builds"
+  },
+  "source": "client"
+}

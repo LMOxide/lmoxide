@@ -1,0 +1,10 @@
+{
+  "id": "object/flying-machine-myth-a-buildie",
+  "name": "flying_machine_myth_a_buildie",
+  "kind": "buildie",
+  "render": {
+    "look": "flying_machine_myth_a_buildie",
+    "visual": [1010201, 152230]
+  },
+  "source": "client"
+}

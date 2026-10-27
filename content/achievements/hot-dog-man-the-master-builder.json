@@ -1,0 +1,16 @@
+{
+  "id": "achievement/hot-dog-man-the-master-builder",
+  "lore": 3909,
+  "parent": "achievement/hot-dog-man",
+  "client_name": "Hot Dog Man_Build 1000 buildies",
+  "title": "Hot Dog Man, the Master Builder",
+  "text": "Build 1000 buildies as Hot Dog Man.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 1000],
+  "minifigure": "minifig/hot-dog-man",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/laser-mech-the-lost-champion",
+  "lore": 5260,
+  "parent": "achievement/laser-mech",
+  "client_name": "Laser Mech_Lost Creations_Get to level 15",
+  "title": "Laser Mech, the Lost Champion",
+  "text": "Complete level 15 in the Lost Creations with Laser Mech.",
+  "points": 25,
+  "kind": "lost_creations",
+  "minifigure": "minifig/laser-mech",
+  "n": 15,
+  "source": "client"
+}

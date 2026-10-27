@@ -1,0 +1,37 @@
+{
+  "id": "skill/skydive",
+  "name": "Skydive",
+  "client": {
+    "spell": 301766,
+    "stats": {
+      "EffectPackage": 304904,
+      "ItemDelay": 25,
+      "RechargeDelay": 80,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Blink",
+          "args": {
+            "ApplyOn": 3,
+            "Distance": 10,
+            "TemplateID": 301782,
+            "Value1": 1
+          }
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 301766,
+            "Value": 500
+          }
+        }
+      ]
+    }
+  },
+  "minifigure": "Skydiver: Skydive",
+  "source": "client"
+}

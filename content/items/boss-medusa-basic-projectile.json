@@ -1,0 +1,18 @@
+{
+  "id": "item/boss-medusa-basic-projectile",
+  "name": "boss medusa basic projectile",
+  "kind": "projectile",
+  "template": 488245,
+  "effect_package": 489376,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 488246
+      }
+    }
+  ],
+  "source": "client"
+}

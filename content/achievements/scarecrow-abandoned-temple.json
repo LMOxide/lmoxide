@@ -1,0 +1,13 @@
+{
+  "id": "achievement/scarecrow-abandoned-temple",
+  "lore": 2854,
+  "parent": "achievement/scarecrow",
+  "client_name": "Scarecrow_Abandoned Temple",
+  "title": "Scarecrow: Abandoned Temple",
+  "text": "Conquer the Abandoned Temple as Scarecrow.",
+  "points": 50,
+  "kind": "target",
+  "target": "Abandoned Temple",
+  "minifigure": "minifig/scarecrow",
+  "source": "client"
+}

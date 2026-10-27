@@ -1,0 +1,1460 @@
+{
+  "spawns": [
+    {
+      "id": "spawn/3500/alien-commander",
+      "name": "Alien Commander",
+      "kind": "enemy",
+      "template": "npc/alien-commander",
+      "pos": [317.31, 110.85, 404.24],
+      "anchor": "BossEncounter_Start_Saucer",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-brawler",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [335.5, 92.83, 246.5],
+      "overrides": {
+        "level": 16,
+        "stats": {
+          "health": 1576
+        }
+      },
+      "anchor": "Quest_UFO",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-defender",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [337.7, 92.83, 247.7],
+      "anchor": "Quest_UFO",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-defender-2",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [208.5, 82.87, 291.0],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-engineer",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [210.7, 82.87, 292.2],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-defender-3",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [206.7, 82.87, 292.6],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-engineer-2",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [261.0, 89.05, 274.0],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/bot-battle-merc",
+      "name": "Bot Battle Merc",
+      "kind": "enemy",
+      "template": "npc/bot-battle-merc",
+      "pos": [259.2, 89.05, 275.6],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/bot-battle-merc-2",
+      "name": "Bot Battle Merc",
+      "kind": "enemy",
+      "template": "npc/bot-battle-merc",
+      "pos": [160.0, 82.72, 252.5],
+      "anchor": "Quest_Overlord",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-mindslicer",
+      "name": "Space Alien Mindslicer",
+      "kind": "enemy",
+      "template": "npc/space-alien-mindslicer",
+      "pos": [162.2, 82.96, 253.7],
+      "anchor": "Quest_Overlord",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/bot-battle-merc-3",
+      "name": "Bot Battle Merc",
+      "kind": "enemy",
+      "template": "npc/bot-battle-merc",
+      "pos": [157.6, 82.67, 251.5],
+      "anchor": "Quest_Overlord",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-mindslicer-2",
+      "name": "Space Alien Mindslicer",
+      "kind": "enemy",
+      "template": "npc/space-alien-mindslicer",
+      "pos": [76.5, 74.83, 219.0],
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-mushroom-runner",
+      "name": "Space Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/space-mushroom-runner",
+      "pos": [78.7, 74.83, 220.2],
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-mushroom-runner-2",
+      "name": "Space Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/space-mushroom-runner",
+      "pos": [229.0, 81.31, 268.5],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-brute-b",
+      "name": "Space Alien Brute B",
+      "kind": "enemy",
+      "template": "npc/space-alien-brute-b",
+      "pos": [231.2, 81.31, 269.7],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-mushroom-runner-3",
+      "name": "Space Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/space-mushroom-runner",
+      "pos": [227.2, 81.31, 270.1],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-brute-b-2",
+      "name": "Space Alien Brute B",
+      "kind": "enemy",
+      "template": "npc/space-alien-brute-b",
+      "pos": [256.0, 88.67, 243.5],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-brawler-2",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [258.2, 88.67, 244.7],
+      "overrides": {
+        "level": 16,
+        "stats": {
+          "health": 1576
+        }
+      },
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-brawler-3",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [87.0, 74.8, 196.5],
+      "overrides": {
+        "level": 16,
+        "stats": {
+          "health": 1576
+        }
+      },
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-defender-4",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [89.2, 74.8, 197.7],
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-brawler-4",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [85.2, 74.8, 198.1],
+      "overrides": {
+        "level": 16,
+        "stats": {
+          "health": 1576
+        }
+      },
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-defender-5",
+      "name": "Space Merc Defender",
+      "kind": "enemy",
+      "template": "npc/space-merc-defender",
+      "pos": [324.5, 110.67, 422.5],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-engineer-3",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [326.7, 110.67, 423.7],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-engineer-4",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [263.0, 88.83, 223.0],
+      "anchor": "Res_Crystal",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/bot-battle-merc-4",
+      "name": "Bot Battle Merc",
+      "kind": "enemy",
+      "template": "npc/bot-battle-merc",
+      "pos": [261.2, 88.83, 224.6],
+      "anchor": "Res_Crystal",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-engineer-5",
+      "name": "Space Merc Engineer",
+      "kind": "enemy",
+      "template": "npc/space-merc-engineer",
+      "pos": [263.6, 88.83, 220.8],
+      "anchor": "Res_Crystal",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/bot-battle-merc-5",
+      "name": "Bot Battle Merc",
+      "kind": "enemy",
+      "template": "npc/bot-battle-merc",
+      "pos": [155.5, 82.67, 236.0],
+      "anchor": "Quest_Overlord",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-mindslicer-3",
+      "name": "Space Alien Mindslicer",
+      "kind": "enemy",
+      "template": "npc/space-alien-mindslicer",
+      "pos": [157.7, 82.67, 237.2],
+      "anchor": "Quest_Overlord",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-mindslicer-4",
+      "name": "Space Alien Mindslicer",
+      "kind": "enemy",
+      "template": "npc/space-alien-mindslicer",
+      "pos": [92.5, 74.67, 212.0],
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-mushroom-runner-4",
+      "name": "Space Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/space-mushroom-runner",
+      "pos": [90.7, 75.04, 213.6],
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-mindslicer-5",
+      "name": "Space Alien Mindslicer",
+      "kind": "enemy",
+      "template": "npc/space-alien-mindslicer",
+      "pos": [93.1, 74.83, 209.8],
+      "anchor": "Quest_FirstEncounter",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-mushroom-runner-5",
+      "name": "Space Mushroom Runner",
+      "kind": "enemy",
+      "template": "npc/space-mushroom-runner",
+      "pos": [331.5, 110.67, 406.5],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-brute-b-3",
+      "name": "Space Alien Brute B",
+      "kind": "enemy",
+      "template": "npc/space-alien-brute-b",
+      "pos": [333.7, 110.67, 407.7],
+      "anchor": "Quest_Boss",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-brute-b-4",
+      "name": "Space Alien Brute B",
+      "kind": "enemy",
+      "template": "npc/space-alien-brute-b",
+      "pos": [252.0, 88.71, 260.5],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-merc-brawler-5",
+      "name": "Space Merc Brawler",
+      "kind": "enemy",
+      "template": "npc/space-merc-brawler",
+      "pos": [254.2, 88.71, 261.7],
+      "overrides": {
+        "level": 16,
+        "stats": {
+          "health": 1576
+        }
+      },
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/space-alien-brute-b-5",
+      "name": "Space Alien Brute B",
+      "kind": "enemy",
+      "template": "npc/space-alien-brute-b",
+      "pos": [250.2, 88.71, 262.1],
+      "anchor": "Quest_CrystalLab",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [153.0, 84.72, 315.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-2",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [153.8, 84.72, 316.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-barrel",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [152.4, 84.72, 316.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-small-chest",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [88.0, 72.83, 144.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-3",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [88.8, 72.83, 145.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-4",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [87.4, 72.83, 145.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-barrel-2",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [251.5, 100.63, 320.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-small-chest-2",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [252.3, 100.63, 321.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-5",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [250.9, 100.63, 321.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-6",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [309.5, 94.83, 284.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-barrel-3",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [310.3, 94.83, 285.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-small-chest-3",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [308.9, 94.83, 285.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-7",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [313.0, 92.84, 215.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-8",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [313.8, 92.84, 216.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-barrel-4",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [312.4, 92.84, 216.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-small-chest-4",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [118.5, 74.84, 251.5],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-9",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [119.3, 74.84, 252.7],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-10",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [117.9, 74.84, 252.9],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-barrel-5",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [187.0, 82.83, 308.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-small-chest-5",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [187.8, 82.83, 309.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-11",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate-2",
+      "pos": [186.4, 82.83, 309.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-crate-12",
+      "name": "XX_Crate",
+      "kind": "smashable",
+      "template": "object/xx-crate",
+      "pos": [304.5, 102.83, 325.0],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-barrel-6",
+      "name": "XX_Barrel",
+      "kind": "smashable",
+      "template": "object/xx-barrel",
+      "pos": [305.3, 102.83, 326.2],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/xx-small-chest-6",
+      "name": "XX_Small chest",
+      "kind": "smashable",
+      "template": "object/xx-small-chest",
+      "pos": [303.9, 102.83, 326.4],
+      "anchor": "navmesh",
+      "source": "proposed"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualopen",
+      "name": "BossEntranceVisualOpen",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen",
+      "pos": [316.71, 110.1, 403.64],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "client": {
+        "guid": 564674,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualclosed",
+      "name": "BossEntranceVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed",
+      "pos": [316.71, 110.1, 403.64],
+      "rot": [0.0, 0.3827, 0.0, 0.9239],
+      "client": {
+        "guid": 564675,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentranceshield",
+      "name": "BossEntranceShield",
+      "kind": "scenery",
+      "template": "object/bossentranceshield",
+      "pos": [316.31, 109.6, 403.13],
+      "rot": [0.0, 0.3873, 0.0, 0.922],
+      "scale": 1.5,
+      "client": {
+        "guid": 564676,
+        "tag": "28EI",
+        "script_group": 16,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitshield-saucer",
+      "name": "BossExitShield_Saucer",
+      "kind": "scenery",
+      "template": "object/bossexitshield-saucer",
+      "pos": [316.03, 110.14, 420.11],
+      "rot": [0.0, 0.9239, 0.0, 0.3827],
+      "client": {
+        "guid": 362074,
+        "tag": "28EI",
+        "script_group": 17,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitvisualclosed-saucer",
+      "name": "BossExitVisualClosed_Saucer",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-saucer",
+      "pos": [316.17, 110.58, 419.71],
+      "rot": [0.0, 0.9239, 0.0, 0.3827],
+      "client": {
+        "guid": 362073,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-off-space-right",
+      "name": "alien_props_alarm_a_off_space right",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-off-space-right",
+      "pos": [97.0, 75.76, 124.03],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 390766,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 388083],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-on-space-right",
+      "name": "alien_props_alarm_a_on_space right",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-on-space",
+      "pos": [97.0, 75.76, 124.03],
+      "rot": [0.0, 0.7072, 0.0, -0.707],
+      "client": {
+        "guid": 390767,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 388082],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-off-space-left",
+      "name": "alien_props_alarm_a_off_space left",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-off-space-left",
+      "pos": [97.0, 75.76, 132.01],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 390764,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 388083],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-on-space-left",
+      "name": "alien_props_alarm_a_on_space left",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-on-space",
+      "pos": [97.0, 75.76, 132.01],
+      "rot": [0.0, 0.7072, 0.0, -0.707],
+      "client": {
+        "guid": 390765,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 388082],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-on-space-left-2",
+      "name": "alien_props_alarm_a_on_space left",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-on-space",
+      "pos": [94.5, 78.5, 216.0],
+      "rot": [0.0, 0.7072, 0.0, -0.707],
+      "client": {
+        "guid": 390154,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 388082],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-off-space-left-2",
+      "name": "alien_props_alarm_a_off_space left",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-off-space-left",
+      "pos": [94.5, 78.5, 216.0],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 390155,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 388083],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-on-space-right-2",
+      "name": "alien_props_alarm_a_on_space right",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-on-space",
+      "pos": [94.5, 78.5, 200.0],
+      "rot": [0.0, 0.7072, 0.0, -0.707],
+      "client": {
+        "guid": 390151,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010201, 388082],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/alien-props-alarm-a-off-space-right-2",
+      "name": "alien_props_alarm_a_off_space right",
+      "kind": "scenery",
+      "template": "object/alien-props-alarm-a-off-space-right",
+      "pos": [94.5, 78.5, 200.0],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 390150,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 388083],
+        "bounds": [-1.342, -1.543, -0.056, 1.342, 0.986, 1.8]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitshield-first-encounter",
+      "name": "BossExitShield_First_Encounter",
+      "kind": "scenery",
+      "template": "object/bossexitshield-first-encounter",
+      "pos": [95.64, 74.19, 207.7],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 365844,
+        "tag": "----",
+        "script_group": 34,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualclosed-first-encounter",
+      "name": "BossEntranceVisualClosed_First_Encounter",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed-first-encounter",
+      "pos": [87.98, 74.28, 192.33],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 365845,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitvisualclosed-first-encounter",
+      "name": "BossExitVisualClosed_First_Encounter",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-first-encounter",
+      "pos": [95.09, 74.26, 207.9],
+      "rot": [0.0, 0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 365846,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentranceshield-first-encounter",
+      "name": "BossEntranceShield_First_Encounter",
+      "kind": "scenery",
+      "template": "object/bossentranceshield-first-encounter",
+      "pos": [88.07, 74.23, 192.04],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 365847,
+        "tag": "----",
+        "script_group": 35,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualopen-first-encounter",
+      "name": "BossEntranceVisualOpen_First_Encounter",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen-first-encounter",
+      "pos": [87.98, 74.28, 192.33],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 365848,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-1",
+      "name": "ufo 1",
+      "kind": "scenery",
+      "template": "object/ufo-1",
+      "pos": [76.11, 96.41, 201.28],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 387403,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-2",
+      "name": "ufo 2",
+      "kind": "scenery",
+      "template": "object/ufo-2",
+      "pos": [89.88, 96.41, 211.8],
+      "rot": [0.0, -0.5113, 0.0, 0.8594],
+      "client": {
+        "guid": 387405,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-3",
+      "name": "ufo 3",
+      "kind": "scenery",
+      "template": "object/ufo-3",
+      "pos": [84.35, 96.41, 215.17],
+      "rot": [0.0, -0.7501, 0.0, 0.6613],
+      "client": {
+        "guid": 391000,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-4",
+      "name": "ufo 4",
+      "kind": "scenery",
+      "template": "object/ufo-4",
+      "pos": [76.73, 96.41, 213.73],
+      "rot": [0.0, -0.9839, 0.0, 0.1787],
+      "client": {
+        "guid": 391001,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/invisible-monsterdata",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [94.16, 77.11, 211.89],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 387396,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/invisible-monsterdata-2",
+      "name": "invisible_monsterdata",
+      "kind": "scenery",
+      "template": "object/invisible-monsterdata",
+      "pos": [94.74, 77.11, 204.09],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 387406,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-5",
+      "name": "ufo 5",
+      "kind": "scenery",
+      "template": "object/ufo-5",
+      "pos": [85.96, 96.41, 213.12],
+      "rot": [0.0, -0.1827, 0.0, 0.9832],
+      "client": {
+        "guid": 387404,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-6",
+      "name": "ufo 6",
+      "kind": "scenery",
+      "template": "object/ufo-6",
+      "pos": [79.75, 96.68, 201.3],
+      "rot": [0.0, -0.8964, 0.0, 0.4432],
+      "client": {
+        "guid": 391030,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-7",
+      "name": "ufo 7",
+      "kind": "scenery",
+      "template": "object/ufo-7",
+      "pos": [92.14, 96.41, 202.95],
+      "rot": [0.0, 0.8204, 0.0, 0.5718],
+      "client": {
+        "guid": 391031,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitshield-overlord",
+      "name": "BossExitShield_Overlord",
+      "kind": "scenery",
+      "template": "object/bossexitshield-overlord",
+      "pos": [155.72, 82.24, 257.02],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 365452,
+        "tag": "----",
+        "script_group": 66,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualclosed-overlord",
+      "name": "BossEntranceVisualClosed_Overlord",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed-overlord",
+      "pos": [148.09, 82.32, 244.09],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 365453,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitvisualclosed-overlord",
+      "name": "BossExitVisualClosed_Overlord",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-overlord",
+      "pos": [155.53, 82.31, 256.48],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 365454,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentranceshield-overlord",
+      "name": "BossEntranceShield_Overlord",
+      "kind": "scenery",
+      "template": "object/bossentranceshield-overlord",
+      "pos": [147.8, 82.27, 244.0],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 365455,
+        "tag": "----",
+        "script_group": 67,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualopen-overlord",
+      "name": "BossEntranceVisualOpen_Overlord",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen-overlord",
+      "pos": [148.09, 82.32, 244.09],
+      "rot": [0.0, 0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 365456,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-1-turret-right",
+      "name": "ufo 1 turret right",
+      "kind": "scenery",
+      "template": "object/ufo-1-turret-right",
+      "pos": [342.42, 93.1, 237.26],
+      "rot": [0.0, 0.0, 0.7071, 0.7071],
+      "client": {
+        "guid": 389955,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-1-turret-left",
+      "name": "ufo 1 turret left",
+      "kind": "scenery",
+      "template": "object/ufo-1-turret-left",
+      "pos": [342.42, 93.1, 237.56],
+      "rot": [0.0, 0.0, 0.7071, 0.7071],
+      "client": {
+        "guid": 389966,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-1-particle",
+      "name": "ufo 1 particle",
+      "kind": "scenery",
+      "template": "object/ufo-1-particle",
+      "pos": [365.31, 102.94, 237.76],
+      "rot": [0.0, -1.0, 0.0, -0.0],
+      "client": {
+        "guid": 389952,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-2-turret-right",
+      "name": "ufo 2 turret right",
+      "kind": "scenery",
+      "template": "object/ufo-2-turret-right",
+      "pos": [337.24, 93.27, 258.76],
+      "rot": [-0.5, -0.5, 0.5, 0.5],
+      "client": {
+        "guid": 389971,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-2-turret-left",
+      "name": "ufo 2 turret left",
+      "kind": "scenery",
+      "template": "object/ufo-2-turret-left",
+      "pos": [336.93, 93.27, 258.76],
+      "rot": [-0.5, -0.5, 0.5, 0.5],
+      "client": {
+        "guid": 389972,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-2-particle",
+      "name": "ufo 2 particle",
+      "kind": "scenery",
+      "template": "object/ufo-2-particle",
+      "pos": [336.78, 102.94, 281.65],
+      "rot": [0.0, -0.7071, 0.0, -0.7071],
+      "client": {
+        "guid": 389981,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-3-turret-right",
+      "name": "ufo 3 turret right",
+      "kind": "scenery",
+      "template": "object/ufo-3-turret-right",
+      "pos": [313.1, 93.27, 252.38],
+      "rot": [0.7071, 0.7071, -0.0, -0.0],
+      "client": {
+        "guid": 390568,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-3-turret-left",
+      "name": "ufo 3 turret left",
+      "kind": "scenery",
+      "template": "object/ufo-3-turret-left",
+      "pos": [313.1, 93.27, 252.08],
+      "rot": [0.7071, 0.7071, -0.0, -0.0],
+      "client": {
+        "guid": 390569,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-3-particle",
+      "name": "ufo 3 particle",
+      "kind": "scenery",
+      "template": "object/ufo-3-particle",
+      "pos": [290.21, 102.94, 251.89],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 390565,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-4-turret-right",
+      "name": "ufo 4 turret right",
+      "kind": "scenery",
+      "template": "object/ufo-4-turret-right",
+      "pos": [318.55, 93.27, 228.79],
+      "rot": [0.5, 0.5, 0.5, 0.5],
+      "client": {
+        "guid": 390590,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-4-turret-left",
+      "name": "ufo 4 turret left",
+      "kind": "scenery",
+      "template": "object/ufo-4-turret-left",
+      "pos": [318.85, 93.27, 228.79],
+      "rot": [0.5, 0.5, 0.5, 0.5],
+      "client": {
+        "guid": 390591,
+        "tag": "MS5Q",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/ufo-4-particle",
+      "name": "ufo 4 particle",
+      "kind": "scenery",
+      "template": "object/ufo-4-particle",
+      "pos": [319.33, 102.94, 205.9],
+      "rot": [0.0, -0.7071, 0.0, 0.7071],
+      "client": {
+        "guid": 390589,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitshield-ufo",
+      "name": "BossExitShield_UFO",
+      "kind": "scenery",
+      "template": "object/bossexitshield-ufo",
+      "pos": [327.62, 92.33, 256.26],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 365827,
+        "tag": "----",
+        "script_group": 195,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossexitvisualclosed-ufo",
+      "name": "BossExitVisualClosed_UFO",
+      "kind": "scenery",
+      "template": "object/bossexitvisualclosed-ufo",
+      "pos": [327.43, 92.4, 255.72],
+      "rot": [0.0, 1.0, 0.0, -0.0],
+      "client": {
+        "guid": 365829,
+        "tag": "----",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualopen-2",
+      "name": "BossEntranceVisualOpen",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualopen",
+      "pos": [327.88, 92.44, 231.71],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 525953,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155858],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentrancevisualclosed-2",
+      "name": "BossEntranceVisualClosed",
+      "kind": "scenery",
+      "template": "object/bossentrancevisualclosed",
+      "pos": [327.88, 92.44, 231.71],
+      "rot": [0.0, -0.0, 0.0, 1.0],
+      "client": {
+        "guid": 525954,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 155861],
+        "bounds": [-4.125, 0.045, -0.0, 4.125, 3.238, 0.0]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/bossentranceshield-2",
+      "name": "BossEntranceShield",
+      "kind": "scenery",
+      "template": "object/bossentranceshield",
+      "pos": [327.95, 91.94, 231.08],
+      "rot": [0.0, 0.005, 0.0, 1.0],
+      "scale": 1.5,
+      "client": {
+        "guid": 525955,
+        "tag": "28EI",
+        "script_group": 196,
+        "visual": [1010030, 60626],
+        "bounds": [-3.0, 0.0, -0.5, 3.0, 6.0, 0.5]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/jumpy-1-end",
+      "name": "jumpy_1_end",
+      "kind": "scenery",
+      "template": "object/jumpy-1-end",
+      "pos": [311.22, 92.28, 211.31],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 380617,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/3500/jumpy-1-back-end",
+      "name": "jumpy_1_back end",
+      "kind": "scenery",
+      "template": "object/jumpy-1-back-end",
+      "pos": [291.86, 92.28, 212.21],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 380619,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/3500/jumpy-2-end",
+      "name": "jumpy_2_end",
+      "kind": "scenery",
+      "template": "object/jumpy-2-end",
+      "pos": [304.16, 102.0, 339.52],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 380621,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/3500/jumpy-3-end",
+      "name": "jumpy_3_end",
+      "kind": "scenery",
+      "template": "object/jumpy-3-end",
+      "pos": [312.91, 108.21, 399.84],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "client": {
+        "guid": 380623,
+        "tag": "28EI",
+        "script_group": -1,
+        "visual": [1010030, 95472],
+        "bounds": [-0.025, 0.0, -0.025, 0.025, 0.05, 0.025]
+      },
+      "source": "client",
+      "tags": ["jump-target"]
+    },
+    {
+      "id": "spawn/3500/empty-monsterdata-1x1x1",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [83.77, 77.56, 62.95],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 3.0,
+      "client": {
+        "guid": 595184,
+        "tag": "----",
+        "script_group": 1,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    },
+    {
+      "id": "spawn/3500/empty-monsterdata-1x1x1-2",
+      "name": "empty_monsterdata_1x1x1",
+      "kind": "door",
+      "template": "object/empty-monsterdata-1x1x1",
+      "pos": [302.17, 112.61, 423.02],
+      "rot": [0.0, 0.0, 0.0, 1.0],
+      "scale": 2.0,
+      "client": {
+        "guid": 595185,
+        "tag": "----",
+        "script_group": 3,
+        "visual": [1010201, 465832]
+      },
+      "source": "client"
+    }
+  ]
+}

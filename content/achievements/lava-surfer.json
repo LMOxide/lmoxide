@@ -1,0 +1,14 @@
+{
+  "id": "achievement/lava-surfer",
+  "lore": 725,
+  "parent": "achievement/treasure-chaser",
+  "client_name": "Pirate_Exploration_Cross the Lava River",
+  "title": "Lava Surfer",
+  "text": "Cross the Lava River.",
+  "points": 25,
+  "kind": "find",
+  "world": "world/volcano-island",
+  "find": "Achievement_LavaRiver",
+  "place": "Lava River",
+  "source": "client"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "skill/islander-scout-trap-bullet",
+  "name": "islander scout trap bullet",
+  "client": {
+    "spell": 448003,
+    "stats": {
+      "AttackRange": 1000,
+      "TargetingMode": 7
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "ItemInstance": 447902,
+            "ProjectileType": 2,
+            "Speed": 650
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

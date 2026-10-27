@@ -1,0 +1,12 @@
+{
+  "id": "achievement/saw-it-coming",
+  "lore": 783,
+  "parent": "achievement/trial-by-combat",
+  "client_name": "Medieval_Combat_Champion_Grosh the Scout",
+  "title": "Saw It Coming",
+  "text": "Defeat Grosh the Scout in the Medieval World.",
+  "points": 25,
+  "kind": "defeat",
+  "target": "Grosh the Scout",
+  "source": "client"
+}

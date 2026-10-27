@@ -1,0 +1,12 @@
+{
+  "id": "achievement/purging-presence",
+  "lore": 855,
+  "parent": "achievement/cave-dweller",
+  "client_name": "Medieval_Combat_PA_Clear the Infested Keep",
+  "title": "Purging Presence",
+  "text": "Clear the Infested Keep in the Medieval World.",
+  "points": 50,
+  "kind": "clear",
+  "target": "Infested Keep",
+  "source": "client"
+}

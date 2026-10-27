@@ -1,0 +1,13 @@
+{
+  "id": "achievement/expert-clumsy-guy",
+  "lore": 5129,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_Upgrade 7",
+  "title": "Expert Clumsy Guy",
+  "text": "Get the seventh Clumsy Guy upgrade.",
+  "points": 25,
+  "kind": "upgrade",
+  "minifigure": "minifig/clumsy-guy",
+  "n": 7,
+  "source": "client"
+}

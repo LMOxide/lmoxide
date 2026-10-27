@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-farmer",
+  "lore": 5136,
+  "parent": "achievement/farmer",
+  "client_name": "Farmer_Complete Any 5",
+  "title": "Heroic Farmer",
+  "text": "Complete any 5 Farmer achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/farmer",
+  "n": 5,
+  "source": "client"
+}

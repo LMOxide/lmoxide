@@ -1,0 +1,10 @@
+{
+  "id": "object/mirror-medusa-c-interactable",
+  "name": "mirror_medusa_c_interactable",
+  "kind": "interactable",
+  "render": {
+    "look": "mirror_medusa_c_interactable",
+    "visual": [1010201, 494779]
+  },
+  "source": "client"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "achievement/legendary-pizza-delivery-man",
+  "lore": 3634,
+  "parent": "achievement/pizza-delivery-man",
+  "client_name": "Pizza Delivery Man_Complete Any 10",
+  "title": "Legendary Pizza Delivery Man",
+  "text": "Complete any 11 Pizza Delivery Man achievements.",
+  "points": 25,
+  "kind": "any",
+  "minifigure": "minifig/pizza-delivery-man",
+  "n": 11,
+  "source": "client"
+}

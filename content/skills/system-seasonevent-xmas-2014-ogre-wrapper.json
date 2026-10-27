@@ -1,0 +1,29 @@
+{
+  "id": "skill/system-seasonevent-xmas-2014-ogre-wrapper",
+  "name": "system seasonevent xmas 2014 ogre wrapper",
+  "client": {
+    "spell": 581269,
+    "stats": {
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 3,
+            "Value": 584716
+          }
+        },
+        {
+          "type": "CastNano",
+          "args": {
+            "ApplyOn": 1,
+            "Value": 581459
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

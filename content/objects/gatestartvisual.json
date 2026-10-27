@@ -1,0 +1,10 @@
+{
+  "id": "object/gatestartvisual",
+  "name": "GateStartVisual",
+  "kind": "scenery",
+  "render": {
+    "look": "GateStartVisual",
+    "visual": [1010030, 155861]
+  },
+  "source": "client"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "object/camera-shake",
+  "name": "camera shake",
+  "kind": "scenery",
+  "render": {
+    "look": "camera shake",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

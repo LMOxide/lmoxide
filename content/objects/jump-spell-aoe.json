@@ -1,0 +1,10 @@
+{
+  "id": "object/jump-spell-aoe",
+  "name": "jump spell aoe",
+  "kind": "scenery",
+  "render": {
+    "look": "jump spell aoe",
+    "visual": [1010030, 95472]
+  },
+  "source": "client"
+}

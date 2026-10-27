@@ -1,0 +1,17 @@
+{
+  "id": "item/cannon",
+  "name": "Cannon",
+  "kind": "projectile",
+  "template": 201245,
+  "radius": 0.5,
+  "actions": [
+    {
+      "type": "CastNano",
+      "args": {
+        "ApplyOn": 3,
+        "Value": 201246
+      }
+    }
+  ],
+  "source": "client"
+}

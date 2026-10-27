@@ -1,0 +1,8 @@
+{
+  "id": "buff/upgrade-thorium-horseshoes",
+  "name": "Thorium Horseshoes",
+  "nano": 516925,
+  "source": "client",
+  "tags": ["todo"],
+  "comment": "No client-side game actions: the effect was server script, not known yet."
+}

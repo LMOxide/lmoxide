@@ -1,0 +1,72 @@
+{
+  "id": "skill/main-prospector2-defense-buff",
+  "name": "main prospector2 defense buff",
+  "client": {
+    "spell": 517626,
+    "stats": {
+      "EffectPackage": 520124,
+      "MaxBuffCounters": 4,
+      "TargetingMode": 10,
+      "TimeExist": 1000
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.10000000149011612,
+            "Stat": 3000095
+          },
+          "criteria": [
+            [0, 0, 18],
+            [517626, 1, 166],
+            [517626, 0, 166],
+            [0, 0, 3]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.15000000596046448,
+            "Stat": 3000095
+          },
+          "criteria": [
+            [0, 0, 18],
+            [517626, 2, 166]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.20000000298023224,
+            "Stat": 3000095
+          },
+          "criteria": [
+            [0, 0, 18],
+            [517626, 3, 166]
+          ]
+        },
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.25,
+            "Stat": 3000095
+          },
+          "criteria": [
+            [0, 0, 18],
+            [517626, 4, 166]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

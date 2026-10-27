@@ -1,0 +1,17 @@
+{
+  "id": "achievement/evil-mech-the-gardener",
+  "lore": 3018,
+  "parent": "achievement/evil-mech",
+  "client_name": "Evil Mech_Smash 50 Triffids",
+  "title": "Evil Mech the Gardener",
+  "text": "Smash 50 Monster Plants as Evil Mech.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/evil-mech",
+  "counts": {
+    "match": "Triffid",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

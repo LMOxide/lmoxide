@@ -1,0 +1,17 @@
+{
+  "id": "achievement/tomahawk-warrior-the-hexer",
+  "lore": 3526,
+  "parent": "achievement/tomahawk-warrior",
+  "client_name": "Tomahawk Warrior_Smash 50 Witch Doctors",
+  "title": "Tomahawk Warrior, the Hexer",
+  "text": "Smash 50 Witch Doctors as Tomahawk Warrior.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000113, 50],
+  "minifigure": "minifig/tomahawk-warrior",
+  "counts": {
+    "match": "Witch Doctor",
+    "what": "kills_or_smashes"
+  },
+  "source": "client"
+}

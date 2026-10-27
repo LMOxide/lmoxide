@@ -1,0 +1,13 @@
+{
+  "id": "achievement/constable-crazy-kotaki",
+  "lore": 3028,
+  "parent": "achievement/constable",
+  "client_name": "Constable_Crazy Kotaki",
+  "title": "Constable: Crazy Kotaki",
+  "text": "Defeat Crazy Kotaki as Constable.",
+  "points": 25,
+  "kind": "target",
+  "target": "Crazy Kotaki",
+  "minifigure": "minifig/constable",
+  "source": "client"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "skill/rampage-100802",
+  "name": "Rampage",
+  "client": {
+    "spell": 100802,
+    "stats": {
+      "EffectPackage": 157914,
+      "TargetingMode": 5
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "WeaponHit",
+          "args": {
+            "AbilityMod": 1.0,
+            "ApplyOn": 3,
+            "DamageType": 1004,
+            "Value": 1
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

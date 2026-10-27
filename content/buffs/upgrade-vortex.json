@@ -1,0 +1,8 @@
+{
+  "id": "buff/upgrade-vortex",
+  "name": "Upgrade: Vortex",
+  "nano": 459325,
+  "source": "client",
+  "tags": ["todo"],
+  "comment": "No client-side game actions: the effect was server script, not known yet."
+}

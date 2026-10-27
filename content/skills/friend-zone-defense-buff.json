@@ -1,0 +1,26 @@
+{
+  "id": "skill/friend-zone-defense-buff",
+  "name": "Friend Zone defense buff",
+  "client": {
+    "spell": 441814,
+    "stats": {
+      "EffectPackage": 356358,
+      "TargetingMode": 10,
+      "TimeExist": 300
+    },
+    "actions": {
+      "0": [
+        {
+          "type": "Modify",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "FloatValue1": 0.029999999329447746,
+            "Stat": 3000096
+          }
+        }
+      ]
+    }
+  },
+  "source": "client"
+}

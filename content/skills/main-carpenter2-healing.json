@@ -1,0 +1,13 @@
+{
+  "id": "skill/main-carpenter2-healing",
+  "name": "main carpenter2 healing",
+  "client": {
+    "spell": 563178,
+    "stats": {
+      "EffectPackage": 577373,
+      "LuaScriptID": 3242,
+      "TargetingMode": 1
+    }
+  },
+  "source": "client"
+}

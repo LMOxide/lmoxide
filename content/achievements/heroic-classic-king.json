@@ -1,0 +1,14 @@
+{
+  "id": "achievement/heroic-classic-king",
+  "lore": 3792,
+  "parent": "achievement/classic-king",
+  "client_name": "Classic King_Complete Any 5",
+  "title": "Heroic Classic King",
+  "text": "Complete any 5 Classic King achievements.",
+  "points": 25,
+  "kind": "any",
+  "stars": 250,
+  "minifigure": "minifig/classic-king",
+  "n": 5,
+  "source": "client"
+}

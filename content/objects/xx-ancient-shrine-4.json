@@ -1,0 +1,19 @@
+{
+  "id": "object/xx-ancient-shrine-4",
+  "name": "XX_Ancient Shrine",
+  "kind": "buildie",
+  "render": {
+    "monster_data": 520586,
+    "template": 520590,
+    "look": "ruins_mayan_shrine_b2_smashie_space",
+    "cars_group": 5
+  },
+  "level": 1,
+  "health": 20,
+  "states": ["unbuilt", "built"],
+  "client": {
+    "dynel_type": 51321,
+    "loot_table": 201
+  },
+  "source": "client"
+}

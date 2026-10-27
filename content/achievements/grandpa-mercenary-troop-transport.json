@@ -1,0 +1,13 @@
+{
+  "id": "achievement/grandpa-mercenary-troop-transport",
+  "lore": 3429,
+  "parent": "achievement/grandpa",
+  "client_name": "Grandpa_Mercenary Troop Transport",
+  "title": "Grandpa: Mercenary Troop Transport",
+  "text": "Conquer the Mercenary Troop Transport as Grandpa.",
+  "points": 25,
+  "kind": "target",
+  "target": "Mercenary Troop Transport",
+  "minifigure": "minifig/grandpa",
+  "source": "client"
+}

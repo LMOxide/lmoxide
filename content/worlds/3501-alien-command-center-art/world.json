@@ -1,0 +1,15 @@
+{
+  "id": "world/alien-command-center-art",
+  "name": "Alien Command Center - Art",
+  "playfield": 3501,
+  "kind": "other",
+  "level": {
+    "cap": 19
+  },
+  "arrival": {
+    "pos": [154.5, 83.77, 246.0],
+    "rot": 0.0
+  },
+  "arrival_mode": "navmesh",
+  "source": "client"
+}

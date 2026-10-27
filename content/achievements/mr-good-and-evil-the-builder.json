@@ -1,0 +1,16 @@
+{
+  "id": "achievement/mr-good-and-evil-the-builder",
+  "lore": 2541,
+  "parent": "achievement/mr-good-and-evil",
+  "client_name": "Mr. Good and Evil_Build 100 Buildies",
+  "title": "Mr. Good and Evil, the Builder",
+  "text": "Build 100 buildies as Mr. Good and Evil.",
+  "points": 50,
+  "kind": "counter",
+  "counter": [3000112, 100],
+  "minifigure": "minifig/mr-good-and-evil",
+  "counts": {
+    "what": "builds"
+  },
+  "source": "client"
+}

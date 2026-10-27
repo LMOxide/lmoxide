@@ -1,0 +1,13 @@
+{
+  "id": "achievement/clumsy-guy-the-triffid",
+  "lore": 5126,
+  "parent": "achievement/clumsy-guy",
+  "client_name": "Clumsy Guy_The Triffid",
+  "title": "Clumsy Guy: The Triffid",
+  "text": "Defeat The Triffid as Clumsy Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "The Triffid",
+  "minifigure": "minifig/clumsy-guy",
+  "source": "client"
+}

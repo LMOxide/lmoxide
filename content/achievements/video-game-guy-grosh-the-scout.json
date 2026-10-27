@@ -1,0 +1,13 @@
+{
+  "id": "achievement/video-game-guy-grosh-the-scout",
+  "lore": 3296,
+  "parent": "achievement/video-game-guy",
+  "client_name": "Video Game Guy_Grosh the Scout",
+  "title": "Video Game Guy: Grosh the Scout",
+  "text": "Defeat Grosh the Scout as Video Game Guy.",
+  "points": 25,
+  "kind": "target",
+  "target": "Grosh the Scout",
+  "minifigure": "minifig/video-game-guy",
+  "source": "client"
+}

@@ -1,0 +1,258 @@
+{
+  "id": "skill/space-dg-alienhq-boss-saucer-spin-castable",
+  "name": "space dg alienhq boss saucer spin castable",
+  "client": {
+    "spell": 367661,
+    "stats": {
+      "AttackRange": 3000,
+      "ChannelingInterval": 50,
+      "ChannelingTicks": 12,
+      "EffectPackage": 399224,
+      "ItemDelay": 100,
+      "RechargeDelay": 100,
+      "TargetingMode": 8
+    },
+    "actions": {
+      "1": [
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 367661,
+            "Value": 750
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 34, 153]
+          ]
+        },
+        {
+          "type": "SetSpellRecastTime",
+          "client": true,
+          "args": {
+            "ApplyOn": 1,
+            "NanoTemplate": 367661,
+            "Value": 1250
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 33, 152]
+          ]
+        }
+      ],
+      "33": [
+        {
+          "type": "AddBuffCounter",
+          "args": {
+            "ApplyOn": 1,
+            "TemplateID": 367902,
+            "Value": 1
+          }
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentZ": 100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 763, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentX": 100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 90,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 763, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentX": -100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": -90,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 763, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentZ": -100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 180,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 763, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentX": 100,
+            "DisplaceMentZ": 100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 45,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 764, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentX": 100,
+            "DisplaceMentZ": -100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 135,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 764, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentX": -100,
+            "DisplaceMentZ": -100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 225,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 764, 202]
+          ]
+        },
+        {
+          "type": "Projectile",
+          "client": true,
+          "args": {
+            "ApplyOn": 3,
+            "AttackRange": 3000,
+            "DisplaceMentX": -100,
+            "DisplaceMentZ": 100,
+            "ItemInstance": 367713,
+            "MaxRicochets": 3,
+            "ProjectileType": 1,
+            "RotY": 315,
+            "Speed": 850
+          },
+          "criteria": [
+            [0, 0, 19],
+            [367902, 764, 202]
+          ]
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 4,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 398788,
+            "Radius": 30
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 34, 153],
+            [367902, 4, 166],
+            [0, 0, 4]
+          ]
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 4,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 398788,
+            "Radius": 30
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 34, 153],
+            [367902, 8, 166],
+            [0, 0, 4]
+          ]
+        },
+        {
+          "type": "CoreFilteredAreaFormula",
+          "args": {
+            "Angle": 360,
+            "ApplyOn": 3,
+            "Ascending": 1,
+            "Max1": 4,
+            "NPCSelectMode": 3,
+            "NanoTemplate": 398788,
+            "Radius": 30
+          },
+          "criteria": [
+            [0, 0, 19],
+            [0, 34, 153],
+            [367902, 12, 166],
+            [0, 0, 4]
+          ]
+        }
+      ]
+    }
+  },
+  "source": "client"
+}
