@@ -9,6 +9,7 @@ mod chat;
 mod collection;
 mod combat;
 mod community;
+mod content;
 mod conn;
 mod control;
 mod devcmd;
@@ -139,6 +140,11 @@ pub struct Config {
     /// surveyors work; export and import go through the web UI.
     #[arg(long, env = "LMOXIDE_SURVEY_SET")]
     pub survey_set: Option<PathBuf>,
+    /// Play servers: the world editor's survey set folder (its --survey-set), whose changes are
+    /// approved into this server's content by its rules or an admin (docs/WORLD-CONTENT.md;
+    /// approved content and rules are kept in <data-dir>/world-content).
+    #[arg(long, env = "LMOXIDE_WORLD_EDITOR_SET")]
+    pub world_editor_set: Option<PathBuf>,
     /// How players' straight shots are aimed at the enemy they target: where it is when the
     /// shot leaves (`current`), or where it will be when the shot gets there (`lead`).
     #[arg(long, env = "LMOXIDE_SHOT_AIM", value_enum, default_value_t = projectile::Aim::Current)]
@@ -236,6 +242,8 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         cfg.default_gm_level = cfg.default_gm_level.max(cfg.devcmd_gm_level).max(1);
         let dir = cfg.survey_set.clone().unwrap_or_else(|| storage.data_dir.join("survey"));
         survey::init(dir);
+    } else {
+        content::init(&storage.data_dir, cfg.world_editor_set.clone());
     }
     progression::set_enabled(cfg.progression);
     for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {

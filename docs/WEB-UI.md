@@ -58,7 +58,17 @@ would answer 403.
 | none (players) | own account (`/v1/me`), change password |
 | `read` | players online with accounts (`/v1/players`), account search and details (`/v1/accounts`, `/v1/accounts/{id}`), characters (`/v1/characters/{id}`) |
 | `moderate` | kick, ban (days, reason), unban, broadcast a chat message |
-| `admin` | create/rename/delete accounts, set passwords and GM levels, maintenance mode, API keys (secret shown once at creation), audit log |
+| `admin` | create/rename/delete accounts, set passwords and GM levels, maintenance mode, API keys (secret shown once at creation), audit log, **world content** (below) |
+
+**World content** (admin; docs/WORLD-CONTENT.md, routes `/v1/content/...`, not in openapi.json):
+a queue of what world editors changed (`GET /v1/content/queue`: per playfield, feature and
+author, with a one-line summary and each record's details), with Approve / Reject for a whole
+change or ticked records; the rules (`GET/PUT /v1/content/rules`): which features are live on the
+server (`active`) and which are approved without asking, by feature/category (`auto_features`,
+e.g. `live` = "mimic live") or by author (`auto_authors`); pick features from
+`GET /v1/content/features` (show `path`, e.g. "New content > Christmas Event > 2026"); and a
+summary of the whole approved (and working) content (`GET /v1/content/summary?of=approved|working`).
+`GET /v1/content/state` gives the badge count (`pending`) and the source folder's error, if any.
 
 Moderators get 403 when they kick or ban staff (accounts with a GM level); only admins can.
 

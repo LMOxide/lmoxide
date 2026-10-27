@@ -293,12 +293,8 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     tokio::spawn(watch_walls());
 }
 
-/// Spawns playfield `pf`'s objects from its base content and the set.
-fn build_playfield(st: &mut State, pf: u32) {
-    let empty = Vec::new();
-    let defs = st.bases.get(&pf).unwrap_or(&empty);
-    let bases: Vec<Base<SpawnDef>> = defs
-        .iter()
+fn bases_of(defs: &[SpawnDef]) -> Vec<Base<SpawnDef>> {
+    defs.iter()
         .map(|d| Base {
             kind: skind(d.kind),
             monster_data: nonzero(d.monster_data),
@@ -307,7 +303,34 @@ fn build_playfield(st: &mut State, pf: u32) {
             category: Category::from_source(d.source.as_deref()),
             data: d.clone(),
         })
+        .collect()
+}
+
+/// What a play server spawns in playfield `pf` (content.rs): its base content with the
+/// placements applied (guesses they replace or delete left out), without the placements of
+/// script waves (play servers don't run scripts yet); also how many of those were left out.
+pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement], catalog: &[(Placeable, SpawnDef)]) -> (Vec<SpawnDef>, usize) {
+    let bases = bases_of(defs);
+    let applied = sv::apply::apply(pf, &bases, placements, MATCH_DISTANCE);
+    for p in &applied.orphans {
+        warn!(playfield = pf, placement = %p.id, "world content: the guess this placement replaces is gone; not spawned");
+    }
+    let out = applied
+        .start
+        .into_iter()
+        .filter_map(|s| match s {
+            Spawn::Base { data, .. } => Some(data.clone()),
+            Spawn::Surveyed { placement, replaced } => from_placement(catalog, pf, placement, replaced).map(|o| o.def),
+        })
         .collect();
+    (out, applied.waves.len())
+}
+
+/// Spawns playfield `pf`'s objects from its base content and the set.
+fn build_playfield(st: &mut State, pf: u32) {
+    let empty = Vec::new();
+    let defs = st.bases.get(&pf).unwrap_or(&empty);
+    let bases = bases_of(defs);
     let placements: Vec<Placement> = st.set.placements.get(&pf).map(|f| f.placements.clone()).unwrap_or_default();
     let applied = sv::apply::apply(pf, &bases, &placements, MATCH_DISTANCE);
     for p in &applied.orphans {
@@ -418,7 +441,7 @@ fn bare_def(kind: Kind, monster_data: u32, template: u32, level: u32) -> SpawnDe
 /// (kind, name, look, template)
 type LookKey = (SKind, String, Option<u32>, Option<u32>);
 
-fn catalog_of(bases: &BTreeMap<u32, Vec<SpawnDef>>) -> Vec<(Placeable, SpawnDef)> {
+pub(crate) fn catalog_of(bases: &BTreeMap<u32, Vec<SpawnDef>>) -> Vec<(Placeable, SpawnDef)> {
     // each look: the first spawn of it, and how often each playfield uses it
     let mut seen: BTreeMap<LookKey, (SpawnDef, BTreeMap<u32, u32>)> = BTreeMap::new();
     for (pf, defs) in bases {

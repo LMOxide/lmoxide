@@ -294,9 +294,9 @@ Next:
 9. **Buildies and interactables**: placing them (ghosts to wear) and editing them (they are
    buildie.rs / scenery.rs objects, not NPCs); buildies can already be selected and hidden.
 10. **Patrol routes in game**: markers at the selected patroller's points.
-11. **Play servers use accepted sets** (trigger walls too): a reviewed set (e.g. `data/survey/<set>/`) applied over
-    the base content at startup with `lmoxide_survey::apply`. Placements with a wave aren't
-    spawned until their (reviewed, implemented) trigger.
+11. **Play servers use accepted sets**: done for placements without a wave (docs/WORLD-CONTENT.md:
+    approval queue, rules, features, live reload). Still to do there: trigger walls, and placements
+    with a wave once their (reviewed, implemented) trigger runs.
 12. **docker-compose** service for a survey server.
 
 Open research, separate from the steps: whether the client lets GMs zoom freely (Linux symbols),

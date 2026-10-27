@@ -562,6 +562,31 @@ pub async fn survey(
     Ok(resp)
 }
 
+/// A play server's world content (docs/WORLD-CONTENT.md: the approval queue, rules, summaries),
+/// forwarded to its control interface like [`survey`]. Admin only.
+pub async fn content(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    auth: Auth,
+    method: axum::http::Method,
+    axum::extract::Path(path): axum::extract::Path<String>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    body: axum::body::Bytes,
+) -> ApiResult<axum::response::Response> {
+    use axum::response::IntoResponse;
+    auth.require(Scope::Admin)?;
+    let target = match query {
+        Some(q) => format!("{path}?{q}"),
+        None => path,
+    };
+    let (status, content_type, body) = control(&state)?.content(method.as_str(), &target, &auth.actor, body.to_vec()).await.map_err(ApiError::game_server)?;
+    let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
+    let mut resp = (status, body).into_response();
+    if let Some(ct) = content_type.and_then(|c| axum::http::HeaderValue::from_str(&c).ok()) {
+        resp.headers_mut().insert(axum::http::header::CONTENT_TYPE, ct);
+    }
+    Ok(resp)
+}
+
 fn control(state: &AppState) -> ApiResult<&lmoxide_control::Client> {
     state.control.as_ref().ok_or_else(|| {
         ApiError::new(StatusCode::SERVICE_UNAVAILABLE, "no_control", "no game server control interface configured")

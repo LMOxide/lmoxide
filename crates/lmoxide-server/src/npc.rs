@@ -575,6 +575,9 @@ pub fn start() {
     if crate::survey::enabled() {
         // what is spawned, and as what, is the survey set's business
         crate::survey::start(all);
+    } else if crate::content::enabled() {
+        // the approved world content applied, reloaded as it changes
+        crate::content::start(all);
     } else {
         for (playfield, def) in all {
             spawn_as(new_id(&def), def, playfield);

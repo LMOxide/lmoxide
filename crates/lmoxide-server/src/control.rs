@@ -36,6 +36,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
         // survey imports carry whole sets
         .merge(crate::survey::routes().layer(axum::extract::DefaultBodyLimit::max(SURVEY_BODY_LIMIT)))
+        .merge(crate::content::routes())
         .layer(middleware::from_fn_with_state(token, auth));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     info!("control interface listening on {addr}");

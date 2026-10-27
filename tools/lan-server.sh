@@ -10,6 +10,8 @@
 # an account without one). Everyone can chat (the patched client shows the chat window without a
 # GM level); test commands need one: LMOXIDE_DEFAULT_GM_LEVEL=1 gives it to every account.
 # Progression is on (--progression: XP, levels and minifigure ranks, as live).
+# World content: what the world editor (tools/survey-server.sh, ../var/survey-set) makes is approved
+# into this server by its rules or an admin (docs/WORLD-CONTENT.md; LMOXIDE_WORLD_EDITOR_SET= moves it).
 # The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
 # client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
 # is started again; the API is started again too. Rebuild and restart both while this runs:
@@ -150,5 +152,6 @@ trap 'kill $PATCH ${CDN:-} ${API:-} ${WEB[*]} 2>/dev/null; [[ -s $ROOT/logs/lan-
 python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,7200 --pidfile "$ROOT/logs/lan-server.pid" \
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
-  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --progression ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
+  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --progression \
+  --world-editor-set "${LMOXIDE_WORLD_EDITOR_SET:-$VAR/survey-set}" ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"

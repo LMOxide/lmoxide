@@ -240,8 +240,17 @@ impl Client {
     /// Sends a `/v1/survey` request on as it is (lmoxide-api's survey pass-through), with who
     /// made it (`X-Lmoxide-Actor`): the answer's status, content type and body, errors included.
     pub async fn survey(&self, method: &str, path_and_query: &str, actor: &str, body: Vec<u8>) -> Result<(u16, Option<String>, Vec<u8>), Error> {
+        self.forward("survey", method, path_and_query, actor, body).await
+    }
+
+    /// A play server's world content routes (`/v1/content/...`), forwarded as `survey` is.
+    pub async fn content(&self, method: &str, path_and_query: &str, actor: &str, body: Vec<u8>) -> Result<(u16, Option<String>, Vec<u8>), Error> {
+        self.forward("content", method, path_and_query, actor, body).await
+    }
+
+    async fn forward(&self, area: &str, method: &str, path_and_query: &str, actor: &str, body: Vec<u8>) -> Result<(u16, Option<String>, Vec<u8>), Error> {
         let method = reqwest::Method::from_bytes(method.as_bytes()).unwrap_or(reqwest::Method::GET);
-        let mut req = self.http.request(method, format!("{}/v1/survey/{}", self.base, path_and_query.trim_start_matches('/')));
+        let mut req = self.http.request(method, format!("{}/v1/{area}/{}", self.base, path_and_query.trim_start_matches('/')));
         req = req.bearer_auth(&self.token).header("x-lmoxide-actor", actor);
         if !body.is_empty() {
             req = req.header(reqwest::header::CONTENT_TYPE, "application/json").body(body);
