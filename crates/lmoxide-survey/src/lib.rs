@@ -300,7 +300,7 @@ pub struct TriggerWall {
     #[serde(default)]
     pub heading: f32,
     pub size: Vec3,
-    /// How the survey server draws it ("red", "green", ...; the server's list).
+    /// How the survey server draws it ("green", "shield", ...; the server's list).
     #[serde(default = "default_color")]
     pub color: String,
     pub action: WallAction,
@@ -322,7 +322,7 @@ pub struct TriggerWall {
 }
 
 fn default_color() -> String {
-    "red".into()
+    "green".into()
 }
 
 impl TriggerWall {
@@ -465,7 +465,7 @@ mod tests {
         let json = serde_json::to_string(&t).unwrap();
         assert!(json.contains(r#""action":"other""#));
         let back: TriggerWall = serde_json::from_str(r#"{"id":"x","pos":[0,0,0],"size":[1,2,3],"action":{"script":{"script":"s"}}}"#).unwrap();
-        assert_eq!((back.color.as_str(), back.action), ("red", WallAction::Script { script: Some("s".into()), wave: None }));
+        assert_eq!((back.color.as_str(), back.action), ("green", WallAction::Script { script: Some("s".into()), wave: None }));
     }
 
     #[test]

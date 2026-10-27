@@ -1924,7 +1924,8 @@ fn preview(st: &mut State, player: Id32, pf: u32, wave: &WaveRef) {
 /// bounds). The arena doors' closed (red) and open (green) visuals, and the shield and
 /// forcefield walls of the Shadow Centurion Base and the Sorcerer's Keep.
 const WALL_LOOKS: &[(&str, [u32; 2], [f32; 2], f32)] = &[
-    ("red", [1010030, 155861], [-4.12, 4.12], 3.24),
+    // (not the red arena gate, 155861: it is solid, so the wall can't be walked through; walls
+    // saved as red show green)
     ("green", [1010030, 155858], [-4.12, 4.12], 3.24),
     ("shield", [1010030, 162353], [-2.5, 2.5], 8.0),
     ("low shield", [1010030, 351981], [-2.588, 2.588], 3.3),
@@ -2071,6 +2072,8 @@ fn checked_size(size: [f32; 3]) -> [f32; 3] {
 fn checked_color(color: Option<String>) -> Result<String, Error> {
     match color {
         None => Ok(WALL_LOOKS[0].0.into()),
+        // the red arena gate is gone (solid): its walls become green
+        Some(c) if c == "red" => Ok(WALL_LOOKS[0].0.into()),
         Some(c) if WALL_LOOKS.iter().any(|l| l.0 == c) => Ok(c),
         Some(c) => Err(Error::Invalid(format!("no wall look {c} (wall-looks lists them)"))),
     }

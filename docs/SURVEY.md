@@ -117,7 +117,7 @@ walks through them.
 
 ```json
 { "id": "t-…", "name": "cove entrance", "pos": [300.0, 48.0, 90.0], "heading": 1.57,
-  "size": [6.0, 3.0, 1.0], "color": "red",
+  "size": [6.0, 3.0, 1.0], "color": "green",
   "action": { "script": { "script": "s-…", "wave": null } }, "once": true, "comment": "…" }
 ```
 
@@ -132,8 +132,9 @@ walks through them.
   exploration achievements (with every location each needs), the recorded dialogues and the
   portals' teleport windows (`portals`: window, destination, whether it asks Yes/No, the
   playfields with such a portal).
-- `color`: how the survey server draws it, from the arena doors and forcefields: `red`, `green`,
-  `shield`, `low shield`, `forcefield` (`GET /v1/survey/wall-looks`). The look is scaled to the
+- `color`: how the survey server draws it, from the arena doors and forcefields: `green` (the
+  default), `shield`, `low shield`, `forcefield` (`GET /v1/survey/wall-looks`). Not the red arena
+  door: it is solid, so the wall couldn't be walked through (walls saved as `red` show green). The look is scaled to the
   height and repeated across the width; crossing is checked against the exact box.
 - In survey mode crossing one shows what it would do: a script's wave pops in (as "Preview"),
   `dialog` with a number opens it, `portal` opens its window (`!window`; only `to`: `!tp`), the
