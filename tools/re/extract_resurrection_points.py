@@ -29,5 +29,5 @@ for (t, pf) in sorted(idx):
         })
     if points:
         out[str(pf)] = points
-json.dump(out, open(os.path.join(ROOT, "data/resurrection_points.json"), "w"), separators=(",", ":"), sort_keys=True)
+json.dump(out, open(os.path.join(ROOT, "data/archive/resurrection_points.json"), "w"), separators=(",", ":"), sort_keys=True)
 print(len(out), "playfields,", sum(map(len, out.values())), "points")

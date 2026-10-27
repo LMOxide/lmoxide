@@ -8,7 +8,7 @@ from rdb import index, body
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 PATTERN = bytes.fromhex("d2020000006701000" "0f20200000001000000f902000000")
 idx = index()
-ids = json.load(open(os.path.join(ROOT, "data/minifigure_spells.json")))
+ids = json.load(open(os.path.join(ROOT, "data/archive/minifigure_spells.json")))
 out, missing = {}, []
 for t in sorted(ids, key=int):
     try:
@@ -21,5 +21,5 @@ for t in sorted(ids, key=int):
         missing.append(t)
         continue
     out[t] = struct.unpack_from("<I", b, i + len(PATTERN))[0]
-json.dump(out, open(os.path.join(ROOT, "data/minifigure_monster_data.json"), "w"), indent=1, sort_keys=True)
+json.dump(out, open(os.path.join(ROOT, "data/archive/minifigure_monster_data.json"), "w"), indent=1, sort_keys=True)
 print(len(out), "found; missing:", missing)

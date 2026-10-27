@@ -17,7 +17,7 @@ import rdb
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 idx = rdb.index()
-minifigs = json.load(open(os.path.join(ROOT, "data/minifigure_stats.json")))["minifigures"]
+minifigs = json.load(open(os.path.join(ROOT, "data/archive/minifigure_stats.json")))["minifigures"]
 
 
 def acts(spell):
@@ -92,7 +92,7 @@ for spell, who in sorted(spells.items()):
         "path_visuals": visuals(d["GameAction_TemplateID"]) if "GameAction_TemplateID" in d else [],
         "arrival_visuals": visuals(d["GameAction_TemplateID2"]) if "GameAction_TemplateID2" in d else [],
     }
-path = os.path.join(ROOT, "data/dashes.json")
+path = os.path.join(ROOT, "data/archive/dashes.json")
 lines = ["{"] + [f'  "{k}": {json.dumps(v)}' + ("," if i < len(out) - 1 else "") for i, (k, v) in enumerate(out.items())] + ["}"]
 open(path, "w").write("\n".join(lines) + "\n")
 print(len(out), "dashes")

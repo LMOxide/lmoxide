@@ -154,7 +154,7 @@ out = {
     "names": {str(k): names_db[k] for k in sorted(used)},
     "dialogues": dialogues,
 }
-path = os.path.join(ROOT, "data/dialogues.json")
+path = os.path.join(ROOT, "data/archive/dialogues.json")
 json.dump(out, open(path, "w"), indent=1, ensure_ascii=False)
 print(f"{len(texts)} texts, {len(answers)} answers, {len(keys)} keys, {len(dialogues)} dialogues -> {path}")
 for d in dialogues:

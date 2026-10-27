@@ -10,8 +10,8 @@ import navmesh
 from rdb import index
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
-path = os.path.join(ROOT, "data/destinations.json")
-out_path = os.path.join(ROOT, "data/return_points.json")
+path = os.path.join(ROOT, "data/archive/destinations.json")
+out_path = os.path.join(ROOT, "data/archive/return_points.json")
 # outside the server's portal trigger radius (teleport.rs PORTAL_RADIUS 3 m)
 RINGS = (5.0, 6.5, 8.0)
 DIRECTIONS = 24

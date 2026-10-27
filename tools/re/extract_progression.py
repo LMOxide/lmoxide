@@ -40,6 +40,6 @@ doc = {
     "minifigure_xp": {str(k): xp[k] for k in sorted(xp)},
     "rank_player_level": [levels[t] for t in TIER_TAGS],
 }
-path = os.path.join(ROOT, "data/progression.json")
+path = os.path.join(ROOT, "data/archive/progression.json")
 json.dump(doc, open(path, "w"), indent=1)
 print(doc)

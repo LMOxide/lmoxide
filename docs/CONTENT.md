@@ -24,8 +24,9 @@ to it one system at a time:
 
 Every system now reads the content tree. `data/` keeps the reference catalogs (read-only, generated
 from the client), dev test scenarios (`test_scenarios.json`), the patch server's client files
-(`login.html`, `PatchInfoClient.txt`) and the files the content tree replaced, which only the
-importer and the tests that compare against them still read.
+(`login.html`, `PatchInfoClient.txt`); the files the content tree replaced are in `data/archive/`
+(its README.md): only the importer, the extractors and the tests that compare against them read
+them.
 
 Edits to what the server doesn't read yet have no effect in game. Running the importer again
 overwrites the whole tree, edits included: don't, once the tree is edited by hand.

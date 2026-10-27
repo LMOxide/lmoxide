@@ -19,7 +19,7 @@ MONSTER_DATA = 1010514
 def world_users():
     """monster data -> {(name, kind)} of what the world data places."""
     users = defaultdict(set)
-    content = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+    content = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
     for pf in content.values():
         if not isinstance(pf, dict):  # (_comment)
             continue
@@ -27,7 +27,7 @@ def world_users():
             for e in pf.get(key, []):
                 if e.get("monster_data"):
                     users[e["monster_data"]].add((e["name"], kind))
-    for spawns in json.load(open(os.path.join(ROOT, "data/spawns.json"))).values():
+    for spawns in json.load(open(os.path.join(ROOT, "data/archive/spawns.json"))).values():
         for e in spawns if isinstance(spawns, list) else []:
             if e.get("monster_data"):
                 users[e["monster_data"]].add((e["name"], e.get("kind", "enemy")))
@@ -38,7 +38,7 @@ def main():
     idx = rdb.index()
     users = world_users()
     figures = defaultdict(list)
-    for template, md in json.load(open(os.path.join(ROOT, "data/minifigure_monster_data.json"))).items():
+    for template, md in json.load(open(os.path.join(ROOT, "data/archive/minifigure_monster_data.json"))).items():
         figures[md].append(int(template))
     out, skipped = [], []
     for t, r in sorted(idx):

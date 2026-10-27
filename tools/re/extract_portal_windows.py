@@ -10,7 +10,7 @@ import json, os
 import rdb
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
-path = os.path.join(ROOT, "data/destinations.json")
+path = os.path.join(ROOT, "data/archive/destinations.json")
 HUB = 1200
 
 

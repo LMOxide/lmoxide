@@ -15,17 +15,17 @@ import navmesh
 import rdb
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
-path = os.path.join(ROOT, "data/destinations.json")
+path = os.path.join(ROOT, "data/archive/destinations.json")
 data = json.load(open(path))
 idx = rdb.index()
 targets = {p["to"] for lst in data["portals"].values() for p in lst}
 # skipping the sound and art layers of other playfields ("Medieval - Kingdom - SOUND")
-names = {int(k): name for k, name in json.load(open(os.path.join(ROOT, "data/playfields.json")))["playfields"].items()}
+names = {int(k): name for k, name in json.load(open(os.path.join(ROOT, "data/archive/playfields.json")))["playfields"].items()}
 targets |= set(names)
 capture = {}
 for e in json.load(open(os.path.join(ROOT, "data/live-capture/lmo-captures/playfield-objects.json")))["playfields"]:
     capture.setdefault(e["playfield"], e["arrival_pos"])
-world = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+world = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
 
 
 def guessed(pf):

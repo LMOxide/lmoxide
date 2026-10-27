@@ -59,7 +59,7 @@ MAIN = [1200, 1300, 4200, 4210, 5200, 5210, 3200, 3210, 2210, 6200, 4600]
 
 idx = index()
 LINUX_IDX = index(LINUX_CLIENT) if os.path.isdir(LINUX_CLIENT) else None
-DESTINATIONS = {int(k) for k in json.load(open(os.path.join(ROOT, "data/destinations.json")))["destinations"]}
+DESTINATIONS = {int(k) for k in json.load(open(os.path.join(ROOT, "data/archive/destinations.json")))["destinations"]}
 
 
 def get(t, i):
@@ -792,7 +792,7 @@ def theme_of(pf, parents, seen=()):
     return None
 
 
-NPC_LIFE = json.load(open(os.path.join(ROOT, "data/npc_life.json")))  # tools/re/live_npc_life.py
+NPC_LIFE = json.load(open(os.path.join(ROOT, "data/archive/npc_life.json")))  # tools/re/live_npc_life.py
 
 
 def npc_life(level, health_scale=1):
@@ -1022,7 +1022,7 @@ def live_unique(recs, paths, first_t):
 def main():
     global SMASHIE_TEMPLATE
     SMASHIE_TEMPLATE = destructible_templates()
-    dest = json.load(open(os.path.join(ROOT, "data/destinations.json")))["destinations"]
+    dest = json.load(open(os.path.join(ROOT, "data/archive/destinations.json")))["destinations"]
     port = portals()
     demo = demo_records()
     live, live_paths = live_records()
@@ -1094,7 +1094,7 @@ def main():
         add_patrols(w, patrols.get(pf, []))
         world[str(pf)] = w
     world["_comment"] = __doc__.split("\n\n")[0] + " See tools/re/extract_world_content.py for formats and sources."
-    path = os.path.join(ROOT, "data/world_content.json")
+    path = os.path.join(ROOT, "data/archive/world_content.json")
     with open(path, "w") as f:
         json.dump(world, f, indent=1)
     for pf, w in world.items():

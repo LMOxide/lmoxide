@@ -49,7 +49,7 @@ def centre(poly):
 
 def main():
     idx = rdb.index(LINUX)
-    world = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+    world = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
     out = {}
     for pf_s, content in world.items():
         if not pf_s.isdigit():
@@ -98,7 +98,7 @@ def main():
         if entry:
             out[pf_s] = entry
     doc = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), **out}
-    path = os.path.join(ROOT, "data/encounters.json")
+    path = os.path.join(ROOT, "data/archive/encounters.json")
     json.dump(doc, open(path, "w"), indent=0)
     print(f"{path}: {sum(len(v.get('arenas', [])) for v in out.values())} arenas, "
           f"{sum(len(v.get('ambushes', [])) for v in out.values())} ambushes, "

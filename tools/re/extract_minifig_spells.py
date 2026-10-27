@@ -23,6 +23,6 @@ for (t, rid) in sorted(idx):
     for e in msg.MinifigureUpgradeList:
         table[str(e.minifigure_id)] = [e.left_click_id, e.right_click_id]
         abilities[str(e.minifigure_id)] = [[a.position, a.template_id, a.slot_position] for a in e.ability_list]
-json.dump(table, open(os.path.join(ROOT, "data/minifigure_spells.json"), "w"), indent=1, sort_keys=True)
-json.dump(abilities, open(os.path.join(ROOT, "data/minifigure_abilities.json"), "w"), sort_keys=True)
+json.dump(table, open(os.path.join(ROOT, "data/archive/minifigure_spells.json"), "w"), indent=1, sort_keys=True)
+json.dump(abilities, open(os.path.join(ROOT, "data/archive/minifigure_abilities.json"), "w"), sort_keys=True)
 print(len(table), "minifigures")

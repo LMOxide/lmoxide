@@ -214,11 +214,11 @@ def main():
     by_name = spells_by_name()
     # every enemy the server spawns
     enemies = set()
-    worlds = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+    worlds = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
     for w in worlds.values():
         if isinstance(w, dict):
             enemies |= {e["monster_data"] for e in w.get("enemies", [])}
-    for defs in json.load(open(os.path.join(ROOT, "data/spawns.json"))).values():
+    for defs in json.load(open(os.path.join(ROOT, "data/archive/spawns.json"))).values():
         enemies |= {d["monster_data"] for d in defs if d.get("kind", "enemy") == "enemy"}
 
     monsters = {}
@@ -278,7 +278,7 @@ def main():
         "spells": dict(sorted(spells.items(), key=lambda kv: int(kv[0]))),
         "items": dict(sorted(items.items(), key=lambda kv: int(kv[0]))),
     }
-    with open(os.path.join(ROOT, "data/npc_spells.json"), "w") as f:
+    with open(os.path.join(ROOT, "data/archive/npc_spells.json"), "w") as f:
         json.dump(out, f, indent=1, sort_keys=False)
         f.write("\n")
     print(len(monsters), "monsters,", len(spells), "spells,", len(items), "projectile items")

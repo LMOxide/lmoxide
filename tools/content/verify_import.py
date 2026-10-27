@@ -19,7 +19,8 @@ def load(path):
 
 
 def d(name):
-    return load(os.path.join(data, name))
+    archived = os.path.join(data, "archive", name)
+    return load(archived if os.path.exists(archived) else os.path.join(data, name))
 
 
 records = {}

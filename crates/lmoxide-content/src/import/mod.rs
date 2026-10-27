@@ -117,7 +117,11 @@ pub fn read_json(path: &Path) -> Result<Value> {
 
 /// Reads everything into a [`Tree`].
 pub fn read(src: &Sources) -> Result<Tree> {
-    let data = |name: &str| read_json(&src.data.join(name));
+    // (the files the content tree replaced are in data/archive)
+    let data = |name: &str| {
+        let archived = src.data.join("archive").join(name);
+        read_json(&if archived.exists() { archived } else { src.data.join(name) })
+    };
     let mut tree = Tree::default();
     let mut ctx = Ctx::default();
     tree.manifest = Some(Manifest {

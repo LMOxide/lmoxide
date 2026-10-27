@@ -269,7 +269,7 @@ def main():
     # ("Siege Command Room", "Spider's Nest")
     names = {str(k): v for k, v in sorted(tdc.texts(PLAYFIELD_NAMES).items())}
     doc = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), "achievements": out, "playfields": names}
-    path = os.path.join(ROOT, "data/achievements.json")
+    path = os.path.join(ROOT, "data/archive/achievements.json")
     json.dump(doc, open(path, "w"), indent=0)
     kinds = {}
     for a in out:

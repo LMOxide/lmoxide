@@ -22,7 +22,7 @@ EXTRA = (519852, 506676, 234304)
 
 
 def load(name):
-    return json.load(open(os.path.join(ROOT, "data", name)))
+    return json.load(open(os.path.join(ROOT, "data", "archive", name)))
 
 
 def projectile_actions(lists):
@@ -67,7 +67,7 @@ out = {
     "items": radii,
     "spells": ranges,
 }
-with open(os.path.join(ROOT, "data/projectile_sizes.json"), "w") as f:
+with open(os.path.join(ROOT, "data/archive/projectile_sizes.json"), "w") as f:
     json.dump(out, f, indent=1)
     f.write("\n")
 print(len(radii), "items,", len(ranges), "spells with a range")

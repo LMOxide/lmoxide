@@ -138,7 +138,7 @@ mod tests {
     use super::*;
 
     fn data(name: &str) -> Value {
-        let path = format!("{}/../../data/{name}", env!("CARGO_MANIFEST_DIR"));
+        let path = format!("{}/../../data/archive/{name}", env!("CARGO_MANIFEST_DIR"));
         serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
     }
 

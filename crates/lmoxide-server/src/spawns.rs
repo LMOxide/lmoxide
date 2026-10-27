@@ -115,7 +115,7 @@ mod tests {
     /// The table the server built from data/spawns.json, world_content.json and npc_fights.json
     /// (npc.rs before the content tree), to compare with.
     fn old_table() -> HashMap<String, Vec<SpawnDef>> {
-        let data = |name: &str| std::fs::read_to_string(format!("{}/../../data/{name}", env!("CARGO_MANIFEST_DIR"))).unwrap();
+        let data = |name: &str| std::fs::read_to_string(format!("{}/../../data/archive/{name}", env!("CARGO_MANIFEST_DIR"))).unwrap();
         let mut table: HashMap<String, Vec<SpawnDef>> = serde_json::from_str(&data("spawns.json")).unwrap();
         for d in table.values_mut().flatten() {
             d.source.get_or_insert_with(|| "proposed".into());

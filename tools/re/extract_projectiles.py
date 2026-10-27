@@ -18,8 +18,8 @@ from gameactions import actions, lists
 ON_CHANNELING_END = 36
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
-spells = json.load(open(os.path.join(ROOT, "data/minifigure_spells.json")))
-abilities = json.load(open(os.path.join(ROOT, "data/minifigure_abilities.json")))
+spells = json.load(open(os.path.join(ROOT, "data/archive/minifigure_spells.json")))
+abilities = json.load(open(os.path.join(ROOT, "data/archive/minifigure_abilities.json")))
 ids = {s for v in spells.values() for s in v} | {a[1] for v in abilities.values() for a in v}
 idx = rdb.index()
 out = {}
@@ -54,5 +54,5 @@ for sid in sorted(ids):
             counter = next((a["args"].get("GameAction_TemplateID") for a in acts if a["type"] == "AddBuffCounter"), None)
             if counter:
                 out[str(sid)]["counter_buff"] = counter
-json.dump(out, open(os.path.join(ROOT, "data/projectiles.json"), "w"), indent=0, sort_keys=True)
+json.dump(out, open(os.path.join(ROOT, "data/archive/projectiles.json"), "w"), indent=0, sort_keys=True)
 print(len(out), "projectile spells")

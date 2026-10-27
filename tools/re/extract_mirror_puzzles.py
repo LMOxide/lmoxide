@@ -37,7 +37,7 @@ def yaw(q):
 
 
 def main():
-    worlds = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+    worlds = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
     out = {"_comment": __doc__.split("\n\n")[0]}
     for pf, spec in PUZZLES.items():
         items = worlds[pf]["simple_dynels"]
@@ -86,7 +86,7 @@ def main():
             "opens": spec["opens"],
         }
         print(pf, len(entries), "mirrors, unlit by others:", sorted(set(named) - lit_by))
-    path = os.path.join(ROOT, "data/mirror_puzzles.json")
+    path = os.path.join(ROOT, "data/archive/mirror_puzzles.json")
     json.dump(out, open(path, "w"), indent=1)
     print("wrote", path)
 

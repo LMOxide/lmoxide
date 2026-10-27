@@ -28,7 +28,7 @@ def fields(b):
 
 
 def main():
-    out_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "../../data/minifig_parts.json")
+    out_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "../../data/archive/minifig_parts.json")
     idx = index()
     from extract_world_content import item_name
 

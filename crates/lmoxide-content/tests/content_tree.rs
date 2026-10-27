@@ -44,7 +44,7 @@ fn achievements_same_as_the_old_file() {
     let (content, _) = load(tree(), &Options::default());
     let new = lmoxide_content::compat::achievements_file(&content);
     let old: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(tree().join("../data/achievements.json")).unwrap()).unwrap();
+        serde_json::from_str(&std::fs::read_to_string(tree().join("../data/archive/achievements.json")).unwrap()).unwrap();
     let (o, n) = (old["achievements"].as_array().unwrap(), new["achievements"].as_array().unwrap());
     assert_eq!(o.len(), n.len());
     for (a, b) in o.iter().zip(n) {
@@ -62,7 +62,7 @@ fn achievements_same_as_the_old_file() {
 fn dialogues_same_as_the_old_file() {
     let (content, _) = load(tree(), &Options::default());
     let new = lmoxide_content::compat::dialogues_file(&content);
-    let old: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(tree().join("../data/dialogues.json")).unwrap()).unwrap();
+    let old: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(tree().join("../data/archive/dialogues.json")).unwrap()).unwrap();
     for k in ["texts", "answers", "keys", "names"] {
         assert_eq!(old[k], new[k], "{k}");
     }

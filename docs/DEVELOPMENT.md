@@ -122,19 +122,22 @@ from `/opt/ghidra` (Arch `ghidra` package) or `$GHIDRA_HOME`. See also [PROTOCOL
 
 ### Regenerating `data/` and `proto/`
 
+Extractors that write to `data/archive/` feed only `lmoxide-content import` (which rebuilds the whole
+content tree): the game reads `content/` (docs/CONTENT.md), so new findings go into the content tree.
+
 | Command | What it does |
 |---|---|
 | `tools/re/py extract_rpc.py <out.json>` | `data/rpc_methods.json` |
 | `tools/re/py extract_protos.py <exe> <dir>` | `proto/` |
 | `tools/re/py extract_iir.py <out.json>` | `data/iir_types.json` (IIR names, type ids, classes, protobufs) |
-| `tools/re/py extract_progression.py` | `data/progression.json` (minifigure rank costs, rank level requirements) |
-| `tools/re/py extract_achievements.py` | `data/achievements.json` (the lore tree's achievements, with inferred rules) |
-| `tools/re/py extract_encounters.py` | `data/encounters.json` (boss arenas, ambushes, champion spots from the bounded areas, RDB 1000053 of the Linux client) |
-| `tools/re/py extract_spell_actions.py` | `data/spell_actions.json` (action lists of the channelled abilities and the nanos they cast) |
-| `tools/re/py extract_return_points.py` | `data/return_points.json` (arrival next to the portal back to where the player came from) |
+| `tools/re/py extract_progression.py` | `data/archive/progression.json` (minifigure rank costs, rank level requirements) |
+| `tools/re/py extract_achievements.py` | `data/archive/achievements.json` (the lore tree's achievements, with inferred rules) |
+| `tools/re/py extract_encounters.py` | `data/archive/encounters.json` (boss arenas, ambushes, champion spots from the bounded areas, RDB 1000053 of the Linux client) |
+| `tools/re/py extract_spell_actions.py` | `data/archive/spell_actions.json` (action lists of the channelled abilities and the nanos they cast) |
+| `tools/re/py extract_return_points.py` | `data/archive/return_points.json` (arrival next to the portal back to where the player came from) |
 | `tools/re/py extract_effect_catalog.py [--no-refs]` | `data/effect_catalog.json`, `data/effect_package_ids.json` (effect packages: timelines, code hooks, particles and sounds with RDB ids; `used_by` takes ~10 min) |
 | `tools/re/py extract_animations.py` | `data/animations.json` (motion sets, anim graphs, animation attributes and the package `!anim` plays; after the effect catalog) |
 | `tools/re/py extract_monster_data.py` | `data/monster_data.json` (every look, RDB 1010514 binary XML: `lmxb.py`) |
 | `tools/re/py extract_bcc_states.py` | `data/bcc_states.json` (character states and substates from the client's behaviour tree) |
-| `tools/re/py extract_playfields.py` | `data/playfields.json` (every playfield's name) |
+| `tools/re/py extract_playfields.py` | `data/archive/playfields.json` (every playfield's name) |
 | `tools/re/py rdb_names.py TYPE [NAME]` | the client's resource name index (RDB 1020004): names of sounds, particles, ... |

@@ -17,7 +17,7 @@ for t, r in sorted(idx):
     m = re.search(r'<playfield Name="([^"]*)"', rdb.body(t, r, idx).decode("utf-8", "replace"))
     if m:
         names[str(r)] = unescape(m.group(1))
-path = os.path.join(ROOT, "data/playfields.json")
+path = os.path.join(ROOT, "data/archive/playfields.json")
 with open(path, "w") as f:
     f.write('{\n "_comment": "Playfield names (RDB 1070003). See tools/re/extract_playfields.py.",\n "playfields": {\n')
     f.write(",\n".join(f"  {json.dumps(k)}: {json.dumps(v)}" for k, v in names.items()) + "\n }\n}\n")

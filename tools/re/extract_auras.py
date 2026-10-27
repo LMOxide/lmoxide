@@ -59,6 +59,6 @@ table = source[source.index("MinifigureAuraTagTable") :]
 table = table[: table.index("}\r\n\r\n") if "}\r\n\r\n" in table else len(table)]
 auras = {int(t): [int(x) for x in tags.split(",")] for t, tags in re.findall(r"\[(\d+)\]\s*=\s*\{([\d,\s]+)\}", table)}
 out = {"_comment": __doc__.split("\n\n")[0].replace("\n", " "), **{str(k): auras[k] for k in sorted(auras)}}
-path = os.path.join(ROOT, "data/minifigure_auras.json")
+path = os.path.join(ROOT, "data/archive/minifigure_auras.json")
 json.dump(out, open(path, "w"), indent=1)
 print(f"{len(auras)} minifigures -> {path}")

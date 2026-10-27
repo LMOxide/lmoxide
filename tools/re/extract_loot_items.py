@@ -23,7 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
-    out_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "../../data/loot_items.json")
+    out_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "../../data/archive/loot_items.json")
     idx = rdb.index()
     items = {}
     for t, r in sorted(idx):
@@ -33,7 +33,7 @@ def main():
         name, desc, stats = parse(b)
         items[r] = {"name": name, "dynel_type": struct.unpack_from("<I", b, 4)[0] if len(b) > 8 else None,
                     "stats": stats, "actions": ga.actions(r, 1000620, idx)}
-    parts = json.load(open(os.path.join(HERE, "../../data/minifig_parts.json")))
+    parts = json.load(open(os.path.join(HERE, "../../data/archive/minifig_parts.json")))
     part_of = {p["part_template_id"]: (f["minifigure_template_id"], f["name"], p["location"])
                for f in parts["minifigures"] for p in f["parts"]}
 

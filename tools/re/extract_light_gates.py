@@ -31,7 +31,7 @@ def flat(a, b):
 
 
 def main():
-    worlds = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+    worlds = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
     out = {"_comment": __doc__.split("\n\n")[0]}
     for pf, w in worlds.items():
         if not isinstance(w, dict):
@@ -58,7 +58,7 @@ def main():
         if entries:
             out[pf] = entries
             print(pf, [(e["gate"], len(e["mirrors"])) for e in entries])
-    path = os.path.join(ROOT, "data/light_gates.json")
+    path = os.path.join(ROOT, "data/archive/light_gates.json")
     json.dump(out, open(path, "w"), indent=1)
     print("wrote", path)
 

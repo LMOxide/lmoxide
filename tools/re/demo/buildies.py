@@ -58,7 +58,7 @@ def decode(body):
 
 # the dynel's playfield field is the instance; the playfield comes from world_content.json, where
 # extract_world_content.py placed the same recorded buildies
-world = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+world = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
 where = {(b["name"], tuple(b["pos"])): int(pf) for pf, w in world.items() if isinstance(w, dict) for b in w.get("buildies", [])}
 
 out, seen = [], set()
@@ -74,7 +74,7 @@ for x in recs:
     d["built_visual"] = built
     d["playfield"] = where[(d["name"], tuple(round(v, 2) for v in d["pos"]))]
     out.append(d)
-path = os.path.join(ROOT, "data/buildies.json")
+path = os.path.join(ROOT, "data/archive/buildies.json")
 open(path, "w").write("[\n" + ",\n".join(" " + json.dumps(d) for d in out) + "\n]\n")
 print(len(out), "buildies ->", path)
 for d in out:

@@ -30,7 +30,7 @@ from collections import defaultdict
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 DEFAULT_IN = os.path.join(ROOT, "data/live-capture/lmo-captures/playfield-objects.json")
-OUT = os.path.join(ROOT, "data/npc_life.json")
+OUT = os.path.join(ROOT, "data/archive/npc_life.json")
 BASE = {1: 62, 2: 90, 3: 114, 4: 132, 5: 168, 6: 234, 7: 282, 10: 538, 12: 750, 14: 1002, 15: 1314,
         19: 2362, 20: 2618, 23: 3024, 26: 3854, 27: 4020, 28: 4190, 32: 5878, 43: 8412, 46: 9230,
         48: 9818, 55: 12230, 56: 12632, 60: 14416, 62: 15438, 66: 17800, 68: 19172, 71: 21526,

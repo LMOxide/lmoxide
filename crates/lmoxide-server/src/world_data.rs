@@ -252,7 +252,7 @@ mod tests {
     use super::*;
 
     fn data(name: &str) -> Value {
-        serde_json::from_str(&std::fs::read_to_string(format!("{}/../../data/{name}", env!("CARGO_MANIFEST_DIR"))).unwrap()).unwrap()
+        serde_json::from_str(&std::fs::read_to_string(format!("{}/../../data/archive/{name}", env!("CARGO_MANIFEST_DIR"))).unwrap()).unwrap()
     }
 
     /// Equal as the server reads them: numbers as f32, nulls as missing.

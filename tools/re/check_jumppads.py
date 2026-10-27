@@ -52,7 +52,7 @@ def island_at(cs, label, p):
 
 
 def main():
-    worlds = json.load(open(os.path.join(ROOT, "data/world_content.json")))
+    worlds = json.load(open(os.path.join(ROOT, "data/archive/world_content.json")))
     only = set(sys.argv[1:])
     idx = index()
     total = flagged = 0

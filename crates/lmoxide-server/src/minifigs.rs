@@ -57,7 +57,7 @@ mod tests {
     use super::*;
 
     fn data(name: &str) -> serde_json::Value {
-        serde_json::from_str(&std::fs::read_to_string(format!("{}/../../data/{name}", env!("CARGO_MANIFEST_DIR"))).unwrap()).unwrap()
+        serde_json::from_str(&std::fs::read_to_string(format!("{}/../../data/archive/{name}", env!("CARGO_MANIFEST_DIR"))).unwrap()).unwrap()
     }
 
     #[test]

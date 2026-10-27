@@ -24,7 +24,7 @@ import json, os, sys
 import tdc
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(HERE, "../../data")
+DATA = os.path.join(HERE, "../../data/archive")
 
 WORLD_DIGIT = {2: "Mythology World", 3: "Space World", 4: "Pirate World", 5: "Medieval World", 6: "Dino World"}
 # "You can find me in the X." -> world

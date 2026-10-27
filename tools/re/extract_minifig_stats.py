@@ -165,8 +165,8 @@ def ability(aid, slot):
 
 
 def main():
-    spells = json.load(open(os.path.join(ROOT, "data/minifigure_spells.json")))
-    abilities = json.load(open(os.path.join(ROOT, "data/minifigure_abilities.json")))
+    spells = json.load(open(os.path.join(ROOT, "data/archive/minifigure_spells.json")))
+    abilities = json.load(open(os.path.join(ROOT, "data/archive/minifigure_abilities.json")))
     tw = tweaks()
     figures = {}
     for t in sorted(spells, key=int):
@@ -201,7 +201,7 @@ def main():
         },
     }
     out = {"model": model, "minifigures": figures}
-    json.dump(out, open(os.path.join(ROOT, "data/minifigure_stats.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(ROOT, "data/archive/minifigure_stats.json"), "w"), indent=1)
     nh = sum(1 for f in figures.values() if f["normal"]["hits"])
     print(len(figures), "minifigures;", nh, "with normal-attack WeaponHits")
 

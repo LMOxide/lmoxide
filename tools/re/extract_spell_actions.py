@@ -29,8 +29,8 @@ import rdb
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
 idx = rdb.index()
-minifigs = json.load(open(os.path.join(ROOT, "data/minifigure_stats.json")))["minifigures"]
-projectiles = json.load(open(os.path.join(ROOT, "data/projectiles.json")))
+minifigs = json.load(open(os.path.join(ROOT, "data/archive/minifigure_stats.json")))["minifigures"]
+projectiles = json.load(open(os.path.join(ROOT, "data/archive/projectiles.json")))
 KEEP = ("TimeExist", "ChannelingInterval", "ChannelingTicks", "RechargeDelay", "TargetingMode", "MaxBuffCounters", "LuaScriptID", "MoreFlags",
         "ItemDelay", "EffectPackage")
 SHORT = {"GameAction_": "", "AbilityMod": "AbilityMod"}
@@ -100,7 +100,7 @@ def follow(a):
 
 # upgrade abilities that take an attack's shortcut (slot 104 normal, 105 special: Lizard Man's
 # MOAR RAWR replaces RAWR)
-abilities = json.load(open(os.path.join(ROOT, "data/minifigure_abilities.json")))
+abilities = json.load(open(os.path.join(ROOT, "data/archive/minifigure_abilities.json")))
 for template, rows in abilities.items():
     m = minifigs.get(template, {})
     for _bit, spell, slot in rows:
@@ -145,7 +145,7 @@ out = {
     **{k: out[k] for k in sorted(out, key=int)},
     "items": dict(sorted(items.items(), key=lambda kv: int(kv[0]))),
 }
-path = os.path.join(ROOT, "data/spell_actions.json")
+path = os.path.join(ROOT, "data/archive/spell_actions.json")
 json.dump(out, open(path, "w"), indent=1)
 print(f"{len(roots)} abilities and combo steps, {len(out) - 2} spells, {len(items)} projectile items -> {path}")
 for s, who in sorted(roots.items(), key=lambda x: x[1]):

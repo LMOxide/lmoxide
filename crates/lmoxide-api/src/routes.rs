@@ -1543,9 +1543,9 @@ mod content_tests {
             name: String,
         }
         static LIST: std::sync::LazyLock<Vec<Minifigure>> = std::sync::LazyLock::new(|| {
-            let parts: Parts = serde_json::from_str(include_str!("../../../data/minifig_parts.json")).expect("minifig_parts.json");
+            let parts: Parts = serde_json::from_str(include_str!("../../../data/archive/minifig_parts.json")).expect("minifig_parts.json");
             let mut stats: Stats =
-                serde_json::from_str(include_str!("../../../data/minifigure_stats.json")).expect("minifigure_stats.json");
+                serde_json::from_str(include_str!("../../../data/archive/minifigure_stats.json")).expect("minifigure_stats.json");
             let mut list: Vec<Minifigure> = parts
                 .minifigures
                 .into_iter()
@@ -1603,8 +1603,8 @@ mod content_tests {
         struct Names {
             playfields: BTreeMap<u32, String>,
         }
-        let d: Destinations = serde_json::from_str(include_str!("../../../data/destinations.json")).unwrap();
-        let n: Names = serde_json::from_str(include_str!("../../../data/playfields.json")).unwrap();
+        let d: Destinations = serde_json::from_str(include_str!("../../../data/archive/destinations.json")).unwrap();
+        let n: Names = serde_json::from_str(include_str!("../../../data/archive/playfields.json")).unwrap();
         let mut old: BTreeMap<u32, (String, bool)> = n.playfields.into_iter().map(|(id, name)| (id, (decode_entities(&name), false))).collect();
         for (id, dest) in d.destinations {
             old.insert(id, (decode_entities(&dest.name), true));
