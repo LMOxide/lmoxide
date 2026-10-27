@@ -102,7 +102,8 @@ fi
 "$BIN/lmoxide-patch-server" --bind 0.0.0.0 --public-host "$IP" --client-dir "$CLIENT" \
   --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" \
-  --client-kit "$KIT" "${LINUX_ARGS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/lan-patch-server.log" 2>&1 &
+  --client-kit "$KIT" "${LINUX_ARGS[@]}" --server-kind progression --other-server "http://$IP:8081" \
+  ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/lan-patch-server.log" 2>&1 &
 PATCH=$!
 # the API reaches the game server's control interface (127.0.0.1:7300) with a shared token
 CONTROL_ARGS=()

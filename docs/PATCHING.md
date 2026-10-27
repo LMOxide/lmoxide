@@ -70,7 +70,7 @@ After changing a client or overlay dir, send the server `SIGHUP` (or restart it)
 
 | Route | Answer |
 |---|---|
-| `GET /lmoxide/v1/info` | JSON `Info`: `protocol` (1), `name`, `universe_addr`, `http_addr`, `https_addr`, `platforms`, `ready` (platforms whose manifest is built), `manifest_key` (ed25519, hex), `login_public_key` (hex or null), `warnings`, `revisions` (platform → manifest revision, see below), `install_bytes` (platform → size of a complete install), `api_url` (the public lmoxide-api base URL, or null), `website` (or null), `patchers` (patcher name → platform → newest version offered). The newer fields may be missing from older servers. |
+| `GET /lmoxide/v1/info` | JSON `Info`: `protocol` (1), `name`, `universe_addr`, `http_addr`, `https_addr`, `platforms`, `ready` (platforms whose manifest is built), `manifest_key` (ed25519, hex), `login_public_key` (hex or null), `warnings`, `revisions` (platform → manifest revision, see below), `install_bytes` (platform → size of a complete install), `api_url` (the public lmoxide-api base URL, or null), `website` (or null), `patchers` (patcher name → platform → newest version offered), `kind` (`progression`, `adventure`, `world-editor` or another word; null: not said), `other_servers` (patch server URLs of the other game servers on this host, so patchers can offer to switch). The newer fields may be missing from older servers. |
 | `GET /lmoxide/v1/manifest/{windows\|linux}` | JSON `SignedManifest` (below), with `ETag: "<revision>"`; `If-None-Match` with the installed manifest's revision answers `304` while nothing changed; `404` if the platform isn't configured, `503` + `Retry-After` while indexing |
 | `GET /lmoxide/v1/files/{sha256}` | file body by lower-case sha256, streamed from disk; supports `Range` (`206`), `Cache-Control: immutable`; `404` for anything not in a current manifest |
 | `GET /lmoxide/v1/patchers/{windows\|linux}` | JSON list of `SignedRelease` (below): the newest build of each patcher for that platform, `[]` if none; `404` without `--patcher-dir` |
@@ -179,6 +179,8 @@ Every flag has an `LMOXIDE_…` environment variable (`--help` shows them):
 | `--server-name` | `LMOXIDE_SERVER_NAME` | `LMOxide` |
 | `--api-url` | `LMOXIDE_PUBLIC_API_URL` | none (announced in `info` for patchers' status line) |
 | `--website` | `LMOXIDE_WEBSITE` | none (announced in `info`) |
+| `--server-kind` | `LMOXIDE_SERVER_KIND` | none (announced in `info` as `kind`) |
+| `--other-server <url>` (repeatable) | `LMOXIDE_OTHER_SERVERS` (comma-separated) | none (announced in `info` as `other_servers`) |
 | `--patcher-dir` | `LMOXIDE_PATCHER_DIR` | none (no patcher self-updates) |
 | `--client-dir` | `LMOXIDE_CLIENT_DIR` | (Windows client) |
 | `--linux-client-dir` | `LMOXIDE_LINUX_CLIENT_DIR` | |

@@ -87,7 +87,8 @@ for _ in $(seq 150); do grep -qs "control interface listening" "$ROOT/logs/surve
 "$BIN/lmoxide-patch-server" --bind 0.0.0.0 --public-host "$IP" --http-port $HTTP --universe-port $UNIVERSE \
   --client-dir "$CLIENT" --data-dir "$VAR/patch-data-survey" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "${LMOXIDE_UPSTREAM-http://update.lego.funcom.com/legoupm}" --cache-dir "$VAR/rdb-cache" \
-  "${LINUX_ARGS[@]}" ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/survey-patch-server.log" 2>&1 &
+  "${LINUX_ARGS[@]}" --server-name "LMOxide world editor" --server-kind world-editor --other-server "http://$IP:8080" \
+  ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/survey-patch-server.log" 2>&1 &
 PATCH=$!
 (
   while true; do

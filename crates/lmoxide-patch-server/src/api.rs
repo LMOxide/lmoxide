@@ -36,6 +36,8 @@ pub async fn info(State(app): State<Arc<App>>) -> Json<Info> {
         api_url: app.cfg.api_url.clone(),
         website: app.cfg.website.clone(),
         patchers: catalog.patchers.clone(),
+        kind: app.cfg.server_kind.clone(),
+        other_servers: app.cfg.other_servers.clone(),
     })
 }
 

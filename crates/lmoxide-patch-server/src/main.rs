@@ -101,6 +101,14 @@ pub struct Config {
     /// The server's website, announced in /lmoxide/v1/info (news, account registration).
     #[arg(long, env = "LMOXIDE_WEBSITE")]
     pub website: Option<String>,
+    /// What kind of game server this patch server serves, announced in /lmoxide/v1/info:
+    /// `progression`, `adventure`, `world-editor` (or another word).
+    #[arg(long, env = "LMOXIDE_SERVER_KIND")]
+    pub server_kind: Option<String>,
+    /// Patch server URL of another game server on this host (repeatable), announced in
+    /// /lmoxide/v1/info so patchers can offer to switch (e.g. http://192.168.5.69:8081).
+    #[arg(long = "other-server", env = "LMOXIDE_OTHER_SERVERS", value_delimiter = ',')]
+    pub other_servers: Vec<String>,
     /// Windows client ("LEGO Minifigures Online" folder, with RDB/): served to the stock
     /// patcher and as the `windows` manifest.
     #[arg(long, env = "LMOXIDE_CLIENT_DIR")]

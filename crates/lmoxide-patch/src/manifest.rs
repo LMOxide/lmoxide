@@ -65,6 +65,15 @@ pub struct Info {
     /// `lmoxide-patcher-gui`) → platform → newest version.
     #[serde(default)]
     pub patchers: BTreeMap<String, BTreeMap<Platform, String>>,
+    /// What kind of game server this is, for patchers to show: `progression` (XP, levels and
+    /// ranks, as live), `adventure` (everything unlocked), `world-editor` (a survey server:
+    /// nothing attacks, for the world editor), or another word the host chose. `None`: not said.
+    #[serde(default)]
+    pub kind: Option<String>,
+    /// Patch server URLs of the other game servers on this host (e.g. the survey server next to
+    /// the LAN server), so patchers can offer to switch; each has its own `/lmoxide/v1/info`.
+    #[serde(default)]
+    pub other_servers: Vec<String>,
 }
 
 /// One platform's complete install.

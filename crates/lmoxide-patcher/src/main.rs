@@ -128,6 +128,12 @@ async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
             println!("server:       {}", info.name);
             println!("game:         {}", info.universe_addr);
             println!("http:         {}", info.http_addr);
+            if let Some(kind) = &info.kind {
+                println!("kind:         {kind}");
+            }
+            for other in &info.other_servers {
+                println!("also here:    {other}");
+            }
             if let Some(https) = &info.https_addr {
                 println!("https:        {https}");
             }

@@ -524,6 +524,38 @@ the shipped value is 3). `DebugLevel=1` with `TypeMode=select` logs every RPC di
 ("Dispatcher_t ... calling 'X'"), FlowControl state changes and GameClient states (very large
 logs). Parser: `0x4818a0`.
 
+## Client god camera (free camera)
+
+The release client keeps Funcom's debug free camera ("Godcam"); nothing gates it by GM level.
+- Hotkey `Debug_ToggleCameramode`, Ctrl+Alt+V (`Data/Gui/Default/Hotkeys.xml`, group "GM/Debug",
+  whose `gmlevel="-1"` is only stored: F9/Alt+F9 of the same group work for every account).
+  `CoreHotkeyDispatcher::DebugToggleCameraModeMessage` (0x112c6c4, Linux build) toggles
+  `CoreGameCamera::ActivateGodCamera` (camera mode 11, `GodCameraMode`) /
+  `ActivatePreviousCameraMode`. `ActionModeDefault_c::UpdateGodCamera` feeds it the mouse
+  (right button held: look around, `GodMouseCameraControl`); the wheel zooms.
+- Keys in god cam (`GodCameraMode::SlotKeyboardKeyDown`, HID codes mapped to letters): X toggles
+  flying (movement), R back to the player, F places the player's character at the camera
+  (`Vehicle_t::PlaceAt`, client side), Z forced height, PageUp/PageDown speed, 0-9 jump to
+  bookmarks, Shift/Ctrl+0-9 set one. Its keys are cleared while a GUI input node is active.
+- Verified 2026-10-27 with the Linux test client (bound to F9 in a test copy): toggling stops the
+  character's movement keys (mode switched); injected W/A/E didn't move the camera (input
+  injection can't drive the mouse, and the key path above may need a focused, idle GUI). Ctrl+Alt+V
+  sent through Hyprland didn't reach the hotkey (modifier injection), so try it by hand.
+- The server never learns the camera's position (no message carries it). Integration options:
+  F (character to the camera) then the server sees the move; the server can drive the camera with
+  ScryScript camera commands (`SetCameraTargetScriptCommand_c`, `CameraPathScriptCommand_c`,
+  `CameraTrackScriptCommand_c`, `UseNormalCameraScriptCommand_c`), not yet decoded.
+
+## Dimensions (servers per host)
+
+The engine has Funcom's dimensions: `SetDimensionList` (`DimensionData_t`: id, name, language,
+load, ruleset), `RequestDimensionList`, `ChangeDimensionCommand`, a dimension id in
+`PlayfieldProxyData`. LMO's GUI never shows a dimension picker (`CharacterSelection.swf` and
+`MainMenu.swf` don't use `m_Dimensions`), and `LocalConfig.xml` names one `UniverseAddr`. So a
+client joins exactly one game server; several game servers share a host by ports (LAN: universe
+7100 + patch 8080, survey: 7110 + 8081), each with its own patch server, which announces its
+`kind` and the `other_servers` on the host (PATCHING.md) for patchers to offer.
+
 ## Client Lua hooks
 
 `Data/startup.lua` runs at boot. Useful API: `flow.Login(u, p)`, `flow.CanEnterGame()`,
