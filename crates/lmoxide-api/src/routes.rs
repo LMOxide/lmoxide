@@ -30,6 +30,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(tokens))
         .routes(routes!(login))
         .routes(routes!(logout))
+        .routes(routes!(renew))
         .routes(routes!(register))
         .routes(routes!(me))
         .routes(routes!(change_own_password))
@@ -222,6 +223,25 @@ pub struct Credentials {
     pub username: String,
     #[schema(min_length = 8, max_length = 128)]
     pub password: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub struct Login {
+    #[schema(min_length = 3, max_length = 32, pattern = "^[A-Za-z0-9_.-]+$")]
+    pub username: String,
+    #[schema(min_length = 8, max_length = 128)]
+    pub password: String,
+    /// Stay signed in: the session lasts `--remember-days` instead of `--session-ttl-hours`
+    /// (for a token kept across browser restarts; renew it with `/v1/auth/renew`).
+    #[serde(default)]
+    pub remember: bool,
+}
+
+#[derive(Deserialize, ToSchema, Default)]
+pub struct Renew {
+    /// As in the login: a long session (`--remember-days`) or a short one.
+    #[serde(default)]
+    pub remember: bool,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -870,14 +890,14 @@ async fn tokens() -> impl axum::response::IntoResponse {
 // ------------------------------------------------------------------ sessions
 
 /// Log in with a game account; returns a session token.
-#[utoipa::path(post, path = "/v1/auth/login", tag = "auth", request_body = Credentials,
+#[utoipa::path(post, path = "/v1/auth/login", tag = "auth", request_body = Login,
     responses((status = OK, body = Session), (status = UNAUTHORIZED, body = ErrorBody), (status = TOO_MANY_REQUESTS, body = ErrorBody)),
     security(()))]
 async fn login(
     State(state): State<Arc<AppState>>,
     ConnectInfo(peer): ConnectInfo<SocketAddr>,
     headers: HeaderMap,
-    Json(c): Json<Credentials>,
+    Json(c): Json<Login>,
 ) -> ApiResult<Json<Session>> {
     let ip_key = format!("ip:{}", client_ip(&state, &headers, peer));
     let user_key = format!("user:{}", c.username.to_ascii_lowercase());
@@ -885,17 +905,14 @@ async fn login(
         return Err(ApiError::too_many());
     }
     let st = state.clone();
-    let ttl = state.cfg.session_ttl_hours as i64 * 3600;
+    let ttl = session_ttl(&state, c.remember);
     let result = blocking(&state, move |db| {
         let Some(a) = db.account_by_name(&c.username)? else { return Ok(None) };
         if !db.verify_password(a.id, &c.password)? || a.active_ban().is_some() {
             return Ok(None);
         }
-        let token = db.create_session(a.id, ttl)?;
-        db.audit(&format!("account:{}", a.username), "api-login", None, None)?;
-        let scope = account_scope(&st, a.gm_level).map(ApiScope::from);
-        let show_ip = scope.is_some_and(|s| matches!(s, ApiScope::Admin));
-        Ok(Some(Session { token, expires_at: lmoxide_db::now() + ttl, scope, account: account_dto(db, a, show_ip)? }))
+        db.audit(&format!("account:{}", a.username), "api-login", None, c.remember.then_some("remember"))?;
+        Ok(Some(new_session(&st, db, a, ttl)?))
     })
     .await?;
     match result {
@@ -909,6 +926,36 @@ async fn login(
             Err(ApiError::new(StatusCode::UNAUTHORIZED, "bad_credentials", "wrong username or password"))
         }
     }
+}
+
+fn session_ttl(state: &AppState, remember: bool) -> i64 {
+    if remember { state.cfg.remember_days as i64 * 86400 } else { state.cfg.session_ttl_hours as i64 * 3600 }
+}
+
+fn new_session(state: &AppState, db: &lmoxide_db::Db, a: lmoxide_db::Account, ttl: i64) -> ApiResult<Session> {
+    let token = db.create_session(a.id, ttl)?;
+    let scope = account_scope(state, a.gm_level).map(ApiScope::from);
+    let show_ip = scope.is_some_and(|s| matches!(s, ApiScope::Admin));
+    Ok(Session { token, expires_at: lmoxide_db::now() + ttl, scope, account: account_dto(db, a, show_ip)? })
+}
+
+/// Trade the current session for a new one (a new token and expiry; the old token stops
+/// working), so a remembered sign-in lasts while it is used. Banned accounts can't renew.
+#[utoipa::path(post, path = "/v1/auth/renew", tag = "auth", request_body(content = Renew, description = "optional"),
+    responses((status = OK, body = Session), (status = UNAUTHORIZED, body = ErrorBody)))]
+async fn renew(State(state): State<Arc<AppState>>, auth: Auth, body: Option<Json<Renew>>) -> ApiResult<Json<Session>> {
+    let (Some(id), Some(old)) = (auth.account, auth.token) else {
+        return Err(ApiError::new(StatusCode::BAD_REQUEST, "not_a_session", "only login sessions can be renewed"));
+    };
+    let ttl = session_ttl(&state, body.map(|Json(r)| r.remember).unwrap_or_default());
+    let st = state.clone();
+    blocking(&state, move |db| {
+        let a = db.account(id)?.filter(|a| a.active_ban().is_none()).ok_or_else(ApiError::unauthorized)?;
+        let s = new_session(&st, db, a, ttl)?;
+        db.delete_session(&old)?;
+        Ok(Json(s))
+    })
+    .await
 }
 
 /// End the current session.

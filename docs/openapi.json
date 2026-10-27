@@ -484,7 +484,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Credentials"
+                "$ref": "#/components/schemas/Login"
               }
             }
           },
@@ -585,6 +585,46 @@
         "security": [
           {}
         ]
+      }
+    },
+    "/v1/auth/renew": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Trade the current session for a new one (a new token and expiry; the old token stops\nworking), so a remembered sign-in lasts while it is used. Banned accounts can't renew.",
+        "operationId": "renew",
+        "requestBody": {
+          "description": "optional",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Renew"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/broadcast": {
@@ -2113,6 +2153,30 @@
           }
         }
       },
+      "Login": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8
+          },
+          "remember": {
+            "type": "boolean",
+            "description": "Stay signed in: the session lasts `--remember-days` instead of `--session-ttl-hours`\n(for a token kept across browser restarts; renew it with `/v1/auth/renew`)."
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        }
+      },
       "Look": {
         "type": "object",
         "required": [
@@ -2588,6 +2652,15 @@
             "format": "int32",
             "description": "Playfield id; `null` while loading.",
             "minimum": 0
+          }
+        }
+      },
+      "Renew": {
+        "type": "object",
+        "properties": {
+          "remember": {
+            "type": "boolean",
+            "description": "As in the login: a long session (`--remember-days`) or a short one."
           }
         }
       },

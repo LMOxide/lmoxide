@@ -14,7 +14,7 @@ It opens the game server's SQLite database (same `--data-dir`) for accounts and 
 running game server through its control interface for live data (players online, kicks,
 broadcasts, maintenance). Without a control token those routes answer 503. Flags (each also an
 environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
-`--open-registration`, `--session-ttl-hours`, `--moderator-gm-level` (1), `--admin-gm-level`
+`--open-registration`, `--session-ttl-hours`, `--remember-days` (30), `--moderator-gm-level` (1), `--admin-gm-level`
 (2), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
 `/v1/catalog/sounds/{id}` serves the sounds of effect packages from its RDB; 503 without it).
 
@@ -28,7 +28,10 @@ environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
   accounts, passwords, GM levels, maintenance, API keys, audit log).
 - a **session token** from `POST /v1/auth/login` with a game account's username and password
   (web UI). Its scope follows the account's GM level; ordinary players get no scope and can only
-  use `/v1/me` (their account, password change). Sessions last `--session-ttl-hours`.
+  use `/v1/me` (their account, password change). Sessions last `--session-ttl-hours`; a login
+  with `"remember": true` ("stay signed in") lasts `--remember-days`, and `POST /v1/auth/renew`
+  trades a session for a fresh one (new token, old one ends) so a remembered sign-in lasts while
+  it's used. Only the token's SHA-256 is stored; logging out, a password change or a ban ends it.
 
 API keys used by a bot for someone else may send `X-On-Behalf-Of: <who>` (e.g.
 `discord:name (id)`); the audit log records it next to the key's name.
@@ -46,7 +49,8 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/playfields` | public | every playfield id with its name (for the ids in other answers); `teleport`: a `!tp` destination |
 | GET | `/v1/minifigures` | public | minifigure template ids with name, series, attack names, upgrade names by bit, parts (tokens) |
 | GET | `/v1/tokens` | public | token ids (minifigure parts, as in a character's `tokens`) with name and minifigure |
-| POST | `/v1/auth/login` | - | `{username, password}` → `{token, expires_at, scope, account}` |
+| POST | `/v1/auth/login` | - | `{username, password, remember?}` → `{token, expires_at, scope, account}` |
+| POST | `/v1/auth/renew` | session | `{remember?}` → a new session like the login's; the old token stops working |
 | POST | `/v1/auth/logout` | any | ends the session |
 | POST | `/v1/auth/register` | - | `{username, password}`, only with `--open-registration` |
 | GET | `/v1/me` | session | the logged-in account |

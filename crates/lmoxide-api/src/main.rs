@@ -109,6 +109,9 @@ pub struct Config {
     /// Lifetime of login sessions.
     #[arg(long, env = "LMOXIDE_API_SESSION_TTL_HOURS", default_value_t = 24)]
     pub session_ttl_hours: u32,
+    /// Lifetime of "stay signed in" sessions (login with `remember`), renewed by /v1/auth/renew.
+    #[arg(long, env = "LMOXIDE_API_REMEMBER_DAYS", default_value_t = 30)]
+    pub remember_days: u32,
     /// GM level from which an account's login session has the moderate scope.
     #[arg(long, env = "LMOXIDE_API_MODERATOR_GM_LEVEL", default_value_t = 1)]
     pub moderator_gm_level: u32,
