@@ -123,9 +123,9 @@ walks through them.
 
 - `pos` is the bottom middle; `size` is width (across), height and depth (along `heading`).
 - `radius` (optional): a **trigger radius** instead of a wall: a cylinder of that radius and
-  `size`'s height around `pos`, set off by walking into it from any side. Drawn as one of the
-  Ruined Fort's pressure plates (`green plate`, `yellow plate`, `red plate`), scaled to the radius
-  and sunk so a thin disc shows on the ground.
+  `size`'s height around `pos`, set off by walking into it from any side. Drawn as a ring of
+  the wall look's pieces around the circle (the pressure plates were tried: square, no use).
+  Pieces are drawn back to back, since the looks are one-sided.
 - `action`: `script` (a script's wave; none: its first), `discover` (`name`: the exploration
   area found, `achievement`: the id it counts toward; both optional, and some achievements need
   several locations, each its own wall), `dialog` (the dialogue's first text id, which names it,

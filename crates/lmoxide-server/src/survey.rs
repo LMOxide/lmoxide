@@ -2078,12 +2078,6 @@ const WALL_LOOKS: &[(&str, [u32; 2], [f32; 2], f32)] = &[
     ("low shield", [1010030, 351981], [-2.588, 2.588], 3.3),
     ("forcefield", [1010030, 389644], [-8.0, 0.0], 4.0),
 ];
-/// Looks of trigger radii: the Ruined Fort's pressure plates (round, 2.5 m across, 0.39 m high),
-/// scaled to the radius and sunk so a thin disc shows on the ground.
-const CIRCLE_LOOKS: &[(&str, [u32; 2])] = &[("green plate", [1010030, 346169]), ("yellow plate", [1010030, 346161]), ("red plate", [1010030, 346166])];
-const PLATE_BOUNDS: [f32; 6] = [-1.25, 0.0, -1.25, 1.25, 0.387, 1.25];
-/// How far a trigger radius's disc stands above the ground.
-const PLATE_SHOWN: f32 = 0.12;
 /// Simple dynel instances of wall pieces (clear of RDB guids and gates.rs's beams).
 static NEXT_PIECE: AtomicU32 = AtomicU32::new(0x00e0_0000);
 /// How often players' moves are checked against the walls.
@@ -2143,46 +2137,46 @@ fn look_of(color: &str) -> &'static (&'static str, [u32; 2], [f32; 2], f32) {
 /// Spawns the wall's pieces: its look scaled to its height, side by side across its width.
 /// Surveyors who hide it don't get them.
 fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
-    if let Some(r) = w.def.radius {
-        // one plate, scaled to the radius, its top just above the ground
-        let visual = CIRCLE_LOOKS.iter().find(|l| l.0 == w.def.color).unwrap_or(&CIRCLE_LOOKS[0]).1;
-        let scale = (r / PLATE_BOUNDS[3]).max(0.05);
-        let pos = [w.def.pos[0], w.def.pos[1] - PLATE_BOUNDS[4] * scale + PLATE_SHOWN, w.def.pos[2]];
-        let half = w.def.heading / 2.0;
-        let rot = [0.0, half.sin(), 0.0, half.cos()];
-        let name = format!("[trigger] {}", if w.def.name.is_empty() { "radius" } else { &w.def.name });
-        let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, NEXT_PIECE.fetch_add(1, Ordering::Relaxed));
-        {
-            let mut hidden = HIDDEN.lock().unwrap();
-            for (v, _) in surveyors.iter().filter(|(_, s)| s.hidden.contains(&w.def.id)) {
-                hidden.entry(*v).or_default().insert(id);
-            }
-        }
-        let (outbox, mut inbox) = mpsc::unbounded_channel();
-        tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-        let pf = w.playfield;
-        let look = crate::scenery::Look { name, visual, bounds: PLATE_BOUNDS, scale };
-        let presence = world::join(id, pf, Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, pf, pos, rot, &look), outbox);
-        w.pieces.push((id, presence));
-        return;
-    }
     let (_, visual, [x0, x1], height) = *look_of(&w.def.color);
     let [width, h, _] = w.def.size;
     let scale = (h / height).max(0.05);
     let piece = (x1 - x0) * scale;
-    let n = ((width / piece).ceil() as usize).clamp(1, 64);
-    let step = if n > 1 { (width - piece) / (n - 1) as f32 } else { 0.0 };
     // the look's own middle (the forcefield's runs from -8 to 0)
     let offset = (x0 + x1) / 2.0 * scale;
-    let (sin, cos) = w.def.heading.sin_cos();
-    let half = w.def.heading / 2.0;
-    let rot = [0.0, half.sin(), 0.0, half.cos()];
-    let name = format!("[trigger] {}", if w.def.name.is_empty() { "wall" } else { &w.def.name });
+    // each piece: its middle and heading (across = the piece's own x axis, (cos h, -sin h) in x/z)
+    let places: Vec<([f32; 2], f32)> = match w.def.radius {
+        // a trigger radius: a ring of pieces around the circle, each along it
+        Some(r) => {
+            let n = ((std::f32::consts::TAU * r / piece).ceil() as usize).clamp(3, 48);
+            (0..n)
+                .map(|i| {
+                    let a = std::f32::consts::TAU * i as f32 / n as f32;
+                    ([w.def.pos[0] + r * a.sin(), w.def.pos[2] + r * a.cos()], a)
+                })
+                .collect()
+        }
+        None => {
+            let n = ((width / piece).ceil() as usize).clamp(1, 64);
+            let step = if n > 1 { (width - piece) / (n - 1) as f32 } else { 0.0 };
+            let (sin, cos) = w.def.heading.sin_cos();
+            (0..n)
+                .map(|i| {
+                    let across = if n > 1 { -width / 2.0 + piece / 2.0 + step * i as f32 } else { 0.0 };
+                    ([w.def.pos[0] + across * cos, w.def.pos[2] - across * sin], w.def.heading)
+                })
+                .collect()
+        }
+    };
+    let what = if w.def.radius.is_some() { "radius" } else { "wall" };
+    let name = format!("[trigger] {}", if w.def.name.is_empty() { what } else { &w.def.name });
     let hiding: Vec<Id32> = surveyors.iter().filter(|(_, s)| s.hidden.contains(&w.def.id)).map(|(v, _)| *v).collect();
-    for i in 0..n {
-        let across = if n > 1 { -width / 2.0 + piece / 2.0 + step * i as f32 } else { 0.0 } - offset;
-        // across = the wall's own x axis, (cos h, -sin h) in x/z
-        let pos = [w.def.pos[0] + across * cos, w.def.pos[1], w.def.pos[2] - across * sin];
+    // the looks are one-sided (seen from behind they vanish): each piece twice, back to back
+    let places = places.into_iter().flat_map(|(at, h)| [(at, h), (at, h + std::f32::consts::PI)]);
+    for ([x, z], heading) in places {
+        let (sin, cos) = heading.sin_cos();
+        let half = heading / 2.0;
+        let rot = [0.0, half.sin(), 0.0, half.cos()];
+        let pos = [x - offset * cos, w.def.pos[1], z + offset * sin];
         let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, NEXT_PIECE.fetch_add(1, Ordering::Relaxed));
         {
             let mut hidden = HIDDEN.lock().unwrap();
@@ -2218,8 +2212,9 @@ struct WallLook {
 
 /// The looks trigger walls and radii can have (their `color`).
 async fn wall_looks() -> R<Vec<WallLook>> {
+    // a trigger radius is a ring of the same pieces
     let walls = WALL_LOOKS.iter().map(|l| WallLook { color: l.0, shape: "wall" });
-    let circles = CIRCLE_LOOKS.iter().map(|l| WallLook { color: l.0, shape: "radius" });
+    let circles = WALL_LOOKS.iter().map(|l| WallLook { color: l.0, shape: "radius" });
     with(|_| Ok(Json(walls.chain(circles).collect())))
 }
 
@@ -2253,17 +2248,14 @@ fn checked_size(size: [f32; 3]) -> [f32; 3] {
     size.map(|v| if v.is_finite() { v.clamp(0.1, 200.0) } else { 1.0 })
 }
 
-/// A look for a wall, or with `circle` for a trigger radius (a look of the other shape becomes
-/// this shape's default, so switching shape keeps working).
-fn checked_color(color: Option<String>, circle: bool) -> Result<String, Error> {
-    let default = if circle { CIRCLE_LOOKS[0].0 } else { WALL_LOOKS[0].0 };
-    let of_shape = |c: &str| if circle { CIRCLE_LOOKS.iter().any(|l| l.0 == c) } else { WALL_LOOKS.iter().any(|l| l.0 == c) };
-    let other_shape = |c: &str| c == "red" || WALL_LOOKS.iter().any(|l| l.0 == c) || CIRCLE_LOOKS.iter().any(|l| l.0 == c);
+/// A look for a wall or a trigger radius (a ring of the same pieces).
+fn checked_color(color: Option<String>, _circle: bool) -> Result<String, Error> {
     match color {
-        None => Ok(default.into()),
-        Some(c) if of_shape(&c) => Ok(c),
-        // (the red arena gate is gone, solid: its walls become green)
-        Some(c) if other_shape(&c) => Ok(default.into()),
+        None => Ok(WALL_LOOKS[0].0.into()),
+        // the red arena gate is gone (solid): its walls become green; (the pressure plates an
+        // early trigger radius had too)
+        Some(c) if c == "red" || c.ends_with(" plate") => Ok(WALL_LOOKS[0].0.into()),
+        Some(c) if WALL_LOOKS.iter().any(|l| l.0 == c) => Ok(c),
         Some(c) => Err(Error::Invalid(format!("no wall look {c} (wall-looks lists them)"))),
     }
 }
