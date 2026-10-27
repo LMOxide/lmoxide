@@ -340,11 +340,15 @@ const KINDS: &[(&str, &str)] = &[
     ("enemy", "all enemies"),
     ("npc", "friendly NPCs"),
     ("fighter", "friendly NPCs fighting enemies (npc_fights.json)"),
+    ("patrol", "NPCs that walk a patrol route (the live capture's: Musketeers, Jungle Tricksters, Vespids, ...); arrives 14 m off, out of their notice"),
     ("smashable", "smashables"),
 ];
 
 /// How far from a target to arrive (so as not to stand inside it or on a pad).
 const ARRIVE_OFFSET: f32 = 3.0;
+/// `!goto patrol`: how far from the patroller's home to arrive, so it keeps walking its route
+/// (enemies notice players 8 m away; routes reach a few metres from home).
+const PATROL_WATCH: f32 = 14.0;
 
 /// Whether a chat line is a command.
 pub fn is_command(message: &str) -> bool {
@@ -366,7 +370,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "dialogue" => crate::knubot::points(),
         "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
-        "boss" | "champion" | "enemy" | "npc" | "fighter" | "smashable" => crate::npc::points(kind),
+        "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
         _ => return None,
     })
 }
@@ -429,9 +433,10 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             let n = args.get(1).and_then(|n| n.parse::<usize>().ok()).unwrap_or(1);
             match t.get(n.wrapping_sub(1)) {
                 Some((label, pf, p)) => {
-                    let at = [p[0] + ARRIVE_OFFSET, p[1], p[2]];
+                    let off = if *kind == "patrol" { PATROL_WATCH } else { ARRIVE_OFFSET };
+                    let at = [p[0] + off, p[1], p[2]];
                     // face the target (yaw convention as in return points: atan2(dx, dz))
-                    let rot = (-ARRIVE_OFFSET).atan2(0.0);
+                    let rot = (-off).atan2(0.0);
                     Action::Teleport(*pf, at, rot, format!("going to {kind} {n}: {label} in {}", playfield_name(*pf)))
                 }
                 None => reply(vec![format!("{kind} {n} doesn't exist ({} known)", t.len())]),

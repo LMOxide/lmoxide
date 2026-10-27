@@ -54,6 +54,12 @@ const CARS_DESTRUCTIBLES: u32 = 3;
 const TICK: Duration = Duration::from_millis(250);
 /// A walking NPC gets a new path when its goal moved this far from the current path's end.
 const REPATH: f32 = 1.5;
+/// Patrols (`SpawnDef::patrol`): the live server re-sent a patrolling NPC's route about every
+/// 1.5 s from where the NPC was, and moved it along at 0.7 × its walk speed (Jungle Tricksters
+/// and Musketeers with walk speed 2.1 measured 1.48 and 1.57 m/s along their routes).
+const PATROL_RESEND: Duration = Duration::from_millis(1500);
+const PATROL_SPEED: f32 = 0.7;
+const WALK_SPEED: u32 = 1396;
 /// An NPC this close to its goal stays where it is.
 const ARRIVED: f32 = 0.3;
 /// Movement speed stats (as game::PLAYER_SPEEDS) the original server gave the recorded
@@ -256,6 +262,10 @@ pub struct SpawnDef {
     /// side near it are its enemies too.
     #[serde(default)]
     pub faction: Option<u32>,
+    /// The looping route it walks while it has nobody to fight, as the live server's patrolling
+    /// NPCs did (world_content.json, from the live capture's patrol MoveTasks).
+    #[serde(default)]
+    pub patrol: Vec<[f32; 3]>,
 }
 
 impl SpawnDef {
@@ -305,10 +315,16 @@ struct Npc {
     busy_until: Option<std::time::Instant>,
     /// The player who last hit it, and when (enemies keep fighting them).
     threat: Option<(Id32, std::time::Instant)>,
+    /// Walking its patrol route: the route point it is heading for, and when the route was
+    /// last sent.
+    patrol: Option<(usize, std::time::Instant)>,
 }
 
 impl Npc {
-    fn new(def: SpawnDef, playfield: u32, owner: Option<(Id32, std::time::Instant)>, temporary: Option<std::time::Instant>) -> Npc {
+    fn new(mut def: SpawnDef, playfield: u32, owner: Option<(Id32, std::time::Instant)>, temporary: Option<std::time::Instant>) -> Npc {
+        if owner.is_some() || temporary.is_some() {
+            def.patrol.clear(); // copies of a patroller placed elsewhere (adds, test spawns)
+        }
         Npc {
             health: def.health,
             pos: Arc::new(Mutex::new(def.pos)),
@@ -324,6 +340,7 @@ impl Npc {
             cooldowns: HashMap::new(),
             busy_until: None,
             threat: None,
+            patrol: None,
         }
     }
 }
@@ -366,7 +383,7 @@ static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(H
 
 /// NPCs for test commands: enemies of a rank, "boss" (`BOSS_RANK`), "champion"
 /// (`CHAMPION_RANK`) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
-/// fighters) or "smashable":
+/// fighters), "patrol" (NPCs with a patrol route) or "smashable":
 /// (label, playfield, home position), by playfield.
 pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
     let mut v: Vec<_> = NPCS
@@ -381,6 +398,7 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
                 "champion" => n.def.kind == Kind::Enemy && (CHAMPION_RANK..BOSS_RANK).contains(&r),
                 "npc" => n.def.kind == Kind::Npc,
                 "fighter" => n.def.fights(),
+                "patrol" => n.def.patrol.len() >= 2,
                 "smashable" => n.def.kind == Kind::Smashable,
                 _ => n.def.kind == Kind::Enemy,
             }
@@ -641,6 +659,7 @@ fn appear(id: Id32) {
     let Some(npc) = npcs.get_mut(&id) else { return };
     npc.health = npc.def.health;
     npc.walk = None;
+    npc.patrol = None;
     *npc.pos.lock().unwrap() = npc.def.pos;
     let (def, playfield, pos) = (npc.def.clone(), npc.playfield, npc.pos.clone());
     let spawn_pos = pos.clone();
@@ -860,6 +879,7 @@ pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
         anchor: None,
         fights: false,
         faction: None,
+        patrol: Vec::new(),
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -1190,17 +1210,76 @@ fn steer(id: Id32, here: [f32; 3], goal: [f32; 3], face: Option<[f32; 3]>) {
     }
 }
 
+/// Walks NPC `id` (at `here`, from `current`) along its patrol route, as the live server did:
+/// the route sent as a looping path, and sent again every `PATROL_RESEND` from where it is then
+/// (so players who come near see it walking). The server follows it leg by leg at
+/// `PATROL_SPEED`. A patrol that was interrupted (a fight) starts again at the nearest point.
+fn patrol(id: Id32, here: [f32; 3]) {
+    let now = std::time::Instant::now();
+    let record = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get_mut(&id) else { return };
+        let route = npc.def.patrol.clone();
+        if route.len() < 2 {
+            return;
+        }
+        let speed = PATROL_SPEED * speeds(&npc.def).iter().find(|(stat, _)| *stat == WALK_SPEED).map_or(2.1, |&(_, v)| v);
+        let resend = match npc.patrol {
+            None => {
+                let next = (0..route.len()).min_by(|&a, &b| distance(route[a], here).total_cmp(&distance(route[b], here))).unwrap_or(0);
+                npc.walk = Some(Walk { from: here, to: route[next], since: now, speed });
+                npc.patrol = Some((next, now));
+                true
+            }
+            Some((mut next, sent)) => {
+                // legs it finished: on to the next point, from when it got there
+                let mut walk = npc.walk.unwrap_or(Walk { from: here, to: here, since: now, speed });
+                while walk.at(now).1 {
+                    let arrived = walk.since + Duration::from_secs_f32(distance(walk.from, walk.to) / speed);
+                    let after = (next + 1) % route.len();
+                    walk = Walk { from: route[next], to: route[after], since: arrived.min(now), speed };
+                    next = after;
+                }
+                npc.walk = Some(walk);
+                let resend = sent.elapsed() >= PATROL_RESEND;
+                npc.patrol = Some((next, if resend { now } else { sent }));
+                resend
+            }
+        };
+        let (next, _) = npc.patrol.unwrap();
+        let at = npc.walk.map_or(here, |w| w.at(now).0);
+        *npc.pos.lock().unwrap() = at;
+        resend.then(|| patrol_record(id, at, &route, next))
+    };
+    if let Some(record) = record {
+        world::broadcast(id, vec![record]);
+    }
+}
+
 /// `MoveTaskIIR_c` as the original server sent NPC paths: u8 0, start; ListMoveTask (4): u8 wait
-/// flags 1, u8 current 0, u8 count 1; PathMoveTask (1): u8 wait flags 1, u16 path flags 0 (the
-/// character's own speed), u32 2, start, end, spline block (u8 0, u32 0, u8 0, u32 0, f32
-/// length / 35, as in the recording).
+/// flags 1, u8 current 0, u8 count 1; a PathMoveTask (`path_task`).
 fn path_record(id: Id32, from: [f32; 3], to: [f32; 3]) -> bytes::Bytes {
+    iir::record("MoveTaskIIR_c", id, false, |w| path_task(w.u8(0).f32(from[0]).f32(from[1]).f32(from[2]).u8(4).u8(1).u8(0).u8(1), &[from, to], false))
+}
+
+/// A patrol as the live server sent it (`MoveTaskIIR_c`, start `here`): ListMoveTask of two
+/// paths, from `here` to route point `next`, then the route from that point on, looping.
+fn patrol_record(id: Id32, here: [f32; 3], route: &[[f32; 3]], next: usize) -> bytes::Bytes {
+    let looped: Vec<[f32; 3]> = route[next..].iter().chain(&route[..next]).copied().collect();
     iir::record("MoveTaskIIR_c", id, false, |w| {
-        let w = w.u8(0).f32(from[0]).f32(from[1]).f32(from[2]).u8(4).u8(1).u8(0).u8(1);
-        let w = w.u8(1).u8(1).u16(0).u32(2);
-        let w = [from, to].iter().flatten().fold(w, |w, v| w.f32(*v));
-        w.u8(0).u32(0).u8(0).u32(0).f32(distance(from, to) / 35.0)
+        let w = w.u8(0).f32(here[0]).f32(here[1]).f32(here[2]).u8(4).u8(1).u8(0).u8(2);
+        path_task(path_task(w, &[here, route[next]], false), &looped, true)
     })
+}
+
+/// PathMoveTask (1), as the original server wrote it: u8 wait flags 1, u16 path flags 0 (the
+/// character's own speed), u32 n, the points, then the SplinePath: u8 loop, u32 point 0, u8 0,
+/// f32 0, f32 first segment's length / 35 (as recorded, live and demo alike).
+fn path_task(w: lmoxide_net::stream::Writer, points: &[[f32; 3]], looped: bool) -> lmoxide_net::stream::Writer {
+    let w = w.u8(1).u8(1).u16(0).u32(points.len() as u32);
+    let w = points.iter().flatten().fold(w, |w, v| w.f32(*v));
+    let first = if points.len() > 1 { distance(points[0], points[1]) } else { 0.0 };
+    w.u8(looped as u8).u32(0).u8(0).u32(0).f32(first / 35.0)
 }
 
 /// `StopIIR_c` as the original server stopped NPCs: position, rotation (yaw towards `dir`),
@@ -1644,6 +1723,7 @@ async fn ai() {
             });
             match target {
                 Some((player, p)) => {
+                    end_patrol(id);
                     let cast = engage(id, player, p, here);
                     if is_busy(id) {
                         // casting: it stops (facing the player) until the strike
@@ -1655,8 +1735,36 @@ async fn ai() {
                         steer(id, here, approach(here, p, keep), Some(p));
                     }
                 }
+                None if patrols(id) => patrol(id, here),
                 None => steer(id, here, home, None),
             }
+        }
+        // friendly NPCs that patrol
+        let walkers: Vec<Id32> = NPCS
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|(_, n)| n.def.kind == Kind::Npc && !n.def.patrol.is_empty() && n.presence.is_some())
+            .map(|(id, _)| *id)
+            .collect();
+        for id in walkers {
+            if let Some(here) = current(id) {
+                patrol(id, here);
+            }
+        }
+    }
+}
+
+/// Whether NPC `id` has a patrol route.
+fn patrols(id: Id32) -> bool {
+    NPCS.lock().unwrap().get(&id).is_some_and(|n| n.def.patrol.len() >= 2)
+}
+
+/// It stops patrolling (to fight): `patrol` starts again at the nearest route point.
+fn end_patrol(id: Id32) {
+    if let Some(npc) = NPCS.lock().unwrap().get_mut(&id) {
+        if npc.patrol.take().is_some() {
+            npc.walk = None;
         }
     }
 }
@@ -1674,21 +1782,14 @@ mod tests {
         assert!(hex.ends_with(body), "{hex}");
     }
 
-    #[test]
-    fn regular_life_is_the_live_servers() {
-        // recorded levels, between them (5 and 7 recorded: 168, 282; 8 = a third of the way
-        // to 10's 538) and past the last (74: 24298, 71: 21526)
-        assert_eq!([1, 4, 15, 26].map(regular_life), [62, 132, 1314, 3854]);
-        assert_eq!(regular_life(8), 367);
-        assert_eq!(regular_life(77), 27070);
-        // the live bosses rank as bosses, its champions as champions, Mantis Nymphs as regulars
-        let enemy = |level, health| SpawnDef {
+    fn test_spawn_def() -> SpawnDef {
+        SpawnDef {
             kind: Kind::Enemy,
             template: 0,
             name: "Enemy".into(),
             monster_data: 1,
-            level,
-            health,
+            level: 1,
+            health: 62,
             pos: [0.0; 3],
             spell: default_spell(),
             cars_group: None,
@@ -1697,7 +1798,64 @@ mod tests {
             anchor: None,
             fights: false,
             faction: None,
-        };
+            patrol: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn patrol_record_matches_live() {
+        // a Pirate World Musketeer's patrol (live capture, PassBlob 15505): from where it is to
+        // the route's second point, then the two-point route from there, looping
+        let v = |x: u32, y: u32, z: u32| [f32::from_bits(x), f32::from_bits(y), f32::from_bits(z)];
+        let here = v(0x42aefff3, 0x428c0180, 0x42b5f823);
+        let route = [v(0x42bd6911, 0x428be70d, 0x42bcda17), v(0x42b245f0, 0x428c0000, 0x42b4c28d)];
+        let hex = crate::conn::hex(&patrol_record(Id32::new(50000, 0x1ea2e6), here, &route, 1));
+        let live = "96c467400000c350001ea2e6000042aefff3428c018042b5f82304010002010100000000000242aefff3428c018042b5f82342b245f0428c000042b4c28d000000000000000000003d4c8ebe010100000000000242b245f0428c000042b4c28d42bd6911428be70d42bcda17010000000000000000003e49c40a";
+        // all but the two SplinePath segment floats (bytes 72 and 118 after the record's
+        // length: length / 35 here, / 34.94 on live)
+        let mask = |h: &str| format!("{}{}{}", &h[..72 * 2], &h[76 * 2..118 * 2], &h[122 * 2..]);
+        assert_eq!(hex.len(), live.len());
+        assert_eq!(mask(&hex), mask(live));
+    }
+
+    #[test]
+    fn patrols_walk_their_route() {
+        // the NPC heads for the nearest point, then along the route at PATROL_SPEED × walk
+        let id = Id32::new(50000, 899_999);
+        let route = vec![[0.0, 0.0, 0.0], [3.0, 0.0, 0.0], [3.0, 0.0, 3.0]];
+        let mut def = SpawnDef { patrol: route.clone(), ..test_spawn_def() };
+        def.pos = [0.2, 0.0, 0.0];
+        NPCS.lock().unwrap().insert(id, Npc::new(def.clone(), 1, None, None));
+        patrol(id, def.pos);
+        assert_eq!(NPCS.lock().unwrap()[&id].patrol.map(|p| p.0), Some(0));
+        // pretend it set out long enough ago to have walked past point 1
+        let speed = PATROL_SPEED * 2.1;
+        let back = Duration::from_secs_f32((0.2 + 3.0 + 1.0) / speed);
+        if let Some(npc) = NPCS.lock().unwrap().get_mut(&id) {
+            let w = npc.walk.as_mut().unwrap();
+            w.since -= back;
+        }
+        patrol(id, def.pos);
+        let npcs = NPCS.lock().unwrap();
+        let npc = &npcs[&id];
+        assert_eq!(npc.patrol.map(|p| p.0), Some(2));
+        let at = *npc.pos.lock().unwrap();
+        assert!(distance(at, [3.0, 0.0, 1.0]) < 0.05, "{at:?}");
+        drop(npcs);
+        NPCS.lock().unwrap().remove(&id);
+        // copies placed elsewhere don't patrol
+        assert!(Npc::new(def, 1, None, Some(std::time::Instant::now())).def.patrol.is_empty());
+    }
+
+    #[test]
+    fn regular_life_is_the_live_servers() {
+        // recorded levels, between them (5 and 7 recorded: 168, 282; 8 = a third of the way
+        // to 10's 538) and past the last (74: 24298, 71: 21526)
+        assert_eq!([1, 4, 15, 26].map(regular_life), [62, 132, 1314, 3854]);
+        assert_eq!(regular_life(8), 367);
+        assert_eq!(regular_life(77), 27070);
+        let enemy = |level, health| SpawnDef { level, health, ..test_spawn_def() };
+        // the live bosses rank as bosses, its champions as champions, Mantis Nymphs as regulars
         assert!(rank_of(&enemy(3, 855)) >= BOSS_RANK); // Monkey Kong, 7.5x
         assert!(rank_of(&enemy(15, 14782)) >= BOSS_RANK); // Monster Scientist, 11.25x
         assert!((CHAMPION_RANK..BOSS_RANK).contains(&rank_of(&enemy(15, 6652)))); // Gargantuan
@@ -1721,6 +1879,7 @@ mod tests {
             anchor: Some(anchor.into()),
             fights: false,
             faction: None,
+            patrol: Vec::new(),
         };
         let mut table = HashMap::from([("4200".to_string(), vec![camp("Quest_Beach"), camp("Elsewhere")])]);
         add_fights(&mut table, include_str!("../../../data/npc_fights.json"));

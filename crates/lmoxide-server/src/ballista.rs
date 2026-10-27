@@ -184,6 +184,7 @@ pub fn start() {
                 anchor: None,
                 fights: false,
                 faction: None,
+                patrol: Vec::new(),
             };
             let id = crate::npc::spawn_temporary(def, PLAYFIELD, TARGET_LIFE);
             info!(ballista = i + 1, high, "dummy up");

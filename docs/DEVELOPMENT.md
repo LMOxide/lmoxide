@@ -33,7 +33,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 |---|---|
 | `!where` | current playfield and position |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `smashable` |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable` |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them) |
 | `!window <id>` | open teleport window `<id>` (RDB 1000644) as a portal would; 73 and 74 ask "Do you want to travel to …?" like their portals (`!goto portal n` lands next to a portal: walk 8 m away, then step in) |

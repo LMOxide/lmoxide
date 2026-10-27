@@ -964,6 +964,36 @@ def add_recorded(w, recs, source):
                                               flags=rec["flags"], is_hidden=rec["is_hidden"], interaction_radius=rec["interaction_radius"]))
 
 
+LIVE_MOVEMENT = os.path.join(ROOT, "data/live-capture/lmo-captures/npc-movement.json")  # tools/re/live_npc_movement.py
+PATROL_HOME = 3.0  # m (x, z): a spawn this close to a live patroller's home, with its look, walks its route
+
+
+def live_patrols():
+    """{playfield: [(monster_data, home, route)]}: the looping routes the live server sent
+    patrolling NPCs (npc-movement.json patrol_routes, the first of each NPC)."""
+    if not os.path.exists(LIVE_MOVEMENT):
+        return {}
+    out = defaultdict(list)
+    for z in json.load(open(LIVE_MOVEMENT))["zones"]:
+        for n in z["npcs"]:
+            routes = n["summary"].get("patrol_routes")
+            if routes and n["summary"].get("home"):
+                out[z["playfield"]].append((n["monster_data"], n["summary"]["home"], [rnd(p) for p in routes[0]["points"]]))
+    return out
+
+
+def add_patrols(w, patrols):
+    """Give the playfield entry's enemies and NPCs the live route of the patroller at their spawn
+    (another visit's instance, or the demo's spawn of the same NPC)."""
+    n = 0
+    for e in w.get("enemies", []) + w.get("npcs", []):
+        route = next((r for md, home, r in patrols if md == e["monster_data"] and math.dist(home[::2], e["pos"][::2]) < PATROL_HOME), None)
+        if route:
+            e["patrol"] = route
+            n += 1
+    return n
+
+
 LIVE_SAME = 3.0  # m: the same spawn seen again (another visit, or respawned)
 
 
@@ -996,6 +1026,7 @@ def main():
     port = portals()
     demo = demo_records()
     live, live_paths = live_records()
+    patrols = live_patrols()
     world = {}
     pfs = sorted(set(MAIN) | {p for p in demo if p and p != 4000} | {p for p in live if p and p != 4000} | set(port) | DESTINATIONS)
     parents = defaultdict(set)  # playfield -> playfields with a portal into it
@@ -1060,6 +1091,7 @@ def main():
             if e["kind"] == "smashable" and e["visual"][1] in SMASHIE_TEMPLATE and not any(dist(e["pos"], s["pos"]) < 0.5 for s in w["smashables"]):
                 w["smashables"].append(dict(name=item_name(SMASHIE_TEMPLATE[e["visual"][1]]) or e["look"], template=SMASHIE_TEMPLATE[e["visual"][1]], monster_data=e["visual"][1], level=1, health=20, pos=e["pos"],
                                             rot=yaw(e["rot"]), source="rdb_1000057"))
+        add_patrols(w, patrols.get(pf, []))
         world[str(pf)] = w
     world["_comment"] = __doc__.split("\n\n")[0] + " See tools/re/extract_world_content.py for formats and sources."
     path = os.path.join(ROOT, "data/world_content.json")
