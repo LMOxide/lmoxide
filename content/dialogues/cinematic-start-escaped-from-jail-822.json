@@ -7,5 +7,6 @@
   "npc": "Cinematic Start Escaped From Jail",
   "start": "arrival",
   "pos": [126.4161, 79.2001, 60.5725],
+  "order": 13,
   "source": "live"
 }

@@ -1,6 +1,7 @@
 {
   "id": "achievement/series-13",
   "lore": 3741,
+  "parent_lore": 2,
   "client_name": "Achievements_Series 13",
   "title": "Series 13",
   "kind": "category",

@@ -12,7 +12,7 @@ so the server doesn't hard-code values.
 `LMOXIDE_CONTENT_DIR`; default the checkout's `content/`; errors stop the server) and is moving
 to it one system at a time:
 
-| System | Reads from content | Still from `data/` or code |
+| System | Reads from content | Not (yet) from content |
 |---|---|---|
 | Loot (loot.rs) | loot tables, `tunables.loot`, items (stars, orbs, potions, parts, bags, chests), minifigures' parts, bags, `obtain` (regions, rarity), `tunables.rarity` | which source a kill is (enemy/champion/boss by health rank, npc.rs); Resourceful/Professional (procs.rs) |
 | Upgrades and procs (procs.rs, combat.rs) | minifigures' stats, attacks (AbilityMods, combo steps) and upgrades; the upgrades' buffs: stat effects (`Life`, `FinalDamageMultiplier`, `MitigationOverrideFlat`, `orb_chance`), `skill_mod` (Empowered Normals), `proc`s and the buffs they apply; `tunables.combat` | `LEVEL` (a constant other constants use); the nanos' client-side Modify actions (the client runs them) |
@@ -20,7 +20,12 @@ to it one system at a time:
 | NPCs and spawns (npc.rs, progression.rs; through spawns.rs) | each world's enemies, NPCs and smashables (spawns with their templates and overrides; not `removed`, not `surveyed`: those come from the world editor's approved set), NPC fights (`npc_fights`: fighters, armed NPCs, rivals), `tunables.npc_life`; a template's own `loot` table (when it isn't its kind's usual one) replaces the rolled one | spawns that appear during play (`appeared_at`), triggers, actors, scenery, doors and buildies (other modules, still `data/`) |
 | Worlds (scenery.rs, jumppad.rs, teleport.rs, encounter.rs, gates.rs, mirrors.rs, buildie.rs, tutorial.rs, discovery.rs, ballista.rs, pistons.rs, plates.rs, tiki.rs; through world_data.rs) | scenery and interactables (spawns with `client.guid`), jump pads (bouncers), teleport destinations (arrival, window, display name), portals, return and respawn points, encounter areas (arenas, ambushes, exploration, champion points), light gates and mirror puzzles, the recorded buildies, cinematic triggers, playfield names, `tunables.story_quests` | how each piece behaves (code) |
 | Minifigures (collection.rs, auras.rs, game.rs, progression.rs; the API's minifigure list; through minifigs.rs) | attack spells and names, upgrade abilities and names, aura tags, looks, names, parts; `tunables.progression` | |
-| Everything else | | `data/*.json` and constants in the code |
+| Achievements and dialogues (achievements.rs, survey.rs, knubot.rs; the API's achievement names; through `lmoxide_content::compat`) | the lore tree (`lore`, `parent`/`parent_lore`, children, counters, targets ...), the area names (`tunables.more["achievements.area_names"]`), dialogues (by `order`) and texts.json | the world editor's smash rules (its set, until the editor writes content) |
+
+Every system now reads the content tree. `data/` keeps the reference catalogs (read-only, generated
+from the client), dev test scenarios (`test_scenarios.json`), the patch server's client files
+(`login.html`, `PatchInfoClient.txt`) and the files the content tree replaced, which only the
+importer and the tests that compare against them still read.
 
 Edits to what the server doesn't read yet have no effect in game. Running the importer again
 overwrites the whole tree, edits included: don't, once the tree is edited by hand.
@@ -275,16 +280,17 @@ isn't playable (it never drops; picking one up now gives nothing instead of that
 
 ## Next
 
-1. The server reads `content/` instead of `data/*.json`, one system at a time, each giving the
-   same results first (loot: same tables, and the same drop rates over 200,000 bags per source):
-   loot (done), upgrades and procs (done: same health, damage and mitigation for every minifigure
-   and upgrade, the same procs in scripted attack/kill/hit sequences), skills (done: every spell,
-   projectile, dash, summon and enemy spell list as the old files had them), NPCs and spawns (done: the
-   same spawn list for every playfield), worlds (done: the same scenery, pads, portals, destinations,
-   points, areas, puzzles and buildies; the same counts at startup), minifigures (done: the same
-   spells, abilities, auras, looks, names and API list), NPCs and spawns (then each enemy's own `loot` table),
-   worlds (portals, bouncers, areas, puzzles), minifigures, achievements. Reloading on change comes
-   with the world editor switch.
+1. Done: the server reads `content/` instead of `data/*.json`, one system at a time, each giving
+   the same results first: loot (the same tables, and the same drop rates over 200,000 bags per
+   source), upgrades and procs (the same health, damage and mitigation for every minifigure and
+   upgrade, the same procs in scripted attack/kill/hit sequences), skills (every spell,
+   projectile, dash, summon and enemy spell list), NPCs and spawns (the same spawn list for every
+   playfield), worlds (the same scenery, pads, portals, destinations, points, areas, puzzles and
+   buildies; the same counts at startup), minifigures (spells, abilities, auras, looks, names, the
+   API's list), achievements and dialogues (the same tree, names, texts and dialogue order). Some
+   modules still read the old files' shapes, built from content (`spawns.rs`, `world_data.rs`,
+   `skills.rs`, `minifigs.rs`, `lmoxide_content::compat`); they can move to the templates
+   themselves as they change. Reloading on change comes with the world editor switch.
 2. The world editor reads and writes records of this format (forms from `content/schemas`), with
    `rev` merging; its survey set becomes records in `content/` (or a feature folder) instead of a
    separate format.

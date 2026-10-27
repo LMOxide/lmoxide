@@ -1,4 +1,4 @@
-//! Achievements: the client's lore tree tags under "Achievements" (data/achievements.json,
+//! Achievements: the client's lore tree tags under "Achievements" (content/achievements,
 //! tools/re/extract_achievements.py). The server grants a tag with
 //! `GameCharInterface::AddTag(uint32 tag, uint32 timestamp)`; the client then shows it, adds its
 //! points and lists it as done. At every login live re-sent AddTag for each tag the character
@@ -109,7 +109,7 @@ struct Tree {
 }
 
 static TREE: LazyLock<Tree> = LazyLock::new(|| {
-    let data: Data = serde_json::from_str(include_str!("../../../data/achievements.json")).expect("achievements.json");
+    let data: Data = serde_json::from_value(lmoxide_content::compat::achievements_file(crate::gamedata::get())).expect("achievements");
     let by_id = data.achievements.iter().enumerate().map(|(i, a)| (a.id, i)).collect();
     let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
     for a in &data.achievements {

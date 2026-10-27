@@ -6,5 +6,6 @@
   "npc_name": 1014,
   "npc": "Cinematic Start Oops",
   "seen_live": true,
+  "order": 7,
   "source": "demo"
 }

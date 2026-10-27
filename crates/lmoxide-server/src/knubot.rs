@@ -1,5 +1,5 @@
 //! NPC dialogues ("Knubot"), as the original server ran them (recorded session, client
-//! ReadSubClass layouts). The texts are the client's TDB category 50002 (data/dialogues.json,
+//! ReadSubClass layouts). The texts are the client's TDB category 50002 (content texts.json,
 //! tools/re/extract_dialogues.py); their `{tags}` are the server's script: for each tag in
 //! order the server does it (a cinematic actor record, a spawn, a real delay) and then sends
 //! the text again with `antitag` = the number of tags done, so the client shows the words up
@@ -70,8 +70,9 @@ pub struct Dialogue {
     pos: Option<[f32; 3]>,
 }
 
+/// The dialogues and the client's texts (content/dialogues, texts.json).
 static DATA: LazyLock<Data> =
-    LazyLock::new(|| serde_json::from_str(include_str!("../../../data/dialogues.json")).expect("dialogues.json"));
+    LazyLock::new(|| serde_json::from_value(lmoxide_content::compat::dialogues_file(crate::gamedata::get())).expect("dialogues"));
 
 /// "Goodbye" (50001/0).
 const GOODBYE: u32 = 0;

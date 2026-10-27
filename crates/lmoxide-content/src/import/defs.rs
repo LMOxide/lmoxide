@@ -1511,7 +1511,7 @@ pub fn dialogues(
     data: &dyn Fn(&str) -> Result<Value>,
 ) -> Result<()> {
     let d = data("dialogues.json")?;
-    for x in d["dialogues"].as_array().into_iter().flatten() {
+    for (order, x) in d["dialogues"].as_array().into_iter().flatten().enumerate() {
         let texts: Vec<u32> = x["texts"]
             .as_array()
             .into_iter()
@@ -1538,6 +1538,7 @@ pub fn dialogues(
             pos: vec3(&x["pos"]),
             follows: Some(x["follows"].clone()).filter(|v| !v.is_null()),
             seen_live: x["seen_live"].as_bool().unwrap_or(false),
+            order: order as u32,
             source: source_of(&x["source"]),
             ..Default::default()
         });
@@ -1564,6 +1565,12 @@ pub fn achievements(
         ctx.achievement.insert(lore, id);
     }
     let ach = |v: &Value| u32_of(v).and_then(|l| ctx.achievement.get(&l).cloned());
+    // the lore tree's names of areas that aren't playfields (1000 LEGO World, 2000 Mythology ...)
+    let names: serde_json::Map<String, Value> =
+        entries(&a["playfields"]).filter(|(k, _)| k.parse::<u32>().is_ok_and(|pf| !ctx.world.contains_key(&pf))).map(|(k, v)| (k.clone(), v.clone())).collect();
+    if !names.is_empty() {
+        tree.tunables.more.insert("achievements.area_names".into(), Value::Object(names));
+    }
     for x in list {
         let Some(lore) = u32_of(&x["id"]) else {
             continue;
@@ -1573,6 +1580,7 @@ pub fn achievements(
             id: id.clone(),
             lore: Some(lore),
             parent: ach(&x["parent"]).filter(|p| *p != id),
+            parent_lore: u32_of(&x["parent"]).filter(|p| !ctx.achievement.contains_key(p)),
             client_name: str_of(&x["name"]),
             title: str_of(&x["title"]),
             text: str_of(&x["text"]),

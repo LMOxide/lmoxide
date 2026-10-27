@@ -17,6 +17,7 @@
 
 pub mod action;
 pub mod canon;
+pub mod compat;
 pub mod import;
 pub mod load;
 pub mod model;

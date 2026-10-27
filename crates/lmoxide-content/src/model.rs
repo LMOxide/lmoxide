@@ -1452,6 +1452,9 @@ record! {
         pub follows: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "crate::record::is_false")]
         pub seen_live: bool,
+        /// Its place among the dialogues: an NPC's run in this order (the first first).
+        #[serde(default)]
+        pub order: u32,
     }
 }
 
@@ -1478,6 +1481,9 @@ record! {
         pub lore: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub parent: Option<Ref>,
+        /// The client's parent lore id when it isn't an achievement here (2: the tree's root).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub parent_lore: Option<u32>,
         /// The client's internal name.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub client_name: Option<String>,

@@ -165,6 +165,14 @@
     "84": [111, 112, 113, 114, 115, 116, 117, 118, 120, 124, 125, 127, 128, 173, 188]
   },
   "more": {
+    "achievements.area_names": {
+      "1000": "LEGO World",
+      "2000": "Mythology",
+      "3000": "Space",
+      "5000": "Medieval",
+      "6000": "Jungle",
+      "7000": "Endless"
+    },
     "teleport.resurrection_points_of_unknown_key.1073746134": [
       {
         "discoverable": true,

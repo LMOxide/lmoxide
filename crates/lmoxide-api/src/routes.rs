@@ -1390,11 +1390,10 @@ struct AchievementInfo {
     points: u32,
 }
 
-/// Names and points of an achievement tag (data/achievements.json; unknown: empty).
+/// Names and points of an achievement tag (content/achievements; unknown: empty).
 fn achievement_info(id: u32) -> AchievementInfo {
     static INFO: std::sync::LazyLock<std::collections::HashMap<u32, AchievementInfo>> = std::sync::LazyLock::new(|| {
-        let doc: serde_json::Value =
-            serde_json::from_str(include_str!("../../../data/achievements.json")).expect("achievements.json");
+        let doc = lmoxide_content::compat::achievements_file(game_content());
         let all = doc["achievements"].as_array().cloned().unwrap_or_default();
         let s = |v: &serde_json::Value| v.as_str().map(str::to_string);
         let titles: std::collections::HashMap<u64, String> = all.iter().filter_map(|a| Some((a["id"].as_u64()?, s(&a["title"])?))).collect();

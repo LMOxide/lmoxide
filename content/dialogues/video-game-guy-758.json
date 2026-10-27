@@ -6,5 +6,6 @@
   "npc_name": 2621,
   "npc": "Video Game Guy",
   "seen_live": true,
+  "order": 3,
   "source": "demo"
 }

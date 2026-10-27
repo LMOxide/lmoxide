@@ -7,5 +7,6 @@
   "npc": "Monster Scientist",
   "start": "arrival",
   "pos": [365.7982, 48.5822, 68.6658],
+  "order": 8,
   "source": "live"
 }

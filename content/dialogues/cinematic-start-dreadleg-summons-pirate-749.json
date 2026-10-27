@@ -6,5 +6,6 @@
   "npc_name": 2625,
   "npc": "Cinematic Start Dreadleg Summons Pirate",
   "seen_live": true,
+  "order": 2,
   "source": "demo"
 }

@@ -7,5 +7,6 @@
   "npc": "XX__Cinematic Rescue Island Warrior",
   "start": "quest_goal",
   "pos": [333.6201, 18.6156, 277.2638],
+  "order": 14,
   "source": "live"
 }

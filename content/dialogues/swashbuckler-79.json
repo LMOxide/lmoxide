@@ -7,5 +7,6 @@
   "npc": "Swashbuckler",
   "start": "arrival",
   "pos": [229.8686, 16.0289, 259.068],
+  "order": 11,
   "source": "live"
 }

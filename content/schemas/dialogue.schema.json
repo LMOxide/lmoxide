@@ -81,6 +81,13 @@
       "minimum": 0,
       "type": ["integer", "null"]
     },
+    "order": {
+      "default": 0,
+      "description": "Its place among the dialogues: an NPC's run in this order (the first first).",
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
     "pos": {
       "items": {
         "format": "float",

@@ -3077,7 +3077,7 @@ struct Targets {
 }
 
 /// What trigger walls can discover or open: the exploration areas and `find` achievements
-/// (data/achievements.json; an `all` achievement whose parts are finds needs each of their
+/// (content/achievements; an `all` achievement whose parts are finds needs each of their
 /// locations), the recorded dialogues and the portals' teleport windows.
 fn targets() -> &'static Targets {
     static T: LazyLock<Targets> = LazyLock::new(|| {
@@ -3105,7 +3105,7 @@ fn targets() -> &'static Targets {
         struct File {
             achievements: Vec<Ach>,
         }
-        let file: File = serde_json::from_str(include_str!("../../../data/achievements.json")).expect("achievements.json");
+        let file: File = serde_json::from_value(lmoxide_content::compat::achievements_file(crate::gamedata::get())).expect("achievements");
         let pf_name = |pf: u32| crate::teleport::destination(pf).map(|d| d.name.clone());
         // "Pirate_Exploration_The Sirens" -> ("The Sirens", "Pirate Exploration")
         let split = |n: &str| match n.rsplit_once('_') {
