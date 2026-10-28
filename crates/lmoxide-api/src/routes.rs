@@ -574,15 +574,16 @@ pub async fn survey(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
     method: axum::http::Method,
-    axum::extract::Path(path): axum::extract::Path<String>,
-    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    uri: axum::http::Uri,
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
     auth.require(Scope::Admin)?;
-    let target = match query {
+    // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
+    let path = uri.path().strip_prefix("/v1/survey/").unwrap_or_default();
+    let target = match uri.query() {
         Some(q) => format!("{path}?{q}"),
-        None => path,
+        None => path.to_string(),
     };
     let (status, content_type, body) = control(&state)?.survey(method.as_str(), &target, &auth.actor, body.to_vec()).await.map_err(ApiError::game_server)?;
     let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
@@ -600,15 +601,16 @@ pub async fn editor(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
     method: axum::http::Method,
-    axum::extract::Path(path): axum::extract::Path<String>,
-    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    uri: axum::http::Uri,
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
     auth.require(Scope::Admin)?;
-    let target = match query {
+    // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
+    let path = uri.path().strip_prefix("/v1/editor/").unwrap_or_default();
+    let target = match uri.query() {
         Some(q) => format!("{path}?{q}"),
-        None => path,
+        None => path.to_string(),
     };
     let (status, content_type, body) = control(&state)?.editor(method.as_str(), &target, &auth.actor, body.to_vec()).await.map_err(ApiError::game_server)?;
     let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);
@@ -625,15 +627,16 @@ pub async fn content(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
     method: axum::http::Method,
-    axum::extract::Path(path): axum::extract::Path<String>,
-    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    uri: axum::http::Uri,
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
     auth.require(Scope::Admin)?;
-    let target = match query {
+    // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
+    let path = uri.path().strip_prefix("/v1/content/").unwrap_or_default();
+    let target = match uri.query() {
         Some(q) => format!("{path}?{q}"),
-        None => path,
+        None => path.to_string(),
     };
     let (status, content_type, body) = control(&state)?.content(method.as_str(), &target, &auth.actor, body.to_vec()).await.map_err(ApiError::game_server)?;
     let status = StatusCode::from_u16(status).unwrap_or(StatusCode::BAD_GATEWAY);

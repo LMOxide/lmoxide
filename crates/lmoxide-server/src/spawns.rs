@@ -14,7 +14,7 @@ use serde_json::Value;
 use crate::npc::{Kind, SpawnDef};
 
 /// The old `source` strings survey mode reads ("proposed": a guess).
-fn source_name(s: Option<Source>) -> Option<String> {
+pub fn source_name(s: Option<Source>) -> Option<String> {
     Some(
         match s? {
             Source::Live => "live",
@@ -31,6 +31,14 @@ fn source_name(s: Option<Source>) -> Option<String> {
 
 /// A spawn as the NPC code's definition, its template and overrides applied.
 fn def_of(c: &Content, s: &Spawn) -> Option<SpawnDef> {
+    let t: Value = c.spawn_template(s)?;
+    def_from(s, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))
+}
+
+/// A spawn as the NPC code's definition from its template (resolved, overrides applied): the
+/// attack's client spell by skill id, and the loot table it drops when it isn't its kind's
+/// usual one. None for kinds the NPC code doesn't spawn, or without a look.
+pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, own_loot: &dyn Fn(Kind, Option<&str>) -> Option<String>) -> Option<SpawnDef> {
     let kind = match (s.kind, s.fight) {
         (_, Some(FightRole::Fighter)) => Kind::Fighter,
         (SpawnKind::Enemy, _) => Kind::Enemy,
@@ -38,13 +46,12 @@ fn def_of(c: &Content, s: &Spawn) -> Option<SpawnDef> {
         (SpawnKind::Smashable, _) => Kind::Smashable,
         _ => return None,
     };
-    let t: Value = c.spawn_template(s)?;
     let render = &t["render"];
     let u = |v: &Value| v.as_u64().map(|n| n as u32);
     let (health, spell) = if kind == Kind::Smashable {
         (u(&t["health"]), None)
     } else {
-        let attack = t["attack"].as_str().and_then(|a| c.skills.get(a)).and_then(|s| s.client.as_ref()).map(|c| c.spell);
+        let attack = t["attack"].as_str().and_then(spell_of);
         (u(&t["stats"]["health"]), attack)
     };
     Some(SpawnDef {
@@ -63,7 +70,7 @@ fn def_of(c: &Content, s: &Spawn) -> Option<SpawnDef> {
         fights: false,
         faction: None,
         patrol: s.patrol.clone(),
-        loot: own_loot(c, kind, t["loot"].as_str()),
+        loot: own_loot(kind, t["loot"].as_str()),
         source: source_name(s.source),
         rot: s.rot.map(Rot::heading),
     })
@@ -71,7 +78,7 @@ fn def_of(c: &Content, s: &Spawn) -> Option<SpawnDef> {
 
 /// A template's loot table when it isn't the one its kind rolls anyway (tunables
 /// `loot.tables`: `smashable`, `enemy`, which bosses and champions trade for theirs by rank).
-fn own_loot(c: &Content, kind: Kind, loot: Option<&str>) -> Option<String> {
+pub fn own_loot(c: &Content, kind: Kind, loot: Option<&str>) -> Option<String> {
     let usual = c.tunables.loot.tables.get(if kind == Kind::Smashable { "smashable" } else { "enemy" });
     loot.filter(|l| Some(&l.to_string()) != usual).map(str::to_string)
 }

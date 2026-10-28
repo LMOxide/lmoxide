@@ -101,6 +101,38 @@ pub fn committed(work: &Work, key: &Key) -> Option<Value> {
     file_at(work.dir(), "HEAD", &file).and_then(|t| records_of(&t).remove(key))
 }
 
+/// Sets a record back to its committed version (where it was in its file), or takes it out
+/// when it is new: unpublished changes discarded.
+pub fn restore(work: &mut Work, key: &Key) -> Result<(), crate::work::EditError> {
+    let file = work.get(key).map(|e| e.file.clone()).or_else(|| work.file_for(key).ok());
+    let committed: Vec<(Key, Value)> = file
+        .and_then(|f| file_at(work.dir(), "HEAD", &f))
+        .map(|t| records_in_order(&t))
+        .unwrap_or_default();
+    let at = committed.iter().position(|(k, _)| k == key);
+    let value = at.map(|i| committed[i].1.clone());
+    // the first record after it there that is still here
+    let before = at.and_then(|i| committed[i + 1..].iter().map(|(k, _)| k).find(|k| work.get(k).is_some()).cloned());
+    work.reset_before(key, value, before.as_ref())
+}
+
+/// The records of a content file's text, in file order.
+fn records_in_order(text: &str) -> Vec<(Key, Value)> {
+    let Ok(v) = serde_json::from_str::<Value>(text) else { return Vec::new() };
+    let list: Vec<Value> = match v {
+        Value::Object(ref o) if o.contains_key("id") => vec![v],
+        Value::Object(o) => o.into_values().filter_map(|l| l.as_array().cloned()).flatten().collect(),
+        _ => Vec::new(),
+    };
+    list.into_iter()
+        .filter_map(|r| {
+            let id = r.get("id")?.as_str()?.to_string();
+            let feature = r.get("feature").and_then(Value::as_str).filter(|f| !f.is_empty()).unwrap_or("live").to_string();
+            Some((Key::parse(&id, feature).ok()?, r))
+        })
+        .collect()
+}
+
 /// A record changed since the last commit.
 #[derive(Debug, Clone, Serialize)]
 pub struct Change {

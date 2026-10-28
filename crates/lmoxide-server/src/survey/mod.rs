@@ -44,6 +44,11 @@ use crate::{
     npc::{self, Kind, SpawnDef},
     world,
 };
+use lmoxide_content::git;
+use lmoxide_content::id::{RecordId, RecordKind};
+use lmoxide_content::work::{Key, Work};
+
+mod records;
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 
@@ -67,8 +72,14 @@ static NEXT_HELPER: AtomicU32 = AtomicU32::new(0x00f0_0000);
 /// CARS group that lets players attack (select) friendly NPCs in survey mode.
 const CARS_ATTACKABLE: u32 = 3;
 
+#[derive(Clone)]
 struct Object {
+    /// Its record's id (`spawn/4200/scallywag-7`): what the API names it by.
     id: String,
+    /// Its record (id and feature).
+    key: Key,
+    /// Its template (`npc/...`, `object/...`).
+    template: Option<String>,
     playfield: u32,
     category: Category,
     /// As spawned, but with its plain name; `rot` is the heading.
@@ -166,9 +177,20 @@ pub fn init(dir: PathBuf) {
     });
 }
 
-/// Content records the world editor saved, created or deleted (crate::editor).
-pub fn content_changed(keys: &[lmoxide_content::work::Key]) {
-    tracing::debug!(records = keys.len(), "content changed");
+/// Content records the world editor saved, created or deleted (crate::editor): the worlds whose
+/// spawns changed spawn again; a changed template, skill or loot table, every world.
+pub fn content_changed(work: &Work, keys: &[Key]) {
+    let mut guard = STATE.lock().unwrap();
+    let Some(st) = guard.as_mut() else { return };
+    let everywhere = keys.iter().any(|k| matches!(k.id.kind, RecordKind::Npc | RecordKind::Object | RecordKind::Skill | RecordKind::Script));
+    let pfs: Vec<u32> = if everywhere {
+        st.objects.values().map(|o| o.playfield).chain(keys.iter().filter_map(|k| k.id.world)).collect()
+    } else {
+        keys.iter().filter(|k| k.id.kind == RecordKind::Spawn).filter_map(|k| k.id.world).collect()
+    };
+    if !pfs.is_empty() {
+        rebuild(st, work, pfs);
+    }
 }
 
 /// Whether `thing` isn't sent to `viewer` (what they hid).
@@ -234,39 +256,6 @@ fn health_at(def: &SpawnDef, level: u32) -> u32 {
 }
 
 impl Object {
-    fn base_origin(&self) -> Origin {
-        Origin {
-            id: self.id.clone(),
-            kind: skind(self.def.kind),
-            monster_data: nonzero(self.def.monster_data),
-            template: nonzero(self.def.template),
-            pos: self.def.pos,
-        }
-    }
-
-    fn placement(&self) -> Placement {
-        Placement {
-            id: self.id.clone(),
-            kind: skind(self.def.kind),
-            name: self.def.name.clone(),
-            monster_data: nonzero(self.def.monster_data),
-            template: nonzero(self.def.template),
-            level: Some(self.def.level),
-            pos: self.def.pos,
-            heading: self.def.rot.unwrap_or(0.0),
-            target: None,
-            replaces: self.replaces.clone(),
-            removed: false,
-            wave: self.wave.clone(),
-            patrol: self.def.patrol.clone(),
-            comment: self.comment.clone(),
-            tags: self.tags.clone(),
-            feature: self.feature.clone(),
-            author: self.author.clone(),
-            updated: self.updated,
-        }
-    }
-
     /// What is spawned: named by its category, and attackable (selectable).
     fn spawn_def(&self) -> SpawnDef {
         let mut def = self.def.clone();
@@ -313,22 +302,27 @@ impl Object {
 
 // ------------------------------------------------------------------ startup
 
-/// Spawns the base content (`npc::start`'s list) with the survey set applied: guesses the set
-/// replaces are left out, its placements (waves too: every wave is there, surveyors choose
-/// which they see) spawned.
+/// Spawns the working copy's spawns of every world (and the set's walls and bouncers);
+/// `all`, `npc::start`'s list, gives the catalog of looks.
 pub fn start(all: Vec<(u32, SpawnDef)>) {
-    let mut guard = STATE.lock().unwrap();
-    let Some(st) = guard.as_mut() else { return };
-    for (pf, def) in all {
-        st.bases.entry(pf).or_default().push(def);
+    let built = crate::editor::work(|work| {
+        let mut guard = STATE.lock().unwrap();
+        let Some(st) = guard.as_mut() else { return };
+        for (pf, def) in all {
+            st.bases.entry(pf).or_default().push(def);
+        }
+        st.catalog = catalog_of(&st.bases);
+        let playfields: std::collections::BTreeSet<u32> =
+            work.records().filter(|(k, _)| k.id.kind == RecordKind::Spawn).filter_map(|(k, _)| k.id.world).chain(st.set.placements.keys().copied()).collect();
+        for pf in playfields {
+            build_playfield(st, work, pf);
+        }
+        crate::jumppad::set(&st.set);
+        info!(objects = st.objects.len(), walls = st.walls.len(), "survey: content spawned");
+    });
+    if built.is_none() {
+        warn!("survey: no content working copy (--content-dir): nothing spawned");
     }
-    st.catalog = catalog_of(&st.bases);
-    let playfields: Vec<u32> = st.bases.keys().chain(st.set.placements.keys()).copied().collect::<std::collections::BTreeSet<_>>().into_iter().collect();
-    for pf in playfields {
-        build_playfield(st, pf);
-    }
-    crate::jumppad::set(&st.set);
-    info!(objects = st.objects.len(), walls = st.walls.len(), "survey: content spawned");
     tokio::spawn(watch_walls());
     tokio::spawn(autosave());
 }
@@ -369,47 +363,9 @@ pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement],
     (out, waves)
 }
 
-/// Spawns playfield `pf`'s objects from its base content and the set.
-fn build_playfield(st: &mut State, pf: u32) {
-    let empty = Vec::new();
-    let defs = st.bases.get(&pf).unwrap_or(&empty);
-    let bases = bases_of(defs);
-    // (bouncers are jumppad.rs's: `crate::jumppad::set`)
-    let placements: Vec<Placement> = st.set.placements.get(&pf).map(|f| f.placements.iter().filter(|p| p.kind != SKind::Bouncer).cloned().collect()).unwrap_or_default();
-    let applied = sv::apply::apply(pf, &bases, &placements, MATCH_DISTANCE);
-    for p in &applied.orphans {
-        warn!(playfield = pf, placement = %p.id, "survey: the guess this placement replaces is gone; not spawned");
-    }
-    let mut objects = Vec::new();
-    for s in applied.start {
-        match s {
-            Spawn::Base { id, category, data } => objects.push(Object {
-                id,
-                playfield: pf,
-                category,
-                def: data.clone(),
-                wave: None,
-                replaces: None,
-                comment: String::new(),
-                feature: sv::features::live(),
-                tags: Vec::new(),
-                author: String::new(),
-                updated: 0,
-                npc: None,
-            }),
-            Spawn::Surveyed { placement, replaced } => {
-                if let Some(o) = from_placement(&st.catalog, pf, placement, replaced) {
-                    objects.push(o);
-                }
-            }
-        }
-    }
-    for p in applied.waves {
-        if let Some(o) = from_placement(&st.catalog, pf, p, None) {
-            objects.push(o);
-        }
-    }
-    for mut o in objects {
+/// Spawns playfield `pf`'s objects from the working copy, and the set's trigger walls.
+fn build_playfield(st: &mut State, work: &Work, pf: u32) {
+    for mut o in records::objects_of(work, pf) {
         spawn(&st.surveyors, &st.set, &mut o);
         if let Some(n) = o.npc {
             st.by_npc.insert(n, o.id.clone());
@@ -422,6 +378,33 @@ fn build_playfield(st: &mut State, pf: u32) {
         spawn_wall(&st.surveyors, &mut w);
         st.walls.insert(w.def.id.clone(), w);
     }
+}
+
+/// Spawns `id` again as its record `key` now is (gone when the record is): its view.
+fn replace_object(st: &mut State, work: &Work, id: &str, key: &Key) -> Option<SurveyObject> {
+    if let Some(mut old) = st.objects.remove(id) {
+        if let Some(n) = old.npc {
+            st.by_npc.remove(&n);
+        }
+        despawn(&mut old);
+    }
+    let mut o = records::object_of(work, key)?;
+    spawn(&st.surveyors, &st.set, &mut o);
+    if let Some(n) = o.npc {
+        st.by_npc.insert(n, o.id.clone());
+    }
+    let view = o.view();
+    st.objects.insert(o.id.clone(), o);
+    Some(view)
+}
+
+/// The object `id` if editors may change it (guesses and surveyed ones).
+fn editable(st: &State, id: &str) -> Result<Object, Error> {
+    let o = st.objects.get(id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
+    if !o.category.editable() {
+        return Err(Error::Invalid(format!("{} objects can only be hidden", label(o.category))));
+    }
+    Ok(o.clone())
 }
 
 /// The catalog's spawn of that look (its spells, NPC template, health, ...), if any.
@@ -459,6 +442,8 @@ fn from_placement(catalog: &[(Placeable, SpawnDef)], pf: u32, p: &Placement, rep
     def.source = Some("survey".into());
     Some(Object {
         id: p.id.clone(),
+        key: Key::new(RecordId::new(RecordKind::Spawn, Some(pf), p.id.clone()), p.feature.clone()),
+        template: None,
         playfield: pf,
         category: Category::Surveyed,
         def,
@@ -1280,6 +1265,11 @@ impl IntoResponse for Error {
 
 type R<T> = Result<Json<T>, Error>;
 
+/// Runs `f` on the working copy and the survey state (in that lock order: crate::editor).
+fn with_work<T>(f: impl FnOnce(&mut Work, &mut State) -> Result<T, Error>) -> Result<T, Error> {
+    crate::editor::work(|work| with(|st| f(work, st))).unwrap_or(Err(Error::Off))
+}
+
 /// Runs `f` on the survey state.
 fn with<T>(f: impl FnOnce(&mut State) -> Result<T, Error>) -> Result<T, Error> {
     let mut guard = STATE.lock().unwrap();
@@ -1421,7 +1411,7 @@ struct PlaceBody {
 }
 
 async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<PlaceBody>) -> R<SurveyObject> {
-    with(|st| {
+    with_work(|work, st| {
         let (player, pf) = player_of(account)?;
         let pos = world::live_position(player).unwrap_or_default();
         let heading = heading_of(world::facing_of(player).unwrap_or([0.0, 1.0]));
@@ -1455,50 +1445,30 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
             st.surveyors.entry(player).or_default().selected = Some(id.clone());
             return store_bouncer(st, pf, p, &id);
         }
-        let kind = nkind(b.what.kind)?;
-        let mut def = template_of(&st.catalog, b.what.kind, b.what.monster_data, b.what.template)
-            .unwrap_or_else(|| bare_def(kind, b.what.monster_data.unwrap_or(0), b.what.template.unwrap_or(0), b.what.level.unwrap_or(1)));
-        let level = b.what.level.unwrap_or(def.level).max(1);
-        def.health = health_at(&def, level);
-        def.level = level;
-        def.name = b.what.name.clone();
-        def.pos = pos;
-        def.rot = Some(heading);
-        def.patrol.clear();
-        def.source = Some("survey".into());
+        nkind(b.what.kind)?;
         if b.wave.as_ref().is_some_and(|w| !has_wave(&st.set, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
         let feature = checked_feature(&st.set, b.feature)?;
-        let mut o = Object {
-            id: ids::new_id("p", &author),
-            playfield: pf,
-            category: Category::Surveyed,
-            def,
-            wave: b.wave.clone(),
-            replaces: None,
-            comment: String::new(),
-            feature,
-            tags: sv::tidy_tags(&b.tags),
-            author,
-            updated: ids::now(),
-            npc: None,
-        };
-        st.set.placements_mut(pf).placements.push(o.placement());
-        save(st);
+        let now = ids::now();
+        let objects: Vec<&Object> = st.objects.values().collect();
+        let template = records::template_for(work, &objects, &b.what, &author, now)?;
+        let key = records::new_key(work, pf, &b.what.name, &feature);
+        let mut o = records::new_object(key, template, &b.what, template_of(&st.catalog, b.what.kind, b.what.monster_data, b.what.template))?;
+        o.playfield = pf;
+        o.def.pos = pos;
+        o.def.rot = Some(heading);
+        o.wave = b.wave.clone();
+        o.tags = sv::tidy_tags(&b.tags);
+        records::store(work, &o, &author, now)?;
+        let id = o.id.clone();
         let s = st.surveyors.entry(player).or_default();
-        s.selected = Some(o.id.clone());
+        s.selected = Some(id.clone());
         if let Some(w) = &b.wave {
             // placing into a wave shows that wave
             s.shown.insert(w.script.clone(), w.wave.clone());
         }
-        let view = o.view();
-        let id = o.id.clone();
-        spawn(&st.surveyors, &st.set, &mut o);
-        if let Some(n) = o.npc {
-            st.by_npc.insert(n, id.clone());
-        }
-        st.objects.insert(id, o);
+        let view = replace_object(st, work, &id, &o.key).ok_or_else(|| Error::Invalid(format!("{id} was saved but can't be spawned")))?;
         sync_all(st);
         mark(st, player);
         bump(st, pf);
@@ -1735,51 +1705,8 @@ async fn delete_script(Path((pf, id)): Path<(u32, String)>) -> Result<StatusCode
     })
 }
 
-/// A guess becomes a surveyed placement that replaces it (new id); others are returned as they are.
-fn surveyed(st: &mut State, id: &str, author: &str) -> Result<String, Error> {
-    let o = st.objects.get(id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
-    match o.category {
-        Category::Surveyed => Ok(id.to_string()),
-        Category::Guessed => {
-            let mut o = st.objects.remove(id).expect("checked");
-            o.replaces = Some(o.base_origin());
-            o.id = ids::new_id("p", if author.is_empty() { "web" } else { author });
-            o.category = Category::Surveyed;
-            o.def.source = Some("survey".into());
-            o.author = author.to_string();
-            let new = o.id.clone();
-            if let Some(n) = o.npc {
-                st.by_npc.insert(n, new.clone());
-            }
-            for s in st.surveyors.values_mut() {
-                if s.selected.as_deref() == Some(id) {
-                    s.selected = Some(new.clone());
-                }
-                if s.hidden.remove(id) {
-                    s.hidden.insert(new.clone());
-                }
-            }
-            st.objects.insert(new.clone(), o);
-            Ok(new)
-        }
-        c => Err(Error::Invalid(format!("{} objects can only be hidden", label(c)))),
-    }
-}
-
-/// Stores the object's placement in the set (replacing the one with its id).
-fn store(st: &mut State, id: &str) {
-    let Some(o) = st.objects.get(id) else { return };
-    let p = o.placement();
-    let list = &mut st.set.placements_mut(o.playfield).placements;
-    match list.iter_mut().find(|x| x.id == p.id) {
-        Some(x) => *x = p,
-        None => list.push(p),
-    }
-    save(st);
-}
-
 async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>) -> R<SurveyObject> {
-    with(|st| {
+    with_work(|work, st| {
         let author = author_of(&headers);
         if st.walls.contains_key(&id) {
             return edit_wall(st, &id, c, author);
@@ -1788,27 +1715,20 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
             return edit_bouncer(st, &l, c, &author);
         }
         let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
-        let id = surveyed(st, &id, &author)?;
-        let catalog = st.catalog.clone();
-        let pf = st.objects[&id].playfield;
+        let mut o = editable(st, &id)?;
+        let pf = o.playfield;
         if let Some(Some(w)) = &c.wave
             && !has_wave(&st.set, pf, w)
         {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
-        let o = st.objects.get_mut(&id).expect("surveyed");
+        let now = ids::now();
         if let Some(kind) = c.kind {
-            // changed into another spawn: that look's spells, template, health
-            let k = nkind(kind)?;
-            let md = c.monster_data.flatten();
-            let tpl = c.template.flatten();
-            let mut def = template_of(&catalog, kind, md, tpl).unwrap_or_else(|| bare_def(k, md.unwrap_or(0), tpl.unwrap_or(0), o.def.level));
-            def.kind = k;
-            def.pos = o.def.pos;
-            def.rot = o.def.rot;
-            def.patrol = if walks(k) { o.def.patrol.clone() } else { Vec::new() };
-            def.source = o.def.source.clone();
-            o.def = def;
+            // changed into another spawn: that look's template (its spells, health, ...)
+            let what = Placeable { kind, name: o.def.name.clone(), monster_data: c.monster_data.flatten(), template: c.template.flatten(), level: Some(o.def.level), used: None };
+            let objects: Vec<&Object> = st.objects.values().collect();
+            o.template = Some(records::template_for(work, &objects, &what, &author, now)?);
+            o.def.kind = nkind(kind)?;
         }
         if let Some(p) = c.pos {
             o.def.pos = p;
@@ -1827,9 +1747,6 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         if let Some(t) = c.comment {
             o.comment = t;
         }
-        if let Some(f) = feature {
-            o.feature = f;
-        }
         if let Some(t) = c.tags {
             o.tags = sv::tidy_tags(t);
         }
@@ -1839,22 +1756,27 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         if let Some(p) = c.patrol {
             o.def.patrol = if walks(o.def.kind) { p } else { Vec::new() };
         }
-        if !author.is_empty() {
-            o.author = author;
+        let old = o.key.clone();
+        if let Some(f) = feature {
+            // moved to another feature: its version there, the old one gone
+            o.feature = f.clone();
+            o.key.feature = f;
         }
-        o.updated = ids::now();
-        store(st, &id);
-        respawn(st, &id);
+        records::store(work, &o, &author, now)?;
+        if o.key != old {
+            work.reset(&old, None)?;
+        }
+        let view = replace_object(st, work, &id, &o.key).ok_or_else(|| Error::Invalid(format!("{id} was saved but can't be spawned (its template?)")))?;
         sync_all(st);
         mark_selecting(st, &id);
         bump(st, pf);
-        Ok(st.objects[&id].view())
+        Ok(view)
     })
     .map(Json)
 }
 
 async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> {
-    with(|st| {
+    with_work(|work, st| {
         if st.walls.contains_key(&id) {
             return Err(Error::Invalid("trigger walls are surveyed already".into()));
         }
@@ -1862,18 +1784,18 @@ async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> 
         if let Some(l) = crate::jumppad::find(&id) {
             return edit_bouncer(st, &l, Changes::default(), &author);
         }
-        let id = surveyed(st, &id, &author)?;
-        if let Some(o) = st.objects.get_mut(&id) {
-            o.updated = ids::now();
+        // confirmed: surveyed, and tagged so
+        let mut o = editable(st, &id)?;
+        if !o.tags.iter().any(|t| t == "verified") {
+            o.tags.push("verified".into());
         }
-        store(st, &id);
+        records::store(work, &o, &author, ids::now())?;
         // its name changes from [guess] to [surveyed]
-        respawn(st, &id);
+        let view = replace_object(st, work, &id, &o.key).ok_or_else(|| Error::Invalid(format!("{id} can't be spawned")))?;
         sync_all(st);
         mark_selecting(st, &id);
-        let pf = st.objects[&id].playfield;
-        bump(st, pf);
-        Ok(st.objects[&id].view())
+        bump(st, o.playfield);
+        Ok(view)
     })
     .map(Json)
 }
@@ -1886,7 +1808,7 @@ struct Removed {
 }
 
 async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
-    with(|st| {
+    with_work(|work, st| {
         if st.walls.contains_key(&id) {
             remove_wall(st, &id, &author_of(&headers));
             return Ok(Json(Removed { id }));
@@ -1905,38 +1827,18 @@ async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
             deselect(st, &removed);
             return Ok(Json(Removed { id: removed }));
         }
-        let o = st.objects.get(&id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
-        if !o.category.editable() {
-            return Err(Error::Invalid(format!("{} objects can only be hidden", label(o.category))));
-        }
-        let author = author_of(&headers);
-        let id = surveyed(st, &id, &author)?;
-        let mut o = st.objects.remove(&id).expect("surveyed");
-        // a removed placement: the guess it replaces stays away, and merges don't bring it back
-        let mut p = o.placement();
-        p.removed = true;
-        p.updated = ids::now();
-        if !author.is_empty() {
-            p.author = author;
-        }
-        let list = &mut st.set.placements_mut(o.playfield).placements;
-        match list.iter_mut().find(|x| x.id == p.id) {
-            Some(x) => *x = p,
-            None => list.push(p),
-        }
-        save(st);
-        if let Some(n) = o.npc {
-            st.by_npc.remove(&n);
-        }
-        despawn(&mut o);
-        let viewers: Vec<Id32> = st.surveyors.iter().filter(|(_, s)| s.selected.as_deref() == Some(id.as_str())).map(|(v, _)| *v).collect();
-        for v in viewers {
-            if let Some(s) = st.surveyors.get_mut(&v) {
-                s.selected = None;
+        let o = editable(st, &id)?;
+        // (refused while other records name it: a bouncer that needs it built, a wave's health trigger)
+        work.delete(&o.key, None, &author_of(&headers), ids::now())?;
+        if let Some(mut o) = st.objects.remove(&id) {
+            if let Some(n) = o.npc {
+                st.by_npc.remove(&n);
             }
-            mark(st, v);
+            despawn(&mut o);
         }
+        deselect(st, &id);
         bump(st, o.playfield);
+        // (forget it to bring it back: its committed version)
         Ok(Json(Removed { id }))
     })
 }
@@ -1952,54 +1854,10 @@ fn deselect(st: &mut State, id: &str) {
     }
 }
 
-/// The base spawn a placement's `origin` names (by id, else as `apply` finds a moved guess).
-fn base_of(st: &State, pf: u32, origin: &Origin) -> Option<(String, SpawnDef)> {
-    let defs = st.bases.get(&pf)?;
-    let id_of = |d: &SpawnDef| ids::base_id(pf, skind(d.kind), nonzero(d.monster_data), nonzero(d.template), d.pos);
-    defs.iter().find(|d| id_of(d) == origin.id).or_else(|| {
-        defs.iter()
-            .filter(|d| skind(d.kind) == origin.kind && nonzero(d.monster_data) == origin.monster_data && nonzero(d.template) == origin.template)
-            .map(|d| (d, distance(d.pos, origin.pos)))
-            .filter(|(_, dist)| *dist <= MATCH_DISTANCE)
-            .min_by(|a, b| a.1.total_cmp(&b.1))
-            .map(|(d, _)| d)
-    })
-    .map(|d| (id_of(d), d.clone()))
-}
-
-/// Spawns the guess `origin` names again (its placement is gone): its view.
-fn bring_back(st: &mut State, pf: u32, origin: &Origin) -> Option<SurveyObject> {
-    let (id, def) = base_of(st, pf, origin)?;
-    if st.objects.contains_key(&id) {
-        return st.objects.get(&id).map(Object::view);
-    }
-    let mut o = Object {
-        id: id.clone(),
-        playfield: pf,
-        category: Category::from_source(def.source.as_deref()),
-        def,
-        wave: None,
-        replaces: None,
-        comment: String::new(),
-        feature: sv::features::live(),
-        tags: Vec::new(),
-        author: String::new(),
-        updated: 0,
-        npc: None,
-    };
-    spawn(&st.surveyors, &st.set, &mut o);
-    if let Some(n) = o.npc {
-        st.by_npc.insert(n, id.clone());
-    }
-    let view = o.view();
-    st.objects.insert(id, o);
-    Some(view)
-}
-
 /// Drops a placement or trigger wall record entirely (no deletion record stays): undoing a
 /// placement, or resetting an edited guess (the guess comes back, its view is the answer).
 async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
-    with(|st| {
+    with_work(|work, st| {
         if let Some(pf) = st.set.placements.iter().find(|(_, f)| f.triggers.iter().any(|t| t.id == id)).map(|(pf, _)| *pf) {
             st.walls.remove(&id); // despawns its pieces
             st.set.placements_mut(pf).triggers.retain(|t| t.id != id);
@@ -2008,15 +1866,10 @@ async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
             bump(st, pf);
             return Ok(Json(None));
         }
-        let (pf, record) = st
-            .set
-            .placements
-            .iter()
-            .find_map(|(pf, f)| f.placements.iter().find(|p| p.id == id).map(|p| (*pf, p.clone())))
-            .ok_or_else(|| Error::NotFound(format!("no placement {id}")))?;
-        st.set.placements_mut(pf).placements.retain(|p| p.id != id);
-        save(st);
-        if record.kind == SKind::Bouncer {
+        // a bouncer placement of the set
+        if let Some((pf, record)) = st.set.placements.iter().find_map(|(pf, f)| f.placements.iter().find(|p| p.id == id && p.kind == SKind::Bouncer).map(|p| (*pf, p.clone()))) {
+            st.set.placements_mut(pf).placements.retain(|p| p.id != id);
+            save(st);
             crate::jumppad::set(&st.set);
             deselect(st, &id);
             bump(st, pf);
@@ -2024,16 +1877,26 @@ async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
             let back = record.replaces.as_ref().and_then(|o| crate::jumppad::find(&o.id)).map(|l| bouncer_view(&l));
             return Ok(Json(back));
         }
-        if let Some(mut o) = st.objects.remove(&id) {
-            if let Some(n) = o.npc {
-                st.by_npc.remove(&n);
-            }
-            despawn(&mut o);
-        }
+        // a spawn: back to its committed version (a new one goes, a deleted one comes back)
+        let key = st.objects.get(&id).map(|o| o.key.clone()).or_else(|| Key::parse(&id, "live").ok()).filter(|k| k.id.kind == RecordKind::Spawn).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
+        let pf = key.id.world.unwrap_or(0);
+        git::restore(work, &key)?;
         deselect(st, &id);
-        let guess = record.replaces.as_ref().and_then(|origin| bring_back(st, pf, origin));
+        let back = match work.get(&key) {
+            Some(_) => replace_object(st, work, &id, &key),
+            None => {
+                if let Some(mut o) = st.objects.remove(&id) {
+                    if let Some(n) = o.npc {
+                        st.by_npc.remove(&n);
+                    }
+                    despawn(&mut o);
+                }
+                None
+            }
+        };
+        sync_all(st);
         bump(st, pf);
-        Ok(Json(guess))
+        Ok(Json(back))
     })
 }
 
@@ -2081,9 +1944,9 @@ struct Snapshot {
 
 /// Makes `id` exactly as the snapshot has it (spawned again; a guess it replaces goes away).
 async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Snapshot>) -> R<SurveyObject> {
-    with(|st| {
+    with_work(|work, st| {
         let pf = b.playfield.ok_or_else(|| Error::Invalid("playfield?".into()))?;
-        put_snapshot(st, id, pf, b, author_of(&headers))
+        put_snapshot(st, work, id, pf, b, author_of(&headers))
     })
     .map(Json)
 }
@@ -2091,21 +1954,25 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
 /// A new record in playfield `pf` from a snapshot (the world editor's paste): a new id, the
 /// feature and wave checked, never replacing a guess; nobody's selection changes.
 async fn create_object(Path(pf): Path<u32>, headers: HeaderMap, Json(mut b): Json<Snapshot>) -> R<SurveyObject> {
-    with(|st| {
+    with_work(|work, st| {
         let author = author_of(&headers);
         b.feature = checked_feature(&st.set, Some(b.feature))?;
         if b.wave.as_ref().is_some_and(|w| !has_wave(&st.set, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
         b.replaces = None;
-        let id = ids::new_id(if b.kind == "trigger" { "t" } else { "p" }, &author);
-        put_snapshot(st, id, pf, b, author)
+        let id = if b.kind == "trigger" || b.kind == "bouncer" {
+            ids::new_id(if b.kind == "trigger" { "t" } else { "p" }, &author)
+        } else {
+            records::new_key(work, pf, &b.name, &b.feature).id.to_string()
+        };
+        put_snapshot(st, work, id, pf, b, author)
     })
     .map(Json)
 }
 
 /// Makes `id` in playfield `pf` exactly as the snapshot has it, saved and spawned (again).
-fn put_snapshot(st: &mut State, id: String, pf: u32, b: Snapshot, author: String) -> Result<SurveyObject, Error> {
+fn put_snapshot(st: &mut State, work: &mut Work, id: String, pf: u32, b: Snapshot, author: String) -> Result<SurveyObject, Error> {
     if b.kind == "trigger" {
         let def = TriggerWall {
             id: id.clone(),
@@ -2163,67 +2030,30 @@ fn put_snapshot(st: &mut State, id: String, pf: u32, b: Snapshot, author: String
         let old = p.replaces.as_ref().map(|o| o.id.clone()).filter(|o| crate::jumppad::find(o).is_some()).unwrap_or_else(|| id.clone());
         return store_bouncer(st, pf, p, &old);
     }
-    let p = Placement {
-        id: id.clone(),
-        kind,
-        name: b.name,
-        monster_data: b.monster_data,
-        template: b.template,
-        level: b.level,
-        pos: b.pos,
-        heading: b.heading,
-        target: None,
-        replaces: b.replaces,
-        removed: false,
-        wave: b.wave,
-        patrol: b.patrol,
-        comment: b.comment,
-        tags: sv::tidy_tags(&b.tags),
-        feature: b.feature,
-        author,
-        updated: ids::now(),
-    };
-    // the guess it replaces goes away again
-    let replaced = p.replaces.as_ref().and_then(|o| base_of(st, pf, o));
-    if let Some((gid, _)) = &replaced
-        && let Some(mut g) = st.objects.remove(gid)
-    {
-        if let Some(n) = g.npc {
-            st.by_npc.remove(&n);
-        }
-        despawn(&mut g);
-        deselect(st, gid);
-    }
-    let mut o = from_placement(&st.catalog, pf, &p, replaced.as_ref().map(|(_, d)| d)).ok_or_else(|| Error::Invalid("that kind can't be placed yet".into()))?;
-    if let Some(mut old) = st.objects.remove(&id) {
-        if let Some(n) = old.npc {
-            st.by_npc.remove(&n);
-        }
-        despawn(&mut old);
-    }
-    o.author = p.author.clone();
-    o.updated = p.updated;
-    let list = &mut st.set.placements_mut(pf).placements;
-    match list.iter_mut().find(|x| x.id == id) {
-        Some(x) => *x = p,
-        None => list.push(p),
-    }
-    save(st);
-    spawn(&st.surveyors, &st.set, &mut o);
-    if let Some(n) = o.npc {
-        st.by_npc.insert(n, id.clone());
-    }
-    let view = o.view();
-    st.objects.insert(id.clone(), o);
+    let key = Key::parse(&id, b.feature.clone()).map_err(Error::Invalid)?;
+    let what = Placeable { kind, name: b.name.clone(), monster_data: b.monster_data, template: b.template, level: b.level, used: None };
+    let now = ids::now();
+    let objects: Vec<&Object> = st.objects.values().collect();
+    let template = records::template_for(work, &objects, &what, &author, now)?;
+    let mut o = records::new_object(key, template, &what, template_of(&st.catalog, kind, b.monster_data, b.template))?;
+    o.playfield = pf;
+    o.def.pos = b.pos;
+    o.def.rot = Some(b.heading);
+    o.wave = b.wave;
+    o.def.patrol = if walks(o.def.kind) { b.patrol } else { Vec::new() };
+    o.comment = b.comment;
+    o.tags = sv::tidy_tags(&b.tags);
+    records::store(work, &o, &author, now)?;
+    let view = replace_object(st, work, &id, &o.key).ok_or_else(|| Error::Invalid("that kind can't be placed yet".into()))?;
     sync_all(st);
     mark_selecting(st, &id);
     bump(st, pf);
     Ok(view)
 }
 
-/// Spawns these playfields again from their base content and the set (what changed is easiest
+/// Spawns these playfields again from the working copy and the set (what changed is easiest
 /// seen that way).
-fn rebuild(st: &mut State, pfs: impl IntoIterator<Item = u32>) {
+fn rebuild(st: &mut State, work: &Work, pfs: impl IntoIterator<Item = u32>) {
     for pf in pfs.into_iter().collect::<std::collections::BTreeSet<_>>() {
         let ids: Vec<String> = st.objects.values().filter(|o| o.playfield == pf).map(|o| o.id.clone()).collect();
         for id in ids {
@@ -2235,7 +2065,7 @@ fn rebuild(st: &mut State, pfs: impl IntoIterator<Item = u32>) {
             }
         }
         st.walls.retain(|_, w| w.playfield != pf);
-        build_playfield(st, pf);
+        build_playfield(st, work, pf);
         bump(st, pf);
     }
     crate::jumppad::set(&st.set);
@@ -2351,7 +2181,7 @@ struct Copied {
 /// Copies a feature with everything in it (its placements, walls, notes and scripts), so next
 /// year's event starts as this year's (the copies are spawned too).
 async fn copy_feature(headers: HeaderMap, Json(b): Json<CopyFeature>) -> R<Copied> {
-    with(|st| {
+    with_work(|work, st| {
         let author = author_of(&headers);
         let mut f = new_feature(&st.set, &b.parent, &b.title, b.comment, author.clone())?;
         if sv::features::within(&f.id, &b.from) {
@@ -2363,7 +2193,7 @@ async fn copy_feature(headers: HeaderMap, Json(b): Json<CopyFeature>) -> R<Copie
         save(st);
         let pfs: Vec<u32> = st.set.placements.keys().chain(st.set.notes.keys()).copied().collect();
         if records > 0 {
-            rebuild(st, pfs);
+            rebuild(st, work, pfs);
         }
         info!(from = %b.from, to = %id, records, "survey: feature copied");
         Ok(Json(Copied { id, records, features: features_view(&st.set) }))
@@ -2501,7 +2331,7 @@ struct ImportBody {
 }
 
 async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
-    with(|st| {
+    with_work(|work, st| {
         let mut theirs = Set { info: b.bundle.info, smash_rules: b.bundle.smash_rules, ..Default::default() };
         for (pf, content) in b.bundle.playfields {
             let pf: u32 = pf.parse().map_err(|_| Error::Invalid(format!("playfield {pf}?")))?;
@@ -2530,7 +2360,7 @@ async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
         let report = merge::merge(&mut st.set, &theirs, &opts);
         save(st);
         let pfs: Vec<u32> = theirs.placements.keys().chain(theirs.notes.keys()).copied().collect();
-        rebuild(st, pfs);
+        rebuild(st, work, pfs);
         info!(added = report.added.len(), near = report.near.len(), conflicts = report.conflicts.len(), "survey: import");
         Ok(Json(report))
     })

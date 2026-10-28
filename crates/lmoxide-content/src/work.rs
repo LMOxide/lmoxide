@@ -586,6 +586,11 @@ impl Work {
     /// Sets a record back to `to` exactly (its last committed version: discarding unpublished
     /// changes), or takes it out when it had none (`None`), without checks.
     pub fn reset(&mut self, key: &Key, to: Option<Value>) -> Result<(), EditError> {
+        self.reset_before(key, to, None)
+    }
+
+    /// As [`Work::reset`]; a record put back goes before `before` in its file (where it was).
+    pub fn reset_before(&mut self, key: &Key, to: Option<Value>, before: Option<&Key>) -> Result<(), EditError> {
         match to {
             Some(v) if self.records.contains_key(key) => {
                 self.unindex(key);
@@ -594,9 +599,31 @@ impl Work {
                 let file = self.records[key].file.clone();
                 self.write(&file)
             }
-            Some(v) => self.insert_new(key, v),
+            Some(v) => {
+                self.insert_new(key, v)?;
+                if let Some(b) = before {
+                    self.move_before(key, b);
+                    let file = self.records[key].file.clone();
+                    self.write(&file)?;
+                }
+                Ok(())
+            }
             None if self.records.contains_key(key) => self.take_out(key),
             None => Ok(()),
+        }
+    }
+
+    /// Moves `key` before `before` in their file's section (when both are there).
+    fn move_before(&mut self, key: &Key, before: &Key) {
+        let Some(file) = self.records.get(key).map(|e| e.file.clone()) else { return };
+        if let Some(Layout::Sections(list)) = self.files.get_mut(&file) {
+            for (_, keys) in list.iter_mut() {
+                if let (Some(from), true) = (keys.iter().position(|k| k == key), keys.contains(before)) {
+                    let k = keys.remove(from);
+                    let to = keys.iter().position(|k| k == before).expect("checked");
+                    keys.insert(to, k);
+                }
+            }
         }
     }
 

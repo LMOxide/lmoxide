@@ -154,11 +154,21 @@ fn problems(ed: &mut Editor) -> Arc<Problems> {
     out
 }
 
+/// Runs `f` on the working copy (survey.rs: in-game edits). Lock order: the working copy, then
+/// survey.rs's state. The tree's problems are checked again when next asked for.
+pub(crate) fn work<T>(f: impl FnOnce(&mut Work) -> T) -> Option<T> {
+    let mut guard = EDITOR.lock().unwrap();
+    let ed = guard.as_mut()?;
+    let out = f(&mut ed.work);
+    ed.problems = None;
+    Some(out)
+}
+
 /// After a write: the tree's problems are checked again when next asked for, and the survey
 /// world respawns what changed.
 fn changed(ed: &mut Editor, keys: &[Key]) {
     ed.problems = None;
-    crate::survey::content_changed(keys);
+    crate::survey::content_changed(&ed.work, keys);
 }
 
 // ------------------------------------------------------------------ routes
