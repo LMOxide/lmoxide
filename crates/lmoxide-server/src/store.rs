@@ -1,7 +1,7 @@
 //! Saved characters, kept in the database (`lmoxide_db`). An account's first character has the
 //! account's id, further ones their own (territory.rs).
 
-pub use lmoxide_db::{Character, Defeat, Visit};
+pub use lmoxide_db::{Character, Defeat, QuestState, Visit};
 
 use crate::state;
 

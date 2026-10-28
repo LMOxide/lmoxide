@@ -207,8 +207,9 @@ pub fn teleport_record(character: Id32, playfield: u32, pos: [f32; 3], rot: f32)
 
 /// `JournalUpdateIIR` (header protobuf JournalUpdateIIRProto) with every story line completed
 /// (tunables.json `story_quests`): the teleport windows and the World Map check
-/// CoreJournalHolder::HasEverCompletedQuest for their required quests.
-pub fn journal_record(character: Id32) -> Bytes {
+/// CoreJournalHolder::HasEverCompletedQuest for their required quests. With them the area
+/// quests the character completed (`area`: main quest, its quests, times done; quests.rs).
+pub fn journal_record(character: Id32, area: &[(u32, Vec<u32>, u32)]) -> Bytes {
     use lmoxide_net::proto::{
         JournalUpdateIirProto,
         journal_update_iir_proto::{AddedMainQuestType, AddedQuestType},
@@ -228,6 +229,14 @@ pub fn journal_record(character: Id32) -> Bytes {
                 .collect();
             Some(AddedMainQuestType { main_quest_id: Some(main), quest, ..Default::default() })
         })
+        .chain(area.iter().map(|(main, quests, done)| AddedMainQuestType {
+            main_quest_id: Some(*main),
+            quest: quests
+                .iter()
+                .map(|&q| AddedQuestType { quest_id: Some(q), failed: Some(false), repeat_count: Some(done.saturating_sub(1)), ..Default::default() })
+                .collect(),
+            ..Default::default()
+        }))
         .collect();
     let msg = JournalUpdateIirProto { added_main_quest, ..Default::default() };
     iir::record("JournalUpdateIIR", character, false, |w| w.proto(&msg))

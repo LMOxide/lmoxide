@@ -84,6 +84,7 @@ pub struct Content {
     pub minifigures: BTreeMap<String, Minifigure>,
     pub dialogues: BTreeMap<String, Dialogue>,
     pub achievements: BTreeMap<String, Achievement>,
+    pub quests: BTreeMap<String, Quest>,
     /// The world of each record kept in a world's folder.
     pub world_of: BTreeMap<String, String>,
     /// Where each record is in the tree (files in name order, records in file order).
@@ -389,6 +390,7 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             "minifig" => put(&mut content.minifigures, id, value),
             "dialogue" => put(&mut content.dialogues, id, value),
             "achievement" => put(&mut content.achievements, id, value),
+            "quest" => put(&mut content.quests, id, value),
             _ => Err(format!("no loader for kind {k}")),
         });
     }
@@ -885,6 +887,7 @@ pub(crate) enum AnyRecord {
     Minifigure(Minifigure),
     Dialogue(Dialogue),
     Achievement(Achievement),
+    Quest(Quest),
 }
 
 /// A record parsed as its kind (by its id).
@@ -917,6 +920,7 @@ pub(crate) fn typed(value: Value) -> Result<AnyRecord, String> {
         Some("minifig") => via(value, AnyRecord::Minifigure),
         Some("dialogue") => via(value, AnyRecord::Dialogue),
         Some("achievement") => via(value, AnyRecord::Achievement),
+        Some("quest") => via(value, AnyRecord::Quest),
         _ => Err(format!("unknown kind of id {id:?}")),
     }
 }

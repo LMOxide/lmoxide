@@ -57,6 +57,23 @@ pub struct Character {
     /// The owned minifigures -> unix time obtained; `None`: every minifigure is owned.
     #[serde(default)]
     pub collection: Option<BTreeMap<u32, i64>>,
+    /// Quests started, by the client's main quest id.
+    #[serde(default)]
+    pub quests: BTreeMap<u32, QuestState>,
+}
+
+/// Where a character is in a main quest.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct QuestState {
+    /// The step (quest) it is on, and the progress counted toward its goal.
+    pub step: u32,
+    pub progress: u32,
+    pub completions: u32,
+    pub started_at: i64,
+    /// Unix time of the last completion (0: never).
+    pub completed_at: i64,
+    /// Unix time it can start again (0: no cooldown).
+    pub cooldown_until: i64,
 }
 
 /// How often the character defeated something of one name.
@@ -118,6 +135,7 @@ impl Db {
                         finds: BTreeMap::new(),
                         smashed: BTreeMap::new(),
                         collection: (r.get::<_, i64>(8)? != 0).then(BTreeMap::new),
+                        quests: BTreeMap::new(),
                     })
                 },
             )
@@ -166,6 +184,25 @@ impl Db {
             let mut stmt = conn.prepare("SELECT template, obtained_at FROM character_collection WHERE character_id = ?1")?;
             *owned = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
         }
+        let mut stmt = conn.prepare(
+            "SELECT main_quest, step, progress, completions, started_at, completed_at, cooldown_until FROM character_quests
+             WHERE character_id = ?1",
+        )?;
+        c.quests = stmt
+            .query_map([id], |r| {
+                Ok((
+                    r.get(0)?,
+                    QuestState {
+                        step: r.get(1)?,
+                        progress: r.get(2)?,
+                        completions: r.get(3)?,
+                        started_at: r.get(4)?,
+                        completed_at: r.get(5)?,
+                        cooldown_until: r.get(6)?,
+                    },
+                ))
+            })?
+            .collect::<rusqlite::Result<_>>()?;
         Ok(Some(c))
     }
 
@@ -208,6 +245,7 @@ impl Db {
         tx.execute("DELETE FROM character_finds WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_smashed WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_collection WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_quests WHERE character_id = ?1", [id])?;
         {
             let mut team = tx.prepare("INSERT INTO character_team (character_id, slot, position, template) VALUES (?1, ?2, ?3, ?4)")?;
             for (slot, (position, template)) in c.team.iter().enumerate() {
@@ -265,6 +303,13 @@ impl Db {
                 tx.prepare("INSERT INTO character_collection (character_id, template, obtained_at) VALUES (?1, ?2, ?3)")?;
             for (template, at) in c.collection.iter().flatten() {
                 owned.execute(params![id, template, at])?;
+            }
+            let mut quest = tx.prepare(
+                "INSERT INTO character_quests (character_id, main_quest, step, progress, completions, started_at, completed_at,
+                   cooldown_until) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            )?;
+            for (main, q) in &c.quests {
+                quest.execute(params![id, main, q.step, q.progress, q.completions, q.started_at, q.completed_at, q.cooldown_until])?;
             }
         }
         tx.commit()?;
@@ -383,6 +428,7 @@ mod tests {
             finds: [("4210:collectible_dreadlegs_treasure".into(), 3)].into(),
             smashed: [(100, 1_700_000_060_000)].into(),
             collection: Some([(100, 1), (200, 2)].into()),
+            quests: [(41, QuestState { step: 0, progress: 3, completions: 1, started_at: 5, completed_at: 6, cooldown_until: 7 })].into(),
         };
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();

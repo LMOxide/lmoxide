@@ -88,6 +88,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     // `!fx`: the package playing (package, instance) and its place in the list
     let mut playing_fx: Option<(u32, u32)> = None;
     let mut playing_fx_at: Option<usize> = None;
+    // the area quests in the client's tracker (quests.rs)
+    let mut quest_tracker = crate::quests::Tracker::default();
     loop {
         // a control interface command being handled: dropped (signalling "done") when this
         // iteration ends, so its caller can collect the chat answers (chat::capture)
@@ -179,6 +181,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
                             send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                            let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
+                            send_records(&mut conn, character, records).await?;
                         }
                         world::Out::Kick(reason) => {
                             info!(character, ?reason, "kicked");
@@ -358,7 +362,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // item effects, including its abilities (shortcut slots 104/105); sent with
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
-                        records.push(crate::teleport::journal_record(h.identity));
+                        records.push(crate::teleport::journal_record(h.identity, &crate::quests::completed(&me)));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.item_state(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         // a test setup changed the team, or a teleport moved the active minifigure
@@ -453,6 +457,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             defeated_here.clear();
                             cleared_here = false;
                             report_finds(&me, here, &outbox);
+                            let playfield = me.playfield;
+                            let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
+                            send_records(&mut conn, character, records).await?;
                             // encounters: a side dungeon's champion, an area the player arrived in
                             crate::encounter::entered(me.playfield, here, &|n| me.defeats.contains_key(n));
                             crate::encounter::moved(id, me.playfield, here);
@@ -513,6 +520,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
                             crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
                             report_finds(&me, p, &outbox);
+                            let playfield = me.playfield;
+                            let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, p);
+                            send_records(&mut conn, character, records).await?;
                             crate::encounter::moved(h.identity, me.playfield, p);
                             crate::plates::moved(me.playfield, from, p);
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
@@ -1401,6 +1411,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::RemoveAchievements(which) => {
                             let _ = outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(None))));
                         }
+                        crate::devcmd::Action::Quests(reset) => {
+                            if reset {
+                                me.quests.clear();
+                                // (the client forgets them with the next playfield)
+                                quest_tracker = crate::quests::Tracker::default();
+                                crate::chat::system(character, "quest progress and cooldowns cleared; change playfield (or relog) so the client forgets them too");
+                            }
+                            for line in crate::quests::summary(&me) {
+                                crate::chat::system(character, &line);
+                            }
+                        }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);
                             let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);
@@ -1425,6 +1446,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let before = me.tags.len();
                             let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
                             send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                            let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, n as u64);
+                            send_records(&mut conn, character, records).await?;
                             let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
                             crate::chat::system(character, &line);
                         }
@@ -1815,6 +1838,7 @@ pub fn new_character(name: String, playfield: u32) -> Character {
         finds: Default::default(),
         smashed: Default::default(),
         collection: None,
+        quests: Default::default(),
     }
 }
 
@@ -2201,6 +2225,14 @@ async fn grant_minifigure(conn: &mut Conn, character: u32, me: &mut Character, c
     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
     info!(character, template, pos, "minifigure obtained");
     Ok(true)
+}
+
+/// Sends IIR records to the player (nothing when there are none).
+async fn send_records(conn: &mut Conn, character: u32, records: Vec<Bytes>) -> anyhow::Result<()> {
+    if !records.is_empty() {
+        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+    }
+    Ok(())
 }
 
 /// A charge ability being held (see projectile.rs `charge_items`).

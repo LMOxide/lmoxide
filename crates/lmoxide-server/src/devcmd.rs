@@ -64,6 +64,8 @@ pub enum Action {
     Teleport(u32, [f32; 3], f32, String),
     /// show the achievement summary
     Achievements,
+    /// show the quests (true: clear their progress and cooldowns first)
+    Quests(bool),
     /// Take achievements away (`None`: all of them).
     RemoveAchievements(Option<Vec<u32>>),
     /// smash the nearest smashable (or defeat the nearest enemy) as if the player hit it
@@ -137,6 +139,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!xp [n]", "gain n XP (with --progression), show level and XP"),
     ("!stars <n>", "gain n stars (minifigure XP for ranking up)"),
     ("!ach", "achievements earned, kill and smash counters"),
+    ("!quests [reset]", "area quests started, their progress and cooldowns; reset: clear them (start them again)"),
     ("!unach <id ...>|all", "take achievements away (and the \"all of\" ones above them; all: also the journal and counters), to earn them again; story and tutorial progress stays"),
     ("!count <kills|smashes|builds> [n] [name]", "count n (default 1) defeats or builds for achievements"),
     ("!defeat <boss name>", "count a boss defeat (boss achievements, the active minifigure's)"),
@@ -364,6 +367,7 @@ const KINDS: &[(&str, &str)] = &[
     ("patrol", "NPCs that walk a patrol route (the live capture's: Musketeers, Jungle Tricksters, Vespids, ...); arrives 14 m off, out of their notice"),
     ("smashable", "smashables"),
     ("script", "the world editor's approved, active scripts (at their area, else their first placement)"),
+    ("quest", "area quests' areas (walking in starts the quest; quests.rs)"),
 ];
 
 /// How far from a target to arrive (so as not to stand inside it or on a pad).
@@ -417,6 +421,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
         "script" => crate::scripts::points(),
+        "quest" => crate::quests::points(),
         _ => return None,
     })
 }
@@ -518,6 +523,11 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             None => reply(vec!["usage: !aura <0-4> (none, Disciple, Master, Grandmaster, Superachiever)".into()]),
         },
         "ach" | "achievements" => Action::Achievements,
+        "quests" | "quest" => match args.first().copied() {
+            None => Action::Quests(false),
+            Some("reset") => Action::Quests(true),
+            _ => reply(vec!["usage: !quests [reset]".into()]),
+        },
         "unach" => match args.first().copied() {
             Some("all") => Action::RemoveAchievements(None),
             _ => match args.iter().map(|a| a.trim_matches(|c| c == '[' || c == ']').parse::<u32>()).collect::<Result<Vec<_>, _>>() {

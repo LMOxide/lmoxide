@@ -238,6 +238,13 @@ struct DropRule {
 }
 
 static DROPS: LazyLock<RwLock<Vec<DropRule>>> = LazyLock::new(Default::default);
+/// The smash rules as last set (quests expand `@<category>` with them).
+static ALL_RULES: LazyLock<RwLock<Vec<SmashRule>>> = LazyLock::new(Default::default);
+
+/// Enemy names with `@<category>` replaced by the category's enemies (quest goals).
+pub fn expand_enemies(enemies: &[String]) -> Vec<String> {
+    lmoxide_survey::expand_enemies(enemies, &ALL_RULES.read().unwrap())
+}
 
 /// The smash rules to count by (the approved, active ones; content.rs). Rules without enemies,
 /// and those of discover locations, change nothing. `@<category>` in a rule's enemies stands
@@ -258,6 +265,7 @@ pub fn set_smash_rules(rules: &[SmashRule]) {
     }
     *RULES.write().unwrap() = by_id;
     *DROPS.write().unwrap() = drops;
+    *ALL_RULES.write().unwrap() = rules.to_vec();
 }
 
 /// The item template a `drop:<name>` rule drops, if it says.
@@ -553,8 +561,9 @@ fn counts_event(id: u32, k: &Counts, kind: &str, name: &str) -> bool {
     kind_ok && rule_names(id, name).unwrap_or_else(|| k.matching.as_ref().is_none_or(|m| name.contains(&m.to_lowercase())))
 }
 
-/// Names compare without case and a leading "the " ("Defeat the Alien Queen").
-fn same_name(target: &str, name: &str) -> bool {
+/// Names compare without case and a leading "the " ("Defeat the Alien Queen"); `name` is
+/// lowercase.
+pub fn same_name(target: &str, name: &str) -> bool {
     let t = target.to_lowercase();
     let t = t.strip_prefix("the ").unwrap_or(&t);
     let n = name.strip_prefix("the ").unwrap_or(name);
@@ -832,6 +841,7 @@ mod tests {
             finds: Default::default(),
             smashed: Default::default(),
             collection: None,
+            quests: Default::default(),
         }
     }
 

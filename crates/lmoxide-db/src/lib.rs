@@ -20,7 +20,7 @@ use serde::Serialize;
 
 pub use accounts::{Account, Ban};
 pub use api::{ApiKey, Scope};
-pub use characters::{Character, CharacterSummary, Defeat, Visit};
+pub use characters::{Character, CharacterSummary, Defeat, QuestState, Visit};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -50,6 +50,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0005_journal.sql"),
     include_str!("../migrations/0006_purchased_upgrades.sql"),
     include_str!("../migrations/0007_collection.sql"),
+    include_str!("../migrations/0008_quests.sql"),
 ];
 
 pub struct Db {

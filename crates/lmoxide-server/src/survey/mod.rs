@@ -162,6 +162,9 @@ pub fn init(dir: PathBuf) {
 /// Content records the world editor saved, created or deleted (crate::editor): the worlds whose
 /// spawns changed spawn again; a changed template, skill or loot table, every world.
 pub fn content_changed(work: &Work, keys: &[Key]) {
+    if keys.iter().any(|k| matches!(k.id.kind, RecordKind::Quest | RecordKind::Area)) {
+        crate::quests::set_from_work(work);
+    }
     let mut guard = STATE.lock().unwrap();
     let Some(st) = guard.as_mut() else { return };
     let everywhere = keys.iter().any(|k| matches!(k.id.kind, RecordKind::Npc | RecordKind::Object | RecordKind::Skill));

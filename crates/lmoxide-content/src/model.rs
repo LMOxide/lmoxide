@@ -364,6 +364,50 @@ pub enum Shape {
     },
 }
 
+impl Shape {
+    /// Whether `pos` is inside (polygons: seen from above, within `slack` m of their heights;
+    /// walls, points and ground positions have no inside).
+    pub fn contains(&self, pos: Vec3, slack: f32) -> bool {
+        match self {
+            Shape::Polygon { points, heights } => {
+                if points.len() < 3 || pos[1] < heights[0] - slack || pos[1] > heights[1] + slack {
+                    return false;
+                }
+                // even-odd rule on (x, z)
+                let (x, z) = (pos[0], pos[2]);
+                let mut inside = false;
+                let mut j = points.len() - 1;
+                for i in 0..points.len() {
+                    let (a, b) = (points[i], points[j]);
+                    if (a[1] > z) != (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0] {
+                        inside = !inside;
+                    }
+                    j = i;
+                }
+                inside
+            }
+            Shape::Circle { pos: c, radius, height } => {
+                (c[0] - pos[0]).hypot(c[2] - pos[2]) <= *radius
+                    && height.is_none_or(|h| pos[1] >= c[1] - slack && pos[1] <= c[1] + h + slack)
+            }
+            // (walls are trigger walls, crossed rather than stood in)
+            Shape::Wall { .. } | Shape::Ground { .. } | Shape::Point { .. } => false,
+        }
+    }
+
+    /// A middle point: the polygon's vertex average (at its lower height), the centre, the point.
+    pub fn centre(&self) -> Vec3 {
+        match self {
+            Shape::Polygon { points, heights } => {
+                let n = points.len().max(1) as f32;
+                [points.iter().map(|p| p[0]).sum::<f32>() / n, heights[0], points.iter().map(|p| p[1]).sum::<f32>() / n]
+            }
+            Shape::Circle { pos, .. } | Shape::Wall { pos, .. } | Shape::Point { pos, .. } => *pos,
+            Shape::Ground { at } => [at[0], 0.0, at[1]],
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum AreaRole {
@@ -381,6 +425,8 @@ pub enum AreaRole {
     Marker,
     /// A world-editor note's area.
     Note,
+    /// An area quest's region (the client's `Quest_*` bounded areas).
+    Quest,
 }
 
 /// Doors of an arena by client guid.
@@ -1616,5 +1662,180 @@ record! {
         pub invisible: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub rule: Option<AchievementRule>,
+    }
+}
+
+// Quests
+
+/// How the client's quest tracker shows a quest (the main quest's type, MainQuestUpdateIIR_c).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum QuestKind {
+    /// A world's story line (client type 5): gold compass, gold text and progress bar; hidden in
+    /// the Lost Creations.
+    Story,
+    /// An area quest (client type 1): silver compass (in the Lost Creations the "endless" one),
+    /// white text, blue progress bar. Runs while the player is in its `area`.
+    #[default]
+    Area,
+    /// A test or development quest of the client's data (client types 0, 3, 4): never started.
+    Test,
+}
+
+/// What kind of goal the client draws (the goal type in QuestFullUpdateIIR,
+/// `quests::*QuestGoal::GetGoalType`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum GoalKind {
+    /// Defeat an enemy (12, "destroy character"); the tracker names it.
+    Defeat,
+    /// Reach a place (9, "locate district").
+    Locate,
+    /// Talk to an NPC (21).
+    Talk,
+    /// Smash a smashable (25, "destroy destructible").
+    Destroy,
+    /// Anything the server decides (22, "external trigger"): most area quests.
+    #[default]
+    Trigger,
+    /// Escort an NPC (2).
+    Escort,
+    /// Get an item (23).
+    GetItem,
+}
+
+impl GoalKind {
+    /// The client's goal type.
+    pub fn client_type(self) -> u32 {
+        match self {
+            GoalKind::Escort => 2,
+            GoalKind::Locate => 9,
+            GoalKind::Defeat => 12,
+            GoalKind::Talk => 21,
+            GoalKind::Trigger => 22,
+            GoalKind::GetItem => 23,
+            GoalKind::Destroy => 25,
+        }
+    }
+}
+
+/// Where a goal's minimap arrow points.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct QuestMarker {
+    #[schemars(extend("x-lmoxide-position" = true))]
+    pub pos: Vec3,
+    /// How near counts as there (m).
+    pub radius: f32,
+}
+
+fn one() -> u32 {
+    1
+}
+
+fn is_one_u32(n: &u32) -> bool {
+    *n == 1
+}
+
+/// One goal of a quest step.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct QuestGoal {
+    /// The client's goal id.
+    pub goal: u32,
+    /// The client's hash of the goal (`resolvegoal <hash>` in dialogue texts).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hash: Option<String>,
+    /// The client's goal text (TDB 50304): what the tracker shows.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(default)]
+    pub kind: GoalKind,
+    /// What counts toward it, as an achievement's `counts`: `kills`, `smashes`, `builds` or
+    /// `kills_or_smashes`. None: nothing the server counts yet.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub counts: Option<String>,
+    /// The enemies or smashables that count, by name (`@<category>` for a smash rule category's);
+    /// empty: any.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub enemies: Vec<String>,
+    /// Counts anywhere in the world; otherwise only inside the quest's area.
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub anywhere: bool,
+    /// How many are needed.
+    #[serde(default = "one", skip_serializing_if = "is_one_u32")]
+    pub count: u32,
+    /// The progress bar's maximum the client shows (live: 100 for most area quests); each one
+    /// counted adds `max / count` rounded up. None: the count.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max: Option<u32>,
+    /// The minimap arrow.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub marker: Option<QuestMarker>,
+}
+
+impl QuestGoal {
+    /// The progress bar's maximum.
+    pub fn bar_max(&self) -> u32 {
+        self.max.unwrap_or(self.count).max(1)
+    }
+
+    /// What one counted thing adds to the bar.
+    pub fn step(&self) -> u32 {
+        self.bar_max().div_ceil(self.count.max(1))
+    }
+}
+
+/// One quest of a main quest (the client's "quest"; a story line's step).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct QuestStep {
+    /// The client's quest id.
+    pub quest: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hash: Option<String>,
+    /// The client's task name and description (TDB 50301, 50302), when they say something.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub goals: Vec<QuestGoal>,
+}
+
+record! {
+    /// A main quest (the client's quest giver list, RDB 1000104): a world's story line or an
+    /// area quest, its quests in order (`steps`) and their goals: `quests/<slug>.json`.
+    #[derive(Default)]
+    pub struct Quest: "quest" {
+        /// The client's main quest id.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub main: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub hash: Option<String>,
+        /// The client's internal name ("[Pirate 1] Free the pirate prisoners").
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub client_name: Option<String>,
+        #[serde(default)]
+        pub kind: QuestKind,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["world"]))]
+        pub world: Option<Ref>,
+        /// An area quest's region: entering it starts the quest (or resumes it), leaving pauses it.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+        pub area: Option<Ref>,
+        /// Can be done again after its cooldown.
+        #[serde(default, skip_serializing_if = "crate::record::is_false")]
+        pub repeatable: bool,
+        /// How long after completing it before it starts again.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub cooldown: Option<Duration>,
+        /// The client's cooldown id (QuestCooldownIIR).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub cooldown_id: Option<u32>,
+        /// The client's rewards (template, category) as its data lists them; not given yet.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub rewards: Vec<[u32; 2]>,
+        pub steps: Vec<QuestStep>,
     }
 }

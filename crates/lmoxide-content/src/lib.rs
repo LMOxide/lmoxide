@@ -7,7 +7,7 @@
 //!   worlds/<playfield>-<slug>/world.json, spawns.json, portals.json, bouncers.json,
 //!                             areas.json, triggers.json, puzzles.json, scripts/<slug>.json
 //!   regions/ npcs/ factions/ objects/ skills/ buffs/ loot/ items/ minifigures/
-//!   dialogues/ achievements/     (one record per file)
+//!   dialogues/ achievements/ quests/     (one record per file)
 //! ```
 //!
 //! A file holds one record (it has an `id`) or sections of records (`{ "spawns": [...] }`).
@@ -66,6 +66,7 @@ pub const KINDS: &[(&str, &str)] = &[
     ("minifig", "minifigures/"),
     ("dialogue", "dialogues/"),
     ("achievement", "achievements/"),
+    ("quest", "quests/"),
 ];
 
 /// The kind of an id (`npc/pirate-specter` -> `npc`), if it's one.
@@ -122,6 +123,7 @@ pub fn schemas() -> Vec<(&'static str, serde_json::Value)> {
         ("minifig", schema!(Minifigure)),
         ("dialogue", schema!(Dialogue)),
         ("achievement", schema!(Achievement)),
+        ("quest", schema!(Quest)),
         ("content", schema!(Manifest)),
         ("tunables", schema!(Tunables)),
         ("texts", schema!(Texts)),

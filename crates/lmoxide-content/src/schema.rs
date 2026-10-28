@@ -158,6 +158,13 @@ pub const KIND_INFO: &[KindInfo] = &[
         per_world: false,
         list: &["title", "kind", "lore"],
     },
+    KindInfo {
+        kind: "quest",
+        title: "Quest",
+        plural: "Quests",
+        per_world: false,
+        list: &["kind", "world", "area"],
+    },
 ];
 
 /// The files that aren't records, with their schema.

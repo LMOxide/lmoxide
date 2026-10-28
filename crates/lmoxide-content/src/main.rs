@@ -95,7 +95,7 @@ fn run() -> Result<ExitCode> {
                 println!("{p}");
             }
             println!(
-                "{} worlds, {} spawns, {} npcs, {} objects, {} skills, {} buffs, {} loot tables, {} items, {} minifigures, {} achievements; {errors} errors, {} warnings",
+                "{} worlds, {} spawns, {} npcs, {} objects, {} skills, {} buffs, {} loot tables, {} items, {} minifigures, {} achievements, {} quests; {errors} errors, {} warnings",
                 content.worlds.len(),
                 content.spawns.len(),
                 content.npcs.len(),
@@ -106,6 +106,7 @@ fn run() -> Result<ExitCode> {
                 content.items.len(),
                 content.minifigures.len(),
                 content.achievements.len(),
+                content.quests.len(),
                 problems.len() - errors,
             );
             if errors > 0 {

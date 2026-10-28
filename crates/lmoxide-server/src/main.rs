@@ -32,6 +32,7 @@ mod pistons;
 mod plates;
 mod procs;
 mod progression;
+mod quests;
 mod projectile;
 mod scenery;
 mod scripts;
