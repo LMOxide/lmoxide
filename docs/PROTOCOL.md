@@ -533,25 +533,52 @@ logs). Parser: `0x4818a0`.
 
 ## Client god camera (free camera)
 
-The release client keeps Funcom's debug free camera ("Godcam"); nothing gates it by GM level.
-- Hotkey `Debug_ToggleCameramode`, Ctrl+Alt+V (`Data/Gui/Default/Hotkeys.xml`, group "GM/Debug",
-  whose `gmlevel="-1"` is only stored: F9/Alt+F9 of the same group work for every account).
+The release client keeps Funcom's debug free camera ("Godcam"); it needs bit 4 of the GmLevel stat.
+- Hotkey `Debug_ToggleCameramode`, Ctrl+Alt+V (`Data/Gui/Default/Hotkeys.xml`, group "GM/Debug").
   `CoreHotkeyDispatcher::DebugToggleCameraModeMessage` (0x112c6c4, Linux build) toggles
   `CoreGameCamera::ActivateGodCamera` (camera mode 11, `GodCameraMode`) /
   `ActivatePreviousCameraMode`. `ActionModeDefault_c::UpdateGodCamera` feeds it the mouse
   (right button held: look around, `GodMouseCameraControl`); the wheel zooms.
+- Enable it: give the account a GM level with bit 4 set (`lmoxide-server --data-dir <data> account
+  gm <user> 6`: 6 = 2|4, still admin for the server), then log in again. Verified 2026-10-27 on
+  Hyprland with the native client: Ctrl+Alt+V works by hand and when sent with `hyprctl dispatch
+  send_key_state` (Control_L down, Alt_L down with mods "CTRL", v with mods "CTRL ALT").
 - Keys in god cam (`GodCameraMode::SlotKeyboardKeyDown`, HID codes mapped to letters): X toggles
   flying (movement), R back to the player, F places the player's character at the camera
   (`Vehicle_t::PlaceAt`, client side), Z forced height, PageUp/PageDown speed, 0-9 jump to
   bookmarks, Shift/Ctrl+0-9 set one. Its keys are cleared while a GUI input node is active.
-- Verified 2026-10-27 with the Linux test client (bound to F9 in a test copy): toggling stops the
-  character's movement keys (mode switched); injected W/A/E didn't move the camera (input
-  injection can't drive the mouse, and the key path above may need a focused, idle GUI). Ctrl+Alt+V
-  sent through Hyprland didn't reach the hotkey (modifier injection), so try it by hand.
 - The server never learns the camera's position (no message carries it). Integration options:
   F (character to the camera) then the server sees the move; the server can drive the camera with
   ScryScript camera commands (`SetCameraTargetScriptCommand_c`, `CameraPathScriptCommand_c`,
   `CameraTrackScriptCommand_c`, `UseNormalCameraScriptCommand_c`), not yet decoded.
+
+## Client hotkey GM gates
+
+The `gmlevel` attribute of a `HotKeyGroup` in `Hotkeys.xml` is only stored, and editing the file
+can't unlock a hotkey: the gates are compiled in. `CoreHotkeyDispatcher::CoreHotkeyDispatcher`
+(0x115e320) connects each hotkey id to its handler and stores a bitmask for some of them;
+`HotkeyManager_c::TriggerHotkey` (0x1e76b48) evaluates `stat:gmlevel & <mask>` (format string at
+0x2fd6bb0) and drops the key when it's 0. GmLevel is stat 215, sent by the server from the
+account's `gm_level` (`int32_stat`, only when non-zero). Masks in the 1.5 Linux build:
+
+| Hotkey id | Handler | Mask | Default key |
+|---|---|---|---|
+| 0x39 | `DebugToggleCameraModeMessage` (god cam) | 4 | Ctrl+Alt+V |
+| 0x10 | `ToggleFlyingModeDebugMessage` (empty in release: does nothing) | 4 | Alt+F7 |
+| 0x37 | `DebugMouseWorldPosMessage` | 0x20 | Ctrl+Alt+X |
+| 0x7c | `DebugCopyMeshID` | 0x20 | Shift+O |
+
+Every other hotkey (F9 position to chat, Ctrl+Alt+F framerate, ...) has mask 0 and works for every
+account. Keys can be rebound freely in `Data/Gui/Default/Hotkeys.xml` (the client reads the loose
+file at startup), but the patcher re-syncs that file to the server's copy, so a local edit is
+undone by the next sync. Change it in the served client dir to keep it.
+Chat GM commands are gated the same way: `CommandInterpreter_c::RegisterCommand(name, mask, ...)`
+checks `stat:gmlevel & 0x%08x`, and free chat `stat:gmlevel != 0` (see the chat section above).
+GM levels are bitmasks on the client but ordered levels on the server (`--devcmd-gm-level` 1,
+API moderator 1, admin 2), so pick a value that satisfies both: 6 for god cam, 38 (2|4|0x20)
+for every hotkey above, 2147483647 (all bits that keep the stat a positive int32) for everything.
+Set it with `lmoxide-server --data-dir <data> account gm <user> <level>` on the server host (or
+`PATCH /v1/accounts/{id}` `{gm_level}` with an admin session); it applies at the next login.
 
 ## Dimensions (servers per host)
 
