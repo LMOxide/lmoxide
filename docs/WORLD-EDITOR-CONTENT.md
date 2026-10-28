@@ -116,6 +116,29 @@ history on play servers), `crates/lmoxide-content/src/model.rs` (every record ty
   across record pages and in-game edits as one history; showing a definition record's in-game
   objects (Definitions -> world).
 
+## What remains (2026-10-28)
+
+1. **Approval** (on hold: the user may rethink it): approving a publish queue entry commits
+   exactly its records to lmoxide-content `main` with the trailers (content/README.md), pushes
+   (server-side token), and play servers pull; undo is `git revert`. Today
+   `POST /v1/content/approve` answers 501.
+2. **Preview** (the user chose to keep it): a play server applies a queue entry's records in
+   memory for 15 minutes before approval.
+3. **Play servers taking new content**: `git pull` and respawning playfields (spawns, walls,
+   scripts, bouncers) live, the rest on restart; later a full live reload of definitions
+   (gamedata and the `LazyLock` tables in skills.rs, spawns.rs, world_data.rs, minifigs.rs,
+   loot.rs, procs.rs ...).
+4. **Web UI** (lmoxide-webui, its own session): redo the World content page for the queue API
+   (docs/WEB-UI.md "World content").
+5. **In game, untested here** (needs a character online): placing spawns and bouncers, placing
+   trigger walls, placing into a wave and its preview, on content records.
+6. **Editor**: one undo history across record pages and in-game edits; from a definition (an
+   NPC, an object) to its spawns in the worlds; saving a note, script or wall unchanged still
+   raises its `rev` (views::put_* always write).
+7. **Clean-up**: `var/data/world-content/` (the old approved-set ledger) and `var/survey-set`
+   (migrated) can be deleted once the user has looked; lmoxide-survey's `set` module goes with
+   the last old set; the dev-ui's survey mock (`mock.ts`) still uses the old `g-`/`p-` ids.
+
 ## Phases
 
 Each phase ends with its checks passing, committed (lmoxide and lmoxide-dev-ui commit straight
