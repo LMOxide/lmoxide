@@ -123,7 +123,7 @@ pub fn invisible_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4])
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(rot[0]), y: Some(rot[1]), z: Some(rot[2]), w: Some(rot[3]) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -155,7 +155,7 @@ pub fn visual_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4], lo
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(rot[0]), y: Some(rot[1]), z: Some(rot[2]), w: Some(rot[3]) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -181,7 +181,7 @@ fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(p.rot[0]), y: Some(p.rot[1]), z: Some(p.rot[2]), w: Some(p.rot[3]) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     // an arena's shield: a wall while its door is closed (encounter.rs); nothing else collides

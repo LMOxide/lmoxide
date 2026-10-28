@@ -361,7 +361,7 @@ fn spawn_records(id: Id32) -> Vec<Bytes> {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(d.rot[0]), y: Some(d.rot[1]), z: Some(d.rot[2]), w: Some(d.rot[3]) }),
-        playfield_instance: Some(d.playfield),
+        playfield_instance: Some(crate::teleport::client_key(d.playfield)),
         running_effects: vec![],
     };
     // once built, as live re-sent it: the built visual in field 1, CARS group 5, no particles,

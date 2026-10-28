@@ -2725,7 +2725,7 @@ fn playfield_full_update(playfield: u32) -> bytes::Bytes {
         model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield) }),
         // key of the client's playfield map ("Inserting playfield N in map"); dynels refer to it
         // via ProtoGameCodeDynelIIR.playfield_instance
-        running_instance: Some(playfield),
+        running_instance: Some(crate::teleport::client_key(playfield)),
         ..Default::default()
     };
     iir::record("PlayfieldFIIR_t", id, false, |w| {
@@ -3068,7 +3068,7 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     let core = ProtoCoreCharacterIir {
@@ -3159,7 +3159,7 @@ pub fn create_game_object(id: Id32, playfield: u32, pos: [f32; 3]) -> bytes::Byt
     let _ = pos;
     let id_value = reflect(&[(elf_hash("type"), &id.kind.to_le_bytes()), (elf_hash("instance"), &id.instance.to_le_bytes())]);
     let object = reflect(&[(elf_hash("Id"), &id_value)]);
-    iir::record("UpdateMessage", id, false, |w| id.write(w.u8(0)).u32(playfield).blob(&object))
+    iir::record("UpdateMessage", id, false, |w| id.write(w.u8(0)).u32(crate::teleport::client_key(playfield)).blob(&object))
 }
 
 #[cfg(test)]

@@ -119,6 +119,7 @@ pub enum Action {
 pub const COMMANDS: &[(&str, &str)] = &[
     ("!help", "the commands"),
     ("!where", "current playfield and position"),
+    ("!instance [salt]", "instance spike: re-enter this world under another playfield key (for everyone in this world)"),
     ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
     ("!moveto <x> <y> <z>", "go to a position in this playfield"),
     ("!move <dx> <dy> <dz>", "move by that much from where you are (y is up: !move 0 1000 0 climbs out of a floor)"),
@@ -556,6 +557,15 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
         "team" if !args.is_empty() => Action::Team(args.join(" ")),
         "team" => reply(vec!["usage: !team <character name> (online)".into()]),
         "server" => Action::Server(args.join(" ")),
+        // instance spike: re-enter this world under another client key (for everyone in it)
+        "instance" => match args.first().map(|a| a.parse::<u32>()) {
+            None => reply(vec![format!("instance salt {} (key {:#x}); usage: !instance <0-127>", teleport::instance_salt(playfield), teleport::client_key(playfield))]),
+            Some(Ok(salt)) if salt < 128 => {
+                teleport::set_instance_salt(playfield, salt);
+                Action::Teleport(playfield, pos, f32::NAN, format!("re-entering {} as key {:#x}", playfield_name(playfield), teleport::client_key(playfield)))
+            }
+            Some(_) => reply(vec!["usage: !instance <0-127>".into()]),
+        },
         "smashme" => Action::SmashMe,
         "loot" => match args.first().copied() {
             Some(kind) if crate::loot::TEST_KINDS.contains(&kind) => Action::Loot(kind.to_string()),

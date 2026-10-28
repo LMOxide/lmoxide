@@ -1324,7 +1324,7 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
             let half = def.rot.filter(|_| crate::survey::enabled()).unwrap_or(0.0) / 2.0;
             ProtoQuat { x: Some(0.0), y: Some(half.sin()), z: Some(0.0), w: Some(half.cos()) }
         }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {

@@ -150,8 +150,8 @@ and many shell scripts. Proposal:
   `play.lmoxide.dev` (web UI), `dev.lmoxide.dev` (dev UI). Or one host with path prefixes; fewer
   DNS records, same thing.
 - **The game ports can't go through an HTTP proxy**: they are raw TCP and must be open on the host
-  (or forwarded by a TCP proxy). **Open:** whether the client's `UniverseAddr` and the territory/
-  game addresses we advertise may be host names (`lmoxide.dev:7100`) or must be IPs: needs a test.
+  (or forwarded by a TCP proxy). Host names work for all of them (live used
+  `um.lmo_live.funcom.com:7100` etc.; see step 0).
 - **Docker compose**: `lmoxide` + `caddy` (+ `discord-bot`). One volume for data.
 - **Discord bot**: its own small service, API key auth as in DISCORD-BOT.md. Give the API an event
   stream (`GET /v1/events`, server-sent events: logins, achievements, broadcasts, reports) so the
@@ -176,8 +176,23 @@ and many shell scripts. Proposal:
 
 Each step ends with a runnable server and the client verified.
 
-0. **Spike (small):** send a running_instance ≠ playfield id, and teleport between two copies of
-   one world. Decides whether instances work at all. Also test a host name as `UniverseAddr`.
+0. **Spike: done 2026-10-28, instances work.** `teleport::client_key` + `!instance <salt>` (per playfield,
+   key = `salt << 24 | playfield`). Linux client, Isle of Yarr 4200:
+   - key ≠ model id: the world, NPCs, crates/barrels, smashing, loot and star pickup all work under
+     `0x02001068`. The client log shows `Model=[51100:4200] R=33558632`.
+   - Re-entering the same world under a new key (0 → 2 → 3): the client destroys the playfield and
+     builds it again, cleanly. Leaving (1200) and coming back, and logging in straight into a keyed
+     world, also work. No assertions.
+   - Live did the same: the 2016 capture enters 4200 three times with three keys (23135290,
+     23135571, 23135566), while open worlds keep one key per server (1200: 23134633). Its
+     PlayfieldFIIR_t record id was `[0, 0]` (we send `[51100, playfield]`; harmless so far).
+   - Host names: Funcom's stock `LocalConfig.xml` has `UniverseAddr` `um.lmo_live.funcom.com:7100`,
+     and live's LoginConnectReady / ChatServerConnectReady carried `gs007-nj4.lego.funcom.com:7102`
+     and `chat.lmo_live.funcom.com:7001`, so names work everywhere (the client uses getaddrinfo).
+   - Found on the way: the client's own in-game patcher puts `LocalConfig.xml` back from the
+     manifest at launch (a hand-edited UniverseAddr was reverted). Choosing a mode by address
+     therefore needs the patch server to serve a per-mode LocalConfig, or the file has to leave the
+     manifest. See the lmoxide-patcher bullet above.
 1. **Instance key:** introduce `Instance { key, model, rules, content, kind }`; one instance per
    playfield to begin with (behaviour unchanged). Unique NPC ids.
 2. **Rules per instance:** replace the mode switches; both rulesets in one process.

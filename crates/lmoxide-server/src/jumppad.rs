@@ -461,7 +461,7 @@ fn spawn_records(pad: &Pad, playfield: u32) -> Vec<Bytes> {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pad.pos[0]), y: Some(pad.pos[1]), z: Some(pad.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(pad.rot[0]), y: Some(pad.rot[1]), z: Some(pad.rot[2]), w: Some(pad.rot[3]) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {

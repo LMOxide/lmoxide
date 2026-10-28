@@ -488,7 +488,7 @@ fn bag_record(id: Id32, playfield: u32, pos: [f32; 3], owner: Id32, items: &[u32
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     let id32 = |i: Id32| ProtoId32 { r#type: Some(i.kind), instance: Some(i.instance) };

@@ -156,7 +156,7 @@ fn door_records(d: &Door, playfield: u32) -> Vec<Bytes> {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(d.rot[0]), y: Some(d.rot[1]), z: Some(d.rot[2]), w: Some(d.rot[3]) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(client_key(playfield)),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -262,12 +262,37 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
     ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
 }
 
+/// Instance spike (docs/SERVER-ARCHITECTURE.md step 0): the running instance the client keys
+/// a playfield by is `salt << 24 | playfield` (salt 0: the playfield id, as before). Live used
+/// keys apart from the model id (~23.1M, a new one per pocket adventure visit). Set per playfield
+/// by `!instance <salt>`; LMOXIDE_INSTANCE_SALT sets it for every playfield at start.
+static INSTANCE_SALTS: LazyLock<Mutex<HashMap<u32, u32>>> = LazyLock::new(Default::default);
+static DEFAULT_SALT: LazyLock<u32> =
+    LazyLock::new(|| std::env::var("LMOXIDE_INSTANCE_SALT").ok().and_then(|s| s.parse().ok()).unwrap_or(0));
+
+pub fn instance_salt(playfield: u32) -> u32 {
+    INSTANCE_SALTS.lock().unwrap().get(&playfield).copied().unwrap_or(*DEFAULT_SALT)
+}
+
+pub fn set_instance_salt(playfield: u32, salt: u32) {
+    INSTANCE_SALTS.lock().unwrap().insert(playfield, salt);
+}
+
+/// The key the client knows `playfield` by (PlayfieldProxyData.running_instance, every
+/// UpdateMessage and ProtoGameCodeDynelIIR.playfield_instance).
+pub fn client_key(playfield: u32) -> u32 {
+    match instance_salt(playfield) {
+        0 => playfield,
+        salt => (salt & 0x7f) << 24 | playfield,
+    }
+}
+
 /// PlayfieldProxy as embedded in a BinaryStream (u32 length + PlayfieldProxyData).
 pub(crate) fn proxy(playfield: u32) -> PlayfieldProxyData {
     PlayfieldProxyData {
         dimension_id: Some(1),
         model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield) }),
-        running_instance: Some(playfield),
+        running_instance: Some(client_key(playfield)),
         ..Default::default()
     }
 }

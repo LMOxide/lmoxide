@@ -606,7 +606,7 @@ fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: 
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(start[0]), y: Some(start[1]), z: Some(start[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
-        playfield_instance: Some(playfield),
+        playfield_instance: Some(crate::teleport::client_key(playfield)),
         running_effects: vec![],
     };
     iir::record("CoreProjectileFullUpdateIIR", id, false, |w| {
