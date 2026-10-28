@@ -168,6 +168,18 @@ playfield resources) aren't listed; neither are protocol constants.
 | Rewards | `achievements.rs` `grant` | AchievementRewardValue stars when the reward icon is the stars icon | Other rewards (the gold minifigure icons 550092/550093) have no data. |
 | Granted at login | `achievements.rs` `login` | whatever already holds (with every minifigure owned at level 10: all "Upgrade 3/7" and the series ones), without pop-ups | Consequence of the unlocked collection. |
 
+## Quests (`quests.rs`, content/quests, tools/content/import_quests.py)
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Which area runs which area quest | quest `area` (import: `AREAS`) | 113 area quests matched by name to the client's `Quest_*` bounded areas; side dungeon champions: the dungeon's `Quest_Micro` | Live (LMO_Captures.cap): Free the pirate prisoners = Quest_Native, Rescue the captured pirates = Quest_Beach, airplane parts = Quest_Swamp, Monkey Cave and Natives' Hollow champions. The rest guessed (source `guess`); 36 area quests have no area (Lost Creations, Funhouse, seasonal, a few unmatched) and never start. |
+| Start / pause | `quests::moved` | inside the area polygon (±5 m of its heights): start or resume; outside: pause (tracker hides), progress kept; every arrival (teleport) shows it anew | Live sent QuestUpdateIIR 3/4 (client: pause/unpause); entering as the trigger is assumed. |
+| What counts | goal `counts`, `enemies` (import: `goal_rule`, from the goal text) | free/rescue/smash/destroy/sabotage: smashes; weaken/cripple/collect/gather: kills or smashes; fight/defeat/clear...: kills; "Defeat <Name>": that enemy; champions: a boss or champion; rebuild: builds; puzzles, courses, chests: nothing (tagged todo) | Live: the prisoners counted as their cages were smashed. Others guessed; editable per goal. |
+| How many | goal `count`, `max` | the number in the goal text, else 3 (user, 2026-10-28); bar maximum 100, each one adds max/count rounded up (3: 34) | Live: prisoners 8 (+13 ×7, then done), Isle of Yarr pirates 5 (+20), three champions 3 (+34), Funhouse kills 25 of 25, Tesla tower 9 of 90. |
+| Cooldown | quest `cooldown` | 1 h (side dungeon champions 23 h); every area quest repeatable | Live: QuestCooldownIIR 3600 s (Free the pirate prisoners), 82800 s (Natives' Hollow champion); the others assumed the same. |
+| Rewards | quest `rewards` | shown in the tracker when the capture had the key; nothing given | Live dropped a loot bag and an item at completion (not decoded). |
+| Story quests | content only | not run: the login journal still lists every story line as done | Order known only for the Pirate World (capture); goals' triggers (NPC hashes, districts) not in the client. |
+
 ## Encounters (`encounter.rs`, content/worlds/*/areas.json)
 
 The original server ran these as Scry scripts on bounded areas; only the areas (RDB 1000053),

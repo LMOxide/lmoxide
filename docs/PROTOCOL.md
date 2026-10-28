@@ -641,7 +641,24 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   on goodbye; ClearCinematicState before Close.
 - **remoteformat** `key` attributes: the client shows texts without them.
 - A dialogue sent while the client still loads a playfield is lost.
-- **Quests** (not implemented): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
+- **Area quests** (quests.rs; LMO_Captures.cap, the client's writers `quests::operator<<`,
+  `QuestGoal::WriteToStream`): start = MainQuestUpdateIIR_c (u32 1 add / 2 remove, main,
+  current quest, container_len(n) + n × (u32 quest, u8 order countdown), NUL-terminated
+  `<localized id=main category=50300>`, u32 1, u32 MainQuestType (5 story: gold compass, 1 area:
+  silver), u32 1) then QuestFullUpdateIIR (u32 1, owner, Quest: u32 1, quest, 1, 0, 1, flags
+  (0x40000002 area, 2 story), 1, main, first quest, u8 area, ID32 ×2, u32 1, time left, u64, u32,
+  reward list (u32 n + n × 64 bytes: owner, quest, ResourceId (1000620, reward id), 16-byte
+  decryption key, ResourceId (1000620, 0), key, u32 1, u32 1), empty list, u32, u64, main rewards,
+  empty list, goals (u32 n + goals); u8 "new quest" popup). Goal: u32 1, type, owner, quest, goal,
+  1, 0, bar max (+0x3c), solved count (+0x40), 3 ID32, 6 u32 (district, playfield, f32 x, z,
+  radius, y: the minimap arrow), 3 u8, goal text, target name, u32 time left. Progress:
+  QuestGoalIIR (quest, goal, 2, 0, amount added; 1 = done, the bar full). QuestUpdateIIR (quest,
+  type, value): 0 timeout, 1/2 sensor volume, 3 pause (tracker hides), 4 unpause. Done:
+  QuestGoalIIR 1, (QuestRewardUpdateIIR), QuestIIR_c 2, JournalUpdateIIR, QuestIIR_c 4,
+  QuestCooldownIIR (u32 2, container_len(1), cooldown id, seconds), MainQuestUpdateIIR_c remove.
+  The client polls QuestCooldownIIR (u32 4, empty) every ~15 s; live answered one u32 4 record
+  per quest cooling down. A teleport (even within a playfield) makes the client forget quests.
+- **Story quests** (not implemented): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
   event 2 completed / 4 removed, quest, 0), JournalUpdateIIR / QuestRewardUpdateIIR (proto),
   MainQuestUpdateIIR_c and QuestFullUpdateIIR (decoded by `tools/re/quest_record.py`, from the
   client's writers). Definitions in RDB 1000104 (QuestGiverList: main quests, quests, goals

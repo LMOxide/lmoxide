@@ -13,7 +13,8 @@
 //! - leaving / coming back: `QuestUpdateIIR` (quest, 3 pause / 4 resume, 0);
 //! - a step done: `QuestGoalIIR` (.., 1, ..), `QuestIIR_c` 2 (completed), `JournalUpdateIIR`,
 //!   `QuestIIR_c` 4 (removed), then the next step's `QuestFullUpdateIIR`;
-//! - the last step done: the same, then `QuestCooldownIIR` and `MainQuestUpdateIIR_c` (remove).
+//! - the last step done: the same, then `QuestCooldownIIR` and `MainQuestUpdateIIR_c` (remove);
+//! - the client asks for the cooldowns (`QuestCooldownIIR` 4) and gets each one left.
 //!
 //! Live's reward (a loot bag and an item at completion, QuestRewardUpdateIIR) isn't given yet.
 
@@ -113,8 +114,8 @@ pub fn set_from_work(work: &lmoxide_content::work::Work) {
     *INDEX.write().unwrap() = index;
 }
 
-/// What the session knows about the quests shown in the client (cleared on a playfield change:
-/// the client's tracker forgets them).
+/// What the session knows about the quests shown in the client (made anew at every arrival:
+/// a teleport, even within the playfield, reloads the client's world and it forgets them).
 #[derive(Default)]
 pub struct Tracker {
     playfield: u32,
@@ -179,12 +180,14 @@ pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: u32,
                 t.shown.insert(q.main, false);
             }
             (true, Some(true)) => {
+                info!(character, main = q.main, "area quest resumed");
                 if let Some(step) = c.quests.get(&q.main).and_then(|s| q.quest.steps.get(s.step as usize)) {
                     records.push(quest_update(character, step.quest, 4));
                 }
                 t.shown.insert(q.main, false);
             }
             (false, Some(false)) => {
+                info!(character, main = q.main, "area quest paused");
                 if let Some(step) = c.quests.get(&q.main).and_then(|s| q.quest.steps.get(s.step as usize)) {
                     records.push(quest_update(character, step.quest, 3));
                 }
@@ -277,6 +280,22 @@ pub fn completed(c: &Character) -> Vec<(u32, Vec<u32>, u32)> {
         .filter_map(|(&main, s)| {
             let q = index.quests.iter().find(|q| q.main == main)?;
             Some((main, q.quest.steps.iter().map(|st| st.quest).collect(), s.completions))
+        })
+        .collect()
+}
+
+/// The answer to the client's `QuestCooldownIIR` (u32 4, no entries; sent every ~15 s): one
+/// `QuestCooldownIIR` (u32 4, [(cooldown id, seconds left)]) per quest cooling down, as live.
+pub fn cooldowns(c: &Character, character: u32) -> Vec<Bytes> {
+    let index = INDEX.read().unwrap();
+    let now = unix_now();
+    c.quests
+        .iter()
+        .filter(|(_, s)| s.cooldown_until > now)
+        .filter_map(|(main, s)| {
+            let id = index.quests.iter().find(|q| q.main == *main)?.quest.cooldown_id?;
+            let left = (s.cooldown_until - now) as u32;
+            Some(iir::record("QuestCooldownIIR", player(character), true, |w| w.u32(4).container_len(1).u32(id).u32(left)))
         })
         .collect()
 }

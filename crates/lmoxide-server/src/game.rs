@@ -104,6 +104,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                     let here = world::live_position(id).unwrap_or_else(|| *pos.lock().unwrap());
                     portals.check(&mut conn, character, me.playfield, here).await?;
+                    // quest areas also after teleports and throws (no movement report)
+                    let playfield = me.playfield;
+                    let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
+                    send_records(&mut conn, character, records).await?;
                 }
                 continue;
             }
@@ -457,6 +461,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             defeated_here.clear();
                             cleared_here = false;
                             report_finds(&me, here, &outbox);
+                            // every arrival (a teleport within the playfield too) reloads the
+                            // client's world: it forgot the quests
+                            quest_tracker = crate::quests::Tracker::default();
                             let playfield = me.playfield;
                             let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
                             send_records(&mut conn, character, records).await?;
@@ -939,6 +946,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
                                 .await?;
                         }
+                    }
+                    Some("QuestCooldownIIR") => {
+                        // the client asks for the cooldowns every ~15 s (u32 4, empty list); live
+                        // answered with one record per quest cooling down
+                        send_records(&mut conn, character, crate::quests::cooldowns(&me, character)).await?;
                     }
                     _ => info!(iir = h.name().unwrap_or("?"), identity = ?h.identity, rest = %crate::conn::hex(rest), "client IIR"),
                 }
