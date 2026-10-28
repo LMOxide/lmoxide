@@ -195,7 +195,7 @@ pub fn content_changed(work: &Work, keys: &[Key]) {
         // (its placements show or hide by wave)
         keys.iter().filter_map(|k| k.id.world).collect()
     } else {
-        keys.iter().filter(|k| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Area)).filter_map(|k| k.id.world).collect()
+        keys.iter().filter(|k| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Area | RecordKind::Trigger)).filter_map(|k| k.id.world).collect()
     };
     if !pfs.is_empty() {
         rebuild(st, work, pfs);
@@ -322,7 +322,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
         }
         st.catalog = catalog_of(&st.bases);
         let playfields: std::collections::BTreeSet<u32> =
-            work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Script | RecordKind::Area)).filter_map(|(k, _)| k.id.world).chain(st.set.placements.keys().copied()).collect();
+            work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Script | RecordKind::Area | RecordKind::Trigger)).filter_map(|(k, _)| k.id.world).chain(st.set.placements.keys().copied()).collect();
         for pf in playfields {
             build_playfield(st, work, pf);
         }
@@ -387,8 +387,7 @@ fn build_playfield(st: &mut State, work: &Work, pf: u32) {
         }
         st.objects.insert(o.id.clone(), o);
     }
-    let walls: Vec<TriggerWall> = st.set.placements.get(&pf).map(|f| f.triggers.iter().filter(|w| !w.removed).cloned().collect()).unwrap_or_default();
-    for def in walls {
+    for def in lmoxide_content::views::walls_of(work, pf) {
         let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
         spawn_wall(&st.surveyors, &mut w);
         st.walls.insert(w.def.id.clone(), w);
@@ -1727,7 +1726,7 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
     with_work(|work, st| {
         let author = author_of(&headers);
         if st.walls.contains_key(&id) {
-            return edit_wall(st, &id, c, author);
+            return edit_wall(st, work, &id, c, author);
         }
         if let Some(l) = crate::jumppad::find(&id) {
             return edit_bouncer(st, &l, c, &author);
@@ -1828,7 +1827,7 @@ struct Removed {
 async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
     with_work(|work, st| {
         if st.walls.contains_key(&id) {
-            remove_wall(st, &id, &author_of(&headers));
+            remove_wall(st, work, &id, &author_of(&headers))?;
             return Ok(Json(Removed { id }));
         }
         if let Some(l) = crate::jumppad::find(&id) {
@@ -1876,13 +1875,24 @@ fn deselect(st: &mut State, id: &str) {
 /// placement, or resetting an edited guess (the guess comes back, its view is the answer).
 async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
     with_work(|work, st| {
-        if let Some(pf) = st.set.placements.iter().find(|(_, f)| f.triggers.iter().any(|t| t.id == id)).map(|(pf, _)| *pf) {
+        // a trigger wall: back to its committed version (none: gone)
+        if let Ok(key) = Key::parse(&id, st.walls.get(&id).map_or_else(|| "live".to_string(), |w| w.def.feature.clone()))
+            && key.id.kind == RecordKind::Trigger
+        {
+            let pf = key.id.world.unwrap_or(0);
+            git::restore(work, &key)?;
             st.walls.remove(&id); // despawns its pieces
-            st.set.placements_mut(pf).triggers.retain(|t| t.id != id);
-            save(st);
             deselect(st, &id);
+            let l = lmoxide_content::views::Lookups::new(work);
+            let back = lmoxide_content::views::wall_view(work, &key, &l).map(|def| {
+                let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
+                spawn_wall(&st.surveyors, &mut w);
+                let view = w.view();
+                st.walls.insert(id.clone(), w);
+                view
+            });
             bump(st, pf);
-            return Ok(Json(None));
+            return Ok(Json(back));
         }
         // a bouncer placement of the set
         if let Some((pf, record)) = st.set.placements.iter().find_map(|(pf, f)| f.placements.iter().find(|p| p.id == id && p.kind == SKind::Bouncer).map(|p| (*pf, p.clone()))) {
@@ -2006,11 +2016,12 @@ fn put_snapshot(st: &mut State, work: &mut Work, id: String, pf: u32, b: Snapsho
             removed: false,
             tags: sv::tidy_tags(&b.tags),
             feature: b.feature,
-            author,
+            author: author.clone(),
             updated: ids::now(),
         };
         st.walls.remove(&id);
-        store_wall(st, def.clone(), pf);
+        let def = store_wall(work, &def, pf, &author)?;
+        let id = def.id.clone();
         let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
         spawn_wall(&st.surveyors, &mut w);
         let view = w.view();
@@ -2527,14 +2538,9 @@ fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
     }
 }
 
-/// Stores the wall in the set (replacing the one with its id).
-fn store_wall(st: &mut State, def: TriggerWall, pf: u32) {
-    let list = &mut st.set.placements_mut(pf).triggers;
-    match list.iter_mut().find(|x| x.id == def.id) {
-        Some(x) => *x = def,
-        None => list.push(def),
-    }
-    save(st);
+/// Saves a wall as its trigger record: as saved (a new one with its record id).
+fn store_wall(work: &mut Work, def: &TriggerWall, pf: u32, author: &str) -> Result<TriggerWall, Error> {
+    Ok(lmoxide_content::views::put_wall(work, pf, def, author, ids::now())?)
 }
 
 #[derive(Serialize)]
@@ -2631,7 +2637,7 @@ fn checked_radius(r: Option<f32>) -> Option<f32> {
 
 /// A trigger wall where the surveyor stands, across their way.
 async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<PlaceTriggerBody>) -> R<SurveyObject> {
-    with(|st| {
+    with_work(|work, st| {
         let (player, pf) = player_of(account)?;
         let author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or_else(|| crate::sessions::players().into_iter().find(|p| p.account_id == account).map(|p| p.character_name).unwrap_or_default());
         let def = TriggerWall {
@@ -2648,10 +2654,10 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
             removed: false,
             tags: sv::tidy_tags(&b.tags),
             feature: checked_feature(&st.set, b.feature)?,
-            author,
+            author: author.clone(),
             updated: ids::now(),
         };
-        store_wall(st, def.clone(), pf);
+        let def = store_wall(work, &def, pf, &author)?;
         let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
         spawn_wall(&st.surveyors, &mut w);
         let view = w.view();
@@ -2665,7 +2671,7 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
     .map(Json)
 }
 
-fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<SurveyObject, Error> {
+fn edit_wall(st: &mut State, work: &mut Work, id: &str, c: Changes, author: String) -> Result<SurveyObject, Error> {
     let circle = c.radius.map_or_else(|| st.walls[id].def.radius.is_some(), |r| r.is_some());
     // (a change of shape keeps a look of that shape)
     let color = checked_color(Some(c.color.clone().unwrap_or_else(|| st.walls[id].def.color.clone())), circle)?;
@@ -2703,41 +2709,28 @@ fn edit_wall(st: &mut State, id: &str, c: Changes, author: String) -> Result<Sur
     if let Some(t) = c.comment {
         d.comment = t;
     }
-    if !author.is_empty() {
-        d.author = author;
-    }
-    d.updated = ids::now();
     let (def, pf) = (d.clone(), w.playfield);
+    let saved = store_wall(work, &def, pf, &author)?;
+    let w = st.walls.get_mut(id).expect("checked");
+    w.def = saved;
     // drawn again where and as it is now
     w.pieces.clear();
     spawn_wall(&st.surveyors, w);
-    store_wall(st, def, pf);
     mark_selecting(st, id);
     bump(st, pf);
     Ok(st.walls[id].view())
 }
 
-fn remove_wall(st: &mut State, id: &str, author: &str) {
-    let Some(w) = st.walls.remove(id) else { return };
-    let mut def = w.def.clone();
-    def.removed = true;
-    def.updated = ids::now();
-    if !author.is_empty() {
-        def.author = author.into();
-    }
-    store_wall(st, def, w.playfield);
-    drop(w); // despawns its pieces
-    let viewers: Vec<Id32> = st.surveyors.iter().filter(|(_, s)| s.selected.as_deref() == Some(id)).map(|(v, _)| *v).collect();
-    for v in viewers {
-        if let Some(s) = st.surveyors.get_mut(&v) {
-            s.selected = None;
-        }
-        mark(st, v);
-    }
-    let pf = st.set.placements.iter().find(|(_, f)| f.triggers.iter().any(|t| t.id == id)).map(|(pf, _)| *pf);
-    if let Some(pf) = pf {
-        bump(st, pf);
-    }
+/// Deletes a wall's trigger record (refused while other records name it).
+fn remove_wall(st: &mut State, work: &mut Work, id: &str, author: &str) -> Result<(), Error> {
+    let Some(w) = st.walls.get(id) else { return Ok(()) };
+    let pf = w.playfield;
+    let key = Key::parse(id, w.def.feature.clone()).map_err(Error::Invalid)?;
+    work.delete(&key, None, author, ids::now())?;
+    st.walls.remove(id); // despawns its pieces
+    deselect(st, id);
+    bump(st, pf);
+    Ok(())
 }
 
 /// Checks every player's moves against the trigger walls of their playfield.

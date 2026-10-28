@@ -5,7 +5,10 @@
 use serde_json::{Value, json};
 
 use crate::id::{RecordId, RecordKind};
-use crate::model::{Area, AreaRole, Script, Shape, WaveTrigger};
+use std::collections::HashMap;
+
+use crate::action::{Action, Destination};
+use crate::model::{Area, AreaRole, Once, Script, Shape, Trigger, WaveTrigger};
 use crate::units::{Duration, Ratio};
 use crate::work::{EditError, Key, Work};
 use lmoxide_survey as sv;
@@ -373,6 +376,163 @@ pub fn put_script(
     Ok(script_view(work, &key).expect("just saved"))
 }
 
+/// What trigger walls name by client id, by record: achievements by lore id, dialogues by
+/// their first text, worlds by playfield.
+pub struct Lookups {
+    achievement: HashMap<u32, String>,
+    lore: HashMap<String, u32>,
+    dialogue: HashMap<u32, String>,
+    first_text: HashMap<String, u32>,
+    world: HashMap<u32, String>,
+    playfield: HashMap<String, u32>,
+}
+
+impl Lookups {
+    pub fn new(work: &Work) -> Self {
+        let mut l = Lookups { achievement: HashMap::new(), lore: HashMap::new(), dialogue: HashMap::new(), first_text: HashMap::new(), world: HashMap::new(), playfield: HashMap::new() };
+        for (k, e) in work.records().filter(|(k, _)| k.feature == "live") {
+            let id = k.id.to_string();
+            let num = |p: &str| e.value.pointer(p).and_then(Value::as_u64).map(|n| n as u32);
+            match k.id.kind {
+                RecordKind::Achievement => {
+                    if let Some(n) = num("/lore") {
+                        l.achievement.insert(n, id.clone());
+                        l.lore.insert(id, n);
+                    }
+                }
+                RecordKind::Dialogue => {
+                    if let Some(n) = num("/texts/0") {
+                        l.dialogue.entry(n).or_insert_with(|| id.clone());
+                        l.first_text.insert(id, n);
+                    }
+                }
+                RecordKind::World => {
+                    if let Some(n) = num("/playfield") {
+                        l.world.insert(n, id.clone());
+                        l.playfield.insert(id, n);
+                    }
+                }
+                _ => {}
+            }
+        }
+        l
+    }
+}
+
+const NOT_CHOSEN: &str = " (not chosen yet)";
+
+/// A wall's action as a content action.
+pub fn action_of(a: &sv::WallAction, l: &Lookups) -> Action {
+    let other = |what: &str| Action::Other { comment: format!("{what}{NOT_CHOSEN}") };
+    match a {
+        sv::WallAction::Script { script: Some(s), wave } => Action::StartScript { script: s.clone(), wave: wave.clone() },
+        sv::WallAction::Script { script: None, .. } => other("start a script"),
+        sv::WallAction::Discover { name, achievement } => Action::Discover {
+            location: name.clone(),
+            achievement: achievement.as_ref().and_then(|a| a.parse::<u32>().ok()).and_then(|n| l.achievement.get(&n).cloned()),
+        },
+        sv::WallAction::Dialog { dialog: Some(d) } => match d.parse::<u32>().ok().and_then(|t| l.dialogue.get(&t)) {
+            Some(id) => Action::Dialogue { dialogue: id.clone() },
+            None => Action::Other { comment: format!("dialogue {d}") },
+        },
+        sv::WallAction::Dialog { dialog: None } => other("open a dialogue"),
+        sv::WallAction::Portal { window: Some(w), .. } => Action::OpenWindow { window: *w },
+        sv::WallAction::Portal { window: None, to: Some(pf) } => match l.world.get(pf) {
+            Some(w) => Action::Teleport { to: Destination { world: Some(w.clone()), ..Default::default() } },
+            None => Action::Other { comment: format!("a portal to playfield {pf}") },
+        },
+        sv::WallAction::Portal { .. } => other("a portal"),
+        sv::WallAction::Message { text } => Action::Message { text: text.clone() },
+        sv::WallAction::Collect { drop: Some(k) } => Action::Collect { key: k.clone() },
+        sv::WallAction::Collect { drop: None } => other("give a collectible"),
+        sv::WallAction::Other => Action::Other { comment: String::new() },
+    }
+}
+
+/// A content action as a wall's (what walls can't do: other).
+pub fn wall_action(a: &Action, l: &Lookups) -> sv::WallAction {
+    match a {
+        Action::StartScript { script, wave } => sv::WallAction::Script { script: Some(script.clone()), wave: wave.clone() },
+        Action::Discover { location, achievement } => sv::WallAction::Discover { name: location.clone(), achievement: achievement.as_ref().and_then(|a| l.lore.get(a)).map(|n| n.to_string()) },
+        Action::Dialogue { dialogue } => sv::WallAction::Dialog { dialog: l.first_text.get(dialogue).map(|n| n.to_string()) },
+        Action::OpenWindow { window } => sv::WallAction::Portal { window: Some(*window), to: None },
+        Action::Teleport { to } => sv::WallAction::Portal { window: None, to: to.world.as_ref().and_then(|w| l.playfield.get(w)).copied() },
+        Action::Message { text } => sv::WallAction::Message { text: text.clone() },
+        Action::Collect { key } => sv::WallAction::Collect { drop: Some(key.clone()) },
+        Action::Other { comment } if comment.ends_with(NOT_CHOSEN) => match comment.trim_end_matches(NOT_CHOSEN) {
+            "start a script" => sv::WallAction::Script { script: None, wave: None },
+            "open a dialogue" => sv::WallAction::Dialog { dialog: None },
+            "a portal" => sv::WallAction::Portal { window: None, to: None },
+            "give a collectible" => sv::WallAction::Collect { drop: None },
+            _ => sv::WallAction::Other,
+        },
+        _ => sv::WallAction::Other,
+    }
+}
+
+/// A trigger as a wall (walls and radii with one action; others aren't walls).
+pub fn wall_view(work: &Work, key: &Key, l: &Lookups) -> Option<sv::TriggerWall> {
+    let t: Trigger = parse(work, key)?;
+    if t.actions.len() > 1 {
+        return None;
+    }
+    let (pos, heading, size, radius) = match t.shape? {
+        Shape::Wall { pos, heading, size } => (pos, heading, size, None),
+        Shape::Circle { pos, radius, height } => (pos, 0.0, [radius * 2.0, height.unwrap_or(3.0), radius * 2.0], Some(radius)),
+        _ => return None,
+    };
+    Some(sv::TriggerWall {
+        id: key.id.to_string(),
+        name: t.name,
+        pos,
+        heading,
+        size,
+        radius,
+        color: t.look.unwrap_or_else(|| "green".into()),
+        action: t.actions.first().map_or(sv::WallAction::Other, |a| wall_action(a, l)),
+        once: t.once != Once::Never,
+        comment: t.comment,
+        removed: false,
+        tags: t.tags,
+        feature: key.feature.clone(),
+        author: t.author,
+        updated: t.updated,
+    })
+}
+
+/// A world's trigger walls.
+pub fn walls_of(work: &Work, pf: u32) -> Vec<sv::TriggerWall> {
+    let l = Lookups::new(work);
+    work.shown_in_world(RecordKind::Trigger, pf).iter().filter_map(|k| wall_view(work, k, &l)).collect()
+}
+
+/// Saves a wall as its trigger (a new id from its name when it has none yet): the wall as saved.
+pub fn put_wall(work: &mut Work, pf: u32, w: &sv::TriggerWall, author: &str, now: u64) -> Result<sv::TriggerWall, EditError> {
+    let feature = if w.feature.is_empty() { "live".to_string() } else { w.feature.clone() };
+    let old = existing(work, &w.id).filter(|k| k.id.kind == RecordKind::Trigger && k.id.world == Some(pf));
+    let key = match key_of(&w.id, RecordKind::Trigger, pf, &feature) {
+        Some(k) => k,
+        None => Key::new(work.new_id("trigger", if w.name.trim().is_empty() { "trigger" } else { &w.name }, Some(pf)).parse().map_err(|e| EditError::Invalid(vec![e]))?, &feature),
+    };
+    let l = Lookups::new(work);
+    let mut record = old.as_ref().and_then(|k| work.get(k)).map(|e| e.value.clone()).unwrap_or_else(|| json!({}));
+    let shape = match w.radius {
+        Some(radius) => Shape::Circle { pos: w.pos, radius, height: Some(w.size[1]) },
+        None => Shape::Wall { pos: w.pos, heading: w.heading, size: w.size },
+    };
+    let r = record.as_object_mut().expect("a record");
+    r.insert("id".into(), json!(key.id.to_string()));
+    set(r, "name", json!(w.name), w.name.is_empty());
+    r.insert("shape".into(), serde_json::to_value(shape).expect("shape"));
+    set(r, "once", json!("per_player"), !w.once);
+    r.insert("look".into(), json!(w.color));
+    r.insert("actions".into(), json!([serde_json::to_value(action_of(&w.action, &l)).expect("action")]));
+    shared(r, &w.comment, &w.tags, &feature);
+    work.put(record, author, now)?;
+    moved(work, old, &key)?;
+    Ok(wall_view(work, &key, &l).expect("just saved"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -490,6 +650,30 @@ mod tests {
             "the script's own area isn't a note: {:?}",
             all.notes
         );
+        // a wall starting the script's second wave
+        let wall = sv::TriggerWall {
+            id: "t-web-3".into(),
+            name: "Gate".into(),
+            pos: [1.0, 2.0, 3.0],
+            heading: 0.5,
+            size: [6.0, 3.0, 1.0],
+            radius: None,
+            color: "red".into(),
+            action: sv::WallAction::Script { script: Some(s.id.clone()), wave: Some("w2".into()) },
+            once: true,
+            comment: String::new(),
+            removed: false,
+            tags: vec![],
+            feature: "live".into(),
+            author: String::new(),
+            updated: 0,
+        };
+        let w = put_wall(&mut work, 4200, &wall, "ann", 8).unwrap();
+        assert_eq!(w.id, "trigger/4200/gate");
+        assert_eq!((w.action.clone(), w.once, w.size, w.heading), (wall.action.clone(), true, wall.size, 0.5));
+        let w = put_wall(&mut work, 4200, &sv::TriggerWall { radius: Some(2.0), action: sv::WallAction::Dialog { dialog: None }, ..w }, "ann", 9).unwrap();
+        assert_eq!((w.radius, w.action.clone()), (Some(2.0), sv::WallAction::Dialog { dialog: None }));
+        assert_eq!(walls_of(&work, 4200).len(), 1);
         assert!(crate::load::format_tree(&dir, true).unwrap().is_empty());
         let _ = std::fs::remove_dir_all(&dir);
     }
