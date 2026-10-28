@@ -512,73 +512,114 @@ impl Work {
         if !problems.is_empty() {
             return Err(EditError::Invalid(problems));
         }
-        // its file
-        let path = KINDS
-            .iter()
-            .find(|(k, _)| *k == kind)
-            .map(|(_, p)| *p)
-            .expect("kind");
-        let slug_part = id.rsplit('/').next().expect("id").to_string();
-        let file = match (path.strip_prefix("worlds/<world>/"), playfield) {
-            (Some(rest), Some(pf)) => {
-                let world = if kind == "world" {
+        let key = Key::parse(&id, feature).map_err(|e| EditError::Invalid(vec![e]))?;
+        self.insert_new(&key, value.clone())?;
+        Ok((key, value))
+    }
+
+    /// Where a record goes: its kind's folder or world file, in its feature's folder.
+    pub fn file_for(&self, key: &Key) -> Result<PathBuf, EditError> {
+        let kind = key.id.kind;
+        let path = KINDS.iter().find(|(k, _)| *k == kind.as_str()).map(|(_, p)| *p).expect("kind");
+        let slug_part = &key.id.slug;
+        Ok(match path.strip_prefix("worlds/<world>/") {
+            Some(rest) => {
+                let world = if kind == RecordKind::World {
+                    let pf = self.records.get(key).and_then(|e| e.value.get("playfield")).and_then(Value::as_u64).unwrap_or(0);
                     PathBuf::from("worlds").join(format!("{pf}-{slug_part}"))
                 } else {
-                    self.world_dir(pf).ok_or_else(|| {
-                        EditError::Invalid(vec![format!("no world with playfield {pf}")])
-                    })?
+                    let pf = key.id.world.ok_or_else(|| EditError::Invalid(vec![format!("{} names no world", key.id)]))?;
+                    self.world_dir(pf).ok_or_else(|| EditError::Invalid(vec![format!("no world with playfield {pf}")]))?
                 };
-                let rest = if rest.ends_with('/') {
-                    format!("{rest}{slug_part}.json")
-                } else {
-                    rest.to_string()
-                };
-                feature_dir(&feature).join(world).join(rest)
+                let rest = if rest.ends_with('/') { format!("{rest}{slug_part}.json") } else { rest.to_string() };
+                feature_dir(&key.feature).join(world).join(rest)
             }
-            _ => feature_dir(&feature)
-                .join(path)
-                .join(format!("{slug_part}.json")),
-        };
-        let key = Key::parse(&id, feature).map_err(|e| EditError::Invalid(vec![e]))?;
-        let section = file
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("")
-            .to_string();
-        let sectioned = path.ends_with(".json") && kind != "world";
+            None => feature_dir(&key.feature).join(path).join(format!("{slug_part}.json")),
+        })
+    }
+
+    /// Adds a record that isn't there yet, in its file (checked before).
+    fn insert_new(&mut self, key: &Key, value: Value) -> Result<(), EditError> {
+        let file = self.file_for(key)?;
+        let section = file.file_stem().and_then(|s| s.to_str()).unwrap_or("").to_string();
+        let sectioned = key.id.kind.per_world() && key.id.kind != RecordKind::Script;
         match self.files.get_mut(&file) {
-            Some(Layout::Sections(list)) if sectioned => {
-                match list.iter_mut().find(|(s, _)| *s == section) {
-                    Some((_, keys)) => keys.push(key.clone()),
-                    None => list.push((section, vec![key.clone()])),
-                }
-            }
-            Some(_) => {
-                return Err(EditError::Invalid(vec![format!(
-                    "{} is taken",
-                    file.display()
-                )]));
-            }
+            Some(Layout::Sections(list)) if sectioned => match list.iter_mut().find(|(s, _)| *s == section) {
+                Some((_, keys)) => keys.push(key.clone()),
+                None => list.push((section, vec![key.clone()])),
+            },
+            Some(_) => return Err(EditError::Invalid(vec![format!("{} is taken", file.display())])),
             None if sectioned => {
-                self.files.insert(
-                    file.clone(),
-                    Layout::Sections(vec![(section, vec![key.clone()])]),
-                );
+                self.files.insert(file.clone(), Layout::Sections(vec![(section, vec![key.clone()])]));
             }
             None => {
                 self.files.insert(file.clone(), Layout::Record(key.clone()));
             }
         }
-        self.records.insert(
-            key.clone(),
-            Entry {
-                value: value.clone(),
-                file: file.clone(),
-            },
-        );
-        self.index(&key);
-        self.write(&file)?;
-        Ok((key, value))
+        self.records.insert(key.clone(), Entry { value, file: file.clone() });
+        self.index(key);
+        self.write(&file)
+    }
+
+    /// Makes the record exactly `record` (its id and feature from it): a new one, or the one
+    /// there replaced without merging (undo and redo, paste, in-game edits). Its `rev` goes on
+    /// from the one there.
+    pub fn put(&mut self, mut record: Value, author: &str, now: u64) -> Result<Value, EditError> {
+        let id = record.get("id").and_then(Value::as_str).ok_or_else(|| EditError::Invalid(vec!["a record needs its id".into()]))?;
+        let key = Key::parse(id, feature_of(&record)).map_err(|e| EditError::Invalid(vec![e]))?;
+        let rev = self.records.get(&key).map(|e| rev_of(&e.value));
+        if let Some(rev) = rev {
+            if let Value::Object(o) = &mut record {
+                o.insert("rev".into(), json!(rev));
+            }
+            return self.save(&key, record, None, author, now);
+        }
+        stamp(&mut record, 1, author, now);
+        let problems = self.check(&record);
+        if !problems.is_empty() {
+            return Err(EditError::Invalid(problems));
+        }
+        self.insert_new(&key, record.clone())?;
+        Ok(record)
+    }
+
+    /// Sets a record back to `to` exactly (its last committed version: discarding unpublished
+    /// changes), or takes it out when it had none (`None`), without checks.
+    pub fn reset(&mut self, key: &Key, to: Option<Value>) -> Result<(), EditError> {
+        match to {
+            Some(v) if self.records.contains_key(key) => {
+                self.unindex(key);
+                self.records.get_mut(key).expect("checked").value = v;
+                self.index(key);
+                let file = self.records[key].file.clone();
+                self.write(&file)
+            }
+            Some(v) => self.insert_new(key, v),
+            None if self.records.contains_key(key) => self.take_out(key),
+            None => Ok(()),
+        }
+    }
+
+    /// Removes a record from its file (and the file when it was the last).
+    fn take_out(&mut self, key: &Key) -> Result<(), EditError> {
+        self.unindex(key);
+        let entry = self.records.remove(key).expect("checked");
+        let remove_file = match self.files.get_mut(&entry.file) {
+            Some(Layout::Sections(list)) => {
+                for (_, keys) in list.iter_mut() {
+                    keys.retain(|k| k != key);
+                }
+                list.retain(|(_, keys)| !keys.is_empty());
+                list.is_empty()
+            }
+            _ => true,
+        };
+        if remove_file {
+            self.files.remove(&entry.file);
+            std::fs::remove_file(self.dir.join(&entry.file)).map_err(|e| EditError::Io(e.to_string()))
+        } else {
+            self.write(&entry.file)
+        }
     }
 
     /// Deletes a record. While others name it (and no other feature's version stays), it is
@@ -627,25 +668,7 @@ impl Work {
                 changed.push(k);
             }
         }
-        self.unindex(key);
-        let entry = self.records.remove(key).expect("checked");
-        let remove_file = match self.files.get_mut(&entry.file) {
-            Some(Layout::Sections(list)) => {
-                for (_, keys) in list.iter_mut() {
-                    keys.retain(|k| k != key);
-                }
-                list.retain(|(_, keys)| !keys.is_empty());
-                list.is_empty()
-            }
-            _ => true,
-        };
-        if remove_file {
-            self.files.remove(&entry.file);
-            std::fs::remove_file(self.dir.join(&entry.file))
-                .map_err(|e| EditError::Io(e.to_string()))?;
-        } else {
-            self.write(&entry.file)?;
-        }
+        self.take_out(key)?;
         Ok(changed)
     }
 

@@ -95,6 +95,12 @@ pub fn changed_files(dir: &Path) -> anyhow::Result<Vec<PathBuf>> {
         .collect())
 }
 
+/// A record as the last commit has it (none: it was new since).
+pub fn committed(work: &Work, key: &Key) -> Option<Value> {
+    let file = work.get(key).map(|e| e.file.clone()).or_else(|| work.file_for(key).ok())?;
+    file_at(work.dir(), "HEAD", &file).and_then(|t| records_of(&t).remove(key))
+}
+
 /// A record changed since the last commit.
 #[derive(Debug, Clone, Serialize)]
 pub struct Change {
@@ -241,6 +247,7 @@ mod tests {
         )
         .unwrap();
         let g = |args: &[&str]| git(&dir, args).unwrap();
+        crate::load::format_tree(&dir, false).unwrap();
         g(&["init", "-q"]);
         g(&["-c", "user.name=t", "-c", "user.email=t@t", "add", "."]);
         g(&[
@@ -268,6 +275,20 @@ mod tests {
             3,
         )
         .unwrap();
+        // discarding a change brings back the committed version, exactly
+        let before = committed(&work, &Key::live("npc/b")).unwrap();
+        assert_eq!(before["id"], "npc/b");
+        work.reset(&Key::live("npc/b"), Some(before)).unwrap();
+        let left: Vec<_> = changes(&work).unwrap().into_iter().filter(|c| c.key.id.to_string() == "npc/b").collect();
+        assert!(left.is_empty(), "{left:?}");
+        work.delete(&Key::live("npc/b"), None, "ann", 2).unwrap();
+        // put: a new record with its own id, then exactly replaced
+        let put = work.put(json!({ "id": "npc/d", "level": 3 }), "cy", 4).unwrap();
+        assert_eq!(put["rev"], 1);
+        let put = work.put(json!({ "id": "npc/d", "level": 4 }), "cy", 5).unwrap();
+        assert_eq!((put["rev"].clone(), put["level"].clone()), (json!(2), json!(4)));
+        work.reset(&Key::live("npc/d"), None).unwrap();
+        assert!(committed(&work, &Key::live("npc/d")).is_none());
         let c = changes(&work).unwrap();
         let list: Vec<_> = c
             .iter()
