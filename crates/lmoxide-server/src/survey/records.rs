@@ -51,32 +51,6 @@ fn spawn_kind(k: SKind) -> SpawnKind {
     }
 }
 
-/// The spawn version shown for an id: a feature's when there is one (the most recent), else
-/// the live one; none when that one is removed.
-fn shown_versions(work: &Work, pf: u32) -> Vec<Key> {
-    let mut out: Vec<Key> = Vec::new();
-    for (k, e) in work
-        .records()
-        .filter(|(k, _)| k.id.kind == RecordKind::Spawn && k.id.world == Some(pf))
-    {
-        let updated = |v: &Value| v.get("updated").and_then(Value::as_u64).unwrap_or(0);
-        match out.last_mut() {
-            Some(last) if last.id == k.id => {
-                let last_v = &work.get(last).expect("listed").value;
-                if last.feature == "live" || updated(&e.value) > updated(last_v) {
-                    *last = k.clone();
-                }
-            }
-            _ => out.push(k.clone()),
-        }
-    }
-    out.retain(|k| {
-        work.get(k)
-            .is_some_and(|e| e.value.get("removed") != Some(&Value::Bool(true)))
-    });
-    out
-}
-
 /// A spawn record as an object: its template (with the features of its version) and
 /// overrides applied, as the game spawns it.
 pub fn object_of(work: &Work, key: &Key) -> Option<Object> {
@@ -125,7 +99,7 @@ pub fn object_of(work: &Work, key: &Key) -> Option<Object> {
 /// Every object of playfield `pf` in the working copy (spawns the game spawns: enemies, NPCs,
 /// smashables), in file order.
 pub fn objects_of(work: &Work, pf: u32) -> Vec<Object> {
-    shown_versions(work, pf)
+    work.shown_in_world(RecordKind::Spawn, pf)
         .iter()
         .filter_map(|k| object_of(work, k))
         .collect()

@@ -129,9 +129,14 @@ struct State {
     catalog: Vec<(Placeable, SpawnDef)>,
     /// Trigger walls by id.
     walls: HashMap<String, Wall>,
+    /// Each world's notes and scripts, as the working copy has them (lmoxide_content::views).
+    notes: Notes,
     /// Where each player was at the last wall check (playfield, position).
     last_pos: HashMap<Id32, (u32, [f32; 3])>,
 }
+
+/// Notes and scripts by playfield.
+type Notes = BTreeMap<u32, sv::NotesFile>;
 
 static STATE: LazyLock<Mutex<Option<State>>> = LazyLock::new(|| Mutex::new(None));
 /// viewer -> the NPCs not sent to them.
@@ -173,6 +178,7 @@ pub fn init(dir: PathBuf) {
         surveyors: HashMap::new(),
         catalog: Vec::new(),
         walls: HashMap::new(),
+        notes: Notes::new(),
         last_pos: HashMap::new(),
     });
 }
@@ -182,11 +188,14 @@ pub fn init(dir: PathBuf) {
 pub fn content_changed(work: &Work, keys: &[Key]) {
     let mut guard = STATE.lock().unwrap();
     let Some(st) = guard.as_mut() else { return };
-    let everywhere = keys.iter().any(|k| matches!(k.id.kind, RecordKind::Npc | RecordKind::Object | RecordKind::Skill | RecordKind::Script));
+    let everywhere = keys.iter().any(|k| matches!(k.id.kind, RecordKind::Npc | RecordKind::Object | RecordKind::Skill));
     let pfs: Vec<u32> = if everywhere {
         st.objects.values().map(|o| o.playfield).chain(keys.iter().filter_map(|k| k.id.world)).collect()
+    } else if keys.iter().any(|k| k.id.kind == RecordKind::Script) {
+        // (its placements show or hide by wave)
+        keys.iter().filter_map(|k| k.id.world).collect()
     } else {
-        keys.iter().filter(|k| k.id.kind == RecordKind::Spawn).filter_map(|k| k.id.world).collect()
+        keys.iter().filter(|k| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Area)).filter_map(|k| k.id.world).collect()
     };
     if !pfs.is_empty() {
         rebuild(st, work, pfs);
@@ -313,7 +322,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
         }
         st.catalog = catalog_of(&st.bases);
         let playfields: std::collections::BTreeSet<u32> =
-            work.records().filter(|(k, _)| k.id.kind == RecordKind::Spawn).filter_map(|(k, _)| k.id.world).chain(st.set.placements.keys().copied()).collect();
+            work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Script | RecordKind::Area)).filter_map(|(k, _)| k.id.world).chain(st.set.placements.keys().copied()).collect();
         for pf in playfields {
             build_playfield(st, work, pf);
         }
@@ -365,8 +374,14 @@ pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement],
 
 /// Spawns playfield `pf`'s objects from the working copy, and the set's trigger walls.
 fn build_playfield(st: &mut State, work: &Work, pf: u32) {
+    let notes = lmoxide_content::views::notes_of(work, pf);
+    if notes.notes.is_empty() && notes.scripts.is_empty() {
+        st.notes.remove(&pf);
+    } else {
+        st.notes.insert(pf, notes);
+    }
     for mut o in records::objects_of(work, pf) {
-        spawn(&st.surveyors, &st.set, &mut o);
+        spawn(&st.surveyors, &st.notes, &mut o);
         if let Some(n) = o.npc {
             st.by_npc.insert(n, o.id.clone());
         }
@@ -389,7 +404,7 @@ fn replace_object(st: &mut State, work: &Work, id: &str, key: &Key) -> Option<Su
         despawn(&mut old);
     }
     let mut o = records::object_of(work, key)?;
-    spawn(&st.surveyors, &st.set, &mut o);
+    spawn(&st.surveyors, &st.notes, &mut o);
     if let Some(n) = o.npc {
         st.by_npc.insert(n, o.id.clone());
     }
@@ -502,13 +517,13 @@ pub(crate) fn catalog_of(bases: &BTreeMap<u32, Vec<SpawnDef>>) -> Vec<(Placeable
 /// Spawns the object under a new NPC id (the client needs ~1.5 s before an id is reused).
 /// Surveyors who hide it have the id in their hidden set before it joins the world, so it
 /// isn't sent to them.
-fn spawn(surveyors: &HashMap<Id32, Surveyor>, set: &Set, o: &mut Object) {
+fn spawn(surveyors: &HashMap<Id32, Surveyor>, notes: &Notes, o: &mut Object) {
     let def = o.spawn_def();
     let id = npc::new_id(&def);
     {
         let mut hidden = HIDDEN.lock().unwrap();
         for (viewer, s) in surveyors {
-            if is_hidden_for(s, o, set) {
+            if is_hidden_for(s, o, notes) {
                 hidden.entry(*viewer).or_default().insert(id);
             }
         }
@@ -530,7 +545,7 @@ fn respawn(st: &mut State, id: &str) {
         st.by_npc.remove(&old);
     }
     despawn(o);
-    spawn(&st.surveyors, &st.set, o);
+    spawn(&st.surveyors, &st.notes, o);
     if let Some(new) = o.npc {
         st.by_npc.insert(new, id.to_string());
     }
@@ -579,13 +594,13 @@ pub fn flush() {
     }
 }
 
-fn scripts_of(set: &Set, pf: u32) -> &[Script] {
-    set.notes.get(&pf).map_or(&[], |n| n.scripts.as_slice())
+fn scripts_of(notes: &Notes, pf: u32) -> &[Script] {
+    notes.get(&pf).map_or(&[], |n| n.scripts.as_slice())
 }
 
 /// Whether playfield `pf` has that script wave.
-fn has_wave(set: &Set, pf: u32, w: &WaveRef) -> bool {
-    scripts_of(set, pf).iter().any(|s| s.id == w.script && s.waves.iter().any(|x| x.id == w.wave))
+fn has_wave(notes: &Notes, pf: u32, w: &WaveRef) -> bool {
+    scripts_of(notes, pf).iter().any(|s| s.id == w.script && s.waves.iter().any(|x| x.id == w.wave))
 }
 
 /// The wave of a script a surveyor sees: chosen, else the first; "all" for one-wave scripts.
@@ -599,12 +614,12 @@ fn shown_wave<'a>(s: &'a Surveyor, script: &'a Script) -> &'a str {
     }
 }
 
-fn is_hidden_for(s: &Surveyor, o: &Object, set: &Set) -> bool {
+fn is_hidden_for(s: &Surveyor, o: &Object, notes: &Notes) -> bool {
     if s.hidden.contains(&o.id) {
         return true;
     }
     let Some(w) = &o.wave else { return false };
-    let Some(script) = scripts_of(set, o.playfield).iter().find(|x| x.id == w.script) else { return false };
+    let Some(script) = scripts_of(notes, o.playfield).iter().find(|x| x.id == w.script) else { return false };
     let shown = shown_wave(s, script);
     shown != "all" && shown != w.wave
 }
@@ -617,7 +632,7 @@ fn sync_hidden(st: &State, viewer: Id32) {
     let mut all: HashMap<Id32, (u32, bool)> = HashMap::new();
     for o in st.objects.values() {
         if let Some(n) = o.npc {
-            all.insert(n, (o.playfield, is_hidden_for(s, o, &st.set)));
+            all.insert(n, (o.playfield, is_hidden_for(s, o, &st.notes)));
         }
     }
     for w in st.walls.values() {
@@ -782,7 +797,7 @@ fn show_marks(st: &mut State, viewer: Id32) {
     let mut targets: Vec<(Option<Id32>, [f32; 3], u32)> = Vec::new();
     let look = |m: &Mark| MARK_LOOKS.iter().find(|l| l.0 == m.look).map(|l| l.1);
     if !s.marks.is_empty() {
-        for o in st.objects.values().filter(|o| o.playfield == pf && !is_hidden_for(s, o, &st.set)) {
+        for o in st.objects.values().filter(|o| o.playfield == pf && !is_hidden_for(s, o, &st.notes)) {
             let Some(npc) = o.npc else { continue };
             if let Some(pkg) = s.marks.iter().find(|m| m.matches(&o.author, &o.feature, &o.tags)).and_then(look) {
                 targets.push(((o.def.kind != Kind::Smashable).then_some(npc), o.def.pos, pkg));
@@ -1446,7 +1461,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
             return store_bouncer(st, pf, p, &id);
         }
         nkind(b.what.kind)?;
-        if b.wave.as_ref().is_some_and(|w| !has_wave(&st.set, pf, w)) {
+        if b.wave.as_ref().is_some_and(|w| !has_wave(&st.notes, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
         let feature = checked_feature(&st.set, b.feature)?;
@@ -1491,7 +1506,7 @@ async fn select(Path(account): Path<u32>, Json(b): Json<SelectBody>) -> R<Player
         let id = if b.nearest {
             let here = world::live_position(player).unwrap_or_default();
             let surveyor = st.surveyors.get(&player);
-            let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.set))).map(|o| (&o.id, o.def.pos));
+            let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.notes))).map(|o| (&o.id, o.def.pos));
             let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (w.def.id.clone(), w.def.pos));
             let buildies = crate::buildie::list(Some(pf)).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
             let bouncers = crate::jumppad::list(Some(pf)).into_iter().map(|l| (l.id, l.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
@@ -1625,48 +1640,49 @@ struct NotesView {
 
 async fn notes(Path(pf): Path<u32>) -> R<NotesView> {
     with(|st| {
-        let n = st.set.notes.get(&pf);
+        let n = st.notes.get(&pf);
         Ok(Json(NotesView { notes: n.map(|n| n.notes.clone()).unwrap_or_default(), scripts: n.map(|n| n.scripts.clone()).unwrap_or_default() }))
     })
 }
 
-fn tidy_notes(st: &mut State, pf: u32) {
-    if st.set.notes.get(&pf).is_some_and(|n| n.notes.is_empty() && n.scripts.is_empty()) {
-        st.set.notes.remove(&pf);
-    }
-}
-
+/// Saves a note as an area of the world (role note; a new one gets its id from its reference).
 async fn save_note(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Json(mut n): Json<Note>) -> R<Note> {
-    with(|st| {
+    with_work(|work, st| {
         n.id = id;
         n.feature = checked_feature(&st.set, Some(n.feature))?;
         n.tags = sv::tidy_tags(&n.tags);
-        n.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(n.author);
-        n.updated = ids::now();
-        let notes = &mut st.set.notes_mut(pf).notes;
-        match notes.iter_mut().find(|x| x.id == n.id) {
-            Some(x) => *x = n.clone(),
-            None => notes.push(n.clone()),
-        }
-        save(st);
+        let saved = lmoxide_content::views::put_note(work, pf, &n, &author_of(&headers), ids::now())?;
+        refresh_notes(st, work, pf);
         bump(st, pf);
-        Ok(n)
+        Ok(saved)
     })
     .map(Json)
 }
 
-async fn delete_note(Path((pf, id)): Path<(u32, String)>) -> Result<StatusCode, Error> {
-    with(|st| {
-        st.set.notes_mut(pf).notes.retain(|n| n.id != id);
-        tidy_notes(st, pf);
-        save(st);
+/// Reads playfield `pf`'s notes and scripts again from the working copy.
+fn refresh_notes(st: &mut State, work: &Work, pf: u32) {
+    let notes = lmoxide_content::views::notes_of(work, pf);
+    st.notes.insert(pf, notes);
+}
+
+/// The record a note or script id names (any feature).
+fn record_key(work: &Work, id: &str, kind: RecordKind) -> Result<Key, Error> {
+    work.versions(id).into_iter().map(|(k, _)| k.clone()).find(|k| k.id.kind == kind).ok_or_else(|| Error::NotFound(format!("no {kind} {id}")))
+}
+
+async fn delete_note(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap) -> Result<StatusCode, Error> {
+    with_work(|work, st| {
+        let key = record_key(work, &id, RecordKind::Area)?;
+        work.delete(&key, None, &author_of(&headers), ids::now())?;
+        refresh_notes(st, work, pf);
         bump(st, pf);
         Ok(StatusCode::NO_CONTENT)
     })
 }
 
+/// Saves a script as its record (a new one gets its id from its name).
 async fn save_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Json(mut s): Json<Script>) -> R<Script> {
-    with(|st| {
+    with_work(|work, st| {
         if s.waves.is_empty() {
             return Err(Error::Invalid("a script has at least one wave".into()));
         }
@@ -1676,29 +1692,31 @@ async fn save_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Js
         for w in &mut s.waves {
             w.tags = sv::tidy_tags(&w.tags);
         }
-        s.author = Some(author_of(&headers)).filter(|a| !a.is_empty()).unwrap_or(s.author);
-        s.updated = ids::now();
-        let scripts = &mut st.set.notes_mut(pf).scripts;
-        match scripts.iter_mut().find(|x| x.id == s.id) {
-            Some(x) => *x = s.clone(),
-            None => scripts.push(s.clone()),
-        }
-        save(st);
+        let saved = lmoxide_content::views::put_script(work, pf, &s, &author_of(&headers), ids::now())?;
+        refresh_notes(st, work, pf);
         sync_all(st);
         bump(st, pf);
-        Ok(s)
+        Ok(saved)
     })
     .map(Json)
 }
 
-async fn delete_script(Path((pf, id)): Path<(u32, String)>) -> Result<StatusCode, Error> {
-    with(|st| {
+async fn delete_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap) -> Result<StatusCode, Error> {
+    with_work(|work, st| {
         if st.objects.values().any(|o| o.wave.as_ref().is_some_and(|w| w.script == id)) {
             return Err(Error::Invalid("delete or move the script's placements first".into()));
         }
-        st.set.notes_mut(pf).scripts.retain(|s| s.id != id);
-        tidy_notes(st, pf);
-        save(st);
+        let key = record_key(work, &id, RecordKind::Script)?;
+        let area = work.get(&key).and_then(|e| e.value.get("area")).and_then(|a| a.as_str()).map(str::to_string);
+        work.delete(&key, None, &author_of(&headers), ids::now())?;
+        // its own area too, when nothing else uses it
+        if let Some(a) = area.and_then(|a| record_key(work, &a, RecordKind::Area).ok())
+            && work.used_by(&a.id.to_string()).is_empty()
+            && work.get(&a).is_some_and(|e| e.value.get("note").is_none())
+        {
+            work.delete(&a, None, &author_of(&headers), ids::now())?;
+        }
+        refresh_notes(st, work, pf);
         sync_all(st);
         bump(st, pf);
         Ok(StatusCode::NO_CONTENT)
@@ -1718,7 +1736,7 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         let mut o = editable(st, &id)?;
         let pf = o.playfield;
         if let Some(Some(w)) = &c.wave
-            && !has_wave(&st.set, pf, w)
+            && !has_wave(&st.notes, pf, w)
         {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
@@ -1957,7 +1975,7 @@ async fn create_object(Path(pf): Path<u32>, headers: HeaderMap, Json(mut b): Jso
     with_work(|work, st| {
         let author = author_of(&headers);
         b.feature = checked_feature(&st.set, Some(b.feature))?;
-        if b.wave.as_ref().is_some_and(|w| !has_wave(&st.set, pf, w)) {
+        if b.wave.as_ref().is_some_and(|w| !has_wave(&st.notes, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
         b.replaces = None;
@@ -2780,7 +2798,7 @@ fn fire(st: &mut State, id: &str, player: Id32, pf: u32) {
     let say = |text: String| crate::chat::system(player.instance, &format!("[{label}] {text}"));
     match &def.action {
         WallAction::Script { script, wave } => {
-            let s = script.as_ref().and_then(|sid| scripts_of(&st.set, pf).iter().find(|s| &s.id == sid)).cloned();
+            let s = script.as_ref().and_then(|sid| scripts_of(&st.notes, pf).iter().find(|s| &s.id == sid)).cloned();
             match s {
                 Some(s) => {
                     let w = wave.as_ref().and_then(|wid| s.waves.iter().find(|x| &x.id == wid)).or(s.waves.first()).cloned();
@@ -3040,13 +3058,13 @@ fn playfield_names() -> &'static BTreeMap<u32, String> {
 async fn playfields() -> R<Vec<PlayfieldView>> {
     with(|st| {
         let names = playfield_names();
-        let ids: std::collections::BTreeSet<u32> = names.keys().chain(st.bases.keys()).chain(st.set.placements.keys()).chain(st.set.notes.keys()).copied().collect();
+        let ids: std::collections::BTreeSet<u32> = names.keys().chain(st.bases.keys()).chain(st.set.placements.keys()).chain(st.notes.keys()).copied().collect();
         let count = |n: usize| n.min(u32::MAX as usize) as u32;
         Ok(Json(
             ids.into_iter()
                 .map(|id| {
                     let p = st.set.placements.get(&id);
-                    let n = st.set.notes.get(&id);
+                    let n = st.notes.get(&id);
                     PlayfieldView {
                         id,
                         name: names.get(&id).cloned().or_else(|| crate::teleport::destination(id).map(|d| d.name.clone())).unwrap_or_default(),

@@ -247,6 +247,27 @@ impl Work {
         !self.versions(id).is_empty()
     }
 
+    /// The records of a kind in playfield `pf`'s folder, one version per id: a feature's when
+    /// there is one (the most recently saved), else the live one; none when that one is
+    /// `removed`.
+    pub fn shown_in_world(&self, kind: RecordKind, pf: u32) -> Vec<Key> {
+        let updated = |k: &Key| self.records[k].value.get("updated").and_then(Value::as_u64).unwrap_or(0);
+        let mut out: Vec<Key> = Vec::new();
+        let first = Key::new(RecordId { kind, world: Some(pf), slug: String::new() }, "");
+        for (k, _) in self.records.range(first..).take_while(|(k, _)| k.id.kind == kind && k.id.world == Some(pf)) {
+            match out.last_mut() {
+                Some(last) if last.id == k.id => {
+                    if last.feature == "live" || updated(k) > updated(last) {
+                        *last = k.clone();
+                    }
+                }
+                _ => out.push(k.clone()),
+            }
+        }
+        out.retain(|k| self.records[k].value.get("removed") != Some(&Value::Bool(true)));
+        out
+    }
+
     pub fn records(&self) -> impl Iterator<Item = (&Key, &Entry)> {
         self.records.iter()
     }

@@ -30,6 +30,7 @@ pub mod roll;
 pub mod schema;
 pub mod tunables;
 pub mod units;
+pub mod views;
 pub mod work;
 
 pub use action::{Action, Destination, SpawnAt, Target};
