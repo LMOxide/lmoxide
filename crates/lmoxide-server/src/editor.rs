@@ -173,6 +173,7 @@ pub fn routes() -> Router {
         .route("/v1/editor/changes", get(changes))
         .route("/v1/editor/catalog/{name}", get(catalog))
         .route("/v1/editor/reload", axum::routing::post(reload))
+        .route("/v1/editor/loot/simulate", axum::routing::post(simulate_loot))
 }
 
 /// The kinds index and every schema.
@@ -432,6 +433,34 @@ async fn changes(Query(q): Query<ChangesQuery>) -> R<Vec<git::Change>> {
     with(move |ed| {
         let list = git::changes(&ed.work)?;
         Ok(list.into_iter().filter(|c| q.author.as_deref().is_none_or(|a| c.author.eq_ignore_ascii_case(a))).collect())
+    })
+    .await
+}
+
+#[derive(Deserialize)]
+struct SimulateQuery {
+    id: String,
+    rolls: Option<u32>,
+    /// The playfield it drops in (entries limited to worlds); none: no world's.
+    playfield: Option<u32>,
+    /// Features on (comma-separated).
+    with: Option<String>,
+}
+
+/// Rolls a loot table of the working copy many times (as saved, nested tables too): how often
+/// each thing drops.
+async fn simulate_loot(Query(q): Query<SimulateQuery>) -> R<lmoxide_content::roll::Simulation> {
+    with(move |ed| {
+        let features: Vec<String> = q.with.as_deref().unwrap_or("").split(',').filter(|f| !f.is_empty()).map(str::to_string).collect();
+        let work = &ed.work;
+        let table = |id: &str| work.resolve(id, &features).and_then(|(v, _)| serde_json::from_value::<lmoxide_content::LootTable>(v).ok());
+        let in_worlds = |worlds: &[String]| {
+            q.playfield.is_some_and(|pf| worlds.iter().any(|w| work.resolve(w, &features).is_some_and(|(v, _)| v.get("playfield").and_then(Value::as_u64) == Some(pf as u64))))
+        };
+        if table(&q.id).is_none() {
+            return Err(Error::NotFound(format!("{} isn't a loot table that loads", q.id)));
+        }
+        Ok(lmoxide_content::roll::simulate(&table, &in_worlds, &q.id, q.rolls.unwrap_or(10_000).min(200_000)))
     })
     .await
 }

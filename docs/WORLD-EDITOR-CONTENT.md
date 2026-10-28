@@ -92,6 +92,15 @@ history on play servers), `crates/lmoxide-content/src/model.rs` (every record ty
   version edited from) rather than `base_rev`, so the server keeps no old versions. Not yet: the
   in-game routes writing content records (`survey::content_changed` is the hook), publish (with
   phase 3), loot simulation (with the loot view, phase 5).
+- Phases 4 and 5, editor side (lmoxide-dev-ui, not committed yet): `src/editor/form/` (the form
+  engine), `content.ts` / `contentMock.ts` (ContentBackend, mock over
+  `src/editor/fixture/content.json` from `tools/content-fixture.mjs`), `Definitions.tsx` (the
+  Definitions tab), `RecordView.tsx` (a record's page), `Special.tsx` (loot rates, buff and action
+  sentences, skill client actions, dialogue lines, minifigure upgrades). Smash achievements link
+  their achievements by name. Loot rolling moved to `lmoxide_content::roll` (the server and
+  `POST /v1/editor/loot/simulate` share it). Undo is per record (its saved versions).
+- Not started: 2b (in-game routes on content records; survey.rs keeps its base-id + placement
+  model today), 3 (publish queue; the user asked to leave out the commit and push for now), 6.
 
 ## Phases
 

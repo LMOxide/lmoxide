@@ -20,7 +20,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use lmoxide_content::{LootBundle, LootEntry, MinifigureDrop, MinifigureSource, Range};
+use lmoxide_content::MinifigureSource;
 use lmoxide_net::{
     iir,
     proto::{
@@ -41,7 +41,6 @@ const BAG_DISPLAY_NAME: &str = r#"<remoteformat id="1209" category="50200" key="
 /// Stars ("minifigure XP").
 const STAR_TOKEN: u32 = 100;
 /// Loot tables name others at most this deep.
-const MAX_DEPTH: u32 = 8;
 
 struct Bag {
     owner: Id32,
@@ -274,16 +273,6 @@ pub fn chance(percent: u64) -> bool {
     random() % 100 < percent
 }
 
-/// True with probability `p` (0..1).
-fn chance_of(p: f64) -> bool {
-    (random() % 1_000_000) < (p * 1_000_000.0).round().max(0.0) as u64
-}
-
-/// A number in `r`.
-fn in_range(r: Range) -> u32 {
-    r.min + (random() % u64::from(r.max - r.min + 1)) as u32
-}
-
 fn pick(items: &[u32]) -> Option<u32> {
     (!items.is_empty()).then(|| items[(random() % items.len() as u64) as usize])
 }
@@ -341,7 +330,7 @@ pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
     let c = crate::gamedata::get();
     let mut items = Vec::new();
     match c.tunables.loot.tables.get(source.key()) {
-        Some(table) => roll_table(table, orb_bonus, playfield, 0, &mut items),
+        Some(table) => roll_table(table, orb_bonus, playfield, &mut items),
         None => tracing::warn!(source = source.key(), "tunables.json loot.tables names no table"),
     }
     items
@@ -350,83 +339,37 @@ pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
 /// Rolls loot table `id` (`loot/...`) for a bag in `playfield` into `out` (upgrade procs'
 /// `drop`).
 pub fn roll_table_into(id: &str, orb_bonus: u64, playfield: u32, out: &mut Vec<u32>) {
-    roll_table(id, orb_bonus, playfield, 0, out);
+    roll_table(id, orb_bonus, playfield, out);
 }
 
-/// Rolls loot table `id` into `out`: entries in order; those with a `chance` roll on their own,
-/// those without `chance` or `weight` always drop, and the weighted ones (`rolls` times, one each)
-/// where the first of them is listed.
-fn roll_table(id: &str, orb_bonus: u64, playfield: u32, depth: u32, out: &mut Vec<u32>) {
+/// Rolls loot table `id` into `out` (lmoxide_content::roll: the rules), each drop as a client
+/// item: minifigure parts and bags of the minifigures it names or the world's, one of its chests.
+fn roll_table(id: &str, orb_bonus: u64, playfield: u32, out: &mut Vec<u32>) {
+    use lmoxide_content::roll::{Drop, Roller};
     let c = crate::gamedata::get();
-    let Some(table) = c.loot.get(id) else {
-        tracing::warn!(table = id, "no such loot table");
-        return;
-    };
-    if depth > MAX_DEPTH {
-        tracing::warn!(table = id, "loot tables nest too deep");
-        return;
-    }
-    let applies = |e: &LootEntry| {
-        let Some(w) = &e.when else { return true };
-        // everyone is a member here; once_per_player isn't kept yet
-        w.worlds.is_empty() || w.worlds.iter().filter_map(|w| c.worlds.get(w)).any(|w| w.playfield == playfield)
-    };
-    let weighted: Vec<&LootEntry> = table.entries.iter().filter(|e| e.weight.is_some() && applies(e)).collect();
-    let mut weighted_done = false;
-    for e in &table.entries {
-        if e.weight.is_some() {
-            if !weighted_done {
-                weighted_done = true;
-                let choices: Vec<(u32, u32)> = weighted.iter().enumerate().map(|(i, e)| (e.weight.unwrap_or(0), i as u32)).collect();
-                for _ in 0..table.rolls {
-                    if let Some(i) = pick_weighted(&choices) {
-                        give(&weighted[i as usize].drop, orb_bonus, playfield, depth, out);
-                    }
-                }
-            }
-            continue;
-        }
-        if !applies(e) {
-            continue;
-        }
-        let drops = match e.chance {
-            None => true,
-            Some(p) => {
-                let bonus = e.when.as_ref().and_then(|w| w.bonus_stat.as_deref()) == Some("orb_chance");
-                chance_of(p.fraction() + if bonus { orb_bonus as f64 / 100.0 } else { 0.0 })
-            }
-        };
-        if drops {
-            give(&e.drop, orb_bonus, playfield, depth, out);
-        }
-    }
-}
-
-/// The items of one loot bundle.
-fn give(b: &LootBundle, orb_bonus: u64, playfield: u32, depth: u32, out: &mut Vec<u32>) {
     let t = &*TABLES;
-    let times = |r: Option<Range>| r.map_or(0, in_range) as usize;
-    out.extend(std::iter::repeat_n(t.star, times(b.stars)));
-    out.extend(std::iter::repeat_n(t.health_orb, times(b.hearts)));
-    out.extend(std::iter::repeat_n(t.potion, times(b.potions)));
-    let minifigures = |d: &MinifigureDrop, out: &mut Vec<u32>, of: fn(u32) -> Option<u32>| {
-        for _ in 0..in_range(d.count) {
-            out.extend(pick_from(&d.from, playfield).and_then(of));
+    let table = |id: &str| c.loot.get(id).cloned();
+    let in_worlds = |worlds: &[String]| worlds.iter().filter_map(|w| c.worlds.get(w)).any(|w| w.playfield == playfield);
+    let mut random = random;
+    let mut roller = Roller { table: &table, in_worlds: &in_worlds, orb_bonus, random: &mut random, warnings: Vec::new() };
+    let mut drops = Vec::new();
+    roller.roll(id, &mut drops);
+    for w in roller.warnings {
+        tracing::warn!(table = id, "{w}");
+    }
+    for d in drops {
+        match d {
+            Drop::Star => out.push(t.star),
+            Drop::Heart => out.push(t.health_orb),
+            Drop::Potion => out.push(t.potion),
+            Drop::Part(from) => out.extend(pick_from(&from, playfield).and_then(|m| TABLES.part_items.get(&m).and_then(|p| pick_weighted(p)))),
+            Drop::Bag(from) => out.extend(pick_from(&from, playfield).and_then(|m| TABLES.minifigure_bag.get(&m).copied())),
+            Drop::Chest(list) => {
+                let chests: Vec<u32> = list.iter().filter_map(|c| template_of(c)).collect();
+                out.extend(pick(&chests));
+            }
+            Drop::Item(i) => out.extend(template_of(&i)),
         }
-    };
-    if let Some(d) = &b.minifig_parts {
-        minifigures(d, out, |m| TABLES.part_items.get(&m).and_then(|p| pick_weighted(p)));
-    }
-    if let Some(d) = &b.minifig_bags {
-        minifigures(d, out, |m| TABLES.minifigure_bag.get(&m).copied());
-    }
-    if !b.chest.is_empty() {
-        let chests: Vec<u32> = b.chest.iter().filter_map(|c| template_of(c)).collect();
-        out.extend(pick(&chests));
-    }
-    out.extend(b.items.iter().filter_map(|i| template_of(i)));
-    if let Some(table) = &b.table {
-        roll_table(table, orb_bonus, playfield, depth + 1, out);
     }
 }
 
@@ -464,7 +407,7 @@ pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, sou
         let items = match table {
             Some(t) => {
                 let mut items = Vec::new();
-                roll_table(t, bonus, playfield, 0, &mut items);
+                roll_table(t, bonus, playfield, &mut items);
                 items
             }
             None => roll(source, bonus, playfield),

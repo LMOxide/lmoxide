@@ -404,6 +404,7 @@ Records are named by query (`?id=npc/pirate&feature=live`; ids hold slashes).
 | `GET /v1/editor/problems` | the whole tree's check |
 | `GET /v1/editor/changes?author=` | records changed since the last commit: `change` (added, changed, removed), `author`, `before`, `after` |
 | `GET /v1/editor/catalog/{name}?q=&ids=&limit=` | client ids with names (`monster_data`, `effect_package`, `spell`, `nano`, `item`, `text`, `lore`, `playfield`, `window`, `npc_template`, `stat`); `record` names the content record it belongs to |
+| `POST /v1/editor/loot/simulate?id=&rolls=&playfield=` | rolls a loot table as saved (lmoxide_content::roll, the server's rules): `rates: [{ what, chance, per_roll }]`, `nothing`, `warnings` |
 | `POST /v1/editor/reload` | reads the working copy again (after a pull or an edit by hand) |
 
 ## Steps

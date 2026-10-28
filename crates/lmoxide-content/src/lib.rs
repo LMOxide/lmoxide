@@ -25,6 +25,7 @@ pub mod load;
 pub mod merge;
 pub mod model;
 pub mod record;
+pub mod roll;
 pub mod schema;
 pub mod tunables;
 pub mod units;
