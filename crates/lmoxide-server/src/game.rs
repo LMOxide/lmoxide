@@ -635,6 +635,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     }
                                     stop_after_success = true;
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
+                                    && let Some((portal, action)) = interaction_object(data)
+                                        .filter(|&(object, _)| object.kind == crate::teleport::DOOR_TYPE)
+                                        .and_then(|(object, action)| Some((crate::teleport::door_portal(object.instance)?, action)))
+                                {
+                                    // using a portal's door (click or E) opens its window wherever
+                                    // the player stands, as live did
+                                    if action != INTERACTION_STOP_USE {
+                                        portals.use_door(&mut conn, character, portal).await?;
+                                    }
+                                    stop_after_success = true;
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some(f) = target.and_then(|(kind, instance)| (kind == crate::scenery::SIMPLE_DYNEL_TYPE).then(|| crate::discovery::collectible(instance)).flatten())
                                 {
                                     // using a collectible finds it
@@ -1880,11 +1891,14 @@ const PORTAL_TICK: std::time::Duration = std::time::Duration::from_millis(250);
 /// portal's teleport window then (once per visit, live's server scripts did this), or asks
 /// Yes/No for a portal whose window would be empty, and closes it when they step out again.
 /// Not right after arriving (login, teleport, maybe next to one): portals open once the player
-/// has been clear of them.
+/// has been clear of them. Using a portal's door (click or E) opens it any time; that window
+/// stays until the player walks well clear of the portals.
 #[derive(Default)]
 struct Portals {
     /// the destination whose window is open
     shown: Option<u32>,
+    /// whether it was opened by using the portal's door
+    used: bool,
     /// the open message box (plain windows): its cookie and where it leads
     prompt: Option<(u64, u32)>,
     cookies: u64,
@@ -1928,37 +1942,52 @@ impl Portals {
         }
         match crate::teleport::portal_at(playfield, p).filter(|_| self.armed) {
             Some((to, window)) if self.shown != Some(to) => {
-                self.shown = Some(to);
                 info!(to, window, "portal");
-                if crate::teleport::plain_window(window) {
-                    // its window would be empty: ask Yes/No instead
-                    let cookie = self.next_cookie();
-                    self.prompt = Some((cookie, to));
-                    let args = message_box_args(&crate::teleport::travel_question(to), cookie);
-                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
-                } else {
-                    let args = Writer::new().u32(window).i32(0).finish();
-                    conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX, args)
-                        .await?;
-                }
+                self.used = false;
+                self.show(conn, character, to, window).await?;
             }
             Some(_) => {}
-            None if self.shown.is_some() => {
+            None if self.shown.is_some() && (!self.used || crate::teleport::clear_of_portals(playfield, p)) => {
                 self.shown = None;
-                if let Some((cookie, _)) = self.prompt.take() {
-                    let args = Writer::new().u64(cookie).finish();
-                    conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_CLOSE_MESSAGE_BOX, args).await?;
-                } else {
-                    conn.send_as(
-                        Some(character),
-                        Endpoint::GameCharInterfaceProject,
-                        game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX,
-                        Bytes::new(),
-                    )
-                    .await?;
-                }
+                self.close(conn, character).await?;
             }
             None => {}
+        }
+        Ok(())
+    }
+
+    /// The player used the door of the portal to `to` with `window` (click or E).
+    async fn use_door(&mut self, conn: &mut Conn, character: u32, (to, window): (u32, u32)) -> anyhow::Result<()> {
+        info!(to, window, "portal door used");
+        self.used = true;
+        self.close(conn, character).await?;
+        self.show(conn, character, to, window).await
+    }
+
+    /// Opens the window of the portal to `to`: `window`, or Yes/No for a window that would be
+    /// empty.
+    async fn show(&mut self, conn: &mut Conn, character: u32, to: u32, window: u32) -> anyhow::Result<()> {
+        self.shown = Some(to);
+        if crate::teleport::plain_window(window) {
+            let cookie = self.next_cookie();
+            self.prompt = Some((cookie, to));
+            let args = message_box_args(&crate::teleport::travel_question(to), cookie);
+            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
+        } else {
+            let args = Writer::new().u32(window).i32(0).finish();
+            conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SCRY_SHOW_TELEPORT_MESSAGE_BOX, args).await?;
+        }
+        Ok(())
+    }
+
+    /// Closes the open portal window or Yes/No box.
+    async fn close(&mut self, conn: &mut Conn, character: u32) -> anyhow::Result<()> {
+        if let Some((cookie, _)) = self.prompt.take() {
+            let args = Writer::new().u64(cookie).finish();
+            conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_CLOSE_MESSAGE_BOX, args).await?;
+        } else {
+            conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SCRY_CLOSE_TELEPORT_MESSAGE_BOX, Bytes::new())
+                .await?;
         }
         Ok(())
     }

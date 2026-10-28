@@ -76,8 +76,27 @@ pub static WORLD_CONTENT: LazyLock<HashMap<String, Value>> = LazyLock::new(|| {
     out
 });
 
+/// How far from a portal its door may stand (the client data puts some portals' trigger points
+/// a few metres off their door: Monster Laboratory 4.4 m).
+const PORTAL_DOOR_RANGE: f32 = 5.0;
+
+/// The door live sent at a portal (an invisible `empty_monsterdata_1x1x1` door players click,
+/// LMO_Captures.cap): the nearest door spawn within `PORTAL_DOOR_RANGE`.
+fn portal_door(doors: &[&Spawn], pos: [f32; 3]) -> Option<Value> {
+    let d = |s: &&&Spawn| s.pos.iter().zip(pos).map(|(a, b)| (a - b).powi(2)).sum::<f32>().sqrt();
+    let s = doors.iter().filter(|s| d(s) <= PORTAL_DOOR_RANGE).min_by(|a, b| d(a).total_cmp(&d(b)))?;
+    let c = s.client.as_ref()?;
+    let rot = match s.rot.unwrap_or_default() {
+        lmoxide_content::Rot::Quat(q) => q,
+        lmoxide_content::Rot::Heading(h) => [0.0, (h / 2.0).sin(), 0.0, (h / 2.0).cos()],
+    };
+    Some(json!({
+        "guid": c.guid?, "name": s.name, "pos": s.pos, "rot": rot, "scale": s.scale, "visual": c.visual?,
+    }))
+}
+
 /// Teleport destinations (`destinations`: name, guid, pos, rot, window) and portals (`portals`:
-/// to, pos, window), by playfield.
+/// to, pos, window, and the `door` players click), by playfield.
 pub static DESTINATIONS: LazyLock<Value> = LazyLock::new(|| {
     let c = content();
     let mut destinations = serde_json::Map::new();
@@ -93,12 +112,16 @@ pub static DESTINATIONS: LazyLock<Value> = LazyLock::new(|| {
             }
             destinations.insert(pf.to_string(), d);
         }
+        let doors: Vec<&Spawn> = c.in_world(&c.spawns, id).filter(|s| s.kind == SpawnKind::Door).collect();
         let list: Vec<Value> = c
             .in_world(&c.portals, id)
-            
             .filter_map(|p| {
                 let to = c.worlds.get(p.to.world.as_ref()?)?.playfield;
-                Some(json!({ "to": to, "pos": p.pos, "window": p.window? }))
+                let mut v = json!({ "to": to, "pos": p.pos, "window": p.window? });
+                if let Some(d) = portal_door(&doors, p.pos) {
+                    v["door"] = d;
+                }
+                Some(v)
             })
             .collect();
         if !list.is_empty() {

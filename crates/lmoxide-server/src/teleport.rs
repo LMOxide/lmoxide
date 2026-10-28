@@ -9,7 +9,9 @@
 //! Hub portals send nothing: the server notices the player standing in one and opens that
 //! destination's teleport window. The windows (and World Map markers) require completed story
 //! quests, which `journal_record` provides. Portals whose window would be empty ask with a Yes/No
-//! message box instead (`PLAIN_WINDOWS`).
+//! message box instead (`PLAIN_WINDOWS`). Each portal also has a door (type 51016, invisible,
+//! usable) as live sent one (LMO_Captures.cap): clicking it or pressing E on it queues an
+//! ObjectInteraction on the door, which opens the same window wherever the player stands.
 //!
 //! The move: `IntendedTeleportIIR_c` + `n3TeleportIIR_t` (the client stops the old playfield and
 //! goes to FlowControl DeepTeleport), then the new playfield's records as at login; the client
@@ -23,12 +25,15 @@ use std::{
 use bytes::Bytes;
 use lmoxide_net::{
     iir,
-    proto::{PlayfieldProxyData, ProtoId32},
+    proto::{PlayfieldProxyData, ProtoGameCodeDynelIir, ProtoId32, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3},
     types::Id32,
 };
 use serde::Deserialize;
 
-use crate::game::PLAYFIELD_TYPE;
+use crate::{
+    game::{PLAYFIELD_TYPE, create_game_object},
+    world,
+};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Destination {
@@ -46,6 +51,20 @@ struct Portal {
     pos: [f32; 3],
     /// Teleport window the portal opens (tools/re/extract_portal_windows.py).
     window: u32,
+    /// The door players click (world_data.rs `portal_door`).
+    door: Option<Door>,
+}
+
+/// A portal's door: an invisible `empty_monsterdata_1x1x1` (the client data's door spawns).
+#[derive(Debug, Clone, Deserialize)]
+struct Door {
+    guid: u32,
+    name: String,
+    pos: [f32; 3],
+    rot: [f32; 4],
+    scale: f32,
+    /// [resource type, visual id]
+    visual: [u32; 2],
 }
 
 #[derive(Deserialize)]
@@ -91,6 +110,69 @@ const HUB: u32 = 1200;
 pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<(u32, u32)> {
     let portal = DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
     Some((if portal.to == playfield { HUB } else { portal.to }, portal.window))
+}
+
+/// Dynel type of doors.
+pub const DOOR_TYPE: u32 = 51016;
+/// Usable (ObjectInteraction), as live sent the portal doors.
+const CARS_USABLE: u32 = 1;
+/// The text category of the doors' names (TDB 55000, as live named them).
+const NAME_CATEGORY: u32 = 55000;
+
+/// The portal whose door is `guid`: (destination playfield, teleport window).
+pub fn door_portal(guid: u32) -> Option<(u32, u32)> {
+    DATA.portals.iter().find_map(|(k, ps)| {
+        let playfield: u32 = k.parse().ok()?;
+        let p = ps.iter().find(|p| p.door.as_ref().is_some_and(|d| d.guid == guid))?;
+        Some((if p.to == playfield { HUB } else { p.to }, p.window))
+    })
+}
+
+/// The portals' doors, spawned once (two portals can share one: the tutorial's compass).
+static DOORS: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+
+/// Puts every portal's door into its world.
+pub fn start() {
+    let mut seen = HashSet::new();
+    let mut doors = DOORS.lock().unwrap();
+    for (k, ps) in &DATA.portals {
+        let Ok(playfield) = k.parse::<u32>() else { continue };
+        for d in ps.iter().filter_map(|p| p.door.clone()).filter(|d| seen.insert(d.guid)) {
+            let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
+            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+            let id = Id32::new(DOOR_TYPE, d.guid);
+            let pos = std::sync::Arc::new(Mutex::new(d.pos));
+            doors.push(world::join(id, playfield, pos, move || door_records(&d, playfield), outbox));
+        }
+    }
+    tracing::info!(count = doors.len(), "portal doors spawned");
+}
+
+/// UpdateMessage + `DoorFullUpdateIIR_c` as live sent a portal's door: ProtoGameCodeDynelIIR,
+/// ProtoSimpleDynelIIR (no collision, its name, the TDB 55000 name, CARS group 1, field 7 =
+/// 51016, closed), visual, u32 0, an empty box (all f32 max), scale, 13 zero bytes.
+fn door_records(d: &Door, playfield: u32) -> Vec<Bytes> {
+    let id = Id32::new(DOOR_TYPE, d.guid);
+    let dynel = ProtoGameCodeDynelIir {
+        position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
+        rotation: Some(ProtoQuat { x: Some(d.rot[0]), y: Some(d.rot[1]), z: Some(d.rot[2]), w: Some(d.rot[3]) }),
+        playfield_instance: Some(playfield),
+        running_effects: vec![],
+    };
+    let simple = ProtoSimpleDynelIir {
+        kdtree: Some(0),
+        name: Some(d.name.clone()),
+        display_name: Some(format!(r#"<localized id="{}" category="{NAME_CATEGORY}" flags="" >"#, d.guid)),
+        cars_group: Some(CARS_USABLE),
+        waypoint_type: Some(DOOR_TYPE),
+        is_closed: Some(true),
+        ..Default::default()
+    };
+    let record = iir::record("DoorFullUpdateIIR_c", id, false, |w| {
+        let w = w.proto(&dynel).proto(&simple).u32(d.visual[1]).u32(d.visual[0]).u32(0);
+        (0..6).fold(w, |w, _| w.f32(f32::MAX)).f32(d.scale).u32(0).u32(0).u32(0).u8(0)
+    });
+    vec![create_game_object(id, playfield, d.pos), record]
 }
 
 /// Teleport windows whose RDB entry names only the destination (no picture, level or texts): the
@@ -300,6 +382,26 @@ pub fn signal_spots_args(playfield: u32) -> Bytes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn portal_doors() {
+        assert_eq!(iir::type_id("DoorFullUpdateIIR_c"), 0x33a5_6fb0);
+        // the hub's Mythology Mountains portal: live's door 525862 (scale 3)
+        let door = DATA.portals["1200"].iter().find_map(|p| p.door.as_ref().filter(|d| d.guid == 525862)).expect("door");
+        assert_eq!((door.scale, door.visual), (3.0, [1010201, 465832]));
+        assert_eq!(door_portal(525862).map(|(_, w)| w), Some(67));
+        // Monster Laboratory's door stands 4.4 m off its portal point
+        assert!(door_portal(656807).is_some());
+        // the record ends as live's did (LMO_Captures.cap, the hub's door 7951): visual, u32 0,
+        // empty box, scale 3, zeros
+        let record = &door_records(door, 1200)[1];
+        let tail = "00071ba8000f6a1900000000".to_string() + &"7f7fffff".repeat(6) + "40400000" + &"00".repeat(13);
+        assert!(crate::conn::hex(record).ends_with(&tail));
+        // and its protobuf: no collision, the name, CARS group 1, field 7 = 51016, closed
+        // (live's name ended in a space)
+        assert!(crate::conn::hex(record).contains("08001217656d7074795f6d6f6e73746572646174615f3178317831"));
+        assert!(crate::conn::hex(record).contains("280138c88e036001"));
+    }
 
     #[test]
     fn return_points_stay_clear_of_portals() {

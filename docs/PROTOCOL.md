@@ -293,6 +293,19 @@ team 57001 (raid 57016).
   too). 0x59 ScryCloseMessageBox(uint64 cookie) closes it. Used for portals whose teleport window
   is empty (73, 74; teleport.rs). Verified with the Linux client.
 
+## Portal doors
+
+Live sent a door at every portal (LMO_Captures.cap, e.g. the hub's 8): UpdateMessage +
+`DoorFullUpdateIIR_c` (type 51016): ProtoGameCodeDynelIIR, ProtoSimpleDynelIIR (kdtree 0, name
+`empty_monsterdata_1x1x1`, display name `<localized id=guid category=55000>`, cars_group 1,
+field 7 = 51016, is_closed 1), u32 visual, u32 resource type (1010201), u32 0, six f32 max (empty
+box), f32 scale, 13 zero bytes. No CARS stat record followed. Clicking it (or E) sends LookAtIIR_t
+and ObjectInteraction (CommandType 18, data = door ID32 + action 6, then 0x22 stop use); live
+answered with ScryShowTeleportMessageBox (the jail's "To Freedom" door with a Yes/No
+ScryShowMessageBox). LMOxide spawns the client data's door spawns within 5 m of a portal
+(teleport.rs, world_data.rs `portal_door`); a used door's window stays open until the player is
+8 m clear of the portals. Click and E verified in the Linux client (2026-10-28).
+
 ## Loot (loot.rs)
 
 - Only the bag's **owner** sees its items (`ProjectLootBag::OnEnteringPlayfield`), so team loot

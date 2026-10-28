@@ -308,6 +308,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     buildie::start();
     jumppad::start();
     scenery::start();
+    teleport::start();
     mirrors::start();
     gates::start();
     plates::start();
