@@ -600,7 +600,7 @@ def main():
             "core": r.get("core"),
             "flow": r["flow"],
             "frame": r.get("frame"),
-            "t": round(r["ts_raw"] / 1e7, 3) if r.get("ts_raw") is not None else None,
+            "t": round(r["ts_raw"] / 1e6, 3) if r.get("ts_raw") is not None else None,
             "rpc": r["rpc"],
             "raw_offset": r["raw_offset"],
             "identity_record": r["identity"],

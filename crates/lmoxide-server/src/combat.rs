@@ -4,7 +4,7 @@
 //! and the player defaults the original server used (seen in the recorded session).
 //!
 //! - Life = (level × HealthPerLevel + MinifigureLife) × Π(1 + p/100) over the active upgrades'
-//!   Life multipliers ("Fit").
+//!   Life multipliers ("Fit"; two Fits gave 3250 × 1.04² = 3515 on live, so they multiply).
 //! - Power rating = int(PowerBaseFig × level × StarFactor) + PowerRatingAll; a hit deals
 //!   rating × the attack's AbilityMod × FinalDamageMultiplier (1 + 0.03 per "Strong") ×
 //!   (1 ± variance), × the upgrades' `skill_mod` AbilityMod for normal or special attacks (1.2
@@ -57,6 +57,14 @@ fn active_upgrades(m: &Minifigure, active: u32) -> impl Iterator<Item = &'static
     m.upgrades.iter().filter(move |u| u.bit < 32 && active & (1 << u.bit) != 0).filter_map(|u| buffs.get(&u.buff))
 }
 
+/// The values of an upgrade stat over the active upgrades.
+fn upgrade_values<'a>(m: &'a Minifigure, active: u32, stat: &'a str) -> impl Iterator<Item = f64> + 'a {
+    active_upgrades(m, active).flat_map(|b| &b.effects).filter_map(move |e| match e {
+        BuffEffect::Stat { stat: s, value, .. } if s.as_str() == Some(stat) => value.as_f64(),
+        _ => None,
+    })
+}
+
 /// The sum of an upgrade stat's values over the active upgrades.
 fn upgrade_sum(m: &Minifigure, active: u32, stat: &str) -> f32 {
     active_upgrades(m, active)
@@ -84,8 +92,8 @@ fn ability_mod_factor(m: &Minifigure, active: u32, is_normal: bool) -> f32 {
 pub fn max_life(template: u32, active: u32, level: u32) -> u32 {
     let per_level = crate::gamedata::get().tunables.combat.health_per_level;
     let Some(m) = minifigure(template) else { return level * per_level as u32 + 250 };
-    let percent = upgrade_sum(m, active, "Life");
-    let life = (level as f32 * per_level + m.stats.life as f32) * (1.0 + percent / 100.0);
+    let multiplier = upgrade_values(m, active, "Life").map(|p| 1.0 + p / 100.0).product::<f64>() as f32;
+    let life = (level as f32 * per_level + m.stats.life as f32) * multiplier;
     (life + 0.5).max(1.0) as u32
 }
 
@@ -150,13 +158,44 @@ pub fn has_ability(template: u32, active: u32, ability: u32) -> bool {
     minifigure(template).is_some_and(|m| active_upgrades(m, active).any(|b| b.nano == Some(ability)))
 }
 
-/// Share of incoming damage a minifigure's upgrades absorb ("Tough": MitigationOverrideFlat).
-pub fn mitigation(template: u32, active: u32) -> f32 {
-    let max = crate::gamedata::get().tunables.minifigure_model["player_defaults"]["MaxMitigation"].as_f64().unwrap_or(0.55) as f32;
-    minifigure(template).map_or(0.0, |m| upgrade_sum(m, active, "MitigationOverrideFlat").min(max))
+/// Share of incoming damage a minifigure absorbs at `level`: its defence plus its upgrades'
+/// ("Tough": MitigationOverrideFlat), each at most MaxMitigation.
+pub fn mitigation(template: u32, active: u32, level: u32) -> f32 {
+    let max = player_default("MaxMitigation", 0.55);
+    minifigure(template).map_or(0.0, |m| defence(m, level) + upgrade_sum(m, active, "MitigationOverrideFlat").min(max))
 }
 
-fn random_unit() -> f32 {
+/// A minifigure's defence: (int(Defense × level × StarFactor) + DefenseRatingAll) /
+/// DefenseRatingTarget, at most MaxMitigation, as the power rating is built (the three
+/// constants are the recorded player defaults). Inferred from the live capture: the Heroic Knight
+/// (defence 10) took 0.75–0.80 of what the others took from the same L15 attacks; this predicts
+/// 0.77–0.80. Not confirmed beyond that.
+fn defence(m: &Minifigure, level: u32) -> f32 {
+    let c = &crate::gamedata::get().tunables.combat;
+    let rating = (m.stats.defense as f32 * level as f32 * c.star_factor).floor() + player_default("DefenseRatingAll", 50.0);
+    (rating / player_default("DefenseRatingTarget", 1550.0)).min(player_default("MaxMitigation", 0.55))
+}
+
+fn player_default(name: &str, or: f32) -> f32 {
+    crate::gamedata::get().tunables.minifigure_model["player_defaults"][name].as_f64().map_or(or, |v| v as f32)
+}
+
+pub fn random_unit() -> f32 {
     let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.subsec_nanos());
     (nanos.wrapping_mul(2_654_435_761) % 10_000) as f32 / 10_000.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defence_is_the_live_fit() {
+        // the Heroic Knight (defence 10) took 0.75-0.80 of what a defence-4 minifigure took at L15
+        let m = |defense| Minifigure { stats: lmoxide_content::MinifigureStats { defense, ..Default::default() }, ..Default::default() };
+        let ratio = (1.0 - defence(&m(10), 15)) / (1.0 - defence(&m(4), 15));
+        assert!((0.75..0.81).contains(&ratio), "{ratio}");
+        // capped at MaxMitigation
+        assert_eq!(defence(&m(10), 30), 0.55);
+    }
 }

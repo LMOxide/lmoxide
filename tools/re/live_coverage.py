@@ -26,7 +26,7 @@ import livecap  # noqa: E402
 import netmon  # noqa: E402
 
 DEFAULT_OUT = os.path.join(HERE, "..", "..", "data", "live-capture", "capture-coverage.json")
-TICKS_PER_SECOND = 10_000_000  # NetMon record timestamps are 100-ns ticks from capture start
+TICKS_PER_SECOND = 1_000_000  # NetMon record timestamps are microseconds (checked against the HTTP Date headers)
 
 
 def capture_start(path):

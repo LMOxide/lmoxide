@@ -9,7 +9,7 @@
 //! animation's strike) the server runs the server-side game actions of the spell's lists, as
 //! actions.rs does for the players' abilities but aimed at players:
 //!
-//! - WeaponHit: damage = the enemy's power (`npc::enemy_damage`) × AbilityMod;
+//! - WeaponHit: damage = the enemy's power (`npc::enemy_damage`) × AbilityMod ± variance;
 //! - CastNano: a nano with TimeExist (or one on the enemy itself without server actions) is a
 //!   buff (`MagicBuffIIR_c`; the client runs its snares and stuns), otherwise its own list 0
 //!   runs on the target and its EffectPackage plays there;
@@ -213,7 +213,8 @@ fn cs(v: f32) -> Duration {
 struct Run {
     caster: Id32,
     playfield: u32,
-    level: u32,
+    /// The caster's power (`npc::enemy_damage`).
+    power: f32,
     spell: u32,
     player: Id32,
     /// The player's position when the cast started (ground-targeted spells aim there).
@@ -228,8 +229,8 @@ struct Target {
     pos: [f32; 3],
 }
 
-/// Enemy `caster` (on `playfield`, of `level`) casts `id` at `player` (at `at`).
-pub fn cast(caster: Id32, playfield: u32, level: u32, id: u32, player: Id32, at: [f32; 3]) {
+/// Enemy `caster` (on `playfield`, with `power`, `npc::enemy_damage`) casts `id` at `player` (at `at`).
+pub fn cast(caster: Id32, playfield: u32, power: f32, id: u32, player: Id32, at: [f32; 3]) {
     let Some(s) = spell(id) else { return };
     let here = crate::npc::position(caster).unwrap_or(at);
     let self_cast = self_centred(s);
@@ -239,7 +240,7 @@ pub fn cast(caster: Id32, playfield: u32, level: u32, id: u32, player: Id32, at:
     let (dx, dz) = (at[0] - here[0], at[2] - here[2]);
     let d = dx.hypot(dz);
     let facing = if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] };
-    let run = Arc::new(Run { caster, playfield, level, spell: id, player, aimed: at, facing });
+    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing });
     info!(?caster, spell = id, name = %s.name, ?player, "enemy cast");
     run_list(&run, id, PRE_USE, root_target(&run), 0);
     let delay = cs(s.stats.item_delay.unwrap_or(0.0));
@@ -333,7 +334,7 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
         _ if a.client => {}
         "WeaponHit" => {
             if let Some(player) = who.id.filter(|p| *p != caster && crate::npc::is_player(*p)) {
-                let damage = (crate::npc::enemy_damage(run.level) * a.f("AbilityMod").unwrap_or(1.0)).round().max(1.0) as u32;
+                let damage = crate::npc::enemy_hit(run.power, a.f("AbilityMod").unwrap_or(1.0));
                 crate::npc::hurt_player(caster, player, run.spell, damage);
             }
         }

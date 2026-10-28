@@ -94,7 +94,7 @@ BehaviorControlCenterIIR_c (0x642cd3d6) — BehaviorControlCenterIIR_c::ReadSubC
     "body_not_decoded", with the byte count kept.
 
 Output (npc-movement.json): per zone visit, per NPC, the time-ordered events (t = seconds from
-capture start, from the jsonl ts_raw in 100 ns ticks), then a per-NPC summary and an aggregate
+capture start, from the jsonl ts_raw in microseconds), then a per-NPC summary and an aggregate
 per (name, monster_data). Observations the summary rests on (from the records, not the client
 code): the server re-issues a patrolling NPC's whole MoveTask about every 1.5 s, "start" = where
 the NPC is then, spline state advanced; a chasing NPC gets a new List[Path, Track] (path from
@@ -744,7 +744,7 @@ def main():
             b = bytes.fromhex(row["args_hex"])
             if len(b) < 17 or struct.unpack_from(">I", b, 4)[0] not in READERS:
                 continue
-            t = (row.get("ts_raw") or 0) / 1e7
+            t = (row.get("ts_raw") or 0) / 1e6
             visit = cur.get(row["flow"])
             p = 4
             for typ, ident, d, exact in parse_blob(b):

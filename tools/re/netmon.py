@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Frame:
     number: int
-    ts_raw: int          # raw 64-bit timestamp from the record header
+    ts_raw: int          # raw 64-bit timestamp from the record header (microseconds)
     orig_len: int
     data: bytes          # captured Ethernet frame
     ip: "IPv4 | None" = None

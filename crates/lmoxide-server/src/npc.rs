@@ -59,9 +59,10 @@ const UNLOAD_AFTER: Duration = Duration::from_secs(10);
 /// A walking NPC gets a new path when its goal moved this far from the current path's end.
 const REPATH: f32 = 1.5;
 /// Patrols (`SpawnDef::patrol`): the live server re-sent a patrolling NPC's route about every
-/// 1.5 s from where the NPC was, and moved it along at 0.7 × its walk speed (Jungle Tricksters
-/// and Musketeers with walk speed 2.1 measured 1.48 and 1.57 m/s along their routes).
-const PATROL_RESEND: Duration = Duration::from_millis(1500);
+/// 15 s from where the NPC was (live capture, in real seconds). The speed along it couldn't be
+/// measured (re-sends 15 s apart on 16 m loops are ambiguous): 0.7 × its walk speed is a guess
+/// that looks right in the client.
+const PATROL_RESEND: Duration = Duration::from_secs(15);
 const PATROL_SPEED: f32 = 0.7;
 const WALK_SPEED: u32 = 1396;
 /// An NPC this close to its goal stays where it is.
@@ -77,7 +78,8 @@ const SLOW_ENEMY_SPEEDS: &[(u32, f32)] =
 /// The stat the clients move characters along paths with: the recorded NPCs walked their paths
 /// at it (one with 1396 = 2.1 and 1397 = 6.0 measured 4.8–6.1 m/s, Scallywags 1.3–1.4 m/s).
 const RUN_SPEED: u32 = 1397;
-const ATTACK_INTERVAL: Duration = Duration::from_millis(2500);
+/// Live enemies attacked about every 2.0 s (live capture, 961 hits).
+const ATTACK_INTERVAL: Duration = Duration::from_millis(2000);
 /// Share of player damage enemies absorb (the original server's, measured in the recorded
 /// session: ~20% for normal enemies, ~40% for bosses).
 const ENEMY_MITIGATION: f32 = 0.2;
@@ -112,13 +114,15 @@ struct PlayerCombat {
     /// Mitigation from buffs active on the player (e.g. a stance's MitigationOverrideFlat), by buff.
     buff_mitigation: HashMap<u32, f32>,
     health: HashMap<u32, u32>,
-    last_damaged: Option<std::time::Instant>,
 }
 
-/// Out of combat (no damage for this long) health regenerates.
-const REGEN_DELAY: Duration = Duration::from_secs(5);
-const REGEN_TICK: Duration = Duration::from_secs(1);
-const REGEN_SHARE: f32 = 0.05;
+/// When each player was last in combat: hit by an enemy, attacked by one (a dodged shot too) or
+/// dealing damage to one (smashables don't count). A leaf lock: nothing else is locked under it.
+static IN_COMBAT: LazyLock<Mutex<HashMap<Id32, std::time::Instant>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+fn mark_in_combat(player: Id32) {
+    IN_COMBAT.lock().unwrap().insert(player, std::time::Instant::now());
+}
 
 static PLAYERS: LazyLock<Mutex<HashMap<Id32, PlayerCombat>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -138,6 +142,7 @@ pub fn set_active_minifigure(player: Id32, template: u32, max: u32, mitigation: 
 
 pub fn player_left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
+    IN_COMBAT.lock().unwrap().remove(&player);
     crate::procs::left(player);
 }
 
@@ -180,7 +185,6 @@ pub fn heal_player(player: Id32, amount: u32) -> u32 {
 fn damage_player(player: Id32, damage: u32) -> Option<(u32, u32)> {
     let mut players = PLAYERS.lock().unwrap();
     let p = players.get_mut(&player)?;
-    p.last_damaged = Some(std::time::Instant::now());
     let (max, mitigation) = (p.max, (p.mitigation + p.buff_mitigation.values().sum::<f32>()).min(MAX_MITIGATION));
     let h = p.health.entry(p.active).or_insert(max);
     let dealt = ((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32;
@@ -909,6 +913,9 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     }
     if by_player {
         npc.threat = Some((attacker, std::time::Instant::now()));
+        if npc.def.kind == Kind::Enemy {
+            mark_in_combat(attacker);
+        }
     }
     // (NPC-against-NPC damage is final: `fight_damage`)
     let mitigation = if by_npc {
@@ -1079,23 +1086,34 @@ pub fn targets_where(playfield: u32, inside: impl Fn([f32; 3]) -> bool) -> Vec<(
         .collect()
 }
 
-/// Heals players' active minifigures that haven't been hurt for a while (a defeated, 0-health
-/// minifigure stays down until healed otherwise).
+/// Health regeneration of players' active minifigures (live capture, 62 runs): every second
+/// while below maximum, the share of the active minifigure's own maximum health in the
+/// character record (`HealthRegenIC` 0.5% in combat, `HealthRegenOOC` 5% out of it; tunables.json
+/// `npc`), rounded down as the client's (int)(Life × rate); out of combat = `regen_delay` since
+/// the last hit taken, enemy attack or damage dealt to an enemy. A defeated, 0-health minifigure
+/// stays down until healed otherwise.
 async fn regenerate() {
-    let mut tick = tokio::time::interval(REGEN_TICK);
+    let t = &crate::gamedata::get().tunables.npc;
+    let mut tick = tokio::time::interval(t.regen_tick.to_std());
+    let (delay, out_of_combat, in_combat) = (t.regen_delay.to_std(), t.regen_share.fraction() as f32, t.regen_share_in_combat.fraction() as f32);
     loop {
         tick.tick().await;
+        let fighting: std::collections::HashSet<Id32> = {
+            let mut combat = IN_COMBAT.lock().unwrap();
+            combat.retain(|_, t| t.elapsed() < delay);
+            combat.keys().copied().collect()
+        };
         let healed: Vec<(Id32, u32)> = PLAYERS
             .lock()
             .unwrap()
             .iter_mut()
-            .filter(|(_, p)| p.last_damaged.is_none_or(|t| t.elapsed() >= REGEN_DELAY))
             .filter_map(|(id, p)| {
                 let max = p.max;
+                let share = if fighting.contains(id) { in_combat } else { out_of_combat };
+                let gain = (max as f32 * share) as u32;
                 let h = p.health.entry(p.active).or_insert(max);
-                (*h > 0 && *h < max).then(|| {
-                    // out-of-combat regeneration: 5% of maximum health per second
-                    *h = (*h + (max as f32 * REGEN_SHARE).ceil() as u32).min(max);
+                (*h > 0 && *h < max && gain > 0).then(|| {
+                    *h = (*h + gain).min(max);
                     (*id, *h)
                 })
             })
@@ -1397,16 +1415,41 @@ fn approach(from: [f32; 3], to: [f32; 3], keep: f32) -> [f32; 3] {
     [from[0] + (to[0] - from[0]) * t, to[1], from[2] + (to[2] - from[2]) * t]
 }
 
-/// An enemy's power: what one of its hits (AbilityMod 1) does at `level`, ~ 1.5 × level + 1.5
-/// (fit to the recorded session's hits: 3 at level 1, 4–5 at level 2, 5–6 for the level-3 boss).
-pub fn enemy_damage(level: u32) -> f32 {
-    1.5 * level as f32 + 1.5
+/// An enemy's power: what one of its hits (AbilityMod 1) does before the variance and the
+/// player's defence, fitted to 352 clean live hits (live capture 2016; median live/predicted
+/// 0.99, docs/TUNABLES.md "Enemy damage"): B(L) × R, with B(L) = max(L + 2, regular life of L /
+/// 27) (L15: 49) and R by the enemy's life over a regular one's of its level: 0.3 up to 0.3×
+/// (minions), 1 below 1.4×, 1.5 below 2.2×, else 2.25 (champions and bosses have 4–11× the
+/// life but hit only ~2.25× as hard). The live formula itself is unknown.
+pub fn enemy_damage(level: u32, health: u32) -> f32 {
+    let base = (level as f32 + 2.0).max(regular_life(level) as f32 / ENEMY_DAMAGE_LIFE_DIVISOR);
+    let factor = health as f32 / regular_life(level) as f32;
+    let rank = match factor {
+        f if f <= 0.3 => 0.3,
+        f if f < 1.4 => 1.0,
+        f if f < 2.2 => 1.5,
+        _ => 2.25,
+    };
+    base * rank
+}
+
+/// `enemy_damage`'s divisor of the regular life (fitted: 11 of the 15 regular L15 templates hit
+/// for 46–52 per AbilityMod, 1314 / 27 = 49).
+const ENEMY_DAMAGE_LIFE_DIVISOR: f32 = 27.0;
+
+/// One enemy hit: `power` × the spell's AbilityMod, ±10% (the client's damage variance, assumed
+/// for enemies too).
+pub fn enemy_hit(power: f32, ability_mod: f32) -> u32 {
+    let variance = crate::gamedata::get().tunables.combat.variance.fraction() as f32;
+    let roll = 1.0 + variance * (2.0 * crate::combat::random_unit() - 1.0);
+    (power * ability_mod * roll).round().max(1.0) as u32
 }
 
 /// Enemy `id` hurts `player` with `spell` for `damage` (before the player's procs and
 /// mitigation): the damage number and the player's new health. At 0 the client switches to the
 /// next minifigure itself.
 pub fn hurt_player(id: Id32, player: Id32, spell: u32, damage: u32) {
+    mark_in_combat(player);
     // the player's defensive upgrade procs
     let damage = crate::procs::incoming(player, damage, crate::actions::is_channelling(player));
     let Some((minifigure, health)) = damage_player(player, damage) else { return };
@@ -1589,7 +1632,7 @@ fn spells_for(def: &SpawnDef) -> Vec<u32> {
 fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     let now = std::time::Instant::now();
     let d = distance(here, at);
-    let (spell, playfield, level, against_npc) = {
+    let (spell, playfield, power, against_npc) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return false };
         if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
@@ -1608,14 +1651,18 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         if !busy.is_zero() {
             npc.busy_until = Some(now + busy);
         }
-        (spell, npc.playfield, npc.def.level, npcs.contains_key(&target))
+        (spell, npc.playfield, enemy_damage(npc.def.level, npc.def.health), npcs.contains_key(&target))
     };
     if against_npc {
         strike(id, target, spell, playfield);
-    } else if crate::npc_spells::known(spell) {
-        crate::npc_spells::cast(id, playfield, level, spell, target, at);
     } else {
-        attack(id, target, spell, level);
+        // an attack keeps the player in combat even when it misses
+        mark_in_combat(target);
+        if crate::npc_spells::known(spell) {
+            crate::npc_spells::cast(id, playfield, power, spell, target, at);
+        } else {
+            attack(id, target, spell, power);
+        }
     }
     true
 }
@@ -1701,10 +1748,10 @@ fn fighters_on(playfield: u32) -> Vec<(Id32, [f32; 3])> {
 /// A plain hit with a spell npc_spells.rs doesn't know (the default XX_Axe Chop): the cast (a
 /// MagicCommand created on the NPC: BCC actions 16 queue, 4 success, 10 can-execute) and the
 /// damage at once.
-fn attack(id: Id32, player: Id32, spell: u32, level: u32) {
+fn attack(id: Id32, player: Id32, spell: u32, power: f32) {
     let records: Vec<_> = [BCC_QUEUE, 4, 10].iter().map(|&a| cast_record(id, player, spell, a)).collect();
     world::send_playfield(id, false, world::Out::Records(records));
-    hurt_player(id, player, spell, enemy_damage(level).round() as u32);
+    hurt_player(id, player, spell, enemy_hit(power, 1.0));
 }
 
 /// Turn an enemy that stays put towards `target`.
@@ -2057,6 +2104,17 @@ mod tests {
         NPCS.lock().unwrap().remove(&id);
         // copies placed elsewhere don't patrol
         assert!(Npc::new(def, 1, None, Some(std::time::Instant::now())).def.patrol.is_empty());
+    }
+
+    #[test]
+    fn enemy_damage_is_the_live_fit() {
+        // L15 regulars: 49 per AbilityMod (live 46-52); champions and bosses 2.25x; minions 0.3x
+        assert_eq!(enemy_damage(15, 1314).round(), 49.0);
+        assert_eq!(enemy_damage(15, 14782), enemy_damage(15, 1314) * 2.25);
+        assert_eq!(enemy_damage(15, 394), enemy_damage(15, 1314) * 0.3);
+        // the recorded low levels: 3 at level 1, 4-5 at level 2
+        assert_eq!(enemy_damage(1, 62), 3.0);
+        assert_eq!(enemy_damage(2, 90), 4.0);
     }
 
     #[test]

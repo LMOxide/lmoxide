@@ -87,9 +87,9 @@ const ANSWER_TIMEOUT: Duration = Duration::from_secs(300);
 /// (1025), whose text runs "if it HAS ticket" (a Monster Laboratory ticket, checked how is
 /// unknown). The jail escape (822) needs the jail's last tag (322, text 229): the capture
 /// arrived on Isle of Yarr from the jail.
-const ARRIVALS: &[(u32, Option<u32>, Duration)] = &[(79, None, Duration::from_millis(880)), (822, Some(322), Duration::ZERO)];
-/// How long after a dialogue's close the one that follows it starts (live: 0.46 s).
-const FOLLOW_DELAY: Duration = Duration::from_millis(460);
+const ARRIVALS: &[(u32, Option<u32>, Duration)] = &[(79, None, Duration::from_millis(8800)), (822, Some(322), Duration::ZERO)];
+/// How long after a dialogue's close the one that follows it starts (live: 4.6 s).
+const FOLLOW_DELAY: Duration = Duration::from_millis(4600);
 
 /// Players in a dialogue: its generation, where their answers go, and who speaks.
 static TALKING: LazyLock<Mutex<HashMap<Id32, (u64, mpsc::UnboundedSender<u32>, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));

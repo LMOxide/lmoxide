@@ -62,7 +62,7 @@ These points are observations from the records. They were not read from the serv
 - **The "start" field.** It is where the task began. A task the client receives when an NPC comes into view keeps its original start.
 - **Speeds.**
   - **Patrol:** only a lower bound is given (straight displacement between re-sends 1–4 s apart). It comes out at about 1.5 m/s, against a walk-speed stat of 2.1.
-  - **Chase:** steps between the ~50 ms records came out at 25–45 m/s, far above the run-speed stats. The capture's arrival times for those bursts do not measure movement, so no chase speed is given.
+  - **Chase:** steps between the ~0.5 s records came out at 2.5–4.5 m/s, about the run speed of 4.2. (An earlier version read the capture's timestamps as 100-ns ticks; they are microseconds, so its 25–45 m/s and ~50 ms were 10× off. The other times in this file's tables may still be in the old unit until the summary is regenerated.)
 
 ## Notable patrols
 

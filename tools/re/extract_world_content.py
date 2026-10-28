@@ -450,7 +450,9 @@ LIVE_SEEN = 40.0
 # records, was summoned or respawned there (Spiderlings, Summoned Wolves, Monster Laboratory
 # waves), not a resident spawn.
 LIVE_SUMMONED = 25.0
-LIVE_BURST = 3.0  # seconds after a visit's first records: the zone's initial dynels
+LIVE_BURST = 30.0  # seconds after a visit's first records: the zone's initial dynels (was 3 when
+# timestamps were misread as 100-ns ticks, which made it 30 real seconds; kept at 30 so the
+# committed resident / dynamic split doesn't change. Rerun with 3 to split by real seconds.)
 G2C_PORTS = range(7102, 7120)  # the game servers' ports (37.18.193.16)
 IIR_CHAR_MOVE, IIR_MOVE_TASK = 0x4517AA81, 0x96C46740
 
@@ -480,7 +482,7 @@ def live_messages():
             m = int.from_bytes(m, "big") if isinstance(m, (bytes, bytearray)) else m
             sig = livecap.method_signature(tables, direction, livecap.endpoint_name(hdr["endpoint"]), m) or ""
             if sig.startswith(("PassBlob(", "SignalPassBlob(")) and len(args) > 30:  # u32 length + IIR records
-                out.append((direction, port, ts / 1e7 if ts is not None else None, args[4:4 + struct.unpack_from(">I", args, 0)[0]]))
+                out.append((direction, port, ts / 1e6 if ts is not None else None, args[4:4 + struct.unpack_from(">I", args, 0)[0]]))
     return out
 
 

@@ -424,7 +424,9 @@ price is blank and the button dead (live sent only ItemShopCurrencies in the rec
   one arrives the client blocks further purchases. The open upgrade panel refreshes on
   `SignalMinifigureUpgradeResponse(template, 0)`.
 - The bought upgrade: item stats PurchasedUpgrades (3000106, a bit per position),
-  ActiveUpgrades (3000098), MinifigureLevel (3000058) = upgrades bought, MinifigureXP.
+  ActiveUpgrades (3000098), MinifigureLevel (3000058), MinifigureXP. The live capture (2016,
+  team inventory 101) had MinifigureLevel = the number of *active* upgrades, not bought ones
+  (the server still sends its rank; they agree while one upgrade per tier is active).
 - The panel: tiers at positions 0, 1-2, 3, 4-5, 6, 7-8, 9, 10-11; tier t opens at the player
   level of lore tag 466 + t (3, 6, ... 24) once an upgrade of the tier before is active.
   `LevelUpMinifigure` exists, but the UI never sends it.

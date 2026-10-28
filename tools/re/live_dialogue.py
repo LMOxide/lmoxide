@@ -6,7 +6,7 @@ Usage:
     python3 tools/re/live_dialogue.py <capture.cap> [--out FILE] [--jsonl rows.jsonl]
 
 The capture is decoded with tools/re/livecap.py (`--jsonl`), unless --jsonl names an existing
-dump (one RPC per line: flow, dir, ts_raw in 100-ns ticks from capture start, method,
+dump (one RPC per line: flow, dir, ts_raw in microseconds, method,
 args_hex). Texts are resolved with tools/re/tdc.py (the client's TDB), NPCs with
 playfield-objects.json (tools/re/live_playfield.py).
 
@@ -80,12 +80,15 @@ ACTOR_KIND = ["SetActiveActor", "MoveCameraToActor", "MoveCameraToStaticPoint", 
 # what may have started a dialogue: the player's arrival, a quest goal (not decoded further)
 CONTEXT = {"PlayfieldFIIR_t", "CharInPlayIIR_t", "QuestGoalIIR"}
 PLAYFIELD_TYPE = 51100
-TICKS = 10_000_000
+# capture timestamps (ts_raw) are microseconds (checked against the HTTP Date headers). The
+# windows below were tuned when they were read as 100-ns ticks; they keep those raw values, so
+# they are 10x the seconds first intended (and dialogues.json stays as it was)
+TICKS = 1_000_000
 # actor references this close before an Open are its setup
-SETUP_TICKS = TICKS // 10
-AFTER_TICKS = TICKS
-ARRIVAL_TICKS = TICKS * 3 // 2
-GOAL_TICKS = TICKS // 10
+SETUP_TICKS = TICKS
+AFTER_TICKS = TICKS * 10
+ARRIVAL_TICKS = TICKS * 15
+GOAL_TICKS = TICKS
 
 
 class Short(Exception):

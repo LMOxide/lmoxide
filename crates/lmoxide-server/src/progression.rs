@@ -6,7 +6,7 @@
 //!   (XpBar.swf); the recorded level-1 player had 0 / 1 / 0 / 200. A playfield's level cap is
 //!   the 5th trailing u32 of `PlayfieldFIIR_t` (the client's `SimpleChar_t::GetMaxLevelCap`:
 //!   the smaller of it and TWK_MaxPlayerLevel; 0 = no cap): live sent 11 in Pirate World, 0 in
-//!   the tutorial. Above the cap the XP bar says so and the level stays.
+//!   the tutorial. At or above the cap the XP bar says so: the level stays and no XP is gained.
 //! - Minifigures: rank 0..8 (item stat MinifigureLevel 3000058; live started minifigures at 0).
 //!   The Collection's rank-up button sends `LevelUpMinifigure(template)`; it costs stars
 //!   (token 100, "minifigure XP") up to the next MinifigureXPTables threshold (RDB 1000525,
@@ -83,31 +83,6 @@ pub fn level_cap(playfield: u32) -> u32 {
         2 => 21,
         6 => MAX_PLAYER_LEVEL,
         _ => 0,
-    }
-}
-
-/// The highest level a character fights at on `playfield` (damage, health, the level shown):
-/// the world's cap; for a playfield without one (side dungeons, the hub) the smallest world cap
-/// at or above its enemies' level, or none when it has no enemies. Live showed "You have
-/// reached the maximum level for this area" there (docs/TUNABLES.md).
-pub fn combat_cap(playfield: u32) -> u32 {
-    static ENEMY_LEVELS: std::sync::LazyLock<std::collections::HashMap<u32, u32>> = std::sync::LazyLock::new(|| {
-        let mut m = std::collections::HashMap::new();
-        for (pf, defs) in crate::spawns::table() {
-            let Ok(pf) = pf.parse::<u32>() else { continue };
-            for d in defs.iter().filter(|d| d.kind == crate::npc::Kind::Enemy) {
-                let top = m.entry(pf).or_insert(0);
-                *top = (*top).max(d.level);
-            }
-        }
-        m
-    });
-    match level_cap(playfield) {
-        0 => match ENEMY_LEVELS.get(&playfield).copied().unwrap_or(0) {
-            0 => MAX_PLAYER_LEVEL,
-            top => [11, 15, 19, 21].into_iter().find(|&cap| cap >= top).unwrap_or(MAX_PLAYER_LEVEL),
-        },
-        cap => cap.min(MAX_PLAYER_LEVEL),
     }
 }
 

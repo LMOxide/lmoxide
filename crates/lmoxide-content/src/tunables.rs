@@ -64,6 +64,8 @@ pub struct Loot {
     /// Teammates within this distance of a kill get their own bag (m).
     pub share_range: f32,
     pub bag_lifetime: Duration,
+    /// A bag nobody has looted from opens to every player after this long.
+    pub bag_public_after: Duration,
     pub bag_template: u32,
     pub bag_dynel_type: u32,
     pub bag_interaction_radius: u32,
@@ -77,11 +79,14 @@ pub struct Loot {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct NpcTunables {
-    /// Out of combat for this long before health comes back.
+    /// Out of combat this long after the last hit taken, enemy attack or damage dealt to an
+    /// enemy before health comes back at `regen_share`.
     pub regen_delay: Duration,
     pub regen_tick: Duration,
-    /// Share of maximum health per tick.
+    /// Share of maximum health per tick out of combat (rounded down).
     pub regen_share: Ratio,
+    /// Share of maximum health per tick in combat (rounded down).
+    pub regen_share_in_combat: Ratio,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

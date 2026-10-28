@@ -11,7 +11,12 @@
 //! a bag per member. What drops is content (docs/CONTENT.md): the loot tables in content/loot
 //! (which table each source rolls: tunables.json `loot.tables`), the items they name, the
 //! minifigures' parts, bags and where they drop (regions, rarity). The drop tables were
-//! server-side on live; the rates are proposals (docs/TUNABLES.md).
+//! server-side on live; the rates are fitted to the live capture where it had data
+//! (docs/TUNABLES.md).
+//!
+//! As live (capture 2016): a bag is its killer's; one nobody has looted from opens to everyone
+//! after `loot.bag_public_after` (a second `NewAllowedLooterIIR_c` with (0,0)); an emptied bag
+//! goes about 4 s after its last item is taken.
 
 use std::{
     collections::HashMap,
@@ -40,10 +45,16 @@ use crate::{
 const BAG_DISPLAY_NAME: &str = r#"<remoteformat id="1209" category="50200" key="S2L)UkVW7#3EI46]q1Bq" knubot="0"  ></remoteformat>"#;
 /// Stars ("minifigure XP").
 const STAR_TOKEN: u32 = 100;
-/// Loot tables name others at most this deep.
+/// An emptied bag goes this long after its last item is taken (live capture: about 4 s).
+const EMPTIED_BAG_LINGER: Duration = Duration::from_secs(4);
+/// The live bags' inventory id type (instance: the bag's) and size.
+const BAG_INVENTORY_TYPE: u32 = 115;
+const BAG_INVENTORY_SIZE: u32 = 100;
 
 struct Bag {
     owner: Id32,
+    /// Anyone may loot it (`loot.bag_public_after` passed with nothing taken).
+    public: bool,
     playfield: u32,
     pos: [f32; 3],
     /// Item template per position; `None` once looted.
@@ -429,8 +440,9 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
 static BAGS: LazyLock<Mutex<HashMap<Id32, Bag>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static NEXT_BAG: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
 
-/// Drops `items` (templates) for `owner` at `pos`, sent to the owner only.
-pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, items: Vec<u32>) {
+/// Drops `items` (templates) for `owner` at `pos`, sent to the owner only. `_dropper`: what
+/// dropped them (live's bags named none).
+pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], _dropper: Id32, items: Vec<u32>) {
     if items.is_empty() {
         return;
     }
@@ -438,22 +450,41 @@ pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, ite
     info!(?owner, ?id, ?items, "loot dropped");
     let records = vec![
         create_game_object(id, playfield, pos),
-        bag_record(id, playfield, pos, owner, dropper, &items),
+        bag_record(id, playfield, pos, owner, &items),
         // as the original server sent after every bag: who may loot it (ID32)
-        iir::record("NewAllowedLooterIIR_c", id, false, |w| owner.write(w)),
+        allowed_looter(id, owner),
     ];
-    BAGS.lock().unwrap().insert(id, Bag { owner, playfield, pos, items: items.into_iter().map(Some).collect() });
+    BAGS.lock().unwrap().insert(id, Bag { owner, public: false, playfield, pos, items: items.into_iter().map(Some).collect() });
     world::send_to(owner, world::Out::Records(records));
     tokio::spawn(async move {
-        tokio::time::sleep(crate::gamedata::get().tunables.loot.bag_lifetime.to_std()).await;
+        let loot = &crate::gamedata::get().tunables.loot;
+        let public_after = loot.bag_public_after.to_std();
+        tokio::time::sleep(public_after).await;
+        make_public(id);
+        tokio::time::sleep(loot.bag_lifetime.to_std().saturating_sub(public_after)).await;
         remove(id);
     });
+}
+
+/// `NewAllowedLooterIIR_c`: who may loot `bag` ((0,0): everyone).
+fn allowed_looter(bag: Id32, looter: Id32) -> Bytes {
+    iir::record("NewAllowedLooterIIR_c", bag, false, |w| looter.write(w))
+}
+
+/// A bag nobody has looted from opens to everyone, as live did after 90 s.
+fn make_public(bag: Id32) {
+    let mut bags = BAGS.lock().unwrap();
+    let Some(b) = bags.get_mut(&bag).filter(|b| b.items.iter().all(Option::is_some)) else { return };
+    b.public = true;
+    let owner = b.owner;
+    drop(bags);
+    world::send_to(owner, world::Out::Records(vec![allowed_looter(bag, Id32::new(0, 0))]));
 }
 
 /// `LootBagFullUpdateIIR_c` (ReadSubClass 0x123a0de): ProtoGameCodeDynelIIR, ProtoSimpleDynelIIR,
 /// VisualData (u32 resId, u32 resType, u32 n + n × 5 u32, 6 × f32 bbox, f32 scale, u32, u8;
 /// the rest can be zero, each item brings its own mesh), ProtoLootBagIIR. Item positions must be 0..n-1.
-fn bag_record(id: Id32, playfield: u32, pos: [f32; 3], owner: Id32, dropper: Id32, items: &[u32]) -> Bytes {
+fn bag_record(id: Id32, playfield: u32, pos: [f32; 3], owner: Id32, items: &[u32]) -> Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
@@ -464,10 +495,11 @@ fn bag_record(id: Id32, playfield: u32, pos: [f32; 3], owner: Id32, dropper: Id3
     let bag = ProtoLootBagIir {
         cash: Some(0),
         owner_id: Some(id32(owner)),
-        dropper_id: Some(id32(dropper)),
+        // live sent no dropper
+        dropper_id: Some(id32(Id32::new(0, 0))),
         inventory: Some(ProtoInventoryGame {
-            inventory_id: id32(id),
-            max_size: Some(items.len() as u32),
+            inventory_id: ProtoId32 { r#type: Some(BAG_INVENTORY_TYPE), instance: Some(id.instance) },
+            max_size: Some(BAG_INVENTORY_SIZE),
             disabled_slots_count: None,
             items: items
                 .iter()
@@ -523,7 +555,7 @@ pub struct Taken {
 pub fn take(player: Id32, bag: Id32, pos: u32) -> Option<Taken> {
     let mut bags = BAGS.lock().unwrap();
     let b = bags.get_mut(&bag)?;
-    if b.owner != player {
+    if b.owner != player && !b.public {
         return None;
     }
     let template = b.items.get_mut(pos as usize)?.take()?;
@@ -536,7 +568,7 @@ pub fn take(player: Id32, bag: Id32, pos: u32) -> Option<Taken> {
     world::send_to(player, world::Out::Records(vec![removed]));
     if empty {
         tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_secs(2)).await;
+            tokio::time::sleep(EMPTIED_BAG_LINGER).await;
             remove(bag);
         });
     }
@@ -571,6 +603,20 @@ mod tests {
     }
 
     #[test]
+    fn live_bag_rates() {
+        // about a quarter of regular kills and 71% of smashes drop a bag; regular bags hold
+        // 1-3 single stars
+        let n = 4000;
+        let bags = |source| (0..n).filter(|_| !roll(source, 0, 4200).is_empty()).count() as f32 / n as f32;
+        assert!((0.21..0.30).contains(&bags(Source::Enemy)), "{}", bags(Source::Enemy));
+        assert!((0.66..0.76).contains(&bags(Source::Smashable)), "{}", bags(Source::Smashable));
+        for _ in 0..500 {
+            let stars = roll(Source::Enemy, 0, 4200).iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count();
+            assert!(stars <= 3);
+        }
+    }
+
+    #[test]
     fn rewards_of_new_items() {
         assert!(matches!(reward(399_661), Reward::Potions(1)));
         assert!(matches!(reward(20_634), Reward::Stars(1)));
@@ -579,8 +625,14 @@ mod tests {
         assert!(matches!(reward(464_407), Reward::Potions(10)));
         assert!(matches!(reward(580_943), Reward::Chest { member: true }));
         assert!(matches!(reward(482_326), Reward::Chest { member: false }));
+        // a boss's bag: 2 stars and an orb, usually a Member Super Chest (live)
         let boss = roll(Source::Boss, 0, 4200);
-        assert_eq!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Chest { .. })).count(), 2);
+        assert!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count() >= 2);
+        assert!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Chest { .. })).count() <= 2);
+        // summoned adds drop nothing
+        let mut none = Vec::new();
+        roll_table_into("loot/none", 0, 4200, &mut none);
+        assert!(none.is_empty());
         assert_eq!(achievement_minifigures().count(), 1);
         assert_eq!(membership_minifigures().len(), 2);
     }

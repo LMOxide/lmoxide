@@ -196,8 +196,10 @@ mod tests {
         assert_eq!(own_loot(c, Kind::Enemy, Some("loot/enemy")), None);
         assert_eq!(own_loot(c, Kind::Smashable, Some("loot/smashable")), None);
         assert_eq!(own_loot(c, Kind::Enemy, Some("loot/boss")).as_deref(), Some("loot/boss"));
-        // so far every template has its kind's usual table
-        assert!(table().values().flatten().all(|d| d.loot.is_none()));
+        // so far every template has its kind's usual table but the smashable chests and cages
+        // (live: always an orb and 4-5 stars)
+        assert!(table().values().flatten().all(|d| d.loot.is_none() || d.loot.as_deref() == Some("loot/smashable-chest")));
+        assert!(table().values().flatten().any(|d| d.loot.as_deref() == Some("loot/smashable-chest")));
     }
 
     /// (the world editor's spawns weren't in the old files)

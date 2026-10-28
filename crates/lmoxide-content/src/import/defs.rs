@@ -1446,7 +1446,8 @@ pub fn loot_and_tunables(
         },
         loot: Loot {
             share_range: 60.0,
-            bag_lifetime: Duration(60.0),
+            bag_lifetime: Duration(240.0),
+            bag_public_after: Duration(90.0),
             bag_template: 1209,
             bag_dynel_type: 51322,
             bag_interaction_radius: 50,
@@ -1465,9 +1466,10 @@ pub fn loot_and_tunables(
             .collect(),
         },
         npc: NpcTunables {
-            regen_delay: Duration(5.0),
+            regen_delay: Duration(10.0),
             regen_tick: Duration(1.0),
             regen_share: Ratio(0.05),
+            regen_share_in_combat: Ratio(0.005),
         },
         progression: Progression {
             minifigure_xp: map_u32(&progression["minifigure_xp"]),

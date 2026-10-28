@@ -45,7 +45,7 @@ import livecap  # noqa: E402
 
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 DEFAULT_OUT = os.path.join(REPO, "data", "live-capture")
-TICKS = 1e7
+TICKS = 1e6  # capture timestamps are microseconds
 PLAYFIELD_TYPE = 51100          # ID32 type of playfields (docs/PROTOCOL.md)
 CTRACK_HOST = "37.18.192.73"    # analytics funnel, port 80
 

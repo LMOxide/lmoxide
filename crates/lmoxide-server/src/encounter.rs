@@ -42,6 +42,8 @@ use crate::{npc::SpawnDef, world};
 const TICK: Duration = Duration::from_secs(1);
 /// An engaged arena nobody is near any more resets after this.
 const RESET_AFTER: Duration = Duration::from_secs(20);
+/// A boss's adds drop nothing: 28 live summoned adds never dropped a bag (live capture 2016).
+const ADD_LOOT: &str = "loot/none";
 /// Boss health shares that bring adds.
 const ADD_THRESHOLDS: [f32; 2] = [2.0 / 3.0, 1.0 / 3.0];
 const ADDS: usize = 3;
@@ -462,7 +464,7 @@ fn enter_ambush(playfield: u32, i: usize, area: &Area, at: [f32; 3]) {
         // claimed (the wave's ids follow)
         *entry = Ambush::Wave { n: 1, ids: vec![], around: at };
     }
-    let ids = spawn_wave(playfield, area.centre(), at, AMBUSH_WAVE);
+    let ids = spawn_wave(playfield, area.centre(), at, AMBUSH_WAVE, None);
     info!(playfield, ambush = %area.name, spawned = ids.len(), "ambush");
     let next = match (ids.is_empty(), pocket(playfield)) {
         (true, true) => Ambush::Spent,
@@ -472,8 +474,9 @@ fn enter_ambush(playfield: u32, i: usize, area: &Area, at: [f32; 3]) {
     STATE.lock().unwrap().ambushes.insert((playfield, i), next);
 }
 
-/// `n` regular enemies from around `source` (x, z), in a ring around `at`.
-fn spawn_wave(playfield: u32, source: [f32; 2], at: [f32; 3], n: usize) -> Vec<Id32> {
+/// `n` regular enemies from around `source` (x, z), in a ring around `at`. `loot`: their loot
+/// table instead of their own.
+fn spawn_wave(playfield: u32, source: [f32; 2], at: [f32; 3], n: usize, loot: Option<&str>) -> Vec<Id32> {
     let kinds = crate::npc::regulars_near(playfield, source, AMBUSH_SOURCE, n);
     if kinds.is_empty() {
         return vec![];
@@ -482,7 +485,9 @@ fn spawn_wave(playfield: u32, source: [f32; 2], at: [f32; 3], n: usize) -> Vec<I
         .map(|k| {
             let angle = k as f32 / n as f32 * std::f32::consts::TAU;
             let pos = [at[0] + RING * angle.cos(), at[1], at[2] + RING * angle.sin()];
-            crate::npc::spawn_temporary(SpawnDef { pos, ..kinds[k % kinds.len()].clone() }, playfield, SPAWN_LIFETIME)
+            let def = kinds[k % kinds.len()].clone();
+            let loot = loot.map(str::to_string).or(def.loot.clone());
+            crate::npc::spawn_temporary(SpawnDef { pos, loot, ..def }, playfield, SPAWN_LIFETIME)
         })
         .collect()
 }
@@ -504,7 +509,7 @@ fn tick() {
                     while waves < ADD_THRESHOLDS.len() && (health as f32) <= max as f32 * ADD_THRESHOLDS[waves] {
                         waves += 1;
                         if let Some(at) = crate::npc::position(boss) {
-                            adds.extend(spawn_wave(playfield, def.area.centre(), at, ADDS));
+                            adds.extend(spawn_wave(playfield, def.area.centre(), at, ADDS, Some(ADD_LOOT)));
                         }
                     }
                     let c = def.area.centre();
@@ -547,7 +552,7 @@ fn tick() {
                 let area = &DATA[&playfield].ambushes[i];
                 match n {
                     1 => {
-                        let ids = spawn_wave(playfield, area.centre(), around, AMBUSH_WAVE);
+                        let ids = spawn_wave(playfield, area.centre(), around, AMBUSH_WAVE, None);
                         Some(Ambush::Wave { n: 2, ids, around })
                     }
                     _ if pocket(playfield) => Some(Ambush::Spent),
