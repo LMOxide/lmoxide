@@ -125,8 +125,8 @@ fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs())
 }
 
-fn key_of(q: &KeyQuery) -> Key {
-    Key::new(q.id.clone(), q.feature.clone().filter(|f| !f.is_empty()).unwrap_or_else(|| "live".into()))
+fn key_of(q: &KeyQuery) -> Result<Key, Error> {
+    Key::parse(&q.id, q.feature.clone().filter(|f| !f.is_empty()).unwrap_or_else(|| "live".into())).map_err(Error::Bad)
 }
 
 /// The tree's problems, checking it again when it changed since (about a second).
@@ -251,7 +251,8 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
         let words: Vec<String> = q.q.as_deref().unwrap_or("").to_lowercase().split_whitespace().map(str::to_string).collect();
         let mut out = Vec::new();
         for (k, e) in ed.work.records() {
-            let Some(kind) = kind_of(&k.id) else { continue };
+            let kind = k.id.kind.as_str();
+            let id = k.id.to_string();
             let v = &e.value;
             let world = ed.work.world_of(k);
             let keep = q.kind.as_deref().is_none_or(|x| x == kind)
@@ -261,8 +262,8 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
                 && q.source.as_deref().is_none_or(|s| v.get("source").and_then(Value::as_str) == Some(s))
                 && q.author.as_deref().is_none_or(|a| str_field(v, "author").eq_ignore_ascii_case(a))
                 && (!q.changed || changed.contains(k))
-                && (!q.problems || problems.by_id.contains_key(&k.id))
-                && words.iter().all(|w| k.id.to_lowercase().contains(w) || str_field(v, "name").to_lowercase().contains(w) || str_field(v, "title").to_lowercase().contains(w));
+                && (!q.problems || problems.by_id.contains_key(&id))
+                && words.iter().all(|w| id.to_lowercase().contains(w) || str_field(v, "name").to_lowercase().contains(w) || str_field(v, "title").to_lowercase().contains(w));
             if !keep {
                 continue;
             }
@@ -272,7 +273,7 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
                 .map(|i| i.list.iter().filter_map(|f| v.get(*f).map(|x| (*f, x.clone()))).collect())
                 .unwrap_or_default();
             out.push(Summary {
-                id: k.id.clone(),
+                id: id.clone(),
                 feature: k.feature.clone(),
                 kind,
                 name: str_field(v, "name"),
@@ -283,7 +284,7 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
                 author: str_field(v, "author"),
                 rev: v.get("rev").and_then(Value::as_u64).unwrap_or(0),
                 fields,
-                problems: problems.by_id.get(&k.id).map_or(0, Vec::len),
+                problems: problems.by_id.get(&id).map_or(0, Vec::len),
                 changed: changed.contains(k),
             });
         }
@@ -307,14 +308,15 @@ struct KeyQuery {
 /// last commit.
 async fn record(Query(q): Query<KeyQuery>) -> R<Value> {
     with(move |ed| {
-        let key = key_of(&q);
+        let key = key_of(&q)?;
+        let id = key.id.to_string();
         let entry = ed.work.get(&key).ok_or_else(|| Error::NotFound(format!("{} ({}) doesn't exist", key.id, key.feature)))?.clone();
         let mut features: Vec<String> = q.with.as_deref().unwrap_or("").split(',').filter(|f| !f.is_empty()).map(str::to_string).collect();
         if key.feature != "live" {
             features.push(key.feature.clone());
         }
-        let (resolved, origin) = ed.work.resolve(&key.id, &features).unwrap_or_default();
-        let template = match (kind_of(&key.id), resolved.get("template").and_then(Value::as_str)) {
+        let (resolved, origin) = ed.work.resolve(&id, &features).unwrap_or_default();
+        let template = match (kind_of(&id), resolved.get("template").and_then(Value::as_str)) {
             (Some("spawn"), Some(t)) => ed.work.resolve(t, &features).map(|(mut t, _)| {
                 if let Some(o) = resolved.get("overrides") {
                     lmoxide_content::load::merge(&mut t, o);
@@ -323,15 +325,15 @@ async fn record(Query(q): Query<KeyQuery>) -> R<Value> {
             }),
             _ => None,
         };
-        let mut problems: Vec<ProblemView> = problems(ed).by_id.get(&key.id).cloned().unwrap_or_default();
+        let mut problems: Vec<ProblemView> = problems(ed).by_id.get(&id).cloned().unwrap_or_default();
         // its own check too (what the whole tree's check found before its last save may be gone)
         for m in ed.work.check(&entry.value) {
             if !problems.iter().any(|x| x.message == m) {
-                problems.push(ProblemView { severity: "error", id: Some(key.id.clone()), file: None, message: m });
+                problems.push(ProblemView { severity: "error", id: Some(id.clone()), file: None, message: m });
             }
         }
         let committed = git::file_at(ed.work.dir(), "HEAD", &entry.file).and_then(|t| git::records_of(&t).remove(&key));
-        let versions: Vec<&String> = ed.work.versions(&key.id).into_iter().map(|(k, _)| &k.feature).collect();
+        let versions: Vec<&String> = ed.work.versions(&id).into_iter().map(|(k, _)| &k.feature).collect();
         Ok(json!({
             "id": key.id,
             "feature": key.feature,
@@ -342,7 +344,7 @@ async fn record(Query(q): Query<KeyQuery>) -> R<Value> {
             "origin": origin,
             "template": template,
             "problems": problems,
-            "used_by": ed.work.used_by(&key.id),
+            "used_by": ed.work.used_by(&id),
             "versions": versions,
             "committed": committed,
             "changed": committed.as_ref() != Some(&entry.value),
@@ -361,7 +363,7 @@ struct SaveBody {
 async fn save(headers: HeaderMap, Query(q): Query<KeyQuery>, Json(body): Json<SaveBody>) -> R<Value> {
     let author = crate::survey::author_of(&headers);
     with(move |ed| {
-        let key = key_of(&q);
+        let key = key_of(&q)?;
         let record = ed.work.save(&key, body.record, body.base.as_ref(), &author, now())?;
         changed(ed, std::slice::from_ref(&key));
         Ok(json!({ "record": record }))
@@ -389,7 +391,7 @@ struct DeleteQuery {
 async fn delete(headers: HeaderMap, Query(q): Query<DeleteQuery>) -> R<Value> {
     let author = crate::survey::author_of(&headers);
     with(move |ed| {
-        let key = key_of(&KeyQuery { id: q.id, feature: q.feature, with: None });
+        let key = key_of(&KeyQuery { id: q.id, feature: q.feature, with: None })?;
         let mut keys = ed.work.delete(&key, q.replace_with.as_deref(), &author, now())?;
         let replaced = keys.clone();
         keys.push(key);
@@ -408,7 +410,7 @@ struct HistoryQuery {
 
 async fn history(Query(q): Query<HistoryQuery>) -> R<Vec<git::Commit>> {
     with(move |ed| {
-        let key = key_of(&KeyQuery { id: q.id, feature: q.feature, with: None });
+        let key = key_of(&KeyQuery { id: q.id, feature: q.feature, with: None })?;
         Ok(git::history(&ed.work, &key, q.limit.unwrap_or(50))?)
     })
     .await

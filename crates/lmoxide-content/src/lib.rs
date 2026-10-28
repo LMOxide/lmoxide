@@ -20,6 +20,7 @@ pub mod canon;
 pub mod catalog;
 pub mod compat;
 pub mod git;
+pub mod id;
 pub mod import;
 pub mod load;
 pub mod merge;

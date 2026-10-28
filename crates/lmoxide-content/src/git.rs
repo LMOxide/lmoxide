@@ -54,7 +54,7 @@ pub fn records_of(text: &str) -> BTreeMap<Key, Value> {
                 .filter(|f| !f.is_empty())
                 .unwrap_or("live")
                 .to_string();
-            Some((Key::new(id, feature), r))
+            Some((Key::parse(&id, feature).ok()?, r))
         })
         .collect()
 }
@@ -271,14 +271,14 @@ mod tests {
         let c = changes(&work).unwrap();
         let list: Vec<_> = c
             .iter()
-            .map(|c| (c.key.id.as_str(), c.change, c.author.as_str()))
+            .map(|c| (c.key.id.to_string(), c.change, c.author.as_str()))
             .collect();
         assert_eq!(
             list,
             [
-                ("npc/a", "changed", "ann"),
-                ("npc/b", "removed", ""),
-                ("npc/c", "added", "bob")
+                ("npc/a".to_string(), "changed", "ann"),
+                ("npc/b".to_string(), "removed", ""),
+                ("npc/c".to_string(), "added", "bob")
             ]
         );
         g(&[

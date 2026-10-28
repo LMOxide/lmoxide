@@ -187,7 +187,7 @@ fn work_opens_the_tree() {
     assert!(work.notes.is_empty(), "{:?}", work.notes);
     assert_eq!(work.records().count(), raw_records().len());
     let used = work.used_by("npc/villager");
-    assert!(used.iter().any(|u| u.key.id == "spawn/1200/villager" && u.path == "/template"), "{used:?}");
+    assert!(used.iter().any(|u| u.key.id.to_string() == "spawn/1200/villager" && u.path == "/template"), "{used:?}");
     eprintln!("opened in {:?}", t.elapsed());
 }
 
@@ -202,4 +202,11 @@ fn catalogs_have_names() {
     }
     let lore = lmoxide_content::catalog::catalog("lore", &work, &tree().join("../data")).unwrap();
     assert!(lore.iter().any(|e| e.id == 4048 && e.name == "12 Days of Winter" && e.record.as_deref() == Some("achievement/12-days-of-winter")));
+}
+
+/// Every id in the tree is a well-formed record id (lmoxide_content::id).
+#[test]
+fn ids_parse() {
+    let bad: Vec<String> = raw_records().into_iter().filter_map(|(_, r)| r["id"].as_str().filter(|id| id.parse::<lmoxide_content::id::RecordId>().is_err()).map(str::to_string)).collect();
+    assert!(bad.is_empty(), "{bad:?}");
 }

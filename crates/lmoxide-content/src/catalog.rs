@@ -9,6 +9,7 @@ use std::path::Path;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::id::RecordKind;
 use crate::work::Work;
 
 #[derive(Debug, Clone, Serialize)]
@@ -60,25 +61,25 @@ pub fn catalog(name: &str, work: &Work, reference: &Path) -> Option<Vec<Entry>> 
             record,
         });
     };
-    // records carrying the id at `pointer`, of kinds starting with `prefix`
+    // records of `kind` carrying the id at `pointer`
     let from_records =
-        |prefix: &str,
+        |kind: RecordKind,
          pointer: &str,
          add: &mut dyn FnMut(u64, String, Option<String>, Option<String>)| {
             for (k, e) in work
                 .records()
-                .filter(|(k, _)| k.id.starts_with(prefix) && k.feature == "live")
+                .filter(|(k, _)| k.id.kind == kind && k.feature == "live")
             {
                 if let Some(id) = e.value.pointer(pointer).and_then(Value::as_u64) {
-                    let detail = k.id.split_once('/').map(|(kind, _)| kind.to_string());
-                    add(id, name_of(&e.value), detail, Some(k.id.clone()));
+                    let detail = Some(kind.as_str().to_string());
+                    add(id, name_of(&e.value), detail, Some(k.id.to_string()));
                 }
             }
         };
     match name {
         "monster_data" => {
-            from_records("npc/", "/render/monster_data", &mut add);
-            from_records("object/", "/render/monster_data", &mut add);
+            from_records(RecordKind::Npc, "/render/monster_data", &mut add);
+            from_records(RecordKind::Object, "/render/monster_data", &mut add);
             for m in read(&reference.join("monster_data.json"))?
                 .get("monster_data")?
                 .as_array()?
@@ -121,17 +122,17 @@ pub fn catalog(name: &str, work: &Work, reference: &Path) -> Option<Vec<Entry>> 
                 );
             }
         }
-        "spell" => from_records("skill/", "/client/spell", &mut add),
-        "nano" => from_records("buff/", "/nano", &mut add),
+        "spell" => from_records(RecordKind::Skill, "/client/spell", &mut add),
+        "nano" => from_records(RecordKind::Buff, "/nano", &mut add),
         "item" => {
-            from_records("item/", "/template", &mut add);
-            from_records("minifig/", "/template", &mut add);
-            from_records("object/", "/render/template", &mut add);
+            from_records(RecordKind::Item, "/template", &mut add);
+            from_records(RecordKind::Minifig, "/template", &mut add);
+            from_records(RecordKind::Object, "/render/template", &mut add);
         }
-        "lore" => from_records("achievement/", "/lore", &mut add),
-        "playfield" => from_records("world/", "/playfield", &mut add),
-        "window" => from_records("world/", "/window", &mut add),
-        "npc_template" => from_records("npc/", "/render/npc_template", &mut add),
+        "lore" => from_records(RecordKind::Achievement, "/lore", &mut add),
+        "playfield" => from_records(RecordKind::World, "/playfield", &mut add),
+        "window" => from_records(RecordKind::World, "/window", &mut add),
+        "npc_template" => from_records(RecordKind::Npc, "/render/npc_template", &mut add),
         "text" => {
             let texts = read(&work.dir().join("texts.json"))?;
             for (section, detail) in [("names", "name"), ("texts", "text")] {

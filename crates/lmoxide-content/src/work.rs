@@ -12,27 +12,33 @@ use serde_json::{Map, Value, json};
 use crate::load::{AnyRecord, ROOT_FILES, feature_active, merge, typed, walk, world_folder};
 use crate::merge::{Conflict, merge3};
 use crate::schema::{KIND_INFO, Walker};
+use crate::id::{RecordId, RecordKind};
 use crate::{KINDS, canon, kind_of, slug};
 
 /// A record's id and feature (the same id can be in several features: a feature's version
 /// changes the live one while the feature is on).
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, serde::Deserialize)]
 pub struct Key {
-    pub id: String,
+    pub id: RecordId,
     #[serde(default = "crate::record::live")]
     pub feature: String,
 }
 
 impl Key {
-    pub fn new(id: impl Into<String>, feature: impl Into<String>) -> Self {
+    pub fn new(id: RecordId, feature: impl Into<String>) -> Self {
         Key {
-            id: id.into(),
+            id,
             feature: feature.into(),
         }
     }
 
-    pub fn live(id: impl Into<String>) -> Self {
-        Key::new(id, "live")
+    pub fn parse(id: &str, feature: impl Into<String>) -> Result<Self, String> {
+        Ok(Key::new(id.parse()?, feature))
+    }
+
+    /// The live version of a well-formed id (panics on a bad one: for ids written in code).
+    pub fn live(id: &str) -> Self {
+        Key::parse(id, "live").expect("a record id")
     }
 }
 
@@ -193,8 +199,14 @@ impl Work {
     }
 
     fn add(&mut self, value: Value, rel: &Path) -> Option<Key> {
-        let id = value.get("id").and_then(Value::as_str)?.to_string();
-        let key = Key::new(id, feature_of(&value));
+        let raw = value.get("id").and_then(Value::as_str)?;
+        let key = match Key::parse(raw, feature_of(&value)) {
+            Ok(k) => k,
+            Err(e) => {
+                self.notes.push(format!("{}: {e}", rel.display()));
+                return None;
+            }
+        };
         if self.records.contains_key(&key) {
             self.notes.push(format!(
                 "{}: {} is in {} too",
@@ -224,8 +236,9 @@ impl Work {
 
     /// Every version of an id (one per feature).
     pub fn versions(&self, id: &str) -> Vec<(&Key, &Entry)> {
+        let Ok(id) = id.parse::<RecordId>() else { return Vec::new() };
         self.records
-            .range(Key::new(id, "")..)
+            .range(Key::new(id.clone(), "")..)
             .take_while(|(k, _)| k.id == id)
             .collect()
     }
@@ -247,7 +260,7 @@ impl Work {
     pub fn used_by(&self, id: &str) -> Vec<UsedBy> {
         self.used_by
             .get(id)
-            .map(|s| s.iter().filter(|u| u.key.id != id).cloned().collect())
+            .map(|s| s.iter().filter(|u| u.key.id.to_string() != id).cloned().collect())
             .unwrap_or_default()
     }
 
@@ -341,7 +354,7 @@ impl Work {
             })?
             .value
             .clone();
-        if record.get("id").and_then(Value::as_str) != Some(&key.id)
+        if record.get("id").and_then(Value::as_str) != Some(key.id.to_string().as_str())
             || feature_of(&record) != key.feature
         {
             return Err(EditError::Invalid(vec![
@@ -400,7 +413,7 @@ impl Work {
         self.records
             .iter()
             .find(|(k, e)| {
-                k.id.starts_with("world/")
+                k.id.kind == RecordKind::World
                     && e.value.get("playfield").and_then(Value::as_u64) == Some(playfield as u64)
             })
             .and_then(|(_, e)| e.file.parent().map(Path::to_path_buf))
@@ -443,7 +456,7 @@ impl Work {
         if kind_of(
             &new.copy_of
                 .as_ref()
-                .map_or(format!("{kind}/"), |k| k.id.clone()),
+                .map_or(format!("{kind}/"), |k| k.id.to_string()),
         ) != Some(kind)
         {
             return Err(EditError::Invalid(vec![
@@ -457,7 +470,7 @@ impl Work {
             (false, _, _) => None,
             (true, Some(pf), _) => Some(pf),
             // a copy stays in its world
-            (true, None, Some(from)) => from.id.split('/').nth(1).and_then(|p| p.parse().ok()),
+            (true, None, Some(from)) => from.id.world,
             (true, None, None) if kind == "world" => value
                 .get("playfield")
                 .and_then(Value::as_u64)
@@ -526,7 +539,7 @@ impl Work {
                 .join(path)
                 .join(format!("{slug_part}.json")),
         };
-        let key = Key::new(id, feature);
+        let key = Key::parse(&id, feature).map_err(|e| EditError::Invalid(vec![e]))?;
         let section = file
             .file_stem()
             .and_then(|s| s.to_str())
@@ -584,9 +597,9 @@ impl Work {
                 key.id, key.feature
             )));
         }
-        let last = self.versions(&key.id).len() == 1;
+        let last = self.versions(&key.id.to_string()).len() == 1;
         let users = if last {
-            self.used_by(&key.id)
+            self.used_by(&key.id.to_string())
         } else {
             Vec::new()
         };
@@ -595,10 +608,10 @@ impl Work {
             let Some(with) = replace_with else {
                 return Err(EditError::Referenced(users));
             };
-            if kind_of(with) != kind_of(&key.id) || !self.exists(with) {
+            if kind_of(with) != Some(key.id.kind.as_str()) || !self.exists(with) {
                 return Err(EditError::Invalid(vec![format!(
                     "{with} isn't a {} that exists",
-                    kind_of(&key.id).unwrap_or("record")
+                    key.id.kind.as_str()
                 )]));
             }
             let mut by_record: BTreeMap<Key, Vec<String>> = BTreeMap::new();
@@ -608,7 +621,7 @@ impl Work {
             for (k, paths) in by_record {
                 let mut v = self.records[&k].value.clone();
                 for p in paths {
-                    replace_ref(&mut v, &p, &key.id, with);
+                    replace_ref(&mut v, &p, &key.id.to_string(), with);
                 }
                 self.save(&k, v, None, author, now)?;
                 changed.push(k);
@@ -672,7 +685,7 @@ impl Work {
         let mut value = Value::Null;
         for (k, e) in versions {
             let by = if k.feature == "live" {
-                k.id.clone()
+                k.id.to_string()
             } else {
                 format!("{} ({})", k.id, k.feature)
             };
@@ -905,7 +918,7 @@ mod tests {
                 1,
             )
             .unwrap();
-        assert_eq!(k.id, "spawn/4200/a-2");
+        assert_eq!(k.id.to_string(), "spawn/4200/a-2");
         assert_eq!(
             read(&dir, "worlds/4200-isle/spawns.json")["spawns"]
                 .as_array()
@@ -926,7 +939,7 @@ mod tests {
             )
             .unwrap();
         assert_eq!(
-            (k.id.as_str(), v["name"].as_str(), v["level"].clone()),
+            (k.id.to_string().as_str(), v["name"].as_str(), v["level"].clone()),
             ("npc/pirate-copy", Some("Pirate copy"), json!(3))
         );
         assert!(dir.join("npcs/pirate-copy.json").exists());
@@ -953,8 +966,8 @@ mod tests {
             panic!()
         };
         assert_eq!(
-            users.iter().map(|u| u.key.id.as_str()).collect::<Vec<_>>(),
-            ["npc/captain", "spawn/4200/a", "spawn/4200/b"]
+            users.iter().map(|u| u.key.id.to_string()).collect::<Vec<_>>(),
+            ["spawn/4200/a", "spawn/4200/b", "npc/captain"]
         );
         let changed = w
             .delete(&Key::live("npc/pirate"), Some("npc/pirate-copy"), "ann", 5)
