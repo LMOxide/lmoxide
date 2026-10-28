@@ -154,6 +154,11 @@ fn problems(ed: &mut Editor) -> Arc<Problems> {
     out
 }
 
+/// The publish queue's folder, beside the working copy (`var/content-queue`).
+pub(crate) fn queue_dir(work: &Work) -> PathBuf {
+    work.dir().with_file_name("content-queue")
+}
+
 /// Runs `f` on the working copy (survey.rs: in-game edits). Lock order: the working copy, then
 /// survey.rs's state. The tree's problems are checked again when next asked for.
 pub(crate) fn work<T>(f: impl FnOnce(&mut Work) -> T) -> Option<T> {
@@ -184,6 +189,8 @@ pub fn routes() -> Router {
         .route("/v1/editor/catalog/{name}", get(catalog))
         .route("/v1/editor/reload", axum::routing::post(reload))
         .route("/v1/editor/loot/simulate", axum::routing::post(simulate_loot))
+        .route("/v1/editor/queue", get(queue))
+        .route("/v1/editor/queue/{seq}", axum::routing::delete(withdraw))
 }
 
 /// The kinds index and every schema.
@@ -445,6 +452,22 @@ async fn changes(Query(q): Query<ChangesQuery>) -> R<Vec<git::Change>> {
     with(move |ed| {
         let list = git::changes(&ed.work)?;
         Ok(list.into_iter().filter(|c| q.author.as_deref().is_none_or(|a| c.author.eq_ignore_ascii_case(a))).collect())
+    })
+    .await
+}
+
+/// What editors published, waiting for approval (newest last).
+async fn queue() -> R<Vec<lmoxide_content::queue::Entry>> {
+    with(|ed| Ok(lmoxide_content::queue::Queue::new(&queue_dir(&ed.work)).entries())).await
+}
+
+/// Takes an entry out of the queue (its changes are unpublished again).
+async fn withdraw(UrlPath(seq): UrlPath<u64>) -> R<Value> {
+    with(move |ed| {
+        let q = lmoxide_content::queue::Queue::new(&queue_dir(&ed.work));
+        q.get(seq).ok_or_else(|| Error::NotFound(format!("no queue entry {seq}")))?;
+        q.remove(seq).map_err(|e| Error::Internal(e.to_string()))?;
+        Ok(json!({ "withdrawn": seq }))
     })
     .await
 }

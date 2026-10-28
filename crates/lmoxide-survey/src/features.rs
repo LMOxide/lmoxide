@@ -39,7 +39,7 @@ pub fn within(id: &str, ancestor: &str) -> bool {
     id == ancestor || id.strip_prefix(ancestor).is_some_and(|rest| rest.starts_with('/'))
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct Feature {
     /// `feature/christmas-event/2026`: lowercase letters, digits and `-`, parts joined by `/`.
     pub id: String,
@@ -57,8 +57,9 @@ pub struct Feature {
     pub updated: u64,
 }
 
-/// `features.json` in a set's folder: the features beyond the categories.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+/// `features.json` (the content tree's; formerly in a set's folder): the features beyond the
+/// categories.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 pub struct FeaturesFile {
     pub format: u32,
     #[serde(default)]

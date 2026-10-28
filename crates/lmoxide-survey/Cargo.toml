@@ -6,6 +6,7 @@ license.workspace = true
 description = "Survey sets: surveyed placements and review notes, their files, merging and applying them to the base content"
 
 [dependencies]
+schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

@@ -24,6 +24,7 @@ pub mod id;
 pub mod import;
 pub mod load;
 pub mod merge;
+pub mod queue;
 pub mod model;
 pub mod record;
 pub mod roll;
@@ -124,6 +125,7 @@ pub fn schemas() -> Vec<(&'static str, serde_json::Value)> {
         ("content", schema!(Manifest)),
         ("tunables", schema!(Tunables)),
         ("texts", schema!(Texts)),
+        ("features", schema!(lmoxide_survey::features::FeaturesFile)),
     ]
 }
 

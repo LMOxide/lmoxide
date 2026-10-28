@@ -17,12 +17,12 @@ use std::{
         Arc, LazyLock, Mutex,
         atomic::{AtomicBool, AtomicU32, Ordering},
     },
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 use axum::{
     Json, Router,
-    extract::{Path, Query},
+    extract::Path,
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post, put},
@@ -32,9 +32,6 @@ use lmoxide_survey::{
     self as sv, Kind as SKind, Note, Origin, Placement, Script, SmashRule, TriggerWall, WallAction, WaveRef,
     apply::{Base, Category, Spawn},
     ids,
-    merge::{self, Prefer, Tolerance},
-    review::{self, Change},
-    set::{Set, SetInfo},
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
@@ -49,6 +46,7 @@ use lmoxide_content::id::{RecordId, RecordKind};
 use lmoxide_content::work::{Key, Work};
 
 mod bouncers;
+mod migrate;
 mod records;
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
@@ -117,10 +115,6 @@ struct Surveyor {
 
 struct State {
     dir: PathBuf,
-    /// The working copy: every editor's work as they make it (saved to `dir`).
-    set: Set,
-    /// What editors published (`<dir>/published`, what play servers read).
-    published: Set,
     /// The base content of each playfield (what `npc::start` spawns elsewhere).
     bases: BTreeMap<u32, Vec<SpawnDef>>,
     objects: HashMap<String, Object>,
@@ -132,6 +126,8 @@ struct State {
     walls: HashMap<String, Wall>,
     /// Each world's notes and scripts, as the working copy has them (lmoxide_content::views).
     notes: Notes,
+    /// The features records can belong to (the working copy's features.json).
+    features: sv::features::FeaturesFile,
     /// Where each player was at the last wall check (playfield, position).
     last_pos: HashMap<Id32, (u32, [f32; 3])>,
 }
@@ -143,35 +139,13 @@ static STATE: LazyLock<Mutex<Option<State>>> = LazyLock::new(|| Mutex::new(None)
 /// viewer -> the NPCs not sent to them.
 static HIDDEN: LazyLock<Mutex<HashMap<Id32, HashSet<Id32>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-/// Makes this a survey server working on the set in `dir`.
+/// Makes this a survey server. `dir`: the survey set of the editor before content records,
+/// taken into the working copy once at start ([`migrate`]).
 pub fn init(dir: PathBuf) {
-    let set = match Set::load(&dir) {
-        Ok(s) => s,
-        Err(e) => {
-            warn!("survey set {}: {e}; starting an empty one (the folder is overwritten on the first change)", dir.display());
-            Set::default()
-        }
-    };
-    let placements: usize = set.placements.values().map(|f| f.placements.len()).sum();
-    let published_dir = sv::set::published_dir(&dir);
-    let published = if published_dir.exists() {
-        Set::load(&published_dir).unwrap_or_else(|e| {
-            warn!("survey set {}: published copy: {e}; publishing starts from the working copy", dir.display());
-            set.clone()
-        })
-    } else {
-        // (a set from before publishing: everything in it was already seen by play servers)
-        if let Err(e) = set.save(&published_dir) {
-            warn!("survey set {}: published copy not made: {e}", dir.display());
-        }
-        set.clone()
-    };
-    info!(dir = %dir.display(), placements, unpublished = review::changes(&set, &published).len(), "survey mode");
+    info!(set = %dir.display(), "survey mode");
     ENABLED.store(true, Ordering::Relaxed);
     *STATE.lock().unwrap() = Some(State {
         dir,
-        set,
-        published,
         bases: BTreeMap::new(),
         objects: HashMap::new(),
         by_npc: HashMap::new(),
@@ -180,6 +154,7 @@ pub fn init(dir: PathBuf) {
         catalog: Vec::new(),
         walls: HashMap::new(),
         notes: Notes::new(),
+        features: Default::default(),
         last_pos: HashMap::new(),
     });
 }
@@ -322,6 +297,8 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
             st.bases.entry(pf).or_default().push(def);
         }
         st.catalog = catalog_of(&st.bases);
+        migrate::run(&st.dir, work, &st.catalog, &[]);
+        st.features = work.features();
         let playfields: std::collections::BTreeSet<u32> =
             work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Script | RecordKind::Area | RecordKind::Trigger | RecordKind::Bouncer)).filter_map(|(k, _)| k.id.world).collect();
         for pf in playfields {
@@ -333,7 +310,6 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
         warn!("survey: no content working copy (--content-dir): nothing spawned");
     }
     tokio::spawn(watch_walls());
-    tokio::spawn(autosave());
 }
 
 fn bases_of(defs: &[SpawnDef]) -> Vec<Base<SpawnDef>> {
@@ -553,45 +529,6 @@ fn respawn(st: &mut State, id: &str) {
 
 fn bump(st: &mut State, pf: u32) {
     *st.revision.entry(pf).or_default() += 1;
-}
-
-/// Changes to the working copy are written once editors pause (`SAVE_QUIET`), or `SAVE_LATEST`
-/// after the first unsaved one, not on every keystroke: (first unsaved change, latest one).
-static UNSAVED: Mutex<Option<(Instant, Instant)>> = Mutex::new(None);
-const SAVE_QUIET: Duration = Duration::from_secs(3);
-const SAVE_LATEST: Duration = Duration::from_secs(30);
-
-/// Notes that the working copy changed; `autosave` writes it.
-fn save(_st: &State) {
-    let now = Instant::now();
-    let mut u = UNSAVED.lock().unwrap();
-    *u = Some((u.map_or(now, |(first, _)| first), now));
-}
-
-async fn autosave() {
-    loop {
-        tokio::time::sleep(Duration::from_secs(1)).await;
-        let due = UNSAVED.lock().unwrap().is_some_and(|(first, last)| last.elapsed() >= SAVE_QUIET || first.elapsed() >= SAVE_LATEST);
-        if due {
-            tokio::task::spawn_blocking(flush).await.ok();
-        }
-    }
-}
-
-/// Writes the working copy now if it has unsaved changes (also at shutdown).
-pub fn flush() {
-    let snapshot = {
-        let guard = STATE.lock().unwrap();
-        let Some(st) = guard.as_ref() else { return };
-        if UNSAVED.lock().unwrap().take().is_none() {
-            return;
-        }
-        (st.set.clone(), st.dir.clone())
-    };
-    let (set, dir) = snapshot;
-    if let Err(e) = set.save(&dir) {
-        warn!("survey set {}: not saved: {e}", dir.display());
-    }
 }
 
 fn scripts_of(notes: &Notes, pf: u32) -> &[Script] {
@@ -1034,7 +971,7 @@ fn edit_bouncer(st: &mut State, work: &mut Work, l: &crate::jumppad::Listed, c: 
     if c.kind.is_some_and(|k| k != SKind::Bouncer) {
         return Err(Error::Invalid("a bouncer can't be changed into another kind".into()));
     }
-    let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
+    let feature = c.feature.clone().map(|f| checked_feature(&st.features, Some(f))).transpose()?;
     let mut p = bouncer_placement(l)?;
     if let Some(Some(t)) = c.template {
         p.template = Some(t);
@@ -1191,47 +1128,6 @@ fn some<'de, T: Deserialize<'de>, D: serde::Deserializer<'de>>(d: D) -> Result<O
     Option::<T>::deserialize(d).map(Some)
 }
 
-/// A whole set (or a part) in one file, as the web UI exports and imports it.
-#[derive(Serialize, Deserialize)]
-struct Bundle {
-    format: u32,
-    #[serde(default)]
-    info: SetInfo,
-    playfields: BTreeMap<String, BundlePlayfield>,
-    /// Which enemies count toward which achievements (they belong to no playfield).
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    smash_rules: Vec<SmashRule>,
-}
-
-#[derive(Serialize, Deserialize, Default)]
-struct BundlePlayfield {
-    #[serde(default)]
-    placements: Vec<Placement>,
-    #[serde(default)]
-    notes: Vec<Note>,
-    #[serde(default)]
-    scripts: Vec<Script>,
-}
-
-#[derive(Deserialize)]
-struct MergeOptions {
-    #[serde(default = "default_distance")]
-    distance: f32,
-    #[serde(default = "default_heading")]
-    heading: f32,
-    #[serde(default)]
-    prefer: Option<String>,
-    #[serde(default)]
-    take: Vec<String>,
-}
-
-fn default_distance() -> f32 {
-    1.0
-}
-fn default_heading() -> f32 {
-    20.0
-}
-
 // ------------------------------------------------------------------ errors
 
 #[derive(Debug)]
@@ -1315,13 +1211,10 @@ pub fn routes() -> Router {
         .route("/v1/survey/objects/{id}", axum::routing::patch(edit).delete(remove).put(put_object))
         .route("/v1/survey/objects/{id}/confirm", post(confirm))
         .route("/v1/survey/objects/{id}/forget", post(forget))
-        .route("/v1/survey/set", get(set_info).put(save_set_info))
         .route("/v1/survey/features", get(features).post(create_feature))
         .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/unpublished", get(unpublished))
         .route("/v1/survey/publish", post(publish))
-        .route("/v1/survey/export", get(export))
-        .route("/v1/survey/import", post(import))
 }
 
 async fn surveyors() -> R<Vec<SurveyorInfo>> {
@@ -1426,7 +1319,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
                 patrol: Vec::new(),
                 comment: String::new(),
                 tags: sv::tidy_tags(&b.tags),
-                feature: checked_feature(&st.set, b.feature)?,
+                feature: checked_feature(&st.features, b.feature)?,
                 author: author.clone(),
                 updated: ids::now(),
             };
@@ -1438,7 +1331,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
         if b.wave.as_ref().is_some_and(|w| !has_wave(&st.notes, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
-        let feature = checked_feature(&st.set, b.feature)?;
+        let feature = checked_feature(&st.features, b.feature)?;
         let now = ids::now();
         let objects: Vec<&Object> = st.objects.values().collect();
         let template = records::template_for(work, &objects, &b.what, &author, now)?;
@@ -1623,7 +1516,7 @@ async fn notes(Path(pf): Path<u32>) -> R<NotesView> {
 async fn save_note(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Json(mut n): Json<Note>) -> R<Note> {
     with_work(|work, st| {
         n.id = id;
-        n.feature = checked_feature(&st.set, Some(n.feature))?;
+        n.feature = checked_feature(&st.features, Some(n.feature))?;
         n.tags = sv::tidy_tags(&n.tags);
         let saved = lmoxide_content::views::put_note(work, pf, &n, &author_of(&headers), ids::now())?;
         refresh_notes(st, work, pf);
@@ -1661,7 +1554,7 @@ async fn save_script(Path((pf, id)): Path<(u32, String)>, headers: HeaderMap, Js
             return Err(Error::Invalid("a script has at least one wave".into()));
         }
         s.id = id;
-        s.feature = checked_feature(&st.set, Some(s.feature))?;
+        s.feature = checked_feature(&st.features, Some(s.feature))?;
         s.tags = sv::tidy_tags(&s.tags);
         for w in &mut s.waves {
             w.tags = sv::tidy_tags(&w.tags);
@@ -1706,7 +1599,7 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         if let Some(l) = crate::jumppad::find(&id) {
             return edit_bouncer(st, work, &l, c, &author);
         }
-        let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
+        let feature = c.feature.clone().map(|f| checked_feature(&st.features, Some(f))).transpose()?;
         let mut o = editable(st, &id)?;
         let pf = o.playfield;
         if let Some(Some(w)) = &c.wave
@@ -1953,7 +1846,7 @@ async fn put_object(Path(id): Path<String>, headers: HeaderMap, Json(b): Json<Sn
 async fn create_object(Path(pf): Path<u32>, headers: HeaderMap, Json(mut b): Json<Snapshot>) -> R<SurveyObject> {
     with_work(|work, st| {
         let author = author_of(&headers);
-        b.feature = checked_feature(&st.set, Some(b.feature))?;
+        b.feature = checked_feature(&st.features, Some(b.feature))?;
         if b.wave.as_ref().is_some_and(|w| !has_wave(&st.notes, pf, w)) {
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
@@ -2095,8 +1988,7 @@ struct FeaturesView {
     features: Vec<FeatureView>,
 }
 
-fn features_view(set: &Set) -> FeaturesView {
-    let f = &set.features;
+fn features_view(f: &sv::features::FeaturesFile) -> FeaturesView {
     let cat = |(id, title): &(&str, &str)| FeatureView {
         id: id.to_string(),
         title: title.to_string(),
@@ -2127,7 +2019,7 @@ fn features_view(set: &Set) -> FeaturesView {
 }
 
 async fn features() -> R<FeaturesView> {
-    with(|st| Ok(Json(features_view(&st.set))))
+    with(|st| Ok(Json(features_view(&st.features))))
 }
 
 #[derive(Deserialize)]
@@ -2139,8 +2031,8 @@ struct NewFeature {
     comment: String,
 }
 
-fn new_feature(set: &Set, parent: &str, title: &str, comment: String, author: String) -> Result<sv::features::Feature, Error> {
-    if !set.features.known(parent) {
+fn new_feature(features: &sv::features::FeaturesFile, parent: &str, title: &str, comment: String, author: String) -> Result<sv::features::Feature, Error> {
+    if !features.known(parent) {
         return Err(Error::Invalid(format!("no feature {parent}")));
     }
     let slug = sv::features::slug(title);
@@ -2151,11 +2043,13 @@ fn new_feature(set: &Set, parent: &str, title: &str, comment: String, author: St
 }
 
 async fn create_feature(headers: HeaderMap, Json(b): Json<NewFeature>) -> R<FeaturesView> {
-    with(|st| {
-        let f = new_feature(&st.set, &b.parent, &b.title, b.comment, author_of(&headers))?;
-        st.set.features.add(f).map_err(|e| Error::Invalid(e.to_string()))?;
-        save(st);
-        Ok(Json(features_view(&st.set)))
+    with_work(|work, st| {
+        let f = new_feature(&st.features, &b.parent, &b.title, b.comment, author_of(&headers))?;
+        let mut features = work.features();
+        features.add(f).map_err(|e| Error::Invalid(e.to_string()))?;
+        work.save_features(&features)?;
+        st.features = features;
+        Ok(Json(features_view(&st.features)))
     })
 }
 
@@ -2175,80 +2069,136 @@ struct Copied {
     features: FeaturesView,
 }
 
-/// Copies a feature with everything in it (its placements, walls, notes and scripts), so next
-/// year's event starts as this year's (the copies are spawned too).
+/// Copies a feature with everything in it (each record gets a version in the new feature), so
+/// next year's event starts as this year's (the copies are spawned too).
 async fn copy_feature(headers: HeaderMap, Json(b): Json<CopyFeature>) -> R<Copied> {
     with_work(|work, st| {
         let author = author_of(&headers);
-        let mut f = new_feature(&st.set, &b.parent, &b.title, b.comment, author.clone())?;
+        let mut f = new_feature(&st.features, &b.parent, &b.title, b.comment, author.clone())?;
         if sv::features::within(&f.id, &b.from) {
             return Err(Error::Invalid("a feature can't be copied into itself".into()));
         }
+        if !st.features.known(&b.from) {
+            return Err(Error::Invalid(format!("no feature {}", b.from)));
+        }
         f.copied_from = Some(b.from.clone());
         let id = f.id.clone();
-        let records = sv::features::copy(&mut st.set, &b.from, f, &author).map_err(|e| Error::Invalid(e.to_string()))?;
-        save(st);
-        let pfs: Vec<u32> = st.set.placements.keys().chain(st.set.notes.keys()).copied().collect();
+        let mut features = work.features();
+        // the features nested under it come along
+        let nested: Vec<sv::features::Feature> = features.features.iter().filter(|x| sv::features::within(&x.id, &b.from) && x.id != b.from).cloned().collect();
+        features.add(f).map_err(|e| Error::Invalid(e.to_string()))?;
+        for n in nested {
+            let nid = format!("{id}{}", &n.id[b.from.len()..]);
+            if features.get(&nid).is_none() {
+                features.add(sv::features::Feature { id: nid, copied_from: Some(n.id.clone()), author: author.clone(), updated: ids::now(), ..n }).map_err(|e| Error::Invalid(e.to_string()))?;
+            }
+        }
+        work.save_features(&features)?;
+        st.features = features;
+        let records = work.copy_feature(&b.from, &id, &author, ids::now())?;
         if records > 0 {
+            let pfs: Vec<u32> = st.objects.values().map(|o| o.playfield).collect();
             rebuild(st, work, pfs);
         }
         info!(from = %b.from, to = %id, records, "survey: feature copied");
-        Ok(Json(Copied { id, records, features: features_view(&st.set) }))
-    })
-}
-
-async fn set_info() -> R<SetInfo> {
-    with(|st| Ok(Json(st.set.info.clone())))
-}
-
-async fn save_set_info(Json(info): Json<SetInfo>) -> R<SetInfo> {
-    with(|st| {
-        st.set.info = info.clone();
-        save(st);
-        Ok(Json(info))
+        Ok(Json(Copied { id, records, features: features_view(&st.features) }))
     })
 }
 
 // ------------------------------------------------------------------ publishing
 
-/// One editor's changes to one feature in one playfield that aren't published yet.
+/// One editor's changes to one feature in one playfield that aren't published yet (the working
+/// copy's records that differ from its last commit and aren't in the publish queue).
 #[derive(Serialize)]
 struct Unpublished {
-    #[serde(flatten)]
-    change: Change,
+    /// 0: definitions (NPCs, achievements, ...), not a world's.
+    playfield: u32,
     playfield_name: String,
+    feature: String,
     feature_path: String,
+    author: String,
     /// The caller's own changes.
     mine: bool,
+    /// "2 added, 1 changed".
+    summary: String,
+    items: Vec<UnpublishedItem>,
 }
 
-/// A playfield's name ("Achievements" for the smash rules' changes, else its number).
+#[derive(Serialize)]
+struct UnpublishedItem {
+    /// placement, trigger, note, script, smash_rule, or record (a definition)
+    kind: &'static str,
+    id: String,
+    name: String,
+    /// added, changed, removed
+    op: &'static str,
+    /// The fields that changed.
+    details: Vec<String>,
+    updated: u64,
+    tags: Vec<String>,
+}
+
+/// A playfield's name ("Definitions" for records of no world, else its number).
 fn playfield_name(pf: u32) -> String {
-    if pf == review::ACHIEVEMENTS {
-        return "Achievements".into();
+    if pf == 0 {
+        return "Definitions".into();
     }
     crate::teleport::destination(pf).map_or_else(|| pf.to_string(), |d| d.name.clone())
 }
 
-/// Every change not published yet, the caller's (`me`) first.
-fn unpublished_of(st: &State, me: &str) -> Vec<Unpublished> {
-    let mut list: Vec<Unpublished> = review::changes(&st.set, &st.published)
+/// The working copy's records changed since its last commit and not published (queued) yet.
+fn unpublished_changes(work: &Work) -> Result<Vec<git::Change>, Error> {
+    let queue = lmoxide_content::queue::Queue::new(&crate::editor::queue_dir(work));
+    Ok(git::changes(work).map_err(|e| Error::Invalid(format!("{e:#}")))?.into_iter().filter(|c| !queue.has(&c.key, c.after.as_ref())).collect())
+}
+
+/// The unpublished changes by world, feature and author (the caller's first).
+fn unpublished_of(st: &State, work: &Work, me: &str) -> Result<Vec<Unpublished>, Error> {
+    let mut groups: BTreeMap<(u32, String, String), Vec<UnpublishedItem>> = BTreeMap::new();
+    for c in unpublished_changes(work)? {
+        let v = c.after.as_ref().or(c.before.as_ref()).cloned().unwrap_or_default();
+        let kind = match c.key.id.kind {
+            RecordKind::Spawn | RecordKind::Bouncer => "placement",
+            RecordKind::Trigger => "trigger",
+            RecordKind::Area if v.get("note").is_some() => "note",
+            RecordKind::Script => "script",
+            RecordKind::Achievement if v.get("rule").is_some() => "smash_rule",
+            _ => "record",
+        };
+        let fields = |x: &Option<serde_json::Value>| x.as_ref().and_then(|x| x.as_object()).cloned().unwrap_or_default();
+        let (before, after) = (fields(&c.before), fields(&c.after));
+        let details: Vec<String> = if c.change == "changed" {
+            before.keys().chain(after.keys()).filter(|k| !["rev", "author", "updated"].contains(&k.as_str()) && before.get(*k) != after.get(*k)).cloned().collect::<std::collections::BTreeSet<_>>().into_iter().collect()
+        } else {
+            Vec::new()
+        };
+        let str_of = |k: &str| v.get(k).and_then(|x| x.as_str()).unwrap_or("").to_string();
+        let name = [str_of("name"), str_of("title"), str_of("client_name")].into_iter().find(|n| !n.is_empty()).unwrap_or_else(|| c.key.id.to_string());
+        groups.entry((c.key.id.world.unwrap_or(0), c.key.feature.clone(), c.author.clone())).or_default().push(UnpublishedItem {
+            kind,
+            id: c.key.id.to_string(),
+            name,
+            op: c.change,
+            details,
+            updated: v.get("updated").and_then(|u| u.as_u64()).unwrap_or(0),
+            tags: v.get("tags").and_then(|t| t.as_array()).into_iter().flatten().filter_map(|t| t.as_str().map(str::to_string)).collect(),
+        });
+    }
+    let mut list: Vec<Unpublished> = groups
         .into_iter()
-        .map(|c| Unpublished {
-            playfield_name: playfield_name(c.key.playfield),
-            feature_path: st.set.features.path_title(&c.key.feature),
-            mine: c.key.author == me,
-            change: c,
+        .map(|((pf, feature, author), items)| {
+            let n = |op: &str| items.iter().filter(|i| i.op == op).count();
+            let summary = [("added", n("added")), ("changed", n("changed")), ("removed", n("removed"))].into_iter().filter(|(_, n)| *n > 0).map(|(op, n)| format!("{n} {op}")).collect::<Vec<_>>().join(", ");
+            Unpublished { playfield: pf, playfield_name: playfield_name(pf), feature_path: st.features.path_title(&feature), feature, mine: author == me, author, summary, items }
         })
         .collect();
     list.sort_by_key(|u| !u.mine);
-    list
+    Ok(list)
 }
 
-/// Every change not published yet (every author's, the caller's first).
 async fn unpublished(headers: HeaderMap) -> R<Vec<Unpublished>> {
     let me = author_of(&headers);
-    with(|st| Ok(Json(unpublished_of(st, &me))))
+    with_work(|work, st| Ok(Json(unpublished_of(st, work, &me)?)))
 }
 
 #[derive(Deserialize)]
@@ -2270,96 +2220,27 @@ struct Published {
     unpublished: Vec<Unpublished>,
 }
 
-/// Publishes changes: the published copy (what play servers read) takes their working version.
+/// Publishes changes: they become one entry of the publish queue (var/content-queue), for an
+/// admin to approve; they stay in the working copy as they are.
 async fn publish(headers: HeaderMap, Json(r): Json<PublishRequest>) -> R<Published> {
     let me = author_of(&headers);
-    let author = r.author.unwrap_or(me.clone());
-    let (published, dir, records) = with(|st| {
-        let chosen: Vec<Change> = review::changes(&st.set, &st.published)
-            .into_iter()
-            .filter(|c| r.playfield.is_none_or(|p| c.key.playfield == p) && r.feature.as_ref().is_none_or(|f| &c.key.feature == f) && (author == "*" || c.key.author == author))
-            .collect();
-        let mut records = 0;
-        for c in &chosen {
-            records += review::approve(&mut st.published, &st.set, c, r.ids.as_deref());
-        }
-        st.published.info = st.set.info.clone();
-        Ok((st.published.clone(), st.dir.clone(), records))
-    })?;
-    if records > 0 {
-        published.save(&sv::set::published_dir(&dir)).map_err(|e| Error::Invalid(format!("published copy not saved: {e}")))?;
-        info!(by = %me, author = %author, records, "survey: published");
-    }
-    with(|st| Ok(Json(Published { records, unpublished: unpublished_of(st, &me) })))
-}
-
-#[derive(Deserialize)]
-struct ExportQuery {
-    playfield: Option<u32>,
-}
-
-/// The whole set, or one playfield's records (`?playfield=`; `0`: only the smash rules).
-async fn export(Query(q): Query<ExportQuery>) -> R<Bundle> {
-    with(|st| {
-        let mut playfields = BTreeMap::new();
-        let pfs: std::collections::BTreeSet<u32> = st.set.placements.keys().chain(st.set.notes.keys()).copied().filter(|pf| q.playfield.is_none_or(|x| x == *pf)).collect();
-        for pf in pfs {
-            let n = st.set.notes.get(&pf);
-            playfields.insert(
-                pf.to_string(),
-                BundlePlayfield {
-                    placements: st.set.placements.get(&pf).map(|f| f.placements.clone()).unwrap_or_default(),
-                    notes: n.map(|n| n.notes.clone()).unwrap_or_default(),
-                    scripts: n.map(|n| n.scripts.clone()).unwrap_or_default(),
-                },
-            );
-        }
-        let smash_rules = if q.playfield.is_none_or(|pf| pf == review::ACHIEVEMENTS) { st.set.smash_rules.clone() } else { Vec::new() };
-        Ok(Json(Bundle { format: sv::FORMAT, info: st.set.info.clone(), playfields, smash_rules }))
-    })
-}
-
-#[derive(Deserialize)]
-struct ImportBody {
-    bundle: Bundle,
-    options: MergeOptions,
-    #[serde(default)]
-    dry_run: bool,
-}
-
-async fn import(Json(b): Json<ImportBody>) -> R<merge::Report> {
+    let author = r.author.clone().unwrap_or(me.clone());
     with_work(|work, st| {
-        let mut theirs = Set { info: b.bundle.info, smash_rules: b.bundle.smash_rules, ..Default::default() };
-        for (pf, content) in b.bundle.playfields {
-            let pf: u32 = pf.parse().map_err(|_| Error::Invalid(format!("playfield {pf}?")))?;
-            if !content.placements.is_empty() {
-                theirs.placements_mut(pf).placements = content.placements;
-            }
-            if !content.notes.is_empty() || !content.scripts.is_empty() {
-                let n = theirs.notes_mut(pf);
-                n.notes = content.notes;
-                n.scripts = content.scripts;
-            }
+        let chosen: Vec<git::Change> = unpublished_changes(work)?
+            .into_iter()
+            .filter(|c| r.playfield.is_none_or(|p| c.key.id.world.unwrap_or(0) == p) && r.feature.as_ref().is_none_or(|f| &c.key.feature == f) && (author == "*" || c.author == author))
+            .filter(|c| r.ids.as_ref().is_none_or(|ids| ids.contains(&c.key.id.to_string())))
+            .collect();
+        let records = chosen.len();
+        if records > 0 {
+            let worlds: std::collections::BTreeSet<String> = chosen.iter().map(|c| playfield_name(c.key.id.world.unwrap_or(0))).collect();
+            let features: std::collections::BTreeSet<&str> = chosen.iter().map(|c| c.key.feature.as_str()).collect();
+            let summary = format!("{}: {records} records (feature {})", worlds.into_iter().collect::<Vec<_>>().join(", "), features.into_iter().collect::<Vec<_>>().join(", "));
+            let entry = lmoxide_content::queue::Entry { seq: 0, created: ids::now(), by: me.clone(), summary, status: "queued".into(), reason: None, records: chosen.into_iter().map(Into::into).collect() };
+            let e = lmoxide_content::queue::Queue::new(&crate::editor::queue_dir(work)).add(entry).map_err(|e| Error::Invalid(format!("not queued: {e}")))?;
+            info!(by = %me, author = %author, records, seq = e.seq, "survey: published (queued)");
         }
-        let opts = merge::Options {
-            tolerance: Tolerance { distance: b.options.distance.max(0.0), heading: b.options.heading.clamp(0.0, 180.0) },
-            prefer: match b.options.prefer.as_deref() {
-                Some("ours") => Prefer::Ours,
-                Some("theirs") => Prefer::Theirs,
-                _ => Prefer::Newer,
-            },
-            take: b.options.take.into_iter().collect(),
-        };
-        if b.dry_run {
-            let mut copy = st.set.clone();
-            return Ok(Json(merge::merge(&mut copy, &theirs, &opts)));
-        }
-        let report = merge::merge(&mut st.set, &theirs, &opts);
-        save(st);
-        let pfs: Vec<u32> = theirs.placements.keys().chain(theirs.notes.keys()).copied().collect();
-        rebuild(st, work, pfs);
-        info!(added = report.added.len(), near = report.near.len(), conflicts = report.conflicts.len(), "survey: import");
-        Ok(Json(report))
+        Ok(Json(Published { records, unpublished: unpublished_of(st, work, &me)? }))
     })
 }
 
@@ -2535,23 +2416,28 @@ struct TagUse {
     suggested: bool,
 }
 
-/// Every tag in the working set, most used first, and the suggested ones.
-fn tag_uses(set: &Set) -> Vec<TagUse> {
-    let mut counts: BTreeMap<&str, usize> = sv::SUGGESTED_TAGS.iter().map(|t| (*t, 0)).collect();
-    let placements = set.placements.values().flat_map(|f| f.placements.iter().filter(|p| !p.removed).flat_map(|p| &p.tags));
-    let walls = set.placements.values().flat_map(|f| f.triggers.iter().filter(|w| !w.removed).flat_map(|w| &w.tags));
-    let notes = set.notes.values().flat_map(|f| f.notes.iter().flat_map(|n| &n.tags).chain(f.scripts.iter().flat_map(|s| s.tags.iter().chain(s.waves.iter().flat_map(|w| &w.tags)))));
-    let rules = set.smash_rules.iter().flat_map(|r| &r.tags);
-    for t in placements.chain(walls).chain(notes).chain(rules) {
-        *counts.entry(t).or_default() += 1;
+/// Every tag on a record of the working copy (and on script waves), most used first, with the
+/// suggested ones.
+fn tag_uses(work: &Work) -> Vec<TagUse> {
+    let mut counts: BTreeMap<String, usize> = sv::SUGGESTED_TAGS.iter().map(|t| (t.to_string(), 0)).collect();
+    let strings = |v: Option<&serde_json::Value>| v.and_then(|t| t.as_array()).into_iter().flatten().filter_map(|t| t.as_str().map(str::to_string)).collect::<Vec<_>>();
+    for (_, e) in work.records() {
+        for t in strings(e.value.get("tags")) {
+            *counts.entry(t).or_default() += 1;
+        }
+        for w in e.value.get("waves").and_then(|w| w.as_array()).into_iter().flatten() {
+            for t in strings(w.get("tags")) {
+                *counts.entry(t).or_default() += 1;
+            }
+        }
     }
-    let mut out: Vec<TagUse> = counts.into_iter().map(|(t, count)| TagUse { tag: t.into(), count, suggested: sv::SUGGESTED_TAGS.contains(&t) }).collect();
+    let mut out: Vec<TagUse> = counts.into_iter().map(|(t, count)| TagUse { suggested: sv::SUGGESTED_TAGS.contains(&t.as_str()), tag: t, count }).collect();
     out.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.tag.cmp(&b.tag)));
     out
 }
 
 async fn tags() -> R<Vec<TagUse>> {
-    with(|st| Ok(Json(tag_uses(&st.set))))
+    with_work(|work, _| Ok(Json(tag_uses(work))))
 }
 
 #[derive(Deserialize, Default)]
@@ -2573,11 +2459,10 @@ struct PlaceTriggerBody {
     tags: Vec<String>,
 }
 
-/// A feature a record may name: a category or one of the set's features (none: live).
-fn checked_feature(set: &Set, feature: Option<String>) -> Result<String, Error> {
+fn checked_feature(features: &sv::features::FeaturesFile, feature: Option<String>) -> Result<String, Error> {
     match feature {
         None => Ok(sv::features::live()),
-        Some(f) if set.features.known(&f) => Ok(f),
+        Some(f) if features.known(&f) => Ok(f),
         Some(f) => Err(Error::Invalid(format!("no feature {f} (create it first)"))),
     }
 }
@@ -2621,7 +2506,7 @@ async fn place_trigger(Path(account): Path<u32>, headers: HeaderMap, Json(b): Js
             comment: String::new(),
             removed: false,
             tags: sv::tidy_tags(&b.tags),
-            feature: checked_feature(&st.set, b.feature)?,
+            feature: checked_feature(&st.features, b.feature)?,
             author: author.clone(),
             updated: ids::now(),
         };
@@ -2669,7 +2554,7 @@ fn edit_wall(st: &mut State, work: &mut Work, id: &str, c: Changes, author: Stri
         d.name = n;
     }
     if let Some(f) = c.feature {
-        d.feature = checked_feature(&st.set, Some(f))?;
+        d.feature = checked_feature(&st.features, Some(f))?;
     }
     if let Some(t) = c.tags {
         d.tags = sv::tidy_tags(t);
@@ -3019,19 +2904,19 @@ fn playfield_names() -> &'static BTreeMap<u32, String> {
 async fn playfields() -> R<Vec<PlayfieldView>> {
     with(|st| {
         let names = playfield_names();
-        let ids: std::collections::BTreeSet<u32> = names.keys().chain(st.bases.keys()).chain(st.set.placements.keys()).chain(st.notes.keys()).copied().collect();
+        let ids: std::collections::BTreeSet<u32> = names.keys().chain(st.bases.keys()).chain(st.notes.keys()).copied().collect();
         let count = |n: usize| n.min(u32::MAX as usize) as u32;
         Ok(Json(
             ids.into_iter()
                 .map(|id| {
-                    let p = st.set.placements.get(&id);
                     let n = st.notes.get(&id);
+                    let surveyed = st.objects.values().filter(|o| o.playfield == id && o.category == Category::Surveyed).count();
                     PlayfieldView {
                         id,
                         name: names.get(&id).cloned().or_else(|| crate::teleport::destination(id).map(|d| d.name.clone())).unwrap_or_default(),
                         base: count(st.bases.get(&id).map_or(0, Vec::len)),
-                        placements: count(p.map_or(0, |p| p.placements.iter().filter(|x| !x.removed).count())),
-                        triggers: count(p.map_or(0, |p| p.triggers.iter().filter(|x| !x.removed).count())),
+                        placements: count(surveyed),
+                        triggers: count(st.walls.values().filter(|w| w.playfield == id).count()),
                         scripts: count(n.map_or(0, |n| n.scripts.len())),
                         notes: count(n.map_or(0, |n| n.notes.len())),
                     }
@@ -3160,7 +3045,7 @@ async fn save_smash_rule(Path(key): Path<String>, headers: HeaderMap, Json(b): J
             item: b.item,
             comment: b.comment,
             tags: sv::tidy_tags(&b.tags),
-            feature: checked_feature(&st.set, b.feature)?,
+            feature: checked_feature(&st.features, b.feature)?,
             author: author_of(&headers),
             updated: ids::now(),
         };
@@ -3257,12 +3142,20 @@ mod tests {
 
     #[test]
     fn tags_are_counted() {
-        let mut set = Set::default();
-        let note: Note = serde_json::from_str(r#"{"id":"n-1","kind":"comment","area":{"point":[0,0,0]},"tags":["todo","rough"]}"#).unwrap();
-        set.notes_mut(1200).notes.push(note);
-        let uses = tag_uses(&set);
-        assert_eq!(uses[0..2].iter().map(|u| (u.tag.as_str(), u.count, u.suggested)).collect::<Vec<_>>(), [("rough", 1, false), ("todo", 1, true)]);
+        // a working copy with a tagged note and a script whose wave is tagged
+        let dir = std::env::temp_dir().join(format!("lmoxide-survey-tags-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("worlds/1200-hub/scripts")).unwrap();
+        let put = |rel: &str, v: serde_json::Value| std::fs::write(dir.join(rel), serde_json::to_string(&v).unwrap()).unwrap();
+        put("content.json", serde_json::json!({ "format": 1, "reference": "../data" }));
+        put("worlds/1200-hub/world.json", serde_json::json!({ "id": "world/hub", "playfield": 1200 }));
+        put("worlds/1200-hub/areas.json", serde_json::json!({ "areas": [{ "id": "area/1200/n", "role": "note", "note": {}, "tags": ["todo", "rough"] }] }));
+        put("worlds/1200-hub/scripts/s.json", serde_json::json!({ "id": "script/1200/s", "waves": [{ "id": "w", "tags": ["rough"] }] }));
+        let work = Work::open(&dir).unwrap();
+        let uses = tag_uses(&work);
+        assert_eq!(uses[0..2].iter().map(|u| (u.tag.as_str(), u.count, u.suggested)).collect::<Vec<_>>(), [("rough", 2, false), ("todo", 1, true)]);
         assert!(uses.iter().any(|u| u.tag == "approximate" && u.count == 0));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

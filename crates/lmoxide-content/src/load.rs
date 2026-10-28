@@ -166,7 +166,7 @@ struct Raw {
     world: Option<String>,
 }
 
-pub(crate) const ROOT_FILES: &[&str] = &["content.json", "tunables.json", "texts.json"];
+pub(crate) const ROOT_FILES: &[&str] = &["content.json", "tunables.json", "texts.json", "features.json"];
 
 /// Fields whose text is prose, never a reference.
 const PROSE: &[&str] = &[
@@ -828,6 +828,9 @@ pub fn format_tree(dir: &Path, check_only: bool) -> anyhow::Result<Vec<PathBuf>>
             Some("texts.json") => {
                 crate::canon::to_string(&serde_json::from_value::<Texts>(value)?)?
             }
+            Some("features.json") => crate::canon::to_string(&serde_json::from_value::<
+                lmoxide_survey::features::FeaturesFile,
+            >(value)?)?,
             _ if rel.starts_with("schemas") => continue,
             _ => match value {
                 Value::Object(ref o) if o.contains_key("id") => crate::canon::to_string(

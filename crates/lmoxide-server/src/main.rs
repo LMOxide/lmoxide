@@ -331,7 +331,6 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         _ = shutdown_signal() => {
             info!("shutting down: disconnecting players so their characters are saved");
             sessions::kick_all("The server is shutting down.");
-            survey::flush();
             let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(5);
             while sessions::players_online() > 0 && tokio::time::Instant::now() < deadline {
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;

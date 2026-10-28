@@ -604,6 +604,36 @@ impl Work {
         Ok(record)
     }
 
+    /// The features beyond the categories (`features.json`).
+    pub fn features(&self) -> lmoxide_survey::features::FeaturesFile {
+        std::fs::read_to_string(self.dir.join("features.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
+    }
+
+    pub fn save_features(&self, f: &lmoxide_survey::features::FeaturesFile) -> Result<(), EditError> {
+        let text = canon::to_string(f).map_err(|e| EditError::Io(e.to_string()))?;
+        std::fs::write(self.dir.join("features.json"), text).map_err(|e| EditError::Io(e.to_string()))
+    }
+
+    /// Copies every record of feature `from` (and what is nested under it) into `to` (the same
+    /// ids, a version in the new feature: placements in a copied script's waves stay in them).
+    /// How many were copied.
+    pub fn copy_feature(&mut self, from: &str, to: &str, author: &str, now: u64) -> Result<usize, EditError> {
+        let within = |f: &str| f == from || f.strip_prefix(from).is_some_and(|r| r.starts_with('/'));
+        let records: Vec<Value> = self.records.iter().filter(|(k, _)| within(&k.feature)).map(|(k, e)| {
+            let mut v = e.value.clone();
+            v["feature"] = json!(format!("{to}{}", &k.feature[from.len()..]));
+            if let Value::Object(o) = &mut v {
+                o.remove("rev");
+            }
+            v
+        }).collect();
+        let n = records.len();
+        for r in records {
+            self.put(r, author, now)?;
+        }
+        Ok(n)
+    }
+
     /// Sets a record back to `to` exactly (its last committed version: discarding unpublished
     /// changes), or takes it out when it had none (`None`), without checks.
     pub fn reset(&mut self, key: &Key, to: Option<Value>) -> Result<(), EditError> {

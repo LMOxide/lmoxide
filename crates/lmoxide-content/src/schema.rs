@@ -173,6 +173,7 @@ pub const ROOT_FILES: &[(&str, &str, &str)] = &[
         "Numbers the game runs on that aren't any one record's (regeneration, drop rates, levels ...)",
     ),
     ("texts", "texts.json", "Client texts by id (dialogue lines)"),
+    ("features", "features.json", "The features records can belong to beyond live, feature and other: titles, comments, what each was copied from"),
 ];
 
 /// `schemas/index.json`: every kind with its id prefix, where its records are, its title,
