@@ -8,7 +8,7 @@ use crate::id::{RecordId, RecordKind};
 use std::collections::HashMap;
 
 use crate::action::{Action, Destination};
-use crate::model::{Area, AreaRole, Once, Script, Shape, Trigger, WaveTrigger};
+use crate::model::{Achievement, Area, AreaRole, Once, Script, Shape, Trigger, WaveTrigger};
 use crate::units::{Duration, Ratio};
 use crate::work::{EditError, Key, Work};
 use lmoxide_survey as sv;
@@ -533,6 +533,68 @@ pub fn put_wall(work: &mut Work, pf: u32, w: &sv::TriggerWall, author: &str, now
     Ok(wall_view(work, &key, &l).expect("just saved"))
 }
 
+/// The achievement record a smash rule key belongs to: an achievement's lore id names it, any
+/// other key (`category:`, `drop:`, `find:`, `minifigure:`) a rule-only record by `client_name`.
+fn rule_record(work: &Work, key: &str) -> Option<Key> {
+    let lore: Option<u64> = key.parse().ok();
+    work.records()
+        .filter(|(k, _)| k.id.kind == RecordKind::Achievement && k.feature == "live")
+        .find(|(_, e)| match lore {
+            Some(n) => e.value.get("lore").and_then(Value::as_u64) == Some(n),
+            None => e.value.get("lore").is_none() && e.value.get("client_name").and_then(Value::as_str) == Some(key),
+        })
+        .map(|(k, _)| k.clone())
+}
+
+fn rule_view(key: String, a: Achievement) -> Option<sv::SmashRule> {
+    let r = a.rule?;
+    Some(sv::SmashRule { id: key, enemies: r.enemies, once: r.once, item: r.item, comment: r.comment, tags: a.tags, feature: a.feature, author: a.author, updated: a.updated })
+}
+
+/// Every smash rule (achievements' and rule-only records').
+pub fn rules(work: &Work) -> Vec<sv::SmashRule> {
+    work.records()
+        .filter(|(k, _)| k.id.kind == RecordKind::Achievement && k.feature == "live")
+        .filter_map(|(_, e)| {
+            let a: Achievement = serde_json::from_value(e.value.clone()).ok()?;
+            let key = a.lore.map(|n| n.to_string()).or_else(|| a.client_name.clone())?;
+            rule_view(key, a)
+        })
+        .collect()
+}
+
+/// Saves a smash rule on its achievement record (a rule-only record for other keys, made when
+/// missing): the rule as saved.
+pub fn put_rule(work: &mut Work, rule: &sv::SmashRule, author: &str, now: u64) -> Result<sv::SmashRule, EditError> {
+    let mut record = match rule_record(work, &rule.id) {
+        Some(k) => work.get(&k).expect("found").value.clone(),
+        None if rule.id.parse::<u32>().is_ok() => return Err(EditError::NotFound(format!("no achievement with lore id {}", rule.id))),
+        None => {
+            let kind = rule.id.split(':').next().unwrap_or("rule");
+            json!({ "id": work.new_id("achievement", &rule.id.replace(':', " "), None), "client_name": rule.id, "kind": kind, "source": "surveyed" })
+        }
+    };
+    let r = record.as_object_mut().expect("a record");
+    r.insert("rule".into(), json!({ "enemies": rule.enemies, "once": rule.once, "item": rule.item, "comment": rule.comment }));
+    set(r, "tags", json!(rule.tags), rule.tags.is_empty());
+    let saved = work.put(record, author, now)?;
+    let a: Achievement = serde_json::from_value(saved).map_err(|e| EditError::Invalid(vec![e.to_string()]))?;
+    Ok(rule_view(rule.id.clone(), a).expect("just saved"))
+}
+
+/// Removes a smash rule: from its achievement, or its rule-only record.
+pub fn delete_rule(work: &mut Work, key: &str, author: &str, now: u64) -> Result<(), EditError> {
+    let Some(k) = rule_record(work, key) else { return Ok(()) };
+    let mut record = work.get(&k).expect("found").value.clone();
+    if record.get("lore").is_none() {
+        work.delete(&k, None, author, now)?;
+        return Ok(());
+    }
+    record.as_object_mut().expect("a record").remove("rule");
+    work.put(record, author, now)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -674,6 +736,13 @@ mod tests {
         let w = put_wall(&mut work, 4200, &sv::TriggerWall { radius: Some(2.0), action: sv::WallAction::Dialog { dialog: None }, ..w }, "ann", 9).unwrap();
         assert_eq!((w.radius, w.action.clone()), (Some(2.0), sv::WallAction::Dialog { dialog: None }));
         assert_eq!(walls_of(&work, 4200).len(), 1);
+        // smash rules: a rule-only record for a category, made and removed
+        let rule = sv::SmashRule { id: "category:pirates".into(), enemies: vec!["Pirate".into()], once: false, item: None, comment: "all of them".into(), tags: vec![], feature: "live".into(), author: String::new(), updated: 0 };
+        let saved = put_rule(&mut work, &rule, "ann", 10).unwrap();
+        assert_eq!((saved.enemies.clone(), saved.comment.as_str()), (rule.enemies.clone(), "all of them"));
+        assert_eq!(rules(&work).len(), 1);
+        delete_rule(&mut work, "category:pirates", "ann", 11).unwrap();
+        assert!(rules(&work).is_empty());
         assert!(crate::load::format_tree(&dir, true).unwrap().is_empty());
         let _ = std::fs::remove_dir_all(&dir);
     }

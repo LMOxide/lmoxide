@@ -3136,12 +3136,13 @@ fn smash_target(key: &str) -> Result<crate::achievements::SmashAchievement, Erro
 
 /// Every smash achievement (counters of kills or smashes, defeats) with its rule.
 async fn smash_achievements() -> R<Vec<SmashEntry>> {
-    with(|st| {
+    with_work(|work, _| {
+        let rules: HashMap<String, SmashRule> = lmoxide_content::views::rules(work).into_iter().map(|r| (r.id.clone(), r)).collect();
         Ok(Json(
             crate::achievements::smash_achievements()
                 .iter()
                 .chain(crate::achievements::collect_achievements())
-                .map(|a| SmashEntry { rule: st.set.smash_rule(&a.key).cloned(), achievement: a.clone() })
+                .map(|a| SmashEntry { rule: rules.get(&a.key).cloned(), achievement: a.clone() })
                 .collect(),
         ))
     })
@@ -3149,7 +3150,7 @@ async fn smash_achievements() -> R<Vec<SmashEntry>> {
 
 /// Every smash rule, discover locations' too.
 async fn achievement_rules() -> R<Vec<SmashRule>> {
-    with(|st| Ok(Json(st.set.smash_rules.clone())))
+    with_work(|work, _| Ok(Json(lmoxide_content::views::rules(work))))
 }
 
 #[derive(Deserialize)]
@@ -3174,7 +3175,7 @@ struct SmashRuleBody {
 /// tags and a comment).
 async fn save_smash_rule(Path(key): Path<String>, headers: HeaderMap, Json(b): Json<SmashRuleBody>) -> R<SmashEntry> {
     let achievement = smash_target(&key)?;
-    with(|st| {
+    with_work(|work, st| {
         let mut enemies: Vec<String> = Vec::new();
         for e in b.enemies.iter().map(|e| e.trim()).filter(|e| !e.is_empty()) {
             if !enemies.iter().any(|x| x.eq_ignore_ascii_case(e)) {
@@ -3195,9 +3196,7 @@ async fn save_smash_rule(Path(key): Path<String>, headers: HeaderMap, Json(b): J
             author: author_of(&headers),
             updated: ids::now(),
         };
-        st.set.smash_rules.retain(|r| r.id != key);
-        st.set.smash_rules.push(rule.clone());
-        save(st);
+        let rule = lmoxide_content::views::put_rule(work, &rule, &author_of(&headers), ids::now())?;
         Ok(Json(SmashEntry { achievement, rule: Some(rule) }))
     })
 }
@@ -3277,10 +3276,9 @@ async fn enemy_names() -> R<Vec<EnemyName>> {
     with(|st| Ok(Json(enemy_names_of(&st.bases, &st.catalog))))
 }
 
-async fn delete_smash_rule(Path(key): Path<String>) -> Result<StatusCode, Error> {
-    with(|st| {
-        st.set.smash_rules.retain(|r| r.id != key);
-        save(st);
+async fn delete_smash_rule(Path(key): Path<String>, headers: HeaderMap) -> Result<StatusCode, Error> {
+    with_work(|work, _| {
+        lmoxide_content::views::delete_rule(work, &key, &author_of(&headers), ids::now())?;
         Ok(StatusCode::NO_CONTENT)
     })
 }

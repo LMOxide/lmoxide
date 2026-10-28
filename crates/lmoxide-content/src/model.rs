@@ -1554,6 +1554,9 @@ pub struct AchievementRule {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-client" = "item"))]
     pub item: Option<u32>,
+    /// What the editor who made the rule noted.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub comment: String,
 }
 
 record! {

@@ -309,6 +309,7 @@ pub fn survey(
                 enemies: r.enemies.clone(),
                 once: r.once,
                 item: r.item,
+                comment: r.comment.clone(),
             };
             let lore = r.id.parse::<u32>().ok();
             match lore
