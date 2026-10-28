@@ -1,10 +1,8 @@
 //! The NPCs and smashables every playfield spawns, from the content tree: each world's spawns
 //! (content/worlds/*/spawns.json) with their templates (content/npcs, content/objects) and
-//! overrides applied, and the world's NPC fights (world.json `npc_fights`). World-editor
-//! placements (`source: surveyed`) aren't among them: play servers take those from the world
-//! editor's approved set (content.rs), the survey server from its set (survey.rs). Spawns that
-//! appear only during play (`appeared_at`), cinematic triggers and actors, scenery, doors and
-//! buildies are other modules' (or nobody's yet).
+//! overrides applied, and the world's NPC fights (world.json `npc_fights`). Spawns of script
+//! waves are scripts.rs's (content.rs), spawns that appear only during play (`appeared_at`),
+//! cinematic triggers and actors, scenery, doors and buildies other modules' (or nobody's yet).
 
 use std::collections::HashMap;
 
@@ -92,7 +90,7 @@ pub fn table() -> HashMap<String, Vec<SpawnDef>> {
     for (world_id, w) in &c.worlds {
         let spawns: Vec<&Spawn> = c
             .in_world(&c.spawns, world_id)
-            .filter(|s| !s.removed && s.source != Some(Source::Surveyed) && s.appeared_at.is_none())
+            .filter(|s| !s.removed && s.wave.is_none() && s.appeared_at.is_none())
             .collect();
         let mut defs: Vec<SpawnDef> = spawns.iter().filter(|s| s.fight.is_none()).filter_map(|s| def_of(c, s)).collect();
         let fights = spawns.iter().filter(|s| s.fight.is_some()).filter_map(|s| def_of(c, s));
@@ -166,7 +164,7 @@ mod tests {
     /// server tells apart: the source's category (survey mode: proposed, live, demo, the rest
     /// "client") and anchors of enemies (npc_fights' `replace_anchors`).
     fn key(d: &SpawnDef) -> String {
-        let source = lmoxide_survey::apply::Category::from_source(d.source.as_deref());
+        let source = lmoxide_survey::Category::from_source(d.source.as_deref());
         let anchor = if d.kind == Kind::Enemy { d.anchor.clone() } else { None };
         let r = |x: f32| (x * 1000.0).round() as i64;
         format!(
@@ -202,9 +200,14 @@ mod tests {
         assert!(table().values().flatten().all(|d| d.loot.is_none()));
     }
 
+    /// (the world editor's spawns weren't in the old files)
     #[test]
     fn same_as_the_old_files() {
-        let (old, new) = (old_table(), table());
+        let mut new = table();
+        for defs in new.values_mut() {
+            defs.retain(|d| d.source.as_deref() != Some("survey"));
+        }
+        let old = old_table();
         let mut problems = Vec::new();
         for pf in old.keys().chain(new.keys()).collect::<std::collections::BTreeSet<_>>() {
             let mut a: Vec<String> = old.get(pf).into_iter().flatten().map(key).collect();

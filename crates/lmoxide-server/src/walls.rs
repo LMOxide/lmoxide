@@ -14,7 +14,7 @@ use std::{
 };
 
 use lmoxide_net::types::Id32;
-use lmoxide_survey::{TriggerWall, WallAction, set::Set};
+use lmoxide_survey::{TriggerWall, WallAction};
 use tracing::info;
 
 use crate::{achievements::Event, world};
@@ -37,15 +37,9 @@ struct State {
 static STATE: LazyLock<Mutex<State>> = LazyLock::new(Mutex::default);
 static WATCHING: AtomicBool = AtomicBool::new(false);
 
-/// The walls of `active` (the approved content this server runs) are the ones crossing does
-/// something; starts watching the first time.
-pub fn set(active: &Set) {
-    let walls: BTreeMap<u32, Vec<TriggerWall>> = active
-        .placements
-        .iter()
-        .map(|(pf, f)| (*pf, f.triggers.iter().filter(|w| !w.removed).cloned().collect::<Vec<_>>()))
-        .filter(|(_, w)| !w.is_empty())
-        .collect();
+/// The content's walls by playfield (content.rs) are the ones crossing does something; starts
+/// watching the first time.
+pub fn set(walls: BTreeMap<u32, Vec<TriggerWall>>) {
     let n: usize = walls.values().map(Vec::len).sum();
     let mut st = STATE.lock().unwrap();
     if st.walls != walls {

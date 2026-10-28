@@ -2,20 +2,21 @@
 //! (exact placements the server can spawn as they are), and the areas, scripts and waves they
 //! marked for someone to review.
 //!
-//! - [`set`]: a set's folder of per-playfield files, loading and saving.
+//! These shapes are the world editor's API (docs/SURVEY.md "API"); the records themselves are
+//! content records now (lmoxide_content::views). Sets on disk are only read, once, to take them
+//! into the content working copy.
+//!
+//! - [`set`]: a set's folder of per-playfield files, loading (and saving).
 //! - [`ids`]: ids of new records and the stable ids of the base content (guesses included).
-//! - [`merge`]: importing someone else's set into yours, skipping duplicates and near-duplicates.
-//! - [`apply`]: base content + placements → what a playfield spawns, with each object's category.
-//! - [`features`]: what each record is for (mimic live, new content, ...), nested and copyable.
-//! - [`review`]: a working set against an approved one: the changes to approve, and summaries.
+//! - [`features`]: what each record is for (mimic live, new content, ...), nested.
+//! - [`Category`]: how an object shows by where it came from.
 
-pub mod apply;
+mod category;
 pub mod features;
 pub mod ids;
-pub mod ledger;
-pub mod merge;
-pub mod review;
 pub mod set;
+
+pub use category::Category;
 
 use serde::{Deserialize, Serialize};
 
@@ -499,16 +500,6 @@ impl NotesFile {
     }
 }
 
-pub(crate) fn distance(a: Vec3, b: Vec3) -> f32 {
-    ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
-}
-
-/// The difference between two headings (radians), in degrees, 0..=180.
-pub(crate) fn heading_difference(a: f32, b: f32) -> f32 {
-    let d = (a - b).rem_euclid(std::f32::consts::TAU);
-    d.min(std::f32::consts::TAU - d).to_degrees()
-}
-
 /// Tags every editor is offered (any other word works too).
 pub const SUGGESTED_TAGS: &[&str] = &["approximate", "todo", "review", "guess", "placeholder", "needs-footage", "verified"];
 
@@ -630,11 +621,5 @@ mod tests {
         assert_eq!(got, ["Skeleton Warrior", "Skeleton Archer", "Goblin"]);
         let json = serde_json::to_string(&WallAction::Collect { drop: Some("2431".into()) }).unwrap();
         assert_eq!(json, r#"{"collect":{"drop":"2431"}}"#);
-    }
-
-    #[test]
-    fn heading_wraps() {
-        assert!((heading_difference(0.1, std::f32::consts::TAU - 0.1) - 0.2f32.to_degrees()).abs() < 1e-3);
-        assert!((heading_difference(0.0, std::f32::consts::PI) - 180.0).abs() < 1e-3);
     }
 }

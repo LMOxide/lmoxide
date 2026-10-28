@@ -4,7 +4,7 @@
 use lmoxide_content::id::RecordKind;
 use lmoxide_content::work::{Key, Work};
 use lmoxide_content::{Bouncer, Rot, Source};
-use lmoxide_survey::{Kind as SKind, Placement, apply::Category};
+use lmoxide_survey::{Kind as SKind, Placement, Category};
 use serde_json::{Value, json};
 
 use super::Error;

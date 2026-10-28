@@ -8,10 +8,17 @@ use lmoxide_content::{Content, Options, Severity};
 use tracing::{info, warn};
 
 static CONTENT: OnceLock<Content> = OnceLock::new();
+/// The folder the content was loaded from.
+static DIR: OnceLock<PathBuf> = OnceLock::new();
 
 /// The tree in this source checkout (for builds run from it and for tests).
 fn built_in_dir() -> PathBuf {
     Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../content")).to_path_buf()
+}
+
+/// The folder the content was loaded from ([`init`]).
+pub fn loaded_from() -> Option<PathBuf> {
+    DIR.get().cloned()
 }
 
 /// The content folder: `dir`, or the checkout's `content/`.
@@ -26,6 +33,7 @@ pub fn init(dir: Option<PathBuf>) -> anyhow::Result<()> {
     let content = load(&dir)?;
     info!(dir = %dir.display(), worlds = content.worlds.len(), loot_tables = content.loot.len(), items = content.items.len(), "content loaded");
     let _ = CONTENT.set(content);
+    let _ = DIR.set(dir);
     Ok(())
 }
 

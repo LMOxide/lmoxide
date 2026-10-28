@@ -12,8 +12,8 @@
 # Progression is on (--progression: XP, levels and minifigure ranks, as live).
 # `!server editor` in game (or the dev UI's switch) takes a player to the world editor's server
 # (tools/survey-server.sh, its ports 7112/7210 and ../var/survey-data) and `!server play` back.
-# World content: what the world editor (tools/survey-server.sh, ../var/survey-set) makes is approved
-# into this server by its rules or an admin (docs/WORLD-CONTENT.md; LMOXIDE_WORLD_EDITOR_SET= moves it).
+# World content: what the world editor (tools/survey-server.sh) publishes waits in ../var/content-queue
+# for an admin (docs/WORLD-CONTENT.md; LMOXIDE_CONTENT_QUEUE= moves it).
 # The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
 # client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
 # is started again; the API is started again too. Rebuild and restart both while this runs:
@@ -155,7 +155,7 @@ python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,72
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
   --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --progression \
-  --world-editor-set "${LMOXIDE_WORLD_EDITOR_SET:-$VAR/survey-set}" \
+  --content-queue "${LMOXIDE_CONTENT_QUEUE:-$VAR/content-queue}" \
   --peer-name editor --peer-data-dir "$VAR/survey-data" --peer-game-addr "$IP:7112" --peer-chat-addr "$IP:7210" \
   ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"

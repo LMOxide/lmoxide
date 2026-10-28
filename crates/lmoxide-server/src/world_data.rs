@@ -1,13 +1,12 @@
 //! World data from the content tree in the shapes the world modules read: each playfield's
 //! scenery and jump pads (`simple_dynels`, as world_content.json had them), teleport
 //! destinations and portals, return and respawn points, encounter areas, light gates, mirror
-//! puzzles, the recorded buildies and the playfields' names. World-editor records
-//! (`source: surveyed`) aren't among them: they come from its approved set.
+//! puzzles, the recorded buildies and the playfields' names (the world editor's records too).
 
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use lmoxide_content::{AreaRole, Bouncer, Content, ObjectKind, PuzzleKind, Shape, Source, Spawn, SpawnKind};
+use lmoxide_content::{AreaRole, Bouncer, Content, ObjectKind, PuzzleKind, Shape, Spawn, SpawnKind};
 use serde_json::{Value, json};
 
 fn content() -> &'static Content {
@@ -21,15 +20,11 @@ fn worlds() -> impl Iterator<Item = (u32, &'static String, &'static lmoxide_cont
     list.into_iter()
 }
 
-fn surveyed(s: Option<Source>) -> bool {
-    s == Some(Source::Surveyed)
-}
-
 /// A scenery spawn as a simple dynel.
 fn dynel_of(s: &Spawn) -> Option<Value> {
     let c = s.client.as_ref()?;
     let guid = c.guid?;
-    if c.dynel_type.is_some() || surveyed(s.source) {
+    if c.dynel_type.is_some() {
         return None;
     }
     let kind = match s.kind {
@@ -49,9 +44,6 @@ fn dynel_of(s: &Spawn) -> Option<Value> {
 /// A jump pad as a simple dynel.
 fn pad_of(b: &Bouncer) -> Option<Value> {
     let c = b.client.as_ref()?;
-    if surveyed(b.source) {
-        return None;
-    }
     let mut v = json!({
         "name": b.name, "pos": b.pos, "rot": b.rot, "scale": b.scale, "script_group": c.script_group,
         "visual": c.visual, "bounds": c.bounds, "guid": c.guid?, "tag": c.tag, "kind": "jump_pad", "look": c.look,
@@ -76,7 +68,7 @@ pub static WORLD_CONTENT: LazyLock<HashMap<String, Value>> = LazyLock::new(|| {
         dynels.extend(c.in_world(&c.bouncers, id).filter_map(pad_of));
         let triggers: Vec<Value> = c
             .in_world(&c.spawns, id)
-            .filter(|s| s.kind == SpawnKind::Trigger && !surveyed(s.source))
+            .filter(|s| s.kind == SpawnKind::Trigger)
             .map(|s| json!({ "name": s.name, "pos": s.pos }))
             .collect();
         out.insert(pf.to_string(), json!({ "name": w.name, "simple_dynels": dynels, "triggers": triggers }));
@@ -103,7 +95,7 @@ pub static DESTINATIONS: LazyLock<Value> = LazyLock::new(|| {
         }
         let list: Vec<Value> = c
             .in_world(&c.portals, id)
-            .filter(|p| !surveyed(p.source))
+            
             .filter_map(|p| {
                 let to = c.worlds.get(p.to.world.as_ref()?)?.playfield;
                 Some(json!({ "to": to, "pos": p.pos, "window": p.window? }))
@@ -163,7 +155,7 @@ pub static ENCOUNTERS: LazyLock<HashMap<String, Value>> = LazyLock::new(|| {
     let mut out = HashMap::new();
     for (pf, id, _) in worlds() {
         let mut v = serde_json::Map::new();
-        for a in c.in_world(&c.areas, id).filter(|a| !surveyed(a.source)) {
+        for a in c.in_world(&c.areas, id) {
             let section = match a.role {
                 AreaRole::Arena => "arenas",
                 AreaRole::Ambush => "ambushes",
@@ -227,7 +219,7 @@ pub static BUILDIES: LazyLock<Vec<Value>> = LazyLock::new(|| {
     let c = content();
     let mut out = Vec::new();
     for (pf, id, _) in worlds() {
-        for s in c.in_world(&c.spawns, id).filter(|s| s.kind == SpawnKind::Buildie && !surveyed(s.source) && s.client.as_ref().is_some_and(|c| c.cars_group.is_some())) {
+        for s in c.in_world(&c.spawns, id).filter(|s| s.kind == SpawnKind::Buildie && s.client.as_ref().is_some_and(|c| c.cars_group.is_some())) {
             let Some(o) = s.template.as_ref().and_then(|t| c.objects.get(t)).filter(|o| o.kind == ObjectKind::Buildie) else { continue };
             let Some(oc) = o.client.as_ref().filter(|oc| oc.display_name.is_some()) else { continue };
             out.push(json!({

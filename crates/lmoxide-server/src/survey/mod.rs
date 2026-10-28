@@ -30,7 +30,7 @@ use axum::{
 use lmoxide_net::types::Id32;
 use lmoxide_survey::{
     self as sv, Kind as SKind, Note, Origin, Placement, Script, SmashRule, TriggerWall, WallAction, WaveRef,
-    apply::{Base, Category, Spawn},
+    Category,
     ids,
 };
 use serde::{Deserialize, Serialize};
@@ -42,12 +42,14 @@ use crate::{
     world,
 };
 use lmoxide_content::git;
-use lmoxide_content::id::{RecordId, RecordKind};
+use lmoxide_content::id::RecordKind;
 use lmoxide_content::work::{Key, Work};
 
 mod bouncers;
 mod migrate;
 mod records;
+
+pub(crate) use records::wave_spawns;
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 
@@ -56,8 +58,6 @@ pub fn enabled() -> bool {
     ENABLED.load(Ordering::Relaxed)
 }
 
-/// How far a regenerated guess may have moved and still be the one a placement replaces.
-const MATCH_DISTANCE: f32 = 1.0;
 /// What marks a selected character: the champions' looping feet aura
 /// (particle_generic_champion_aura, "XX_champion feet aura castable").
 const SELECT_EFFECT: u32 = 162435;
@@ -312,42 +312,6 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
     tokio::spawn(watch_walls());
 }
 
-fn bases_of(defs: &[SpawnDef]) -> Vec<Base<SpawnDef>> {
-    defs.iter()
-        .map(|d| Base {
-            kind: skind(d.kind),
-            monster_data: nonzero(d.monster_data),
-            template: nonzero(d.template),
-            pos: d.pos,
-            category: Category::from_source(d.source.as_deref()),
-            data: d.clone(),
-        })
-        .collect()
-}
-
-/// What a play server spawns in playfield `pf` (content.rs): its base content with the
-/// placements applied (guesses they replace or delete left out); apart, the placements of script
-/// waves with what they spawn (scripts.rs spawns them when their wave starts).
-pub(crate) fn applied_defs(pf: u32, defs: &[SpawnDef], placements: &[Placement], catalog: &[(Placeable, SpawnDef)]) -> (Vec<SpawnDef>, Vec<(Placement, SpawnDef)>) {
-    let bases = bases_of(defs);
-    // (bouncers are jumppad.rs's)
-    let placements: Vec<Placement> = placements.iter().filter(|p| p.kind != SKind::Bouncer).cloned().collect();
-    let applied = sv::apply::apply(pf, &bases, &placements, MATCH_DISTANCE);
-    for p in &applied.orphans {
-        warn!(playfield = pf, placement = %p.id, "world content: the guess this placement replaces is gone; not spawned");
-    }
-    let out = applied
-        .start
-        .into_iter()
-        .filter_map(|s| match s {
-            Spawn::Base { data, .. } => Some(data.clone()),
-            Spawn::Surveyed { placement, replaced } => from_placement(catalog, pf, placement, replaced).map(|o| o.def),
-        })
-        .collect();
-    let waves = applied.waves.into_iter().filter_map(|p| from_placement(catalog, pf, p, None).map(|o| (p.clone(), o.def))).collect();
-    (out, waves)
-}
-
 /// Spawns playfield `pf`'s objects from the working copy, and the set's trigger walls.
 fn build_playfield(st: &mut State, work: &Work, pf: u32) {
     let notes = lmoxide_content::views::notes_of(work, pf);
@@ -407,48 +371,6 @@ fn template_of(catalog: &[(Placeable, SpawnDef)], kind: SKind, monster_data: Opt
         .map(|(_, d)| d.clone())
 }
 
-fn from_placement(catalog: &[(Placeable, SpawnDef)], pf: u32, p: &Placement, replaced: Option<&SpawnDef>) -> Option<Object> {
-    let kind = match nkind(p.kind) {
-        Ok(k) => k,
-        Err(_) => {
-            warn!(playfield = pf, placement = %p.id, kind = p.kind.as_str(), "survey: not spawned (kind not supported yet)");
-            return None;
-        }
-    };
-    let mut def = replaced
-        .filter(|d| skind(d.kind) == p.kind && nonzero(d.monster_data) == p.monster_data)
-        .cloned()
-        .or_else(|| template_of(catalog, p.kind, p.monster_data, p.template))
-        .unwrap_or_else(|| bare_def(kind, p.monster_data.unwrap_or(0), p.template.unwrap_or(0), p.level.unwrap_or(1)));
-    def.kind = if kind == Kind::Npc && def.kind == Kind::Fighter { Kind::Fighter } else { kind };
-    let level = p.level.unwrap_or(def.level).max(1);
-    def.health = health_at(&def, level);
-    def.level = level;
-    if !p.name.is_empty() {
-        def.name = p.name.clone();
-    }
-    def.pos = p.pos;
-    def.rot = Some(p.heading);
-    def.patrol = if walks(def.kind) { p.patrol.clone() } else { Vec::new() };
-    def.source = Some("survey".into());
-    Some(Object {
-        id: p.id.clone(),
-        key: Key::new(RecordId::new(RecordKind::Spawn, Some(pf), p.id.clone()), p.feature.clone()),
-        template: None,
-        playfield: pf,
-        category: Category::Surveyed,
-        def,
-        wave: p.wave.clone(),
-        replaces: p.replaces.clone(),
-        comment: p.comment.clone(),
-        feature: p.feature.clone(),
-        tags: p.tags.clone(),
-        author: p.author.clone(),
-        updated: p.updated,
-        npc: None,
-    })
-}
-
 /// A spawn of a look nothing in the base content uses.
 fn bare_def(kind: Kind, monster_data: u32, template: u32, level: u32) -> SpawnDef {
     serde_json::from_value::<SpawnDef>(serde_json::json!({
@@ -463,7 +385,7 @@ fn bare_def(kind: Kind, monster_data: u32, template: u32, level: u32) -> SpawnDe
 /// (kind, name, look, template)
 type LookKey = (SKind, String, Option<u32>, Option<u32>);
 
-pub(crate) fn catalog_of(bases: &BTreeMap<u32, Vec<SpawnDef>>) -> Vec<(Placeable, SpawnDef)> {
+fn catalog_of(bases: &BTreeMap<u32, Vec<SpawnDef>>) -> Vec<(Placeable, SpawnDef)> {
     // each look: the first spawn of it, and how often each playfield uses it
     let mut seen: BTreeMap<LookKey, (SpawnDef, BTreeMap<u32, u32>)> = BTreeMap::new();
     for (pf, defs) in bases {

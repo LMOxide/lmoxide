@@ -5,7 +5,7 @@
 use lmoxide_content::id::{RecordId, RecordKind};
 use lmoxide_content::work::{EditError, Key, Work};
 use lmoxide_content::{Source, Spawn, SpawnKind};
-use lmoxide_survey::{Kind as SKind, WaveRef, apply::Category};
+use lmoxide_survey::{Kind as SKind, WaveRef, Category};
 use serde_json::{Value, json};
 
 use super::{Error, Object, Placeable, bare_def, health_at, nkind, walks};
@@ -315,4 +315,36 @@ pub fn new_object(
         updated: 0,
         npc: None,
     })
+}
+
+/// Playfield `pf`'s spawns of script waves, as scripts.rs runs them (play servers: they spawn
+/// when their wave starts).
+pub(crate) fn wave_spawns(work: &Work, pf: u32) -> Vec<(lmoxide_survey::Placement, SpawnDef)> {
+    objects_of(work, pf)
+        .into_iter()
+        .filter(|o| o.wave.is_some())
+        .map(|o| {
+            let p = lmoxide_survey::Placement {
+                id: o.id.clone(),
+                kind: super::skind(o.def.kind),
+                name: o.def.name.clone(),
+                monster_data: super::nonzero(o.def.monster_data),
+                template: super::nonzero(o.def.template),
+                level: Some(o.def.level),
+                pos: o.def.pos,
+                heading: o.def.rot.unwrap_or(0.0),
+                target: None,
+                replaces: None,
+                removed: false,
+                wave: o.wave.clone(),
+                patrol: o.def.patrol.clone(),
+                comment: o.comment.clone(),
+                tags: o.tags.clone(),
+                feature: o.feature.clone(),
+                author: o.author.clone(),
+                updated: o.updated,
+            };
+            (p, o.def)
+        })
+        .collect()
 }

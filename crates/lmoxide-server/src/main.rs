@@ -145,15 +145,14 @@ pub struct Config {
     /// fully ranked.
     #[arg(long, env = "LMOXIDE_PROGRESSION")]
     pub progression: bool,
-    /// Survey mode: the survey set's folder (default <data-dir>/survey). It is saved as
-    /// surveyors work; export and import go through the web UI.
+    /// Survey mode: the survey set's folder (default <data-dir>/survey) of the world editor before
+    /// content records: taken into the content working copy once (its migrated.json).
     #[arg(long, env = "LMOXIDE_SURVEY_SET")]
     pub survey_set: Option<PathBuf>,
-    /// Play servers: the world editor's survey set folder (its --survey-set), whose changes are
-    /// approved into this server's content by its rules or an admin (docs/WORLD-CONTENT.md;
-    /// approved content and rules are kept in <data-dir>/world-content).
-    #[arg(long, env = "LMOXIDE_WORLD_EDITOR_SET")]
-    pub world_editor_set: Option<PathBuf>,
+    /// Play servers: the world editor's publish queue (the survey server's var/content-queue),
+    /// which admins see and decide on here (docs/WORLD-CONTENT.md).
+    #[arg(long, env = "LMOXIDE_CONTENT_QUEUE")]
+    pub content_queue: Option<PathBuf>,
     /// The game's content tree (docs/CONTENT.md; default: the source checkout's content/).
     #[arg(long, env = "LMOXIDE_CONTENT_DIR")]
     pub content_dir: Option<PathBuf>,
@@ -269,7 +268,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         survey::init(dir);
         editor::init(&gamedata::dir(cfg.content_dir.clone()));
     } else {
-        content::init(&storage.data_dir, cfg.world_editor_set.clone());
+        content::init(cfg.content_queue.clone());
     }
     progression::set_enabled(cfg.progression);
     let peer = cfg.peer_name.clone().map(|name| {

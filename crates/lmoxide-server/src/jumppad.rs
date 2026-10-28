@@ -8,10 +8,8 @@
 //! content/worlds/*/bouncers.json (world_data.rs); outside
 //! the recorded worlds the landing points are guesses.
 //!
-//! The world editor's bouncer placements (`kind: "bouncer"`, docs/SURVEY.md) apply on top
-//! ([`set`]): the approved, active ones on play servers (content.rs), the whole working set on
-//! the survey server (survey.rs). A placement that replaces a guessed pad takes its place (its
-//! guid too); new ones are added, deleted ones removed. Pads change in the world as they do.
+//! The world editor's bouncers are content records like the rest; the survey server puts its
+//! working copy's in as they change ([`set_records`]).
 
 use std::{
     collections::{BTreeMap, HashMap},
@@ -30,12 +28,11 @@ use lmoxide_net::{
 };
 use lmoxide_survey::{
     self as sv, Kind as SKind, Placement,
-    apply::{Base, Category, Spawn},
-    set::Set,
+    Category,
 };
 use serde::Deserialize;
 use tokio::sync::mpsc;
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::{
     effects,
@@ -188,12 +185,8 @@ pub struct Live {
 
 /// The pads by playfield, with the bouncer placements applied ([`set`]).
 static PADS: LazyLock<RwLock<HashMap<u32, Vec<Arc<Live>>>>> =
-    LazyLock::new(|| RwLock::new(BASE.keys().map(|&pf| (pf, applied(pf, &[]))).collect()));
-/// The bouncer placements applied, by playfield.
-static PLACEMENTS: LazyLock<Mutex<BTreeMap<u32, Vec<Placement>>>> = LazyLock::new(Default::default);
+    LazyLock::new(|| RwLock::new(BASE.keys().map(|&pf| (pf, base_pads(pf))).collect()));
 static STARTED: AtomicBool = AtomicBool::new(false);
-/// How far a regenerated guess may have moved and still be the one a placement replaces.
-const MATCH_DISTANCE: f32 = 1.0;
 /// Guids of placed pads (a hash of the placement id in this range, so they stay the same).
 const PLACED_GUIDS: u32 = 0x00c0_0000;
 
@@ -207,29 +200,13 @@ fn base_category(p: &Pad) -> Category {
     if p.target_by.as_deref() == Some("demo") { Category::Demo } else { Category::Guessed }
 }
 
-/// Playfield `pf`'s base pads with `placements` (bouncers) applied.
-fn applied(pf: u32, placements: &[Placement]) -> Vec<Arc<Live>> {
-    let empty = Vec::new();
-    let base = BASE.get(&pf).unwrap_or(&empty);
-    let bases: Vec<Base<&Pad>> = base
-        .iter()
-        .map(|p| Base { kind: SKind::Bouncer, monster_data: None, template: Some(p.visual[1]), pos: p.pos, category: base_category(p), data: p })
-        .collect();
-    let a = sv::apply::apply(pf, &bases, placements, MATCH_DISTANCE);
-    for p in &a.orphans {
-        warn!(playfield = pf, placement = %p.id, "bouncer: the pad this placement replaces is gone; not spawned");
-    }
-    let mut out: Vec<Arc<Live>> = a
-        .start
+/// Playfield `pf`'s pads as the content has them.
+fn base_pads(pf: u32) -> Vec<Arc<Live>> {
+    BASE.get(&pf)
         .into_iter()
-        .map(|s| match s {
-            Spawn::Base { id, category, data } => Live { pad: (*data).clone(), id, category, placement: None },
-            Spawn::Surveyed { placement, replaced } => from_placement(placement, replaced.copied()),
-        })
-        .map(Arc::new)
-        .collect();
-    out.extend(a.waves.into_iter().map(|p| Arc::new(from_placement(p, None))));
-    out
+        .flatten()
+        .map(|p| Arc::new(Live { pad: p.clone(), id: sv::ids::base_id(pf, SKind::Bouncer, None, Some(p.visual[1]), p.pos), category: base_category(p), placement: None }))
+        .collect()
 }
 
 /// A base pad of that visual (its resource type, bounds, look), if any.
@@ -239,59 +216,8 @@ fn model_of(visual: u32) -> Option<&'static Pad> {
     all.into_iter().flat_map(|(_, v)| v).find(|p| p.visual[1] == visual)
 }
 
-fn from_placement(p: &Placement, replaced: Option<&Pad>) -> Live {
-    let visual = p.template.or(replaced.map(|r| r.visual[1])).unwrap_or(0);
-    let model = replaced.filter(|r| r.visual[1] == visual).or_else(|| model_of(visual)).or(replaced);
-    let guid = replaced.map_or_else(|| PLACED_GUIDS + (fnv(&p.id) % 0x0010_0000) as u32, |r| r.guid);
-    let rot = match replaced {
-        Some(r) if (r.heading() - p.heading).abs() < 1e-3 => r.rot,
-        _ => [0.0, (p.heading / 2.0).sin(), 0.0, (p.heading / 2.0).cos()],
-    };
-    let pad = Pad {
-        name: if p.name.is_empty() { model.map(|m| m.name.clone()).unwrap_or_default() } else { p.name.clone() },
-        pos: p.pos,
-        rot,
-        visual: [model.map_or(1_010_201, |m| m.visual[0]), visual],
-        bounds: model.map_or([-1.5, 0.0, -1.5, 1.5, 0.5, 1.5], |m| m.bounds),
-        guid,
-        look: model.and_then(|m| m.look.clone()),
-        target: p.target,
-        apex: replaced.and_then(|r| r.apex),
-        target_by: Some("survey".into()),
-        tag: Some("JUMP".into()),
-    };
-    Live { pad, id: p.id.clone(), category: Category::Surveyed, placement: Some(p.clone()) }
-}
-
 fn fnv(s: &str) -> u64 {
     s.bytes().fold(0xcbf2_9ce4_8422_2325, |h, b| (h ^ u64::from(b)).wrapping_mul(0x100_0000_01b3))
-}
-
-/// Applies the bouncer placements of `set` (play servers: the approved, active content; the
-/// survey server: its working set). Playfields whose bouncers changed get their pads again; once
-/// the pads are in the world ([`start`]), changed ones are spawned again.
-pub fn set(set: &Set) {
-    let wanted: BTreeMap<u32, Vec<Placement>> = set
-        .placements
-        .iter()
-        .map(|(pf, f)| (*pf, f.placements.iter().filter(|p| p.kind == SKind::Bouncer).cloned().collect::<Vec<_>>()))
-        .filter(|(_, v)| !v.is_empty())
-        .collect();
-    let changed: Vec<u32> = {
-        let mut had = PLACEMENTS.lock().unwrap();
-        let pfs: std::collections::BTreeSet<u32> = had.keys().chain(wanted.keys()).copied().collect();
-        let changed = pfs.into_iter().filter(|pf| had.get(pf) != wanted.get(pf)).collect();
-        *had = wanted.clone();
-        changed
-    };
-    for pf in changed {
-        let new = applied(pf, wanted.get(&pf).map_or(&[], Vec::as_slice));
-        let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
-        info!(playfield = pf, pads = new.len(), "jump pads: bouncer placements applied");
-        if STARTED.load(Ordering::SeqCst) {
-            respawn(pf, &old, &new);
-        }
-    }
 }
 
 /// A pad as the survey server has it from a bouncer record (survey/bouncers.rs).
@@ -314,32 +240,32 @@ pub struct RecordPad {
 /// The survey server's pads of playfield `pf`, from its bouncer records: they replace the
 /// playfield's pads (spawned again where they changed).
 pub fn set_records(pf: u32, pads: Vec<RecordPad>) {
-    let new: Vec<Arc<Live>> = pads
-        .into_iter()
-        .map(|r| {
-            let p = &r.placement;
-            let visual_id = r.visual.map(|v| v[1]).or(p.template).unwrap_or(0);
-            let model = model_of(visual_id);
-            let pad = Pad {
-                name: if p.name.is_empty() { model.map(|m| m.name.clone()).unwrap_or_default() } else { p.name.clone() },
-                pos: p.pos,
-                rot: r.rot.unwrap_or([0.0, (p.heading / 2.0).sin(), 0.0, (p.heading / 2.0).cos()]),
-                visual: r.visual.unwrap_or([model.map_or(1_010_201, |m| m.visual[0]), visual_id]),
-                bounds: r.bounds.or(model.map(|m| m.bounds)).unwrap_or([-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]),
-                guid: r.guid.unwrap_or_else(|| PLACED_GUIDS + (fnv(&r.id) % 0x0010_0000) as u32),
-                look: r.look.or_else(|| model.and_then(|m| m.look.clone())),
-                target: p.target,
-                apex: r.apex,
-                target_by: r.target_by,
-                tag: r.tag.or(Some("JUMP".into())),
-            };
-            Arc::new(Live { pad, id: r.id, category: r.category, placement: Some(r.placement) })
-        })
-        .collect();
+    let new: Vec<Arc<Live>> = pads.into_iter().map(|r| Arc::new(live_of(r))).collect();
     let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
     if STARTED.load(Ordering::SeqCst) {
         respawn(pf, &old, &new);
     }
+}
+
+/// A record's pad: what the record doesn't say comes from a base pad of its look.
+fn live_of(r: RecordPad) -> Live {
+    let p = &r.placement;
+    let visual_id = r.visual.map(|v| v[1]).or(p.template).unwrap_or(0);
+    let model = model_of(visual_id);
+    let pad = Pad {
+        name: if p.name.is_empty() { model.map(|m| m.name.clone()).unwrap_or_default() } else { p.name.clone() },
+        pos: p.pos,
+        rot: r.rot.unwrap_or([0.0, (p.heading / 2.0).sin(), 0.0, (p.heading / 2.0).cos()]),
+        visual: r.visual.unwrap_or([model.map_or(1_010_201, |m| m.visual[0]), visual_id]),
+        bounds: r.bounds.or(model.map(|m| m.bounds)).unwrap_or([-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]),
+        guid: r.guid.unwrap_or_else(|| PLACED_GUIDS + (fnv(&r.id) % 0x0010_0000) as u32),
+        look: r.look.or_else(|| model.and_then(|m| m.look.clone())),
+        target: p.target,
+        apex: r.apex,
+        target_by: r.target_by,
+        tag: r.tag.or(Some("JUMP".into())),
+    };
+    Live { pad, id: r.id, category: r.category, placement: Some(r.placement) }
 }
 
 /// Takes pads that changed or went out of the world and puts new and changed ones in (a changed
@@ -834,31 +760,23 @@ mod tests {
     }
 
     #[test]
-    fn placements_replace_add_and_remove_pads() {
-        let base = applied(6200, &[]);
+    fn base_pads_and_record_pads() {
+        let base = base_pads(6200);
         let first = base.iter().find(|l| l.pad.name == "SwampToVolcano1").unwrap();
         assert_eq!(first.category, Category::Guessed);
-        assert_eq!(first.id, sv::ids::base_id(6200, SKind::Bouncer, None, Some(first.pad.visual[1]), first.pad.pos));
         // its chain: on through SwampToVolcano2's landing point
         let l = listed(6200, first);
         assert_eq!(l.target, Some([73.22, 56.95, 159.13]));
         assert_eq!(l.chain, [[59.64, 78.0, 185.13]]);
-        let origin = sv::Origin { id: first.id.clone(), kind: SKind::Bouncer, monster_data: None, template: Some(first.pad.visual[1]), pos: first.pad.pos };
-        let moved = Placement { replaces: Some(origin.clone()), template: Some(first.pad.visual[1]), ..bouncer("p-1", first.pad.pos, Some([1.0, 2.0, 3.0])) };
-        let new = bouncer("p-2", [10.0, 0.0, 10.0], None);
-        let after = applied(6200, &[moved, new]);
-        assert_eq!(after.len(), base.len() + 1);
-        let surveyed = after.iter().find(|l| l.id == "p-1").unwrap();
-        assert_eq!((surveyed.pad.guid, surveyed.pad.target, surveyed.category), (first.pad.guid, Some([1.0, 2.0, 3.0]), Category::Surveyed));
-        assert!(!after.iter().any(|l| l.id == first.id), "replaced");
-        let placed = after.iter().find(|l| l.id == "p-2").unwrap();
+        // a placed pad (a record without the client's details): a mortar's look, its own guid
+        let rec = |p: Placement| RecordPad { id: p.id.clone(), category: Category::Surveyed, placement: p, visual: None, bounds: None, guid: None, look: None, rot: None, apex: None, target_by: None, tag: None };
+        let placed = live_of(rec(bouncer("bouncer/6200/new", [10.0, 0.0, 10.0], None)));
         assert!(!placed.pad.launches(), "no landing point yet");
         assert_eq!(placed.pad.readable(), "Mortar");
         assert!(placed.pad.guid >= PLACED_GUIDS);
-        let deleted = Placement { replaces: Some(origin), removed: true, ..bouncer("p-3", first.pad.pos, None) };
-        assert_eq!(applied(6200, &[deleted]).len(), base.len() - 1);
+        assert!(live_of(rec(bouncer("bouncer/6200/x", [0.0; 3], Some([1.0, 2.0, 3.0])))).pad.launches());
         // the recorded worlds' pads are exact (demo)
-        assert!(applied(1300, &[]).iter().all(|l| l.category == Category::Demo));
+        assert!(base_pads(1300).iter().all(|l| l.category == Category::Demo));
     }
 
     #[test]
