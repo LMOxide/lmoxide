@@ -48,6 +48,7 @@ use lmoxide_content::git;
 use lmoxide_content::id::{RecordId, RecordKind};
 use lmoxide_content::work::{Key, Work};
 
+mod bouncers;
 mod records;
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
@@ -195,7 +196,7 @@ pub fn content_changed(work: &Work, keys: &[Key]) {
         // (its placements show or hide by wave)
         keys.iter().filter_map(|k| k.id.world).collect()
     } else {
-        keys.iter().filter(|k| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Area | RecordKind::Trigger)).filter_map(|k| k.id.world).collect()
+        keys.iter().filter(|k| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Area | RecordKind::Trigger | RecordKind::Bouncer)).filter_map(|k| k.id.world).collect()
     };
     if !pfs.is_empty() {
         rebuild(st, work, pfs);
@@ -322,11 +323,10 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
         }
         st.catalog = catalog_of(&st.bases);
         let playfields: std::collections::BTreeSet<u32> =
-            work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Script | RecordKind::Area | RecordKind::Trigger)).filter_map(|(k, _)| k.id.world).chain(st.set.placements.keys().copied()).collect();
+            work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Spawn | RecordKind::Script | RecordKind::Area | RecordKind::Trigger | RecordKind::Bouncer)).filter_map(|(k, _)| k.id.world).collect();
         for pf in playfields {
             build_playfield(st, work, pf);
         }
-        crate::jumppad::set(&st.set);
         info!(objects = st.objects.len(), walls = st.walls.len(), "survey: content spawned");
     });
     if built.is_none() {
@@ -387,6 +387,7 @@ fn build_playfield(st: &mut State, work: &Work, pf: u32) {
         }
         st.objects.insert(o.id.clone(), o);
     }
+    bouncers::apply(work, pf);
     for def in lmoxide_content::views::walls_of(work, pf) {
         let mut w = Wall { def, playfield: pf, pieces: Vec::new(), fired: HashSet::new() };
         spawn_wall(&st.surveyors, &mut w);
@@ -992,75 +993,49 @@ fn bouncer_view(l: &crate::jumppad::Listed) -> SurveyObject {
     }
 }
 
-/// The placement to change for a bouncer: a surveyed one's own, or a new one replacing a
-/// guessed pad (as a guessed spawn becomes surveyed).
-fn bouncer_placement(l: &crate::jumppad::Listed, author: &str) -> Result<Placement, Error> {
+/// The editor's fields of a bouncer to change (guesses and surveyed ones).
+fn bouncer_placement(l: &crate::jumppad::Listed) -> Result<Placement, Error> {
     match (l.category, &l.placement) {
-        (Category::Surveyed, Some(p)) => Ok(p.clone()),
-        (Category::Guessed, _) => Ok(Placement {
-            id: ids::new_id("p", if author.is_empty() { "web" } else { author }),
-            kind: SKind::Bouncer,
-            name: l.name.clone(),
-            monster_data: None,
-            template: Some(l.visual),
-            level: None,
-            pos: l.pos,
-            heading: l.heading,
-            target: l.target,
-            replaces: Some(Origin { id: l.id.clone(), kind: SKind::Bouncer, monster_data: None, template: Some(l.visual), pos: l.pos }),
-            removed: false,
-            wave: None,
-            patrol: Vec::new(),
-            comment: String::new(),
-            tags: Vec::new(),
-            feature: sv::features::live(),
-            author: author.to_string(),
-            updated: ids::now(),
-        }),
+        (Category::Surveyed | Category::Guessed, Some(p)) => Ok(p.clone()),
         (c, _) => Err(Error::Invalid(format!("{} objects can only be hidden", label(c)))),
     }
 }
 
-/// Saves bouncer placement `p` in playfield `pf` (replacing the record with its id) and applies
-/// the set's bouncers again; selections and hiding of `old` (the pad it was) follow it. Its view
-/// (none when deleted).
-fn store_bouncer(st: &mut State, pf: u32, p: Placement, old: &str) -> Result<SurveyObject, Error> {
-    let id = p.id.clone();
-    let removed = p.removed;
-    let list = &mut st.set.placements_mut(pf).placements;
-    match list.iter_mut().find(|x| x.id == id) {
-        Some(x) => *x = p,
-        None => list.push(p),
-    }
-    save(st);
-    crate::jumppad::set(&st.set);
-    if old != id {
-        for s in st.surveyors.values_mut() {
-            if s.selected.as_deref() == Some(old) {
-                s.selected = Some(id.clone());
-            }
-            if s.hidden.remove(old) {
-                s.hidden.insert(id.clone());
-            }
+/// Saves bouncer `p` (its record id) in playfield `pf`, or deletes it (`removed`), and puts the
+/// world's pads in again. Its view (none when deleted).
+fn store_bouncer(st: &mut State, work: &mut Work, pf: u32, p: Placement, author: &str) -> Result<Option<SurveyObject>, Error> {
+    let key = Key::parse(&p.id, p.feature.clone()).map_err(Error::Invalid)?;
+    if p.removed {
+        let shown = work.versions(&p.id).into_iter().map(|(k, _)| k.clone()).find(|k| *k == key).or_else(|| work.versions(&p.id).into_iter().map(|(k, _)| k.clone()).next());
+        if let Some(k) = shown {
+            work.delete(&k, None, author, ids::now())?;
+        }
+    } else {
+        let old = work.versions(&p.id).into_iter().map(|(k, _)| k.clone()).find(|k| *k != key);
+        bouncers::store(work, &key, &p, author, ids::now())?;
+        // moved to another feature: the old version goes
+        if let Some(o) = old.filter(|o| o.feature != key.feature && !p.feature.is_empty()) {
+            work.reset(&o, None)?;
         }
     }
+    bouncers::apply(work, pf);
     sync_all(st);
-    mark_selecting(st, &id);
+    mark_selecting(st, &p.id);
     bump(st, pf);
-    match crate::jumppad::find(&id) {
-        Some(l) => Ok(bouncer_view(&l)),
-        None if removed => Err(Error::NotFound(format!("{id} is deleted"))),
-        None => Err(Error::Invalid(format!("{id}: the pad it replaces is gone (not spawned)"))),
+    match crate::jumppad::find(&p.id) {
+        Some(l) => Ok(Some(bouncer_view(&l))),
+        None if p.removed => Ok(None),
+        None => Err(Error::Invalid(format!("{}: saved, but its pad isn't in the world", p.id))),
     }
 }
 
 /// Edits a bouncer (a guessed one becomes a surveyed placement replacing it).
-fn edit_bouncer(st: &mut State, l: &crate::jumppad::Listed, c: Changes, author: &str) -> Result<SurveyObject, Error> {
+fn edit_bouncer(st: &mut State, work: &mut Work, l: &crate::jumppad::Listed, c: Changes, author: &str) -> Result<SurveyObject, Error> {
     if c.kind.is_some_and(|k| k != SKind::Bouncer) {
         return Err(Error::Invalid("a bouncer can't be changed into another kind".into()));
     }
     let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
-    let mut p = bouncer_placement(l, author)?;
+    let mut p = bouncer_placement(l)?;
     if let Some(Some(t)) = c.template {
         p.template = Some(t);
     }
@@ -1089,7 +1064,7 @@ fn edit_bouncer(st: &mut State, l: &crate::jumppad::Listed, c: Changes, author: 
         p.author = author.to_string();
     }
     p.updated = ids::now();
-    store_bouncer(st, l.playfield, p, &l.id)
+    store_bouncer(st, work, l.playfield, p, author)?.ok_or_else(|| Error::NotFound(format!("{} is gone", l.id)))
 }
 
 // ------------------------------------------------------------------ API shapes
@@ -1436,7 +1411,7 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
                 return Err(Error::Invalid("a bouncer needs its look (template: the pad's visual id, from the catalog)".into()));
             }
             let p = Placement {
-                id: ids::new_id("p", &author),
+                id: work.new_id("bouncer", if b.what.name.is_empty() { "bouncer" } else { &b.what.name }, Some(pf)),
                 kind: SKind::Bouncer,
                 name: b.what.name.clone(),
                 monster_data: None,
@@ -1452,12 +1427,12 @@ async fn place(Path(account): Path<u32>, headers: HeaderMap, Json(b): Json<Place
                 comment: String::new(),
                 tags: sv::tidy_tags(&b.tags),
                 feature: checked_feature(&st.set, b.feature)?,
-                author,
+                author: author.clone(),
                 updated: ids::now(),
             };
             let id = p.id.clone();
             st.surveyors.entry(player).or_default().selected = Some(id.clone());
-            return store_bouncer(st, pf, p, &id);
+            return store_bouncer(st, work, pf, p, &author)?.ok_or_else(|| Error::Invalid(format!("{id} wasn't placed")));
         }
         nkind(b.what.kind)?;
         if b.wave.as_ref().is_some_and(|w| !has_wave(&st.notes, pf, w)) {
@@ -1729,7 +1704,7 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
             return edit_wall(st, work, &id, c, author);
         }
         if let Some(l) = crate::jumppad::find(&id) {
-            return edit_bouncer(st, &l, c, &author);
+            return edit_bouncer(st, work, &l, c, &author);
         }
         let feature = c.feature.clone().map(|f| checked_feature(&st.set, Some(f))).transpose()?;
         let mut o = editable(st, &id)?;
@@ -1799,7 +1774,7 @@ async fn confirm(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> 
         }
         let author = author_of(&headers);
         if let Some(l) = crate::jumppad::find(&id) {
-            return edit_bouncer(st, &l, Changes::default(), &author);
+            return edit_bouncer(st, work, &l, Changes { tags: Some(l.placement.as_ref().map(|p| p.tags.iter().cloned().chain(["verified".to_string()]).collect()).unwrap_or_default()), ..Changes::default() }, &author);
         }
         // confirmed: surveyed, and tagged so
         let mut o = editable(st, &id)?;
@@ -1831,18 +1806,11 @@ async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
             return Ok(Json(Removed { id }));
         }
         if let Some(l) = crate::jumppad::find(&id) {
-            let author = author_of(&headers);
-            let mut p = bouncer_placement(&l, &author)?;
+            let mut p = bouncer_placement(&l)?;
             p.removed = true;
-            p.updated = ids::now();
-            if !author.is_empty() {
-                p.author = author;
-            }
-            let removed = p.id.clone();
-            // (its view: none, it is gone)
-            let _ = store_bouncer(st, l.playfield, p, &id);
-            deselect(st, &removed);
-            return Ok(Json(Removed { id: removed }));
+            store_bouncer(st, work, l.playfield, p, &author_of(&headers))?;
+            deselect(st, &id);
+            return Ok(Json(Removed { id }));
         }
         let o = editable(st, &id)?;
         // (refused while other records name it: a bouncer that needs it built, a wave's health trigger)
@@ -1894,16 +1862,17 @@ async fn forget(Path(id): Path<String>) -> R<Option<SurveyObject>> {
             bump(st, pf);
             return Ok(Json(back));
         }
-        // a bouncer placement of the set
-        if let Some((pf, record)) = st.set.placements.iter().find_map(|(pf, f)| f.placements.iter().find(|p| p.id == id && p.kind == SKind::Bouncer).map(|p| (*pf, p.clone()))) {
-            st.set.placements_mut(pf).placements.retain(|p| p.id != id);
-            save(st);
-            crate::jumppad::set(&st.set);
+        // a bouncer: back to its committed version
+        if let Ok(key) = Key::parse(&id, crate::jumppad::find(&id).and_then(|l| l.placement).map_or_else(|| "live".to_string(), |p| p.feature))
+            && key.id.kind == RecordKind::Bouncer
+        {
+            let pf = key.id.world.unwrap_or(0);
+            git::restore(work, &key)?;
+            bouncers::apply(work, pf);
             deselect(st, &id);
+            sync_all(st);
             bump(st, pf);
-            // the pad it replaced, back
-            let back = record.replaces.as_ref().and_then(|o| crate::jumppad::find(&o.id)).map(|l| bouncer_view(&l));
-            return Ok(Json(back));
+            return Ok(Json(crate::jumppad::find(&id).map(|l| bouncer_view(&l))));
         }
         // a spawn: back to its committed version (a new one goes, a deleted one comes back)
         let key = st.objects.get(&id).map(|o| o.key.clone()).or_else(|| Key::parse(&id, "live").ok()).filter(|k| k.id.kind == RecordKind::Spawn).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
@@ -1989,8 +1958,10 @@ async fn create_object(Path(pf): Path<u32>, headers: HeaderMap, Json(mut b): Jso
             return Err(Error::Invalid("no such script wave in this playfield".into()));
         }
         b.replaces = None;
-        let id = if b.kind == "trigger" || b.kind == "bouncer" {
-            ids::new_id(if b.kind == "trigger" { "t" } else { "p" }, &author)
+        let id = if b.kind == "trigger" {
+            ids::new_id("t", &author)
+        } else if b.kind == "bouncer" {
+            work.new_id("bouncer", if b.name.is_empty() { "bouncer" } else { &b.name }, Some(pf))
         } else {
             records::new_key(work, pf, &b.name, &b.feature).id.to_string()
         };
@@ -2052,12 +2023,10 @@ fn put_snapshot(st: &mut State, work: &mut Work, id: String, pf: u32, b: Snapsho
             comment: b.comment,
             tags: sv::tidy_tags(&b.tags),
             feature: b.feature,
-            author,
+            author: author.clone(),
             updated: ids::now(),
         };
-        // (the pad it replaces, if listed as itself, goes away: its selections follow)
-        let old = p.replaces.as_ref().map(|o| o.id.clone()).filter(|o| crate::jumppad::find(o).is_some()).unwrap_or_else(|| id.clone());
-        return store_bouncer(st, pf, p, &old);
+        return store_bouncer(st, work, pf, p, &author)?.ok_or_else(|| Error::Invalid(format!("{id} wasn't saved")));
     }
     let key = Key::parse(&id, b.feature.clone()).map_err(Error::Invalid)?;
     let what = Placeable { kind, name: b.name.clone(), monster_data: b.monster_data, template: b.template, level: b.level, used: None };
@@ -2097,7 +2066,6 @@ fn rebuild(st: &mut State, work: &Work, pfs: impl IntoIterator<Item = u32>) {
         build_playfield(st, work, pf);
         bump(st, pf);
     }
-    crate::jumppad::set(&st.set);
     sync_all(st);
     let viewers: Vec<Id32> = st.surveyors.keys().copied().collect();
     for v in viewers {

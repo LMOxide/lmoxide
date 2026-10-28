@@ -294,6 +294,54 @@ pub fn set(set: &Set) {
     }
 }
 
+/// A pad as the survey server has it from a bouncer record (survey/bouncers.rs).
+pub struct RecordPad {
+    pub id: String,
+    pub category: Category,
+    /// The editor's fields (name, heading, comment, feature, tags, author), as a placement.
+    pub placement: Placement,
+    /// [resource type, visual id]; none: a base pad's of that visual id, else the usual.
+    pub visual: Option<[u32; 2]>,
+    pub bounds: Option<[f32; 6]>,
+    pub guid: Option<u32>,
+    pub look: Option<String>,
+    pub rot: Option<[f32; 4]>,
+    pub apex: Option<f32>,
+    pub target_by: Option<String>,
+    pub tag: Option<String>,
+}
+
+/// The survey server's pads of playfield `pf`, from its bouncer records: they replace the
+/// playfield's pads (spawned again where they changed).
+pub fn set_records(pf: u32, pads: Vec<RecordPad>) {
+    let new: Vec<Arc<Live>> = pads
+        .into_iter()
+        .map(|r| {
+            let p = &r.placement;
+            let visual_id = r.visual.map(|v| v[1]).or(p.template).unwrap_or(0);
+            let model = model_of(visual_id);
+            let pad = Pad {
+                name: if p.name.is_empty() { model.map(|m| m.name.clone()).unwrap_or_default() } else { p.name.clone() },
+                pos: p.pos,
+                rot: r.rot.unwrap_or([0.0, (p.heading / 2.0).sin(), 0.0, (p.heading / 2.0).cos()]),
+                visual: r.visual.unwrap_or([model.map_or(1_010_201, |m| m.visual[0]), visual_id]),
+                bounds: r.bounds.or(model.map(|m| m.bounds)).unwrap_or([-1.5, 0.0, -1.5, 1.5, 0.5, 1.5]),
+                guid: r.guid.unwrap_or_else(|| PLACED_GUIDS + (fnv(&r.id) % 0x0010_0000) as u32),
+                look: r.look.or_else(|| model.and_then(|m| m.look.clone())),
+                target: p.target,
+                apex: r.apex,
+                target_by: r.target_by,
+                tag: r.tag.or(Some("JUMP".into())),
+            };
+            Arc::new(Live { pad, id: r.id, category: r.category, placement: Some(r.placement) })
+        })
+        .collect();
+    let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
+    if STARTED.load(Ordering::SeqCst) {
+        respawn(pf, &old, &new);
+    }
+}
+
 /// Takes pads that changed or went out of the world and puts new and changed ones in (a changed
 /// pad keeps its id: it comes back after the client lets go of it).
 fn respawn(playfield: u32, old: &[Arc<Live>], new: &[Arc<Live>]) {
