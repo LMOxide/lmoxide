@@ -51,19 +51,21 @@ Against it:
 
 ## Accounts and characters
 
-Recommendation: **one account, characters belong to a mode.**
+Decided (2026-10-28): **one account, one character set per mode; the patcher picks the mode.**
 
-- One DB, one login. A `characters.mode` column (`progression` | `maxed` | `world-editor`).
-- The character screen lists all of an account's characters; picking one picks its mode. A new
-  character asks for a mode (**Open:** how — the creation screen has no mode picker. Options: a
-  first dialogue/portal in the creation playfield, or the web UI's "new character" + the client
-  just lists it, or a chat command).
-- **Open:** how the client shows a character's mode in the list. `PlayerCharacterData_t` has a
-  dimension field the GUI doesn't show. Fallbacks: a suffix in the (unused) middle/last name
-  strings, or the level column (maxed characters show their real level anyway).
+- One DB, one login. A `characters.mode` column (`progression` | `maxed` | `world-editor`). The
+  character screen lists only the characters of the mode the client connected to; a new
+  character is made in that mode.
+- **How the mode reaches the server: one universe port per mode, one process.** The client only
+  knows `UniverseAddr` and its login screen has no mode choice, so the patcher writes a different
+  port per mode (e.g. progression `:7100`, maxed `:7103`, world-editor `:7104`). The server
+  listens on all of them; the universe port a client logs in through sets its session's mode,
+  carried by the login cookie. Territory, game and chat ports stay shared. Launching the client
+  without the patcher keeps the last mode written.
 - Characters never move between modes (no carrying maxed items into progression).
 - World-editor characters need an editor permission on the account (today every account is admin
-  on the survey server; that has to become a real permission once it is public).
+  on the survey server; that has to become a real permission once it is public). The universe
+  agent refuses the login on that port without it.
 - Shared across modes: friends, chat, account bans/GM level. Teams only within one mode (a team
   shares one instance, which has one ruleset).
 
@@ -159,8 +161,11 @@ and many shell scripts. Proposal:
 
 ## What changes in the other repos
 
-- **lmoxide-patcher**: one profile per host; drop `kind` / `other_servers` (PATCHING.md). Optional
-  later: show the account's characters per mode.
+- **lmoxide-patcher**: one profile per host and a mode picker next to Play. `/lmoxide/v1/info`
+  replaces `kind` / `other_servers` (PATCHING.md) with `modes: [{id, name, description,
+  universe_addr, requires}]`; the patcher writes the chosen mode's `UniverseAddr` and remembers the
+  choice per profile. `LocalConfig.xml` is in the signed manifest, so the address must become
+  patcher-owned (not verified, or rewritten after every sync), otherwise a sync "repairs" it.
 - **lmoxide-dev-ui**: one API, one sign-in; debugger and editor are tools of the same server.
   Editor gets "Play this (preview)" and instance pickers; debugger lists instances and their
   counters and follows players across instances.
