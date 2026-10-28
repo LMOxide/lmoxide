@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Decode LMO live-server traffic from a Network Monitor capture (see netmon.py).
+"""Decode LMO live-server traffic from a Network Monitor capture (see netmon.py) or a pcap/pcapng
+file (pcap.py). A flow's direction is server->client when its source is a Funcom host.
 
 Pipeline:
   1. keep TCP packets to/from Funcom's LMO hosts (FUNCOM_PREFIXES),
@@ -28,6 +29,7 @@ import zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import netmon  # noqa: E402
+import pcap  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RPC_METHODS = os.path.join(HERE, "..", "..", "data", "rpc_methods.json")
@@ -37,8 +39,8 @@ RPC_METHODS = os.path.join(HERE, "..", "..", "data", "rpc_methods.json")
 #   37.18.192.72/78 :443 web, 37.18.192.73 :80 ctrack (funnel)
 #   37.18.193.16   game/territory servers (7102-7119)
 #   69.16.175.42   update.lego.funcom.com :80 (patch CDN)
+# Beta captures (LMO_Packets.zip, 2013-12 to 2014-08) use 37.18.192.52/53 and 37.18.193.41/42/61.
 FUNCOM_PREFIXES = ("37.18.192.", "37.18.193.", "69.16.175.")
-CLIENT_PREFIX = "192.168.1.5"
 
 # Endpoint names from crates/lmoxide-net/src/rpc.rs (Endpoint enum).
 ENDPOINT_NAMES = [
@@ -140,11 +142,18 @@ class Run:
         return best[1], best[2]
 
 
+def iter_capture(path):
+    """Frames from a Network Monitor .cap, or a pcap/pcapng file (pcap.py)."""
+    with open(path, "rb") as fh:
+        magic = fh.read(4)
+    return netmon.iter_frames(path) if magic == b"GMBU" else pcap.iter_frames(path)
+
+
 def build_directions(path):
     """Return {(src,sport,dst,dport): Direction} for Funcom TCP flows, plus frame stats."""
     dirs = {}
     stats = collections.Counter()
-    for fr in netmon.iter_frames(path):
+    for fr in iter_capture(path):
         stats["frames"] += 1
         ip = fr.ip
         if ip is None or ip.tcp is None:
@@ -341,7 +350,7 @@ def flow_messages(d):
     Returns (messages, info) where info describes how the stream was read."""
     key = d.key
     src = key[0]
-    direction = "C->S" if src.startswith(CLIENT_PREFIX) else "S->C"
+    direction = "S->C" if is_funcom(src) else "C->S"
     info = {"runs": len(d.runs), "gaps": d.gaps, "retransmits": d.retransmits,
             "bytes": sum(len(r.data) for r in d.runs)}
     frames = []
