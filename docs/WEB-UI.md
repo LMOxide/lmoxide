@@ -60,18 +60,20 @@ would answer 403.
 | `moderate` | kick, ban (days, reason), unban, broadcast a chat message |
 | `admin` | create/rename/delete accounts, set passwords and GM levels, maintenance mode, API keys (secret shown once at creation), audit log, **world content** (below) |
 
-**World content** (admin; docs/WORLD-CONTENT.md, routes `/v1/content/...`, not in openapi.json):
-a queue of what world editors changed (`GET /v1/content/queue`: per playfield, feature and
-author, with a one-line summary and each record's details), with Approve / Reject for a whole
-change or ticked records; the rules (`GET/PUT /v1/content/rules`): which features are live on the
-server (`active`) and which are approved without asking, by feature/category (`auto_features`,
-e.g. `live` = "mimic live") or by author (`auto_authors`); pick features from
-`GET /v1/content/features` (show `path`, e.g. "New content > Christmas Event > 2026"); and a
-summary of the whole approved (and working) content (`GET /v1/content/summary?of=approved|working`).
-Also Preview on a waiting change (`POST /v1/content/preview`: in the game for everyone for a
-while) and the history of approvals (`GET /v1/content/history`) with each entry's `actions`
-(undo, redo, keep, revert: `POST /v1/content/history/{seq}/{action}`).
-`GET /v1/content/state` gives the badge count (`pending`) and the source folder's error, if any.
+**World content** (admin; docs/WORLD-CONTENT.md, routes `/v1/content/...`, not in openapi.json;
+changed 2026-10-28, the web UI's page needs redoing): what world editors published waits in a
+queue of entries (`GET /v1/content/queue`, oldest first; `GET /v1/content/queue/{seq}`). An entry
+has `seq`, `created` (unix), `by` (who published), `summary` ("Isle of Yarr: 3 records (feature
+live)"), `status` (`queued`, `rejected`) and `reason`, and its `records`: each content record's
+`id`, `feature`, `change` (`added`, `changed`, `removed`), `file`, `author`, and the record
+`before` and `after` (JSON; show the fields that differ, as the world editor's record pages do).
+Reject (`POST /v1/content/reject {seq, reason}`) keeps the entry, rejected. Approve
+(`POST /v1/content/approve {seq}`) will commit the entry to the content repository; it answers
+501 until that is built (show it disabled with that message), and Preview (in the game for a
+while before approving) comes with it. `GET /v1/content/state` gives the badge count (`queued`).
+History will be the content repository's (commits with `Content-Author:` and `Approved-By:`).
+The rules, summary, features, refresh, preview and history routes of the old approved-set flow
+are gone.
 
 Moderators get 403 when they kick or ban staff (accounts with a GM level); only admins can.
 

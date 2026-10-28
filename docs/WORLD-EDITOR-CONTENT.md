@@ -99,8 +99,22 @@ history on play servers), `crates/lmoxide-content/src/model.rs` (every record ty
   sentences, skill client actions, dialogue lines, minifigure upgrades). Smash achievements link
   their achievements by name. Loot rolling moved to `lmoxide_content::roll` (the server and
   `POST /v1/editor/loot/simulate` share it). Undo is per record (its saved versions).
-- Not started: 2b (in-game routes on content records; survey.rs keeps its base-id + placement
-  model today), 3 (publish queue; the user asked to leave out the commit and push for now), 6.
+- Phase 2b and 6 (2026-10-28; lmoxide 725698e .. 30085f3): survey.rs became `survey/`
+  (mod.rs, records.rs, bouncers.rs, migrate.rs); spawns, bouncers, trigger walls, notes, scripts,
+  smash rules and features are content records (`lmoxide_content::views` converts them to and
+  from the survey API's shapes, which the editor keeps using); objects are named by record ids
+  (typed: `lmoxide_content::id::RecordId`); forget = back to the last commit
+  (`git::restore`). The survey set was taken into the working copy once (survey/migrate.rs); its
+  format's merge, review, ledger and apply are gone, import/export too. Play servers run the
+  content's editor work (content.rs) instead of an approved set.
+- Phase 3 without the commit (2026-10-28): Publish makes a publish queue entry
+  (`var/content-queue`, `lmoxide_content::queue`); play servers list and reject entries
+  (`/v1/content/*`, docs/WORLD-CONTENT.md, WEB-UI.md hand-off). On hold at the user's request:
+  approving (commit and push to lmoxide-content) and the preview that goes with it; play servers
+  pulling approved content.
+- Left for later: phase 6's full live reload of definitions on play servers; the editor's undo
+  across record pages and in-game edits as one history; showing a definition record's in-game
+  objects (Definitions -> world).
 
 ## Phases
 

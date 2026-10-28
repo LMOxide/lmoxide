@@ -71,7 +71,7 @@ web UI.
 cargo run -p lmoxide-content -- check [--feature feature/christmas] [--warnings]  # every problem, exit 1 on errors
 cargo run -p lmoxide-content -- fmt [--check]     # rewrite files in canonical form
 cargo run -p lmoxide-content -- schema            # content/schemas/*.schema.json and index.json
-cargo run -p lmoxide-content -- import --data data --survey ../var/survey-set/published --out content
+cargo run -p lmoxide-content -- import --data data --out content   # (the first import; the tree is edited since)
 tools/content/verify_import.py data content       # compares a fresh import with the old files
 ```
 

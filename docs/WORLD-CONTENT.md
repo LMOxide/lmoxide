@@ -1,147 +1,65 @@
-# World content: from the world editor to the game servers
+# World content: from the world editor to play servers
 
-Contributors only need the game client and a browser: they edit worlds on the world editor's
-survey server (docs/SURVEY.md, the dev UI's world editor), publish what is ready, and play
-servers take it in once it is approved. No exports, imports or files to pass around.
+What world editors make (spawns, bouncers, trigger walls, scripts and their waves, notes, smash
+rules, and any other record on the editor's Definitions pages) is content records
+(docs/CONTENT.md), in the world editor's copy of the content repository. It reaches play servers
+through the content repository's `main`, after an admin approved it.
 
 ```
-world editor (survey server)              play server (LAN, public, ...)
-  var/survey-set/  = the working copy
-  (every editor's records, autosaved
-   as they work, author + feature)
-  var/survey-set/published/  ──────────►  <data-dir>/world-content/
-  (what editors published)                  baseline/      approved before histories (once)
-                                            changes/       one file per approval (history)
-                                            approved/      the approved copy, built from them
-                                            rules.json     active features, auto-approval
-                                            rejected.json  rejected versions
+world editor (survey server, docs/SURVEY.md)
+  var/content-work/            a git checkout of LMOxide/lmoxide-content: every editor's work,
+                               saved as they make it (unpublished: differs from its last commit)
+        │ Publish (the editor's header)
+        ▼
+  var/content-queue/<seq>.json one entry per publish: the records it changes, before and after
+        │ approve (web UI, admin)            ── not built yet: see "Approval" below
+        ▼
+  LMOxide/lmoxide-content main  a commit per approved entry, authored as the editor, with
+                               Content-Author:, Approved-By:, Lmoxide-Change: (content/README.md)
+        │ git pull
+        ▼
+play servers (content/ or --content-dir): run it from their next start
 ```
 
-## Features
+## On play servers
 
-Every record (placement, trigger wall, note, script, smash achievement rule) names a feature, nested with `/`; the first
-part is its category:
+A play server runs its content tree as loaded at start (`--content-dir`, default the checkout's
+`content/`), the world editor's records like every other: spawns (surveyed ones too; spawns of a
+script wave wait for their wave, scripts.rs), bouncers, trigger walls (walls.rs: invisible,
+crossing one does what it says), scripts (scripts.rs, `!script list|start|stop`), smash rules
+(achievements.rs). Features: `live` and what is nested under the server's active features
+(lmoxide-content `Options::features`).
 
-| Category | Id | For |
-|---|---|---|
-| Mimic live | `live` (default) | recreating live as it was |
-| New content | `feature/...`, e.g. `feature/christmas-event/2026` | events, new areas, our own additions |
-| Other | `other/...` | fixes, experiments |
+`--content-queue <dir>` (tools/lan-server.sh passes `../var/content-queue`, the survey server's)
+lets admins see and decide on what editors published, on the control interface and through
+lmoxide-api (admin):
 
-Features beyond the categories live in the set's `features.json` (title, comment, author,
-`copied_from`). The world editor creates them (`POST /v1/survey/features {parent, title}`), and
-copies one with everything in it (`POST /v1/survey/features/copy {from, parent, title}`): the
-copy gets new ids, scripts' waves stay connected, so `feature/christmas-event/2027` can start
-as 2026 and then differ. Placing, place-trigger, edits and snapshots take a `feature`.
+| Route | |
+|---|---|
+| `GET /v1/content/state` | `content` (the tree it runs), `queue` (the folder), `queued` (how many wait) |
+| `GET /v1/content/queue` | every entry, oldest first: `seq`, `created`, `by` (who published), `summary`, `status` (`queued`, `rejected`), `reason`, `records: [{ id, feature, change, file, author, before, after }]` |
+| `GET /v1/content/queue/{seq}` | one entry |
+| `POST /v1/content/reject` | `{ seq, reason }`: the entry stays, rejected, with the reason |
+| `POST /v1/content/approve` | `{ seq }`: 501 for now (approval commits; below) |
 
-## Play servers
+The survey server lists and withdraws entries too (`GET /v1/editor/queue`,
+`DELETE /v1/editor/queue/{seq}`), and leaves queued records out of what it calls unpublished.
 
-`lmoxide-server --world-editor-set <survey set folder>` (tools/lan-server.sh passes
-`../var/survey-set`): every 10 s its `published/` folder is read again when a file in it changed
-(the working copy beside it is never read: unpublished work stays on the editor's server). The
-difference between the published set and the approved copy is the **queue**: one entry per playfield, feature
-and author, with each record added, changed or removed and what changed ("moved 3.2 m",
-"deletes a guess", "level 5 -> 7").
+## Approval (not built yet)
 
-- **Rules** (`rules.json`): `active` features are spawned (default `["live"]`; a feature is on
-  when it or an ancestor is listed, so a Christmas event is approved ahead and switched on when it
-  starts); `auto_features` (e.g. `live`) and `auto_authors` are approved as they come.
-- **Approve** takes the working version of a change (or of some of its records) into the approved
-  copy; **reject** keeps that version out of the queue until the record changes again.
-- **History** (`changes/000001.json`, ...): every approval (by an admin or the rules) is a file with
-  who, when, the change key and each record before and after. The approved copy is the baseline
-  plus the changes that apply, in order, so any change can be **undone** (later changes to the same
-  records keep theirs) and **redone**. An undone version stays out of the queue, as a rejected one,
-  until the record changes again (so auto-approval rules don't take it back).
-- **Preview**: a waiting change applied for everyone for a while (default 15 minutes): **keep**
-  approves it, **revert** or its time ends it and it waits in the queue again. Previews are seen by
-  every player: one only the admin sees would need enemies that fight only some players.
-- **Live reload**: playfields whose approved, active placements change are spawned again (base
-  content with the placements applied, as the survey server shows them). Placements of script
-  waves wait for their wave (below); notes are used only for their areas (`enter_area` triggers).
-  A running script whose script or wave placements change ends (its spawns go).
-- **Scripts and waves** (scripts.rs): an approved, active script starts from a `script` trigger
-  wall, from a player entering the area its first wave's `enter_area` trigger names, or from
-  `!script start`. It spawns its first wave (or the wave named) at once, except a first wave with
-  `after` when none is named, which waits that long. The later waves follow their triggers:
-  `after` counts from the previous wave's start (the first wave: the script's start),
-  `wave_cleared` waits until every spawn of that wave is defeated, `health_below` until that
-  placement (none: the script's strongest spawn) is below that share of its health (defeated
-  counts), `enter_area` until a player is in that note's area (none: the script's own area); a
-  wave without a trigger (or `other`) starts only from a wall or `!script start` naming it (this
-  is logged once). Waves listed before the one a script was started at are skipped. Spawns are
-  normal enemies and NPCs (they fight, drop loot, count for achievements) that don't respawn and
-  aren't the playfield's own (they don't count toward clearing it). A script runs once at a time
-  per playfield: starting it again while it runs does nothing, except a wall or command naming a
-  wave that is still waiting starts that wave. It is over when every spawn is defeated and no
-  waiting wave can still start by itself; then it can be started again. When the playfield
-  empties and its NPCs reset, running scripts end and their spawns go. Rules chosen:
-  docs/TUNABLES.md "Script waves".
-- **Trigger walls** (walls.rs): the approved, active walls and radii are checked against the
-  players' moves (every 200 ms, as on the survey server; invisible here). Crossing one:
-  `discover` counts the location found on that playfield, and for an achievement that needs one
-  location that location too (so the wall grants it); an achievement needing several counts only
-  what is found; one with no known location is granted by its id. `dialog` starts the recorded
-  dialogue (its NPC speaks if it is there), `portal` opens the window (or teleports to `to`'s
-  arrival point), `message` shows it in chat. `script` starts the script (or the wave it names; below).
-  `collect` gives one collectible: a collect achievement's key raises its counter by one (e.g.
-  TaCo stat 3000122 for Cerberus' Collar, 2431; sent like the other counters), a `drop:<name>`
-  key with an `item` drops that item at the player, anything else is logged. A collect wall
-  counts once per player ever (the journal's finds keep `collect:<key>:wall:<id>`), whatever
-  its `once`. `once` is per player until the server restarts.
-- **Bouncers** (jumppad.rs): the approved, active bouncer placements apply to the jump pads: a
-  surveyed pad replaces the guessed pad it names (same guid, its own position, heading, look and
-  landing point), a new one is added (no landing point: shown, doesn't launch), a deleted one is
-  gone. Changed pads leave the world and come back ~2 s later; the NPCs of the playfield aren't
-  spawned again for a bouncer change. With nothing approved the pads are world_content.json's.
-- **Smash achievement rules** (achievements.rs; docs/SURVEY.md "Smash achievement rules"): for
-  an achievement with an approved, active rule that names enemies, a defeat counts toward it only
-  when the defeated one is named there (no case, a leading "the " ignored) instead of the
-  achievement's own match (`counts.match`) or `defeat` target; a defeat achievement with a rule
-  counts any defeat of those enemies, bosses or not. The global kill and smash counters ("Smash
-  1000 Monsters", "... 10000 ...") are one stat shared by their achievements: a rule on any of
-  them limits that stat to the enemies of all their rules. Rules of discover locations
-  (`find:...`) and without enemies change nothing. `@<name>` in a rule's enemies counts every
-  enemy of the rule `category:<name>` (one level; an unknown category: nothing); categories
-  themselves count toward nothing.
-  A collect achievement's rule (goblets 2421, meteorites 2424, pies 2426, crystal crates 2428,
-  Cerberus' Collar 2431) gives one collectible per defeat of an enemy it names (raising the
-  achievement's counter; `once`: once per enemy name per player, kept in the journal's finds as
-  `collect:<key>:enemy:<name>`). A `drop:<name>` rule with an `item` drops that item (a loot bag
-  where the enemy stood, for the player who defeated it; `once` as above); picking it up gives
-  nothing yet (there is no mission item inventory: loot.rs's rewards know only tokens, potions,
-  stars, chests and minifigure bags). A `drop:` rule without `item` changes nothing. Removing a
-  collect achievement from a character also resets its counter and what it collected. Their changes are queued, approved and undone
-  like the others, under playfield 0 ("Achievements"); they take effect at once.
-- Without `--world-editor-set` the approved copy is still applied.
+Decided (docs/WORLD-EDITOR-CONTENT.md): approving an entry commits exactly its records to the
+content repository's `main` (the server holds the token, e.g. `LMOXIDE_CONTENT_GIT_TOKEN`; never
+the web UI), with the trailers above, pushes, and play servers pull and spawn again what they
+can (spawns, walls, scripts, bouncers), the rest on restart; undo is `git revert` of that commit.
+Pull requests merged on GitHub arrive the same way. Before approving, an admin can **preview** an
+entry: the play server applies its records in memory for a while (15 minutes), then drops them.
+On hold at the user's request (they may change the approach), so approve answers 501 and preview
+isn't there yet.
 
-Routes, admin scope, through lmoxide-api (`/v1/content/...`, forwarded to the control interface):
+## Before content records
 
-| Method | Path | |
-|---|---|---|
-| GET | `/v1/content/state` | source folder and error, rules, revision, pending changes/records, `authors` and `tags` of either set (for suggestions) |
-| GET | `/v1/content/queue` | changes waiting: `{playfield, playfield_name, feature, feature_path, author, active, summary, items: [{kind, id, name, op, details, updated, tags}]}` (details include "tags +todo -approximate"; `kind`: `placement`, `trigger`, `note`, `script`, `smash_rule`; smash rules' changes have playfield 0, `playfield_name` "Achievements") |
-| POST | `/v1/content/approve` | `{playfield, feature, author, ids?}` → `{records, revision}` |
-| POST | `/v1/content/reject` | same |
-| POST | `/v1/content/preview` | `{playfield, feature, author, ids?, minutes?}` → `{records, revision, seq, until}` |
-| GET | `/v1/content/history?limit=` | approvals, newest first: `{seq, at, by, playfield, playfield_name, feature, feature_path, author, summary, status: applied\|undone\|preview\|preview_ended, preview_until?, last_action?: [who, when], actions: [undo\|redo\|keep\|revert], edits: [{kind, id, name, op, details, tags}]}` |
-| POST | `/v1/content/history/{seq}/{undo\|redo\|keep\|revert}` | → the entry as above |
-| GET/PUT | `/v1/content/rules` | `{active, auto_features, auto_authors}` (saving approves what the new rules approve and respawns what `active` changes) |
-| GET | `/v1/content/summary?of=approved\|working` | per playfield and feature: placements, deletions, in waves, triggers, notes, scripts, smash rules (playfield 0), authors, `tags` (tag → records), newest change |
-| GET | `/v1/content/features` | categories and the world editor's features (`{id, path, comment, copied_from}`) |
-| POST | `/v1/content/refresh` | read the world editor's set now |
-
-The admin dashboard (lmoxide-webui) is the place for the queue, rules and summaries (docs/WEB-UI.md).
-
-## Decisions and open questions
-
-- **Storage**: the working copy stays the survey set folder (plain JSON per playfield, records
-  sorted by id, small diffs) rather than per-user `.json.gz` files: authors are on every record
-  and the queue groups by author, so per-user files add nothing but merging work, and plain JSON
-  diffs well if the folder is put under git.
-- **Its own git repository?** Not needed for the flow above. Worth it for history and backups of
-  the approved copy (or the working copy): a repo per server's `world-content/approved/` (or a
-  shared `LMOxide/world-content`) that a cron job commits to. Not set up; the user's call.
-- **Remote editor servers**: `--world-editor-set` is a folder, so the editor server must be on the
-  same host (or a synced/mounted folder). An HTTP source (the survey server's export) is next if
-  the editor server moves elsewhere.
+Until 2026-10-28 editors worked on a survey set (`var/survey-set`) that play servers approved
+into their own copy (`<data-dir>/world-content/`: a ledger of changes, rules, a rejected list).
+That is gone: the survey server took its set into the working copy once
+(`var/survey-set/migrated.json` says what it did), and play servers no longer read
+`world-content/` (it can be deleted).
