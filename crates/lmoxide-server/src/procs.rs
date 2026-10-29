@@ -235,6 +235,7 @@ fn duration(v: &Value) -> Option<Duration> {
 pub fn left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
     effects::forget_buffs(player);
+    crate::actions::forget_counters(player);
 }
 
 fn show(player: Id32, records: Vec<Bytes>) {

@@ -72,6 +72,11 @@ pub struct Combat {
     /// How long "this attack" lasts for procs that change an attack's hits (an area attack
     /// hits several enemies): Berserker's strike, Knockback.
     pub this_attack: Duration,
+    /// Players' stuns on enemies (Petrifying Gaze, Touch of Midas, the Wacky Witch's...) last
+    /// this long after they land. Unset: the stun's own TimeExist (Petrifying Gaze: 3 s after
+    /// the gaze's last tick, as on live).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stun_linger: Option<Duration>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

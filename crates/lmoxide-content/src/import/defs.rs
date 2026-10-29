@@ -1447,6 +1447,7 @@ pub fn loot_and_tunables(
             power_rating_all: 50.0,
             variance: Ratio(0.1),
             this_attack: Duration(1.0),
+            stun_linger: None,
         },
         loot: Loot {
             share_range: 60.0,

@@ -33,7 +33,7 @@ use std::{
     collections::HashMap,
     sync::{
         Arc, LazyLock, Mutex,
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
     time::{Duration, Instant},
 };
@@ -79,6 +79,9 @@ struct Stats {
     /// Spell flags 33-64 (`StatSpellItem::HasFlag`: flag n is bit n-33), e.g. MORE_FLAG_BLOCKS_TURNING.
     #[serde(rename = "MoreFlags")]
     more_flags: Option<u32>,
+    /// A counter buff's highest count (AddBuffCounter stops there).
+    #[serde(rename = "MaxBuffCounters")]
+    max_buff_counters: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -88,7 +91,8 @@ struct Action {
     client: bool,
     #[serde(default)]
     args: HashMap<String, serde_json::Value>,
-    /// (a, b, kind): 91 = has upgrade ability b, 101 = lacks it, 166 = buff a's counter is b, 159 / 160 = above / below b; 19 = always.
+    /// (a, b, kind): 91 = has upgrade ability b, 101 = lacks it, 166 = buff a's counter is b, 159 / 160 = above / below b; 18 / 19 = the
+    /// counters after it are the current target's / the caster's (Petrifying Gaze counts on the enemy, Vladek's Champion on the caster).
     #[serde(default)]
     criteria: Vec<[u32; 3]>,
 }
@@ -119,6 +123,8 @@ const CRITERIA_BUFF_COUNTER: u32 = 166;
 /// Buff a's counter is above / below b (MOAR RAWR's letters: A while 1-4, W while 5-7).
 const CRITERIA_COUNTER_ABOVE: u32 = 159;
 const CRITERIA_COUNTER_BELOW: u32 = 160;
+const CRITERIA_ON_TARGET: u32 = 18;
+const CRITERIA_ON_CASTER: u32 = 19;
 /// TargetingMode of spells cast on oneself (their "target" is the caster).
 const TARGETING_SELF: u32 = 8;
 /// Event lists (GameData::GameActionList_e).
@@ -221,7 +227,7 @@ pub fn cast(caster: Caster, spell: u32) {
         started: Instant::now(),
         length: Duration::ZERO,
         released: AtomicBool::new(true),
-        counters: Mutex::new(HashMap::new()),
+        counted: Mutex::new(Vec::new()),
         mitigation_buffs: Mutex::new(Vec::new()),
         ends_when_hit: false,
         aim: Mutex::new(None),
@@ -236,6 +242,7 @@ pub fn cast(caster: Caster, spell: u32) {
     tokio::spawn(async move {
         tokio::time::sleep(delay).await;
         run_list(&run, spell, ON_USE, root_target(&run), 0);
+        end_counters(&run);
     });
 }
 
@@ -376,7 +383,9 @@ struct Run {
     /// Full channel length (all ticks).
     length: Duration,
     released: AtomicBool,
-    counters: Mutex<HashMap<u32, u32>>,
+    /// The buff counters this run counted ((holder, buff)): those on the caster, and those
+    /// without a TimeExist, end with it (`end_counters`).
+    counted: Mutex<Vec<(Id32, u32)>>,
     /// Buffs on the caster that mitigate damage, cleared at the end at the latest.
     mitigation_buffs: Mutex<Vec<u32>>,
     ends_when_hit: bool,
@@ -415,7 +424,7 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         started: Instant::now(),
         length: interval * ticks,
         released: AtomicBool::new(false),
-        counters: Mutex::new(HashMap::new()),
+        counted: Mutex::new(Vec::new()),
         mitigation_buffs: Mutex::new(Vec::new()),
         ends_when_hit,
         aim: Mutex::new(None),
@@ -465,6 +474,7 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         }
         info!(caster = ?run.caster.id, spell, ticks = done, natural, "channel end");
         run_list(&run, spell, ON_CHANNELING_END, root_target(&run), 0);
+        end_counters(&run);
         for buff in run.mitigation_buffs.lock().unwrap().drain(..) {
             crate::npc::set_buff_mitigation(run.caster.id, buff, None);
         }
@@ -547,15 +557,105 @@ fn show(run: &Run, records: Vec<Bytes>) {
     }
 }
 
-fn criteria_met(run: &Run, a: &Action) -> bool {
+fn criteria_met(run: &Run, a: &Action, target: Target) -> bool {
+    let mut holder = run.caster.id;
     a.criteria.iter().all(|&[x, y, kind]| match kind {
+        CRITERIA_ON_TARGET => {
+            holder = target.id.unwrap_or(run.caster.id);
+            true
+        }
+        CRITERIA_ON_CASTER => {
+            holder = run.caster.id;
+            true
+        }
         CRITERIA_HAS_ABILITY => crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
         CRITERIA_LACKS_ABILITY => !crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
-        CRITERIA_BUFF_COUNTER => run.counters.lock().unwrap().get(&x).copied().unwrap_or(0) == y,
-        CRITERIA_COUNTER_ABOVE => run.counters.lock().unwrap().get(&x).copied().unwrap_or(0) > y,
-        CRITERIA_COUNTER_BELOW => run.counters.lock().unwrap().get(&x).copied().unwrap_or(0) < y,
+        CRITERIA_BUFF_COUNTER => counter(holder, x) == y,
+        CRITERIA_COUNTER_ABOVE => counter(holder, x) > y,
+        CRITERIA_COUNTER_BELOW => counter(holder, x) < y,
         _ => true,
     })
+}
+
+/// A buff counter (AddBuffCounter) and the generation of its latest change.
+struct Counter {
+    count: u32,
+    generation: u64,
+}
+
+/// Buff counters by (holder, buff). They live on the character, as the counter buff did on
+/// live: an enemy's Petrifying Gaze count is its own and outlasts a press, until the buff's
+/// TimeExist runs out after the last count.
+static COUNTERS: LazyLock<Mutex<HashMap<(Id32, u32), Counter>>> = LazyLock::new(Default::default);
+static COUNTER_GENERATION: AtomicU64 = AtomicU64::new(0);
+
+/// `holder`'s count of counter buff `buff`.
+fn counter(holder: Id32, buff: u32) -> u32 {
+    COUNTERS.lock().unwrap().get(&(holder, buff)).map_or(0, |c| c.count)
+}
+
+/// Counts `add` on `holder`'s counter buff `buff` (up to its MaxBuffCounters) and shows it.
+/// It is removed when its TimeExist is up after this count, else at the run's end.
+fn add_counter(run: &Run, holder: Id32, buff: u32, add: u32) -> Bytes {
+    let stats = SPELLS.get(&buff).map(|s| &s.stats);
+    let max = stats.and_then(|s| s.max_buff_counters).unwrap_or(u32::MAX);
+    let generation = COUNTER_GENERATION.fetch_add(1, Ordering::Relaxed);
+    let (count, first) = {
+        let mut counters = COUNTERS.lock().unwrap();
+        let c = counters.entry((holder, buff)).or_insert(Counter { count: 0, generation });
+        let first = c.count == 0;
+        c.count = (c.count + add).min(max);
+        c.generation = generation;
+        (c.count, first)
+    };
+    run.counted.lock().unwrap().push((holder, buff));
+    let lasts = stats.and_then(|s| s.time_exist).map(|cs| Duration::from_millis(10 * u64::from(cs)));
+    let left = lasts.map_or_else(|| channel_left_cs(run), |d| (d.as_millis() / 10) as u32);
+    if let Some(d) = lasts
+        && let Ok(rt) = tokio::runtime::Handle::try_current()
+    {
+        let caster = run.caster.id;
+        rt.spawn(async move {
+            tokio::time::sleep(d).await;
+            let gone = {
+                let mut counters = COUNTERS.lock().unwrap();
+                let current = counters.get(&(holder, buff)).is_some_and(|c| c.generation == generation);
+                current && counters.remove(&(holder, buff)).is_some()
+            };
+            if gone {
+                world::send_playfield(holder, true, world::Out::Records(vec![effects::buff_remove(holder, buff, caster)]));
+            }
+        });
+    }
+    if first {
+        effects::buff_add_counter(holder, buff, run.caster.id, count, left as i32)
+    } else {
+        effects::buff_update_counter(holder, buff, run.caster.id, count, left)
+    }
+}
+
+/// Forgets `holder`'s counter buff `buff`; whether it had one (the caller removes it on the
+/// client).
+fn clear_counter(holder: Id32, buff: u32) -> bool {
+    COUNTERS.lock().unwrap().remove(&(holder, buff)).is_some()
+}
+
+/// The run is over: its counters on the caster, and those without a TimeExist, end.
+fn end_counters(run: &Run) {
+    let counted: Vec<_> = std::mem::take(&mut *run.counted.lock().unwrap());
+    let mut records = Vec::new();
+    for (holder, buff) in counted {
+        let timed = SPELLS.get(&buff).is_some_and(|s| s.stats.time_exist.is_some());
+        if (holder == run.caster.id || !timed) && clear_counter(holder, buff) {
+            records.push(effects::buff_remove(holder, buff, run.caster.id));
+        }
+    }
+    show(run, records);
+}
+
+/// Forgets every buff counter `id` holds (it left).
+pub fn forget_counters(id: Id32) {
+    COUNTERS.lock().unwrap().retain(|(holder, _), _| *holder != id);
 }
 
 /// Runs the server actions of `spell`'s list `event` with `target` as the current target, and
@@ -564,7 +664,7 @@ fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32)
     let Some(s) = SPELLS.get(&spell) else { return };
     let Some(list) = s.lists.get(event) else { return };
     for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str())) {
-        if criteria_met(run, a) {
+        if criteria_met(run, a, target) {
             if a.on_server() {
                 act(run, spell, a, target, depth);
             } else {
@@ -601,7 +701,7 @@ fn crowd_control(run: &Arc<Run>, spell: u32, a: &Action, target: Target) {
         }
         "Stun" => {
             if let Some(id) = enemy {
-                let got = crate::npc::stun(id, duration);
+                let got = crate::npc::stun(id, stun_linger().unwrap_or(duration));
                 debug!(?caster, spell, enemy = ?id, ?got, "stun");
             }
         }
@@ -646,8 +746,9 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             }
         }
         "RemoveBuff" => {
-            if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id) {
-                run.counters.lock().unwrap().remove(&buff);
+            // (a smashable takes no buffs: see cast_nano_shown)
+            if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id.filter(|id| !crate::npc::is_smashable(*id))) {
+                clear_counter(id, buff);
                 effects::forget_buff(id, buff);
                 if id == caster {
                     crate::npc::set_buff_mitigation(caster, buff, None);
@@ -663,20 +764,10 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             }
         }
         "AddBuffCounter" => {
-            if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id) {
-                let add = a.u("Value").unwrap_or(1);
-                let count = {
-                    let mut counters = run.counters.lock().unwrap();
-                    let c = counters.entry(buff).or_insert(0);
-                    *c += add;
-                    *c
-                };
-                let left = channel_left_cs(run);
-                show(run, vec![if count == add {
-                    effects::buff_add_counter(id, buff, caster, count, left as i32)
-                } else {
-                    effects::buff_update_counter(id, buff, caster, count, left)
-                }]);
+            // a smashable takes no buffs (the clients crashed on Ancient Bolas' snare counter on
+            // one: see cast_nano_shown)
+            if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id.filter(|id| !crate::npc::is_smashable(*id))) {
+                show(run, vec![add_counter(run, id, buff, a.u("Value").unwrap_or(1))]);
             }
         }
         "CoreFilteredAreaFormula" => {
@@ -1002,7 +1093,7 @@ fn face_shot(run: &Run, at: [f32; 3], dir: [f32; 2]) {
 /// A projectile item's actions where it hit or landed.
 fn impact(run: &Arc<Run>, spell: u32, item: u32, target: Target, depth: u32) {
     let Some(i) = ITEMS.get(&item) else { return };
-    for a in i.actions.iter().filter(|a| a.on_server() && criteria_met(run, a)) {
+    for a in i.actions.iter().filter(|a| a.on_server() && criteria_met(run, a, target)) {
         act(run, spell, a, target, depth + 1);
     }
 }
@@ -1049,12 +1140,20 @@ fn rotate(dir: [f32; 2], degrees: f32) -> [f32; 2] {
 /// too (Mr. Good and Evil's "iamevil", ended by Good Potion; Big Bad Wolf) until removed, and
 /// anything else (a combo buff, which swaps only the normal attack) for the combo window.
 fn buff_duration(run: &Run, n: &Spell) -> Option<Duration> {
+    if let Some(linger) = stun_linger().filter(|_| n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.kind == "Stun"))) {
+        return Some(linger);
+    }
     match n.stats.time_exist {
         Some(cs) => Some(Duration::from_millis(10 * cs as u64)),
         None if run.length.is_zero() && swaps_special(run.caster.template, n) => None,
         None if run.length.is_zero() => Some(COMBO_WINDOW),
         None => Some(Duration::from_millis(10 * (channel_left_cs(run) as u64 + 100))),
     }
+}
+
+/// The `combat.stun_linger` tunable: how long players' stuns last, when set.
+fn stun_linger() -> Option<Duration> {
+    crate::gamedata::get().tunables.combat.stun_linger.map(|d| d.to_std())
 }
 
 /// Whether buff `n` puts something else on `template`'s special attack shortcut.
@@ -1164,7 +1263,7 @@ mod tests {
             started: Instant::now(),
             length: Duration::ZERO,
             released: AtomicBool::new(true),
-            counters: Mutex::new(HashMap::new()),
+            counted: Mutex::new(Vec::new()),
             mitigation_buffs: Mutex::new(Vec::new()),
             ends_when_hit: false,
             aim: Mutex::new(None),
@@ -1196,6 +1295,31 @@ mod tests {
         // (5 m towards the caster, stopping at melee range)
         assert!((crate::npc::crowd_state(k).2[0] - 1.8).abs() < 1e-3, "{:?}", crate::npc::crowd_state(k));
         for id in [e, s, k] {
+            crate::npc::remove_test_enemy(id);
+        }
+    }
+
+    /// Petrifying Gaze counts on each enemy of its own, up to 3 (MaxBuffCounters): the third
+    /// gaze stuns every enemy in it, and each later one again.
+    #[tokio::test]
+    async fn gaze_counts_per_enemy() {
+        let run = test_run(Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_778));
+        let at = |id| Target { id: Some(id), pos: crate::npc::crowd_state(id).2 };
+        let a = crate::npc::test_enemy(14, [5.0, 0.0, 0.0], [50.0, 0.0, 0.0]);
+        let b = crate::npc::test_enemy(15, [5.0, 0.0, 1.0], [50.0, 0.0, 0.0]);
+        for _ in 0..2 {
+            cast_nano(&run, 16_080, at(a), 0);
+            cast_nano(&run, 16_080, at(b), 0);
+        }
+        assert!(!crate::npc::crowd_state(a).1 && !crate::npc::crowd_state(b).1);
+        for _ in 0..3 {
+            cast_nano(&run, 16_080, at(a), 0);
+            cast_nano(&run, 16_080, at(b), 0);
+        }
+        assert_eq!((counter(a, 16_083), counter(b, 16_083)), (3, 3));
+        assert!(crate::npc::crowd_state(a).1 && crate::npc::crowd_state(b).1);
+        for id in [a, b] {
+            forget_counters(id);
             crate::npc::remove_test_enemy(id);
         }
     }

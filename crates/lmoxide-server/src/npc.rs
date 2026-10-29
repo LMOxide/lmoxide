@@ -1939,6 +1939,7 @@ fn fighters_tick(awake: &std::collections::HashSet<Pf>) {
                     steer(id, here, approach(here, p, keep), Some(p));
                 }
             }
+            None if is_busy(id) => steer(id, here, here, None),
             None => steer(id, here, home, None),
         }
     }
@@ -2188,6 +2189,8 @@ async fn ai() {
                         steer(id, here, approach(here, p, keep), Some(p));
                     }
                 }
+                // stunned or casting: it stays where it is
+                None if is_busy(id) => steer(id, here, here, None),
                 None if patrols(id) => patrol(id, here),
                 None => steer(id, here, home, None),
             }
