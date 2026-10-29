@@ -76,6 +76,8 @@ struct State {
     zone_element: u32,
     /// The zone buffs on the player: their nanos and stats.
     zone_nanos: Vec<u32>,
+    /// The active minifigure's upgrade buffs shown on the player.
+    upgrade_nanos: Vec<u32>,
     zone_damage: f32,
     zone_defense: f32,
     zone_build: f32,
@@ -138,9 +140,11 @@ pub fn set_zone(player: Id32, element: u32) {
 /// that show its zone buffs (Wrong Element, Elemental Affinity).
 pub fn set_active(player: Id32, template: u32, upgrades: u32, level: u32) -> Vec<Bytes> {
     let mut procs = Vec::new();
+    let mut upgrade_nanos = Vec::new();
     let mut orb_bonus = 0.0;
     let (mut affinity, mut cc_channelling) = (false, false);
     for b in crate::combat::active_upgrade_buffs(template, upgrades) {
+        upgrade_nanos.extend(b.nano);
         for (i, e) in b.effects.iter().enumerate() {
             match e {
                 BuffEffect::Proc(p) => procs.push(Active { key: format!("{}#{i}", b.id), proc: p }),
@@ -175,6 +179,13 @@ pub fn set_active(player: Id32, template: u32, upgrades: u32, level: u32) -> Vec
         ..Default::default()
     };
     let mut records: Vec<Bytes> = old.zone_nanos.iter().map(|&n| unbuff(player, n)).collect();
+    // the upgrade buffs, as live sent them on every swap: the old minifigure's go, the new one's
+    // come (the client checks them: Vladek's Champion needs "Vladek's Gift running")
+    records.extend(old.upgrade_nanos.iter().filter(|n| !upgrade_nanos.contains(n)).map(|&n| unbuff(player, n)));
+    for &nano in &upgrade_nanos {
+        records.extend(buff(player, nano, None));
+    }
+    s.upgrade_nanos = upgrade_nanos;
     for b in zone_buffs(template, s.zone_element, affinity) {
         let Some(nano) = b.nano else { continue };
         for e in &b.effects {
@@ -236,6 +247,7 @@ pub fn left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
     effects::forget_buffs(player);
     crate::actions::forget_counters(player);
+    crate::actions::forget_caster_buffs(player);
 }
 
 fn show(player: Id32, records: Vec<Bytes>) {
@@ -960,7 +972,8 @@ mod tests {
         };
         assert_eq!((outgoing(p, enemy, 1, 100, false), (defense_factor(p) * 10.0).round() / 10.0), expected);
         set_zone(p, 0);
-        assert!(set_active(p, m.template, 0, 30).len() <= 1);
+        // (the zone buff and the upgrade's buff removed)
+        assert!(set_active(p, m.template, 0, 30).len() <= 2);
         assert_eq!(outgoing(p, enemy, 1, 100, false), 100);
         left(p);
     }

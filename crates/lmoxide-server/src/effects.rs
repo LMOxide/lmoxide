@@ -108,6 +108,11 @@ pub fn refresh_buff(target: Id32, buff: u32, caster: Id32, duration: std::time::
     Some(vec![buff_update_counter(target, buff, caster, 0, (duration.as_millis() / 10) as u32)])
 }
 
+/// Whether `buff` is shown on `target` (`show_buff`, not yet removed).
+pub fn is_shown(target: Id32, buff: u32) -> bool {
+    SHOWN.lock().unwrap().contains_key(&(target, buff))
+}
+
 /// `buff` is no longer shown on `target` (removed by other means).
 pub fn forget_buff(target: Id32, buff: u32) {
     SHOWN.lock().unwrap().remove(&(target, buff));

@@ -227,6 +227,7 @@ pub fn cast(caster: Caster, spell: u32) {
         started: Instant::now(),
         length: Duration::ZERO,
         released: AtomicBool::new(true),
+        aborted: AtomicBool::new(false),
         counted: Mutex::new(Vec::new()),
         mitigation_buffs: Mutex::new(Vec::new()),
         ends_when_hit: false,
@@ -383,6 +384,8 @@ struct Run {
     /// Full channel length (all ticks).
     length: Duration,
     released: AtomicBool,
+    /// Ended by a minifigure change: its end list doesn't run.
+    aborted: AtomicBool,
     /// The buff counters this run counted ((holder, buff)): those on the caster, and those
     /// without a TimeExist, end with it (`end_counters`).
     counted: Mutex<Vec<(Id32, u32)>>,
@@ -424,6 +427,7 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         started: Instant::now(),
         length: interval * ticks,
         released: AtomicBool::new(false),
+        aborted: AtomicBool::new(false),
         counted: Mutex::new(Vec::new()),
         mitigation_buffs: Mutex::new(Vec::new()),
         ends_when_hit,
@@ -473,7 +477,9 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
             world::send_to(run.caster.id, world::Out::Records(vec![run.end_record.clone()]));
         }
         info!(caster = ?run.caster.id, spell, ticks = done, natural, "channel end");
-        run_list(&run, spell, ON_CHANNELING_END, root_target(&run), 0);
+        if !run.aborted.load(Ordering::Relaxed) {
+            run_list(&run, spell, ON_CHANNELING_END, root_target(&run), 0);
+        }
         end_counters(&run);
         for buff in run.mitigation_buffs.lock().unwrap().drain(..) {
             crate::npc::set_buff_mitigation(run.caster.id, buff, None);
@@ -490,6 +496,49 @@ pub fn release(caster: Id32, tell_client: bool) -> bool {
         world::send_to(caster, world::Out::Records(vec![run.end_record.clone()]));
     }
     true
+}
+
+/// Buffs abilities put on their caster (stances, combo buffs, Mr. Good and Evil's evil side),
+/// by caster: they belong to the minifigure that cast them (`minifigure_changed`).
+static CASTER_BUFFS: LazyLock<Mutex<HashMap<Id32, Vec<u32>>>> = LazyLock::new(Default::default);
+
+/// `player`'s active minifigure changed: what its abilities left on the player ends. Its
+/// channel ends at once (the client's command too) without its end list, and the buffs, buff
+/// counters and shortcut overrides its abilities put on the player are removed (they stayed on
+/// the next minifigure: Vladek's Champion's charge-up, Mr. Good and Evil's evil side).
+pub fn minifigure_changed(player: Id32) {
+    if let Some(run) = ACTIVE.lock().unwrap().get(&player) {
+        run.aborted.store(true, Ordering::Relaxed);
+    }
+    release(player, true);
+    let buffs = CASTER_BUFFS.lock().unwrap().remove(&player).unwrap_or_default();
+    let counters: Vec<u32> = {
+        let mut all = COUNTERS.lock().unwrap();
+        let mine: Vec<u32> = all.keys().filter(|(holder, _)| *holder == player).map(|(_, buff)| *buff).collect();
+        for buff in &mine {
+            all.remove(&(player, *buff));
+        }
+        mine
+    };
+    let mut records = Vec::new();
+    for buff in buffs {
+        crate::npc::set_buff_mitigation(player, buff, None);
+        shortcuts::clear(player, buff);
+        if effects::is_shown(player, buff) {
+            effects::forget_buff(player, buff);
+            records.push(effects::buff_remove(player, buff, player));
+        }
+    }
+    records.extend(counters.into_iter().map(|buff| effects::buff_remove(player, buff, player)));
+    if !records.is_empty() {
+        debug!(?player, n = records.len(), "minifigure changed: ability buffs removed");
+        world::send_playfield(player, true, world::Out::Records(records));
+    }
+}
+
+/// Forgets `player`'s ability buffs (it left).
+pub fn forget_caster_buffs(player: Id32) {
+    CASTER_BUFFS.lock().unwrap().remove(&player);
 }
 
 /// Whether `caster` is channelling an ability.
@@ -938,6 +987,13 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
         let duration = buff_duration(run, n);
         let refreshed = duration.filter(|_| !run.length.is_zero()).and_then(|d| effects::refresh_buff(id, nano, caster, d));
         show(run, refreshed.unwrap_or_else(|| effects::show_buff(id, nano, caster, duration)));
+        if on_caster {
+            let mut buffs = CASTER_BUFFS.lock().unwrap();
+            let mine = buffs.entry(caster).or_default();
+            if !mine.contains(&nano) {
+                mine.push(nano);
+            }
+        }
         let mitigation: f32 = n
             .lists
             .get(ON_USE)
@@ -1263,6 +1319,7 @@ mod tests {
             started: Instant::now(),
             length: Duration::ZERO,
             released: AtomicBool::new(true),
+            aborted: AtomicBool::new(false),
             counted: Mutex::new(Vec::new()),
             mitigation_buffs: Mutex::new(Vec::new()),
             ends_when_hit: false,

@@ -316,6 +316,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 me.team[..=i].rotate_right(1);
                                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                                 let new_active = me.team[0].1;
+                                abort_charges(&mut charges);
                                 let records = active_minifigure_records(id, new_active, me.upgrade(new_active), me.level(), &presence);
                                 crate::auras::apply(id, new_active, &me.tags, true);
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
@@ -1015,6 +1016,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     respawn(h.identity, &me, *pos.lock().unwrap(), None, &outbox);
                                 }
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
+                                abort_charges(&mut charges);
                                 records.extend(active_minifigure_records(h.identity, me.team[0].1, me.upgrade(me.team[0].1), me.level(), &presence));
                                 crate::auras::apply(h.identity, me.team[0].1, &me.tags, true);
                             }
@@ -1035,6 +1037,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                             }
                             if me.team.first() == Some(&(slot, template)) {
+                                abort_charges(&mut charges);
                                 records.extend(active_minifigure_records(h.identity, template, me.upgrade(template), me.level(), &presence));
                                 crate::auras::apply(h.identity, template, &me.tags, true);
                             }
@@ -1095,6 +1098,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         if active_slot.is_some_and(|s| s == from || s == to)
                             && let Some(&(_, template)) = me.team.first()
                         {
+                            abort_charges(&mut charges);
                             let records = active_minifigure_records(h.identity, template, me.upgrade(template), me.level(), &presence);
                             crate::auras::apply(h.identity, template, &me.tags, true);
                             conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records))
@@ -1823,6 +1827,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         && old.first() != me.team.first()
                                     {
                                         let mut records = vec![int32_stat(id, STAT_ACTIVE_WEAPON, 0), int32_stat(id, STAT_ACTIVE_WEAPON, slot)];
+                                        abort_charges(&mut charges);
                                         records.extend(active_minifigure_records(id, template, me.upgrade(template), me.level(), &presence));
                                         crate::auras::apply(id, template, &me.tags, true);
                                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
@@ -2798,6 +2803,14 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     crate::projectile::launch(caster, c.place, c.spell, Some(item), here, towards, c.target, damage);
 }
 
+/// The active minifigure changed: its held charges end without firing (`run_charge` removes
+/// their buffs).
+fn abort_charges(charges: &mut HashMap<u32, Charge>) {
+    for (_, c) in charges.drain() {
+        c.active.store(false, std::sync::atomic::Ordering::Relaxed);
+    }
+}
+
 /// Fires charges whose release never arrived.
 fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster: Id32) {
     let stale: Vec<u32> = charges.iter().filter(|(_, c)| c.started.elapsed() > CHARGE_TIMEOUT).map(|(k, _)| *k).collect();
@@ -2812,6 +2825,9 @@ fn fire_stale_charges(charges: &mut HashMap<u32, Charge>, me: &Character, caster
 /// What changes when `template` becomes the active minifigure: its costume (MonsterData, also
 /// shown to everyone else) and its own health.
 fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, level: u32, presence: &Option<world::Presence>) -> Vec<Bytes> {
+    // what the old minifigure's abilities left on the player ends (`abort_charges` for its
+    // held charges)
+    crate::actions::minifigure_changed(id);
     set_costume(id, monster_data_for(template));
     let costume = int32_stat(id, STAT_MONSTER_DATA, monster_data_for(template));
     if let Some(p) = presence {
