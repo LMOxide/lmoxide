@@ -205,17 +205,20 @@ def build(state):
         return f'**{esc(w["name"])}** ({esc(", ".join(bits))})'
 
     note = 'Accessible in live = reachable through portals from the LEGO Center, plus `live_extra` in tools/tracker/manual.json.'
-    checks = lists.D.manual['worlds'].get('zone_checks', {})
+    def world_items(field):
+        """The world's box, then its sub-boxes from manual.json worlds.<field>."""
+        checks = lists.D.manual['worlds'].get(field, {})
 
-    def zone_items(w):
-        out = [(w['key'], world_text(w), 0)]
-        for c in checks.get(w['key'].split('/', 1)[1], checks.get('default', [])):
-            out.append((f'{w["key"]}/{re.sub(r"[^a-z0-9]+", "-", c.lower()).strip("-")}', esc(c), 1))
-        return out
+        def items(w):
+            out = [(w['key'], world_text(w), 0)]
+            for c in checks.get(w['key'].split('/', 1)[1], checks.get('default', [])):
+                out.append((f'{w["key"]}/{re.sub(r"[^a-z0-9]+", "-", c.lower()).strip("-")}', esc(c), 1))
+            return out
+        return items
     totals.append(section(doc, '9. Adventure zones', note + ' Sub-boxes: `zone_checks` in the same file.',
-                          grouped(lists.adventure_zones(), 'region'), zone_items))
-    totals.append(section(doc, '10. Pocket adventures', note, grouped(lists.pocket_adventures(), 'region'),
-                          lambda w: [(w['key'], world_text(w), 0)]))
+                          grouped(lists.adventure_zones(), 'region'), world_items('zone_checks')))
+    totals.append(section(doc, '10. Pocket adventures', note + ' Sub-boxes: `pocket_checks` in the same file.',
+                          grouped(lists.pocket_adventures(), 'region'), world_items('pocket_checks')))
 
     def lc_items(lc):
         out = [(lc['key'], f'**{esc(lc["name"])}** ({lc["mode"]}, pf {lc["playfield"]})', 0)]

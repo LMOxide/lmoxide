@@ -19,6 +19,10 @@
     "zone_checks": {
       "_comment": "Sub-checkboxes under each adventure zone: 'default' for all, or a world slug for that zone only (replaces the default).",
       "default": ["Story Quests", "Dialogues", "Enemy Spawns", "NPC Spawns", "Buildable Spawns", "Smashable Spawns", "Bouncers"]
+    },
+    "pocket_checks": {
+      "_comment": "The same for each pocket adventure.",
+      "default": ["Dialogues", "Enemy Spawns", "NPC Spawns", "Buildable Spawns", "Smashable Spawns", "Bouncers"]
     }
   },
   "lost_creations": {
