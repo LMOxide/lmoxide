@@ -4,7 +4,9 @@
 //! The client moves a character at its run speed float stat (1397; Vehicle_t::GetMovementSpeed:
 //! the stat × GetMovementMultiplier × GetRunspeedMultiplier, the multipliers being what buffs
 //! like the speed pad's change). The factor scales the walk and run speed stats (1396-1399) the
-//! character's full update gives it, and `FloatStatIIR`s change them while it plays; the dash
+//! character's full update gives it, and `FloatStatIIR`s change them while it plays (the own
+//! client keeps its defaults over the full update's, and a new active minifigure's body brings
+//! them back: they are sent again at every CharInPlay and minifigure swap); the dash
 //! speeds (1400-1402) stay. So buffs multiply on top of it. The server's own idea of where a
 //! player walking a path is (`game::reported_motion`) uses the same scaled speed.
 

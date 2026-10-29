@@ -469,6 +469,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                             records.extend(health_records(h.identity, template, me.upgrade(template), me.level()));
                         }
+                        // the movement speed factor (`!speed`): the client set its own speed
+                        // stats by now (the full update's don't stay)
+                        if me.speed != 1.0 {
+                            records.extend(crate::speed::records(h.identity, me.speed));
+                        }
                         // the zone's element (the minimap ring), as live sent it on every entry
                         let element = crate::worlds::element(place);
                         records.push(stat_record(h.identity, STAT_ELEMENTAL_TYPE, element));
@@ -2732,6 +2737,15 @@ fn active_minifigure_records(id: Id32, template: u32, upgrades: u32, level: u32,
     info!(template, "active minifigure");
     let mut records = vec![costume];
     records.extend(health_records(id, template, upgrades, level));
+    // the new body has the default speed stats: the factor (`!speed`) again, for everyone
+    let speed = crate::speed::of(id.instance);
+    if speed != 1.0 {
+        let again = crate::speed::records(id, speed);
+        if let Some(p) = presence {
+            world::broadcast(p.id(), again.clone());
+        }
+        records.extend(again);
+    }
     records
 }
 
