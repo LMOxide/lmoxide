@@ -937,11 +937,22 @@ pub fn arrived(character: u32, pf: Pf) -> Vec<Bytes> {
         info!(character, ?pf, "Lost Creations: back after a lost connection");
     }
     let Some(run) = st.run_of(character) else {
-        if is_level(pf.model()) && !crate::instance::rules(pf).editor {
-            let levels = st.pending.remove(&character).unwrap_or(0);
-            drop(st);
-            info!(character, ?pf, "Lost Creations: in a level outside a run");
-            order(character, Order::Out { levels });
+        if let Some(i) = level_of_model(pf.model()).filter(|_| !crate::instance::rules(pf).editor) {
+            match st.pending.remove(&character) {
+                // a run that ended while they were away: its rewards
+                Some(levels) => {
+                    drop(st);
+                    info!(character, ?pf, "Lost Creations: in a level outside a run, with rewards waiting");
+                    order(character, Order::Out { levels });
+                }
+                // (a teleport or a reconnect into a level): a run of their own on this level, in
+                // a new copy (the Gatekeeper's as level `gatekeeper_every`)
+                None => {
+                    let n = if level(i).mode == LcMode::Gatekeeper { tunables().gatekeeper_every.max(1) } else { 1 };
+                    info!(character, ?pf, level = %level(i).id, "Lost Creations: in a level outside a run: a run starts there");
+                    start_run(&mut st, vec![character], Some((n, Some(i))));
+                }
+            }
         }
         return Vec::new();
     };

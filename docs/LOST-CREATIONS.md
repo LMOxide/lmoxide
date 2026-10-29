@@ -282,8 +282,12 @@ Built 2026-10-28 (lost_creations.rs; content `lc` records in content/lost-creati
    - Gatekeeper's Realm: 11 variants, one Gatekeeper each (npc/gatekeeper-*, shown as "Gatekeeper"),
      on `area/7600/gatekeeper` in the one-wave `script/7600/gatekeeper`. Its adds aren't wave spawns,
      so they never count; `gatekeeper_adds_vanish` (false) removes them with it.
-   - Jungle Arena has only a test variant (`monster-lab`, weight 0: live 8030's waves): a normal
-     copy has no wave enemies and its objective stays open until the real list is in.
+   - Jungle Arena: a temporary `monkeys` variant (picked every time) and a test variant
+     (`monster-lab`, weight 0: live 8030's waves) until the real list is in.
+   - Arriving in a level outside a run (a teleport) starts a run there instead of sending the
+     player to the Treasure Chamber (unless rewards of an ended run wait).
+   - A server running the world editor too now also runs the play content (scripts, walls, smash
+     rules, story): before, npc.rs started only the editor's side there, so no script ever ran.
    - Test: `!lc variant <id>` then `!lc start 1 jungle` (or `gatekeeper`); `!list point`,
      `!goto point nw-1`; `!point <name>` saves a marker where you stand (tagged review).
    - Not done: the Gatekeepers' summon/buff skills (adds), the real Jungle Arena variants (the

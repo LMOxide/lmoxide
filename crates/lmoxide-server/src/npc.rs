@@ -723,8 +723,10 @@ pub fn start() {
     if crate::survey::enabled() {
         // what the world editor's copies show, and as what, is the survey set's business
         crate::survey::start(all);
-    } else if crate::content::enabled() {
-        // the approved world content's walls, scripts and rules
+    }
+    if crate::content::enabled() {
+        // the approved world content's walls, scripts and rules (play copies, also on a server
+        // that runs the world editor too)
         crate::content::start();
     }
     info!(playfields = RESIDENTS.get().map_or(0, |r| r.len()), "NPCs read");
