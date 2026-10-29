@@ -4,9 +4,9 @@
 
 Grouped by the world they are spawned in (content spawns); "Not placed" ones come from encounters, scripts or nowhere yet.
 
-**0/199** checked
+**0/200** checked
 
-<details><summary>Dino World (0/17)</summary>
+<details><summary>Dino World (0/18)</summary>
 
 - [ ] **Boom Shroom** — level 26, health 3854 · Dinosaur Rise <!-- enemy/boom-shroom-2 -->
 - [ ] **Corrupted Chicken Suit Guy** — level 100, health None · Gauntlet <!-- enemy/corrupted-chicken-suit-guy-3 -->
@@ -24,6 +24,7 @@ Grouped by the world they are spawned in (content spawns); "Not placed" ones com
 - [ ] **Slime Spore** — level 26, health 3854 · Dinosaur Rise <!-- enemy/slime-spore -->
 - [ ] **Small Spider Mound** — level 26, health 3083 · Dinosaur Rise <!-- enemy/small-spider-mound -->
 - [ ] **Spore Shroom** — level 26, health 4624 · Dinosaur Rise <!-- enemy/spore-shroom-2 -->
+- [ ] **T-Rex** — level 21, health 27533 · Gauntlet <!-- enemy/t-rex -->
 - [ ] **Vespid** — level 26, health 963 · Dinosaur Rise <!-- enemy/vespid -->
 
 </details>

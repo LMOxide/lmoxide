@@ -495,7 +495,7 @@ pub fn nearest(name: &str, playfield: Pf, at: [f32; 3], radius: f32) -> Option<I
 /// An NPC the content placed on cinematic marker `anchor` (its spawn's `anchor`) whose name fits
 /// `alias` (a dialogue's actor: `Wizard`, `Jester` for the Court Jester or The Jester, `Knight2`),
 /// on `playfield`: friendly NPCs and the bosses placed where a conversation shows them before
-/// their fight (5300's Jester, 5310's Elementius, 4210's Dreadleg).
+/// their fight (5300's Jester, 5310's Elementius, 4210's Dreadleg, 6300's T-Rex).
 pub fn on_anchor(playfield: Pf, anchor: &str, alias: &str) -> Option<Id32> {
     let squash = |s: &str| s.chars().filter(|c| c.is_ascii_alphabetic()).collect::<String>().to_ascii_lowercase();
     let alias = squash(alias);

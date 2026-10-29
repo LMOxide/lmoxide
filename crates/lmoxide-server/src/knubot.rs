@@ -742,6 +742,7 @@ mod tests {
         assert_eq!(after_defeat("The Jester", true, 5300), ["dialogue/my-kingdom-for-a-crown-288"]);
         assert!(after_defeat("Troll Warlord", true, 5300).is_empty());
         assert_eq!(after_defeat("Pieromancer Elementius", true, 5310), ["dialogue/defeated-elementius-308"]);
+        assert_eq!(after_defeat("T-Rex", true, 6300), ["dialogue/dino-d05-t-rex-defeated-662"]);
         assert!(rebuilt_points().iter().any(|(_, pf, _)| *pf == 5300));
     }
 

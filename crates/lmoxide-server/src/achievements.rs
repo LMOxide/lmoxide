@@ -945,6 +945,10 @@ mod tests {
         let boss = Event::Defeated { id: Id32::new(0, 0), name: "Hades".into(), smashable: false, boss: true, champion: false, level: 20, playfield: 0 };
         let out = on_event(&mut c, &ctx, &boss, 1);
         assert!(c.tags.contains_key(&847), "Mythology_Story_Defeat Hades");
+        // the Gauntlet's T-Rex (spawn/6300/t-rex): Roooooar!, which the party after him waits for
+        let t_rex = Event::Defeated { id: Id32::new(0, 0), name: "T-Rex".into(), smashable: false, boss: true, champion: false, level: 21, playfield: 6300 };
+        on_event(&mut c, &ctx, &t_rex, 1);
+        assert!(c.tags.contains_key(&1540), "Dino_Defeat T-Rex");
         // its reward is a loot bag (the reward script's table), not stars given directly
         assert!(out.loot.iter().any(|t| t.starts_with("loot/achievement-stars")), "{:?}", out.loot);
     }

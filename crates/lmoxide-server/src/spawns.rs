@@ -210,13 +210,14 @@ mod tests {
     }
 
     /// The story bosses placed since (docs/TUNABLES.md "Story bosses"): (playfield, old or new name).
-    const STORY_BOSSES: [(&str, &str); 6] = [
+    const STORY_BOSSES: [(&str, &str); 7] = [
         ("4300", "Captain Pete"),
         ("4310", "Captain Blackheart"),
         ("4310", "Captain Dreadleg"),
         ("5300", "The Jester"),
         ("5310", "Evil Sorcerer"),
         ("5310", "Pieromancer Elementius"),
+        ("6300", "T-Rex"),
     ];
 
     /// (the world editor's spawns weren't in the old files)

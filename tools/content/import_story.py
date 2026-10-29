@@ -165,7 +165,7 @@ BEAT_TODO = {
 }
 BEAT_REQUIRES = {
     # the party after T-Rex: its area covers most of the Gauntlet; only after the T-Rex fell
-    # (achievement 1540 Roooooar!)
+    # (achievement 1540 Roooooar!, granted on the defeat of spawn/6300/t-rex)
     "area/6300/cine-d06-cutscene1": [1540],
     "area/6300/cine-d06-cutscenefallback1": [1540],
 }

@@ -324,12 +324,14 @@ CONV = [
      "was the silent beat 661 on Cine_D04_Cutscene1 (4.2 m from its markers); 912 XX_D04"),
     ("dino-d05-t-rex-defeated", "XX_Cinematic Start D05", 1926, "", 6300,
      [662, 663, 664, 1013, 1014, 665, 1015, 666, 1016, 667, 1017, 668], ("boss", "T-Rex"), {}, G,
-     "T-Rex: 'Ouch! Au! You win!' - after the T-Rex (its markers 22 m from the party's area); 1013-1017 use its "
-     "actors; epilogue 668 gives 913 XX_D05, resolves 4A44"),
+     "T-Rex: 'Ouch! Au! You win!' - after the Gauntlet's boss, the T-Rex (BossEncounter_Start; spawn/6300/t-rex, "
+     "lizard_man look, at Cine_TRex1 where 653-661 leave him); its markers in the boss room (Cine_TRex3), 22 m from "
+     "the party's area; 1013-1017 use its actors; epilogue 668 gives 913 XX_D05, resolves 4A44"),
     ("dino-d06-party", "Video Game Guy", 2802, "Video Game Guy", 6300,
      [685, 1018, 1019, 1020, 1021, 1022, 1023, 1024, 686, 690],
      ("area", ["cine-d06-cutscene1", "cine-d06-cutscenefallback1"]), {"requires": [1540]}, L,
-     "was the silent beat 690 on Cine_D06_Cutscene1/Fallback1 (after the T-Rex, achievement 1540); the Video Game "
+     "was the silent beat 690 on Cine_D06_Cutscene1/Fallback1 (after the T-Rex: achievement 1540 Roooooar!, granted "
+     "on his defeat); the Video Game "
      "Guy's spawn there is the owner; 1018-1024 (why he hired the T-Rex) use its actors; 1985 XX_D06, DanceParty"),
 ]
 
