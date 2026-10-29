@@ -15,7 +15,11 @@
       "cursed-grove",
       "funhouse-treasure-chamber"
     ],
-    "exclude": []
+    "exclude": [],
+    "zone_checks": {
+      "_comment": "Sub-checkboxes under each adventure zone: 'default' for all, or a world slug for that zone only (replaces the default).",
+      "default": ["Story Quests", "Dialogues", "Enemy Spawns", "NPC Spawns", "Buildable Spawns", "Smashable Spawns", "Bouncers"]
+    }
   },
   "lost_creations": {
     "_comment": "Variants per Lost Creations level (lc slug -> variant names, e.g. enemy themes). The client data doesn't have them; fill these in.",

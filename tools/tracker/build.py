@@ -205,8 +205,15 @@ def build(state):
         return f'**{esc(w["name"])}** ({esc(", ".join(bits))})'
 
     note = 'Accessible in live = reachable through portals from the LEGO Center, plus `live_extra` in tools/tracker/manual.json.'
-    totals.append(section(doc, '9. Adventure zones', note, grouped(lists.adventure_zones(), 'region'),
-                          lambda w: [(w['key'], world_text(w), 0)]))
+    checks = lists.D.manual['worlds'].get('zone_checks', {})
+
+    def zone_items(w):
+        out = [(w['key'], world_text(w), 0)]
+        for c in checks.get(w['key'].split('/', 1)[1], checks.get('default', [])):
+            out.append((f'{w["key"]}/{re.sub(r"[^a-z0-9]+", "-", c.lower()).strip("-")}', esc(c), 1))
+        return out
+    totals.append(section(doc, '9. Adventure zones', note + ' Sub-boxes: `zone_checks` in the same file.',
+                          grouped(lists.adventure_zones(), 'region'), zone_items))
     totals.append(section(doc, '10. Pocket adventures', note, grouped(lists.pocket_adventures(), 'region'),
                           lambda w: [(w['key'], world_text(w), 0)]))
 
