@@ -668,6 +668,11 @@ async fn hop(player: Id32, pad: &Pad, pos: &world::Position) -> Option<[f32; 3]>
     Some(end)
 }
 
+/// Whether `player` is in the air from a jump pad or a throw now.
+pub fn airborne(player: Id32) -> bool {
+    STATES.lock().unwrap().get(&player).and_then(|s| s.airborne_until).is_some_and(|t| t > Instant::now())
+}
+
 /// Throws `player` (as a jump pad does, without a pad: pistons.rs) to `end`, arcing `apex` m
 /// above the higher end, spinning as a cannon throws; returns when they land. The lock buff is
 /// the caller's to remove.

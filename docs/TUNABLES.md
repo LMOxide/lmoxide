@@ -303,6 +303,49 @@ for them, not live values.
 | Reset | `npc.rs` `ai` → `scripts::playfield_emptied` | when the empty playfield's NPCs reset, running scripts end and their spawns go | Chosen. |
 | Trigger check | `scripts.rs` `TICK` | 0.5 s | Assumed. |
 
+## Walls and trigger areas (`triggers.rs`, tools/re/extract_server_areas.py)
+
+The areas are client data (RDB 1000053 server bounded areas, 1040010 client walls, 1000050
+territories); what live's server did when someone walked in was its Scry scripts, which are lost
+(only their names are in RDB 1010029). So the *effects* below are guesses unless the Source says
+otherwise.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Trigger check | `triggers.rs` `TICK`, `JUMP` | every 0.2 s; a move over 15 m between checks is a teleport (no wall crossed) | As walls.rs. Live's client reported sensor volumes itself (`EventGenerator_c::GenerateSensorVolumeEvents`); the server here checks positions. |
+| First sighting | `triggers.rs` `check` | a player who appears inside an area (login, teleport) counts as entering it | The client's `CoreCharacter::EnterSensorVolumesOnRevive` suggests live fired areas on (re)appearing too. |
+| Area height slack | `triggers.rs` `HEIGHT_SLACK` | 1 m above and below an area's band | Assumed (the bands are 10 m: generous already). |
+| Falling out of the world | content triggers `FallThroughWorld` (`teleport` command `nearest_respawn`) | back at the nearest respawn point (teleport within the playfield), no smash, no damage | **Guess.** The 80 `FallThroughWorld` volumes are client data; their Scry script (24774 `amarz_baenter_copy`, shared with ambush areas) only forwarded the event to the lost playfield script, and the live capture has no fall. A smash on top would be one more action. |
+| Kill volume inside | `triggers.rs` `Trig::contains` | everything below the volume's top (no slack) within its polygon | Chosen: some boxes are 1 m thin (2320, 6300) and a fall passes through one in a check; no world's navmesh reaches below its box top (checked with tools/re/navmesh.py; 2320's lowest floor is 5 cm above its box). |
+| Speed pads | content triggers `BA_Speedbuff_*`, buff/speed-pad | entering a pad whose speed buildie is built gives spell 459025 "XX_Speed Buff" (+50 MovementMultiplier, 10 s, client data); every entry renews it | Which spell: **guess** (459025 over the older 387512 "XX_Speed Buff", AddSnare ×1.5 for 1000 s, and 426597 "onPickup self speedBuff", 2 s). That the pad works only once built: **guess** from the live capture, whose two speed buildies ("power_up_speed_buildie", template 550744) stood exactly on Isle of Yarr's `BA_Speedbuff_1/2` (0.1 m). |
+| Speed buildies on the other pads | content spawns `spawn/<pf>/speed-pad-*` (source `proposed`, tag `speed-pad`) | one on each of the 39 pads without a recorded one (3200, 3210, 4200, 4210, 5200, 5210, 6200), 1.25 m above the pad area's bottom, facing 0 | **Guess**: the live capture only covered two pads; the height is the two recorded ones' offset. |
+| Clear hate | content triggers `ClearHate_*` (command `clear_hate`), `npc.rs` `clear_hate` | entering one makes enemies forget the player's hits and not pick it as a target for 5 s (they walk home) | The script's name is client data (601883 `ba_clearhatetowardsme`); the 5 s is **assumed**. |
+| Server walls vs players | `triggers.rs` `check`, `push_back`, `PUSH_APEX`, `PUSH_COOLDOWN` | a player crossing a *server* wall that blocks movement (1000053 `boundedareas_collision`: 6300 `boss_collisionwall_1..6`, 4210 lava walls, ...) hops back (0.4 m arc) to where they were at the last check; not checked again for 1.2 s | **Chosen** (least invasive): nothing in the client or the capture shows how live enforced them (no RPC or IIR toggles collision; the Windows client loads the binary form 1000055 as sensor volumes, whether it also collides with them is not decoded). |
+| NPC paths vs walls | `triggers.rs` `clip_path`, `WALL_MARGIN`, `WALL_SLACK`; `npc.rs` `steer` | an NPC's straight path stops 0.6 m short of the first wall that blocks pathing (client walls with PathingCollisionEnabled, server walls likewise); walls count 1.5 m beyond their height band | The flags are client data; stopping (rather than routing around) is chosen: the server has no navmesh routing. A closed polygon is a wall along its outline (most enclose the playable ground), not a solid. |
+| Wall `off` | content `blocks.off` | client walls with `StaticCollisionEnabled="false"` start off (99, e.g. 1101 `PVE_shield_blocker`) | **Guess** at the flag's meaning (spatial.md). They only matter for NPC paths. |
+
+Not run (no client data says what they did; the areas are in content with their `category` and
+`scry`, ready for a trigger once known):
+
+- hazards: 4210 `BA_Lavabricks*`, `ba_fireballs section *` (candidate spells 600554 / 600594
+  "pirate pf volcano island lava summon ball / explosion buff": lava balls at random points
+  1-7 m around their target), 5310 `GrillVolumne1-3` (318445 / 463750 / 463751 "evil sorcerer
+  grill1-3 castable": a 144 s ground fire, nano 319122, 3 m, AbilityMod 0.25: the boss fight's,
+  not a walk-in trigger), 1410 snowballs (579191 / 580992 "XX_Snowball"), tar, swamps, spider
+  jumps, cracked floors, falling bricks, ritual poison (176480 `boundedarea_castspellonself`,
+  spell parameter lost);
+- teleports (Scry 18602 `teleportplayerboundedarea_wazu`: the destination was a script
+  parameter, lost); 4600 `BA_TeleportJail` would fit 4610's `TP_Jail` point but belongs to the
+  story flow after the cannon cinematic (cannon.rs), so it is left to phase 3;
+- `Res_*` (174337 `boundedarea_discoverresurrectionpoint`: respawn points aren't discovered here,
+  all are known), `BA_FixXP`/`BA_ResetXP` (276794 `ba_setxp`), the tutorial escort chain (597467
+  `genericsendmessagetoself`; tutorial.rs drives the tutorial), ambush/spawn and puzzle areas
+  (encounter.rs, plates.rs, pistons.rs, tiki.rs already run the ones they know by name), cannon
+  and catapult areas, door/shield areas (`BA_FirstBarrier*`, `BA_DoorCollision*`,
+  `BA_PirateBayShield`, `BA_TutorialBossShield1`: the walls they sit on are client walls, which
+  the client keeps on whatever the server says, or doors that encounter.rs / gates.rs already
+  open).
+
 ## Lost Creations (`lost_creations.rs`, content/lost-creations, tunables.json `lost_creations`)
 
 docs/LOST-CREATIONS.md has the rules and the client protocol; these are the values chosen where

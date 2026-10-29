@@ -1288,6 +1288,8 @@ fn steer(id: Id32, here: [f32; 3], goal: [f32; 3], face: Option<[f32; 3]>) {
     let record = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return };
+        // walls that block paths (triggers.rs): it stops short of them
+        let goal = crate::triggers::clip_path(npc.playfield, here, goal);
         if distance(goal, here) <= ARRIVED {
             npc.walk.take().map(|w| {
                 let towards = face.unwrap_or(w.to);
@@ -2020,6 +2022,7 @@ async fn ai() {
             if !keep && !occupied.contains(pf) {
                 unload(*pf);
                 crate::scripts::playfield_emptied(*pf);
+                crate::triggers::playfield_emptied(*pf);
             }
             keep
         });
@@ -2053,7 +2056,7 @@ async fn ai() {
         for (_, playfield, _, _, _, _, _) in &live {
             players
                 .entry(*playfield)
-                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other)).collect());
+                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other) && !calm(*other)).collect());
             fighters.entry(*playfield).or_insert_with(|| fighters_on(*playfield));
         }
         for (id, playfield, home, reach, keep, threat, faction) in live {
@@ -2128,6 +2131,31 @@ async fn ai() {
             }
         }
     }
+}
+
+/// Players enemies leave alone for now (`clear_hate`), until when.
+static CALM: LazyLock<Mutex<HashMap<Id32, std::time::Instant>>> = LazyLock::new(Default::default);
+
+fn calm(player: Id32) -> bool {
+    CALM.lock().unwrap().get(&player).is_some_and(|t| *t > std::time::Instant::now())
+}
+
+/// Enemies stop chasing `player` (a ClearHate area: Scry `ba_clearhatetowardsme`, triggers.rs):
+/// their memory of its hits is gone and for `lasts` none picks it as a target, so they walk
+/// home. How long live's script kept them off is unknown (docs/TUNABLES.md).
+pub fn clear_hate(player: Id32, lasts: Duration) {
+    let mut n = 0;
+    for npc in NPCS.lock().unwrap().values_mut() {
+        if npc.threat.is_some_and(|(p, _)| p == player) {
+            npc.threat = None;
+            n += 1;
+        }
+    }
+    let mut calm = CALM.lock().unwrap();
+    let now = std::time::Instant::now();
+    calm.retain(|_, t| *t > now);
+    calm.insert(player, now + lasts);
+    info!(player = player.instance, forgot = n, ?lasts, "hate cleared");
 }
 
 /// The playfields players are on.

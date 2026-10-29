@@ -50,6 +50,7 @@ mod store;
 mod survey;
 mod teleport;
 mod tiki;
+mod triggers;
 mod tutorial;
 mod territory;
 mod universe;

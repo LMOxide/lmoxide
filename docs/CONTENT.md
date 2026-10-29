@@ -163,8 +163,8 @@ uses new ids.
 | `spawn` | `spawns.json` | `kind` (enemy, npc, smashable, buildie, interactable, door, scenery, trigger, actor), `template` (`npc/` or `object/`), `pos`, `rot`, `scale`, `overrides`, `respawn`, `patrol`, `wave` (spawned by a script), `anchor`, `fight`, `replaces` + `removed` (world-editor changes), `variants` (a Lost Creations level's variants it is in; none: in all), `client` (guid, tag, script group, visual, bounds ...) |
 | `portal` | `portals.json` | `pos`, `radius`, `window`, `to` (a destination, below) |
 | `bouncer` | `bouncers.json` | `template` (an `object/` of kind bouncer: the look), `pos`, `rot`, `target`, `target_by`, `apex`, `flight`, `then` (next pad), `requires_built` |
-| `area` | `areas.json` | `role` (place, arena, ambush, explore, champion, marker, note, quest), `shape`, arena `doors` |
-| `trigger` | `triggers.json` | `shape`, `on` (enter, exit, interact), `once` (never, per_player, per_instance, global), `look`, `actions` |
+| `area` | `areas.json` | `role` (place, arena, ambush, explore, champion, marker, note, quest, trigger, wall, kill, story, territory), `shape`, arena `doors`, `category` (what a client trigger area seems to be for, by its name), `scry` (its client Scry script id), `blocks` (walls: `by` client or server, `movement`, `pathing`, `sight`, `open_line`, `off`), `paths` (a territory's roaming paths) |
+| `trigger` | `triggers.json` | `shape` or `area` (an area it covers), `on` (enter, exit, interact), `once` (never, per_player, per_instance, global), `requires` (conditions: `{ "state": { "target": { "placement": <spawn or wall area> }, "state": "built" \| "open" \| "closed" } }`), `look`, `actions` |
 | `puzzle` | `puzzles.json` | Medusa mirrors and light gates (mirrors.rs, gates.rs) |
 | `script` | `scripts/<slug>.json` | `area`, `start` (trigger, on_world_load), `params`, `variants`, `waves`, `on_complete` |
 | `region` | `regions/` | worlds that share minifigure drops ("Pirate World") |

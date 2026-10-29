@@ -1,7 +1,8 @@
 //! World content on play servers (docs/WORLD-CONTENT.md): the content tree as loaded, the world
 //! editor's work in it like everything else. At start: its spawns (npc.rs; spawns of script
 //! waves wait for their wave), trigger walls (walls.rs), scripts (scripts.rs), which enemies
-//! count toward which achievements (achievements.rs), the area quests (quests.rs); jump pads come with world_data.rs.
+//! count toward which achievements (achievements.rs), the area quests (quests.rs), trigger areas and
+//! walls (triggers.rs); jump pads come with world_data.rs.
 //!
 //! What editors publish waits in the world editor's publish queue (`--content-queue`, the
 //! survey server's `var/content-queue`, lmoxide_content::queue); admins see it and reject it
@@ -78,6 +79,7 @@ pub fn start() {
     crate::scripts::set(scripts);
     crate::achievements::set_smash_rules(&views::rules(&work));
     crate::quests::set_from_work(&work);
+    crate::triggers::set_from_work(&work);
 }
 
 // ------------------------------------------------------------------ control routes

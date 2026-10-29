@@ -34,7 +34,9 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!where` | current playfield and position |
 | `!instance [copy]` | which running copy of this world you are in (instance.rs); `!instance 1` goes to copy 1 at the same spot (other copies have no residents yet), `!instance 0` back to the main one |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas), `lc` (the Lost Creations door, each level's start) |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas), `lc` (the Lost Creations door, each level's start), `area` (server trigger, story and territory areas), `wall` (invisible walls), `fallzone` (arrive under the world above a FallThroughWorld volume: you fall in and come back at the respawn point), `speedpad` (BA_Speedbuff pads) |
+| `!areas [radius]` | the content areas within radius m (default 20): role, category, the triggers on them, whether you stand inside; walls and whether they block now |
+| `!wall <open\|close> <name>` | switch this playfield's walls whose name or id contains `<name>` off (open) or on, in this copy until it empties (NPC paths, server-wall push-back) |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them) |
 | `!script [list]` | this playfield's approved, active scripts (world editor) with their waves, triggers, placements and what is running (`!goto script n` goes to one) |

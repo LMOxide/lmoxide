@@ -217,6 +217,15 @@ pub fn points() -> Vec<(String, Pf, [f32; 3], String)> {
     v
 }
 
+/// Whether a built buildie stands at `at` (within 1.5 m; a trigger's `built` condition, triggers.rs).
+pub fn built_at(playfield: Pf, at: [f32; 3]) -> bool {
+    BUILDIES
+        .lock()
+        .unwrap()
+        .values()
+        .any(|b| b.def.playfield == playfield && b.state == State::Built && distance(b.def.pos, at) < 1.5)
+}
+
 /// Whether an unbuilt buildie stands at `at` (a jump pad there doesn't work yet).
 pub fn unbuilt_at(playfield: Pf, at: [f32; 3]) -> bool {
     BUILDIES

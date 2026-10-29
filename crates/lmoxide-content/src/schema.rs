@@ -511,7 +511,7 @@ mod tests {
                 ("/actions/0/apply_buff/buff", "buff".to_string()),
                 (
                     "/actions/0/apply_buff/target/placement",
-                    "spawn,bouncer,trigger".to_string()
+                    "spawn,bouncer,trigger,area".to_string()
                 ),
                 ("/actions/2/give_item/item", "item".to_string()),
             ]

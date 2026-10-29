@@ -8,6 +8,8 @@
 //!   !moveto <x> <y> <z>       go to a position in this playfield
 //!   !move <dx> <dy> <dz>      move by that much from where you are (`!move 0 1000 0`: up out of
 //!                             a test map's floor)
+//!   !areas [radius]           content areas and walls near you (role, category, triggers, inside?)
+//!   !wall <open|close> <name> switch this playfield's walls of that name off or on
 //!   !list <kind>              numbered list of a kind of test target (see KINDS)
 //!   !goto <kind> [n]          go next to target n (default 1) of that kind
 //!   !ach                      achievements earned, kill and smash counters
@@ -150,6 +152,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
     ("!moveto <x> <y> <z>", "go to a position in this playfield"),
     ("!move <dx> <dy> <dz>", "move by that much from where you are (y is up: !move 0 1000 0 climbs out of a floor)"),
+    ("!areas [radius]", "the content areas within radius m (default 20) of you: role, category, triggers on them, and whether you stand inside; walls: whether they block"),
+    ("!wall <open|close> <name>", "open (switch off) or close the walls of this playfield whose name or id contains <name> (in this copy, until it empties)"),
     ("!list <kind>", "numbered list of a kind of test target"),
     ("!goto <kind> [n]", "go next to target n (default 1) of that kind"),
     ("!goto player <name>", "go next to a player online (character or account name)"),
@@ -404,6 +408,10 @@ const KINDS: &[(&str, &str)] = &[
     ("smashable", "smashables"),
     ("script", "the world editor's approved, active scripts (at their area, else their first placement)"),
     ("quest", "area quests' areas (walking in starts the quest; quests.rs)"),
+    ("area", "server trigger, story and territory areas (RDB 1000053 / 1000050; triggers.rs), with role and category"),
+    ("wall", "invisible walls (client RDB 1040010 and server 1000053 collision; enemies' paths stop at them, server ones push players back)"),
+    ("fallzone", "falling-out-of-the-world volumes: arrives above one (under the world), falls in, comes back at the nearest respawn point"),
+    ("speedpad", "speed pads (BA_Speedbuff): build the sign there, walk onto it for the speed buff"),
 ];
 
 /// How far from a target to arrive (so as not to stand inside it or on a pad).
@@ -435,6 +443,31 @@ fn script(args: &[&str], playfield: Pf) -> Vec<String> {
     }
 }
 
+/// `!areas`: the content areas and walls within `radius` m of `pos`.
+fn areas_near(playfield: Pf, pos: [f32; 3], radius: f32) -> Vec<String> {
+    let near = |c: [f32; 3]| ((c[0] - pos[0]).powi(2) + (c[2] - pos[2]).powi(2)).sqrt();
+    let mut lines: Vec<(f32, String)> = crate::triggers::areas_of(playfield.model())
+        .into_iter()
+        .filter(|a| near(a.centre()) <= radius && a.role != lmoxide_content::AreaRole::Wall)
+        .map(|a| {
+            let triggers = crate::triggers::triggers_on(&a.id);
+            let inside = if a.shape.contains(pos, 1.0) { " (you're inside)" } else { "" };
+            let what = format!("{:?}{}", a.role, a.category.as_deref().map(|c| format!(" {c}")).unwrap_or_default());
+            let t = if triggers.is_empty() { String::new() } else { format!(", triggers: {}", triggers.join(" ")) };
+            (near(a.centre()), format!("{:.0} m {} [{what}]{t}{inside}", near(a.centre()), a.name))
+        })
+        .collect();
+    lines.extend(crate::triggers::walls_of(playfield).into_iter().filter(|(w, _)| near(w.centre()) <= radius).map(|(w, on)| {
+        let state = if on { "blocks" } else { "open" };
+        (near(w.centre()), format!("{:.0} m wall {} ({:?}, {}{}{state})", near(w.centre()), w.name, w.by, if w.movement { "movement " } else { "" }, if w.pathing { "paths " } else { "" }))
+    }));
+    lines.sort_by(|a, b| a.0.total_cmp(&b.0));
+    if lines.is_empty() {
+        return vec![format!("no areas within {radius:.0} m")];
+    }
+    lines.into_iter().take(25).map(|(_, l)| l).collect()
+}
+
 /// Whether a chat line is a command.
 pub fn is_command(message: &str) -> bool {
     message.starts_with('/') || message.starts_with('!')
@@ -459,6 +492,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "script" => crate::scripts::points(),
         "quest" => crate::quests::points(),
         "lc" => crate::lost_creations::points(),
+        "area" | "wall" | "fallzone" | "speedpad" => crate::triggers::points(kind),
         _ => return None,
     })
 }
@@ -490,6 +524,20 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             reply(vec![format!("{}{copy}: {:.1} {:.1} {:.1}", playfield_name(playfield.model()), pos[0], pos[1], pos[2])])
         }
 
+        "areas" => reply(areas_near(playfield, pos, args.first().and_then(|r| r.parse().ok()).unwrap_or(20.0))),
+        "wall" => match (args.first().copied(), args.get(1..).map(|a| a.join(" ").to_ascii_lowercase()).filter(|n| !n.is_empty())) {
+            (Some(how @ ("open" | "close")), Some(name)) => {
+                let walls: Vec<_> = crate::triggers::walls_of(playfield)
+                    .into_iter()
+                    .filter(|(w, _)| w.id.to_ascii_lowercase().contains(&name) || w.name.to_ascii_lowercase().contains(&name))
+                    .collect();
+                for (w, _) in &walls {
+                    crate::triggers::set_wall(playfield, &w.id, how == "open");
+                }
+                reply(vec![format!("{} {} wall(s): {}", if how == "open" { "opened" } else { "closed" }, walls.len(), walls.iter().map(|(w, _)| w.name.as_str()).collect::<Vec<_>>().join(", "))])
+            }
+            _ => reply(vec!["usage: !wall <open|close> <name>".into()]),
+        },
         "moveto" | "move" => {
             let n: Vec<f32> = args.iter().filter_map(|a| a.trim_end_matches(',').parse::<f32>().ok()).filter(|v| v.is_finite()).collect();
             if n.len() != 3 || args.len() != 3 {

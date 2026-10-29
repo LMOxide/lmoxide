@@ -475,6 +475,52 @@ pub enum AreaRole {
     Note,
     /// An area quest's region (the client's `Quest_*` bounded areas).
     Quest,
+    /// A server trigger area (the client's RDB 1000053 bounded areas): what entering it does is
+    /// a trigger's (`triggers.json`, `area`); `category` says what it seems to be for.
+    Trigger,
+    /// An invisible wall (`blocks` says what it blocks and who enforces it).
+    Wall,
+    /// Falling into it means the player fell out of the world (`FallThroughWorld`).
+    Kill,
+    /// A story, cinematic or talking-head trigger area (phase 3 hangs its actions on these).
+    Story,
+    /// A territory (RDB 1000050): wander space with roaming `paths`.
+    Territory,
+}
+
+/// Who keeps characters out of a wall.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum WallSide {
+    /// The client's own collision (RDB 1040010 `BoundedAreaCollision` layers): the server only
+    /// keeps its NPCs' paths out of it.
+    #[default]
+    Client,
+    /// The server (RDB 1000053's `boundedareas_collision` section): the client doesn't know it.
+    Server,
+}
+
+/// What a wall area blocks (the bounded area's collision flags).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Blocks {
+    #[serde(default)]
+    pub by: WallSide,
+    /// Walking characters (MovementCollisionBehaviour).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub movement: bool,
+    /// NPC paths (PathingCollisionEnabled).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub pathing: bool,
+    /// Line of sight for combat (LOSCombatCollisionBehaviour).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub sight: bool,
+    /// The polygon is an open line of wall segments, not a closed shape (closedshape false).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub open_line: bool,
+    /// Off until a trigger switches it on (StaticCollisionEnabled false; `set_state` `closed`).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub off: bool,
 }
 
 /// Doors of an arena by client guid.
@@ -506,6 +552,20 @@ record! {
         /// World-editor notes: what it is about and how far it is checked.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub note: Option<serde_json::Value>,
+        /// What the area seems to be for, from its client name (tools/re/extract_server_areas.py:
+        /// `hazard`, `speed_or_jump`, `teleport`, `spawn_ambush`, `cinematic`, ...).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub category: Option<String>,
+        /// The client's Scry script id on the area (RDB 1000053 `scryid`; the script bodies were
+        /// server-side and are lost, their names are in RDB 1010029).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub scry: Option<u32>,
+        /// A wall: what it blocks.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub blocks: Option<Blocks>,
+        /// A territory's roaming paths (RDB 1000050): wander points.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub paths: Vec<Vec<Vec3>>,
     }
 }
 
@@ -530,11 +590,27 @@ pub enum Once {
     Global,
 }
 
+/// What must hold for a trigger to go off.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub enum Condition {
+    /// An object is in this state (a buildie spawn `built`, a wall area `open` / `closed`).
+    State { target: crate::action::Target, state: String },
+}
+
 record! {
     /// A trigger: `worlds/<world>/triggers.json`.
     #[derive(Default)]
     pub struct Trigger: "trigger" {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         pub shape: Option<Shape>,
+        /// The area it covers (`area/...`), instead of a shape of its own.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+        pub area: Option<Ref>,
+        /// It goes off only while all of these hold.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub requires: Vec<Condition>,
         #[serde(default, skip_serializing_if = "crate::record::is_default")]
         pub on: TriggerOn,
         #[serde(default, skip_serializing_if = "crate::record::is_default")]

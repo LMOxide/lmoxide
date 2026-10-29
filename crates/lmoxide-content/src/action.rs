@@ -29,8 +29,8 @@ pub enum Target {
     Team,
     /// Everyone in the area of the trigger or script.
     AllInArea,
-    /// One placement or object by id (`spawn/4200/gate-north`).
-    Placement(#[schemars(extend("x-lmoxide-ref" = ["spawn", "bouncer", "trigger"]))] Ref),
+    /// One placement or object by id (`spawn/4200/gate-north`; a wall `area/...`).
+    Placement(#[schemars(extend("x-lmoxide-ref" = ["spawn", "bouncer", "trigger", "area"]))] Ref),
     /// Every placement with this tag.
     Tag(String),
 }
