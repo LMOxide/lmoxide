@@ -72,6 +72,7 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         source: source_name(s.source),
         rot: s.rot.map(Rot::heading),
         variants: s.variants.clone(),
+        requires: s.requires.clone(),
     })
 }
 
@@ -207,6 +208,16 @@ mod tests {
         assert!(table().values().flatten().any(|d| d.loot.as_deref() == Some("loot/smashable-chest")));
     }
 
+    /// The story bosses placed since (docs/TUNABLES.md "Story bosses"): (playfield, old or new name).
+    const STORY_BOSSES: [(&str, &str); 6] = [
+        ("4300", "Captain Pete"),
+        ("4310", "Captain Blackheart"),
+        ("4310", "Captain Dreadleg"),
+        ("5300", "The Jester"),
+        ("5310", "Evil Sorcerer"),
+        ("5310", "Pieromancer Elementius"),
+    ];
+
     /// (the world editor's spawns weren't in the old files)
     #[test]
     fn same_as_the_old_files() {
@@ -214,7 +225,10 @@ mod tests {
         for defs in new.values_mut() {
             defs.retain(|d| d.source.as_deref() != Some("survey"));
         }
-        let old = old_table();
+        let mut old = old_table();
+        for (pf, defs) in new.iter_mut().chain(old.iter_mut()) {
+            defs.retain(|d| !STORY_BOSSES.contains(&(pf.as_str(), d.name.as_str())));
+        }
         let mut problems = Vec::new();
         for pf in old.keys().chain(new.keys()).collect::<std::collections::BTreeSet<_>>() {
             let mut a: Vec<String> = old.get(pf).into_iter().flatten().map(key).collect();

@@ -199,6 +199,19 @@ fn find_step(hash: &str) -> Option<(u32, &'static Quest, usize)> {
     lines().find_map(|(main, q)| q.steps.iter().position(|s| s.hash.as_deref() == Some(hash)).map(|i| (main, q, i)))
 }
 
+/// The minifigure template `spawn <hash>` gives (tunables `story.spawn_minifigures`), unless the
+/// hash is a story quest's. game.rs adds it to the collection directly: the client's AddItem
+/// into the Collection inventory opens its "Congratulations! You got a new minifigure." window
+/// (BagOpenEvent.swf `SlotMinifigureAdded`), as in the user's live footage.
+pub fn spawn_minifigure(order: &Order) -> Option<u32> {
+    let Order::Spawn(hash) = order else { return None };
+    if find_step(hash).is_some() {
+        return None;
+    }
+    let t = &crate::gamedata::get().tunables.story;
+    t.spawn_minifigures.get(hash).and_then(|m| crate::gamedata::get().minifigures.get(m)).map(|m| m.template)
+}
+
 /// A line by main quest id or world name (`pirate`, `medieval` ...: the record's id).
 pub fn find_line(arg: &str) -> Option<u32> {
     if let Ok(main) = arg.parse::<u32>() {
@@ -511,15 +524,9 @@ pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: 
         }
         Order::Spawn(hash) => {
             let Some((main, q, step)) = find_step(&hash) else {
-                // a minifigure the dialogue gives: its bag, 1 m from the player
-                let t = &crate::gamedata::get().tunables.story;
-                match t.spawn_minifigures.get(&hash).and_then(|m| crate::gamedata::get().minifigures.get(m)).and_then(|m| crate::loot::minifigure_bag(m.template)) {
-                    Some(bag) => {
-                        let at = world::live_position(player).unwrap_or(c.pos);
-                        info!(character, hash, bag, "spawn: a minifigure's bag");
-                        crate::loot::drop_items(player, place, [at[0] + 1.0, at[1], at[2]], player, vec![bag]);
-                    }
-                    None => info!(character, hash, "spawn: not a story quest or minifigure (an NPC template?)"),
+                // (a minifigure the dialogue gives: game.rs grants it, see `spawn_minifigure`)
+                if !crate::gamedata::get().tunables.story.spawn_minifigures.contains_key(&hash) {
+                    info!(character, hash, "spawn: not a story quest or minifigure (an NPC template?)");
                 }
                 return Vec::new();
             };

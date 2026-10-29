@@ -486,6 +486,73 @@ def dialogues():
     return dict(groups)
 
 
+def _starts():
+    """dialogue id -> what starts it: story trigger areas (worlds/*/triggers.json) and cinematics'
+    `then_dialogue` (tunables.json `story.cinematics`)."""
+    out = collections.defaultdict(list)
+    for wid, w in D.worlds.items():
+        p = os.path.join(w['_dir'], 'triggers.json')
+        if not os.path.exists(p):
+            continue
+        with open(p) as fh:
+            for t in json.load(fh).get('triggers', []):
+                for a in t.get('actions', []):
+                    d = a.get('dialogue', {}).get('dialogue')
+                    if d:
+                        out[d].append(f'area {t.get("name") or slug(t.get("area"))}')
+    with open(os.path.join(CONTENT, 'tunables.json')) as fh:
+        tun = json.load(fh)
+    for name, c in tun.get('story', {}).get('cinematics', {}).items():
+        if c.get('then_dialogue'):
+            out[c['then_dialogue']].append(f'after the cinematic {name}')
+    return out
+
+
+def rebuilt():
+    """{world: rows}: the rebuilt story conversations (content/dialogues tag `reconstructed`, made by
+    tools/content/story_dialogues.py from the client's texts), each to be checked against footage."""
+    starts = _starts()
+    by_first = {d['texts'][0]: d for d in D.dialogues.values() if d.get('texts')}
+    groups = collections.defaultdict(list)
+    for d in sorted(D.dialogues.values(), key=lambda d: (d.get('order', 0), d['id'])):
+        tags = d.get('tags', [])
+        if 'reconstructed' not in tags:
+            continue
+        place = list(starts.get(d['id'], []))
+        if d.get('defeated'):
+            place.insert(0, 'after defeating ' + ('its world\'s boss' if d['defeated'] == 'boss' else d['defeated']))
+        if d.get('follows'):
+            f = by_first.get(d['follows'])
+            place.insert(0, f'after dialogue {d["follows"]}' + (f' ({slug(f["id"])})' if f else ''))
+        conditions = []
+        if d.get('requires'):
+            conditions.append('needs tags ' + ', '.join(map(str, d['requires'])))
+        if d.get('unless'):
+            conditions.append('not with ' + ', '.join(map(str, d['unless'])))
+        if d.get('goals'):
+            conditions.append('goals ' + ', '.join(d['goals']))
+        w = D.worlds.get(d.get('world'))
+        speakers = collections.Counter()
+        for i in d['texts']:
+            for m in re.findall(r'\[([^\]]+)\]', D.texts['texts'].get(str(i), '')):
+                if not NOISE.search(m.strip()):
+                    speakers[m.strip()] += 1
+        groups[D.world_name(d.get('world'))].append({
+            'key': f'rebuilt/{slug(d["id"])}',
+            'name': d.get('name', slug(d['id'])),
+            'dialogue': slug(d['id']),
+            'playfield': w.get('playfield') if w else None,
+            'texts': d['texts'],
+            'place': place or ['not started by anything (!dialog only)'],
+            'conditions': conditions,
+            'speakers': [x for x, _ in speakers.most_common()],
+            'owner': d.get('npc') or '',
+            'confidence': next((t for t in tags if t in ('likely', 'guess', 'certain')), d.get('source', '')),
+            'pos': d.get('pos'),
+        })
+    return dict(groups)
+
+
 LISTS = collections.OrderedDict([
     ('upgrades', upgrades),
     ('characters', characters),
@@ -499,6 +566,7 @@ LISTS = collections.OrderedDict([
     ('pocket-adventures', pocket_adventures),
     ('lost-creations', lost_creations),
     ('dialogues', dialogues),
+    ('rebuilt', rebuilt),
 ])
 
 

@@ -182,6 +182,7 @@ pub fn start() {
                 let (i, high) = (turn % BALLISTAS.len(), (turn / BALLISTAS.len() + turn) % 2 == 1);
                 let def = crate::npc::SpawnDef {
                 variants: Vec::new(),
+                requires: Vec::new(),
                     kind: crate::npc::Kind::Smashable,
                     template: DUMMY_TEMPLATE,
                     name: "XX_Combat Dummy".into(),

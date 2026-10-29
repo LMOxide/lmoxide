@@ -489,6 +489,12 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
             ["movecameratopos", p, ..] => records.push(actor(s.player, placed(Kind::MoveCameraToStaticPoint, "", p))),
             ["setactiveactor", a, ..] => records.push(actor(s.player, msg(Kind::SetActiveActor, a))),
             ["moveactortopos", a, p, ..] => {
+                // (an NPC placed where the actor walks to, a boss waiting there, is hidden too)
+                if let Some(npc) = world::whereabouts(s.player).and_then(|(pf, _)| crate::npc::on_anchor(pf, p, a)) {
+                    if s.hidden.lock().unwrap().insert(npc) {
+                        records.push(crate::game::despawn_record(npc));
+                    }
+                }
                 records.push(actor(s.player, KnubotActorMessage { instant_teleport: Some(false), ..placed(Kind::MoveActorToPos, a, p) }));
             }
             ["startfxpackageonactor", a, package, ..] => {
@@ -733,8 +739,9 @@ mod tests {
         }
         // after a defeat: by name, or any boss of that playfield
         assert_eq!(after_defeat("Hades", true, 2320), ["dialogue/myth-g12-party-598"]);
-        assert_eq!(after_defeat("Troll Warlord", true, 5300), ["dialogue/my-kingdom-for-a-crown-288"]);
-        assert!(after_defeat("Troll Warlord", false, 5300).is_empty());
+        assert_eq!(after_defeat("The Jester", true, 5300), ["dialogue/my-kingdom-for-a-crown-288"]);
+        assert!(after_defeat("Troll Warlord", true, 5300).is_empty());
+        assert_eq!(after_defeat("Pieromancer Elementius", true, 5310), ["dialogue/defeated-elementius-308"]);
         assert!(rebuilt_points().iter().any(|(_, pf, _)| *pf == 5300));
     }
 

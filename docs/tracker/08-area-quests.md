@@ -86,8 +86,8 @@
 <details><summary>Dinosaur Rise (0/4)</summary>
 
 - [ ] **Clean up the corruption in the Pond area** — Clean up the corruption in the Pond area · _Clean up the corruption in the Pond area — trigger kills_or_smashes × 3_ <!-- quest/dino-1-outdoor-clean-up-the-corruption-in-the-pond-area -->
-- [ ] **Collect airplane parts within the Swamp** — Collect airplane parts within the Swamp · _Collect airplane parts within the Swamp — trigger kills_or_smashes × 3_ <!-- quest/dino-1-outdoor-collect-airplane-parts-within-the-swamp -->
-- [ ] **Gather fire embers for the caveman** — Gather fire embers for the Caveman · _Gather fire embers for the Caveman — trigger kills_or_smashes × 3_ <!-- quest/dino-1-outdoor-gather-fire-embers-for-the-caveman -->
+- [ ] **Collect airplane parts within the Swamp** — Collect airplane parts within the Swamp · _Collect airplane parts within the Swamp — trigger pickups × 25_ <!-- quest/dino-1-outdoor-collect-airplane-parts-within-the-swamp -->
+- [ ] **Gather fire embers for the caveman** — Gather fire embers for the Caveman · _Gather fire embers for the Caveman — trigger pickups × 50_ <!-- quest/dino-1-outdoor-gather-fire-embers-for-the-caveman -->
 - [ ] **Return the egg to the nest** — Return the egg to the nest · _Return the egg to the nest — trigger_ <!-- quest/dino-1-outdoor-return-the-egg-to-the-nest -->
 
 </details>
@@ -113,7 +113,7 @@
 - [ ] **Clear the Quarry of unwanted visitors** — Clear the Quarry of unwanted visitors · _Clear the Quarry of unwanted visitors — trigger kills × 3_ <!-- quest/medieval-2-enchanted-forest-clear-the-quarry-of-unwanted-visitors -->
 - [ ] **Diminish the wild growth in the Living Forest** — Diminish the wild growth in the Living Forest · _Diminish the wild growth in the Living Forest — trigger kills × 3_ ⚠ no area <!-- quest/medieval-2-enchanted-forest-diminish-the-wild-growth-in-the-living-forest -->
 - [ ] **Fight the infestation in the Cursed Forest** — Fight the infestation in the Cursed Forest · _Fight the infestation in the Cursed Forest — trigger kills × 3_ <!-- quest/medieval-2-enchanted-forest-fight-the-infestation-in-the-cursed-forest -->
-- [ ] **Help Grandma collect her Apples** — Help Grandma collect her Apples · _Help Grandma collect her Apples — trigger kills_or_smashes × 3_ <!-- quest/medieval-2-enchanted-forest-help-grandma-collect-her-apples -->
+- [ ] **Help Grandma collect her Apples** — Help Grandma collect her Apples · _Help Grandma collect her Apples — trigger pickups × 34_ <!-- quest/medieval-2-enchanted-forest-help-grandma-collect-her-apples -->
 - [ ] **Make the Dark Forest passage safer** — Make the Dark Forest passage safer · _Make the Dark Forest passage safer — trigger kills × 3_ <!-- quest/medieval-2-enchanted-forest-make-the-dark-forest-passage-safer -->
 - [ ] **Mountain Descent** — Mountain Descent · _Mountain Descent — trigger_ ⚠ no area <!-- quest/medieval-2-enchanted-forest-mountain-descent -->
 
@@ -147,7 +147,7 @@
 <details><summary>Isle of Yarr (0/9)</summary>
 
 - [ ] **Rescue the captured pirates** — Rescue the captured pirates · _Rescue the captured pirates — trigger smashes × 5_ <!-- quest/pirate-1-isle-of-yarr-rescue-the-captured-pirates -->
-- [ ] **Help the Scientist collect Golden Bananas** — Help the Scientist collect Golden Bananas · _Help the Scientist collect Golden Bananas — trigger kills_or_smashes × 3_ <!-- quest/pirate-1-isle-of-yarr-help-the-scientist-collect-golden-bananas -->
+- [ ] **Help the Scientist collect Golden Bananas** — Help the Scientist collect Golden Bananas · _Help the Scientist collect Golden Bananas — trigger pickups × 25_ <!-- quest/pirate-1-isle-of-yarr-help-the-scientist-collect-golden-bananas -->
 - [ ] **Defeat Guardsman Bob and escape into the farmlands** — Defeat Guardsman Bob and escape into the farmlands · _Defeat Guardsman Bob and escape into the farmlands — trigger kills × 3_ ⚠ no area <!-- quest/pirate-1-defeat-guardsman-bob-and-escape-into-the-farmlands -->
 - [ ] **Defeat the cavedweller and his crew** — Defeat the cave dweller and his crew · _Defeat the cave dweller and his crew — trigger kills × 3_ <!-- quest/pirate-1-defeat-the-cavedweller-and-his-crew -->
 - [ ] **Defeat the pirate machine on top of the hill** — Defeat the pirate machine on top of the hill · _Defeat the pirate machine on top of the hill — trigger kills × 3_ ⚠ no area <!-- quest/pirate-1-defeat-the-pirate-machine-on-top-of-the-hill -->
@@ -286,9 +286,9 @@
 
 <details><summary>Planet's Dark Side (0/4)</summary>
 
-- [ ] **Collect information about the Ancient Ruins** — Collect information about the Ancient Ruins · _Collect information about the Ancient Ruins — trigger kills_or_smashes × 3_ <!-- quest/space-2-alien-world-collect-information-about-the-ancient-ruins -->
+- [ ] **Collect information about the Ancient Ruins** — Collect information about the Ancient Ruins · _Collect information about the Ancient Ruins — trigger pickups × 34_ <!-- quest/space-2-alien-world-collect-information-about-the-ancient-ruins -->
 - [ ] **Cripple the Alien Invasion Force** — Cripple the Alien Invasion Force · _Cripple the Alien Invasion Force — trigger kills_or_smashes × 3_ <!-- quest/space-2-alien-world-cripple-the-alien-invasion-force -->
-- [ ] **Gather research data within the Swamp** — Gather research data within the Swamp · _Gather research data within the Swamp — trigger kills_or_smashes × 3_ <!-- quest/space-2-alien-world-gather-research-data-within-the-swamp -->
+- [ ] **Gather research data within the Swamp** — Gather research data within the Swamp · _Gather research data within the Swamp — trigger pickups × 20_ <!-- quest/space-2-alien-world-gather-research-data-within-the-swamp -->
 - [ ] **Sabotage the Crystal Refinery** — Sabotage the Crystal Refinery · _Sabotage the Crystal Refinery — trigger smashes × 3_ <!-- quest/space-2-alien-world-sabotage-the-crystal-refinery -->
 
 </details>
@@ -333,7 +333,7 @@
 
 <details><summary>Space Colony (0/5)</summary>
 
-- [ ] **Collect DNA samples within the Biosquares** — Collect DNA samples within the Biosquares · _Collect DNA samples within the Biosquares — trigger kills_or_smashes × 3_ <!-- quest/space-1-space-colony-collect-dna-samples-within-the-biosquares -->
+- [ ] **Collect DNA samples within the Biosquares** — Collect DNA samples within the Biosquares · _Collect DNA samples within the Biosquares — trigger pickups × 17_ <!-- quest/space-1-space-colony-collect-dna-samples-within-the-biosquares -->
 - [ ] **Fight the Shadow Centurion takeover** — Fight the Shadow Centurion takeover · _Fight the Shadow Centurion takeover — trigger kills × 3_ <!-- quest/space-1-space-colony-fight-the-shadow-centurion-takeover -->
 - [ ] **Fight the invaders in the Crystal Mine** — Fight the invaders in the Crystal Mine · _Fight the invaders in the Crystal Mine — trigger kills × 3_ <!-- quest/space-1-space-colony-fight-the-invaders-in-the-crystal-mine -->
 - [ ] **Reclaim the research stations** — Reclaim the research stations · _Reclaim the research stations — trigger_ <!-- quest/space-1-space-colony-reclaim-the-research-stations -->

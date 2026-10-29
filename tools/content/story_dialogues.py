@@ -113,7 +113,8 @@ CONV = [
      [259, 260, 261, 873, 872, 874, 875, 876, 877, 878, 879, 262], ("boss", "Captain Dreadleg"), {"requires": [316]}, G,
      "Swashbuckler: 'Stand down, Dreadleg. You're beaten!' - after the boss (markers 43 m past BA_Cine_Dreadleg1); "
      "872-879 use its actors (the curse breaks, Smith is back); epilogue 262 gives 423 The First Keystone, resolves "
-     "WZ4U; the content's proposed Captain Dreadleg stands in 4210, not here, so this waits for a boss in 4310"),
+     "WZ4U; the Pirate Grotto's boss is Captain Dreadleg (BossEncounter_Start_Dreadleg, TDB 51000 801; the content's "
+     "proposed 'Captain Blackheart' there, renamed, at Cine_Escape1 where 127 sends him: 'Come and face me!')"),
     ("wizard-calls-the-compass", "Cinematic Start Dreadleg Defeated", 1219, "", 4310,
      [880, 881, 882, 883, 884, 885, 886], ("after", 259), {}, G,
      "the Wizard's failed summoning spell right after Dreadleg's defeat (its actors at the same spot; Swashbuckler: "
@@ -149,11 +150,12 @@ CONV = [
      [436, 437, 439, 440, 441, 442, 443, 444, 445, 446], ("area", ["ba-cine-workingfortheenemy1"]), {}, L,
      "was the silent beat 446 on BA_Cine_WorkingForTheEnemy1; 562"),
     ("my-kingdom-for-a-crown", "Cinematic Start My Kingdom for a Crown", 1237, "", 5300,
-     [288, 289, 291, 447, 888, 448, 449, 450, 889, 890, 891, 451, 892, 893, 452, 287], ("boss", "boss"),
+     [288, 289, 291, 447, 888, 448, 449, 450, 889, 890, 891, 451, 892, 893, 452, 287], ("boss", "The Jester"),
      {"requires": [562]}, G,
-     "the Jester: 'I surrender, I'm beaten' - after the Ruined Fort's boss (its markers 25 m past the boss arena's "
-     "BA_Cine_WorkingForTheEnemy1); 447-452 and 888-893 use its actors; epilogue 287 gives 431, spawns GQKS (the "
-     "Jester joins), resolves I502"),
+     "the Jester: 'I surrender, I'm beaten' - after the Ruined Fort's boss, the Jester himself (BossEncounter_Start_"
+     "Harlequin, monsterdata medieval_harlequin, TDB 51000 1175 'The Jester'; spawn/5300/the-jester at "
+     "Cine_WorkingJester1, where 436-445 leave him); its markers 25 m past the arena's BA_Cine_WorkingForTheEnemy1; "
+     "447-452 and 888-893 use its actors; epilogue 287 gives 431, spawns GQKS (the Jester joins), resolves I502"),
     ("the-faerie-queen", "Fairy Queen", 0, "Fairy Queen", 5210,
      [293, 294, 295, 296, 453, 895, 894, 454, 292], ("area", ["ba-cine-thefaeriequeen1"]), {}, L,
      "was the silent beat 292 on BA_Cine_TheFaerieQueen1 (2.3 m from its 4 markers and the Fairy Queen's spawn); "
@@ -163,12 +165,20 @@ CONV = [
      {"requires": [433], "goals": ["3UX1"]}, L,
      "the same place, speaker label 'AFTER Quest is done' (the power crystals, goal 3UX1); 896 ('Beautiful!') answers "
      "316; epilogue 321 gives 434 Crossing the Barrier, resolves XOAJ"),
+    ("danger-at-the-bridge", "Cinematic Start Danger at the Bridge", 1332, "", 5310,
+     [302, 304, 305, 306, 455, 456, 303], ("area", ["ba-cine-placeholder1"]), {}, L,
+     "Elementius prepares the crowning spell before his fight: its marker Cine_DummySpawn1 (358.3, 69.1, 343.4) is in "
+     "the Sorcerer's Keep's boss room (Quest_Boss); BA_Cine_Placeholder1, at the room's entrance by "
+     "BossEncounter_Start_EvilSorcerer, is 21 m from it; epilogue 303 gives 436 Danger at the Bridge, resolves MUK4 "
+     "'Reach the Sorcerer's Chamber' (the lore flag's name aside, the goal and the marker put it in the chamber); "
+     "304-306, 455, 456 use its actor Elementius (order: the TDB's, 455-456 'the magic words' last)"),
     ("defeated-elementius", "Cinematic Start Defeated Elementius", 1363, "", 5310,
      [308, 310, 311, 312, 313, 457, 458, 459, 460, 461, 462, 463, 897, 898, 899, 900, 309],
-     ("area", ["ba-cine-placeholder1"]), {}, G,
-     "BA_Cine_Placeholder1 of the Sorcerer's Keep is 19.5 m from all 5 of its markers, past the boss (Evil Sorcerer at "
-     "(329, 309)); 'Surrender Elementius, you are beaten!'; 457-463 and 897-900 use its actors (the King arrives); "
-     "epilogue 309 gives 437 Another Cube Piece, resolves 4H62"),
+     ("boss", "Pieromancer Elementius"), {}, G,
+     "'Surrender Elementius, you are beaten!' - after the Sorcerer's Keep's boss, Elementius (the achievement "
+     "Medieval_Story_Defeat Pieromancer Elementius, TDB 51000 1158; the content's Evil Sorcerer, renamed, at "
+     "Cine_DummySpawn1 where 302 shows him); its 5 markers are in the boss room; 457-463 and 897-900 use its actors "
+     "(the King arrives); epilogue 309 gives 437 Another Cube Piece, resolves 4H62"),
     # ------------------------------------------------------------------ Space World
     ("space-world-news", "Video Game Guy", 1725, "Video Game Guy", 1200,
      [466, 465, 469, 467], ("area", ["ba-cine-gamerquestgiver1"]), {"requires": [437], "unless": [492]}, L,
@@ -332,7 +342,6 @@ UNWIRED = [
     ("231-253 (240, 252)", "Isle of Yarr harbour", "Swashbuckler Hero 'Find your way around' / 'Need directions': beta, he refers to the beta story; BA_Cine_FindYourWayAround1 shares Pirate Town's spot"),
     ("254-258, 297-301, 323-325, 339-340, 345-346, 365-367, 372-375, 378-379", "beta placeholders", "'Placeholder Dummy' / 'our Beta Elves are hard at work' texts"),
     ("341", "Space Colony -> Planet's Dark Side", "XX_S6: only its epilogue (teleport to 3210) and placeholder lines exist; nothing to show"),
-    ("302-306, 455-456 (303)", "Sorcerer's Keep?", "Danger at the Bridge (Elementius prepares the spell): its only marker Cine_DummySpawn1 is not in the Sorcerer's Keep (5310), only in 5200/5300; where it played is unknown"),
     ("524-528", "Shadow Centurion Base (BA_Cine_S14?)", "Commander Z's ship: markers Cine_Commander1/Cine_SpaceShip1 are in no playfield's data"),
     ("647-651", "Dinosaur Rise camp", "the older XX_D03 version (resolves GBWD itself); 694-695 replaces it"),
     ("967-971", "Mythology Mountains (Cine_Mermaid1)", "the Mermaid asks to come along: no epilogue, no flag, no area"),

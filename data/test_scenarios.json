@@ -56,9 +56,9 @@
     },
     {
       "label": "blackheart",
-      "about": "Captain Blackheart where you stand: Captain Dreadleg's slash, spin (then stunned), shot and bomb",
+      "about": "the Pirate Grotto's Captain Dreadleg (was named Captain Blackheart) where you stand: his slash, spin (then stunned), shot and bomb",
       "spawn": [
-        {"name": "Captain Blackheart", "count": 1}
+        {"name": "Captain Dreadleg", "count": 1}
       ]
     },
     {

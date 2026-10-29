@@ -692,6 +692,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                     Some(None) => reply(vec![format!("no story line \"{}\"", l.unwrap_or_default())]),
                     found => Action::Story(Some(Order::Advance(found.flatten())), false),
                 },
+                (Some("spawn"), Some(h)) => Action::Story(Some(Order::Spawn(h.to_ascii_uppercase())), false),
                 (Some("beat"), Some(t)) if t.parse::<u32>().is_ok() => Action::Story(Some(Order::Beat { text: t.parse().unwrap_or(0), requires: Vec::new() }), false),
                 (Some("dialogue"), Some(d)) => {
                     let id = if d.starts_with("dialogue/") { d.to_string() } else { format!("dialogue/{d}") };
@@ -701,7 +702,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                     Some(name) => Action::Story(Some(Order::Cinematic(name)), false),
                     None => reply(vec![format!("no cinematic \"{c}\"")]),
                 },
-                _ => reply(vec!["usage: !story [reset] | quest <line> <step> | advance [line] | goal <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
+                _ => reply(vec!["usage: !story [reset] | quest <line> <step> | advance [line] | goal <hash> | spawn <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
             }
         }
         "ach" | "achievements" => Action::Achievements,

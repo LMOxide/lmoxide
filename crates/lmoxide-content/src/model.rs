@@ -305,6 +305,10 @@ record! {
         /// one (and in every other world).
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub variants: Vec<String>,
+        /// Shown only to a player with all of these tags (a story NPC that belongs to a scene
+        /// after a story event, e.g. the lore flag its conversation gives); none: to everyone.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub requires: Vec<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub client: Option<SpawnClient>,
     }

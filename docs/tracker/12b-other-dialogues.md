@@ -4,7 +4,7 @@
 
 Tests and texts with no spoken line (camera/script only).
 
-**4/104** checked
+**49/87** checked
 
 - [ ] #16 “Test NPC: What do you want?” <!-- dialogue/16 -->
 - [ ] #18 “Test NPC: You can't have me!” <!-- dialogue/18 -->
@@ -28,15 +28,13 @@ Tests and texts with no spoken line (camera/script only).
 - [ ] #119 “Test: Moving dude mr evil to 1” <!-- dialogue/119 -->
 - [ ] #120 “Test: moving the camera” <!-- dialogue/120 -->
 - [x] #126 “(no spoken line)” <!-- dialogue/126 -->
-- [ ] #134 “(no spoken line)” <!-- dialogue/134 -->
+- [x] #134 “(no spoken line)” <!-- dialogue/134 -->
 - [ ] #135 “Test: teleport mr evil to 1” <!-- dialogue/135 -->
 - [ ] #143 “(no spoken line)” <!-- dialogue/143 -->
-- [ ] #156 “(no spoken line)” <!-- dialogue/156 -->
 - [ ] #160 “Test: Moving dude mr evil to 1” <!-- dialogue/160 -->
 - [ ] #161 “Test: Moving if exists” <!-- dialogue/161 -->
-- [ ] #165 “Test: Moving dude mr evil to 2” <!-- dialogue/165 -->
-- [ ] #199 “(no spoken line)” <!-- dialogue/199 -->
-- [ ] #204 “(no spoken line)” <!-- dialogue/204 -->
+- [x] #199 “(no spoken line)” <!-- dialogue/199 -->
+- [x] #204 “(no spoken line)” <!-- dialogue/204 -->
 - [x] #211 “(no spoken line)” <!-- dialogue/211 -->
 - [ ] #216 “Test: Moving camera to player” <!-- dialogue/216 -->
 - [ ] #217 “Test NPC: See you made him cry, you bad person!” <!-- dialogue/217 -->
@@ -45,68 +43,53 @@ Tests and texts with no spoken line (camera/script only).
 - [x] #229 “(no spoken line)” <!-- dialogue/229 -->
 - [ ] #240 “(no spoken line)” <!-- dialogue/240 -->
 - [ ] #258 “(no spoken line)” <!-- dialogue/258 -->
-- [ ] #262 “(no spoken line)” <!-- dialogue/262 -->
-- [ ] #266 “(no spoken line)” <!-- dialogue/266 -->
-- [ ] #271 “(no spoken line)” <!-- dialogue/271 -->
-- [ ] #276 “(no spoken line)” <!-- dialogue/276 -->
-- [ ] #277 “(no spoken line)” <!-- dialogue/277 -->
-- [ ] #282 “(no spoken line)” <!-- dialogue/282 -->
-- [ ] #287 “(no spoken line)” <!-- dialogue/287 -->
-- [ ] #292 “(no spoken line)” <!-- dialogue/292 -->
+- [x] #262 “(no spoken line)” <!-- dialogue/262 -->
+- [x] #266 “(no spoken line)” <!-- dialogue/266 -->
+- [x] #271 “(no spoken line)” <!-- dialogue/271 -->
+- [x] #276 “(no spoken line)” <!-- dialogue/276 -->
+- [x] #277 “(no spoken line)” <!-- dialogue/277 -->
+- [x] #282 “(no spoken line)” <!-- dialogue/282 -->
+- [x] #287 “(no spoken line)” <!-- dialogue/287 -->
+- [x] #292 “(no spoken line)” <!-- dialogue/292 -->
 - [ ] #297 “(no spoken line)” <!-- dialogue/297 -->
 - [ ] #307 “(no spoken line)” <!-- dialogue/307 -->
-- [ ] #309 “(no spoken line)” <!-- dialogue/309 -->
-- [ ] #321 “(no spoken line)” <!-- dialogue/321 -->
+- [x] #321 “(no spoken line)” <!-- dialogue/321 -->
 - [ ] #324 “(no spoken line)” <!-- dialogue/324 -->
-- [ ] #328 “(no spoken line)” <!-- dialogue/328 -->
-- [ ] #331 “(no spoken line)” <!-- dialogue/331 -->
-- [ ] #335 “(no spoken line)” <!-- dialogue/335 -->
-- [ ] #336 “(no spoken line)” <!-- dialogue/336 -->
+- [x] #335 “(no spoken line)” <!-- dialogue/335 -->
+- [x] #336 “(no spoken line)” <!-- dialogue/336 -->
 - [ ] #341 “(no spoken line)” <!-- dialogue/341 -->
-- [ ] #342 “(no spoken line)” <!-- dialogue/342 -->
+- [x] #342 “(no spoken line)” <!-- dialogue/342 -->
 - [ ] #347 “(no spoken line)” <!-- dialogue/347 -->
-- [ ] #348 “(no spoken line)” <!-- dialogue/348 -->
-- [ ] #352 “(no spoken line)” <!-- dialogue/352 -->
-- [ ] #360 “(no spoken line)” <!-- dialogue/360 -->
-- [ ] #364 “(no spoken line)” <!-- dialogue/364 -->
-- [ ] #385 “(no spoken line)” <!-- dialogue/385 -->
-- [ ] #394 “(no spoken line)” <!-- dialogue/394 -->
-- [ ] #408 “(no spoken line)” <!-- dialogue/408 -->
-- [ ] #434 “(no spoken line)” <!-- dialogue/434 -->
-- [ ] #446 “(no spoken line)” <!-- dialogue/446 -->
+- [x] #348 “(no spoken line)” <!-- dialogue/348 -->
+- [x] #352 “(no spoken line)” <!-- dialogue/352 -->
+- [x] #360 “(no spoken line)” <!-- dialogue/360 -->
+- [x] #364 “(no spoken line)” <!-- dialogue/364 -->
+- [x] #385 “(no spoken line)” <!-- dialogue/385 -->
+- [x] #408 “(no spoken line)” <!-- dialogue/408 -->
+- [x] #434 “(no spoken line)” <!-- dialogue/434 -->
 - [ ] #479 “(no spoken line)” <!-- dialogue/479 -->
-- [ ] #489 “(no spoken line)” <!-- dialogue/489 -->
-- [ ] #496 “(no spoken line)” <!-- dialogue/496 -->
-- [ ] #505 “(no spoken line)” <!-- dialogue/505 -->
-- [ ] #509 “(no spoken line)” <!-- dialogue/509 -->
-- [ ] #545 “(no spoken line)” <!-- dialogue/545 -->
-- [ ] #555 “(no spoken line)” <!-- dialogue/555 -->
-- [ ] #559 “(no spoken line)” <!-- dialogue/559 -->
-- [ ] #567 “(no spoken line)” <!-- dialogue/567 -->
-- [ ] #571 “(no spoken line)” <!-- dialogue/571 -->
-- [ ] #575 “(no spoken line)” <!-- dialogue/575 -->
-- [ ] #576 “(no spoken line)” <!-- dialogue/576 -->
-- [ ] #580 “(no spoken line)” <!-- dialogue/580 -->
-- [ ] #586 “(no spoken line)” <!-- dialogue/586 -->
-- [ ] #591 “(no spoken line)” <!-- dialogue/591 -->
-- [ ] #594 “(no spoken line)” <!-- dialogue/594 -->
-- [ ] #597 “(no spoken line)” <!-- dialogue/597 -->
-- [ ] #608 “(no spoken line)” <!-- dialogue/608 -->
+- [x] #505 “(no spoken line)” <!-- dialogue/505 -->
+- [x] #545 “(no spoken line)” <!-- dialogue/545 -->
+- [x] #555 “(no spoken line)” <!-- dialogue/555 -->
+- [x] #559 “(no spoken line)” <!-- dialogue/559 -->
+- [x] #567 “(no spoken line)” <!-- dialogue/567 -->
+- [x] #571 “(no spoken line)” <!-- dialogue/571 -->
+- [x] #575 “(no spoken line)” <!-- dialogue/575 -->
+- [x] #576 “(no spoken line)” <!-- dialogue/576 -->
+- [x] #580 “(no spoken line)” <!-- dialogue/580 -->
+- [x] #586 “(no spoken line)” <!-- dialogue/586 -->
+- [x] #591 “(no spoken line)” <!-- dialogue/591 -->
+- [x] #594 “(no spoken line)” <!-- dialogue/594 -->
+- [x] #597 “(no spoken line)” <!-- dialogue/597 -->
+- [x] #608 “(no spoken line)” <!-- dialogue/608 -->
 - [ ] #611 “(no spoken line)” <!-- dialogue/611 -->
-- [ ] #614 “(no spoken line)” <!-- dialogue/614 -->
-- [ ] #621 “(no spoken line)” <!-- dialogue/621 -->
-- [ ] #634 “(no spoken line)” <!-- dialogue/634 -->
-- [ ] #646 “(no spoken line)” <!-- dialogue/646 -->
-- [ ] #651 “(no spoken line)” <!-- dialogue/651 -->
-- [ ] #661 “(no spoken line)” <!-- dialogue/661 -->
-- [ ] #668 “(no spoken line)” <!-- dialogue/668 -->
-- [ ] #673 “(no spoken line)” <!-- dialogue/673 -->
-- [ ] #678 “(no spoken line)” <!-- dialogue/678 -->
-- [ ] #684 “(no spoken line)” <!-- dialogue/684 -->
-- [ ] #690 “(no spoken line)” <!-- dialogue/690 -->
-- [ ] #695 “(no spoken line)” <!-- dialogue/695 -->
+- [x] #634 “(no spoken line)” <!-- dialogue/634 -->
+- [x] #646 “(no spoken line)” <!-- dialogue/646 -->
+- [x] #661 “(no spoken line)” <!-- dialogue/661 -->
+- [x] #668 “(no spoken line)” <!-- dialogue/668 -->
+- [x] #673 “(no spoken line)” <!-- dialogue/673 -->
+- [x] #678 “(no spoken line)” <!-- dialogue/678 -->
+- [x] #684 “(no spoken line)” <!-- dialogue/684 -->
+- [x] #695 “(no spoken line)” <!-- dialogue/695 -->
 - [x] #772 “(no spoken line)” <!-- dialogue/772 -->
-- [ ] #779 “(no spoken line)” <!-- dialogue/779 -->
-- [ ] #802 “(no spoken line)” <!-- dialogue/802 -->
-- [ ] #810 “(no spoken line)” <!-- dialogue/810 -->
-- [ ] #920 “(no spoken line)” <!-- dialogue/920 -->
+- [x] #810 “(no spoken line)” <!-- dialogue/810 -->

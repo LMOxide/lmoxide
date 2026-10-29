@@ -310,6 +310,10 @@ pub struct SpawnDef {
     /// A Lost Creations level's variants it is in (none: every one; lost_creations.rs).
     #[serde(default)]
     pub variants: Vec<String>,
+    /// Shown only to players with all of these tags (the spawn's `requires`: a story NPC of a
+    /// scene after a story event; `gated`).
+    #[serde(default)]
+    pub requires: Vec<u32>,
 }
 
 impl SpawnDef {
@@ -484,9 +488,10 @@ pub fn nearest(name: &str, playfield: Pf, at: [f32; 3], radius: f32) -> Option<I
         .map(|(id, _)| id)
 }
 
-/// A friendly NPC the content placed on cinematic marker `anchor` (its spawn's `anchor`) whose
-/// name fits `alias` (a dialogue's actor: `Wizard`, `Jester` for the Court Jester, `Knight2`),
-/// on `playfield`.
+/// An NPC the content placed on cinematic marker `anchor` (its spawn's `anchor`) whose name fits
+/// `alias` (a dialogue's actor: `Wizard`, `Jester` for the Court Jester or The Jester, `Knight2`),
+/// on `playfield`: friendly NPCs and the bosses placed where a conversation shows them before
+/// their fight (5300's Jester, 5310's Elementius, 4210's Dreadleg).
 pub fn on_anchor(playfield: Pf, anchor: &str, alias: &str) -> Option<Id32> {
     let squash = |s: &str| s.chars().filter(|c| c.is_ascii_alphabetic()).collect::<String>().to_ascii_lowercase();
     let alias = squash(alias);
@@ -494,10 +499,21 @@ pub fn on_anchor(playfield: Pf, anchor: &str, alias: &str) -> Option<Id32> {
     npcs.iter()
         .find(|(_, n)| {
             let name = squash(&n.def.name);
-            n.playfield == playfield && n.def.kind != Kind::Enemy && n.presence.is_some() && n.def.anchor.as_deref() == Some(anchor)
+            n.playfield == playfield && n.def.kind != Kind::Smashable && n.presence.is_some() && n.def.anchor.as_deref() == Some(anchor)
                 && !alias.is_empty() && (name.contains(&alias) || alias.contains(&name))
         })
         .map(|(id, _)| *id)
+}
+
+/// The NPCs of copy `playfield` a player without some of their spawn's `requires` tags doesn't
+/// see (story NPCs of a scene after a story event; game.rs hides them per player).
+pub fn gated(playfield: Pf, has: impl Fn(u32) -> bool) -> std::collections::HashSet<Id32> {
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && !n.def.requires.iter().all(|t| has(*t)))
+        .map(|(id, _)| *id)
+        .collect()
 }
 
 /// The playfield's own enemies (not test, event or summoned ones): defeating all of them in
@@ -541,15 +557,17 @@ pub fn regular_life(level: u32) -> u32 {
     (life.round() as u32).max(1)
 }
 
-/// The strongest of the playfield's own bosses within `radius` of `at` (x, z).
+/// The strongest of the playfield's own bosses within `radius` of `at` (x, z); of equally strong
+/// ones the nearest (the Ruined Fort's Jester in his arena, not the proposed Troll Warlord by it).
 pub fn boss_near(playfield: Pf, at: [f32; 2], radius: f32) -> Option<Id32> {
     NPCS.lock()
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.temporary.is_none() && !n.once && n.owner.is_none())
-        .filter(|(_, n)| rank_of(&n.def) >= BOSS_RANK && (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[1]) <= radius)
-        .max_by_key(|(_, n)| n.def.health)
-        .map(|(id, _)| *id)
+        .map(|(id, n)| (id, n, (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[1])))
+        .filter(|(_, n, d)| rank_of(&n.def) >= BOSS_RANK && *d <= radius)
+        .max_by(|a, b| a.1.def.health.cmp(&b.1.def.health).then(b.2.total_cmp(&a.2)))
+        .map(|(id, _, _)| *id)
 }
 
 /// A live NPC's health and maximum (`None` while it's dead or gone).
@@ -850,8 +868,11 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
 /// Returns how many appeared.
 pub fn spawn_test_enemies(name: &str, count: u32, playfield: Pf, center: [f32; 3], lifetime: Duration) -> u32 {
     let wanted = name.to_ascii_lowercase();
+    // (of several by that name the strongest: the Pirate Grotto's Captain Dreadleg, not the
+    // tutorial's)
     let Some(def) = residents()
-        .find(|(_, d)| matches!(d.kind, Kind::Enemy | Kind::Smashable) && d.name.to_ascii_lowercase() == wanted)
+        .filter(|(_, d)| matches!(d.kind, Kind::Enemy | Kind::Smashable) && d.name.to_ascii_lowercase() == wanted)
+        .max_by_key(|(_, d)| d.health)
         .map(|(_, d)| d.clone())
     else {
         return 0;
@@ -971,6 +992,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         loot: None,
         source: None,
         rot: None,
+        requires: Vec::new(),
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -2267,6 +2289,7 @@ mod tests {
     fn test_spawn_def() -> SpawnDef {
         SpawnDef {
             variants: Vec::new(),
+            requires: Vec::new(),
             kind: Kind::Enemy,
             template: 0,
             name: "Enemy".into(),

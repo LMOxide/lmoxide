@@ -645,7 +645,9 @@ mod tests {
         // `!test abilities` / `!test blackheart` spawn copies of world content enemies by name
         let scenarios: serde_json::Value = serde_json::from_str(include_str!("../../../data/test_scenarios.json")).unwrap();
         let table = crate::spawns::table();
-        let monster = |name: &str| table.values().flatten().find(|d| d.kind == crate::npc::Kind::Enemy && d.name == name).map(|d| u64::from(d.monster_data));
+        let monster = |name: &str| {
+            table.values().flatten().filter(|d| d.kind == crate::npc::Kind::Enemy && d.name == name).max_by_key(|d| d.health).map(|d| u64::from(d.monster_data))
+        };
         for s in scenarios["scenarios"].as_array().unwrap().iter().filter(|s| ["abilities", "blackheart"].contains(&s["label"].as_str().unwrap())) {
             for spawn in s["spawn"].as_array().unwrap() {
                 let name = spawn["name"].as_str().unwrap();

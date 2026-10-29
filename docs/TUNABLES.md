@@ -366,7 +366,7 @@ story's triggers are `trigger/<pf>/story-*` records; each says in its `comment` 
 | Medieval intro | `medieval-intro`, 5200 `BA_Story_AutoTeleportToThroneRoom1`, `then_dialogue` the King's Court | on arriving in the Kingdom (the arrival point lies in that area) until the King's Court (425); the King's Court conversation when it ends | **Guess**. The area's "auto teleport to the throne room" is the King's Court's own text 272 `{moveactortopos playerActor TP_ThroneRoom}` (the client moves the player there); its epilogue 276 teleports back to the Kingdom's arrival point (88.3, 24.5, 256), spawns 8G4X (the Wizard's bag) and resolves CPIJ "Go to the Kingdom", so the tracker moves on to "Ask the townsfolk about suspicious activity" (24IC). `BA_Story_TeleportToThroneRoom_CinematicFailed` starts the King's Court when the intro was seen. Seen in game 2026-10-29 (Linux client). |
 | "After X" cinematics | `after-pirate-fort` (sets 4241), `after-pirate-world`, `after-medieval`, `after-space`, `after-mythology`; 1200 `Story_ArriveAtHub`(`Backup`) | arriving at the hub: the first one not seen whose world is done (4183 Jacket Fort, but not 316; 316; 437; 492; 676), one per arrival | **Guess**: which event played them is not in the client. Each world's story ends with "Travel to the LEGO Center", which the hub arrival also resolves (same conditions); 4241 "Enter Hub before completed Pirate World" names the first. Each now hands over to the Video Game Guy's hand-out for the next world (`then_dialogue`; Pirate -> Medieval -> Space -> Mythology -> Dino, by their words: "Hope you had fun in the Pirate World!", "Did you have fun in Space?"). |
 | Seen | story.rs `cinematic/<name>` (DB `character_story`) or the lore flag | once per character; `!story reset` forgets the server's record | Chosen (the flags exist only for some). |
-| Story beats | `story_beat` commands | entering an area runs a dialogue text's server side only (tags, goals, spawns, script steps), no window, once | What's left: 181 Escape from the Fort (4200, the beta version's epilogue; live used 822) and 271 on 5200 `Story_SpawnMedievalQuest` (**guess**: the Medieval line for whoever arrives without the Video Game Guy's hand-out). The 22 other beats are now the full conversations below. |
+| Story beats | `story_beat` commands | entering an area runs a dialogue text's server side only (tags, goals, spawns, script steps), no window, once | What's left: 181 Escape from the Fort (4200, the beta version's epilogue; live used 822; its trigger is tagged `todo`: the beta conversation 88-91, 180-191 stays unrebuilt, as the user decided 2026-10-29: keep it, don't implement it, don't delete it) and 271 on 5200 `Story_SpawnMedievalQuest` (**guess**: the Medieval line for whoever arrives without the Video Game Guy's hand-out). The 22 other beats are now the full conversations below. |
 | Island Warrior rescue | 1643 `Cine_Rescue_Island_Warrior1` -> dialogue 773 | its recorded dialogue, once | **Likely** (area by name; the area was missing from the content, added from ba_server.json). |
 | Talking heads | `tag` commands on `BA_Head_*` / `Head_*` / `BA_TalkingHead1` (52) | entering adds the pusher's tag; the client shows the talking head (TDB 50000 keyed by tag) | Mechanism **certain** (client Lua 1597 "shows the tutorial talking [head]" = `player:addtag(385)`; seen in game 2026-10-29: 4200 BA_Head_Islanders1 showed the Pirate's tip); area -> pusher by name: **guess**. The Funhouse's `BA_TalkingHead1` in 8000/8020/8060/8070 (one of four intros each) are left out. |
 | Story goals | `story_goal` commands | 17 `Story_*` / `BA_Story_*` areas resolve their goal (Story_ReachBeachBackup1 -> OOPN: **certain**, the live marker; Story_ReachedCannon1 -> X7OF: likely; the rest by name: **guess**); dialogue `resolvegoal`, `spawn <quest hash>` | Story lines below. |
@@ -400,12 +400,12 @@ Ruined Fort says 283, 284, 285 at about (148.8, 42.1, 115.1); the method finds a
 | Conditions | record `requires` / `unless` (tags), `goals` (story goals) | e.g. the Pizza Guy's gate needs 4143; the Fairy Queen's second talk the power crystals (3UX1); the hand-outs the previous world done | From speaker labels ("With Pizza Guy", "AFTER Quest is done") and the story: **guess**. |
 | Once | story.rs | a conversation that gives tags runs until the player has them; one that gives none once (`dialogue/<id>` in the story record); never over a running one | Chosen. |
 | Speaker | `npc` (spawn name) | the nearest NPC of that name within 80 m speaks (knubotOwnerActor), else the player (the "Cinematic Start X" owners live used weren't spawned: their TDB 51000 name is the window's `npc_name`) | The NPCs stand on the conversations' markers (Knight, Sir Loin, Fairy Queen, Zeus, Charon, Caveman, ...): **likely**. |
-| Doubles | knubot.rs `addcinematicactor` | an NPC the content placed on the actor's own marker (spawn `anchor`, its name fitting the actor's) is despawned for the player while the dialogue runs and shown again after | The user saw two Wizards in the throne room (2026-10-29); as an actor reference to that NPC instead, the window lost its portrait and text (tried). |
+| Doubles | knubot.rs `addcinematicactor`, `moveactortopos` | an NPC the content placed on the actor's own marker, or on the marker the dialogue walks the actor to (spawn `anchor`, its name fitting the actor's; bosses too: the Jester, Elementius, 4210's Dreadleg), is despawned for the player while the dialogue runs and shown again after | The user saw two Wizards in the throne room (2026-10-29); as an actor reference to that NPC instead, the window lost its portrait and text (tried). |
 | `removecinematicactor` | knubot.rs | KnubotActorIIR RemoveActor with the actor's alias | **Guess** (the type exists; no recording shows it). |
 | Spawn before a teleport | knubot.rs `in_play_order` | a text's `spawn` runs after its teleport | 276 would drop the Wizard's bag in the throne room the player can't go back to. |
-| Minifigures given | tunables `story.spawn_minifigures` | `spawn <hash>` of these drops that minifigure's bag 1 m from the player: 7LLT Swashbuckler, SIKZ Island Warrior, RG5K Revolutionary Soldier, 5WM9 Pizza Delivery Man (**likely**: the speaker labels "Give Swashbuckler", "... joins the player"), 8G4X Wizard (**guess**: 276; Lua 4048 "XX_give wizard bag tag"), GQKS Jester, 9UO2 Battle Goddess, 7WZE Space Miner (**guess**: after "come with us") | Other non-quest hashes (SLXS "Give Homestone", LNWG, QOJE, W8DL, FXMI, 5PJB, RQJT, L6FT, WGPC, M5CJ) are only logged. |
+| Minifigures given | tunables `story.spawn_minifigures`, game.rs `grant_story_minifigure` | `spawn <hash>` of these puts that minifigure straight into the collection (the user's live footage: the "Congratulations! You got a new minifigure." window, TDB 10007 153729829 = BagOpenEvent.swf `LDBGetText("BagInventory", "YouGotAMinifigure")`, not a bag on the ground). Sent as a bag's reveal is: AddItem of its bag into 110002 at -1, then AddItem into the collection (110001); the window is BagOpenEvent.swf's, opened by `SlotMinifigureAdded` on the collection's SignalItemAdded (**guess** that live sent it so: the capture has no story minifigure; **not seen in game**: the Linux client showed no window for either form, 2026-10-29, nor is the bag reveal verified). Nothing for a character owning it (the default unlimited collection owns all: test with `!collection limit`, relog, `!story spawn <hash>`). 7LLT Swashbuckler, SIKZ Island Warrior, RG5K Revolutionary Soldier, 5WM9 Pizza Delivery Man (**likely**: the speaker labels "Give Swashbuckler", "... joins the player"), 8G4X Wizard (**guess**: 276; Lua 4048 "XX_give wizard bag tag"), GQKS Jester, 9UO2 Battle Goddess, 7WZE Space Miner (**guess**: after "come with us") | Other non-quest hashes (SLXS "Give Homestone", LNWG, QOJE, W8DL, FXMI, 5PJB, RQJT, L6FT, WGPC, M5CJ) are only logged. |
 
-Wired (63):
+Wired (64):
 
 | pf | Dialogue | Texts | Start | Confidence |
 |---|---|---|---|---|
@@ -418,11 +418,11 @@ Wired (63):
 | 4200 | `welcome-to-pirate-town` | 386..394 (9) | area ba-cine-welcometopiratetown1 | **likely** |
 | 4620 | `the-pegleg-mermaid` | 155..156 (19) | area ba-cine-thepeglegmermaid1 | **likely** |
 | 4300 | `now-we-must-pirate-fight` | 193..199 (5) | area ba-cine-nowwemustpiratefight | **likely** |
-| 4300 | `completed-the-trials` | 263..266 (14) | defeating Captain Pete | **guess** |
+| 4300 | `completed-the-trials` | 263..266 (14) | defeating Captain Pete (moved to his arena, "Story bosses" below) | **guess** |
 | 4210 | `dreadleg-volcano` | 404..408 (5) | area ba-cine-dreadlegvolcano1 | **likely** |
 | 4310 | `into-the-skull` | 200..204 (4) | area ba-cine-intotheskull1 | **likely** |
 | 4310 | `captain-dreadleg` | 127..134 (5) | area ba-cine-dreadleg1 | **likely** |
-| 4310 | `dreadleg-defeated` | 259..262 (12) | defeating Captain Dreadleg; requires [316] | **guess** |
+| 4310 | `dreadleg-defeated` | 259..262 (12) | defeating Captain Dreadleg (the Grotto's boss, "Story bosses" below); requires [316] | **guess** |
 | 4310 | `wizard-calls-the-compass` | 880..886 (7) | after dialogue 259 | **guess** |
 | 1200 | `medieval-world-news` | 267..271 (7) | area ba-cine-gamerquestgiver1; requires [316]; unless [437] | **likely** |
 | 5200 | `the-kings-court` | 272..276 (9) | area ba-cine-thekingscourt1, ba-story-teleporttothroneroom-cinematicfailed | **likely** |
@@ -430,10 +430,11 @@ Wired (63):
 | 5200 | `sir-loins-checkpoint` | 426..434 (10) | area story-wallcheckpoint1; requires [426] | **likely** |
 | 5300 | `the-realm-of-jest` | 283..282 (4) | area ba-cine-placeholder1 | **likely** |
 | 5300 | `working-for-the-enemy` | 436..446 (10) | area ba-cine-workingfortheenemy1 | **likely** |
-| 5300 | `my-kingdom-for-a-crown` | 288..287 (16) | defeating boss; requires [562] | **guess** |
+| 5300 | `my-kingdom-for-a-crown` | 288..287 (16) | defeating The Jester (added, "Story bosses" below); requires [562] | **guess** |
 | 5210 | `the-faerie-queen` | 293..292 (9) | area ba-cine-thefaeriequeen1 | **likely** |
 | 5210 | `crossing-the-barrier` | 314..321 (8) | area ba-cine-thefaeriequeen1; requires [433]; goals ['3UX1'] | **likely** |
-| 5310 | `defeated-elementius` | 308..309 (17) | area ba-cine-placeholder1 | **guess** |
+| 5310 | `danger-at-the-bridge` | 302..303 (7) | area ba-cine-placeholder1 (the boss room's entrance) | **likely** |
+| 5310 | `defeated-elementius` | 308..309 (17) | defeating Pieromancer Elementius (was the area above, before the fight) | **guess** |
 | 1200 | `space-world-news` | 466..467 (4) | area ba-cine-gamerquestgiver1; requires [437]; unless [492] | **likely** |
 | 3200 | `space-s02-briefing` | 327..328 (4) | area ba-cine-s02 | **likely** |
 | 3200 | `space-s03-mean-soldier` | 487..489 (6) | area ba-cine-s03-meansoldier1 | **guess** |
@@ -484,7 +485,6 @@ Left unwired:
 | 231-253 (240, 252) | Isle of Yarr harbour | Swashbuckler Hero 'Find your way around' / 'Need directions': beta, he refers to the beta story; BA_Cine_FindYourWayAround1 shares Pirate Town's spot |
 | 254-258, 297-301, 323-325, 339-340, 345-346, 365-367, 372-375, 378-379 | beta placeholders | 'Placeholder Dummy' / 'our Beta Elves are hard at work' texts |
 | 341 | Space Colony -> Planet's Dark Side | XX_S6: only its epilogue (teleport to 3210) and placeholder lines exist; nothing to show |
-| 302-306, 455-456 (303) | Sorcerer's Keep? | Danger at the Bridge (Elementius prepares the spell): its only marker Cine_DummySpawn1 is not in the Sorcerer's Keep (5310), only in 5200/5300; where it played is unknown |
 | 524-528 | Shadow Centurion Base (BA_Cine_S14?) | Commander Z's ship: markers Cine_Commander1/Cine_SpaceShip1 are in no playfield's data |
 | 647-651 | Dinosaur Rise camp | the older XX_D03 version (resolves GBWD itself); 694-695 replaces it |
 | 967-971 | Mythology Mountains (Cine_Mermaid1) | the Mermaid asks to come along: no epilogue, no flag, no area |
@@ -494,6 +494,22 @@ Left unwired:
 | 763, 764, 771, 792-794 | tutorial | controller/touch variants of recorded tutorial lines |
 | 176, 806, 855, 856, 956 | - | duplicates of 173, 805, 804, 803, 954 |
 | 307 | - | addtagtoplayer 327 alone (not a story flag) |
+
+### Story bosses (the after-boss conversations; content/worlds/*/spawns.json)
+
+The user (2026-10-29): put or add a boss where the story needs it only if the place is known exactly,
+never take a boss away from another map. A boss's place = the marker where a conversation shows it
+before its fight (the user's idea: a client location is where it first appears in a dialogue). The
+checklist of every rebuilt conversation to verify against footage: docs/tracker/12c.
+
+| Boss | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Captain Dreadleg, Pirate Grotto (4310) | `spawn/4310/captain-blackheart` renamed, at Cine_Escape1 (374.6, 58, 143.8) | `dreadleg-defeated` plays on his defeat | **Likely**: the Grotto's arena is BossEncounter_Start_Dreadleg (TDB 51000 801 Captain Dreadleg, his ship 802), the achievement Pirate_Story_Defeat Captain Dreadleg; "Captain Blackheart" was a name the content importer made from the monsterdata pirate_captain_blackheart, which is Dreadleg's model (his other spawns use its `_no_death` copy; the client has no character of that name, only the arena's Blackheart shields, which share the Dreadleg arena's polygon). Moved from res_boss (a respawn area) to Cine_Escape1, where the pre-boss conversation 127 sends him ("Come and face me!"), in BA_Dreadleg_BossArea. 4210's proposed Dreadleg stays. |
+| Captain Pete, Pirate Trials (4300) | `spawn/4300/captain-pete` at Cine_CaptainSpawn1 (84.2, 40.1, 267.7) | `completed-the-trials` on his defeat, now in his arena | **Likely**: the proposed spawn stood at (221.8, 252.5), 140 m from BossEncounter_Start_Pete, so the arena had no boss; 193 "Now we must pirate fight!" brings him on at Cine_CaptainSpawn1. |
+| The Jester, Ruined Fort (5300) | new `spawn/5300/the-jester` (npc/the-jester) at Cine_WorkingJester1 (347.4, 51, 323.1) | `my-kingdom-for-a-crown` on his defeat (was: any boss) | Boss and place **likely**: BossEncounter_Start_Harlequin, monsterdata 350304 medieval_harlequin (TDB 51000 1175 "The Jester"; the harlequin jack/taunt castables); 436-445 leave him there after Elementius goes. Stats **guess**: level 12, health 7500 as the map's proposed Troll Warlord (which stays; an arena takes the strongest boss near it, of equals the nearest: the Jester); his own castables aren't in the content, so his minions' smack. |
+| Elementius, Sorcerer's Keep (5310) | `spawn/5310/evil-sorcerer` renamed Pieromancer Elementius, at Cine_DummySpawn1 (358.3, 69.1, 343.4) | `danger-at-the-bridge` (302) on the room's entrance before the fight; `defeated-elementius` (308) on his defeat | **Likely**. The user saw "Grand Pyromancer Elementius" (TDB 50200 462440 "Grand Pyeromancer Elementius", the cinematic actor's template) standing in a weird spot with no dialogue tied to him: 308 ("Surrender Elementius, you are beaten!") ran on BA_Cine_Placeholder1, at the boss room's entrance, before the fight, and put him, the Wizard, the Jester and King James in the room while the boss (the content's "Evil Sorcerer", monsterdata medieval_evil_sorcerer) stood at Res_Boss outside it. The boss is Elementius: achievement Medieval_Story_Defeat Pieromancer Elementius (TDB 51000 1158), and template 637134 "Evil Sorcerer" speaks as [Elementius] in 1002-1004. 302-306, 455, 456 (Elementius prepares the crowning spell; epilogue 303 resolves MUK4 "Reach the Sorcerer's Chamber") were thought placeless, but Cine_DummySpawn1 is in 5310's boss room. |
+| T-Rex, Gauntlet (6300) | not added | `dino-d05-t-rex-defeated` still can't play | The place is known (BossEncounter_Start, Cine_TRex1/3), but not the fighter: its templates (508606, 522177, 526338 "T-Rex") carry no monsterdata in the extracted data. |
+| Story NPCs after a boss | spawn `requires` (tags; game.rs `story_npc_records`, npc.rs `gated`) | per player: 5310's Wizard and Court Jester appear after 437 (Elementius defeated, epilogue 309); 5300's Wizard and Court Jester after 431 (the Jester defeated, 287); 4310's Wizard after 423 (Dreadleg defeated, 262); they stand on those scenes' markers | The user: the Wizard, Jester and King James shouldn't be there until Elementius ("he": the Medieval ending's boss, 308-309) is defeated; the same reading for the two other after-boss scenes is a **guess**. King James has no spawn (only 308's actor). |
 
 ## Lost Creations (`lost_creations.rs`, content/lost-creations, tunables.json `lost_creations`)
 

@@ -156,6 +156,13 @@ HUB_GOALS = [("PM25", [316]), ("DN3X", [437]), ("143V", [492]), ("PX18", [676]),
 # knubot.rs arrivals) and those that teleport the player
 BEAT_SKIP_PF = {"1300", "1399", "4600", "4610"}
 BEAT_SKIP_TEXT = {276}  # the King's Court: teleports out of the throne room
+# Beats kept as they are but marked not implemented (`todo` tag and note on the trigger).
+BEAT_TODO = {
+    181: "story: the beta conversation Escape from the Fort (texts 88-91, 180-191, Captain Pete) is not rebuilt "
+         "(user, 2026-10-29: keep it, don't implement it, don't delete it); live played 822 instead (the "
+         "Swashbuckler in the jail, recorded), which resolves the same goal ALPQ; only this beat's server side "
+         "runs (tag 309, ALPQ)",
+}
 BEAT_REQUIRES = {
     # the party after T-Rex: its area covers most of the Gauntlet; only after the T-Rex fell
     # (achievement 1540 Roooooar!)
@@ -368,9 +375,13 @@ def triggers():
             if area in BEAT_REQUIRES:
                 args["requires"] = BEAT_REQUIRES[area]
             how = "likely" if t["match"] == "exact-lore-name" else "likely (number)"
-            add(pf, trigger(pf, area, name, [cmd("story_beat", **args)],
-                            f"{how}: sets {t['tag_name'].split('/')[-1].strip()} ({t['tag']}) with text {text}; "
-                            "the conversation before it isn't known, only its server side runs"))
+            rec = trigger(pf, area, name, [cmd("story_beat", **args)],
+                          f"{how}: sets {t['tag_name'].split('/')[-1].strip()} ({t['tag']}) with text {text}; "
+                          "the conversation before it isn't known, only its server side runs")
+            if text in BEAT_TODO:
+                rec["tags"] = ["todo"]
+                rec["todo"] = BEAT_TODO[text]
+            add(pf, rec)
 
     for pf, recs in out.items():
         # the areas these triggers run are no longer `todo` (extract_server_areas.py drops the mark

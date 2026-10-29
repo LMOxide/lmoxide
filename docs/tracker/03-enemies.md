@@ -4,7 +4,7 @@
 
 Grouped by the world they are spawned in (content spawns); "Not placed" ones come from encounters, scripts or nowhere yet.
 
-**0/198** checked
+**0/199** checked
 
 <details><summary>Dino World (0/17)</summary>
 
@@ -28,7 +28,7 @@ Grouped by the world they are spawned in (content spawns); "Not placed" ones com
 
 </details>
 
-<details><summary>Medieval World (0/17)</summary>
+<details><summary>Medieval World (0/18)</summary>
 
 - [ ] **Dragon** — level 12, health 7500 · Dragon Halls <!-- enemy/dragon -->
 - [ ] **Evil Sorcerer** — level 14, health 10020 · Sorcerer's Keep <!-- enemy/evil-sorcerer -->
@@ -39,6 +39,7 @@ Grouped by the world they are spawned in (content spawns); "Not placed" ones com
 - [ ] **Medieval Ogre Defender Melee War** — level 9, health 453 · Dragon Halls, Kingdom, Ruined Fort <!-- enemy/medieval-ogre-defender-melee-war -->
 - [ ] **Medieval Wolf** — level 9, health 453 · Dragon Halls, Kingdom, Ruined Fort <!-- enemy/medieval-wolf -->
 - [ ] **Mushroom Runner** — level 12, health 750 · Dark Alcove, Enchanted Forest, Mysterious Crystal Cave, Sorcerer's Keep, Swamp Tunnel <!-- enemy/mushroom-runner -->
+- [ ] **The Jester** — level 12, health 7500 · Ruined Fort <!-- enemy/the-jester -->
 - [ ] **Treant Brown** — level 12, health 750 · Dark Alcove, Enchanted Forest, Infested Keep, Mysterious Crystal Cave, Sorcerer's Keep, Swamp Tunnel <!-- enemy/treant-brown -->
 - [ ] **Troll Heavy Hitter War** — level 9, health 453 · Dragon Halls, Kingdom, Ruined Fort <!-- enemy/troll-heavy-hitter-war -->
 - [ ] **Troll Hornblower War** — level 9, health 453 · Dragon Halls, Kingdom, Ruined Fort <!-- enemy/troll-hornblower-war -->

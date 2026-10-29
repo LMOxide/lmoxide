@@ -282,6 +282,20 @@ def build(state):
     totals.append(section(doc, '12b. Other dialogues', 'Tests and texts with no spoken line (camera/script only).',
                           {'Other': dl.get('other', [])}, dl_items))
 
+    def rb_items(r):
+        where = f'pf {r["playfield"]}' + (f' ({", ".join(f"{v:g}" for v in r["pos"])})' if r.get('pos') else '')
+        text = (f'**{esc(r["name"])}** `{esc(r["dialogue"])}` — {where}; starts: {esc("; ".join(r["place"]))}'
+                + (f' ({esc("; ".join(r["conditions"]))})' if r['conditions'] else '')
+                + f'; texts {", ".join(map(str, r["texts"]))}; {r["confidence"]}; speakers: {esc(", ".join(r["speakers"]) or "-")}'
+                + (f' (window: {esc(r["owner"])})' if r['owner'] else '')
+                + ' — check: line order, trigger spot, speaker')
+        return [(r['key'], text, 0)]
+    note = ('The story conversations rebuilt from the client\'s texts (content/dialogues tagged `reconstructed`, '
+            'tools/content/story_dialogues.py; evidence in each record\'s `comment`, docs/TUNABLES.md "Rebuilt '
+            'conversations"). Tick one when footage confirms the order of its lines, where it starts and who speaks; '
+            'test with `!goto rebuilt n` or `!dialog <first text>`.')
+    totals.append(section(doc, '12c. Rebuilt conversations to check against footage', note, lists.rebuilt(), rb_items))
+
     gone = [(k, v[1]) for k, v in state.items() if v[0] and k not in doc.used]
     if gone:
         doc.new_file('no-longer-listed.md')

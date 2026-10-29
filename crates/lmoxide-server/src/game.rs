@@ -83,6 +83,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     // clearing the playfield in this visit: its own enemies, and those defeated so far
     let mut residents: std::collections::HashSet<Id32> = Default::default();
     let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
+    // story NPCs (spawn `requires`) hidden from this player in this playfield
+    let mut story_hidden: std::collections::HashSet<Id32> = Default::default();
     // the playfield was cleared in this visit (by this player or a teammate here)
     let mut cleared_here = false;
     // its pocket adventure's minifigure was given in this visit
@@ -215,6 +217,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                             let mut records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
                             records.extend(crate::story::on_event(&mut me, character, place, &event));
+                            records.extend(story_npc_records(&me, place, &mut story_hidden));
                             send_records(&mut conn, character, records).await?;
                             // quest pickups dropped where the defeated one was (a bag of the player's)
                             if let crate::achievements::Event::Defeated { id, .. } = &event {
@@ -338,8 +341,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::lost_creations::rewards_wait(character, levels);
                     }
                     world::Out::Story(order) => {
+                        if let Some(template) = crate::story::spawn_minifigure(&order) {
+                            if !grant_story_minifigure(&mut conn, character, &mut me, &mut collection, template).await? {
+                                info!(character, template, "story minifigure: owned already");
+                            }
+                        }
                         let name = me.name.clone();
-                        let records = crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                        let mut records = crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                        records.extend(story_npc_records(&me, place, &mut story_hidden));
                         send_records(&mut conn, character, records).await?;
                     }
                     world::Out::Rebuilt(_) if crate::lost_creations::in_run(character) => {
@@ -544,6 +553,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let pos = pos.clone();
                             let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), speed: crate::speed::of(id.instance), ..snapshot.clone() }.spec(place));
                             presence = Some(world::join(id, place, pos_handle, spawn, outbox.clone()));
+                            // (after the others' spawn records join queued: the client forgot the last
+                            // playfield's NPCs)
+                            story_hidden.clear();
+                            let hide = story_npc_records(&me, place, &mut story_hidden);
+                            if !hide.is_empty() {
+                                let _ = outbox.send(world::Out::Records(hide));
+                            }
                             // the journal: a visit; clearing starts over
                             let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Visited { playfield: me.playfield }));
                             residents = crate::npc::resident_enemies(place);
@@ -1603,6 +1619,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             match order {
                                 Some(order) => {
                                     crate::chat::system(character, &format!("story: {order:?}"));
+                                    if let Some(template) = crate::story::spawn_minifigure(&order) {
+                                        let line = if grant_story_minifigure(&mut conn, character, &mut me, &mut collection, template).await? {
+                                            "story minifigure obtained"
+                                        } else {
+                                            "story minifigure owned already (!collection limit to collect them)"
+                                        };
+                                        crate::chat::system(character, line);
+                                    }
                                     let name = me.name.clone();
                                     let records = crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
                                     send_records(&mut conn, character, records).await?;
@@ -1613,6 +1637,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     }
                                 }
                             }
+                            let records = story_npc_records(&me, place, &mut story_hidden);
+                            send_records(&mut conn, character, records).await?;
                         }
                         crate::devcmd::Action::Quests(reset) => {
                             if reset {
@@ -2567,6 +2593,23 @@ async fn send_progress(
     Ok(())
 }
 
+/// A minifigure a story conversation gives (`spawn <hash>`, story.rs `spawn_minifigure`):
+/// straight into the collection with the client's "Congratulations! You got a new minifigure."
+/// window (BagOpenEvent.swf, as in the user's live footage), not a bag on the ground. The window
+/// opens as for a bag: AddItem of the minifigure's bag into 110002 at -1 (signals it, isn't
+/// stored), then the AddItem into the collection. Nothing when it's owned already.
+async fn grant_story_minifigure(conn: &mut Conn, character: u32, me: &mut Character, collection: &mut Collection, template: u32) -> anyhow::Result<bool> {
+    if me.collection.as_ref().is_none_or(|owned| owned.contains_key(&template)) {
+        return Ok(false);
+    }
+    if let Some(bag) = crate::loot::minifigure_bag(template) {
+        let entry = ProtoInventoryGameEntry { item_id: Some(u64::from(bag)), item_data: Some(acg_item(bag, 1)), ..Default::default() };
+        let args = Id32::new(MINIFIGURE_BAG_INVENTORY, character).write(Writer::new()).i32(-1).proto(&entry).u8(0).finish();
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
+    }
+    grant_minifigure(conn, character, me, collection, template).await
+}
+
 /// Adds `template` to a limited collection (a bag, a minifigure built from parts, an
 /// achievement): AddItem into the Collection inventory, which unlocks it in the client's
 /// minifigure list. False if the character owns it already (or owns every minifigure).
@@ -2583,6 +2626,24 @@ async fn grant_minifigure(conn: &mut Conn, character: u32, me: &mut Character, c
     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
     info!(character, template, pos, "minifigure obtained");
     Ok(true)
+}
+
+/// The records that hide or show the story NPCs (spawn `requires`, npc.rs `gated`) of `place`
+/// as the player's tags now allow: an NPC of a scene after a story event appears only to the
+/// players who saw that event (5310's Wizard and Jester after Elementius' defeat, 437).
+fn story_npc_records(me: &Character, place: Pf, hidden: &mut std::collections::HashSet<Id32>) -> Vec<Bytes> {
+    let now = crate::npc::gated(place, |t| me.tags.contains_key(&t));
+    let mut records: Vec<Bytes> = now.difference(hidden).map(|&id| despawn_record(id)).collect();
+    let hide = records.len();
+    let show: Vec<Id32> = hidden.difference(&now).copied().collect();
+    for &id in &show {
+        records.extend(world::spawn_records_of(id).into_iter().flatten());
+    }
+    if hide > 0 || !show.is_empty() {
+        info!(name = %me.name, playfield = place.model(), hide, show = show.len(), "story NPCs (spawn requires)");
+    }
+    *hidden = now;
+    records
 }
 
 /// Sends IIR records to the player (nothing when there are none).

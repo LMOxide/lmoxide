@@ -210,9 +210,10 @@ pub struct Story {
     /// the Lost Creations entry window require.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub window_quests: BTreeMap<String, Vec<u32>>,
-    /// A dialogue's `spawn <hash>` that is no quest: the minifigure whose bag it drops 1 m from
-    /// the player (`[Give Swashbuckler]{spawn 7LLT 1 m}`; the other hashes are guesses by the
-    /// texts' words, docs/TUNABLES.md "Story").
+    /// A dialogue's `spawn <hash>` that is no quest: the minifigure it gives, straight into the
+    /// collection with the client's "You got a new minifigure" window
+    /// (`[Give Swashbuckler]{spawn 7LLT 1 m}`; the other hashes are guesses by the texts' words,
+    /// docs/TUNABLES.md "Story").
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
     pub spawn_minifigures: BTreeMap<String, String>,
