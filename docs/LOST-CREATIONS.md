@@ -111,8 +111,9 @@ Funhouse) — "Lost Creations", "How far can you go?", Continue/End Run, splash 
 | teammate busy | CSPlayerInterface 0xc2 `TeamInviteTargetInEndlessPlayfield(GroupElement_c)` | |
 
 - String encoding seen live: the entry window's quest hash was u16 1 + NUL, the continue window's
-  u16 0. Use the requirement quest hash in type 0 (the client checks HasEverCompletedQuest; our journal
-  marks every story quest done, so any Gauntlet quest hash passes; pick the Gauntlet's).
+  u16 0. Use the requirement quest hash in type 0 (the client checks HasEverCompletedQuest): 81HI,
+  "Test your mettle inside the Gauntlet"; tunables `story.window_quests` keeps it in the login
+  journal while the windows are unlocked (docs/TUNABLES.md "Story").
 - **PlayfieldProxyData** on entering a level: `endless_progress` = level (1, 2, ...), `identifier` =
   run id (same all run), `team_size`, `elemental_type` = the block's element,
   **`client_protobuf_resource_id` = 1** (else splash texts are empty), `endless_protobuf_id` /

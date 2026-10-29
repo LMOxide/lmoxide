@@ -7,8 +7,8 @@
 //! `ReplyToClientRequestDestinationPlayfieldStatus(ready, completed, empty)` before it shows its
 //! buttons, and answers `GameCharAgentProject::TeleportMessageBoxAnswer(playfield or -1, ctx)`.
 //! Hub portals send nothing: the server notices the player standing in one and opens that
-//! destination's teleport window. The windows (and World Map markers) require completed story
-//! quests, which `journal_record` provides. Portals whose window would be empty ask with a Yes/No
+//! destination's teleport window. The windows require completed quests (story.rs `journal`,
+//! tunables `story.windows_unlocked`). Portals whose window would be empty ask with a Yes/No
 //! message box instead (`PLAIN_WINDOWS`). Each portal also has a door (type 51016, invisible,
 //! usable) as live sent one (LMO_Captures.cap): clicking it or pressing E on it queues an
 //! ObjectInteraction on the door, which opens the same window wherever the player stands.
@@ -323,38 +323,38 @@ pub fn teleport_record(character: Id32, playfield: Pf, pos: [f32; 3], rot: f32) 
     })
 }
 
-/// `JournalUpdateIIR` (header protobuf JournalUpdateIIRProto) with every story line completed
-/// (tunables.json `story_quests`): the teleport windows and the World Map check
-/// CoreJournalHolder::HasEverCompletedQuest for their required quests. With them the area
-/// quests the character completed (`area`: main quest, its quests, times done; quests.rs).
-pub fn journal_record(character: Id32, area: &[(u32, Vec<u32>, u32)]) -> Bytes {
+/// One main quest of the journal at login: its completed quests (quest, distance: a story
+/// step's place in its line, repeat count).
+pub struct JournalMain {
+    pub main: u32,
+    pub quests: Vec<(u32, u32, u32)>,
+}
+
+/// `JournalUpdateIIR` (header protobuf JournalUpdateIIRProto) at login: the completed quests
+/// (story.rs `journal`: the story steps done, the area quests, and the quests the teleport
+/// windows require, which they check with CoreJournalHolder::HasEverCompletedQuest).
+pub fn journal_record(character: Id32, mains: &[JournalMain]) -> Bytes {
     use lmoxide_net::proto::{
         JournalUpdateIirProto,
         journal_update_iir_proto::{AddedMainQuestType, AddedQuestType},
     };
-    // (tunables.json `story_quests`)
-    let table: HashMap<String, serde_json::Value> =
-        crate::gamedata::get().tunables.story_quests.iter().map(|(k, v)| (k.clone(), serde_json::json!(v))).collect();
-    let added_main_quest = table
+    let added_main_quest = mains
         .iter()
-        .filter_map(|(main, quests)| {
-            let main: u32 = main.parse().ok()?;
-            let quest = quests
-                .as_array()?
+        .map(|m| AddedMainQuestType {
+            main_quest_id: Some(m.main),
+            quest: m
+                .quests
                 .iter()
-                .filter_map(|q| q.as_u64())
-                .map(|q| AddedQuestType { quest_id: Some(q as u32), failed: Some(false), ..Default::default() })
-                .collect();
-            Some(AddedMainQuestType { main_quest_id: Some(main), quest, ..Default::default() })
-        })
-        .chain(area.iter().map(|(main, quests, done)| AddedMainQuestType {
-            main_quest_id: Some(*main),
-            quest: quests
-                .iter()
-                .map(|&q| AddedQuestType { quest_id: Some(q), failed: Some(false), repeat_count: Some(done.saturating_sub(1)), ..Default::default() })
+                .map(|&(q, distance, repeat)| AddedQuestType {
+                    quest_id: Some(q),
+                    failed: Some(false),
+                    distance: (distance > 0).then_some(distance),
+                    repeat_count: Some(repeat),
+                    ..Default::default()
+                })
                 .collect(),
             ..Default::default()
-        }))
+        })
         .collect();
     let msg = JournalUpdateIirProto { added_main_quest, ..Default::default() };
     iir::record("JournalUpdateIIR", character, false, |w| w.proto(&msg))

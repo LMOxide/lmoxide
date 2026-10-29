@@ -153,6 +153,19 @@ pub fn text_tags(id: u32) -> Vec<u32> {
         .collect()
 }
 
+/// Every dialogue text that resolves story goals: (the tags it gives, the goals it resolves).
+pub fn goal_texts() -> Vec<(Vec<u32>, Vec<String>)> {
+    DATA.texts
+        .values()
+        .filter_map(|text| {
+            let words: Vec<String> = tags(text);
+            let given: Vec<u32> = words.iter().filter_map(|t| t.strip_prefix("addtagtoplayer ").and_then(|t| t.trim().parse().ok())).collect();
+            let goals: Vec<String> = words.iter().filter_map(|t| t.strip_prefix("resolvegoal ").map(|h| h.trim().to_string())).collect();
+            (!goals.is_empty()).then_some((given, goals))
+        })
+        .collect()
+}
+
 /// Runs dialogue text `id`'s server side without a window (a story beat whose conversation
 /// isn't known): its tags, story goals, teleports and script steps; camera and actor tags are
 /// left out.

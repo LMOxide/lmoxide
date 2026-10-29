@@ -1885,6 +1885,12 @@ pub struct QuestMarker {
     pub pos: Vec3,
     /// How near counts as there (m).
     pub radius: f32,
+    /// The playfield it is in; none: the quest's area's.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub playfield: Option<u32>,
+    /// The district the tracker names (TDB 51200 instance), as live sent it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub district: Option<u32>,
 }
 
 fn one() -> u32 {
@@ -1982,6 +1988,10 @@ pub struct GoalProgress {
     /// The goal's hash.
     pub goal: String,
     pub amount: u32,
+    /// Waits until the player has the goal (Lua 1699's buff, whose script 4005 retries every
+    /// second); otherwise it counts only if the player has it then.
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub wait: bool,
 }
 
 /// One quest of a main quest (the client's "quest"; a story line's step).
@@ -1998,6 +2008,14 @@ pub struct QuestStep {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub goals: Vec<QuestGoal>,
+    /// Rewards of this step alone (template, category), shown in the tracker; not given yet.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rewards: Vec<[u32; 2]>,
+    /// Where its place in a story line comes from (`live`: the capture's order, `guess`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<crate::record::Source>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
 }
 
 record! {

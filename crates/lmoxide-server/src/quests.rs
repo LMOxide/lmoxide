@@ -3,8 +3,7 @@
 //! player left off; leaving pauses it (the tracker hides it); progress is kept. What counts
 //! toward a goal is the goal's `counts` (as achievements count kills, smashes and builds) and
 //! `enemies`; completing the last step starts the quest's cooldown, after which entering the
-//! area starts it again. Story quests are content only: the journal still lists every story
-//! line as done (teleport.rs `journal_record`), which the teleport windows and World Map need.
+//! area starts it again. Story lines run in story.rs, with these records.
 //!
 //! Records, as LMO_Captures.cap showed them and the client's writers lay them out:
 //! - start: `MainQuestUpdateIIR_c` (add) then `QuestFullUpdateIIR` (the quest with its goal:
@@ -42,6 +41,11 @@ const MAIN_TYPE_STORY: u32 = 5;
 const MAIN_TYPE_AREA: u32 = 1;
 /// Quest flags of an area quest and a story quest (QuestFullUpdateIIR, recorded).
 const FLAGS_AREA: u32 = 0x4000_0002;
+const FLAGS_STORY: u32 = 2;
+/// TDB categories of region (playfield and super-region) names: the story quests' regions.
+const TEXT_REGION: u32 = 52000;
+/// TDB category of district names (a goal's marker).
+const TEXT_DISTRICT: u32 = 51200;
 /// TDB categories: main quest names, quest solved texts, goal texts.
 const TEXT_MAIN_QUEST: u32 = 50300;
 const TEXT_SOLVED: u32 = 50303;
@@ -67,6 +71,23 @@ struct AreaQuest {
     main: u32,
     playfield: u32,
     area: Shape,
+}
+
+impl AreaQuest {
+    fn line(&self) -> Line<'_> {
+        Line { quest: &self.quest, main: self.main, playfield: self.playfield, region: [0, 0] }
+    }
+}
+
+/// A main quest as the records show it: an area quest or a story line (story.rs).
+pub(crate) struct Line<'a> {
+    pub quest: &'a Quest,
+    pub main: u32,
+    /// Where its goals' markers are, unless a marker names its playfield.
+    pub playfield: u32,
+    /// A story line's region: the playfield and super-region the player is in (TDB 52000), as
+    /// live named them; area quests: none.
+    pub region: [u32; 2],
 }
 
 /// A quest the server starts and advances itself (a Lost Creations level's, lost_creations.rs):
@@ -98,8 +119,8 @@ impl Scripted {
     /// Shows the quest at `step` with `progress` (the tracker, the "new quest" popup on a fresh
     /// start).
     pub fn show(&self, character: u32, step: usize, progress: u32) -> Vec<Bytes> {
-        let state = QuestState { step: step as u32, progress, ..Default::default() };
-        vec![main_quest_added(character, &self.0, step as u32), full_update(character, &self.0, &state, step == 0 && progress == 0)]
+        let l = self.0.line();
+        vec![main_quest_added(character, &l, step as u32), full_update(character, &l, step, progress, step == 0 && progress == 0)]
     }
 
     /// `n` more toward `step`'s goal.
@@ -116,12 +137,11 @@ impl Scripted {
         let mut records = vec![
             goal_record(character, s.quest, goal, 1, 0),
             quest_record(character, 2, s.quest),
-            journal_record(character, &self.0, s.quest, 0),
+            area_journal(character, &self.0, s.quest, 0),
             quest_record(character, 4, s.quest),
         ];
         if step + 1 < self.steps() {
-            let state = QuestState { step: step as u32 + 1, ..Default::default() };
-            records.push(full_update(character, &self.0, &state, false));
+            records.push(full_update(character, &self.0.line(), step + 1, 0, false));
         } else {
             records.push(main_quest_removed(character, self.0.main));
         }
@@ -241,8 +261,8 @@ pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: Pf, 
                 }
                 let fresh = state.step == 0 && state.progress == 0;
                 info!(character, main = q.main, quest = %q.quest.id, step = state.step, progress = state.progress, "area quest started");
-                records.push(main_quest_added(character, q, state.step));
-                records.push(full_update(character, q, state, fresh));
+                records.push(main_quest_added(character, &q.line(), state.step));
+                records.push(full_update(character, &q.line(), state.step as usize, state.progress, fresh));
                 t.shown.insert(q.main, false);
             }
             (true, Some(true)) => {
@@ -266,7 +286,7 @@ pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: Pf, 
 }
 
 /// Whether `event` counts toward `goal`.
-fn counts(goal: &lmoxide_content::QuestGoal, event: &Event) -> bool {
+pub(crate) fn counts(goal: &lmoxide_content::QuestGoal, event: &Event) -> bool {
     let (name, ok) = match (goal.counts.as_deref(), event) {
         (Some("kills"), Event::Defeated { name, smashable: false, .. }) => (name, true),
         (Some("smashes"), Event::Defeated { name, smashable: true, .. }) => (name, true),
@@ -352,12 +372,12 @@ fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64,
         // the step is done
         records.push(goal_record(character, step.quest, goal.goal, 1, 0));
         records.push(quest_record(character, 2, step.quest));
-        records.push(journal_record(character, q, step.quest, state.completions));
+        records.push(area_journal(character, q, step.quest, state.completions));
         records.push(quest_record(character, 4, step.quest));
         state.step += 1;
         state.progress = 0;
         if (state.step as usize) < q.quest.steps.len() {
-            records.push(full_update(character, q, state, false));
+            records.push(full_update(character, &q.line(), state.step as usize, 0, false));
             continue;
         }
         // the last step: the quest is done
@@ -397,7 +417,7 @@ fn reward_script(character: u32, script: &lmoxide_content::RewardScript) {
         send(p, Order::Solve(hash.clone()));
     }
     for g in &script.progress {
-        send(p, Order::Progress { hash: g.goal.clone(), amount: g.amount });
+        send(p, Order::Progress { hash: g.goal.clone(), amount: g.amount, wait: g.wait });
     }
 }
 
@@ -458,19 +478,19 @@ pub fn points() -> Vec<(String, u32, [f32; 3])> {
 
 /// `MainQuestUpdateIIR_c` add: u32 1, main, current quest, its quests with their order (a
 /// countdown: the first the highest), the name, u32 1, MainQuestType, u32 1.
-fn main_quest_added(character: u32, q: &AreaQuest, step: u32) -> Bytes {
-    let steps = &q.quest.steps;
+pub(crate) fn main_quest_added(character: u32, l: &Line, step: u32) -> Bytes {
+    let steps = &l.quest.steps;
     let current = steps.get(step as usize).map_or(0, |s| s.quest);
     iir::record("MainQuestUpdateIIR_c", player(character), true, |w| {
-        let w = w.u32(1).u32(q.main).u32(current).container_len(steps.len());
+        let w = w.u32(1).u32(l.main).u32(current).container_len(steps.len());
         let w = steps.iter().enumerate().fold(w, |w, (i, s)| w.u32(s.quest).u8((steps.len() - 1 - i) as u8));
-        let kind = if q.quest.kind == QuestKind::Story { MAIN_TYPE_STORY } else { MAIN_TYPE_AREA };
-        cstr(w, &localized(TEXT_MAIN_QUEST, q.main)).u32(1).u32(kind).u32(1)
+        let kind = if l.quest.kind == QuestKind::Story { MAIN_TYPE_STORY } else { MAIN_TYPE_AREA };
+        cstr(w, &localized(TEXT_MAIN_QUEST, l.main)).u32(1).u32(kind).u32(1)
     })
 }
 
 /// `MainQuestUpdateIIR_c` remove.
-fn main_quest_removed(character: u32, main: u32) -> Bytes {
+pub(crate) fn main_quest_removed(character: u32, main: u32) -> Bytes {
     iir::record("MainQuestUpdateIIR_c", player(character), true, |w| cstr(w.u32(2).u32(main).u32(0).container_len(0), "").u32(0).u32(0).u32(0))
 }
 
@@ -480,44 +500,59 @@ fn reward(w: Writer, character: u32, quest: u32, id: u32) -> Writer {
     w.u32(character).u32(quest).u32(REWARD_RESOURCE).u32(id).raw(&key).u32(REWARD_RESOURCE).u32(0).raw(&REWARD_KEY2).u32(1).u32(1)
 }
 
+/// A reward list (u32 n + n entries): the rewards whose keys are known.
+fn rewards(w: Writer, character: u32, quest: u32, list: &[[u32; 2]]) -> Writer {
+    let ids: Vec<u32> = list.iter().map(|r| r[0]).filter(|id| REWARD_KEYS.iter().any(|(r, _)| r == id)).collect();
+    ids.iter().fold(w.u32(ids.len() as u32), |w, &id| reward(w, character, quest, id))
+}
+
 /// `QuestFullUpdateIIR`: u32 1, owner, the quest (quests::operator<<), u8 show the "new quest"
-/// popup.
-fn full_update(character: u32, q: &AreaQuest, state: &QuestState, popup: bool) -> Bytes {
-    let step = &q.quest.steps[state.step as usize];
-    let first = q.quest.steps[0].quest;
-    let rewards: Vec<u32> = q.quest.rewards.iter().map(|r| r[0]).filter(|id| REWARD_KEYS.iter().any(|(r, _)| r == id)).collect();
+/// popup. `progress`: counted toward the step's counted goal. As live: an area quest lists the
+/// main quest's rewards first; a story step its own rewards first, the story line's last, with
+/// flags 2, its region and no popup.
+pub(crate) fn full_update(character: u32, l: &Line, step: usize, progress: u32, popup: bool) -> Bytes {
+    let story = l.quest.kind == QuestKind::Story;
+    let s = &l.quest.steps[step];
+    let first = l.quest.steps[0].quest;
     iir::record("QuestFullUpdateIIR", player(character), false, |w| {
         let w = w.u32(1).u32(character);
         // the quest
-        let w = w.u32(1).u32(step.quest).u32(1).u32(0).u32(1).u32(FLAGS_AREA).u32(1).u32(q.main).u32(first).u8(1);
-        let w = w.u32(0).u32(0).u32(0).u32(0).u32(1).u32(0).u64(0).u32(0);
-        let w = rewards.iter().fold(w.u32(rewards.len() as u32), |w, &id| reward(w, character, step.quest, id));
-        let w = w.u32(0).u32(0).u64(0).u32(0).u32(0);
+        let flags = if story { FLAGS_STORY } else { FLAGS_AREA };
+        let w = w.u32(1).u32(s.quest).u32(1).u32(0).u32(1).u32(flags).u32(1).u32(l.main).u32(first).u8(u8::from(!story));
+        let region = |w: Writer, id: u32| if story && id != 0 { w.u32(TEXT_REGION).u32(id) } else { w.u32(0).u32(0) };
+        let w = region(region(w, l.region[0]), l.region[1]);
+        let w = w.u32(1).u32(0).u64(0).u32(0);
+        let w = if story { rewards(w, character, s.quest, &s.rewards) } else { rewards(w, character, s.quest, &l.quest.rewards) };
+        let w = w.u32(0).u32(0).u64(0);
+        let w = if story { rewards(w, character, s.quest, &l.quest.rewards) } else { w.u32(0) };
+        let w = w.u32(0);
         // its goals
-        let w = step.goals.iter().fold(w.u32(step.goals.len() as u32), |w, g| {
-            let counted = g.counts.is_some() && step.goals.iter().find(|x| x.counts.is_some()).is_some_and(|x| x.goal == g.goal);
-            let solved = if counted { (state.progress * g.step()).min(g.bar_max()) } else { 0 };
-            let w = w.u32(1).u32(g.kind.client_type()).u32(character).u32(step.quest).u32(g.goal).u32(1).u32(0).u32(g.bar_max()).u32(solved);
+        let w = s.goals.iter().fold(w.u32(s.goals.len() as u32), |w, g| {
+            let counted = g.counts.is_some() && s.goals.iter().find(|x| x.counts.is_some()).is_some_and(|x| x.goal == g.goal);
+            let solved = if counted { (progress * g.step()).min(g.bar_max()) } else { 0 };
+            let w = w.u32(1).u32(g.kind.client_type()).u32(character).u32(s.quest).u32(g.goal).u32(1).u32(0).u32(g.bar_max()).u32(solved);
             let w = (0..3).fold(w, |w, _| w.u32(0).u32(0));
+            let district = g.marker.as_ref().and_then(|m| m.district).unwrap_or(0);
             let w = match &g.marker {
-                Some(m) => w.u32(0).u32(q.playfield).f32(m.pos[0]).f32(m.pos[2]).f32(m.radius).f32(m.pos[1]),
+                Some(m) => w.u32(district).u32(m.playfield.unwrap_or(l.playfield)).f32(m.pos[0]).f32(m.pos[2]).f32(m.radius).f32(m.pos[1]),
                 None => w.u32(0).u32(0).u32(0).u32(0).u32(0).u32(0),
             };
             let w = w.u8(0).u8(0).u8(0);
             let text = format!(r#"<remoteformat id="{}" category="{TEXT_GOAL}" knubot="0"  ></remoteformat>"#, g.goal);
-            cstr(cstr(w, &text), NO_NAME).u32(0)
+            let name = if district != 0 { localized(TEXT_DISTRICT, district) } else { NO_NAME.to_string() };
+            cstr(cstr(w, &text), &name).u32(0)
         });
         w.u8(popup as u8)
     })
 }
 
 /// `QuestGoalIIR`: u32 quest, goal, event (1 done, 2 add to the bar), 0, amount.
-fn goal_record(character: u32, quest: u32, goal: u32, event: u32, amount: u32) -> Bytes {
+pub(crate) fn goal_record(character: u32, quest: u32, goal: u32, event: u32, amount: u32) -> Bytes {
     iir::record("QuestGoalIIR", player(character), true, |w| w.u32(quest).u32(goal).u32(event).u32(0).u32(amount))
 }
 
 /// `QuestIIR_c`: u32 1, event (2 completed, 4 removed), quest, 0.
-fn quest_record(character: u32, event: u32, quest: u32) -> Bytes {
+pub(crate) fn quest_record(character: u32, event: u32, quest: u32) -> Bytes {
     iir::record("QuestIIR_c", player(character), false, |w| w.u32(1).u32(event).u32(quest).u32(0))
 }
 
@@ -531,9 +566,18 @@ fn cooldown_record(character: u32, id: u32, seconds: u32) -> Bytes {
     iir::record("QuestCooldownIIR", player(character), true, |w| w.u32(2).container_len(1).u32(id).u32(seconds))
 }
 
-/// `JournalUpdateIIR` for a completed quest: a new main quest the first time (the journal at
-/// login lists the earlier ones), else the quest added to it.
-fn journal_record(character: u32, q: &AreaQuest, quest: u32, done_before: u32) -> Bytes {
+/// `JournalUpdateIIR` for an area quest's completed step: a new main quest the first time (the
+/// journal at login lists the earlier ones), else the quest added to it.
+fn area_journal(character: u32, q: &AreaQuest, quest: u32, done_before: u32) -> Bytes {
+    let new_main = done_before == 0 && q.quest.steps.first().is_some_and(|s| s.quest == quest);
+    journal_record(character, q.main, quest, new_main.then_some([0, 0]), 0, done_before)
+}
+
+/// `JournalUpdateIIR` for a completed quest of main quest `main`: `new_main` (its region, as
+/// for the tracker): the main quest added with it, else the quest added to the main quest the
+/// client's journal has. `distance`: the quest's place in the line (the tracker's countdown;
+/// live: story steps), `repeat`: its repeat count.
+pub(crate) fn journal_record(character: u32, main: u32, quest: u32, new_main: Option<[u32; 2]>, distance: u32, repeat: u32) -> Bytes {
     use lmoxide_net::proto::{
         JournalUpdateIirProto,
         journal_update_iir_proto::{AddedMainQuestType, AddedQuestListType, AddedQuestType},
@@ -541,14 +585,28 @@ fn journal_record(character: u32, q: &AreaQuest, quest: u32, done_before: u32) -
     let entry = AddedQuestType {
         quest_id: Some(quest),
         failed: Some(false),
-        repeat_count: Some(done_before),
+        distance: (distance > 0).then_some(distance),
+        repeat_count: Some(repeat),
         solved_text: Some(localized(TEXT_SOLVED, quest)),
         ..Default::default()
     };
-    let msg = if done_before == 0 && q.quest.steps.first().is_some_and(|s| s.quest == quest) {
-        JournalUpdateIirProto { added_main_quest: vec![AddedMainQuestType { main_quest_id: Some(q.main), quest: vec![entry], ..Default::default() }], ..Default::default() }
-    } else {
-        JournalUpdateIirProto { added_quest: vec![AddedQuestListType { main_quest_id: Some(q.main), quest: vec![entry] }], ..Default::default() }
+    let msg = match new_main {
+        Some(region) => {
+            let name = |id: u32| (id != 0).then_some((TEXT_REGION, id));
+            let (r, sr) = (name(region[0]), name(region[1]));
+            JournalUpdateIirProto {
+                added_main_quest: vec![AddedMainQuestType {
+                    main_quest_id: Some(main),
+                    region_name_category: r.map(|x| x.0),
+                    region_name_instance: r.map(|x| x.1),
+                    super_region_name_category: sr.map(|x| x.0),
+                    super_region_name_instance: sr.map(|x| x.1),
+                    quest: vec![entry],
+                }],
+                ..Default::default()
+            }
+        }
+        None => JournalUpdateIirProto { added_quest: vec![AddedQuestListType { main_quest_id: Some(main), quest: vec![entry] }], ..Default::default() },
     };
     iir::record("JournalUpdateIIR", player(character), false, |w| w.proto(&msg))
 }

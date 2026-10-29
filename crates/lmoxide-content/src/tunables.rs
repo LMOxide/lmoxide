@@ -36,9 +36,6 @@ pub struct Tunables {
     /// The client's minifigure stat model (SimpleChar_t::CalculateLife, AttackUtils): tweaks,
     /// player defaults, formulas.
     pub minifigure_model: serde_json::Value,
-    /// Main quest giver -> its quests, marked completed for everyone (the client's teleport
-    /// windows and map markers need them).
-    pub story_quests: BTreeMap<String, Vec<u32>>,
     /// The Lost Creations runs (docs/LOST-CREATIONS.md; the levels are `lc` records).
     #[serde(default)]
     pub lost_creations: LostCreations,
@@ -204,15 +201,28 @@ pub struct Story {
     /// client).
     #[serde(default = "full")]
     pub pickup_drop_chance: Ratio,
+    /// Every teleport window is open, whatever the story: the login journal lists
+    /// `window_quests` as completed (the windows check CoreJournalHolder::HasEverCompletedQuest
+    /// for their required quest). False: as live, a window opens once its quest is really done.
+    #[serde(default = "yes")]
+    pub windows_unlocked: bool,
+    /// Main quest -> the quests the teleport windows (RDB 1000644 `required_quest_task_hash`) and
+    /// the Lost Creations entry window require.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub window_quests: BTreeMap<String, Vec<u32>>,
 }
 
 fn full() -> Ratio {
     Ratio(1.0)
 }
 
+fn yes() -> bool {
+    true
+}
+
 impl Default for Story {
     fn default() -> Self {
-        Story { cinematics: BTreeMap::new(), pickup_drop_chance: full() }
+        Story { cinematics: BTreeMap::new(), pickup_drop_chance: full(), windows_unlocked: true, window_quests: BTreeMap::new() }
     }
 }
 
@@ -289,8 +299,8 @@ pub struct LostCreations {
     pub entry_door: u32,
     #[schemars(extend("x-lmoxide-ref" = ["world"]))]
     pub entry_world: Ref,
-    /// The quest (hash) the entry window requires, "Proved your strength at the Gauntlet" (the
-    /// client checks the journal; every story quest is in it).
+    /// The quest (hash) the entry window requires, "Test your mettle inside the Gauntlet" (the
+    /// client checks the journal: story `window_quests`).
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub requirement_quest: String,
     /// How long a level runs (the timer).

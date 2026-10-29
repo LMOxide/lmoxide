@@ -72,7 +72,9 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!lc end` | out of the run, to the Treasure Chamber (its rewards drop in the loot area by the chests) |
 | `!lc <level>` | count Lost Creations level `<level>` as completed with the active minifigure (achievements only) |
 | `!cinematic [n\|name\|package]` | play a narrated story cinematic (again, nothing recorded); without an argument: list the 15 the server starts |
-| `!story [reset]` | the story: cinematics seen, story lines started, goals resolved and counted; reset: forget them (lore flags stay) |
+| `!story [reset]` | the story: cinematics seen, each story line's step (or done), goals resolved and counted; reset: forget them, the lines leave the tracker (lore flags stay) |
+| `!story quest <line> <step>` | put a story line (`pirate`, `medieval`, `space`, `mythology`, `dino` or its main quest id) at step `<step>` (1: its first; 0: not started; past the last: done) and show it in the tracker (e.g. `!story quest pirate 5` = "Talk to Swashbuckler") |
+| `!story advance [line]` | complete the current step of a story line (default: the first one running) as its goal resolving would: the tracker shows the next step |
 | `!story goal <hash>` / `beat <text>` / `dialogue <id>` / `seen <cinematic>` | resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once, with its conditions) |
 | `!quests [reset]` | area quests started, their progress and cooldowns; reset: clear them so they start again |
 | `!unach <id ...>` / `!unach all` | take achievements away to earn them again (the "all of" ones above go too; `all` also clears the journal and counters); story and tutorial progress stays |

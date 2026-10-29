@@ -211,7 +211,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
                             send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
-                            let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
+                            let mut records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
+                            records.extend(crate::story::on_event(&mut me, character, place, &event));
                             send_records(&mut conn, character, records).await?;
                             // quest pickups dropped where the defeated one was (a bag of the player's)
                             if let crate::achievements::Event::Defeated { id, .. } = &event {
@@ -336,7 +337,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                     world::Out::Story(order) => {
                         let name = me.name.clone();
-                        crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                        let records = crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                        send_records(&mut conn, character, records).await?;
                     }
                     world::Out::Rebuilt(_) if crate::lost_creations::in_run(character) => {
                         // nothing is rebuilt inside a Lost Creations run
@@ -436,7 +438,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // item effects, including its abilities (shortcut slots 104/105); sent with
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
-                        records.push(crate::teleport::journal_record(h.identity, &crate::quests::completed(&me)));
+                        crate::story::migrate(&mut me);
+                        records.push(crate::teleport::journal_record(h.identity, &crate::story::journal(&me)));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.item_state(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
                         // a test setup changed the team, or a teleport moved the active minifigure
@@ -542,7 +545,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             // client's world: it forgot the quests
                             quest_tracker = crate::quests::Tracker::default();
                             let playfield = place;
-                            let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
+                            let mut records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
+                            // the story lines running (gold; the client hides them in the Lost Creations)
+                            records.extend(crate::story::show(&me, character, place));
                             send_records(&mut conn, character, records).await?;
                             // encounters: a side dungeon's champion, an area the player arrived in
                             crate::encounter::entered(place, here, &|n| me.defeats.contains_key(n));
@@ -1548,14 +1553,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Story(order, reset) => {
                             if reset {
-                                me.story.clear();
-                                crate::chat::system(character, "story progress forgotten (cinematics play again; the lore flags stay)");
+                                let records = crate::story::reset(&mut me, character);
+                                send_records(&mut conn, character, records).await?;
+                                crate::chat::system(character, "story progress forgotten (cinematics play again, the story lines start over; the lore flags stay)");
                             }
                             match order {
                                 Some(order) => {
                                     crate::chat::system(character, &format!("story: {order:?}"));
                                     let name = me.name.clone();
-                                    crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                                    let records = crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                                    send_records(&mut conn, character, records).await?;
                                 }
                                 None => {
                                     for line in crate::story::summary(&me) {
@@ -1599,7 +1606,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let before = me.tags.len();
                             let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
                             send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
-                            let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, n as u64);
+                            let mut records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, n as u64);
+                            for _ in 0..n {
+                                records.extend(crate::story::on_event(&mut me, character, place, &event));
+                            }
                             send_records(&mut conn, character, records).await?;
                             let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
                             crate::chat::system(character, &line);
@@ -1819,7 +1829,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let records = crate::quests::picked_up(&mut quest_tracker, &mut me, character, taken.template);
                         send_records(&mut conn, character, records).await?;
                         let name = me.name.clone();
-                        crate::story::handle(crate::story::Order::Pickup(taken.template), &mut me, id, &name, place);
+                        let records = crate::story::handle(crate::story::Order::Pickup(taken.template), &mut me, id, &name, place);
+                        send_records(&mut conn, character, records).await?;
                     }
                 }
             }

@@ -31,6 +31,9 @@
 //!   !dialog [n]               play recorded NPC dialogue n (without n: list them)
 //!   !cinematic [n|name|id]    play a narrated story cinematic (without an argument: list them)
 //!   !story [reset]            the story (cinematics seen, story lines, goals); reset forgets it
+//!   !story quest <line> <step>  put a story line (pirate, medieval, space, mythology, dino or
+//!                             its main quest) at a step (1 = first; 0 = not started)
+//!   !story advance [line]     complete the current step of a story line (default: the first)
 //!   !story goal|beat|dialogue|seen <arg>   resolve a goal, run a beat, start a dialogue, or play
 //!                             a cinematic as its trigger would
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
@@ -195,6 +198,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
     ("!cinematic [n|name|package]", "play a narrated story cinematic (again; without an argument: list them)"),
     ("!story [reset]", "the story: cinematics seen, story lines started, goals resolved; reset: forget them (the lore flags stay)"),
+    ("!story quest <line> <step>", "put a story line (pirate, medieval, space, mythology, dino or its main quest id) at step <step> (1: its first; 0: not started; past the last: done) and show it in the tracker"),
+    ("!story advance [line]", "complete the current step of a story line (default: the first one running), as its goal resolving would"),
     ("!story goal <hash>|beat <text>|dialogue <id>|seen <cinematic>", "resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
@@ -642,6 +647,15 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 (None, _) => Action::Story(None, false),
                 (Some("reset"), _) => Action::Story(None, true),
                 (Some("goal"), Some(h)) => Action::Story(Some(Order::Goal { hash: h.to_ascii_uppercase(), requires: Vec::new() }), false),
+                (Some("quest"), Some(l)) => match (crate::story::find_line(l), args.get(2).and_then(|n| n.parse::<usize>().ok())) {
+                    (Some(main), Some(step)) => Action::Story(Some(Order::SetStep { main, step }), false),
+                    (None, _) => reply(vec![format!("no story line \"{l}\" (pirate, medieval, space, mythology, dino)")]),
+                    _ => reply(vec!["usage: !story quest <line> <step>".into()]),
+                },
+                (Some("advance"), l) => match l.map(crate::story::find_line) {
+                    Some(None) => reply(vec![format!("no story line \"{}\"", l.unwrap_or_default())]),
+                    found => Action::Story(Some(Order::Advance(found.flatten())), false),
+                },
                 (Some("beat"), Some(t)) if t.parse::<u32>().is_ok() => Action::Story(Some(Order::Beat { text: t.parse().unwrap_or(0), requires: Vec::new() }), false),
                 (Some("dialogue"), Some(d)) => {
                     let id = if d.starts_with("dialogue/") { d.to_string() } else { format!("dialogue/{d}") };
@@ -651,7 +665,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                     Some(name) => Action::Story(Some(Order::Cinematic(name)), false),
                     None => reply(vec![format!("no cinematic \"{c}\"")]),
                 },
-                _ => reply(vec!["usage: !story [reset] | goal <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
+                _ => reply(vec!["usage: !story [reset] | quest <line> <step> | advance [line] | goal <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
             }
         }
         "ach" | "achievements" => Action::Achievements,

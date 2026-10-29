@@ -15,10 +15,19 @@
 //! - **Talking heads**: the client shows a pusher (TDB 50000, keyed by tag) when the server adds
 //!   its tag (the client's Lua 1597: "shows the tutorial talking [head]" = `player:addtag(385)`):
 //!   the trigger command `tag`.
-//! - **Story goals**: dialogue texts' `resolvegoal` / `spawn`, the `story_goal` command (the
-//!   Story_* locate areas), the area quests' reward scripts (`solvegoal`, QuestTriggerProgress).
-//!   Kept per character (`cinematic/`, `goal/`, `count/`, `main/` keys); the story quests aren't
-//!   shown in the tracker yet (the journal lists every story line as done: teleport.rs).
+//! - **Story lines** (content/quests `kind: story`, steps in their order): shown in the quest
+//!   tracker as live showed them (gold, MainQuestType 5), step by step. A step is done when its
+//!   goals are resolved: dialogue texts' `resolvegoal`, the `story_goal` command (the Story_*
+//!   locate areas), the area quests' reward scripts (`solvegoal`, QuestTriggerProgress), quest
+//!   pickups, or a goal's `counts` (kills, smashes). `spawn <quest hash>` starts a line at that
+//!   step. A goal of a later step jumps there (the steps between count as done: many have nothing
+//!   that resolves them yet); one of an earlier step changes nothing.
+//! - **Journal** (`journal`): the steps done, the area quests done and, while the teleport
+//!   windows are unlocked (tunables `story.windows_unlocked`), the quests the windows require.
+//!
+//! Kept per character (DB `character_story`): `cinematic/<name>`, `main/<main>` (line started),
+//! `done/<quest>` (step done), `goal/<hash>` (resolved), `count/<hash>`, `wait/<hash>` (progress
+//! waiting for its step: Lua 1699's buff), `chain` (`migrate` ran).
 //!
 //! Trigger commands (`register_command`): `cinematic {name}`, `dialogue {dialogue}`, `tag {tag}`,
 //! `story_goal {goal, requires}`, `story_beat {text}`.
@@ -27,6 +36,8 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Instant;
 
+use bytes::Bytes;
+use lmoxide_content::{Quest, QuestGoal, QuestKind};
 use lmoxide_net::types::Id32;
 use serde_json::Value;
 use tracing::info;
@@ -46,8 +57,9 @@ pub enum Order {
     Goal { hash: String, requires: Vec<u32> },
     /// `solvegoal <hash>`: only if the player is on that goal.
     Solve(String),
-    /// `QuestTriggerProgress(hash, amount)`: only if the player has that goal.
-    Progress { hash: String, amount: u32 },
+    /// `QuestTriggerProgress(hash, amount)`: only if the player has that goal (`wait`: once
+    /// they have it).
+    Progress { hash: String, amount: u32, wait: bool },
     /// `spawn <quest hash>`: that story line starts.
     Spawn(String),
     /// Start content dialogue `dialogue/...` unless the player has every tag it gives.
@@ -59,6 +71,12 @@ pub enum Order {
     TagsIfGoal { tags: Vec<u32>, goals: Vec<String> },
     /// The player picked up item `template`: the story goals that count it (QuestTriggerProgress).
     Pickup(u32),
+    /// Test command: put story line `main` at `step` (1: its first; 0: not started; past the
+    /// last: done).
+    SetStep { main: u32, step: usize },
+    /// Test command: resolve the current step's goals of line `main` (none: the first line
+    /// running).
+    Advance(Option<u32>),
 }
 
 /// Tell `player`'s connection to do `order`.
@@ -120,99 +138,325 @@ fn tags_arg(args: &BTreeMap<String, Value>) -> Vec<u32> {
     args.get("requires").and_then(Value::as_array).map(|a| a.iter().filter_map(|v| v.as_u64().map(|n| n as u32)).collect()).unwrap_or_default()
 }
 
-/// A story goal by hash: (main quest, its goal id, how many count).
-fn goal_of(hash: &str) -> Option<(u32, u32, u32)> {
-    let c = crate::gamedata::get();
-    c.quests.values().filter(|q| q.kind == lmoxide_content::QuestKind::Story).find_map(|q| {
-        let g = q.steps.iter().flat_map(|s| &s.goals).find(|g| g.hash.as_deref() == Some(hash))?;
-        Some((q.main?, g.goal, g.count.max(1)))
+/// The story lines: (main quest, its line).
+fn lines() -> impl Iterator<Item = (u32, &'static Quest)> {
+    crate::gamedata::get().quests.values().filter(|q| q.kind == QuestKind::Story && !q.steps.is_empty()).filter_map(|q| Some((q.main?, q)))
+}
+
+fn line(main: u32) -> Option<&'static Quest> {
+    lines().find(|(m, _)| *m == main).map(|(_, q)| q)
+}
+
+/// A story goal by hash: (main quest, its line, the step, the goal).
+fn find_goal(hash: &str) -> Option<(u32, &'static Quest, usize, &'static QuestGoal)> {
+    lines().find_map(|(main, q)| {
+        q.steps.iter().enumerate().find_map(|(i, s)| s.goals.iter().find(|g| g.hash.as_deref() == Some(hash)).map(|g| (main, q, i, g)))
     })
 }
 
-/// The story line a quest hash (`spawn <hash>`) starts.
-fn main_of_quest(hash: &str) -> Option<u32> {
-    let c = crate::gamedata::get();
-    c.quests.values().filter(|q| q.kind == lmoxide_content::QuestKind::Story).find_map(|q| q.steps.iter().any(|s| s.hash.as_deref() == Some(hash)).then_some(q.main?))
+/// A story step by its quest's hash (`spawn <hash>`): (main quest, its line, the step).
+fn find_step(hash: &str) -> Option<(u32, &'static Quest, usize)> {
+    lines().find_map(|(main, q)| q.steps.iter().position(|s| s.hash.as_deref() == Some(hash)).map(|i| (main, q, i)))
+}
+
+/// A line by main quest id or world name (`pirate`, `medieval` ...: the record's id).
+pub fn find_line(arg: &str) -> Option<u32> {
+    if let Ok(main) = arg.parse::<u32>() {
+        return line(main).map(|_| main);
+    }
+    let a = arg.to_ascii_lowercase();
+    lines().find(|(_, q)| q.id.contains(&a) || q.name.to_ascii_lowercase().contains(&a)).map(|(m, _)| m)
 }
 
 fn resolved(c: &Character, hash: &str) -> bool {
     c.story.contains_key(&format!("goal/{hash}"))
 }
 
-/// Whether the player "has" story goal `hash` (the client's Lua `player:hasgoal`): its story
-/// line started and the goal not resolved yet. (Which step of the line they are on isn't kept:
-/// the order is only known for the Pirate World.)
-fn has_goal(c: &Character, hash: &str) -> bool {
-    let Some((main, ..)) = goal_of(hash) else { return false };
-    c.story.contains_key(&format!("main/{main}")) && !resolved(c, hash)
+fn started(c: &Character, main: u32) -> bool {
+    c.story.contains_key(&format!("main/{main}"))
 }
 
-fn resolve(c: &mut Character, character: u32, hash: &str, why: &str) {
-    let Some((main, goal, _)) = goal_of(hash) else {
-        return info!(character, hash, why, "story: not a story goal");
+fn passed(c: &Character, quest: u32) -> bool {
+    c.story.contains_key(&format!("done/{quest}"))
+}
+
+/// The step of `q` the player is on: none before the line started and after its last step.
+fn current(c: &Character, main: u32, q: &Quest) -> Option<usize> {
+    if !started(c, main) {
+        return None;
+    }
+    q.steps.iter().position(|s| !passed(c, s.quest))
+}
+
+/// Whether the player "has" story goal `hash` (the client's Lua `player:hasgoal`): it is a goal
+/// of the step they are on.
+fn has_goal(c: &Character, hash: &str) -> bool {
+    find_goal(hash).is_some_and(|(main, q, i, _)| current(c, main, q) == Some(i))
+}
+
+/// The step's place in the tracker's list (a countdown: the first step the highest).
+fn countdown(q: &Quest, step: usize) -> u32 {
+    (q.steps.len() - 1 - step) as u32
+}
+
+/// The line as the records show it, for a player in `place`.
+fn view(q: &'static Quest, main: u32, place: Pf) -> crate::quests::Line<'static> {
+    let c = crate::gamedata::get();
+    let home = q.world.as_ref().and_then(|w| c.worlds.get(w)).map_or(0, |w| w.playfield);
+    let super_region = c.world_by_playfield(place.model()).and_then(|w| w.super_region).unwrap_or(0);
+    crate::quests::Line { quest: q, main, playfield: home, region: [place.model(), super_region] }
+}
+
+/// Counted toward the step's counted goal.
+fn counted(c: &Character, q: &Quest, step: usize) -> u32 {
+    q.steps[step].goals.iter().find(|g| g.counts.is_some()).and_then(|g| g.hash.as_ref()).and_then(|h| c.story.get(&format!("count/{h}"))).map_or(0, |&n| n as u32)
+}
+
+/// Whether the client's journal holds main quest `main` (an entry added before).
+fn in_journal(c: &Character, main: u32, q: &Quest) -> bool {
+    let t = &crate::gamedata::get().tunables.story;
+    (t.windows_unlocked && t.window_quests.contains_key(&main.to_string())) || q.steps.iter().any(|s| passed(c, s.quest))
+}
+
+/// The line in the tracker: added, at its current step.
+fn show_line(c: &Character, character: u32, main: u32, q: &'static Quest, place: Pf) -> Vec<Bytes> {
+    let Some(step) = current(c, main, q) else { return Vec::new() };
+    let l = view(q, main, place);
+    vec![crate::quests::main_quest_added(character, &l, step as u32), crate::quests::full_update(character, &l, step, counted(c, q, step), false)]
+}
+
+/// The story lines running, for the tracker (every arrival: the client forgot its quests).
+pub fn show(c: &Character, character: u32, place: Pf) -> Vec<Bytes> {
+    lines().flat_map(|(main, q)| show_line(c, character, main, q, place)).collect()
+}
+
+/// Steps `from..=to` of the line are done (the player was on `from`, which the tracker shows if
+/// `shown`): the tracker and journal records, then the next step (or the line removed).
+#[allow(clippy::too_many_arguments)]
+fn pass(c: &mut Character, character: u32, main: u32, q: &'static Quest, from: usize, to: usize, place: Pf, shown: bool) -> Vec<Bytes> {
+    use crate::quests::{full_update, goal_record, journal_record, quest_record};
+    let now = unix_now();
+    let l = view(q, main, place);
+    let mut records = Vec::new();
+    for i in from..=to.min(q.steps.len() - 1) {
+        let s = &q.steps[i];
+        let new_main = (!in_journal(c, main, q)).then_some(l.region);
+        c.story.insert(format!("done/{}", s.quest), now);
+        info!(character, main, quest = s.quest, step = i + 1, skipped = i != from, "story step done");
+        if shown && i == from {
+            records.push(goal_record(character, s.quest, s.goals.first().map_or(0, |g| g.goal), 1, 0));
+            records.push(quest_record(character, 2, s.quest));
+            records.push(journal_record(character, main, s.quest, new_main, countdown(q, i), 1));
+            records.push(quest_record(character, 4, s.quest));
+        } else {
+            records.push(journal_record(character, main, s.quest, new_main, countdown(q, i), 1));
+        }
+    }
+    match current(c, main, q) {
+        Some(next) if shown => records.push(full_update(character, &l, next, counted(c, q, next), false)),
+        Some(_) => records.extend(show_line(c, character, main, q, place)),
+        None => {
+            info!(character, main, "story line done");
+            if shown {
+                records.push(crate::quests::main_quest_removed(character, main));
+            }
+        }
+    }
+    // progress that waited for the new step (Lua 1699's buff)
+    if let Some(next) = current(c, main, q) {
+        for hash in q.steps[next].goals.iter().filter_map(|g| g.hash.clone()) {
+            if let Some(n) = c.story.remove(&format!("wait/{hash}")) {
+                records.extend(progress(c, character, place, &hash, n as u32));
+            }
+        }
+    }
+    records
+}
+
+/// Goal `hash` resolved: its step done (and the steps before it the player was still on).
+fn resolve(c: &mut Character, character: u32, place: Pf, hash: &str, why: &str) -> Vec<Bytes> {
+    let Some((main, q, step, g)) = find_goal(hash) else {
+        info!(character, hash, why, "story: not a story goal");
+        return Vec::new();
     };
     let now = unix_now();
-    c.story.entry(format!("main/{main}")).or_insert(now);
     if c.story.insert(format!("goal/{hash}"), now).is_none() {
-        info!(character, main, goal, hash, why, "story goal resolved");
+        info!(character, main, goal = g.goal, hash, why, "story goal resolved");
+    }
+    let shown = started(c, main);
+    if !shown {
+        c.story.insert(format!("main/{main}"), now);
+        info!(character, main, "story line started");
+    }
+    let Some(on) = current(c, main, q) else { return Vec::new() };
+    if step < on {
+        return Vec::new();
+    }
+    let all = q.steps[step].goals.iter().all(|g| g.hash.as_deref().is_none_or(|h| resolved(c, h)));
+    match (all, shown) {
+        (true, _) => pass(c, character, main, q, on, step, place, shown),
+        (false, true) => Vec::new(),
+        (false, false) => show_line(c, character, main, q, place),
     }
 }
 
-/// Does `order` for the player (game.rs, with the character).
-pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: Pf) {
+/// `amount` more toward goal `hash` (the player has it).
+fn progress(c: &mut Character, character: u32, place: Pf, hash: &str, amount: u32) -> Vec<Bytes> {
+    let Some((_, q, step, g)) = find_goal(hash) else { return Vec::new() };
+    let key = format!("count/{hash}");
+    let n = c.story.get(&key).copied().unwrap_or(0) + i64::from(amount);
+    c.story.insert(key, n);
+    let need = g.count.max(1);
+    info!(character, hash, n, need, "story goal progress");
+    if n >= i64::from(need) {
+        return resolve(c, character, place, hash, "counted");
+    }
+    vec![crate::quests::goal_record(character, q.steps[step].quest, g.goal, 2, g.step() * amount)]
+}
+
+/// Counts `event` (a defeat) for the story goals the player is on that count it.
+pub fn on_event(c: &mut Character, character: u32, place: Pf, event: &crate::achievements::Event) -> Vec<Bytes> {
+    let hashes: Vec<String> = lines()
+        .filter_map(|(main, q)| current(c, main, q).map(|i| &q.steps[i]))
+        .flat_map(|s| &s.goals)
+        .filter(|g| crate::quests::counts(g, event))
+        .filter_map(|g| g.hash.clone())
+        .collect();
+    hashes.iter().flat_map(|h| progress(c, character, place, h, 1)).collect()
+}
+
+/// The journal at login: the steps done, the area quests done and (tunables
+/// `story.windows_unlocked`) the quests the teleport windows require.
+pub fn journal(c: &Character) -> Vec<crate::teleport::JournalMain> {
+    let mut mains: BTreeMap<u32, Vec<(u32, u32, u32)>> = BTreeMap::new();
+    for (main, q) in lines() {
+        for (i, s) in q.steps.iter().enumerate().filter(|(_, s)| passed(c, s.quest)) {
+            mains.entry(main).or_default().push((s.quest, countdown(q, i), 1));
+        }
+    }
+    for (main, quests, done) in crate::quests::completed(c) {
+        mains.entry(main).or_default().extend(quests.into_iter().map(|q| (q, 0, done.saturating_sub(1))));
+    }
+    let t = &crate::gamedata::get().tunables.story;
+    if t.windows_unlocked {
+        for (main, quests) in &t.window_quests {
+            let Ok(main) = main.parse::<u32>() else { continue };
+            let list = mains.entry(main).or_default();
+            for &q in quests {
+                if !list.iter().any(|e| e.0 == q) {
+                    list.push((q, 0, 0));
+                }
+            }
+        }
+    }
+    mains.into_iter().map(|(main, quests)| crate::teleport::JournalMain { main, quests }).collect()
+}
+
+/// Test command: forgets the character's story (not migrated again: the lore flags stay); the
+/// lines leave the tracker.
+pub fn reset(c: &mut Character, character: u32) -> Vec<Bytes> {
+    let records = lines().filter(|(main, q)| current(c, *main, q).is_some()).map(|(main, _)| crate::quests::main_quest_removed(character, main)).collect();
+    c.story.clear();
+    c.story.insert("chain".into(), unix_now());
+    records
+}
+
+/// Characters from before the story lines were shown: what they did (the goals resolved, the
+/// goals the dialogue texts whose tags they have resolve, the tutorial's boss) becomes their
+/// place in each line: every step up to the last one resolved is done. Once per character.
+pub fn migrate(c: &mut Character) {
+    if c.story.contains_key("chain") {
+        return;
+    }
+    let now = unix_now();
+    let mut goals: Vec<String> = c.story.keys().filter_map(|k| k.strip_prefix("goal/").map(str::to_string)).collect();
+    for (tags, resolves) in crate::knubot::goal_texts() {
+        if !tags.is_empty() && tags.iter().all(|t| c.tags.contains_key(t)) {
+            goals.extend(resolves);
+        }
+    }
+    // the tutorial's last dialogue (after its boss: "Follow the Video Game Guy" resolved live)
+    if c.tags.contains_key(&crate::tutorial::DONE_TAG) {
+        goals.extend(lines().filter_map(|(_, q)| q.steps[0].goals.iter().find(|g| g.counts.as_deref() == Some("kills") && g.enemies.iter().any(|e| e == crate::tutorial::BOSS))?.hash.clone()));
+    }
+    for (main, q) in lines() {
+        let last = q.steps.iter().rposition(|s| s.goals.iter().any(|g| g.hash.as_ref().is_some_and(|h| goals.contains(h))));
+        if let Some(last) = last {
+            c.story.entry(format!("main/{main}")).or_insert(now);
+            for s in &q.steps[..=last] {
+                c.story.entry(format!("done/{}", s.quest)).or_insert(now);
+            }
+            info!(main, steps = last + 1, "story line migrated");
+        }
+    }
+    for g in goals {
+        c.story.entry(format!("goal/{g}")).or_insert(now);
+    }
+    c.story.insert("chain".into(), now);
+}
+
+/// Does `order` for the player (game.rs, with the character): the records for its client (the
+/// quest tracker).
+pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: Pf) -> Vec<Bytes> {
     let character = player.instance;
     match order {
         Order::Cinematic(n) => cinematic(c, player, place, &n, false),
         Order::Replay(n) => cinematic(c, player, place, &n, true),
         Order::Goal { hash, requires } => {
             if requires.iter().all(|t| c.tags.contains_key(t)) {
-                resolve(c, character, &hash, "trigger or dialogue");
+                return resolve(c, character, place, &hash, "trigger or dialogue");
             }
         }
         Order::Solve(hash) => {
             if has_goal(c, &hash) {
-                resolve(c, character, &hash, "solvegoal");
+                return resolve(c, character, place, &hash, "solvegoal");
             }
         }
-        Order::Progress { hash, amount } => {
-            if !has_goal(c, &hash) {
-                return info!(character, hash, "story progress: the player doesn't have the goal");
+        Order::Progress { hash, amount, wait } => {
+            if has_goal(c, &hash) {
+                return progress(c, character, place, &hash, amount);
             }
-            let key = format!("count/{hash}");
-            let n = c.story.get(&key).copied().unwrap_or(0) + i64::from(amount);
-            c.story.insert(key, n);
-            let need = goal_of(&hash).map_or(1, |g| g.2);
-            info!(character, hash, n, need, "story goal progress");
-            if n >= i64::from(need) {
-                resolve(c, character, &hash, "counted");
+            if wait && find_goal(&hash).is_some_and(|(main, q, step, _)| current(c, main, q).is_none_or(|on| on < step)) {
+                info!(character, hash, amount, "story progress waits for its step");
+                *c.story.entry(format!("wait/{hash}")).or_insert(0) += i64::from(amount);
+            } else {
+                info!(character, hash, "story progress: the player doesn't have the goal");
             }
         }
-        Order::Spawn(hash) => match main_of_quest(&hash) {
-            Some(main) => {
-                if c.story.insert(format!("main/{main}"), unix_now()).is_none() {
-                    info!(character, main, hash, "story line started");
-                }
+        Order::Spawn(hash) => {
+            let Some((main, q, step)) = find_step(&hash) else {
+                info!(character, hash, "spawn: not a story quest (an NPC template?)");
+                return Vec::new();
+            };
+            let shown = started(c, main);
+            if !shown {
+                c.story.insert(format!("main/{main}"), unix_now());
+                info!(character, main, hash, "story line started");
             }
-            None => info!(character, hash, "spawn: not a story quest (an NPC template?)"),
-        },
+            return match current(c, main, q) {
+                Some(on) if on < step => pass(c, character, main, q, on, step - 1, place, shown),
+                Some(_) if !shown => show_line(c, character, main, q, place),
+                _ => Vec::new(),
+            };
+        }
         Order::Dialogue(id) => {
             let Some(first) = crate::gamedata::get().dialogues.get(&id).and_then(|d| d.texts.first().copied()) else {
-                return info!(character, dialogue = id, "story: no such dialogue");
+                info!(character, dialogue = id, "story: no such dialogue");
+                return Vec::new();
             };
-            let Some(d) = crate::knubot::starting_with(first) else { return };
+            let Some(d) = crate::knubot::starting_with(first) else { return Vec::new() };
             let gives = crate::knubot::tags_given(&d);
             if !gives.is_empty() && gives.iter().all(|t| c.tags.contains_key(t)) {
-                return;
+                return Vec::new();
             }
             let owner = crate::npc::find(&d.npc, place).unwrap_or(player);
             crate::knubot::start(player, name, owner, d);
         }
         Order::Beat { text, requires } => {
             let gives = crate::knubot::text_tags(text);
-            if (!gives.is_empty() && gives.iter().all(|t| c.tags.contains_key(t))) || !requires.iter().all(|t| c.tags.contains_key(t)) {
-                return;
+            if (gives.is_empty() || !gives.iter().all(|t| c.tags.contains_key(t))) && requires.iter().all(|t| c.tags.contains_key(t)) {
+                crate::knubot::beat(player, text);
             }
-            crate::knubot::beat(player, text);
         }
         Order::TagsIfGoal { tags, goals } => {
             if goals.iter().any(|g| has_goal(c, g)) {
@@ -222,19 +466,52 @@ pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: 
             }
         }
         Order::Pickup(template) => {
-            let quests = &crate::gamedata::get().quests;
-            let goals: Vec<String> = quests
-                .values()
-                .filter(|q| q.kind == lmoxide_content::QuestKind::Story)
-                .flat_map(|q| q.steps.iter().flat_map(|s| &s.goals))
+            let goals: Vec<String> = lines()
+                .filter_map(|(main, q)| current(c, main, q).map(|i| &q.steps[i]))
+                .flat_map(|s| &s.goals)
                 .filter(|g| g.counts.as_deref() == Some("pickups") && g.pickups.contains(&template))
                 .filter_map(|g| g.hash.clone())
                 .collect();
-            for hash in goals {
-                handle(Order::Progress { hash, amount: 1 }, c, player, name, place);
+            return goals.iter().flat_map(|h| progress(c, character, place, h, 1)).collect();
+        }
+        Order::SetStep { main, step } => {
+            let Some(q) = line(main) else { return Vec::new() };
+            let mut records = Vec::new();
+            if current(c, main, q).is_some() {
+                records.push(crate::quests::main_quest_removed(character, main));
             }
+            let now = unix_now();
+            for (i, s) in q.steps.iter().enumerate() {
+                for h in s.goals.iter().filter_map(|g| g.hash.as_ref()) {
+                    c.story.remove(&format!("count/{h}"));
+                    c.story.remove(&format!("wait/{h}"));
+                    if i + 1 >= step {
+                        c.story.remove(&format!("goal/{h}"));
+                    }
+                }
+                if i + 1 < step {
+                    c.story.insert(format!("done/{}", s.quest), now);
+                } else {
+                    c.story.remove(&format!("done/{}", s.quest));
+                }
+            }
+            if step == 0 {
+                c.story.remove(&format!("main/{main}"));
+            } else {
+                c.story.insert(format!("main/{main}"), now);
+            }
+            info!(character, main, step, "story line set (test command)");
+            records.extend(show_line(c, character, main, q, place));
+            return records;
+        }
+        Order::Advance(main) => {
+            let on = lines().filter(|(m, _)| main.is_none_or(|x| x == *m)).find_map(|(m, q)| current(c, m, q).map(|i| &q.steps[i]));
+            let Some(step) = on else { return Vec::new() };
+            let hashes: Vec<String> = step.goals.iter().filter_map(|g| g.hash.clone()).collect();
+            return hashes.iter().flat_map(|h| resolve(c, character, place, h, "test command")).collect();
         }
     }
+    Vec::new()
 }
 
 /// Plays cinematic `n` for the player if it may (`force`: anyway).
@@ -308,7 +585,20 @@ pub fn summary(c: &Character) -> Vec<String> {
         .collect();
     let mut lines = vec![format!("cinematics seen ({}/{}): {}", seen.len(), cinematics.len(), seen.join(", "))];
     let keys = |prefix: &str| c.story.iter().filter_map(|(k, v)| k.strip_prefix(prefix).map(|k| (k.to_string(), *v))).collect::<Vec<_>>();
-    lines.push(format!("story lines started: {}", keys("main/").iter().map(|(k, _)| k.as_str()).collect::<Vec<_>>().join(", ")));
+    for (main, q) in self::lines() {
+        if !started(c, main) {
+            continue;
+        }
+        let at = match current(c, main, q) {
+            Some(i) => {
+                let s = &q.steps[i];
+                let goal = s.goals.first().map(|g| format!("\"{}\" ({})", g.text.as_deref().unwrap_or("?"), g.hash.as_deref().unwrap_or("?"))).unwrap_or_default();
+                format!("step {}/{}: {goal}", i + 1, q.steps.len())
+            }
+            None => "done".to_string(),
+        };
+        lines.push(format!("{} ({main}): {at}", q.name));
+    }
     lines.push(format!("goals resolved: {}", keys("goal/").iter().map(|(k, _)| k.as_str()).collect::<Vec<_>>().join(", ")));
     let counts = keys("count/");
     if !counts.is_empty() {
@@ -405,30 +695,132 @@ mod tests {
         assert_eq!(&body[25..], &[0u8; 16][..]);
     }
 
+    fn names(records: &[Bytes]) -> Vec<String> {
+        records.iter().map(|r| lmoxide_net::iir::name(u32::from_be_bytes(r[..4].try_into().unwrap())).unwrap_or("?").to_string()).collect()
+    }
+
+    fn step_of(c: &Character, main: u32) -> Option<usize> {
+        current(c, main, line(main).unwrap())
+    }
+
     #[test]
     fn story_goals() {
         let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 6200);
         let player = Id32::new(50000, 7);
+        let at = Pf::main(6200);
         // GBWD before the Dino story started: not counted
-        handle(Order::Progress { hash: "GBWD".into(), amount: 1 }, &mut c, player, "t", Pf::main(6200));
+        handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: false }, &mut c, player, "t", at);
         assert!(!c.story.contains_key("count/GBWD"));
-        // "Take the plane to Dinosaur Rise" resolved: the line has started
-        handle(Order::Goal { hash: "6BRI".into(), requires: vec![] }, &mut c, player, "t", Pf::main(6200));
+        // "Take the plane to Dinosaur Rise" resolved: the line starts past it (its first step,
+        // the Video Game Guy's, has nothing that resolves it here)
+        let r = handle(Order::Goal { hash: "6BRI".into(), requires: vec![] }, &mut c, player, "t", at);
         assert!(c.story.contains_key("main/122") && resolved(&c, "6BRI"));
-        // the Pilot's task solved by the plane parts' reward, then the four pieces
-        handle(Order::Solve("YPFX".into()), &mut c, player, "t", Pf::main(6200));
-        assert!(resolved(&c, "YPFX"));
-        for _ in 0..3 {
-            handle(Order::Progress { hash: "GBWD".into(), amount: 1 }, &mut c, player, "t", Pf::main(6200));
+        assert_eq!(names(&r), ["JournalUpdateIIR", "JournalUpdateIIR", "MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
+        assert_eq!(step_of(&c, 122), Some(2));
+        // the plane parts' reward: the Pilot's task solved, the piece waits for its step (1699's buff)
+        handle(Order::Solve("YPFX".into()), &mut c, player, "t", at);
+        handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: true }, &mut c, player, "t", at);
+        assert!(resolved(&c, "YPFX") && c.story.get("wait/GBWD") == Some(&1));
+        // another piece before its step: lost (the Lua checks hasgoal)
+        handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: false }, &mut c, player, "t", at);
+        assert_eq!(c.story.get("wait/GBWD"), Some(&1));
+        // Dino Tracker found: the pieces' step, the waiting one counted
+        let r = handle(Order::Goal { hash: "I8D5".into(), requires: vec![] }, &mut c, player, "t", at);
+        assert_eq!(names(&r), ["QuestGoalIIR", "QuestIIR_c", "JournalUpdateIIR", "QuestIIR_c", "QuestFullUpdateIIR", "QuestGoalIIR"]);
+        assert_eq!(c.story.get("count/GBWD"), Some(&1));
+        for _ in 0..2 {
+            handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: false }, &mut c, player, "t", at);
         }
         assert!(!resolved(&c, "GBWD"));
-        handle(Order::Progress { hash: "GBWD".into(), amount: 1 }, &mut c, player, "t", Pf::main(6200));
+        let r = handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: false }, &mut c, player, "t", at);
         assert!(resolved(&c, "GBWD"));
+        assert_eq!(names(&r), ["QuestGoalIIR", "QuestIIR_c", "JournalUpdateIIR", "QuestIIR_c", "QuestFullUpdateIIR"]);
+        // an earlier step's goal changes nothing
+        assert!(handle(Order::Goal { hash: "6BRI".into(), requires: vec![] }, &mut c, player, "t", at).is_empty());
         // a goal that needs a tag first
         handle(Order::Goal { hash: "PM25".into(), requires: vec![316] }, &mut c, player, "t", Pf::main(1200));
         assert!(!resolved(&c, "PM25"));
-        handle(Order::Spawn("WPZW".into()), &mut c, player, "t", Pf::main(4600));
-        assert!(c.story.contains_key("main/45"));
+        // the tutorial's spawn starts the Pirate World line at its first step
+        let r = handle(Order::Spawn("S1M7".into()), &mut c, player, "t", Pf::main(1300));
+        assert_eq!(names(&r), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
+        assert_eq!(step_of(&c, 45), Some(0));
+    }
+
+    #[test]
+    fn pirate_story_as_live() {
+        let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 1300);
+        let player = Id32::new(50000, 0x010a_b3af);
+        handle(Order::Spawn("S1M7".into()), &mut c, player, "t", Pf::main(4200));
+        // the main quest as live listed it: the quests and their countdown 21..0, type 5
+        let q = line(45).unwrap();
+        let l = view(q, 45, Pf::main(4200));
+        let r = crate::quests::main_quest_added(player.instance, &l, 0);
+        let body = &r[13..];
+        assert_eq!(&body[..12], &[0, 0, 0, 1, 0, 0, 0, 45, 0, 0, 1, 23]);
+        let order: Vec<(u32, u8)> = q.steps.iter().enumerate().map(|(i, s)| (s.quest, (21 - i) as u8)).collect();
+        assert_eq!(&order[..4], &[(279, 21), (78, 20), (186, 19), (79, 18)]);
+        assert_eq!(&body[body.len() - 12..], &[0, 0, 0, 1, 0, 0, 0, 5, 0, 0, 0, 1]);
+        // the tutorial's boss: "Follow the Video Game Guy" done, "Travel to the Pirate World" next
+        let boss = crate::achievements::Event::Defeated { id: Id32::default(), name: "Captain Dreadleg".into(), smashable: false, boss: true, champion: false, level: 1, playfield: 1300 };
+        let r = on_event(&mut c, player.instance, Pf::main(1300), &boss);
+        assert_eq!(names(&r), ["QuestGoalIIR", "QuestIIR_c", "JournalUpdateIIR", "QuestIIR_c", "QuestFullUpdateIIR"]);
+        assert_eq!(&r[0][13..], &[0, 0, 1, 0x17, 0, 0, 1, 0x4a, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0][..]);
+        // the first step's journal entry as live sent it (LMO_Captures.cap: quest 279 at
+        // distance 21, repeat 1; without the time, not kept): added to main 45, which the
+        // journal at login has (the windows' quests) ...
+        let hex = |r: &Bytes| r[13..].iter().map(|b| format!("{b:02x}")).collect::<String>();
+        assert!(hex(&r[2]).starts_with("00000040223e082d123a0897021000201528013"), "{}", hex(&r[2]));
+        // ... else main 45 with its region names, as live
+        let first = crate::quests::journal_record(player.instance, 45, 279, Some([4200, 4000]), 21, 1);
+        assert!(hex(&first).starts_with("0000004e1a4c082d10a0960318e82020a0960328a01f323a0897021000201528013"), "{}", hex(&first));
+        // the next step's QuestFullUpdateIIR as live sent it in Pirate World (quest 78, flags 2,
+        // first 279, story, region (52000, 4600) (52000, 4000), the line's reward 462486 in the
+        // second reward list, goal 116's marker with its district 1396) up to the goal's texts
+        assert_eq!(names(&r[4..]), ["QuestFullUpdateIIR"]);
+        const LIVE: &str = "00000001010ab3af000000010000004e00000001000000000000000100000002000000010000002d00000117000000cb20000011f80000cb2000000fa00000000100000000000000000000000000000000000000000000000000000000000000000000000000000001010ab3af0000004e000f44ac00070e964f1ea946840cb531cacbfb13fa6024e1000f44ac00000000b290805c29e627cab290805c29e627ca000000010000000100000000000000010000000100000009010ab3af0000004e000000740000000100000000000000010000000000000000000000000000000000000000000000000000000000000574000011f8427e00004178000040a00000428dcccd000000";
+        let full = crate::quests::full_update(player.instance, &view(q, 45, Pf::main(4600)), 1, 0, false);
+        assert_eq!(hex(&full)[..LIVE.len()], *LIVE);
+        assert!(hex(&full).ends_with("0000000000"));
+        // the cannon, then Oops: two steps in one dialogue text (211)
+        handle(Order::Goal { hash: "OOPN".into(), requires: vec![] }, &mut c, player, "t", Pf::main(4600));
+        handle(Order::Goal { hash: "X7OF".into(), requires: vec![] }, &mut c, player, "t", Pf::main(4600));
+        handle(Order::Goal { hash: "0JSA".into(), requires: vec![] }, &mut c, player, "t", Pf::main(4600));
+        assert_eq!(q.steps[step_of(&c, 45).unwrap()].quest, 185);
+        // a much later goal jumps there; every step between counts as done
+        let r = handle(Order::Goal { hash: "KSKL".into(), requires: vec![] }, &mut c, player, "t", Pf::main(4200));
+        assert_eq!(q.steps[step_of(&c, 45).unwrap()].quest, 179);
+        assert_eq!(names(&r).iter().filter(|n| *n == "JournalUpdateIIR").count(), 10);
+        // the last: removed from the tracker
+        handle(Order::SetStep { main: 45, step: 22 }, &mut c, player, "t", Pf::main(1200));
+        let r = handle(Order::Advance(Some(45)), &mut c, player, "t", Pf::main(1200));
+        assert_eq!(names(&r).last().map(String::as_str), Some("MainQuestUpdateIIR_c"));
+        assert_eq!(step_of(&c, 45), None);
+        assert!(show(&c, player.instance, Pf::main(1200)).is_empty());
+    }
+
+    #[test]
+    fn the_journal_and_migration() {
+        let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 4200);
+        // a character from before: the tutorial done, thrown into the jail (text 126's tag 308)
+        c.tags.insert(crate::tutorial::DONE_TAG, 0);
+        c.tags.insert(308, 0);
+        migrate(&mut c);
+        let q = line(45).unwrap();
+        assert_eq!(q.steps[step_of(&c, 45).unwrap()].quest, 177);
+        // once only
+        c.tags.insert(309, 0);
+        migrate(&mut c);
+        assert_eq!(q.steps[step_of(&c, 45).unwrap()].quest, 177);
+        // the journal: the steps done (with their distance), the windows' quests
+        let j = journal(&c);
+        let pirate = j.iter().find(|m| m.main == 45).unwrap();
+        assert!(pirate.quests.contains(&(279, 21, 1)) && pirate.quests.contains(&(185, 17, 1)));
+        assert!(pirate.quests.iter().any(|e| e.0 == 82) && !pirate.quests.iter().any(|e| e.0 == 177));
+        // every window's quest (RDB 1000644) and the Lost Creations entry's
+        let wanted: Vec<u32> = vec![75, 67, 148, 211, 173, 113, 82, 156, 25, 208, 212, 124, 116, 194, 196, 197, 81, 181, 281, 162, 149, 155, 213];
+        for q in wanted {
+            assert!(j.iter().any(|m| m.quests.iter().any(|e| e.0 == q)), "{q}");
+        }
     }
 
     #[test]

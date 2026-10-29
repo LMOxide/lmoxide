@@ -325,8 +325,6 @@ tun = load(os.path.join(content, "tunables.json"))
 count("tunables")
 if tun["npc_life"]["base"] != d("npc_life.json")["base"] or tun["minifigure_model"] != d("minifigure_stats.json")["model"]:
     problems.append("tunables differ")
-if tun["story_quests"] != {k: v for k, v in d("story_quests.json").items() if not k.startswith("_")}:
-    problems.append("story quests differ")
 for a in d("achievements.json")["achievements"]:
     r = achs.get(a["id"])
     if r and [records[c]["lore"] for c in r.get("children", [])] != a.get("children", []):

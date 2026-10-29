@@ -684,7 +684,7 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   intro 38.5 s later.
 - **Talking heads**: TDB 50000 pushers are keyed by lore tag; the client shows one when the
   server adds its tag (AddTag; client Lua 1597 "shows the tutorial talking [head]").
-- **Story quests** (not shown in the tracker; story.rs keeps the goals): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
+- **Story quests** (story.rs, with quests.rs' records): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
   event 2 completed / 4 removed, quest, 0), JournalUpdateIIR / QuestRewardUpdateIIR (proto),
   MainQuestUpdateIIR_c and QuestFullUpdateIIR (decoded by `tools/re/quest_record.py`, from the
   client's writers). Definitions in RDB 1000104 (QuestGiverList: main quests, quests, goals
@@ -694,6 +694,19 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
     (descending: 279 = 21, 78 = 20, 186 = 19, 79 = 18, 185 = 17, ...). On a quest's last goal:
     QuestGoalIIR, QuestIIR 2, JournalUpdateIIR, QuestIIR 4, then the next quest's
     QuestFullUpdateIIR.
+  - A story QuestFullUpdateIIR differs from an area quest's: flags 2 (not 0x40000002), u8 0,
+    the two ID32 = (52000, playfield the player is in), (52000, its super-region) (TDB region
+    names), the step's own rewards in the first reward list (462445 on 177, 80, 178) and the
+    line's reward (462486) in the second, trailing u8 0 (no popup). A goal's marker can name a
+    district (u32 TDB 51200 id first, then the name as `<localized category="51200">`).
+  - JournalUpdateIIR of a story step: the quest with distance = its countdown and repeat count 1
+    (area quests: 0, 0); the first one of a line comes as added_main_quest with the region
+    names (52000 playfield / super-region), later ones as added_quest.
+  - The journal is only read by the teleport windows (ASTeleportInterface::AddConditions:
+    `required_quest_task_hash` -> HasEverCompletedQuest), the Lost Creations entry window
+    (ASEndlessPlayfieldsTeleportInterface::AddConditions), the client's quest-giver checks
+    (IsMainQuestAvailable) and the unused journal GUI (QuestJournalHub_c; 1.5 ships no SWF for
+    it). The World Map doesn't check it; no client Lua calls `hasdonequest`.
   - Goal types (`quests::*QuestGoal::GetGoalType`): 2 escort, 5 create item, 7 target item,
     8 find character, 9 locate district, 10 put item on item, 12 destroy character, 19 put item
     on character, 20 give item to character, 21 talk to character, 22 external trigger, 23 get

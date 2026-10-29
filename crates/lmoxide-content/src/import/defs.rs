@@ -1433,7 +1433,6 @@ pub fn loot_and_tunables(
     let progression = data("progression.json")?;
     let npc_life = data("npc_life.json")?;
     let rarity = data("minifigure_rarity.json")?;
-    let quests = data("story_quests.json")?;
     let map_u32 = |v: &Value| -> BTreeMap<String, u32> {
         entries(v)
             .filter_map(|(k, v)| Some((k.clone(), u32_of(v)?)))
@@ -1496,18 +1495,6 @@ pub fn loot_and_tunables(
             part_locations: map_u32(&rarity["part_locations"]),
         },
         minifigure_model: stats["model"].clone(),
-        story_quests: entries(&quests)
-            .map(|(k, v)| {
-                (
-                    k.clone(),
-                    v.as_array()
-                        .into_iter()
-                        .flatten()
-                        .filter_map(u32_of)
-                        .collect(),
-                )
-            })
-            .collect(),
         // (written by hand, not imported)
         lost_creations: std::mem::take(&mut tree.tunables.lost_creations),
         health: std::mem::take(&mut tree.tunables.health),
