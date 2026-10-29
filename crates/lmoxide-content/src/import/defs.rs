@@ -1513,6 +1513,7 @@ pub fn loot_and_tunables(
         health: std::mem::take(&mut tree.tunables.health),
         smashed: std::mem::take(&mut tree.tunables.smashed),
         elements: std::mem::take(&mut tree.tunables.elements),
+        champions: std::mem::take(&mut tree.tunables.champions),
         more: std::mem::take(&mut tree.tunables.more),
     };
     Ok(())

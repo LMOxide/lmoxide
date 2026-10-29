@@ -51,6 +51,9 @@ pub struct Tunables {
     /// Zone elements: Wrong Element and Elemental Affinity.
     #[serde(default)]
     pub elements: Elements,
+    /// Champions' element auras.
+    #[serde(default)]
+    pub champions: Champions,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
@@ -166,6 +169,23 @@ pub struct Smashed {
     pub immunity: Duration,
     #[schemars(extend("x-lmoxide-client" = "nano"))]
     pub immunity_nano: u32,
+}
+
+/// Champions' element auras (script 3722 "champion aura random selector"): entering combat, a
+/// champion casts its zone's element's aura (a random one where the zone has none).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Champions {
+    /// Only NPCs with at least this PowerLevel (stat 499) ...
+    pub aura_min_power_level: u32,
+    /// ... taken as level x this.
+    pub power_per_level: u32,
+    /// The NPC is out of combat (the aura's pulses stop) this long after its last attack
+    /// (tweak NPCBreakOOCTime).
+    pub out_of_combat: Duration,
+    /// Element (`light` ... `nature`) -> the aura (`skill/...`).
+    #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
+    pub auras: BTreeMap<String, Ref>,
 }
 
 /// Zone elements (the playfield controllers 464871 / 517564 / 517102 and DoElementalAffinity).

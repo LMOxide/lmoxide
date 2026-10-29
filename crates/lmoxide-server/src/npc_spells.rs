@@ -23,8 +23,11 @@
 //! - channelled spells: OnChanneling every ChannelingInterval for ChannelingTicks ticks, then
 //!   OnChannelingEnd and the command's abort (BCC action 7, as the recorded Dreadleg spin ended).
 //!
-//! Not run: SpawnMonster (adds come from encounter.rs), server scripts, damage redirects, buff
-//! counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
+//! - CastNano with an Interval: a pulse every Interval while the spell lasts and the caster fights
+//!   (the champions' element auras, npc.rs `champion_aura`).
+//!
+//! Not run: SpawnMonster (adds come from encounter.rs; the Laser Drones and Firewall auras' anchors),
+//! server scripts, damage redirects, buff counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
 //! in docs/TUNABLES.md.
 
 use crate::instance::Pf;
@@ -343,7 +346,12 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
         }
         "CastNano" => {
             if let Some(nano) = a.u("Value") {
-                cast_nano(run, nano, who, depth + 1, true);
+                match a.u("Interval").filter(|i| *i > 0) {
+                    // a pulse every Interval cs while the spell lasts (its TimeExist) and the
+                    // caster fights: the champions' auras
+                    Some(interval) => pulse(run, id, nano, who, cs(interval as f32), depth),
+                    None => cast_nano(run, nano, who, depth + 1, true),
+                }
             }
         }
         "RemoveBuff" => {
@@ -462,6 +470,28 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
         _ => {}
     }
     run_list(run, nano, ON_USE, target, depth);
+}
+
+/// Casts `nano` on `who` every `every` while spell `id` lasts (its TimeExist) and the caster
+/// fights (`npc::fighting`); `who` is followed if it is a character.
+fn pulse(run: &Arc<Run>, id: u32, nano: u32, who: Target, every: Duration, depth: u32) {
+    let lasts = spell(id).and_then(|s| s.stats.time_exist).map_or(DEFAULT_BUFF, cs);
+    let run = run.clone();
+    let follow = who.id;
+    tokio::spawn(async move {
+        let until = std::time::Instant::now() + lasts;
+        let mut at = who.pos;
+        loop {
+            tokio::time::sleep(every).await;
+            if std::time::Instant::now() >= until || !alive(&run) || !crate::npc::fighting(run.caster) {
+                return;
+            }
+            if let Some(p) = follow.and_then(|f| if f == run.caster { crate::npc::position(f) } else { world::position_of(f) }) {
+                at = p;
+            }
+            cast_nano(&run, nano, Target { id: follow, pos: at }, depth + 1, true);
+        }
+    });
 }
 
 /// A ground zone at `at`: after `delay`, re-applies `nano` there every `pulse` for `lifetime`.

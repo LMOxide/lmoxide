@@ -351,6 +351,8 @@ struct Npc {
     busy_until: Option<std::time::Instant>,
     /// Stunned by a player's ability until then.
     stunned_until: Option<std::time::Instant>,
+    /// A champion's element aura is on until then.
+    aura_until: Option<std::time::Instant>,
     /// The player who last hit it, and when (enemies keep fighting them).
     threat: Option<(Id32, std::time::Instant)>,
     /// Walking its patrol route: the route point it is heading for, and when the route was
@@ -386,6 +388,7 @@ impl Npc {
             cooldowns: HashMap::new(),
             busy_until: None,
             stunned_until: None,
+            aura_until: None,
             threat: None,
             snares: Vec::new(),
             speed_factor: 1.0,
@@ -1716,7 +1719,7 @@ fn spells_for(def: &SpawnDef) -> Vec<u32> {
 fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     let now = std::time::Instant::now();
     let d = distance(here, at);
-    let (spell, playfield, power, against_npc) = {
+    let (spell, playfield, power, against_npc, aura) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return false };
         if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
@@ -1735,8 +1738,16 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         if !busy.is_zero() {
             npc.busy_until = Some(now + busy);
         }
-        (spell, npc.playfield, enemy_damage(npc.def.level, npc.def.health), npcs.contains_key(&target))
+        let against_npc = npcs.contains_key(&target);
+        let npc = npcs.get_mut(&id).expect("looked up above");
+        // a champion entering combat (or whose aura ran out) casts its element aura
+        let aura = if against_npc { None } else { champion_aura(npc, now) };
+        (spell, npc.playfield, enemy_damage(npc.def.level, npc.def.health), against_npc, aura)
     };
+    if let Some(aura) = aura {
+        info!(npc = ?id, aura, "champion aura");
+        crate::npc_spells::cast(id, playfield, power, aura, target, at);
+    }
     if against_npc {
         strike(id, target, spell, playfield);
     } else {
@@ -1749,6 +1760,43 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         }
     }
     true
+}
+
+/// The aura champion `npc` casts now (`aura_until` set), if it is due: a champion (by health) of
+/// PowerLevel (level x `power_per_level`) at least `aura_min_power_level` whose aura isn't on; the
+/// zone's element's (a random one in a zone without), tunables `champions`.
+fn champion_aura(npc: &mut Npc, now: std::time::Instant) -> Option<u32> {
+    let c = &crate::gamedata::get().tunables.champions;
+    let rank = rank_of(&npc.def);
+    if npc.def.kind != Kind::Enemy || !(CHAMPION_RANK..BOSS_RANK).contains(&rank) || npc.def.level * c.power_per_level < c.aura_min_power_level {
+        return None;
+    }
+    if npc.aura_until.is_some_and(|t| t > now) {
+        return None;
+    }
+    let element = match crate::worlds::element(npc.playfield) {
+        0 => 1 + (crate::npc_spells::jitter() * 5.0) as u32 % 5,
+        e => e,
+    };
+    let name = lmoxide_content::model::Element::from_id(element).map(|e| format!("{e:?}").to_lowercase())?;
+    let skill = crate::gamedata::get().skills.get(c.auras.get(&name)?)?;
+    let spell = skill.client.as_ref()?.spell;
+    let lasts = skill.client.as_ref()?.stats.get("TimeExist").and_then(|v| v.as_u64()).map_or(Duration::from_secs(59), |cs| Duration::from_millis(cs * 10));
+    npc.aura_until = Some(now + lasts);
+    Some(spell)
+}
+
+/// Whether NPC `id` is fighting: it attacked within `champions.out_of_combat` (NPCBreakOOCTime).
+/// Its aura's pulses stop when it isn't; leaving combat also ends the aura.
+pub fn fighting(id: Id32) -> bool {
+    let ooc = crate::gamedata::get().tunables.champions.out_of_combat.to_std();
+    let mut npcs = NPCS.lock().unwrap();
+    let Some(npc) = npcs.get_mut(&id) else { return false };
+    let on = npc.health > 0 && npc.last_attack.is_some_and(|t| t.elapsed() < ooc);
+    if !on {
+        npc.aura_until = None;
+    }
+    on
 }
 
 /// One NPC-against-NPC hit (a friendly fighter and an enemy): `target` loses about FIGHT_SHARE
@@ -2320,6 +2368,26 @@ mod tests {
         assert!(NPCS.lock().unwrap()[&id].walk.is_none());
         assert!(is_busy(id));
         NPCS.lock().unwrap().remove(&id);
+    }
+
+    #[test]
+    fn champions_cast_their_zone_aura_once_per_aura() {
+        let now = std::time::Instant::now();
+        let level = 5;
+        let base = regular_life(level) as u32;
+        let def = |health: u32| SpawnDef { level, health, ..test_spawn_def() };
+        // a world with an element
+        let (pf, element) = crate::gamedata::get().worlds.values().find_map(|w| Some((w.playfield, w.element?))).unwrap();
+        let mut champion = Npc::new(def(base * 5), Pf::main(pf), None, None);
+        let aura = champion_aura(&mut champion, now).expect("a champion's aura");
+        let skill = &crate::gamedata::get().tunables.champions.auras[&format!("{element:?}").to_lowercase()];
+        assert_eq!(Some(aura), crate::gamedata::get().skills[skill].client.as_ref().map(|c| c.spell));
+        assert_eq!(champion_aura(&mut champion, now), None, "already on");
+        // not a regular enemy, nor a boss, nor a champion below PowerLevel 300
+        assert_eq!(champion_aura(&mut Npc::new(def(base), Pf::main(pf), None, None), now), None);
+        assert_eq!(champion_aura(&mut Npc::new(def(base * 10), Pf::main(pf), None, None), now), None);
+        let low = SpawnDef { level: 2, health: regular_life(2) as u32 * 5, ..test_spawn_def() };
+        assert_eq!(champion_aura(&mut Npc::new(low, Pf::main(pf), None, None), now), None);
     }
 
     #[test]
