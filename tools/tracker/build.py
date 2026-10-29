@@ -91,10 +91,14 @@ def section(doc, title, note, groups, render):
     head = len(doc.lines)
     doc.lines.append('')
     done = total = 0
+    groups = {name: rows for name, rows in groups.items() if rows}
     for name, rows in groups.items():
-        if not rows:
-            continue
-        d, t = doc.details(name, lambda rows=rows: doc.boxes(i for r in rows for i in render(r)))
+        items = (i for r in rows for i in render(r))
+        if len(groups) == 1:  # a single group needs no <details>
+            d, t = doc.boxes(items)
+            doc.lines.append('')
+        else:
+            d, t = doc.details(name, lambda items=items: doc.boxes(items))
         done += d
         total += t
     doc.lines[head] = f'**{done}/{total}** checked'

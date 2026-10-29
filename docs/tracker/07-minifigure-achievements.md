@@ -6,8 +6,6 @@ Per-minifigure achievements without upgrades, Lost Creations levels and the any/
 
 **0/87** checked
 
-<details><summary>Shared (2+ minifigures) (0/87)</summary>
-
 - [ ] **{minifig}, the Master Smasher** — Smash 5000 smashies as {minifig}. · _counter: 5000 (stat 3000112)_ — Banshee, Battle Goddess, Battle Mech, Bumblebee Girl, Clumsy Guy, Constable, Egyptian Warrior, Flying Warrior, Forest Maiden, Frightening Knight, Gargoyle, Goblin, Grandma, Heroic Knight, Hun Warrior, Island Warrior, Janitor, Jester, Librarian, Lifeguard Guy, Mermaid, Monster Rocker, Motorcycle Mechanic, Mountain Climber, Paleontologist, Piggy Guy, Policeman, Rock Star, Roman Emperor, Scarecrow, Sea Captain, Shark Suit Guy, Sheriff, Skeleton Guy, Snake Charmer, Square Foot, Trendsetter, Warrior Woman, Wrestling Champion, Yeti, Zombie Pirate <!-- mfach/x-the-master-smasher -->
 - [ ] **{minifig}, the Smasher** — Smash 500 smashies as {minifig}. · _counter: 500 (stat 3000112)_ — Banshee, Battle Goddess, Battle Mech, Bumblebee Girl, Clumsy Guy, Constable, Egyptian Warrior, Flying Warrior, Forest Maiden, Frightening Knight, Gargoyle, Goblin, Grandma, Heroic Knight, Hun Warrior, Island Warrior, Janitor, Jester, Librarian, Lifeguard Guy, Mermaid, Monster Rocker, Motorcycle Mechanic, Mountain Climber, Paleontologist, Piggy Guy, Policeman, Rock Star, Roman Emperor, Scarecrow, Sea Captain, Shark Suit Guy, Sheriff, Skeleton Guy, Snake Charmer, Square Foot, Trendsetter, Warrior Woman, Wrestling Champion, Yeti, Zombie Pirate <!-- mfach/x-the-smasher -->
 - [ ] **{minifig}, the Master Striker** — Smash 10000 monsters as {minifig}. · _counter: 10000 (stat 3000112)_ — Alien Avenger, Alien Trooper, Animal Control, Ballerina, Barbarian, Baseball Fielder, Classic King, Cyclops, Diner Waitress, Dino Tracker, Evil Mech, Fencer, Fly Monster, Galaxy Trooper, Judge, Kendo Fighter, Lady Cyclops, Lady Robot, Laser Mech, Medusa, Monster Scientist, Paintball Player, Pizza Delivery Man, Queen, Revolutionary Soldier, Roller Derby Girl, Roman Commander, Samurai, Saxophone Player, Spider Lady, Spooky Girl, Swashbuckler, Tiger Woman, Tomahawk Warrior, Video Game Guy, Waiter, Wizard, Wolf Guy <!-- mfach/x-the-master-striker -->
@@ -95,5 +93,3 @@ Per-minifigure achievements without upgrades, Lost Creations levels and the any/
 - [ ] **{minifig}: Natives' Hollow** — Conquer the Natives' Hollow as {minifig}. · _target: Natives' Hollow_ — Disco Diva, Grandma, Librarian, Pizza Delivery Man <!-- mfach/x-natives-hollow -->
 - [ ] **{minifig}: Poison-tongued Raptor** — Defeat Poison-tongued Raptor as {minifig}. · _target: Poison-tongued Raptor_ — Galaxy Trooper, Mountain Climber, Paintball Player, Video Game Guy <!-- mfach/x-poison-tongued-raptor -->
 - [ ] **{minifig}: Skram Gatecrasher** — Defeat Skram Gatecrasher as {minifig}. · _target: Skram Gatecrasher_ — Galaxy Trooper, Mountain Climber, Paintball Player, Video Game Guy <!-- mfach/x-skram-gatecrasher -->
-
-</details>

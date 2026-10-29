@@ -6,8 +6,6 @@ Tests and texts with no spoken line (camera/script only).
 
 **4/104** checked
 
-<details><summary>Other (4/104)</summary>
-
 - [ ] #16 “Test NPC: What do you want?” <!-- dialogue/16 -->
 - [ ] #18 “Test NPC: You can't have me!” <!-- dialogue/18 -->
 - [ ] #19 “Test NPC: Ok, fine!” <!-- dialogue/19 -->
@@ -112,5 +110,3 @@ Tests and texts with no spoken line (camera/script only).
 - [ ] #802 “(no spoken line)” <!-- dialogue/802 -->
 - [ ] #810 “(no spoken line)” <!-- dialogue/810 -->
 - [ ] #920 “(no spoken line)” <!-- dialogue/920 -->
-
-</details>

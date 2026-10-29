@@ -4,8 +4,6 @@
 
 **0/47** checked
 
-<details><summary>Global (0/47)</summary>
-
 - [ ] **Did I Mention Paradise?** — Get your groove on by all the boomboxes in every world. · _all 8 below_ <!-- ach/did-i-mention-paradise -->
   - [ ] **Dark Paradise** — Get your groove on at the Planet's Dark Side. · _find: Boombox (boombox 1) in Planet's Dark Side_ <!-- ach/dark-paradise -->
   - [ ] **Dino Paradise** — Get your groove on at the Dinosaur Rise. · _find: Boombox (boombox 1) in Dinosaur Rise_ <!-- ach/dino-paradise -->
@@ -53,5 +51,3 @@
 - [ ] **Smashiophobe** — Smash 5000 Smashies. · _counter: 5000 (stat 3000126)_ <!-- ach/smashiophobe -->
 - [ ] **Smashtastic!** — Smash 10000 Smashies. · _counter: 10000 (stat 3000126)_ <!-- ach/smashtastic -->
 - [ ] **Supersmasher!** — Smash 100000 Smashies. · _counter: 100000 (stat 3000126)_ <!-- ach/supersmasher -->
-
-</details>

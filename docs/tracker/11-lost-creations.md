@@ -6,8 +6,6 @@ Variants come from `lost_creations.variants` in tools/tracker/manual.json; none 
 
 **0/11** checked
 
-<details><summary>Levels (0/11)</summary>
-
 - [ ] **Candy Mayhem** (mayhem, pf 7104) <!-- lc/candy-mayhem -->
 - [ ] **Castle Mayhem** (mayhem, pf 7101) <!-- lc/castle-mayhem -->
 - [ ] **Gatekeeper's Realm** (gatekeeper, pf 7600) <!-- lc/gatekeeper-s-realm -->
@@ -19,5 +17,3 @@ Variants come from `lost_creations.variants` in tools/tracker/manual.json; none 
 - [ ] **Valley of the Lost Champions** (champions, pf 7300) <!-- lc/valley-of-the-lost-champions -->
 - [ ] **Volcano Brawl** (brawl, pf 7201) <!-- lc/volcano-brawl -->
 - [ ] **Volcano Mayhem** (mayhem, pf 7100) <!-- lc/volcano-mayhem -->
-
-</details>
