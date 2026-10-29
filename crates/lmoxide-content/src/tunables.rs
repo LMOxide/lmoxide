@@ -452,10 +452,27 @@ pub struct LostCreations {
     /// The Gatekeeper defeated, the enemies its skills summoned go too (unknown on live; the
     /// user's guess: they stay and fight on).
     pub gatekeeper_adds_vanish: bool,
+    /// Which of a player's minifigures a completed level counts for (the levels 5, 10 and 15
+    /// achievements).
+    #[serde(default)]
+    pub achievement_minifigs: AchievementMinifigs,
     /// For testing: every level is this one (`lc/...`), the Gatekeeper's too (unset: any).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-ref" = ["lc"]))]
     pub force_level: Option<Ref>,
+}
+
+/// Who a completed Lost Creations level counts for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum AchievementMinifigs {
+    /// The equipped minifigures not smashed in the run (user's rule).
+    #[default]
+    Unsmashed,
+    /// Every equipped minifigure.
+    Team,
+    /// Only the active one.
+    Active,
 }
 
 /// `texts.json`: the client's dialogue texts and answers.

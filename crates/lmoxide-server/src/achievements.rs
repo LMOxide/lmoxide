@@ -353,8 +353,8 @@ pub enum Event {
     /// Crossed trigger wall `wall` that collects `key` (a collect achievement's id, or a
     /// `drop:<name>` rule's key).
     Collected { key: String, wall: String },
-    /// Completed level `level` of the Lost Creations (stub: the Lost Creations don't run yet,
-    /// only the test command sends it).
+    /// Completed level `level` of the Lost Creations (lost_creations.rs, `!lc`): it counts for
+    /// `Ctx::lost_creations_team`.
     LostCreations { level: u32 },
 }
 
@@ -378,6 +378,9 @@ pub struct Ctx<'a> {
     pub character: u32,
     /// The active minifigure.
     pub active: Option<u32>,
+    /// The minifigures a completed Lost Creations level counts for (tunables
+    /// `lost_creations.achievement_minifigs`).
+    pub lost_creations_team: &'a [u32],
     /// Where a minifigure item is (inventory, position), for SetItemStat.
     pub locate: &'a dyn Fn(u32) -> (u32, u32),
     /// How many upgrades were bought for a minifigure.
@@ -498,11 +501,11 @@ pub fn on_event(c: &mut Character, ctx: &Ctx, event: &Event, times: u64) -> Outp
             return out;
         }
         Event::LostCreations { level } => {
-            info!(character = ctx.character, level, minifigure = ?ctx.active, "lost creations level");
+            info!(character = ctx.character, level, minifigures = ?ctx.lost_creations_team, "lost creations level");
             let hits: Vec<u32> = TREE
                 .all
                 .iter()
-                .filter(|a| a.kind == "lost_creations" && a.minifigure.is_some() && a.minifigure == ctx.active && a.n <= *level)
+                .filter(|a| a.kind == "lost_creations" && a.minifigure.is_some_and(|m| ctx.lost_creations_team.contains(&m)) && a.n <= *level)
                 .map(|a| a.id)
                 .collect();
             for id in hits {
@@ -898,7 +901,7 @@ mod tests {
 
     #[test]
     fn removing() {
-        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| false };
+        let ctx = Ctx { character: 1, active: None, lost_creations_team: &[], locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| false };
         let mut c = character();
         for name in ["Achievement_Volcano", "Achievement_Swamp", "Achievement_Tarpit"] {
             on_event(&mut c, &ctx, &Event::Found { playfield: 6200, name: name.into() }, 1);
@@ -929,7 +932,7 @@ mod tests {
     #[test]
     fn kills_count_and_complete() {
         let cyclops = 41_757;
-        let ctx = Ctx { character: 1, active: Some(cyclops), locate: &|_| (101, 6), upgrades: &|_| 1, owned: &|t| t == cyclops };
+        let ctx = Ctx { character: 1, active: Some(cyclops), lost_creations_team: &[], locate: &|_| (101, 6), upgrades: &|_| 1, owned: &|t| t == cyclops };
         let mut c = character();
         let ev = Event::Defeated { id: Id32::new(0, 0), name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
         for _ in 0..999 {
@@ -956,7 +959,7 @@ mod tests {
     #[test]
     fn minifigure_achievements() {
         let plumber = 50_715;
-        let ctx = Ctx { character: 1, active: Some(plumber), locate: &|_| (101, 6), upgrades: &|_| 3, owned: &|t| t == plumber };
+        let ctx = Ctx { character: 1, active: Some(plumber), lost_creations_team: &[plumber], locate: &|_| (101, 6), upgrades: &|_| 3, owned: &|t| t == plumber };
         let mut c = character();
         check(&mut c, &ctx);
         assert!(c.tags.contains_key(&2519) && !c.tags.contains_key(&2520), "Plumber_Upgrade 3, not 7");
@@ -1002,6 +1005,20 @@ mod tests {
         assert!(!list.iter().any(|a| a.key.contains("builds") || a.key == "2421"), "no builds or collectibles");
     }
 
+    /// A completed Lost Creations level counts for every minifigure it is given (the unsmashed
+    /// team), not just the active one.
+    #[test]
+    fn lost_creations_counts_for_the_team() {
+        let mut fives = TREE.all.iter().filter(|a| a.kind == "lost_creations" && a.n == 5);
+        let (a, b, other) = (fives.next().unwrap(), fives.next().unwrap(), fives.next().unwrap());
+        let team = [a.minifigure.unwrap(), b.minifigure.unwrap()];
+        let ctx = Ctx { character: 1, active: Some(team[0]), lost_creations_team: &team, locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| true };
+        let mut c = character();
+        on_event(&mut c, &ctx, &Event::LostCreations { level: 5 }, 1);
+        assert!(c.tags.contains_key(&a.id) && c.tags.contains_key(&b.id), "both teammates");
+        assert!(!c.tags.contains_key(&other.id), "not a minifigure outside the team");
+    }
+
     /// The smash rules are global: tests setting them take turns.
     static RULES_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
@@ -1009,7 +1026,7 @@ mod tests {
     fn smash_rules_choose_the_enemies() {
         let _turn = RULES_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let judge = 41_840;
-        let ctx = Ctx { character: 1, active: Some(judge), locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|t| t == judge };
+        let ctx = Ctx { character: 1, active: Some(judge), lost_creations_team: &[], locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|t| t == judge };
         let rule = |id: &str, enemies: &[&str]| SmashRule {
             id: id.into(),
             enemies: enemies.iter().map(|e| e.to_string()).collect(),
@@ -1039,7 +1056,7 @@ mod tests {
     #[test]
     fn categories_and_collectibles() {
         let _turn = RULES_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| false };
+        let ctx = Ctx { character: 1, active: None, lost_creations_team: &[], locate: &|_| (101, 6), upgrades: &|_| 0, owned: &|_| false };
         let rule = |id: &str, enemies: &[&str], once: bool, item: Option<u32>| SmashRule {
             id: id.into(),
             enemies: enemies.iter().map(|e| e.to_string()).collect(),
@@ -1088,7 +1105,7 @@ mod tests {
 
     #[test]
     fn journal_finds_and_clears() {
-        let ctx = Ctx { character: 1, active: None, locate: &|_| (101, 6), upgrades: &|_| 1, owned: &|_| false };
+        let ctx = Ctx { character: 1, active: None, lost_creations_team: &[], locate: &|_| (101, 6), upgrades: &|_| 1, owned: &|_| false };
         let mut c = character();
         let skeleton = Event::Defeated { id: Id32::new(0, 0), name: "Skeleton".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 1200 };
         on_event(&mut c, &ctx, &skeleton, 2);

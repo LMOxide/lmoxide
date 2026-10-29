@@ -528,6 +528,7 @@ neither the user, the client nor the live capture (a solo Funhouse run) says.
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
+| Level achievements (5, 10, 15) | `lost_creations.achievement_minifigs`; `game.rs` `progress`, `achievements.rs` | `unsmashed`: every equipped minifigure not smashed in the run (`team`: all equipped; `active`: only the active one); a player whose whole team was smashed is out of the run and gets none | User (2026-10-29). |
 | Which level | `pick_level`, `force_level` | the Gatekeeper's level on every `gatekeeper_every` (5)th, else any of the other 10 at random (`force_level`: always that one, for testing) | The user (2026-10-28: every level's gates are in, use them all). Only the three Mayhems (end gate open from the start) and the Gatekeeper's Realm can be finished so far; the other levels have no enemies yet. |
 | Level time, warm-up | `level_time`, `warmup` | 300 s, 5 s; the timer buff added at 200 s then updated to 300 s | Live (capture 736.33). |
 | Invitation answer time | `invitation_time` | 30 s, then as Cancel (aborts for everyone) | Guess; the user: no answer aborts. |
