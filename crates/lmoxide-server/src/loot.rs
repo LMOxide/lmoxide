@@ -303,16 +303,55 @@ fn random() -> u64 {
     s.wrapping_mul(0x2545_f491_4f6c_dd1d)
 }
 
-/// The loot power level a chest or quest reward rolls at for a character of `level` on playfield
-/// `model` (the Lua's DoSuperChestPowerLevel): `level × power_per_level`, at most its
+/// The loot power level a chest rolls at for a character of `level` on playfield `model` (the
+/// Lua's DoSuperChestPowerLevel, quest-spawned branch): `level × power_per_level`, at most its
 /// super-region's cap (tunables `loot.power_caps`); the Treasure Chamber (7001) and unknown
-/// super-regions aren't capped. LMOxide's loot tables don't scale by it yet (how the live tables
-/// did was server data): it is logged with each chest.
+/// super-regions aren't capped. Every roll takes a power (tunables `loot.power` says what it
+/// changes; [`chest_power`], [`quest_power`], [`npc_power`]).
 pub fn power_level(level: u32, model: u32) -> u32 {
     let c = crate::gamedata::get();
     let power = level * c.tunables.loot.power_per_level;
     let cap = c.world_by_playfield(model).and_then(|w| w.super_region).filter(|_| model != 7001).and_then(|r| c.tunables.loot.power_caps.get(&r.to_string()).copied());
     cap.map_or(power, |cap| power.min(cap))
+}
+
+/// A Super Chest's power (DoSuperChestPowerLevel, script 3727) opened by a character of `level`
+/// in `playfield`: in a Lost Creations level (an Endless playfield: `endless_progress` set) the
+/// fallback, `level × power_per_level`; else the chest's own `loot_power_level` (LootPowerLevel
+/// 1431) when it has one; else [`power_level`]. (The Lua's "scaleable dungeon" branch,
+/// min(endlesslevel, level) × 100, needs a playfield `endlesslevel` LMOxide never sets.)
+pub fn chest_power(level: u32, playfield: Pf, chest: u32) -> u32 {
+    let c = crate::gamedata::get();
+    if crate::lost_creations::element(playfield).is_some() {
+        return level * c.tunables.loot.power_per_level;
+    }
+    let own = c.items.values().find(|i| i.template == Some(chest)).and_then(|i| i.chest.as_ref()).and_then(|ch| ch.loot_power_level).filter(|&p| p > 0);
+    own.unwrap_or_else(|| power_level(level, playfield.model()))
+}
+
+/// A quest reward's power (the "Quest Completion Loot Spawner" scripts 555, 987, 988, 1063-1068,
+/// 1121, 1287, 1756): `level × power_per_level`, at most the cap of the playfield's thousands
+/// (tunables `loot.quest_power_caps`: by playfield number, not super-region, so micro-dungeons
+/// and the hub aren't capped), at least its floor (`quest_power_floors`: the scripts' Dino branch
+/// uses math.max, so Dino quests reward at 3000 or more, logged).
+pub fn quest_power(level: u32, model: u32) -> u32 {
+    let loot = &crate::gamedata::get().tunables.loot;
+    let power = level * loot.power_per_level;
+    let key = (model / 1000 * 1000).to_string();
+    let capped = loot.quest_power_caps.get(&key).map_or(power, |&cap| power.min(cap));
+    match loot.quest_power_floors.get(&key) {
+        Some(&floor) if floor > capped => {
+            info!(level, model, power = floor, "quest reward power raised to the floor (the client Lua's Dino math.max)");
+            floor
+        }
+        _ => capped,
+    }
+}
+
+/// An enemy's or smashable's power: its template's `stats.power_level` (the client's NPC
+/// PowerLevel 499), else `level × loot.npc_power`.
+pub fn npc_power(level: u32, power_level: Option<u32>) -> u32 {
+    power_level.unwrap_or(level * crate::gamedata::get().tunables.loot.npc_power)
 }
 
 /// True with probability `p` (0..1), to 0.01%.
@@ -395,28 +434,28 @@ fn pick_from(from: &MinifigureSource, playfield: Pf) -> Option<u32> {
     }
 }
 
-/// One bag's contents in `playfield`: the loot table of `source` (tunables `loot.tables`).
-/// `orb_bonus`: extra chance in percent for entries raised by `orb_chance` (the Resourceful
-/// upgrade).
-pub fn roll(source: Source, orb_bonus: u64, playfield: Pf) -> Vec<u32> {
+/// One bag's contents in `playfield` at loot power `power`: the loot table of `source`
+/// (tunables `loot.tables`). `orb_bonus`: extra chance in percent for entries raised by
+/// `orb_chance` (the Resourceful upgrade).
+pub fn roll(source: Source, orb_bonus: u64, playfield: Pf, power: u32) -> Vec<u32> {
     let c = crate::gamedata::get();
     let mut items = Vec::new();
     match c.tunables.loot.tables.get(source.key()) {
-        Some(table) => roll_table(table, orb_bonus, playfield, &mut items),
+        Some(table) => roll_table(table, orb_bonus, playfield, power, &mut items),
         None => tracing::warn!(source = source.key(), "tunables.json loot.tables names no table"),
     }
     items
 }
 
-/// Rolls loot table `id` (`loot/...`) for a bag in `playfield` into `out` (upgrade procs'
-/// `drop`).
-pub fn roll_table_into(id: &str, orb_bonus: u64, playfield: Pf, out: &mut Vec<u32>) {
-    roll_table(id, orb_bonus, playfield, out);
+/// Rolls loot table `id` (`loot/...`) at loot power `power` for a bag in `playfield` into
+/// `out` (upgrade procs' `drop`, achievement and quest rewards).
+pub fn roll_table_into(id: &str, orb_bonus: u64, playfield: Pf, power: u32, out: &mut Vec<u32>) {
+    roll_table(id, orb_bonus, playfield, power, out);
 }
 
 /// Rolls loot table `id` into `out` (lmoxide_content::roll: the rules), each drop as a client
 /// item: minifigure parts and bags of the minifigures it names or the world's, one of its chests.
-fn roll_table(id: &str, orb_bonus: u64, playfield: Pf, out: &mut Vec<u32>) {
+fn roll_table(id: &str, orb_bonus: u64, playfield: Pf, power: u32, out: &mut Vec<u32>) {
     use lmoxide_content::roll::{Drop, Roller};
     let c = crate::gamedata::get();
     let t = &*TABLES;
@@ -424,7 +463,7 @@ fn roll_table(id: &str, orb_bonus: u64, playfield: Pf, out: &mut Vec<u32>) {
     let in_worlds = |worlds: &[String]| worlds.iter().filter_map(|w| c.worlds.get(w)).any(|w| w.playfield == playfield.model());
 
     let mut random = random;
-    let mut roller = Roller { table: &table, in_worlds: &in_worlds, orb_bonus, random: &mut random, warnings: Vec::new() };
+    let mut roller = Roller { table: &table, in_worlds: &in_worlds, orb_bonus, random: &mut random, power, rules: &c.tunables.loot.power, warnings: Vec::new() };
     let mut drops = Vec::new();
     roller.roll(id, &mut drops);
     for w in roller.warnings {
@@ -449,8 +488,8 @@ fn roll_table(id: &str, orb_bonus: u64, playfield: Pf, out: &mut Vec<u32>) {
 /// `!loot` kinds.
 pub const TEST_KINDS: &[&str] = &["potion", "part", "bag", "chest", "memberchest", "boss", "enemy", "smashable"];
 
-/// A test bag of `kind` (TEST_KINDS) in `playfield`.
-pub fn test_items(kind: &str, playfield: Pf) -> Vec<u32> {
+/// A test bag of `kind` (TEST_KINDS) in `playfield`, rolled at loot power `power`.
+pub fn test_items(kind: &str, playfield: Pf, power: u32) -> Vec<u32> {
     let t = &*TABLES;
     match kind {
         "potion" => vec![t.potion],
@@ -458,21 +497,37 @@ pub fn test_items(kind: &str, playfield: Pf) -> Vec<u32> {
         "bag" => pick_bag(playfield).into_iter().collect(),
         "chest" => pick(&t.chests).into_iter().collect(),
         "memberchest" => pick(&t.member_chests).into_iter().collect(),
-        "boss" => roll(Source::Boss, 0, playfield),
-        "enemy" => roll(Source::Enemy, 0, playfield),
-        "smashable" => roll(Source::Smashable, 0, playfield),
+        "boss" => roll(Source::Boss, 0, playfield, power),
+        "enemy" => roll(Source::Enemy, 0, playfield, power),
+        "smashable" => roll(Source::Smashable, 0, playfield, power),
         table => {
             let mut out = Vec::new();
-            roll_table_into(table, 0, playfield, &mut out);
+            roll_table_into(table, 0, playfield, power, &mut out);
             out
         }
     }
 }
 
+/// What `items` are, for `!loot` and `!power`: "3 stars, 25 stars, health orb, part ...".
+pub fn describe(items: &[u32]) -> String {
+    let c = crate::gamedata::get();
+    let mut stars = 0;
+    let mut other: Vec<String> = Vec::new();
+    for &i in items {
+        match reward(i) {
+            Reward::Stars(n) => stars += n,
+            _ => other.push(c.items.values().find(|it| it.template == Some(i)).map_or_else(|| i.to_string(), |it| it.name.clone())),
+        }
+    }
+    let mut parts = vec![format!("{stars} stars")];
+    parts.extend(other);
+    parts.join(", ")
+}
+
 /// Loot for a kill: a bag for the killer and one for each teammate in play nearby, each
-/// rolled separately.
+/// rolled separately at the dropper's loot power `power` ([`npc_power`]).
 /// `table`: the dropper's own loot table instead of `source`'s.
-pub fn drop_loot(killer: Id32, playfield: Pf, pos: [f32; 3], dropper: Id32, source: Source, table: Option<&str>) {
+pub fn drop_loot(killer: Id32, playfield: Pf, pos: [f32; 3], dropper: Id32, source: Source, table: Option<&str>, power: u32) {
     let mut owners = vec![killer];
     for mate in crate::community::teammates(killer.instance) {
         let id = Id32::new(killer.kind, mate);
@@ -488,19 +543,33 @@ pub fn drop_loot(killer: Id32, playfield: Pf, pos: [f32; 3], dropper: Id32, sour
         let items = match table {
             Some(t) => {
                 let mut items = Vec::new();
-                roll_table(t, bonus, playfield, &mut items);
+                roll_table(t, bonus, playfield, power, &mut items);
                 items
             }
-            None => roll(source, bonus, playfield),
+            None => roll(source, bonus, playfield, power),
         };
         drop_items(owner, playfield, pos, dropper, items);
     }
 }
 
-/// An opened chest: a new bag where the chest stood.
-pub fn open_chest(owner: Id32, playfield: Pf, pos: [f32; 3], chest: Id32, member: bool) {
+/// An opened chest (item `template`, from bag `bag` at `pos`) rolled at loot power `power`
+/// ([`chest_power`]): a new bag at the chest's loot point ([`chest_loot_pos`]).
+pub fn open_chest(owner: Id32, playfield: Pf, pos: [f32; 3], bag: Id32, template: u32, member: bool, power: u32) {
     let source = if member { Source::MemberChest } else { Source::Chest };
-    drop_items(owner, playfield, pos, chest, roll(source, 0, playfield));
+    let items = roll(source, 0, playfield, power);
+    info!(?owner, template, power, items = %describe(&items), "chest opened");
+    drop_items(owner, playfield, chest_loot_pos(template, pos), bag, items);
+}
+
+/// Where chest `template` standing at `pos` drops its loot: `pos + Loot_Offset{X,Y,Z}Pos / 100`
+/// (cm, the item's `chest.offset`) with 1 m added to Y, as the Super Chest scripts' spawnloot
+/// (`item.lootpos + offset/100`, `+1` Y). The scripts keep `pos` when that point is off the
+/// navmesh; the server has no navmesh, so it isn't checked (docs/TUNABLES.md).
+pub fn chest_loot_pos(template: u32, pos: [f32; 3]) -> [f32; 3] {
+    let c = crate::gamedata::get();
+    let offset = c.items.values().find(|i| i.template == Some(template)).and_then(|i| i.chest.as_ref()).and_then(|ch| ch.offset.as_ref());
+    let axis = |i: usize| offset.and_then(|o| o.get(i)).and_then(serde_json::Value::as_u64).map_or(0.0, |v| v as u32 as i32 as f32 / 100.0);
+    [pos[0] + axis(0), pos[1] + axis(1) + 1.0, pos[2] + axis(2)]
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
@@ -526,7 +595,9 @@ pub fn drop_items(owner: Id32, playfield: Pf, pos: [f32; 3], _dropper: Id32, ite
     ];
     BAGS.lock().unwrap().insert(id, Bag { owner, public: false, playfield, pos, items: items.into_iter().map(Some).collect() });
     world::send_to(owner, world::Out::Records(records));
-    tokio::spawn(async move {
+    // (unit tests that complete quests run without a runtime: no lifetime there)
+    let Ok(rt) = tokio::runtime::Handle::try_current() else { return };
+    rt.spawn(async move {
         let loot = &crate::gamedata::get().tunables.loot;
         let public_after = loot.bag_public_after.to_std();
         tokio::time::sleep(public_after).await;
@@ -688,11 +759,11 @@ mod tests {
         // about a quarter of regular kills and 71% of smashes drop a bag; regular bags hold
         // 1-3 single stars
         let n = 4000;
-        let bags = |source| (0..n).filter(|_| !roll(source, 0, Pf::main(4200)).is_empty()).count() as f32 / n as f32;
+        let bags = |source| (0..n).filter(|_| !roll(source, 0, Pf::main(4200), 1000).is_empty()).count() as f32 / n as f32;
         assert!((0.21..0.30).contains(&bags(Source::Enemy)), "{}", bags(Source::Enemy));
         assert!((0.66..0.76).contains(&bags(Source::Smashable)), "{}", bags(Source::Smashable));
         for _ in 0..500 {
-            let stars = roll(Source::Enemy, 0, Pf::main(4200)).iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count();
+            let stars = roll(Source::Enemy, 0, Pf::main(4200), 1000).iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count();
             assert!(stars <= 3);
         }
     }
@@ -707,12 +778,12 @@ mod tests {
         assert!(matches!(reward(580_943), Reward::Chest { member: true }));
         assert!(matches!(reward(482_326), Reward::Chest { member: false }));
         // a boss's bag: 2 stars and an orb, usually a Member Super Chest (live)
-        let boss = roll(Source::Boss, 0, Pf::main(4200));
+        let boss = roll(Source::Boss, 0, Pf::main(4200), 1000);
         assert!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count() >= 2);
         assert!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Chest { .. })).count() <= 2);
         // summoned adds drop nothing
         let mut none = Vec::new();
-        roll_table_into("loot/none", 0, Pf::main(4200), &mut none);
+        roll_table_into("loot/none", 0, Pf::main(4200), 1000, &mut none);
         assert!(none.is_empty());
         assert_eq!(achievement_minifigures().count(), 1);
         assert_eq!(membership_minifigures().len(), 2);
@@ -728,5 +799,61 @@ mod power_tests {
         assert_eq!(super::power_level(30, 1643), 1000, "a Pirate micro-dungeon");
         assert_eq!(super::power_level(30, 2210), 2500, "Mythology");
         assert_eq!(super::power_level(30, 7001), 3000, "the Treasure Chamber isn't capped");
+    }
+
+    #[test]
+    fn power_per_source() {
+        use super::*;
+        // chests: DoSuperChestPowerLevel (no client chest has its own LootPowerLevel)
+        assert_eq!(chest_power(30, Pf::main(4200), 580_943), 1000);
+        assert_eq!(chest_power(3, Pf::main(1643), 580_943), 300);
+        assert_eq!(chest_power(30, Pf::main(7001), 531_717), 3000);
+        // quest rewards: capped by the playfield's thousands, not the super-region; Dino's
+        // math.max makes 3000 a floor
+        assert_eq!(quest_power(30, 4200), 1000);
+        assert_eq!(quest_power(30, 1643), 3000, "micro-dungeons aren't capped");
+        assert_eq!(quest_power(12, 5200), 1200);
+        assert_eq!(quest_power(30, 2210), 2500);
+        assert_eq!(quest_power(5, 6200), 3000, "the Lua's Dino max()");
+        assert_eq!(quest_power(40, 6200), 4000);
+        // enemies: PowerLevel 499 when the template has one, else level x 100
+        assert_eq!(npc_power(18, None), 1800);
+        assert_eq!(npc_power(18, Some(250)), 250);
+    }
+
+    /// The live capture's chests and quest rewards at the powers they were opened at (levels
+    /// 1-3 and 30, Pirate: 100-1000): the content tables at those powers give the same ranges.
+    #[test]
+    fn rolls_match_the_live_capture() {
+        use super::*;
+        let stars = |items: &[u32]| items.iter().map(|&i| if let Reward::Stars(n) = reward(i) { n } else { 0 }).sum::<u64>();
+        for power in [100, 300, 1000] {
+            for _ in 0..300 {
+                let chest = roll(Source::MemberChest, 0, Pf::main(4200), power);
+                assert!((85..=186).contains(&stars(&chest)), "member chest at {power}: {}", stars(&chest));
+                let parts = chest.iter().filter(|&&i| matches!(reward(i), Reward::Part(_))).count();
+                assert!((1..=2).contains(&parts));
+                let mut quest = Vec::new();
+                roll_table_into("loot/quest-normal", 0, Pf::main(4200), power, &mut quest);
+                assert!((78..=79).contains(&stars(&quest)), "quest reward at {power}: {}", stars(&quest));
+                assert!(quest.iter().any(|&i| matches!(reward(i), Reward::HealthOrb)));
+                let mut micro = Vec::new();
+                roll_table_into("loot/micro-dungeon-super-chest", 0, Pf::main(1643), 0, &mut micro);
+                assert!(matches!(micro[..], [c] if matches!(reward(c), Reward::Chest { member: true })));
+            }
+        }
+        // every quest reward item names a table that loads
+        let c = crate::gamedata::get();
+        for r in c.tunables.loot.quest_rewards.values() {
+            assert!(c.loot.contains_key(&r.table), "{}", r.table);
+        }
+    }
+
+    #[test]
+    fn chest_loot_drops_at_its_offset() {
+        // Member Super Chest: Loot_OffsetXPos 212; free Super Chests -212 / Z 212; +1 m up
+        let near = |a: [f32; 3], b: [f32; 3]| a.iter().zip(b).all(|(x, y)| (x - y).abs() < 1e-4);
+        assert!(near(super::chest_loot_pos(580_943, [10.0, 5.0, 20.0]), [12.12, 6.0, 20.0]));
+        assert!(near(super::chest_loot_pos(482_326, [10.0, 5.0, 20.0]), [7.88, 6.0, 22.12]));
     }
 }

@@ -199,6 +199,7 @@ pub fn start() {
                     faction: None,
                     patrol: Vec::new(),
                     loot: None,
+                    power_level: None,
                     source: None,
                     rot: None,
                 };

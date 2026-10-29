@@ -1557,12 +1557,26 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 crate::chat::system(character, &line);
                             }
                         }
-                        crate::devcmd::Action::Loot(kind) => {
+                        crate::devcmd::Action::Loot(kind, power) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                             let here = *pos.lock().unwrap();
-                            let items = crate::loot::test_items(&kind, place);
-                            crate::chat::system(character, &format!("loot {kind}: {} items", items.len()));
+                            let power = power.unwrap_or_else(|| crate::loot::chest_power(me.level(), place, 0));
+                            let items = crate::loot::test_items(&kind, place, power);
+                            crate::chat::system(character, &format!("loot {kind} at power {power}: {}", crate::loot::describe(&items)));
                             crate::loot::drop_items(id, place, [here[0] + 1.5, here[1], here[2]], id, items);
+                        }
+                        crate::devcmd::Action::Power(kind) => {
+                            let level = me.level();
+                            let chest = crate::loot::chest_power(level, place, 0);
+                            let quest = crate::loot::quest_power(level, place.model());
+                            let enemy = crate::loot::npc_power(level, None);
+                            crate::chat::system(character, &format!("loot power at level {level} here: chests {chest}, quest rewards {quest}, a level-{level} enemy {enemy}"));
+                            if let Some(kind) = kind {
+                                for _ in 0..5 {
+                                    let items = crate::loot::test_items(&kind, place, chest);
+                                    crate::chat::system(character, &format!("{kind} at {chest}: {}", crate::loot::describe(&items)));
+                                }
+                            }
                         }
                         crate::devcmd::Action::Own(None) => {
                             let line = match &me.collection {
@@ -1891,9 +1905,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                     }
                     crate::loot::Reward::Chest { member } => {
-                        let power = crate::loot::power_level(me.level(), taken.playfield.model());
-                        info!(character, member, power, "chest opened");
-                        crate::loot::open_chest(id, taken.playfield, taken.pos, bag, member)
+                        let power = crate::loot::chest_power(me.level(), taken.playfield, taken.template);
+                        crate::loot::open_chest(id, taken.playfield, taken.pos, bag, taken.template, member, power)
                     }
                     crate::loot::Reward::RewardChest => crate::lost_creations::open_chest(character, taken.playfield, taken.pos),
                     crate::loot::Reward::Nothing => {
@@ -2569,7 +2582,8 @@ async fn send_progress(
         let at = world::live_position(player).unwrap_or(me.pos);
         for table in &out.loot {
             let mut items = Vec::new();
-            crate::loot::roll_table_into(table, 0, place, &mut items);
+            // the reward scripts roll these at power 0 (gethashfromloot(1084, 0, ...))
+            crate::loot::roll_table_into(table, 0, place, 0, &mut items);
             info!(character, table, ?items, "achievement reward bag");
             crate::loot::drop_items(player, place, at, player, items);
         }

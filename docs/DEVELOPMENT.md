@@ -76,7 +76,8 @@ test commands may type `!story reset` too; a GM's `!story reset` is the test com
 | `!stats` | the active minifigure's upgrade procs and lockouts, the zone's element buffs (Wrong Element, Elemental Affinity) with the damage, defence and build factors, crowd control immunity, then level and level cap here, smash timer, loot power |
 | `!hurt <percent>` | set the active minifigure's health to that share of its maximum and run the low-health procs (Second Wind, True Grit, Escape Artist below 21%); a potion drunk at 5% or less adds "Close Call!" |
 | `!element <0-5\|name>` | play as if this zone had that element (0 none, 1 light, 2 shadow, 3 tech, 4 magic, 5 nature) until the next zone: Wrong Element when it isn't the minifigure's, the role's Elemental Affinity buff when it is (with the upgrade) |
-| `!loot <kind\|loot/table>` | drop a loot bag at your feet: `potion`, `part`, `bag`, `chest`, `memberchest`, `boss`, `enemy`, `smashable`, or any content loot table (`!loot loot/achievement-stars-small`, `!loot loot/power-ups`) |
+| `!loot <kind\|loot/table> [power]` | drop a loot bag at your feet: `potion`, `part`, `bag`, `chest`, `memberchest`, `boss`, `enemy`, `smashable`, or any content loot table (`!loot loot/achievement-stars-small`, `!loot loot/quest-normal 300`), rolled at the chest power here or the power given; says what it holds |
+| `!power [kind\|loot/table]` | the loot power here at your level: chests (DoSuperChestPowerLevel), quest rewards (the quest rule, Dino's floor), an enemy of your level; with a kind or table, five rolls of it at the chest power (nothing dropped) |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
 | `!lc` | the Lost Creations run you're in: level, map, copy, element, phase, quest step, who is across, time left |

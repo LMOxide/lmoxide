@@ -8,6 +8,7 @@ use serde::Serialize;
 
 use crate::model::{LootBundle, LootEntry, LootTable, MinifigureSource};
 use crate::record::Ref;
+use crate::tunables::LootPower;
 use crate::units::Range;
 
 /// Tables nest at most this deep (a table naming itself stops there).
@@ -39,6 +40,10 @@ pub struct Roller<'a> {
     pub orb_bonus: u64,
     /// Random numbers (any distribution over u64).
     pub random: &'a mut dyn FnMut() -> u64,
+    /// The roll's loot power level (the client's `gethashfromloot(table, power, ...)`).
+    pub power: u32,
+    /// How the power changes the roll (tunables `loot.power`).
+    pub rules: &'a LootPower,
     /// Tables missing or nesting too deep.
     pub warnings: Vec<String>,
 }
@@ -86,9 +91,10 @@ impl Roller<'_> {
             self.warnings.push(format!("loot tables nest too deep at {id}"));
             return;
         }
+        let (rules, power) = (self.rules, self.power);
         let applies = |e: &LootEntry, in_worlds: &dyn Fn(&[Ref]) -> bool| {
             // everyone is a member here; once_per_player isn't kept yet
-            e.when.as_ref().is_none_or(|w| w.worlds.is_empty() || in_worlds(&w.worlds))
+            e.when.as_ref().is_none_or(|w| w.worlds.is_empty() || in_worlds(&w.worlds)) && rules.tier_allowed(e.power_tier, power)
         };
         let weighted: Vec<&LootEntry> = table.entries.iter().filter(|e| e.weight.is_some() && applies(e, self.in_worlds)).collect();
         let mut weighted_done = false;
@@ -113,7 +119,14 @@ impl Roller<'_> {
                 Some(p) => {
                     let bonus = e.when.as_ref().and_then(|w| w.bonus_stat.as_deref()) == Some("orb_chance");
                     let extra = if bonus { self.orb_bonus as f64 / 100.0 } else { 0.0 };
-                    self.chance_of(p.fraction() + extra)
+                    let mut factor = 1.0;
+                    if e.drop.minifig_parts.is_some() {
+                        factor *= LootPower::factor(&rules.parts, power);
+                    }
+                    if e.drop.minifig_bags.is_some() {
+                        factor *= LootPower::factor(&rules.bags, power);
+                    }
+                    self.chance_of(p.fraction() * factor + extra)
                 }
             };
             if drops {
@@ -126,7 +139,10 @@ impl Roller<'_> {
     fn give(&mut self, b: &LootBundle, depth: u32, out: &mut Vec<Drop>) {
         for (r, d) in [(b.stars, Drop::Star), (b.hearts, Drop::Heart), (b.potions, Drop::Potion)] {
             if let Some(r) = r {
-                let n = self.in_range(r);
+                let mut n = self.in_range(r);
+                if d == Drop::Star && n > 0 {
+                    n = ((f64::from(n) * LootPower::factor(&self.rules.stars, self.power)).round() as u32).max(1);
+                }
                 out.extend(std::iter::repeat_n(d, n as usize));
             }
         }
@@ -184,9 +200,9 @@ fn label(d: &Drop) -> String {
     }
 }
 
-/// Rolls table `id` `rolls` times and counts what drops (with a fixed seed: the same table
-/// gives the same rates).
-pub fn simulate(table: &dyn Fn(&str) -> Option<LootTable>, in_worlds: &dyn Fn(&[Ref]) -> bool, id: &str, rolls: u32) -> Simulation {
+/// Rolls table `id` `rolls` times at loot power `power` and counts what drops (with a fixed
+/// seed: the same table gives the same rates).
+pub fn simulate(table: &dyn Fn(&str) -> Option<LootTable>, in_worlds: &dyn Fn(&[Ref]) -> bool, id: &str, rolls: u32, power: u32, rules: &LootPower) -> Simulation {
     let mut state: u64 = 0x9e37_79b9_7f4a_7c15;
     let mut random = move || {
         // xorshift64*, as the server's
@@ -195,7 +211,7 @@ pub fn simulate(table: &dyn Fn(&str) -> Option<LootTable>, in_worlds: &dyn Fn(&[
         state ^= state >> 27;
         state.wrapping_mul(0x2545_f491_4f6c_dd1d)
     };
-    let mut r = Roller { table, in_worlds, orb_bonus: 0, random: &mut random, warnings: Vec::new() };
+    let mut r = Roller { table, in_worlds, orb_bonus: 0, random: &mut random, power, rules, warnings: Vec::new() };
     let mut counts: BTreeMap<String, (u64, u32)> = BTreeMap::new();
     let mut empty = 0;
     for _ in 0..rolls {
@@ -246,7 +262,8 @@ mod tests {
         .into_iter()
         .map(|(k, v)| (k.to_string(), serde_json::from_value(v).unwrap()))
         .collect();
-        let s = simulate(&|id| tables.get(id).cloned(), &|_| false, "loot/a", 20_000);
+        let rules = LootPower::default();
+        let s = simulate(&|id| tables.get(id).cloned(), &|_| false, "loot/a", 20_000, 1000, &rules);
         let rate = |w: &str| s.rates.iter().find(|r| r.what == w).map_or((0.0, 0.0), |r| (r.chance, r.per_roll));
         assert_eq!(rate("stars").0, 1.0);
         assert!((rate("stars").1 - 3.0).abs() < 0.05, "{:?}", rate("stars"));
@@ -255,6 +272,38 @@ mod tests {
         assert!((rate("chest: item/c1 | item/c2").0 - 0.25).abs() < 0.02);
         assert_eq!(rate("health orbs").0, 0.0, "only in world/elsewhere");
         assert_eq!(s.nothing, 0.0);
-        assert!(simulate(&|id| tables.get(id).cloned(), &|_| true, "loot/missing", 10).warnings[0].contains("no loot table"));
+        assert!(simulate(&|id| tables.get(id).cloned(), &|_| true, "loot/missing", 10, 0, &rules).warnings[0].contains("no loot table"));
+    }
+
+    #[test]
+    fn power_scales_the_roll() {
+        let tables: BTreeMap<String, LootTable> = [(
+            "loot/p",
+            json!({ "id": "loot/p", "entries": [
+                { "drop": { "stars": 10 } },
+                { "chance": "50%", "drop": { "minifig_parts": { "from": "world", "count": 1 } } },
+                { "power_tier": 4000, "drop": { "items": ["item/chest"] } }
+            ] }),
+        )]
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), serde_json::from_value(v).unwrap()))
+        .collect();
+        let rate = |s: &Simulation, w: &str| s.rates.iter().find(|r| r.what.starts_with(w)).map_or((0.0, 0.0), |r| (r.chance, r.per_roll));
+        // no rules: power changes nothing
+        let flat = LootPower::default();
+        let s = simulate(&|id| tables.get(id).cloned(), &|_| false, "loot/p", 4000, 100, &flat);
+        assert_eq!(rate(&s, "stars").1, 10.0);
+        assert_eq!(rate(&s, "item/chest").0, 1.0);
+        // a curve: 1x at 1000, 2x at 3000 (1.5x at 2000); parts half as likely at 0; tiers above power + 1000 skipped
+        let rules = LootPower { stars: vec![[1000.0, 1.0], [3000.0, 2.0]], parts: vec![[0.0, 0.5], [1000.0, 1.0]], bags: vec![], tier_window: Some(1000) };
+        assert_eq!(LootPower::factor(&rules.stars, 0), 1.0);
+        assert_eq!(LootPower::factor(&rules.stars, 2000), 1.5);
+        assert_eq!(LootPower::factor(&rules.stars, 9000), 2.0);
+        let s = simulate(&|id| tables.get(id).cloned(), &|_| false, "loot/p", 4000, 2000, &rules);
+        assert_eq!(rate(&s, "stars").1, 15.0);
+        assert!((rate(&s, "minifigure part").0 - 0.5).abs() < 0.03);
+        let s = simulate(&|id| tables.get(id).cloned(), &|_| false, "loot/p", 4000, 0, &rules);
+        assert!((rate(&s, "minifigure part").0 - 0.25).abs() < 0.03);
+        assert_eq!(rate(&s, "item/chest").0, 0.0, "tier 4000 above 0 + 1000");
     }
 }

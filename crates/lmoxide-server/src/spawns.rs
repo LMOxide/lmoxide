@@ -69,6 +69,7 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         faction: None,
         patrol: s.patrol.clone(),
         loot: own_loot(kind, t["loot"].as_str()),
+        power_level: u(&t["stats"]["power_level"]),
         source: source_name(s.source),
         rot: s.rot.map(Rot::heading),
         variants: s.variants.clone(),

@@ -43,7 +43,10 @@
 //!   !smashme                  smash the active minifigure (it rebuilds after the smash timer)
 //!   !loot <kind>              drop a loot bag at your feet: potion, part, bag, chest, memberchest,
 //!                             boss (a boss's roll: free and member chest), enemy, smashable, or
-//!                             any content loot table (`!loot loot/achievement-stars-small`)
+//!                             any content loot table (`!loot loot/achievement-stars-small`);
+//!                             rolled at the chest power here, or `!loot <kind> <power>`
+//!   !power [table]            the loot power of chests, quest rewards and a level-N enemy here;
+//!                             with a table or kind, five rolls of it at the chest power
 //!   !stats                    the active minifigure's upgrade procs, zone element buffs, damage,
 //!                             defence and build factors, smash timer, level cap, loot power
 //!   !hurt <percent>           set the active minifigure's health to that share (low-health procs)
@@ -125,8 +128,10 @@ pub enum Action {
     Mirrors(bool),
     /// smash the active minifigure
     SmashMe,
-    /// drop a loot bag of a kind (`!loot`)
-    Loot(String),
+    /// drop a loot bag of a kind (`!loot`), at this loot power (none: the chest power here)
+    Loot(String, Option<u32>),
+    /// the loot power of each source here, and a table rolled at it (`!power`)
+    Power(Option<String>),
     /// the active minifigure's stats, procs and zone buffs (`!stats`)
     Stats,
     /// the active minifigure's health to this percent of its maximum (`!hurt`)
@@ -179,7 +184,8 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!test [n|label]", "list the manual test setups, or set one up (data/test_scenarios.json)"),
     ("!spawn [count] <name>", "spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes"),
     ("!despawn [all]", "remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's"),
-    ("!loot <kind>", "drop a loot bag at your feet"),
+    ("!loot <kind> [power]", "drop a loot bag at your feet (rolled at the chest power here, or this one)"),
+    ("!power [table|kind]", "the loot power of chests, quest rewards and enemies here; with a table, five rolls of it at the chest power"),
     ("!smash", "smash the nearest smashable (or defeat the nearest enemy) within 15 m"),
     ("!smashme", "smash the active minifigure (it rebuilds after the smash timer)"),
     ("!stats", "the active minifigure's upgrade procs, zone element buffs (Wrong Element, Elemental Affinity), damage/defence/build factors, smash timer, level cap and loot power"),
@@ -759,8 +765,15 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         },
         "smashme" => Action::SmashMe,
         "loot" => match args.first().copied() {
-            Some(kind) if crate::loot::TEST_KINDS.contains(&kind) || crate::gamedata::get().loot.contains_key(kind) => Action::Loot(kind.to_string()),
-            _ => reply(vec![format!("usage: !loot <{}|loot/<table>>", crate::loot::TEST_KINDS.join("|"))]),
+            Some(kind) if (crate::loot::TEST_KINDS.contains(&kind) || crate::gamedata::get().loot.contains_key(kind)) && args.get(1).is_none_or(|p| p.parse::<u32>().is_ok()) => {
+                Action::Loot(kind.to_string(), args.get(1).and_then(|p| p.parse().ok()))
+            }
+            _ => reply(vec![format!("usage: !loot <{}|loot/<table>> [power]", crate::loot::TEST_KINDS.join("|"))]),
+        },
+        "power" => match args.first().copied() {
+            None => Action::Power(None),
+            Some(kind) if crate::loot::TEST_KINDS.contains(&kind) || crate::gamedata::get().loot.contains_key(kind) => Action::Power(Some(kind.to_string())),
+            Some(_) => reply(vec![format!("usage: !power [{}|loot/<table>]", crate::loot::TEST_KINDS.join("|"))]),
         },
         "stats" => Action::Stats,
         "hurt" => match args.first().and_then(|n| n.trim_end_matches('%').parse::<u32>().ok()).filter(|n| (1..=100).contains(n)) {

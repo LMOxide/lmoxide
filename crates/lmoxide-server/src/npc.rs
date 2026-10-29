@@ -303,6 +303,10 @@ pub struct SpawnDef {
     /// its kind (tunables `loot.tables`): it drops that instead, whatever its rank.
     #[serde(default)]
     pub loot: Option<String>,
+    /// Its loot power level (its template's `stats.power_level`, the client's PowerLevel 499);
+    /// none: level x tunables `loot.npc_power` (loot::npc_power).
+    #[serde(default)]
+    pub power_level: Option<u32>,
     /// Facing (radians around the vertical axis, the spawn's `rot`); shown only in
     /// survey mode.
     #[serde(default)]
@@ -990,6 +994,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         faction: None,
         patrol: Vec::new(),
         loot: None,
+        power_level: None,
         source: None,
         rot: None,
         requires: Vec::new(),
@@ -1092,7 +1097,8 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         // a scripted shot (Pirate World's cannon, cannon.rs) drops no loot and earns nothing,
         // nor does an NPC's kill (a friendly fighter's), nor a defeated fighter
         if attacker.kind != DESTRUCTIBLE_TYPE && !by_npc && !npc.def.fights() {
-            crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source, npc.def.loot.as_deref());
+            let power = crate::loot::npc_power(npc.def.level, npc.def.power_level);
+            crate::loot::drop_loot(attacker, npc.playfield, *npc.pos.lock().unwrap(), target, source, npc.def.loot.as_deref(), power);
             if kind == Kind::Enemy && by_player {
                 crate::procs::killed(attacker, target, spell, npc.playfield, *npc.pos.lock().unwrap());
             }
@@ -2306,6 +2312,7 @@ mod tests {
             faction: None,
             patrol: Vec::new(),
             loot: None,
+        power_level: None,
             source: None,
             rot: None,
         }

@@ -480,6 +480,8 @@ struct SimulateQuery {
     playfield: Option<u32>,
     /// Features on (comma-separated).
     with: Option<String>,
+    /// The loot power level it rolls at (tunables `loot.power`); none: 1000.
+    power: Option<u32>,
 }
 
 /// Rolls a loot table of the working copy many times (as saved, nested tables too): how often
@@ -495,7 +497,8 @@ async fn simulate_loot(Query(q): Query<SimulateQuery>) -> R<lmoxide_content::rol
         if table(&q.id).is_none() {
             return Err(Error::NotFound(format!("{} isn't a loot table that loads", q.id)));
         }
-        Ok(lmoxide_content::roll::simulate(&table, &in_worlds, &q.id, q.rolls.unwrap_or(10_000).min(200_000)))
+        let rules = &crate::gamedata::get().tunables.loot.power;
+        Ok(lmoxide_content::roll::simulate(&table, &in_worlds, &q.id, q.rolls.unwrap_or(10_000).min(200_000), q.power.unwrap_or(1000), rules))
     })
     .await
 }

@@ -453,7 +453,8 @@ fn finish_one(player: Id32, e: Event, l: Later) {
         Later::Drop(table) => {
             let (Some(pf), Some(at), Some(target)) = (e.playfield, e.at, e.target) else { return };
             let mut items = Vec::new();
-            crate::loot::roll_table_into(&table, orb_bonus(player), pf, &mut items);
+            // (the power-up scripts roll 10281 and 211 at power 0)
+            crate::loot::roll_table_into(&table, orb_bonus(player), pf, 0, &mut items);
             crate::loot::drop_items(player, pf, at, target, items);
         }
         Later::Knock { distance, speed, pull, radius } => {

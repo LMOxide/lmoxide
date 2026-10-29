@@ -97,6 +97,90 @@ pub struct Loot {
     /// (DoSuperChestPowerLevel: Pirate 1000, Medieval 1500, Space 2000, Mythology 2500, Dino 3000).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub power_caps: BTreeMap<String, u32>,
+    /// An enemy's or smashable's loot power level per its level, when its template has no
+    /// `stats.power_level` (the client's NPC PowerLevel stat 499).
+    #[serde(default)]
+    pub npc_power: u32,
+    /// Quest rewards (the "Quest Completion Loot Spawner" scripts): playfield thousands
+    /// (`4000` = 4000-4999) -> the highest power there; other playfields (the hub,
+    /// micro-dungeons) aren't capped.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub quest_power_caps: BTreeMap<String, u32>,
+    /// Quest rewards: playfield thousands -> the lowest power there (the scripts' Dino branch
+    /// uses math.max where the others use math.min: at least 3000 in 6000-6999).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub quest_power_floors: BTreeMap<String, u32>,
+    /// A quest's reward item (client template, the quest's `rewards`) -> the loot bag it drops at
+    /// the player when the quest (or story step) is done.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub quest_rewards: BTreeMap<String, QuestReward>,
+    /// How a roll's loot power level changes what drops.
+    #[serde(default)]
+    pub power: LootPower,
+}
+
+/// What a quest's reward item drops.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct QuestReward {
+    #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
+    pub table: Ref,
+    /// A fixed power level (its script passes a number, e.g. 0); none: the quest rule (the
+    /// player's level x `power_per_level`, `quest_power_caps`, `quest_power_floors`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub power: Option<u32>,
+}
+
+/// How the loot power level (player or NPC level x 100, capped by super-region; the client's
+/// `gethashfromloot(table, power, ...)`) changes a roll. The live tables' scaling was server
+/// data: every curve is (power, factor) points, linear between them and flat beyond the ends;
+/// none: factor 1.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct LootPower {
+    /// Single stars (`stars` counts) times this, rounded (never below 1 when the entry drops any).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub stars: Vec<[f64; 2]>,
+    /// Chances of entries that drop minifigure parts times this.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub parts: Vec<[f64; 2]>,
+    /// Chances of entries that drop minifigure bags times this.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub bags: Vec<[f64; 2]>,
+    /// Entries with a `power_tier` above power + this are skipped; none: tiers don't limit drops.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tier_window: Option<u32>,
+}
+
+impl LootPower {
+    /// The factor of `curve` at `power`.
+    pub fn factor(curve: &[[f64; 2]], power: u32) -> f64 {
+        let p = f64::from(power);
+        match curve {
+            [] => 1.0,
+            [only] => only[1],
+            _ => {
+                if p <= curve[0][0] {
+                    return curve[0][1];
+                }
+                for w in curve.windows(2) {
+                    let ([x0, y0], [x1, y1]) = (w[0], w[1]);
+                    if p <= x1 {
+                        return if x1 > x0 { y0 + (y1 - y0) * (p - x0) / (x1 - x0) } else { y1 };
+                    }
+                }
+                curve[curve.len() - 1][1]
+            }
+        }
+    }
+
+    /// Whether an entry of `tier` drops at `power`.
+    pub fn tier_allowed(&self, tier: Option<u32>, power: u32) -> bool {
+        match (tier, self.tier_window) {
+            (Some(t), Some(w)) => t <= power.saturating_add(w),
+            _ => true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

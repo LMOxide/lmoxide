@@ -296,6 +296,10 @@ fn pass(c: &mut Character, character: u32, main: u32, q: &'static Quest, from: u
         let new_main = (!in_journal(c, main, q)).then_some(l.region);
         c.story.insert(format!("done/{}", s.quest), now);
         info!(character, main, quest = s.quest, step = i + 1, skipped = i != from, "story step done");
+        if i == from && from == to {
+            // a step done (none skipped: skipped steps give nothing) gives its reward items' bags
+            crate::quests::give_rewards(character, c, place, &s.rewards);
+        }
         if shown && i == from {
             records.push(goal_record(character, s.quest, s.goals.first().map_or(0, |g| g.goal), 1, 0));
             records.push(quest_record(character, 2, s.quest));
@@ -310,6 +314,7 @@ fn pass(c: &mut Character, character: u32, main: u32, q: &'static Quest, from: u
         Some(_) => records.extend(show_line(c, character, main, q, place)),
         None => {
             info!(character, main, "story line done");
+            crate::quests::give_rewards(character, c, place, &q.rewards);
             if shown {
                 records.push(crate::quests::main_quest_removed(character, main));
             }

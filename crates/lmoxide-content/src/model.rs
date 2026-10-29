@@ -914,6 +914,10 @@ pub struct NpcStats {
     pub walk: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub run: Option<f32>,
+    /// Its loot power level (the client's NPC stat `PowerLevel` 499); none: level x tunables
+    /// `loot.npc_power`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub power_level: Option<u32>,
 }
 
 record! {
@@ -1470,6 +1474,11 @@ pub struct LootEntry {
     pub drop: LootBundle,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub when: Option<LootWhen>,
+    /// The client's `PowerTier` of what it drops (1000 health orb ... 4000 Super Chests, 5000
+    /// minifigure parts): a roll at a lower loot power can skip it (tunables
+    /// `loot.power.tier_window`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub power_tier: Option<u32>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub comment: String,
 }
@@ -1519,8 +1528,14 @@ pub struct ChestInfo {
     pub spawn_effect_package: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lua_script: Option<u32>,
+    /// Where its loot drops from the chest, in cm (the client's `Loot_Offset{X,Y,Z}Pos`, u32
+    /// two's complement as the client data has them; none: 0).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub offset: Option<serde_json::Value>,
+    /// Its own loot power level (the client's `LootPowerLevel` 1431; DoSuperChestPowerLevel uses
+    /// it before the player's level). No client chest has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loot_power_level: Option<u32>,
     /// What opening it gives.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-ref" = ["loot"]))]

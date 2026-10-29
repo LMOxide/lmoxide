@@ -416,6 +416,7 @@ pub fn items(tree: &mut Tree, ctx: &mut Ctx, data: &dyn Fn(&str) -> Result<Value
                 spawn_effect_package: u32_of(&c["spawn_effect_package"]),
                 lua_script: u32_of(&c["lua_script"]),
                 offset: Some(c["offset"].clone()).filter(|v| !v.is_null()),
+                loot_power_level: None,
                 loot: match loot_type {
                     Some(1) => Some("loot/chest".into()),
                     Some(2) => Some("loot/member-chest".into()),

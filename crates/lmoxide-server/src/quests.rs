@@ -392,11 +392,31 @@ fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64,
         }
         records.push(main_quest_removed(character, q.main));
         t.shown.remove(&q.main);
+        give_rewards(character, c, t.playfield, &q.quest.rewards);
         if let Some(script) = &q.quest.reward_script {
             reward_script(character, script);
         }
     }
     records
+}
+
+/// The loot bags of a done quest's (or story step's) reward items, at the player: each item
+/// whose spawner script rolls a loot table (tunables `loot.quest_rewards`) drops one bag rolled
+/// at the quest rule's power (loot::quest_power) or the script's own. Live dropped it as the
+/// quest's records went out (LMO_Captures.cap: QuestRewardUpdateIIR with the bag).
+pub fn give_rewards(character: u32, c: &Character, place: Pf, rewards: &[[u32; 2]]) {
+    use crate::game::CharacterExt;
+    let loot = &crate::gamedata::get().tunables.loot;
+    let p = player(character);
+    for &[item, _] in rewards {
+        let Some(r) = loot.quest_rewards.get(&item.to_string()) else { continue };
+        let power = r.power.unwrap_or_else(|| crate::loot::quest_power(c.level(), place.model()));
+        let mut items = Vec::new();
+        crate::loot::roll_table_into(&r.table, 0, place, power, &mut items);
+        info!(character, item, table = %r.table, power, items = %crate::loot::describe(&items), "quest reward bag");
+        let at = crate::world::live_position(p).unwrap_or(c.pos);
+        crate::loot::drop_items(p, place, at, p, items);
+    }
 }
 
 /// What the quest's reward item's Lua does (the Dino area quests' puzzle pieces: a pusher tag,
