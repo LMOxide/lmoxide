@@ -37,7 +37,7 @@ use lmoxide_net::{
     types::Id32,
 };
 use serde::Deserialize;
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::{
     game::{create_game_object, despawn_record},
@@ -60,6 +60,11 @@ const STEP: Duration = Duration::from_millis(50);
 const HIT_GRACE: Duration = Duration::from_millis(300);
 /// A shot that flew its range is removed after this (the clients started it a little later).
 const END_GRACE: Duration = Duration::from_millis(300);
+/// A HitPosition this close to the last bounce point (m) is the bounce's own.
+const BOUNCE_SAME_POINT: f32 = 1.0;
+/// A bounced shot's client-reported hit counts when the target is this close to where the
+/// client saw it (m).
+const BOUNCED_HIT_SLACK: f32 = 3.0;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Params {
@@ -70,6 +75,9 @@ pub struct Params {
     pub attractor: u32,
     pub offset_z: f32,
     pub ricochets: u32,
+    /// Enemies it flies on to after hitting one (MaxChains: the Hunting Axe).
+    #[serde(default)]
+    pub chains: u32,
     pub range: f32,
     /// Charge spells: the projectile item per charge level (hold longer, bigger shot).
     #[serde(default)]
@@ -239,13 +247,26 @@ struct Flight {
     reach: f32,
     side: Side,
     stop_at: Option<f32>,
+    /// When this leg started; a bounce or a chain starts a new one (`turn`).
+    launched: Instant,
+    leg: u32,
 }
 
 impl Flight {
     fn new(start: [f32; 3], end: [f32; 3], speed: f32, range: f32, reach: f32, side: Side) -> Self {
         let d = [0, 1, 2].map(|i| end[i] - start[i]);
         let len = d.iter().map(|v| v * v).sum::<f32>().sqrt().max(0.001);
-        Flight { start, dir: d.map(|v| v / len), speed, range, reach, side, stop_at: None }
+        Flight { start, dir: d.map(|v| v / len), speed, range, reach, side, stop_at: None, launched: Instant::now(), leg: 0 }
+    }
+
+    /// A new leg from `start` along `dir` (a ricochet off a wall, or a chain to the next enemy):
+    /// it flies the full range again, as the client's projectile does.
+    fn turn(&mut self, start: [f32; 3], dir: [f32; 3]) {
+        let len = dir.iter().map(|v| v * v).sum::<f32>().sqrt();
+        if len < 1e-3 {
+            return;
+        }
+        *self = Flight { start, dir: dir.map(|v| v / len), stop_at: None, launched: Instant::now(), leg: self.leg + 1, ..*self };
     }
 
     /// The point `d` m along the flight.
@@ -281,10 +302,14 @@ struct Live {
     /// A straight shot's flight (`fly`).
     flight: Option<Flight>,
     hit: HashSet<Id32>,
+    /// Enemies it still flies on to after a hit (`strike`).
+    chains: u32,
+    /// Where it last bounced off a wall (the caster's client's ricochet, `report`).
+    bounced_at: Option<[f32; 3]>,
 }
 
 /// One shot of a Projectile game action (actions.rs): its item, ProjectileType (1 straight, 2
-/// ballistic), Speed (m/s), AttractorID, MaxRicochets, AttackRange and MinimumAttackRange (m,
+/// ballistic), Speed (m/s), AttractorID, MaxRicochets, MaxChains, AttackRange and MinimumAttackRange (m,
 /// 0: none / the spell's range); `width` (m) replaces the item's hit radius plus the target's,
 /// and `piercing` makes it hit everything on its way.
 pub struct Shot {
@@ -293,6 +318,7 @@ pub struct Shot {
     pub speed: f32,
     pub attractor: u32,
     pub ricochets: u32,
+    pub chains: u32,
     pub range: f32,
     pub min_range: f32,
     pub width: Option<f32>,
@@ -339,6 +365,7 @@ pub fn launch_shot(caster: Id32, playfield: Pf, spell: u32, shot: &Shot, from: [
         attractor: shot.attractor,
         offset_z: 0.0,
         ricochets: shot.ricochets,
+        chains: shot.chains,
         range: shot.range,
         charge_items: vec![],
         channel_interval: 0.0,
@@ -377,7 +404,8 @@ fn send(
     let records = vec![create_game_object(id, playfield, start), full_update(id, &p, caster, target, spell, start, end, playfield, max_distance)];
     let piercing = piercing || p.speed < PIERCING_BELOW_SPEED;
     let flight = (!ballistic).then(|| Flight::new(start, end, p.speed, range, width.unwrap_or(radius_of(p.item) + TARGET_RADIUS), Side::Npcs));
-    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, flight, hit: HashSet::new() });
+    let chains = p.chains;
+    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, flight, hit: HashSet::new(), chains, bounced_at: None });
     info!(?caster, spell, item = p.item, ballistic, range, "projectile");
     world::send_playfield(caster, true, world::Out::Records(records));
     if !ballistic {
@@ -400,13 +428,17 @@ const LANDING_GRACE: f32 = 0.3;
 /// flew its range.
 fn fly(id: Id32, playfield: Pf) {
     tokio::spawn(async move {
-        let launched = Instant::now();
+        let mut leg = 0;
         let mut done = 0.0f32;
         let mut tick = tokio::time::interval(STEP);
-        loop {
+        'step: loop {
             tick.tick().await;
             let Some((f, caster, hit)) = LIVE.lock().unwrap().get(&id).and_then(|l| Some((l.flight?, l.caster, l.hit.clone()))) else { return };
-            let to = (f.speed * launched.elapsed().as_secs_f32()).min(f.limit());
+            if f.leg != leg {
+                // it bounced or chained: the new leg from its start
+                (leg, done) = (f.leg, 0.0);
+            }
+            let to = (f.speed * f.launched.elapsed().as_secs_f32()).min(f.limit());
             let (a, b) = (f.at(done), f.at(to.max(done)));
             let mut hits: Vec<(f32, Id32, [f32; 3])> = candidates(f.side, playfield)
                 .into_iter()
@@ -417,6 +449,9 @@ fn fly(id: Id32, playfield: Pf) {
             for (_, target, at) in hits {
                 if !strike(id, target, at) {
                     return;
+                }
+                if LIVE.lock().unwrap().get(&id).and_then(|l| l.flight).is_some_and(|f| f.leg != leg) {
+                    continue 'step;
                 }
             }
             done = done.max(to);
@@ -455,11 +490,36 @@ fn strike(id: Id32, target: Id32, at: [f32; 3]) -> bool {
         }
         Effect::Run(f) => f(Some(target), at),
     }
-    if piercing {
+    if piercing || chain(id, at) {
         return true;
     }
     remove(id, HIT_GRACE);
     false
+}
+
+/// A shot with chains left (MaxChains: the Hunting Axe) flies on from `at` to the nearest
+/// enemy it hasn't hit within its range, as the client's `CoreProjectile::RicochetTarget` does.
+/// Returns whether it did.
+fn chain(id: Id32, at: [f32; 3]) -> bool {
+    let Some((caster, hit, f)) = LIVE.lock().unwrap().get(&id).filter(|l| l.chains > 0).and_then(|l| Some((l.caster, l.hit.clone(), l.flight?))) else {
+        return false;
+    };
+    let Some(playfield) = world::whereabouts(caster).map(|(pf, _)| pf) else { return false };
+    let next = candidates(f.side, playfield)
+        .into_iter()
+        .filter(|(t, _)| *t != caster && !hit.contains(t) && crate::npc::is_enemy(*t))
+        .map(|(t, p)| (horizontal(at, p), t, p))
+        .filter(|(d, _, _)| *d <= f.range)
+        .min_by(|x, y| x.0.total_cmp(&y.0));
+    let Some((_, target, p)) = next else { return false };
+    let mut live = LIVE.lock().unwrap();
+    let Some(l) = live.get_mut(&id) else { return false };
+    let Some(f) = l.flight.as_mut() else { return false };
+    l.chains -= 1;
+    let start = [at[0], f.at(0.0)[1], at[2]];
+    f.turn(start, [p[0] - at[0], 0.0, p[2] - at[2]]);
+    debug!(?id, ?target, left = l.chains, "projectile chains");
+    true
 }
 
 /// A purely visual projectile (e.g. a pet's shot; the damage is dealt separately): flies from
@@ -472,6 +532,7 @@ pub fn launch_visual(caster: Id32, playfield: Pf, item: u32, speed: f32, from: [
         attractor: 0,
         offset_z: 0.0,
         ricochets: 0,
+        chains: 0,
         range: 0.0,
         charge_items: vec![],
         channel_interval: 0.0,
@@ -517,6 +578,7 @@ pub fn launch_at_players(
         attractor,
         offset_z: 0.0,
         ricochets: 0,
+        chains: 0,
         range: 0.0,
         charge_items: vec![],
         channel_interval: 0.0,
@@ -541,6 +603,8 @@ pub fn launch_at_players(
         end,
         flight: Some(flight),
         hit: HashSet::new(),
+        chains: 0,
+        bounced_at: None,
     };
     LIVE.lock().unwrap().insert(id, live);
     world::send_playfield(caster, true, world::Out::Records(records));
@@ -560,6 +624,7 @@ pub fn launch_enemy(caster: Id32, playfield: Pf, spell: u32, item: u32, move_typ
         attractor,
         offset_z: 0.0,
         ricochets: 0,
+        chains: 0,
         range: 0.0,
         charge_items: vec![],
         channel_interval: 0.0,
@@ -600,7 +665,7 @@ fn hit_record(caster: Id32, id: Id32, target: Id32, at: [f32; 3]) -> Bytes {
 /// u32 item, u32 move type (1 straight, 2 ballistic, 3 orbiting), ID32 caster, ID32 target,
 /// start, target position, f32 (5.0), f32 speed (m/s), u32 spell, start angle, local offset
 /// (0, 0, forward), u32 attractor (0, or the caster attachment point it starts from),
-/// u32 ricochets, u32 pierce count, i32 max distance (m; 0: the spell's AttackRange,
+/// u32 ricochets, u32 chains (CoreProjectile +0x2b0: `RicochetTarget` to the next enemy), i32 max distance (m; 0: the spell's AttackRange,
 /// CoreProjectileFullUpdateIIR::Transfer).
 #[allow(clippy::too_many_arguments)]
 fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: u32, start: [f32; 3], end: [f32; 3], playfield: Pf, max_distance: i32) -> Bytes {
@@ -616,7 +681,7 @@ fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: 
         let w = [start, end].iter().flatten().fold(w, |w, v| w.f32(*v));
         let w = w.f32(5.0).f32(p.speed).u32(spell);
         let w = [0.0, 0.0, 0.0, 0.0, 0.0, p.offset_z].iter().fold(w, |w, v| w.f32(*v));
-        w.u32(p.attractor).u32(p.ricochets).u32(0).i32(max_distance)
+        w.u32(p.attractor).u32(p.ricochets).u32(p.chains).i32(max_distance)
     })
 }
 
@@ -633,6 +698,39 @@ pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
         world::send_playfield(from, false, world::Out::Records(vec![Bytes::copy_from_slice(blob)]));
     }
     match (action, straight) {
+        // Ricochet (`CoreProjectile::RicochetStaticCollision`, `RicochetTarget`): position, new
+        // direction; the server's flight turns there too (else the HitPosition after it ended
+        // the shot at the wall and the bounced shot hit nothing)
+        (5, Some(true)) => {
+            let at = [12, 16, 20].map(|i| f(i).unwrap_or(0.0));
+            let mut dir = [24, 28, 32].map(|i| f(i).unwrap_or(0.0));
+            let len = dir.iter().map(|v| v * v).sum::<f32>().sqrt();
+            if len > 1.5 {
+                // (a point to fly to, not a direction)
+                dir = [0, 1, 2].map(|i| dir[i] - at[i]);
+            }
+            let mut live = LIVE.lock().unwrap();
+            if let Some(l) = live.get_mut(&id)
+                && let Some(fl) = l.flight.as_mut()
+            {
+                fl.turn(at, dir);
+                l.bounced_at = Some(at);
+                debug!(?id, ?at, ?dir, "projectile ricochet");
+            }
+        }
+        // HitTarget of a shot that bounced: the client's word, if the server's flight missed it
+        // (the bounce point and direction are the client's, the server's only approximate)
+        (1, Some(true)) => {
+            let (Some(tk), Some(ti)) = (u(12), u(16)) else { return };
+            let target = Id32::new(tk, ti);
+            let at = [20, 24, 28].map(|i| f(i).unwrap_or(0.0));
+            let bounced = LIVE.lock().unwrap().get(&id).is_some_and(|l| l.bounced_at.is_some() && !l.hit.contains(&target));
+            let near = crate::npc::position(target).is_some_and(|p| horizontal(p, at) < BOUNCED_HIT_SLACK);
+            if bounced && near && crate::npc::is_enemy(target) {
+                let p = crate::npc::position(target).unwrap_or(at);
+                strike(id, target, p);
+            }
+        }
         // HitTarget: ID32 target, position; a lobbed shot that came down on someone
         (1, Some(false)) => {
             let (Some(tk), Some(ti)) = (u(12), u(16)) else { return };
@@ -650,8 +748,17 @@ pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
             }
             // (a little further than where the client stopped it: it also stops a shot that hit
             // a target, which the server's flight should still reach)
+            let mut live = LIVE.lock().unwrap();
+            let Some(l) = live.get_mut(&id) else { return };
+            // the HitPosition that comes with a ricochet (at the wall it bounced off) isn't the end
+            if action == 2
+                && let (Some(at), Some(b)) = (at, l.bounced_at)
+                && (0..3).map(|i| (at[i] - b[i]).powi(2)).sum::<f32>().sqrt() < BOUNCE_SAME_POINT
+            {
+                return;
+            }
             if let Some(at) = at
-                && let Some(f) = LIVE.lock().unwrap().get_mut(&id).and_then(|l| l.flight.as_mut())
+                && let Some(f) = l.flight.as_mut()
             {
                 let d = (0..3).map(|i| (at[i] - f.start[i]).powi(2)).sum::<f32>().sqrt();
                 f.stop_at = Some(d + f.reach);
@@ -689,6 +796,16 @@ fn remove(id: Id32, delay: Duration) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A ricochet or chain starts a new leg from the bounce point, along the new direction, for
+    /// the full range again.
+    #[test]
+    fn bounce_turns_the_flight() {
+        let mut f = Flight::new([0.0; 3], [10.0, 0.0, 0.0], 20.0, 10.0, 0.5, Side::Npcs);
+        f.stop_at = Some(4.0);
+        f.turn([4.0, 0.0, 0.0], [0.0, 0.0, -3.0]);
+        assert_eq!((f.leg, f.at(0.0), f.at(2.0), f.limit()), (1, [4.0, 0.0, 0.0], [4.0, 0.0, -2.0], 10.0));
+    }
 
     /// Flies `f` against one character moving as `at(t)` (seconds since the launch), in the
     /// server's steps; returns the distance flown when it was hit.

@@ -35,19 +35,24 @@ pub fn buff_remove(target: Id32, buff: u32, caster: Id32) -> Bytes {
     iir::record("MagicBuffIIR_c", target, false, |w| caster.write(w.u32(buff).u8(1)).u8(0))
 }
 
-/// `ChainSpellIIR_t` (identity the character the chain jumps to; ReadSubClass 0x139f110): ID32
-/// caster, ID32 last chain target (where the jump comes from), u32 spell, GameActionExecutorData,
-/// u32 hook value (× 1000 for the effect's "on_chain_jump" hook; unit unknown, 0 sent), u8 play
-/// effect. The client casts `spell` on the identity (its client-side actions) and, with the
-/// flag, plays the spell's EffectPackage there with the named target "lastChainTarget" (the
-/// arc). Both are `from` (the previous target), so the jump is cast from there.
-pub fn chain_jump(to: Id32, from: Id32, spell: u32) -> Bytes {
-    iir::record("ChainSpellIIR_t", to, false, |w| {
-        let w = from.write(from.write(w)).u32(spell);
-        let w = [1, 0, spell, 1, 0, 0, 0].iter().fold(w, |w, v| w.u32(*v));
-        w.u32(0).u8(1)
+/// `ChainSpellIIR_t` (ReadSubClass 0x139f110, Activate 0x13a061e), identity the caster (its
+/// MagicHolder casts, its EffectHolder plays the effect): ID32 the character the chain jumps to
+/// (the spell is cast on it, the effect's target), ID32 the last chain target (named target
+/// "lastChainTarget", the arc's other end: the caster on the first jump), u32 spell,
+/// GameActionExecutorData (live: 1, 0, spell, 15, 0, a number rising by one per cast, 0), u32
+/// hook value (× 1000 for the effect's "on_chain_jump" hook; live 100), u8 play effect: the
+/// spell's EffectPackage (the Wizard's Lightning Blast jump 505506: 506679, the arc). Live's
+/// 62 recorded jumps (enemies' chains) had the flag 0; nothing else sends the arc, so 1.
+pub fn chain_jump(caster: Id32, to: Id32, last: Id32, spell: u32) -> Bytes {
+    let seq = CHAIN_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    iir::record("ChainSpellIIR_t", caster, false, |w| {
+        let w = last.write(to.write(w)).u32(spell);
+        let w = [1, 0, spell, 15, 0, seq, 0].iter().fold(w, |w, v| w.u32(*v));
+        w.u32(100).u8(1)
     })
 }
+
+static CHAIN_SEQ: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
 
 /// Buffs shown with `show_buff`, with the generation of their latest add.
 static SHOWN: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<(Id32, u32), u64>>> =
