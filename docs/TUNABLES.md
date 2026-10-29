@@ -360,17 +360,17 @@ story's triggers are `trigger/<pf>/story-*` records; each says in its `comment` 
 | Game intro | `game-intro`, 1300 `BA_IntroCinematic` | on arriving in the tutorial, until its first beat (4081) | **Certain** (live, at the tutorial start). |
 | Tutorial ending | client | the client plays 636508 itself on clicking the Crystal Compass (Client_CrystalCompass) | **Certain**; nothing sent. |
 | Pirate World intro | `pirate-intro`, 4600 `BA_Cine_Arrival`(`_Catcher`), `then_dialogue` | on arrival until 4181; Video Game Guy's dialogue 812 when it ends (39 s; live 38.5 s) | **Certain** (live); seen in game 2026-10-29 (Linux client: the narrated fly-over, then the dialogue). |
-| Space, Mythology, Dino, Lost Creations intros, black hole | `space-intro` 3200 `BA_Space_Intro`, `mythology-intro` 2210 `BA_Medieval_Intro`, `dino-intro` 6200 `BA_Cine_Intro`, `lost-creations-portal` 6200 `BA_Cine_Lost_Creations`, `black-hole` 3210 `BA_Black_Hole_Cinematic` | once; sets its Cine_* lore flag (4285, 4282, 4283, 4284, 4281) | **Likely**: area names, the cinematic actors stand there, the flags' names. |
+| Space, Mythology, Dino, Lost Creations intros, black hole | `space-intro` 3200 `BA_Space_Intro`, `mythology-intro` 2210 `BA_Medieval_Intro`, `dino-intro` 6200 `BA_Cine_Intro`, `lost-creations-portal` 6200 `BA_Cine_Lost_Creations`, `black-hole` 3210 `BA_Black_Hole_Cinematic` | once; sets its Cine_* lore flag (4285, 4282, 4283, 4284, 4281) | **Likely**: area names, the cinematic actors stand there, the flags' names. Space, Mythology and Dino hand over to their first conversation when they end (`then_dialogue`: S02 briefing, Zeus G01, the plane crash D01; each also starts on its own area). |
 | Becoming a pirate, after T-Rex | `becoming-a-pirate` (flag 4286), `after-t-rex` | dialogue 266's script step `BecomeAPirate`, dialogue 690's `DanceParty` | **Likely** (the dialogue runs the server script, the cinematic is its scene); 4286 "Cine_Pirate_Defeated_Captain_Pete" as its flag is a **guess**. Dialogue 266 itself isn't started by anything (its NPC and trigger are unknown). |
-| Medieval intro | `medieval-intro`, 5200 `BA_Story_AutoTeleportToThroneRoom1` | on arriving in the Kingdom (the arrival point lies in that area) until the King's Court (425) | **Guess**; the area's auto-teleport to the throne room isn't run (destination unknown). |
-| "After X" cinematics | `after-pirate-fort` (sets 4241), `after-pirate-world`, `after-medieval`, `after-space`, `after-mythology`; 1200 `Story_ArriveAtHub`(`Backup`) | arriving at the hub: the first one not seen whose world is done (4183 Jacket Fort, but not 316; 316; 437; 492; 676), one per arrival | **Guess**: which event played them is not in the client. Each world's story ends with "Travel to the LEGO Center", which the hub arrival also resolves (same conditions); 4241 "Enter Hub before completed Pirate World" names the first. |
+| Medieval intro | `medieval-intro`, 5200 `BA_Story_AutoTeleportToThroneRoom1`, `then_dialogue` the King's Court | on arriving in the Kingdom (the arrival point lies in that area) until the King's Court (425); the King's Court conversation when it ends | **Guess**. The area's "auto teleport to the throne room" is the King's Court's own text 272 `{moveactortopos playerActor TP_ThroneRoom}` (the client moves the player there); its epilogue 276 teleports back to the Kingdom's arrival point (88.3, 24.5, 256), spawns 8G4X (the Wizard's bag) and resolves CPIJ "Go to the Kingdom", so the tracker moves on to "Ask the townsfolk about suspicious activity" (24IC). `BA_Story_TeleportToThroneRoom_CinematicFailed` starts the King's Court when the intro was seen. Seen in game 2026-10-29 (Linux client). |
+| "After X" cinematics | `after-pirate-fort` (sets 4241), `after-pirate-world`, `after-medieval`, `after-space`, `after-mythology`; 1200 `Story_ArriveAtHub`(`Backup`) | arriving at the hub: the first one not seen whose world is done (4183 Jacket Fort, but not 316; 316; 437; 492; 676), one per arrival | **Guess**: which event played them is not in the client. Each world's story ends with "Travel to the LEGO Center", which the hub arrival also resolves (same conditions); 4241 "Enter Hub before completed Pirate World" names the first. Each now hands over to the Video Game Guy's hand-out for the next world (`then_dialogue`; Pirate -> Medieval -> Space -> Mythology -> Dino, by their words: "Hope you had fun in the Pirate World!", "Did you have fun in Space?"). |
 | Seen | story.rs `cinematic/<name>` (DB `character_story`) or the lore flag | once per character; `!story reset` forgets the server's record | Chosen (the flags exist only for some). |
-| Story beats | `story_beat` commands (24) | entering a `BA_Cine_<lore name>` / `Cine_G0N` / `Cine_D0N` area runs the dialogue text that sets that lore flag: its tags, goals, spawns and script steps, no window, once (until the player has its tags) | Area -> flag **likely** (names); the conversation before it isn't known (the server ordered the texts), so only its server side runs. Left out: the tutorial, 4600/4610 (tutorial.rs, cannon.rs, knubot.rs run the recorded ones), the King's Court (276 teleports out of the throne room). The T-Rex party (6300 `Cine_D06_*`, whose area covers most of the Gauntlet) waits for the T-Rex achievement (1540). |
+| Story beats | `story_beat` commands | entering an area runs a dialogue text's server side only (tags, goals, spawns, script steps), no window, once | What's left: 181 Escape from the Fort (4200, the beta version's epilogue; live used 822) and 271 on 5200 `Story_SpawnMedievalQuest` (**guess**: the Medieval line for whoever arrives without the Video Game Guy's hand-out). The 22 other beats are now the full conversations below. |
 | Island Warrior rescue | 1643 `Cine_Rescue_Island_Warrior1` -> dialogue 773 | its recorded dialogue, once | **Likely** (area by name; the area was missing from the content, added from ba_server.json). |
 | Talking heads | `tag` commands on `BA_Head_*` / `Head_*` / `BA_TalkingHead1` (52) | entering adds the pusher's tag; the client shows the talking head (TDB 50000 keyed by tag) | Mechanism **certain** (client Lua 1597 "shows the tutorial talking [head]" = `player:addtag(385)`; seen in game 2026-10-29: 4200 BA_Head_Islanders1 showed the Pirate's tip); area -> pusher by name: **guess**. The Funhouse's `BA_TalkingHead1` in 8000/8020/8060/8070 (one of four intros each) are left out. |
 | Story goals | `story_goal` commands | 17 `Story_*` / `BA_Story_*` areas resolve their goal (Story_ReachBeachBackup1 -> OOPN: **certain**, the live marker; Story_ReachedCannon1 -> X7OF: likely; the rest by name: **guess**); dialogue `resolvegoal`, `spawn <quest hash>` | Story lines below. |
 | Story lines | `story.rs`, content/quests `*-story.json` (`kind: story`) | each line the player started shows in the tracker (gold, MainQuestType 5) at its current step, at every arrival; a step's goals resolved: QuestGoalIIR 1, QuestIIR 2, JournalUpdateIIR, QuestIIR 4, the next step's QuestFullUpdateIIR; the last: MainQuestUpdate remove | **Certain** for the records (byte-equal to live's QuestFullUpdate of 78 up to the goal texts, journal entries with distance = countdown and repeat 1). Rewards shown, not given (as area quests). Goal targets (70099 NPC hashes) and the journal's time aren't sent (unknown). |
-| How a line starts | `spawn <quest hash>` (the tutorial's text 742: S1M7) or any of its goals resolving | started at that step | Live: the Video Game Guy's texts spawn each world's first quest (271, 467, 576; 634 resolves Dino's) but which NPC/area runs them is unknown, so outside the Pirate World a line starts when the player first resolves one of its goals (e.g. the hub's `BA_Story_*_Found_*Entrance` areas). |
+| How a line starts | `spawn <quest hash>` (the tutorial's text 742: S1M7) or any of its goals resolving | started at that step | The Video Game Guy's hub hand-outs (rebuilt, below) end with each world's first quest (271 KFTR, 467 XQ65, 576 U3FC; 634 resolves Dino's 3K9Q): they play after the "after X" cinematic of the world before (`then_dialogue`) and on `BA_Cine_GamerQuestgiver1` by him (**likely**: the area is 3 m from his live spawn). A line also starts when the player first resolves one of its goals. |
 | Order of the steps | the steps' order in the record, each step `source`/`comment` | Pirate World: the live MainQuestUpdate countdown 21..0 (**certain**). Medieval, Space, Mythology, Dino: first step **certain** (the Video Game Guy's spawn); then the lore Cinematic Flags of the texts that resolve the goals (XX_S1..S11, XX_G01..G12, XX_D01..D06, 424..437), the teleport windows' required quests (a window's quest comes before its world), the quest id order (later-added ids placed by flags) and the wording: **guess**, per step in its `comment` | E.g. Dino: 208, 227, 209, 210, 211, 285, 213, 212, 214 (D05's Gauntlet before D06's "puzzle", as the flags order them; the window back from the Lost Creations requires 212). Medieval's 188 "Find the Jester" and Space's 160 have nothing to place them by. |
 | A goal of another step | `story::resolve` | an earlier step's: nothing (live: the server only resolves goals the player has); a later step's: the line jumps there, every step between counted as done (journal) | **Chosen**: many steps have nothing that resolves them yet (Pirate: the Revolutionary Soldier, Pizza Guy, Jacket Fort, Pirate Trials, Dreadleg; most of the other worlds), and with every teleport window unlocked players reach later places first. Strictly live, the line would stop at the first such step. |
 | Counted story goals | step goal `counts` | 279 "Follow the Video Game Guy": defeating Captain Dreadleg (the tutorial's boss); 177 "Smash down the wall": smashing XX_Cracked wall in the jail | **Certain** (live: resolved right after the tutorial's boss fight; with the AttackResultIIR on the wall). |
@@ -380,6 +380,118 @@ story's triggers are `trigger/<pf>/story-*` records; each says in its `comment` 
 | Flagged areas | content areas from `<pf>+0x40000000` | Story_ReachBeachBackup1, BA_Head_Diamonds1/Minimap1 (4600), BA_Head_VolcanoDanger1 (4210), BA_Head_MushroomField1 (3200), BA_Story_ArrivedToPortal1 (3210) | The flagged copy held the area live used for goal 116, so its story areas were live data (spatial.md called the flag a guess). |
 | Jail | 4600 `BA_TeleportJail` -> 4610 `TP_Jail` | walking through the broken fort wall teleports into the jail | **Likely**: Scry 18602 `teleportplayerboundedarea_wazu`, the jail's point; live's dialogue 211 teleports there first (capture), this catches whoever walks on. |
 | Area hints (TDB 21000), FIFO messages (50018) | not sent | — | 21000's hints ("You need to join a pirate crew ...") belong to portals whose conditions aren't known; 50018 are scry debug/test FIFOs. Neither appears in the live capture. |
+
+### Rebuilt conversations (`tools/content/story_dialogues.py`, content/dialogues `source: guess`, tag `reconstructed`)
+
+The client has 821 dialogue texts (TDB 50002); the recordings play 77. The rest were grouped into
+conversations and given starts by `tools/content/story_dialogues.py` (its docstring has the method;
+each record's `comment` has the evidence). Calibrated on the user's live footage: the Jester at the
+Ruined Fort says 283, 284, 285 at about (148.8, 42.1, 115.1); the method finds area
+`BA_Cine_Placeholder1` 5.6 m from 283's only marker and 282 as that scene's epilogue (it removes
+283's actor, gives 430 and resolves VB6T), run on goodbye after 285. Seen in game 2026-10-29.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Texts | the record's `texts` | a start text (actors at Cine_* markers), the lines that use its actors or speakers (later-added ones, 849-1024, placed by their wording), the epilogue last | **Likely** for which texts; the order of lines added later is a **guess** by wording. |
+| Answer buttons | content/texts.json `answers` | each line's button is the TDB 50001 answer with its wording (speaker marks left out: 296), the closest wording (>= 0.6) or, when the line was rewritten after its answer, the unused answer id between its neighbours' (alignment: e.g. 285 -> 180 "I must deliver this Crown with haste") | Live's answer lists offered the next line's answer (capture: 825-827 got 568-570, older wordings): **likely**. |
+| Starts | trigger `dialogue` actions on story areas; record `start: boss` + `defeated`; `start: after_dialogue` + `follows`; cinematic `then_dialogue` | an area near the conversation's markers (the unmatched BA_Cine_*/Cine_* ones and 22 former beats), the defeat of the boss it follows ("I surrender, I'm beaten"), or the cinematic before it | Area: **likely** (distance in each comment); boss: **guess**. |
+| Conditions | record `requires` / `unless` (tags), `goals` (story goals) | e.g. the Pizza Guy's gate needs 4143; the Fairy Queen's second talk the power crystals (3UX1); the hand-outs the previous world done | From speaker labels ("With Pizza Guy", "AFTER Quest is done") and the story: **guess**. |
+| Once | story.rs | a conversation that gives tags runs until the player has them; one that gives none once (`dialogue/<id>` in the story record); never over a running one | Chosen. |
+| Speaker | `npc` (spawn name) | the nearest NPC of that name within 80 m speaks (knubotOwnerActor), else the player (the "Cinematic Start X" owners live used weren't spawned: their TDB 51000 name is the window's `npc_name`) | The NPCs stand on the conversations' markers (Knight, Sir Loin, Fairy Queen, Zeus, Charon, Caveman, ...): **likely**. |
+| Doubles | knubot.rs `addcinematicactor` | an NPC the content placed on the actor's own marker (spawn `anchor`, its name fitting the actor's) is despawned for the player while the dialogue runs and shown again after | The user saw two Wizards in the throne room (2026-10-29); as an actor reference to that NPC instead, the window lost its portrait and text (tried). |
+| `removecinematicactor` | knubot.rs | KnubotActorIIR RemoveActor with the actor's alias | **Guess** (the type exists; no recording shows it). |
+| Spawn before a teleport | knubot.rs `in_play_order` | a text's `spawn` runs after its teleport | 276 would drop the Wizard's bag in the throne room the player can't go back to. |
+| Minifigures given | tunables `story.spawn_minifigures` | `spawn <hash>` of these drops that minifigure's bag 1 m from the player: 7LLT Swashbuckler, SIKZ Island Warrior, RG5K Revolutionary Soldier, 5WM9 Pizza Delivery Man (**likely**: the speaker labels "Give Swashbuckler", "... joins the player"), 8G4X Wizard (**guess**: 276; Lua 4048 "XX_give wizard bag tag"), GQKS Jester, 9UO2 Battle Goddess, 7WZE Space Miner (**guess**: after "come with us") | Other non-quest hashes (SLXS "Give Homestone", LNWG, QOJE, W8DL, FXMI, 5PJB, RQJT, L6FT, WGPC, M5CJ) are only logged. |
+
+Wired (63):
+
+| pf | Dialogue | Texts | Start | Confidence |
+|---|---|---|---|---|
+| 1632 | `rescue-revolutionary-soldier` | 778..779 (9) | area cine-rescue-revolutionary-soulder1 | **likely** |
+| 1670 | `rescue-pizza-guy` | 783..788 (9) | area cine-rescue-pizza-guy1 | **likely** |
+| 4200 | `pizza-delivery-to-fort` | 811..810 (8) | area cine-pizzadeliverytrigger1; requires [4143] | **likely** |
+| 4200 | `pizza-delivery-to-fort-turned-away` | 801..802 (5) | area cine-pizzadeliverytrigger1; unless [4143] | **guess** |
+| 4200 | `dreadleg-escapes-again` | 828..840 (9) | area cinematic-dreadleg1; requires [4161] | **likely** |
+| 4200 | `dreadleg-appears` | 382..385 (4) | area ba-cine-dreadlegappears1 | **likely** |
+| 4200 | `welcome-to-pirate-town` | 386..394 (9) | area ba-cine-welcometopiratetown1 | **likely** |
+| 4620 | `the-pegleg-mermaid` | 155..156 (19) | area ba-cine-thepeglegmermaid1 | **likely** |
+| 4300 | `now-we-must-pirate-fight` | 193..199 (5) | area ba-cine-nowwemustpiratefight | **likely** |
+| 4300 | `completed-the-trials` | 263..266 (14) | defeating Captain Pete | **guess** |
+| 4210 | `dreadleg-volcano` | 404..408 (5) | area ba-cine-dreadlegvolcano1 | **likely** |
+| 4310 | `into-the-skull` | 200..204 (4) | area ba-cine-intotheskull1 | **likely** |
+| 4310 | `captain-dreadleg` | 127..134 (5) | area ba-cine-dreadleg1 | **likely** |
+| 4310 | `dreadleg-defeated` | 259..262 (12) | defeating Captain Dreadleg; requires [316] | **guess** |
+| 4310 | `wizard-calls-the-compass` | 880..886 (7) | after dialogue 259 | **guess** |
+| 1200 | `medieval-world-news` | 267..271 (7) | area ba-cine-gamerquestgiver1; requires [316]; unless [437] | **likely** |
+| 5200 | `the-kings-court` | 272..276 (9) | area ba-cine-thekingscourt1, ba-story-teleporttothroneroom-cinematicfailed | **likely** |
+| 5200 | `kingnapped` | 278..277 (10) | area ba-cine-cityguards1; requires [425] | **likely** |
+| 5200 | `sir-loins-checkpoint` | 426..434 (10) | area story-wallcheckpoint1; requires [426] | **likely** |
+| 5300 | `the-realm-of-jest` | 283..282 (4) | area ba-cine-placeholder1 | **likely** |
+| 5300 | `working-for-the-enemy` | 436..446 (10) | area ba-cine-workingfortheenemy1 | **likely** |
+| 5300 | `my-kingdom-for-a-crown` | 288..287 (16) | defeating boss; requires [562] | **guess** |
+| 5210 | `the-faerie-queen` | 293..292 (9) | area ba-cine-thefaeriequeen1 | **likely** |
+| 5210 | `crossing-the-barrier` | 314..321 (8) | area ba-cine-thefaeriequeen1; requires [433]; goals ['3UX1'] | **likely** |
+| 5310 | `defeated-elementius` | 308..309 (17) | area ba-cine-placeholder1 | **guess** |
+| 1200 | `space-world-news` | 466..467 (4) | area ba-cine-gamerquestgiver1; requires [437]; unless [492] | **likely** |
+| 3200 | `space-s02-briefing` | 327..328 (4) | area ba-cine-s02 | **likely** |
+| 3200 | `space-s03-mean-soldier` | 487..489 (6) | area ba-cine-s03-meansoldier1 | **guess** |
+| 3300 | `space-hq-preboss` | 330..331 (7) | area ba-cine-preboss-fight1 | **likely** |
+| 3300 | `space-hq-thrace` | 363..364 (4) | defeating boss; requires [485] | **guess** |
+| 3200 | `space-mercs-at-mines` | 495..496 (4) | area ba-cine-mercsatmines1 | **likely** |
+| 3200 | `space-meet-the-space-miner` | 334..335 (11) | area ba-cine-s07 | **likely** |
+| 3200 | `space-help-fear` | 337..336 (10) | area ba-cine-s08 | **likely** |
+| 3210 | `space-science-facility` | 361..360 (9) | area ba-cine-s09 | **likely** |
+| 3210 | `space-black-hole` | 343..342 (17) | area ba-cine-s10 | **likely** |
+| 3210 | `space-builder-ruins` | 919..920 (5) | area ba-cine-s095 | **likely** |
+| 3310 | `space-shadrack` | 503..505 (8) | area ba-cine-s11 | **likely** |
+| 3310 | `space-victory-over-shadrack` | 506..509 (6) | area ba-cine-s12; requires [592] | **likely** |
+| 3310 | `space-alien-queen` | 349..348 (11) | area ba-cine-s13 | **likely** |
+| 3310 | `space-the-queen-falls` | 353..352 (17) | defeating Alien Queen; requires [491] | **guess** |
+| 1200 | `mythology-world-news` | 530..576 (5) | area ba-cine-gamerquestgiver1; requires [492]; unless [676] | **likely** |
+| 2210 | `myth-g01-zeus` | 572..575 (6) | area cine-g01-cutscene1 | **likely** |
+| 2210 | `myth-g02-party-guest` | 577..580 (4) | area cine-g02-cutscene1 | **likely** |
+| 2210 | `myth-g03-grey-sisters` | 534..545 (15) | area cine-g03-cutscene1 | **likely** |
+| 2300 | `myth-g04-medusa` | 595..597 (4) | area cine-g04-cutscene1 | **likely** |
+| 2300 | `myth-g05-battle-goddess` | 546..555 (15) | defeating Medusa | **guess** |
+| 2310 | `myth-g06-puzzle-lock` | 556..559 (4) | area cine-g06-cutscene1 | **likely** |
+| 2310 | `myth-g07-thunderbolt` | 560..567 (8) | area cine-g07-cutscene1 | **likely** |
+| 2310 | `myth-g08-the-key` | 568..571 (7) | area cine-g08-cutscene1; requires [671] | **likely** |
+| 2320 | `myth-g09-the-trap` | 581..586 (9) | area cine-g09-cutscene1 | **likely** |
+| 2320 | `myth-g10-charon` | 587..591 (15) | area cine-g10-cutscene1 | **likely** |
+| 2320 | `myth-g11-hades` | 592..594 (5) | area cine-g11-cutscene1 | **likely** |
+| 2320 | `myth-g12-party` | 598..608 (16) | defeating Hades | **guess** |
+| 1200 | `dino-world-news` | 633..634 (5) | area ba-cine-gamerquestgiver1; requires [676]; unless [909] | **likely** |
+| 6200 | `dino-d01-crash` | 620..621 (13) | area cine-d01-cutscene1 | **likely** |
+| 6200 | `dino-d02-dino-tracker` | 635..646 (13) | area cine-d02-cutscene1, cine-d02-cutscene2 | **likely** |
+| 6200 | `dino-d03-expedition` | 694..695 (6) | area cine-d02-cutscene1, cine-d02-cutscene2; requires [910]; goals ['GBWD'] | **guess** |
+| 6200 | `dino-springs-scuba-diver` | 669..673 (10) | area cine-dq1-cutscene1 | **likely** |
+| 6200 | `dino-volcano-caveman` | 674..678 (10) | area cine-dq2-cutscene1, cine-dq2-cutscene2, cine-dq2-cutscene3 | **likely** |
+| 6200 | `dino-tar-pits-zookeeper` | 679..684 (10) | area cine-dq3-cutscene1, cine-dq3-cutscene2 | **likely** |
+| 6300 | `dino-d04-t-rex` | 653..661 (7) | area cine-d04-cutscene1 | **likely** |
+| 6300 | `dino-d05-t-rex-defeated` | 662..668 (12) | defeating T-Rex | **guess** |
+| 6300 | `dino-d06-party` | 685..690 (10) | area cine-d06-cutscene1, cine-d06-cutscenefallback1; requires [1540] | **likely** |
+
+Left unwired:
+
+| Texts | Likely place | Why |
+|---|---|---|
+| 137-159 (143) | the beta hub intro | Story Intro with Space Miner, Battle Goddess, Swashbuckler; replaced by the tutorial (1300) |
+| 470-479 | LEGO Center (beta intro) | same epilogue as 143 (305, 329, 404, spawn WPZW): the pre-tutorial start, superseded by the tutorial |
+| 212-215 | beta tutorial (Torn Bags) | Video Game Guy and the torn bags; the recorded tutorial plays other texts |
+| 88-91, 180-191 (181) | Isle of Yarr, Escape from the Fort | the beta escape with Captain Pete; live used 822 (Swashbuckler, recorded) which resolves the same goal ALPQ; the beat 181 on BA_Cine_EscapeFromTheFort1 stays |
+| 231-253 (240, 252) | Isle of Yarr harbour | Swashbuckler Hero 'Find your way around' / 'Need directions': beta, he refers to the beta story; BA_Cine_FindYourWayAround1 shares Pirate Town's spot |
+| 254-258, 297-301, 323-325, 339-340, 345-346, 365-367, 372-375, 378-379 | beta placeholders | 'Placeholder Dummy' / 'our Beta Elves are hard at work' texts |
+| 341 | Space Colony -> Planet's Dark Side | XX_S6: only its epilogue (teleport to 3210) and placeholder lines exist; nothing to show |
+| 302-306, 455-456 (303) | Sorcerer's Keep? | Danger at the Bridge (Elementius prepares the spell): its only marker Cine_DummySpawn1 is not in the Sorcerer's Keep (5310), only in 5200/5300; where it played is unknown |
+| 524-528 | Shadow Centurion Base (BA_Cine_S14?) | Commander Z's ship: markers Cine_Commander1/Cine_SpaceShip1 are in no playfield's data |
+| 647-651 | Dinosaur Rise camp | the older XX_D03 version (resolves GBWD itself); 694-695 replaces it |
+| 967-971 | Mythology Mountains (Cine_Mermaid1) | the Mermaid asks to come along: no epilogue, no flag, no area |
+| 609-614 | Sky Forge? | Stormhammer's two boss barks; no area, no flag |
+| 696-705 | winter event | Santa (XMAS): seasonal, needs the Holiday Spirit item check |
+| 1028, 1033, 1034, 1041 | LEGO Center funhouse entrance | the Monster Scientist without a ticket: the ticket check is unknown (as for 1025) |
+| 763, 764, 771, 792-794 | tutorial | controller/touch variants of recorded tutorial lines |
+| 176, 806, 855, 856, 956 | - | duplicates of 173, 805, 804, 803, 954 |
+| 307 | - | addtagtoplayer 327 alone (not a story flag) |
 
 ## Lost Creations (`lost_creations.rs`, content/lost-creations, tunables.json `lost_creations`)
 

@@ -378,6 +378,11 @@ pub fn pocket_reward(playfield: u32) -> Option<u32> {
     TABLES.minifigure_bag.get(&minifigure.template).copied()
 }
 
+/// The bag item that holds minifigure `template`.
+pub fn minifigure_bag(template: u32) -> Option<u32> {
+    TABLES.minifigure_bag.get(&template).copied()
+}
+
 /// A minifigure from a loot entry's `from`: the world's, or one of those listed.
 fn pick_from(from: &MinifigureSource, playfield: Pf) -> Option<u32> {
     match from {

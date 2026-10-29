@@ -28,7 +28,8 @@
 //!   !stars <n>                gain n stars (minifigure XP for ranking up)
 //!   !test [n|label]           list the manual test setups, or set one up (data/test_scenarios.json)
 //!   !aura <0-4>               the active minifigure's aura tier (gives/takes its aura tags)
-//!   !dialog [n]               play recorded NPC dialogue n (without n: list them)
+//!   !dialog [n|text]          play NPC dialogue n, or the one whose first text is `text` (the
+//!                             rebuilt story conversations too; without n: list them)
 //!   !cinematic [n|name|id]    play a narrated story cinematic (without an argument: list them)
 //!   !story [reset]            the story (cinematics seen, story lines, goals); reset forgets it
 //!   !story quest <line> <step>  put a story line (pirate, medieval, space, mythology, dino or
@@ -195,7 +196,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!lc end", "out of the Lost Creations run (to the Treasure Chamber)"),
     ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (the achievements only)"),
     ("!cleared", "count this playfield as cleared, as when its last enemy falls (pocket adventure achievements)"),
-    ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
+    ("!dialog [n|text]", "play NPC dialogue n or the one starting with dialogue text `text` (e.g. 283 the Jester; rebuilt story conversations too; without n: list them)"),
     ("!cinematic [n|name|package]", "play a narrated story cinematic (again; without an argument: list them)"),
     ("!story [reset]", "the story: cinematics seen, story lines started, goals resolved; reset: forget them (the lore flags stay)"),
     ("!story quest <line> <step>", "put a story line (pirate, medieval, space, mythology, dino or its main quest id) at step <step> (1: its first; 0: not started; past the last: done) and show it in the tracker"),
@@ -416,6 +417,7 @@ const KINDS: &[(&str, &str)] = &[
     ("lc", "the Lost Creations door (Dinosaur Rise), each level's start, the Treasure Chamber's reward chest"),
     ("trigger", "tutorial triggers (1300; listed 6 m off, so !goto and the tour land inside)"),
     ("dialogue", "the live capture's dialogue speakers (arriving in the jail, or on Isle of Yarr after it, starts its dialogue; !dialog plays any)"),
+    ("rebuilt", "where the rebuilt story conversations start (their area, or the boss they follow; tools/content/story_dialogues.py)"),
     ("boss", "dungeon bosses"),
     ("champion", "champions"),
     ("enemy", "all enemies"),
@@ -504,6 +506,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "boombox" => crate::discovery::points(false),
         "trigger" => crate::tutorial::points(),
         "dialogue" => crate::knubot::points(),
+        "rebuilt" => crate::knubot::rebuilt_points(),
         "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
@@ -615,7 +618,12 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             let n = args.get(1).and_then(|n| n.parse::<usize>().ok()).unwrap_or(1);
             match t.get(n.wrapping_sub(1)) {
                 Some((label, pf, p)) => {
-                    let off = if *kind == "patrol" { PATROL_WATCH } else { ARRIVE_OFFSET };
+                    // (the rebuilt conversations: right inside the area that starts them)
+                    let off = match *kind {
+                        "patrol" => PATROL_WATCH,
+                        "rebuilt" => 0.0,
+                        _ => ARRIVE_OFFSET,
+                    };
                     let at = [p[0] + off, p[1], p[2]];
                     // face the target (yaw convention as in return points: atan2(dx, dz))
                     let rot = (-off).atan2(0.0);
@@ -923,6 +931,8 @@ mod tests {
         assert!(matches!(run("!goto dialogue 1", Pf::main(4200), [0.0; 3]), Action::Teleport(1200, ..)));
         assert!(matches!(run("!goto dialogue 4", Pf::main(4200), [0.0; 3]), Action::Teleport(4610, ..)));
         assert!(matches!(run("!goto dialogue 6", Pf::main(4610), [0.0; 3]), Action::Teleport(4200, ..)));
+        // the rebuilt story conversations' starts, in story order: Pirate World first
+        assert!(matches!(run("!goto rebuilt 1", Pf::main(4200), [0.0; 3]), Action::Teleport(1632, ..)));
     }
 
     #[test]

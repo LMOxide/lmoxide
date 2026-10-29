@@ -1729,6 +1729,19 @@ record! {
         pub follows: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "crate::record::is_false")]
         pub seen_live: bool,
+        /// Started (`start: boss`) when the player defeats this NPC (by name; `boss`: any boss)
+        /// in its world.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub defeated: Option<String>,
+        /// It starts only for a player with all of these tags (lore flags, achievements) ...
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub requires: Vec<u32>,
+        /// ... and none of these.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub unless: Vec<u32>,
+        /// ... and these story goals resolved (hashes).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub goals: Vec<String>,
         /// Its place among the dialogues: an NPC's run in this order (the first first).
         #[serde(default)]
         pub order: u32,

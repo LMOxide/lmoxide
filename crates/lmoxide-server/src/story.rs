@@ -84,6 +84,10 @@ pub fn send(player: Id32, order: Order) {
     world::send_to(player, world::Out::Story(order));
 }
 
+/// How far from the player a dialogue's speaking NPC may stand (m): the Video Game Guy is 45 m
+/// from the LEGO Center's arrival, where the hub cinematics hand over to him.
+const SPEAKER_RADIUS: f32 = 80.0;
+
 /// Players watching a cinematic, until when (one at a time).
 static WATCHING: LazyLock<Mutex<HashMap<Id32, Instant>>> = LazyLock::new(Default::default);
 
@@ -316,6 +320,13 @@ fn progress(c: &mut Character, character: u32, place: Pf, hash: &str, amount: u3
 
 /// Counts `event` (a defeat) for the story goals the player is on that count it.
 pub fn on_event(c: &mut Character, character: u32, place: Pf, event: &crate::achievements::Event) -> Vec<Bytes> {
+    // the rebuilt conversations after a boss (story_dialogues.py `start: boss`)
+    if let crate::achievements::Event::Defeated { name, boss, smashable: false, playfield, .. } = event {
+        for id in crate::knubot::after_defeat(name, *boss, *playfield) {
+            info!(character, dialogue = id, defeated = %name, "story: dialogue after a defeat");
+            send(Id32::new(crate::territory::CHARACTER_TYPE, character), Order::Dialogue(id));
+        }
+    }
     let hashes: Vec<String> = lines()
         .filter_map(|(main, q)| current(c, main, q).map(|i| &q.steps[i]))
         .flat_map(|s| &s.goals)
@@ -425,7 +436,16 @@ pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: 
         }
         Order::Spawn(hash) => {
             let Some((main, q, step)) = find_step(&hash) else {
-                info!(character, hash, "spawn: not a story quest (an NPC template?)");
+                // a minifigure the dialogue gives: its bag, 1 m from the player
+                let t = &crate::gamedata::get().tunables.story;
+                match t.spawn_minifigures.get(&hash).and_then(|m| crate::gamedata::get().minifigures.get(m)).and_then(|m| crate::loot::minifigure_bag(m.template)) {
+                    Some(bag) => {
+                        let at = world::live_position(player).unwrap_or(c.pos);
+                        info!(character, hash, bag, "spawn: a minifigure's bag");
+                        crate::loot::drop_items(player, place, [at[0] + 1.0, at[1], at[2]], player, vec![bag]);
+                    }
+                    None => info!(character, hash, "spawn: not a story quest or minifigure (an NPC template?)"),
+                }
                 return Vec::new();
             };
             let shown = started(c, main);
@@ -440,16 +460,33 @@ pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: 
             };
         }
         Order::Dialogue(id) => {
-            let Some(first) = crate::gamedata::get().dialogues.get(&id).and_then(|d| d.texts.first().copied()) else {
+            let Some(d) = crate::knubot::by_id(&id) else {
                 info!(character, dialogue = id, "story: no such dialogue");
                 return Vec::new();
             };
-            let Some(d) = crate::knubot::starting_with(first) else { return Vec::new() };
+            // (a trigger that goes off again while it runs: the cinematic moves the player)
+            if crate::knubot::talking(player) {
+                return Vec::new();
+            }
             let gives = crate::knubot::tags_given(&d);
+            let key = format!("{id}");
             if !gives.is_empty() && gives.iter().all(|t| c.tags.contains_key(t)) {
                 return Vec::new();
             }
-            let owner = crate::npc::find(&d.npc, place).unwrap_or(player);
+            // the rebuilt ones: their conditions; one that gives no tag plays once
+            if crate::knubot::rebuilt(&d) {
+                let may = d.requires.iter().all(|t| c.tags.contains_key(t))
+                    && !d.unless.iter().any(|t| c.tags.contains_key(t))
+                    && d.goals.iter().all(|g| resolved(c, g));
+                if !may || (gives.is_empty() && c.story.contains_key(&key)) {
+                    return Vec::new();
+                }
+                c.story.insert(key, unix_now());
+            }
+            // the speaker: that NPC near the player (else anywhere here), else the player (the
+            // cinematics, whose owner wasn't spawned)
+            let at = world::live_position(player).unwrap_or(c.pos);
+            let owner = crate::npc::nearest(&d.npc, place, at, SPEAKER_RADIUS).or_else(|| crate::npc::find(&d.npc, place)).unwrap_or(player);
             crate::knubot::start(player, name, owner, d);
         }
         Order::Beat { text, requires } => {

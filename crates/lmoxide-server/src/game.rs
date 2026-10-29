@@ -1663,7 +1663,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
 
                         crate::devcmd::Action::Dialog(n) => {
                             let me_id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                            match crate::knubot::dialogues().get(n.wrapping_sub(1)) {
+                            let all = crate::knubot::dialogues();
+                            // a number past the list: a dialogue's first text (`!dialog 283`)
+                            let pick = if n > all.len() { all.iter().find(|d| d.first_text() == Some(n as u32)) } else { all.get(n.wrapping_sub(1)) };
+                            match pick {
                                 Some(d) => {
                                     // the speaker: that NPC if it's here, else the player
                                     let owner = crate::npc::find(&d.npc, place).unwrap_or(me_id);

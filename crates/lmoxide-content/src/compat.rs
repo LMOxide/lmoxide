@@ -85,6 +85,13 @@ pub fn dialogues_file(c: &Content) -> Value {
             put("start", d.start.clone().unwrap_or(Value::Null));
             put("pos", json!(d.pos));
             put("follows", d.follows.clone().unwrap_or(Value::Null));
+            put("defeated", json!(d.defeated));
+            for (k, v) in [("requires", json!(d.requires)), ("unless", json!(d.unless)), ("goals", json!(d.goals))] {
+                if v.as_array().is_some_and(|a| !a.is_empty()) {
+                    put(k, v);
+                }
+            }
+            put("id", json!(id));
             ((d.order, c.order.get(id).copied().unwrap_or(usize::MAX)), Value::Object(v))
         })
         .collect();

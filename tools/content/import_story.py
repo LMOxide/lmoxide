@@ -21,8 +21,12 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import story_dialogues  # noqa: E402  (the rebuilt conversations; their triggers are made here)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONTENT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "..", "..", "content")
+story_dialogues.CONTENT = CONTENT
 SURVEY = os.path.join(HERE, "..", "..", "..", "research", "lmoxide-notes", "client-survey")
 ME = "tools/content/import_story.py"
 
@@ -62,26 +66,26 @@ CINEMATICS = {
     "becoming-a-pirate": (636509, 10, 4286, [], [], None,
                           "likely: dialogue 266's script step BecomeAPirate (resolves 'Complete the Pirate "
                           "Trials'); flag 4286 Cine_Pirate_Defeated_Captain_Pete is a guess"),
-    "after-pirate-world": (636511, 11, None, [316], [], None,
+    "after-pirate-world": (636511, 11, None, [316], [], "dialogue/medieval-world-news-267",
                            "guess: arriving at the hub once Pirate World is done (316 Captain Dreadleg, its last "
                            "beat; the last step is 'Travel to the LEGO Center')"),
-    "medieval-intro": (637080, 12, None, [], [425], None,
+    "medieval-intro": (637080, 12, None, [], [425], "dialogue/the-kings-court-272",
                        "guess: arriving in the Kingdom (the arrival point is in BA_Story_AutoTeleportToThroneRoom1), "
                        "before the King's Court (425)"),
-    "after-medieval": (636536, 13, None, [437], [], None,
+    "after-medieval": (636536, 13, None, [437], [], "dialogue/space-world-news-466",
                        "guess: arriving at the hub once Medieval World is done (437 Another Cube Piece)"),
-    "space-intro": (636513, 14, 4285, [], [], None,
+    "space-intro": (636513, 14, 4285, [], [], "dialogue/space-s02-briefing-327",
                     "likely: BA_Space_Intro (actors at its height), flag 4285 Cine_Space_Intro"),
     "black-hole": (636514, 15, 4281, [], [], None,
                    "likely: BA_Black_Hole_Cinematic by the portal, flag 4281 Cine_Space_BlackHole"),
-    "after-space": (636598, 16, None, [492], [], None,
+    "after-space": (636598, 16, None, [492], [], "dialogue/mythology-world-news-530",
                     "guess: arriving at the hub once Space World is done (492, 'End the Alien Invasion')"),
-    "mythology-intro": (636983, 17, 4282, [], [], None,
+    "mythology-intro": (636983, 17, 4282, [], [], "dialogue/myth-g01-zeus-572",
                         "likely: BA_Medieval_Intro in Mythology Mountains (Zeus and Artemis actors there), flag "
                         "4282 Cine_Mythology_Intro"),
-    "after-mythology": (636982, 18, None, [676], [], None,
+    "after-mythology": (636982, 18, None, [676], [], "dialogue/dino-world-news-633",
                         "guess: arriving at the hub once Mythology World is done (676 XX_G12, 'Disrupt Hades' plan')"),
-    "dino-intro": (637077, 19, 4283, [], [], None,
+    "dino-intro": (637077, 19, 4283, [], [], "dialogue/dino-d01-crash-620",
                    "likely: BA_Cine_Intro (actors there), flag 4283 Cine_Dino_Intro"),
     "after-t-rex": (637098, 20, None, [], [], None,
                     "likely: dialogue 690's script step DanceParty (the party's actors at the Gauntlet's end)"),
@@ -139,7 +143,6 @@ GOALS = {
     "area/3210/ba-story-arrivedtoalienworld1": ("U5AL", [], "guess (name)"),
     "area/3210/ba-story-arrivedtoportal1": ("UC8W", [], "guess (name)"),
     "area/3200/ba-story-exited-space-police-hq": ("CZGR", [], "guess (name)"),
-    "area/5200/story-wallcheckpoint1": ("24IC", [], "guess (name)"),
     "area/1200/ba-story-space-found-spaceport1": ("CLH1", [], "guess (name)"),
     "area/1200/ba-story-space-found-castleentrance1": ("WHS5", [], "guess (name)"),
     "area/1200/ba-story-found-mythentrance1": ("FY69", [], "guess (name)"),
@@ -161,8 +164,22 @@ BEAT_REQUIRES = {
 }
 # recorded dialogues started on a story area
 DIALOGUES = {
-    "area/1643/cine-rescue-island-warrior1": ("dialogue/xx-cinematic-rescue-island-warrior-773",
-                                              "likely: the live capture's Island Warrior rescue (4141), its area by name"),
+    "area/1643/cine-rescue-island-warrior1": [("dialogue/xx-cinematic-rescue-island-warrior-773",
+                                               "likely: the live capture's Island Warrior rescue (4141), its area by name")],
+}
+for _area, _list in story_dialogues.TRIGGERS.items():
+    DIALOGUES.setdefault(_area, []).extend(_list)
+# a dialogue's `spawn <hash>` that gives a minifigure (its bag): hash -> (minifigure, evidence)
+SPAWN_MINIFIGURES = {
+    "7LLT": ("minifig/swashbuckler", "likely: 823 '[Give Swashbuckler]{spawn 7LLT 1 m}' (live capture's escape)"),
+    "SIKZ": ("minifig/island-warrior", "likely: 774 '[Island Warrior joins the player]{spawn SIKZ}'"),
+    "RG5K": ("minifig/revolutionary-soldier", "likely: 779 '[Revo Soldier joins the player]{spawn RG5K}'"),
+    "5WM9": ("minifig/pizza-delivery-man", "likely: 788 '[Pizza Delivery Man joins the player]{spawn 5WM9}'"),
+    "8G4X": ("minifig/wizard", "guess: 276 (King's Court) spawns 8G4X; Lua 4048 'XX_give wizard bag tag' gives 4242 "
+                               "Received Wizard: the Wizard came as a bag"),
+    "GQKS": ("minifig/jester", "guess: 287 after 'You're welcome to come with us, Jester'"),
+    "9UO2": ("minifig/battle-goddess", "guess: 555 after Battle Goddess joins ('Come on mortals')"),
+    "7WZE": ("minifig/space-miner", "guess: 352 after the Space Miner's 'I'd like to come with you'"),
 }
 
 # areas the content lacks: (pf as ba_server.json has it, name) -> role, category. Most are only in the
@@ -224,7 +241,10 @@ def tunables():
             c["then_dialogue"] = then
         c["comment"] = comment
         cin[name] = c
-    t["story"] = {"cinematics": cin, "pickup_drop_chance": "100%"}
+    story = t.setdefault("story", {})
+    story["cinematics"] = cin
+    story.setdefault("pickup_drop_chance", "100%")
+    story["spawn_minifigures"] = {h: m for h, (m, _) in SPAWN_MINIFIGURES.items()}
     save(p, t)
 
 
@@ -258,7 +278,8 @@ def quests():
                 rs["tags_if_goal"] = tags_if
             if solves:
                 rs["solves"] = solves
-            rs["progress"] = [{"goal": g, "amount": n} for g, n in progress]
+            # (Lua 1699's ticker buff waits for GBWD: the progress waits for its step)
+            rs["progress"] = [dict({"goal": g, "amount": n}, **({"wait": True} if script == 1699 else {})) for g, n in progress]
             q["reward_script"] = rs
             changed = True
         if changed:
@@ -311,9 +332,16 @@ def triggers():
             args["requires"] = req
         add(pf, trigger(pf, area, names[area], [cmd("story_goal", **args)], f"{how}: resolves story goal {hash_}"))
 
-    for area, (d, how) in DIALOGUES.items():
+    for area, ds in DIALOGUES.items():
         pf = area.split("/")[1]
-        add(pf, trigger(pf, area, names[area], [{"dialogue": {"dialogue": d}}], how))
+        # each dialogue checks its own conditions and plays once (story.rs), so the area may go
+        # off every time
+        once = "per_player" if len(ds) == 1 and "reconstructed" not in ds[0][1] else "never"
+        add(pf, trigger(pf, area, names[area], [{"dialogue": {"dialogue": d}} for d, _ in ds],
+                        "; ".join(f"{d.split('/')[1]}: {how}" for d, how in ds), once))
+    for area, (text, how) in story_dialogues.BEATS.items():
+        pf = area.split("/")[1]
+        add(pf, trigger(pf, area, names[area], [cmd("story_beat", text=text)], how))
 
     for t in st:
         pf, name = t["pf"], t["name"]
@@ -324,7 +352,7 @@ def triggers():
         area = f"area/{pf}/{slug(name)}"
         if area not in names or (flagged and (pf, name) not in FLAGGED):
             continue
-        if area in CINEMATIC_AREAS or area in GOALS or area in DIALOGUES:
+        if area in CINEMATIC_AREAS or area in GOALS or area in DIALOGUES or area in story_dialogues.BEATS:
             continue
         if t["kind"] in ("head", "talkinghead") and t.get("tag") and t.get("match"):
             pusher = (t.get("pusher") or {}).get("name") or t.get("tag_name", "").split("/")[-1].strip()
@@ -345,6 +373,18 @@ def triggers():
                             "the conversation before it isn't known, only its server side runs"))
 
     for pf, recs in out.items():
+        # the areas these triggers run are no longer `todo` (extract_server_areas.py drops the mark
+        # on rerun too: an area with a trigger on it)
+        ap = os.path.join(world_dir(pf), "areas.json")
+        ad = load(ap)
+        run = {r["area"] for r in recs}
+        for a in ad["areas"]:
+            if a["id"] in run and "todo" in a.get("tags", []):
+                a["tags"].remove("todo")
+                if not a["tags"]:
+                    del a["tags"]
+                a.pop("todo", None)
+        save(ap, ad)
         p = os.path.join(world_dir(pf), "triggers.json")
         d = load(p) if os.path.exists(p) else {"triggers": []}
         ids = {r["id"] for r in recs}
@@ -374,6 +414,7 @@ def jail():
 
 
 if __name__ == "__main__":
+    story_dialogues.build()
     add_flagged_areas()
     tunables()
     quests()

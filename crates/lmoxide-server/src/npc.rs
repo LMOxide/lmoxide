@@ -473,6 +473,33 @@ pub fn find(name: &str, playfield: Pf) -> Option<Id32> {
     NPCS.lock().unwrap().iter().find(|(_, n)| n.playfield == playfield && n.def.name == name && n.presence.is_some()).map(|(id, _)| *id)
 }
 
+/// The NPC named `name` on `playfield` nearest to `at` within `radius` m (a dialogue's speaker).
+pub fn nearest(name: &str, playfield: Pf, at: [f32; 3], radius: f32) -> Option<Id32> {
+    let npcs = NPCS.lock().unwrap();
+    npcs.iter()
+        .filter(|(_, n)| n.playfield == playfield && n.def.name == name && n.presence.is_some())
+        .map(|(id, n)| (*id, (n.def.pos[0] - at[0]).hypot(n.def.pos[2] - at[2])))
+        .filter(|(_, d)| *d <= radius)
+        .min_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(id, _)| id)
+}
+
+/// A friendly NPC the content placed on cinematic marker `anchor` (its spawn's `anchor`) whose
+/// name fits `alias` (a dialogue's actor: `Wizard`, `Jester` for the Court Jester, `Knight2`),
+/// on `playfield`.
+pub fn on_anchor(playfield: Pf, anchor: &str, alias: &str) -> Option<Id32> {
+    let squash = |s: &str| s.chars().filter(|c| c.is_ascii_alphabetic()).collect::<String>().to_ascii_lowercase();
+    let alias = squash(alias);
+    let npcs = NPCS.lock().unwrap();
+    npcs.iter()
+        .find(|(_, n)| {
+            let name = squash(&n.def.name);
+            n.playfield == playfield && n.def.kind != Kind::Enemy && n.presence.is_some() && n.def.anchor.as_deref() == Some(anchor)
+                && !alias.is_empty() && (name.contains(&alias) || alias.contains(&name))
+        })
+        .map(|(id, _)| *id)
+}
+
 /// The playfield's own enemies (not test, event or summoned ones): defeating all of them in
 /// one visit clears it.
 pub fn resident_enemies(playfield: Pf) -> std::collections::HashSet<Id32> {

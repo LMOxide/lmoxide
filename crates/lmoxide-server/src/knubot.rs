@@ -17,6 +17,11 @@
 //! gives the tag (achievements), `teleportplayer` teleports, the tutorial's script steps
 //! (`gameactiononnpc` 599417) go to tutorial.rs (and the story's cinematics), quest tags
 //! (`spawn`, `resolvegoal`) to story.rs; other server scripts are logged, not run.
+//!
+//! The rest of the texts were rebuilt into conversations (`source: guess`,
+//! tools/content/story_dialogues.py, docs/TUNABLES.md "Rebuilt conversations"): story.rs starts
+//! them from trigger areas, a boss's defeat (`defeated`) or a cinematic's end, under their
+//! `requires` / `unless` / `goals`; they run as the recorded ones.
 
 use crate::instance::Pf;
 use std::{
@@ -66,9 +71,22 @@ pub struct Dialogue {
     /// the first text of the dialogue this one followed
     #[serde(default)]
     follows: Option<u32>,
-    /// where the speaker stood (live capture)
+    /// where the speaker stood (live capture); for the rebuilt ones where they start
     #[serde(default)]
     pos: Option<[f32; 3]>,
+    /// its content id (`dialogue/...`)
+    #[serde(default)]
+    pub id: String,
+    /// rebuilt ones started by a defeat (`start: boss`): the NPC's name, or `boss`
+    #[serde(default)]
+    pub defeated: Option<String>,
+    /// tags the player must have / must not have, story goals resolved
+    #[serde(default)]
+    pub requires: Vec<u32>,
+    #[serde(default)]
+    pub unless: Vec<u32>,
+    #[serde(default)]
+    pub goals: Vec<String>,
 }
 
 /// The dialogues and the client's texts (content/dialogues, texts.json).
@@ -124,6 +142,46 @@ impl Dialogue {
         }
         out.split_whitespace().collect::<Vec<_>>().join(" ")
     }
+}
+
+/// The dialogue with content id `id` (`dialogue/...`).
+pub fn by_id(id: &str) -> Option<Dialogue> {
+    DATA.dialogues.iter().find(|d| d.id == id).cloned()
+}
+
+/// Whether the player is in a dialogue now.
+pub fn talking(player: Id32) -> bool {
+    TALKING.lock().unwrap().contains_key(&player)
+}
+
+/// The rebuilt dialogues a defeat of `name` (`boss`: a boss) on `playfield` starts.
+pub fn after_defeat(name: &str, boss: bool, playfield: u32) -> Vec<String> {
+    DATA.dialogues
+        .iter()
+        .filter(|d| d.playfield == playfield && d.defeated.as_deref().is_some_and(|n| n == name || (boss && n == "boss")))
+        .map(|d| d.id.clone())
+        .collect()
+}
+
+/// Whether it's one of the rebuilt story conversations (tools/content/story_dialogues.py).
+pub fn rebuilt(d: &Dialogue) -> bool {
+    d.source == "guess"
+}
+
+/// The rebuilt conversations and where they start (for `!goto rebuilt`).
+pub fn rebuilt_points() -> Vec<(String, u32, [f32; 3])> {
+    DATA.dialogues
+        .iter()
+        .filter(|d| rebuilt(d))
+        .filter_map(|d| {
+            let start = match (&d.start, &d.defeated) {
+                (_, Some(n)) => format!("after defeating {n}"),
+                (Some(s), _) => s.clone(),
+                _ => String::new(),
+            };
+            Some((format!("{} {} ({start})", d.id.trim_start_matches("dialogue/"), d.first_line().chars().take(40).collect::<String>()), d.playfield, d.pos?))
+        })
+        .collect()
 }
 
 /// The recorded dialogue that starts with text `first`.
@@ -327,7 +385,7 @@ pub fn left(player: Id32) {
 
 /// Returns whether the player answered to the end (not a timeout).
 async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: mpsc::UnboundedReceiver<u32>, generation: u64) -> bool {
-    let speaker = Speaker { player, owner, name, npc_name: d.npc_name, generation };
+    let speaker = Speaker { player, owner, name, npc_name: d.npc_name, generation, hidden: Mutex::default() };
     let send = |records: Vec<Bytes>| speaker.send(records);
     // the cinematic actors "playerActor" and "knubotOwnerActor", then the window
     send(vec![
@@ -366,6 +424,9 @@ async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: 
     }
     let close = remoteformat(100, "0", &key("100/0"), None, None);
     records.push(knubot_record("KnubotCloseChatWindowIIR", player, owner, |w| w.u32(1).string(&close)));
+    // the NPCs hidden for their doubles come back
+    let hidden: Vec<Id32> = speaker.hidden.lock().unwrap().drain().collect();
+    records.extend(hidden.into_iter().filter_map(world::spawn_records_of).flatten());
     send(records);
     ended
 }
@@ -376,6 +437,8 @@ struct Speaker {
     name: String,
     npc_name: Option<u32>,
     generation: u64,
+    /// NPCs hidden from the player while their cinematic double is on stage
+    hidden: Mutex<std::collections::HashSet<Id32>>,
 }
 
 impl Speaker {
@@ -399,7 +462,7 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
         send(vec![append(s, id, 0)]);
     }
     let mut cleared = false;
-    for (n, tag) in tags(text).into_iter().enumerate() {
+    for (n, tag) in in_play_order(tags(text)).into_iter().enumerate() {
         let words: Vec<&str> = tag.split_whitespace().collect();
         let mut records = Vec::new();
         cleared = false;
@@ -423,7 +486,19 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
                 records.push(actor(s.player, msg(Kind::ClearCinematicState, "")));
                 cleared = true;
             }
-            ["addcinematicactor", alias, template, point, ..] => records.push(spawn_client_npc(s.player, alias, template.parse().unwrap_or(0), point)),
+            // a client-side actor at its marker; an NPC the content put on that marker (the
+            // client data places story NPCs on the cinematics' markers: the Wizard in the throne
+            // room) is hidden from the player meanwhile, else there would be two of them (as an
+            // actor reference to the NPC the window loses its portrait and text)
+            ["addcinematicactor", alias, template, point, ..] => {
+                if let Some(npc) = world::whereabouts(s.player).and_then(|(pf, _)| crate::npc::on_anchor(pf, point, alias)) {
+                    if s.hidden.lock().unwrap().insert(npc) {
+                        records.push(crate::game::despawn_record(npc));
+                    }
+                }
+                records.push(spawn_client_npc(s.player, alias, template.parse().unwrap_or(0), point));
+            }
+            ["removecinematicactor", alias, ..] => records.push(actor(s.player, msg(Kind::RemoveActor, alias))),
             ["delay", secs, ..] => tokio::time::sleep(Duration::from_secs_f32(secs.parse().unwrap_or(1.0))).await,
             // tags, story goals, teleports, script steps
             _ => {
@@ -453,6 +528,21 @@ fn teleport_args(args: &[&str]) -> Option<(Option<u32>, [f32; 3], f32)> {
         }
     }
     Some((playfield, [x, height, z], rot))
+}
+
+/// A text's tags as they run: a `spawn` before a teleport in the same text runs after it (276
+/// gives the Wizard's bag, then teleports out of the throne room: the bag lands at the player's
+/// new place, not where they can't go back). The count (`antitag`) stays the text's own.
+fn in_play_order(mut tags: Vec<String>) -> Vec<String> {
+    let Some(tp) = tags.iter().rposition(|t| t.starts_with("teleportplayer")) else { return tags };
+    let spawns: Vec<String> = tags[..tp].iter().filter(|t| t.starts_with("spawn ")).cloned().collect();
+    if spawns.is_empty() {
+        return tags;
+    }
+    tags.retain(|t| !(t.starts_with("spawn ") && spawns.contains(t)));
+    let tp = tags.iter().rposition(|t| t.starts_with("teleportplayer")).unwrap_or(0);
+    tags.splice(tp + 1..tp + 1, spawns);
+    tags
 }
 
 /// The `{...}` tags of a text, in order.
@@ -582,9 +672,10 @@ mod tests {
     #[test]
     fn data_and_tags() {
         // the demo recording's 8 first (each also in the live capture), then the live capture's 7
-        assert_eq!(DATA.dialogues.len(), 15);
+        // (then the rebuilt story conversations, source "guess")
         assert!(DATA.dialogues[..8].iter().all(|d| d.source == "demo" && d.start.is_none()));
-        assert!(DATA.dialogues[8..].iter().all(|d| d.source == "live" && d.start.is_some()));
+        assert!(DATA.dialogues[8..15].iter().all(|d| d.source == "live" && d.start.is_some()));
+        assert!(DATA.dialogues[15..].len() > 50 && DATA.dialogues[15..].iter().all(|d| rebuilt(d) && d.start.is_some()));
         assert_eq!(tags(&DATA.texts["742"]), ["changeguivisibility 0", "delay 1", "spawn S1M7 10 m", "clearcinematic"]);
         assert_eq!(DATA.answers.get("743"), Some(&510));
     }
@@ -610,6 +701,37 @@ mod tests {
         assert_eq!(following(79).map(|d| d.texts[0]), Some(224));
         assert!(following(741).is_none());
         assert_eq!(points().len(), 7);
+    }
+
+    #[test]
+    fn rebuilt_conversations() {
+        // the calibration: the Jester at the Ruined Fort says 283, 284, 285 (user's footage); 282
+        // is the scene's epilogue (run on goodbye); the answers chain them (285's by alignment)
+        let jester = by_id("dialogue/the-realm-of-jest-283").expect("the Jester");
+        assert_eq!((jester.texts.as_slice(), jester.playfield), ([283, 284, 285, 282].as_slice(), 5300));
+        assert_eq!((DATA.answers.get("284"), DATA.answers.get("285"), DATA.answers.get("282")), (Some(&179), Some(&180), None));
+        // every middle text has its answer button (else the conversation would end there)
+        for d in DATA.dialogues.iter().filter(|d| rebuilt(d)) {
+            let n = d.texts.len();
+            for t in &d.texts[1..n - 1] {
+                assert!(DATA.answers.contains_key(&t.to_string()), "{} text {t}", d.id);
+            }
+            // nobody's owner can't start them: no click (start set) and not a recorded first text
+            assert!(!of(&d.npc, d.playfield).iter().any(|o| o.id == d.id));
+        }
+        // after a defeat: by name, or any boss of that playfield
+        assert_eq!(after_defeat("Hades", true, 2320), ["dialogue/myth-g12-party-598"]);
+        assert_eq!(after_defeat("Troll Warlord", true, 5300), ["dialogue/my-kingdom-for-a-crown-288"]);
+        assert!(after_defeat("Troll Warlord", false, 5300).is_empty());
+        assert!(rebuilt_points().iter().any(|(_, pf, _)| *pf == 5300));
+    }
+
+    #[test]
+    fn spawns_after_the_teleport() {
+        let order = in_play_order(tags(&DATA.texts["276"]));
+        let at = |p: &str| order.iter().position(|t| t.starts_with(p)).unwrap();
+        assert!(at("spawn 8G4X") > at("teleportplayernosplash"));
+        assert_eq!(order.len(), tags(&DATA.texts["276"]).len());
     }
 
     #[test]

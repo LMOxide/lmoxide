@@ -67,19 +67,27 @@ fn dialogues_same_as_the_old_file() {
     let (content, _) = load(tree(), &Options::default());
     let new = lmoxide_content::compat::dialogues_file(&content);
     let old: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(tree().join("../data/archive/dialogues.json")).unwrap()).unwrap();
-    for k in ["texts", "answers", "keys", "names"] {
+    for k in ["texts", "keys", "names"] {
         assert_eq!(old[k], new[k], "{k}");
     }
-    // positions as the server reads them (f32)
+    // the answers: the old ones kept, the rebuilt conversations' added
+    // (tools/content/story_dialogues.py)
+    for (t, a) in old["answers"].as_object().unwrap() {
+        assert_eq!(&new["answers"][t], a, "answer of {t}");
+    }
+    // positions as the server reads them (f32); the content id is new; the rebuilt ones
+    // (source guess) come after the recorded ones
     let norm = |d: &serde_json::Value| {
         let mut d = d.clone();
+        d.as_object_mut().unwrap().remove("id");
         if let Some(p) = d["pos"].as_array() {
             d["pos"] = serde_json::json!(p.iter().map(|x| format!("{}", x.as_f64().unwrap() as f32)).collect::<Vec<_>>());
         }
         d.to_string()
     };
     let a: Vec<String> = old["dialogues"].as_array().unwrap().iter().map(norm).collect();
-    let b: Vec<String> = new["dialogues"].as_array().unwrap().iter().map(norm).collect();
+    let b: Vec<String> = new["dialogues"].as_array().unwrap().iter().filter(|d| d["source"] != "guess").map(norm).collect();
+    assert!(new["dialogues"].as_array().unwrap()[a.len()..].iter().all(|d| d["source"] == "guess"));
     assert_eq!(a, b);
 }
 
