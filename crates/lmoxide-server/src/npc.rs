@@ -735,7 +735,7 @@ fn spec(def: &SpawnDef, playfield: Pf, pos: [f32; 3], health: u32) -> CharSpec<'
         max_health: def.health,
         cars_group: def.cars_group.unwrap_or(CARS_ENEMIES),
         npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), ..Default::default() }),
-        speeds: speeds(def),
+        speeds: speeds(def).into(),
     }
 }
 

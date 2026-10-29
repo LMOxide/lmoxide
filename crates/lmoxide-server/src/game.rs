@@ -388,6 +388,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     ..me.clone()
                 });
                 active_at_first_position(&mut me.team);
+                // the movement speed factor (`!speed`): the character's speed stats show it
+                me.speed = crate::speed::sane(me.speed);
+                crate::speed::set(character, me.speed);
                 // world editors teleport and use the test commands
                 mode = crate::instance::Mode::of_character(&me);
                 gm_level = gm_level.max(mode.rules().min_gm_level);
@@ -532,7 +535,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let here = *pos.lock().unwrap();
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() }.spec(place));
+                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), speed: crate::speed::of(id.instance), ..snapshot.clone() }.spec(place));
                             presence = Some(world::join(id, place, pos_handle, spawn, outbox.clone()));
                             // the journal: a visit; clearing starts over
                             let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Visited { playfield: me.playfield }));
@@ -605,7 +608,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             *pos.lock().unwrap() = p;
                             // where they are between reports (what enemy shots hit)
-                            if let Some(motion) = reported_motion(kind, rest) {
+                            if let Some(motion) = reported_motion(kind, rest, me.speed) {
                                 world::set_motion(h.identity, motion);
                             }
                             // jump pads (click-to-move reports the path's end and its start)
@@ -1432,6 +1435,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             };
                             crate::chat::system(character, &said);
                         }
+                        crate::devcmd::Action::Speed(None) => {
+                            crate::chat::system(character, &format!("speed x{} (1 normal; !speed <factor> changes it)", me.speed));
+                        }
+                        crate::devcmd::Action::Speed(Some(f)) => {
+                            me.speed = f;
+                            crate::speed::set(character, f);
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            // the player's client and everyone else's here
+                            world::send_playfield(id, true, world::Out::Records(crate::speed::records(id, f)));
+                            if let Err(e) = store.save(character, &me) {
+                                warn!(character, "saving character failed: {e:#}");
+                            }
+                            info!(character, speed = f, "speed");
+                            crate::chat::system(character, &format!("speed x{f}"));
+                        }
                         crate::devcmd::Action::Despawn(all) => {
                             let here = *pos.lock().unwrap();
                             let n = crate::npc::despawn_tests(place, (!all).then_some((here, 30.0)));
@@ -2100,6 +2118,7 @@ pub fn new_character(name: String, mode: crate::instance::Mode, playfield: u32) 
         collection: None,
         quests: Default::default(),
         story: Default::default(),
+        speed: 1.0,
     }
 }
 
@@ -2231,7 +2250,8 @@ impl Portals {
     }
 }
 
-fn reported_motion(kind: &str, rest: &[u8]) -> Option<world::Motion> {
+/// (`speed`: the character's factor, `!speed`)
+fn reported_motion(kind: &str, rest: &[u8], speed: f32) -> Option<world::Motion> {
     let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
     let at = |i: usize| Some([f(i)?, f(i + 4)?, f(i + 8)?]);
     let since = std::time::Instant::now();
@@ -2245,7 +2265,7 @@ fn reported_motion(kind: &str, rest: &[u8]) -> Option<world::Motion> {
         return None;
     }
     let points = std::iter::once(at(1)).chain((0..n).map(|i| at(32 + 12 * i))).collect::<Option<Vec<_>>>()?;
-    let speed = PLAYER_SPEEDS.iter().find(|(stat, _)| *stat == STAT_RUN_SPEED).map_or(5.6, |&(_, v)| v);
+    let speed = crate::speed::run_speed(speed);
     Some(world::Motion::Path { points, speed, since })
 }
 
@@ -3259,7 +3279,7 @@ pub struct CharSpec<'a> {
     /// Set for NPCs.
     pub npc: Option<proto_core_character_iir::NpcStats>,
     /// Movement speed float stats (stat, m/s), see `PLAYER_SPEEDS`.
-    pub speeds: &'static [(u32, f32)],
+    pub speeds: std::borrow::Cow<'static, [(u32, f32)]>,
 }
 
 /// Game rules on a saved character (the type lives in lmoxide-db).
@@ -3334,13 +3354,11 @@ impl CharacterExt for Character {
             max_health: self.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, self.upgrade(t), self.level())),
             cars_group: 0,
             npc: None,
-            speeds: PLAYER_SPEEDS,
+            speeds: crate::speed::speeds(self.speed),
         }
     }
 }
 
-/// The speed paths (MoveTaskIIR_c) move characters at.
-const STAT_RUN_SPEED: u32 = 1397;
 /// Movement speed stats of players in the recorded session (m/s): MovementChargeSpeed 1400,
 /// 1402, 1401, 1397, 1398, 1399, 1396. Paths (MoveTaskIIR_c) move characters at 1397 (measured
 /// on the recorded NPCs, see npc::RUN_SPEED).
@@ -3520,14 +3538,14 @@ mod tests {
         // keyboard: yaw-only rotation, then u8 alignment and the velocity (as `move_record`)
         let mut steer = floats(&[0x18], &[1.0, 0.0, 2.0, 0.0, 1.0]);
         steer.extend(floats(&[0], &[4.0, 0.0, 0.0, 0.0]));
-        let m = reported_motion("CharDCMoveIIR_t", &steer).unwrap();
+        let m = reported_motion("CharDCMoveIIR_t", &steer, 1.0).unwrap();
         assert_eq!(m.at(now), [1.0, 0.0, 2.0]);
         assert!((m.at(now + std::time::Duration::from_millis(100))[0] - 1.4).abs() < 1e-2);
         // not further than STEER_AHEAD without another report
         assert!((m.at(now + std::time::Duration::from_secs(2))[0] - 2.2).abs() < 1e-2);
         // stopped (no velocity)
         let stop = floats(&[0x1c], &[1.0, 0.0, 2.0, 0.0, 1.0]);
-        assert_eq!(reported_motion("CharDCMoveIIR_t", &stop).unwrap().at(now + std::time::Duration::from_secs(1)), [1.0, 0.0, 2.0]);
+        assert_eq!(reported_motion("CharDCMoveIIR_t", &stop, 1.0).unwrap().at(now + std::time::Duration::from_secs(1)), [1.0, 0.0, 2.0]);
         // click-to-move: start, then the waypoints at 32 (u32 count at 28), walked at 5.6 m/s
         let mut path = floats(&[0], &[0.0, 0.0, 0.0]);
         path.extend([0x0f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -3535,7 +3553,7 @@ mod tests {
         path.extend(2u32.to_be_bytes());
         path.extend(floats(&[], &[5.6, 0.0, 0.0, 5.6, 0.0, 5.6]));
         assert_eq!(reported_position("MoveTaskIIR_c", &path), Some([5.6, 0.0, 5.6]));
-        let m = reported_motion("MoveTaskIIR_c", &path).unwrap();
+        let m = reported_motion("MoveTaskIIR_c", &path, 1.0).unwrap();
         let at = |ms| m.at(now + std::time::Duration::from_millis(ms));
         assert!((at(500)[0] - 2.8).abs() < 1e-3);
         assert!((at(1500)[2] - 2.8).abs() < 1e-3 && (at(1500)[0] - 5.6).abs() < 1e-3);

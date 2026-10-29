@@ -66,6 +66,8 @@ pub struct Character {
     /// (unix times), "count/<hash>" counted.
     #[serde(default)]
     pub story: BTreeMap<String, i64>,
+    /// Movement speed factor (`!speed`): 1 normal.
+    pub speed: f32,
 }
 
 /// Where a character is in a main quest.
@@ -121,7 +123,7 @@ impl Db {
         let conn = self.conn();
         let Some(mut c) = conn
             .query_row(
-                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level, limited_collection, mode FROM characters WHERE id = ?1",
+                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level, limited_collection, mode, speed FROM characters WHERE id = ?1",
                 [id],
                 |r| {
                     Ok(Character {
@@ -146,6 +148,7 @@ impl Db {
                         collection: (r.get::<_, i64>(8)? != 0).then(BTreeMap::new),
                         quests: BTreeMap::new(),
                         story: BTreeMap::new(),
+                        speed: r.get::<_, f64>(10)? as f32,
                     })
                 },
             )
@@ -225,12 +228,12 @@ impl Db {
         let t = now();
         tx.execute(
             "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, xp, level, created_at, saved_at,
-               limited_collection, mode)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11, ?12, ?13)
+               limited_collection, mode, speed)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11, ?12, ?13, ?14)
              ON CONFLICT (id) DO UPDATE SET name = excluded.name, playfield = excluded.playfield, mode = excluded.mode,
                pos_x = excluded.pos_x, pos_y = excluded.pos_y, pos_z = excluded.pos_z,
                stars = excluded.stars, xp = excluded.xp, level = excluded.level, saved_at = excluded.saved_at,
-               limited_collection = excluded.limited_collection",
+               limited_collection = excluded.limited_collection, speed = excluded.speed",
             params![
                 id,
                 account_id,
@@ -244,7 +247,8 @@ impl Db {
                 c.level,
                 t,
                 c.collection.is_some(),
-                c.mode
+                c.mode,
+                f64::from(c.speed)
             ],
         )?;
         tx.execute("DELETE FROM character_team WHERE character_id = ?1", [id])?;
@@ -458,6 +462,7 @@ mod tests {
             collection: Some([(100, 1), (200, 2)].into()),
             quests: [(41, QuestState { step: 0, progress: 3, completions: 1, started_at: 5, completed_at: 6, cooldown_until: 7 })].into(),
             story: [("cinematic/pirate-intro".into(), 9), ("count/GBWD".into(), 2)].into(),
+            speed: 0.5,
         };
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();

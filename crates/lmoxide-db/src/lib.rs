@@ -54,7 +54,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0009_character_mode.sql"),
     include_str!("../migrations/0010_session_mode.sql"),
     include_str!("../migrations/0011_story.sql"),
-
+    include_str!("../migrations/0012_character_speed.sql"),
 ];
 
 pub struct Db {

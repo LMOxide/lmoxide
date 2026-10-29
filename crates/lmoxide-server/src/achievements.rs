@@ -892,6 +892,7 @@ mod tests {
             collection: None,
             quests: Default::default(),
             story: Default::default(),
+            speed: 1.0,
         }
     }
 

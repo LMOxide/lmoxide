@@ -600,7 +600,7 @@ fn helper_at(playfield: u32, pos: [f32; 3]) -> (Id32, Vec<bytes::Bytes>) {
             // nobody can target it (attacks select what is under it)
             cars_group: 5,
             npc: Some(lmoxide_net::proto::proto_core_character_iir::NpcStats { template_id: Some(INVISIBLE_LOOK), ..Default::default() }),
-            speeds: &[],
+            speeds: (&[][..]).into(),
         },
     );
     (helper, records)

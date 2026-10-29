@@ -67,6 +67,8 @@
 //!   !script start <script> [wave]  start a script (name, part of it, id or number), at a wave
 //!                             (name, id or number; default its first), as a trigger wall does
 //!   !script stop [script]     end this playfield's running scripts (or that one); their spawns go
+//!   !speed [factor]           your movement speed (1 normal, 0.5 half, 2 double; 0.1 to 10),
+//!                             kept with the character; without a factor: the current one
 //!   !bounce [bounce|spin|<kb> <launched> <dir>]  throw yourself 6 m as a bouncer / cannon does
 //!   !aim [shots|lobs] [current|lead|homing]  how players' straight and lobbed shots are aimed
 //!                             at their enemy (projectile.rs), for everyone; without a mode: the
@@ -152,6 +154,8 @@ pub enum Action {
     Lc(crate::lost_creations::Command),
     /// the story: show it (`None`; true: clear it first), or do an order (`!cinematic`, `!story`)
     Story(Option<crate::story::Order>, bool),
+    /// the character's movement speed factor (`!speed`; `None`: show it)
+    Speed(Option<f32>),
 }
 
 /// Every command with its usage and what it does (`!help`, and tools through `catalog`).
@@ -205,6 +209,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
     ("!fx <id> [hook] [@near|@ground]", "play effect package <id> on yourself, from a code hook (onhit, charge, ...), on the nearest enemy as target (@near) or at your feet (@ground)"),
+    ("!speed [factor]", "your movement speed: 1 normal, 0.5 half, 2 double (0.1 to 10; kept with the character across logins); without a factor: the current one"),
     ("!buff <buff> [secs]", "put a content buff on yourself as a trigger's apply_buff does (`!buff speed-pad 60`: the speed pad's buff and its trail)"),
     ("!anim <attribute>", "play an animation attribute (limbostart, chainattack, get_hit, ...)"),
     ("!fx next|prev|stop", "step through every effect package, or end the current one"),
@@ -783,6 +788,13 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             }
             _ => reply(vec!["usage: !buff <buff id> [secs] (!buff speed-pad)".into()]),
         },
+        "speed" => match args.first() {
+            None => Action::Speed(None),
+            Some(a) => match crate::speed::parse(a) {
+                Ok(f) => Action::Speed(Some(f)),
+                Err(why) => reply(vec![why, "usage: !speed [factor] (1 normal, 0.5 half, 2 double)".into()]),
+            },
+        },
         "despawn" => Action::Despawn(args.first().is_some_and(|a| a.eq_ignore_ascii_case("all"))),
         "state" => match args.first().and_then(|n| n.parse().ok()) {
             Some(n) => Action::State(n),
@@ -950,6 +962,9 @@ mod tests {
     fn anim_plays_an_attribute_package() {
         assert!(matches!(run("!anim limbostart", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(_, _, FxAt::Me))));
         assert!(matches!(run("!anim nothing_like_it", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!speed", Pf::main(1200), [0.0; 3]), Action::Speed(None)));
+        assert!(matches!(run("!speed 0.5", Pf::main(1200), [0.0; 3]), Action::Speed(Some(f)) if f == 0.5));
+        assert!(matches!(run("!speed 20", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
         assert!(matches!(run("!despawn all", Pf::main(1200), [0.0; 3]), Action::Despawn(true)));
         assert!(matches!(run("!despawn", Pf::main(1200), [0.0; 3]), Action::Despawn(false)));
     }

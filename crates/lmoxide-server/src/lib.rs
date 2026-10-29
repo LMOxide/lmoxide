@@ -44,6 +44,7 @@ mod sessions;
 mod shop;
 mod skills;
 mod spawns;
+mod speed;
 mod smash;
 mod state;
 mod store;
