@@ -281,6 +281,13 @@ pub struct SpawnDef {
     /// this close instead of chasing them.
     #[serde(default)]
     pub reach: Option<f32>,
+    /// Never leaves its spot (its template's `ai.stationary`): like `reach`, within the reach
+    /// of its attacks.
+    #[serde(default)]
+    pub stationary: bool,
+    /// Has no attack (its template's `ai.unarmed`).
+    #[serde(default)]
+    pub unarmed: bool,
     /// Proposed content: the bounded area the camp was placed in (the spawn's `anchor`).
     #[serde(default)]
     pub anchor: Option<String>,
@@ -1009,6 +1016,8 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         cars_group: Some(0),
         npc_template: None,
         reach: None,
+        stationary: false,
+        unarmed: false,
         anchor: None,
         fights: false,
         faction: None,
@@ -1138,6 +1147,27 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             }
             world::send_to(attacker, world::Out::Progress(event));
         }
+        remove_dead(npcs, target);
+    }
+    Some(health == 0)
+}
+
+/// NPC `id` destroyed itself (an exploding shroom: its spell sets its own Health to 0): it dies
+/// like a defeated one, without loot, XP or achievements.
+pub fn self_destruct(id: Id32) {
+    let mut npcs = NPCS.lock().unwrap();
+    let Some(npc) = npcs.get_mut(&id).filter(|n| n.presence.is_some() && n.health > 0) else { return };
+    npc.health = 0;
+    info!(npc = %npc.def.name, "self-destructed");
+    world::send_playfield(id, true, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, 0), int32_stat(id, STAT_BCC_STATE, BCC_STATE_LIMBO)]));
+    remove_dead(npcs, id);
+}
+
+/// Dead NPC `target` is despawned (after its death plays) and respawns later.
+fn remove_dead(mut npcs: std::sync::MutexGuard<'_, HashMap<Id32, Npc>>, target: Id32) {
+    let Some(npc) = npcs.get_mut(&target) else { return };
+    let kind = npc.def.kind;
+    {
         // Dropping the presence despawns it for everyone (UpdateMessage op 1).
         let presence = npc.presence.take();
         let temporary = npc.temporary.is_some() || npc.once;
@@ -1169,7 +1199,6 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             appear(target);
         });
     }
-    Some(health == 0)
 }
 
 /// Hits every live NPC on `playfield` within `radius` of `center`.
@@ -1786,7 +1815,16 @@ fn keep_distance(spells: &[u32]) -> f32 {
 
 /// The spells NPC `def` fights with: its monster's (the NPC templates' `skills`, skills.rs), else its own.
 fn spells_for(def: &SpawnDef) -> Vec<u32> {
+    if def.unarmed {
+        return Vec::new();
+    }
     crate::npc_spells::spells_of(def.monster_data).map_or_else(|| vec![def.spell], <[u32]>::to_vec)
+}
+
+/// How close players must come to an enemy that never leaves its spot: its own `reach`, else
+/// (`stationary`) the longest reach of its attacks, at most the aggro range.
+fn stand_reach(def: &SpawnDef) -> Option<f32> {
+    def.reach.or_else(|| def.stationary.then(|| spells_for(def).into_iter().map(reach_of).fold(0.0, f32::max).min(AGGRO_RANGE)))
 }
 
 /// NPC `id` (at `here`) fights `target` (at `at`), a player or another NPC: when it isn't
@@ -2112,7 +2150,7 @@ async fn ai() {
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
             .map(|(id, n)| {
                 let threat = n.threat.filter(|(_, t)| t.elapsed() < THREAT_MEMORY).map(|(p, _)| p);
-                (*id, n.playfield, n.def.pos, n.def.reach, keep_distance(&spells_for(&n.def)), threat, n.def.faction)
+                (*id, n.playfield, n.def.pos, stand_reach(&n.def), keep_distance(&spells_for(&n.def)), threat, n.def.faction)
             })
             .collect();
         // rival enemies: (id, playfield, side, position)
@@ -2332,6 +2370,8 @@ mod tests {
             cars_group: None,
             npc_template: None,
             reach: None,
+        stationary: false,
+        unarmed: false,
             anchor: None,
             fights: false,
             faction: None,

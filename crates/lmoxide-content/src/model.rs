@@ -905,12 +905,20 @@ pub struct Ai {
     pub patrol: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flee_below: Option<Ratio>,
-    /// How far it reaches with melee (m).
+    /// Never leaves its spot and attacks players this close (m): Crikey the Kraken in its water.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reach: Option<f32>,
     /// Doesn't move or attack (scenery NPCs).
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub passive: bool,
+    /// Never leaves its spot: it turns to players in reach of its attacks and attacks them
+    /// (cannons, the ballista troll, spider egg sacks and mounds, most shrooms: looks without a
+    /// walk or run animation, tools/content/stationary-npcs.py).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub stationary: bool,
+    /// Has no attack at all, not even the default one (spider egg sacks and mounds).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub unarmed: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

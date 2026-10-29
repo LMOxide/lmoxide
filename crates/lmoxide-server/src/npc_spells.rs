@@ -100,6 +100,10 @@ impl Action {
     fn u(&self, key: &str) -> Option<u32> {
         self.args.get(key).and_then(|v| v.as_u64()).map(|v| v as u32)
     }
+    /// Sets the caster's Health to 0 (ApplyOn 1, Stat 27, no Value): the shrooms' explosions.
+    fn kills_caster(&self) -> bool {
+        self.kind == "Set" && self.on_caster() && self.u("Stat") == Some(crate::game::STAT_HEALTH) && self.u("Value").unwrap_or(0) == 0
+    }
     fn on_caster(&self) -> bool {
         self.u("ApplyOn") == Some(1)
     }
@@ -159,7 +163,14 @@ pub fn known(id: u32) -> bool {
 
 /// The spell's attack range in metres (0 when it has none).
 pub fn range(id: u32) -> f32 {
-    spell(id).and_then(|s| s.stats.attack_range).map_or(0.0, |r| r / 100.0)
+    let Some(s) = spell(id) else { return 0.0 };
+    let range = s.stats.attack_range.map_or(0.0, |r| r / 100.0);
+    // a spell that blows its caster up (the shrooms' explosions) is cast where its blast
+    // reaches (the space Boom Shroom's says 18 m, its blast 2 m)
+    match s.lists.get(ON_USE).filter(|l| l.iter().any(Action::kills_caster)) {
+        Some(list) => list.iter().filter(|a| a.kind == "CoreFilteredAreaFormula").filter_map(|a| a.f("Radius")).fold(range, f32::min),
+        None => range,
+    }
 }
 
 /// The spell's AI power rating (the AI prefers higher ones when they're ready).
@@ -337,6 +348,8 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
     match a.kind.as_str() {
         // the client-side actions the server carries out for enemies
         "Projectile" => projectile(run, id, a, target, depth),
+        // (after its blast, earlier in the list) it dies: no loot, only a kill drops some
+        _ if a.kills_caster() => crate::npc::self_destruct(caster),
         _ if a.client => {}
         "WeaponHit" => {
             if let Some(player) = who.id.filter(|p| *p != caster && crate::npc::is_player(*p)) {

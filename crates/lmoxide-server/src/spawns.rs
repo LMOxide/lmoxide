@@ -66,6 +66,8 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         cars_group: u(&render["cars_group"]),
         npc_template: u(&render["npc_template"]),
         reach: t["ai"]["reach"].as_f64().map(|r| r as f32),
+        stationary: t["ai"]["stationary"].as_bool().unwrap_or(false),
+        unarmed: t["ai"]["unarmed"].as_bool().unwrap_or(false),
         anchor: s.anchor.clone(),
         fights: false,
         faction: None,

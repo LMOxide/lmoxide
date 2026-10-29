@@ -16,6 +16,9 @@ playfield resources) aren't listed; neither are protocol constants.
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
 | Character level | `combat.rs` `LEVEL`, `progression.rs` | 30 without `--progression`; with it, from XP (below) | The level cap (`TWK_MaxPlayerLevel` tweak); the fixed level is a choice. World content is level 1–3, so level-30 players one-shot it. |
+| Enemies that don't move | content/npcs `ai.stationary`, `npc.rs` `stand_reach`; set by tools/content/stationary-npcs.py | they stay on their spot, turn to players within the longest reach of their attacks and attack them | Their looks' motion sets have no walk or run motion (cannons, ballista troll, spider egg sacks and mounds, Boom/Spore Shrooms, Alien Pods, the Kraken); the live capture saw Spider eggs, Spore Shrooms and Alien Pods only turn. Hades and Charon are marked too (idle-only looks). |
+| Enemies without an attack | content/npcs `ai.unarmed` | spider egg sacks and mounds | Live eggs only cast their spawn spells (hatching, not done yet). |
+| Exploding enemies | `npc_spells.rs` `kills_caster`, `npc.rs` `self_destruct` | a spell whose list sets the caster's Health to 0 (Hophop Shroom, Mushroom Runners, Boom Shrooms) kills it after its blast: no loot, XP or achievements; such a spell is cast within its blast radius (not its AttackRange) | Live Hophops went to Limbo at the strike. The Dinosaur Rise Boom Shroom (349923) had no skill: it got the Hophop's Explode 321437 (assumed). |
 | HealthPerLevel | `content/tunables.json` `combat.health_per_level`, `game.rs` `STAT_HEALTH_PER_LEVEL` | 100 | The recorded session's player had it. |
 | PowerRatingAll | `content/tunables.json` `combat.power_rating_all` | 50 | The recorded session's player default. |
 | Minifigure level effect on power | `combat.rs` | none | The recorded session sent `PowerEffectPerLevel` 0 (minifigure level didn't change damage). |

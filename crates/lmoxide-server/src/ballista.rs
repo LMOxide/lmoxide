@@ -196,6 +196,8 @@ pub fn start() {
                     cars_group: Some(5),
                     npc_template: None,
                     reach: None,
+                    stationary: false,
+                    unarmed: false,
                     anchor: None,
                     fights: false,
                     faction: None,
