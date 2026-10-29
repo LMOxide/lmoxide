@@ -127,6 +127,16 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["region"]))]
         pub region: Option<Ref>,
+        /// A pocket adventure's minifigure (its teleport window's reward, RDB 1000644): given for
+        /// clearing it.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
+        pub minifigure: Option<Ref>,
+        /// The minifigures whose parts and bags drop here (the window's "Parts for:"), instead
+        /// of the region's.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
+        pub parts: Vec<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub level: Option<LevelRange>,
         /// Where teleports arrive (a resurrection point of the client's data).

@@ -152,6 +152,11 @@ pub struct LostCreations {
     #[schemars(extend("x-lmoxide-ref" = ["world"]))]
     pub treasure_chamber: Ref,
     pub treasure_arrival: Point,
+    /// The chest a player's rewards come in: it drops where it stands when they walk into the
+    /// Treasure Chamber's `BA_TriggerDropLoot`; opening it drops the parts.
+    #[schemars(extend("x-lmoxide-ref" = ["item"]))]
+    pub reward_chest: Ref,
+    pub reward_chest_pos: [f32; 3],
     /// What enemies drop inside a run (hearts only; smashables drop as anywhere).
     #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
     pub enemy_loot: Ref,
@@ -170,8 +175,7 @@ pub struct LostCreations {
     pub button_arrow_buff: u32,
     /// The effect package played on the button when the countdown starts.
     pub button_effect: u32,
-    /// TEMPORARY: every level is this one (`lc/...`), the Gatekeeper's too, until the other
-    /// levels' details are known.
+    /// For testing: every level is this one (`lc/...`), the Gatekeeper's too (unset: any).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-ref" = ["lc"]))]
     pub force_level: Option<Ref>,

@@ -377,7 +377,7 @@ const KINDS: &[(&str, &str)] = &[
     ("ambush", "ambush areas (encounters)"),
     ("explore", "exploration achievement areas"),
     ("portal", "portals (walk 8 m away after arriving, then step in)"),
-    ("lc", "the Lost Creations door (Dinosaur Rise) and each level's start"),
+    ("lc", "the Lost Creations door (Dinosaur Rise), each level's start, the Treasure Chamber's reward chest"),
     ("trigger", "tutorial triggers (1300; listed 6 m off, so !goto and the tour land inside)"),
     ("dialogue", "the live capture's dialogue speakers (arriving in the jail, or on Isle of Yarr after it, starts its dialogue; !dialog plays any)"),
     ("boss", "dungeon bosses"),

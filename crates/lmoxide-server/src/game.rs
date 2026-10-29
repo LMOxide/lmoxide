@@ -151,6 +151,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     continue;
                                 }
                                 cleared_here = true;
+                                // a pocket adventure gives its minifigure (a bag at the player's
+                                // feet; a duplicate pays stars when opened)
+                                if let Some(bag) = crate::loot::pocket_reward(*playfield) {
+                                    let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                    let at = world::live_position(player).unwrap_or(me.pos);
+                                    info!(character, playfield, bag, "pocket adventure reward");
+                                    crate::loot::drop_items(player, place, at, player, vec![bag]);
+                                }
                             }
                             if let crate::achievements::Event::Defeated { id, smashable: false, playfield, .. } = &event
                                 && *playfield == me.playfield
@@ -1691,6 +1699,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                     }
                     crate::loot::Reward::Chest { member } => crate::loot::open_chest(id, taken.playfield, taken.pos, bag, member),
+                    crate::loot::Reward::RewardChest => crate::lost_creations::open_chest(character, taken.playfield, taken.pos),
                     crate::loot::Reward::Nothing => {}
                 }
             }

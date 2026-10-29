@@ -180,6 +180,19 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
             _ => {}
         }
     }
+    // a pocket adventure drops its own minifigures' (world `parts`) instead of its region's
+    for w in c.worlds.values().filter(|w| !w.parts.is_empty()) {
+        let list = w
+            .parts
+            .iter()
+            .filter_map(|id| c.minifigures.get(id))
+            .map(|m| {
+                let tier = m.obtain.as_ref().and_then(|o| o.rarity.as_ref()).unwrap_or(&rarity.default);
+                (*rarity.tiers.get(tier).unwrap_or_else(|| panic!("{}: unknown rarity tier {tier}", m.id)), m.template)
+            })
+            .collect();
+        t.world_minifigures.insert(w.playfield, list);
+    }
     t
 });
 
@@ -215,6 +228,8 @@ pub enum Reward {
     MinifigureBag(u32),
     /// a chest: opening it drops another bag (`member`: a Member Super Chest)
     Chest { member: bool },
+    /// the Lost Creations' chest: opening it drops the run's rewards (lost_creations.rs)
+    RewardChest,
     Nothing,
 }
 
@@ -235,6 +250,8 @@ pub fn reward(template: u32) -> Reward {
                 Reward::Chest { member: false }
             } else if t.member_chests.contains(&template) {
                 Reward::Chest { member: true }
+            } else if template_of(&crate::gamedata::get().tunables.lost_creations.reward_chest) == Some(template) {
+                Reward::RewardChest
             } else {
                 Reward::Nothing
             }
@@ -332,6 +349,15 @@ fn pick_part(playfield: Pf) -> Option<u32> {
 fn pick_bag(playfield: Pf) -> Option<u32> {
     let minifigure = pick_minifigure(playfield)?;
     TABLES.minifigure_bag.get(&minifigure).copied()
+}
+
+/// The bag of pocket adventure `playfield`'s minifigure (world `minifigure`): its reward for
+/// clearing it.
+pub fn pocket_reward(playfield: u32) -> Option<u32> {
+    let c = crate::gamedata::get();
+    let world = c.worlds.values().find(|w| w.playfield == playfield)?;
+    let minifigure = c.minifigures.get(world.minifigure.as_ref()?)?;
+    TABLES.minifigure_bag.get(&minifigure.template).copied()
 }
 
 /// A minifigure from a loot entry's `from`: the world's, or one of those listed.
@@ -614,8 +640,17 @@ mod tests {
             assert!(matches!(reward(pick_bag(Pf::main(4200)).unwrap()), Reward::MinifigureBag(m) if pirate.contains(&m)));
         }
         assert!(pick_minifigure(Pf::main(1200)).is_none());
-        // side dungeons drop their world's: Beach Cave (1642) opens into Volcano Island
-        assert!(TABLES.world_minifigures[&1642].iter().all(|&(_, m)| pirate.contains(&m)));
+        // a pocket adventure drops the minifigures its window lists under "Parts for:" (Beach
+        // Cave: Cyclops, Sea Captain); clearing it gives the one it shows (Lifeguard Guy)
+        let c = crate::gamedata::get();
+        let mut beach: Vec<u32> = TABLES.world_minifigures[&1642].iter().map(|&(_, m)| m).collect();
+        beach.sort();
+        let mut parts = vec![c.minifigures["minifig/cyclops"].template, c.minifigures["minifig/sea-captain"].template];
+        parts.sort();
+        assert_eq!(beach, parts);
+        let lifeguard = c.minifigures["minifig/lifeguard-guy"].template;
+        assert!(matches!(reward(pocket_reward(1642).unwrap()), Reward::MinifigureBag(m) if m == lifeguard));
+        assert!(pocket_reward(4200).is_none());
     }
 
     #[test]

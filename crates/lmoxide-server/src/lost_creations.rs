@@ -77,6 +77,8 @@ const CARS_INACTIVE: u32 = 5;
 const STAT_CARS_GROUP: u32 = 1050;
 /// How far above or below the end area's heights still counts as inside.
 const HEIGHT_SLACK: f32 = 3.0;
+/// After "Ready to start?", the button doesn't ask again for this long (unless Start was pressed).
+const WARMUP_DIALOG_HOLD: Duration = Duration::from_secs(10);
 /// A minifigure smashed in a run stays smashed this long, until the run is over for the player
 /// (game.rs; as long as live's CantResurrectWeapons).
 pub const NO_REBUILD: Duration = Duration::from_secs(RUN_BUFF_CS as u64 / 100);
@@ -272,8 +274,14 @@ struct State {
     asks: HashMap<u32, (i32, Ask)>,
     next_ctx: i32,
     generation: u64,
-    /// Levels done in a run a player left by disconnecting (their rewards on return).
+    /// Levels done in a run a player left while offline (their rewards on return).
     pending: HashMap<u32, u32>,
+    /// Members who lost their connection, still in their run until `instance::RETURN_WINDOW`
+    /// passes (a reconnect puts them back into the level's copy): their mark.
+    away: HashMap<u32, u64>,
+    /// When each player last got "Ready to start?" (the client stacks a new one on top of an
+    /// open one, and the stacked ones can't be closed by their X).
+    warmup_asked: HashMap<u32, Instant>,
 }
 
 static STATE: LazyLock<Mutex<State>> = LazyLock::new(Default::default);
@@ -533,7 +541,15 @@ pub fn despawn_world(pf: Pf) {
     drop(gone);
     OPEN.lock().unwrap().retain(|(p, _)| *p != pf);
     VARIANTS.lock().unwrap().remove(&pf);
-    STATE.lock().unwrap().copies.remove(&pf);
+    let mut st = STATE.lock().unwrap();
+    // the copy closed with members away: they can't come back to it
+    if let Some(run_id) = st.copies.remove(&pf) {
+        let away: Vec<u32> = st.runs.get(&run_id).map(|r| r.members.iter().copied().filter(|m| st.away.contains_key(m)).collect()).unwrap_or_default();
+        for m in away {
+            leave_run(&mut st, m);
+        }
+    }
+    drop(st);
     INFO.lock().unwrap().copies.remove(&pf);
 }
 
@@ -623,6 +639,8 @@ pub fn window_answer(character: u32, answer: i32, ctx: i32) {
         (Ask::Continue(run), 1) => continue_answer(&mut st, run, character, true),
         (Ask::Continue(run), 2) => continue_answer(&mut st, run, character, false),
         (Ask::Continue(run), _) => cancel_continue(&mut st, run),
+        // X or Esc: the client waits for the close
+        (Ask::Entry, _) => close_window(character),
         _ => {}
     }
 }
@@ -816,6 +834,9 @@ fn enter_level(st: &mut State, run_id: u32, chosen: Option<usize>) {
 /// a server restart) goes to the Treasure Chamber.
 pub fn arrived(character: u32, pf: Pf) -> Vec<Bytes> {
     let mut st = STATE.lock().unwrap();
+    if st.away.remove(&character).is_some() {
+        info!(character, ?pf, "Lost Creations: back after a lost connection");
+    }
     let Some(run) = st.run_of(character) else {
         if is_level(pf.model()) && !crate::instance::rules(pf).editor {
             let levels = st.pending.remove(&character).unwrap_or(0);
@@ -862,10 +883,17 @@ pub fn press(character: u32, pf: Pf, guid: u32) -> bool {
         return false;
     }
     let mut st = STATE.lock().unwrap();
-    if st.run_of(character).is_some_and(|r| r.pf == pf && r.phase == Phase::Waiting) {
-        info!(character, "Lost Creations: button");
-        rpc(character, Endpoint::GameCharInterfaceProject, project::SIGNAL_OPEN_ENDLESS_WARMUP_DIALOG, Bytes::new());
+    if !st.run_of(character).is_some_and(|r| r.pf == pf && r.phase == Phase::Waiting) {
+        return true;
     }
+    // not again while the last one may be open (pressing E again stacks them; the X closes only
+    // the newest, and closing sends nothing)
+    if st.warmup_asked.get(&character).is_some_and(|at| at.elapsed() < WARMUP_DIALOG_HOLD) {
+        return true;
+    }
+    st.warmup_asked.insert(character, Instant::now());
+    info!(character, "Lost Creations: button");
+    rpc(character, Endpoint::GameCharInterfaceProject, project::SIGNAL_OPEN_ENDLESS_WARMUP_DIALOG, Bytes::new());
     true
 }
 
@@ -873,6 +901,7 @@ pub fn press(character: u32, pf: Pf, guid: u32) -> bool {
 /// the gate opens and the timer runs.
 pub fn start_warmup(character: u32) {
     let mut st = STATE.lock().unwrap();
+    st.warmup_asked.remove(&character);
     let Some(run) = st.run_of(character) else { return };
     if run.phase != Phase::Waiting {
         return;
@@ -1151,9 +1180,21 @@ pub fn disconnected(character: u32) {
     for l in leaders {
         abort_gathering(&mut st, l, vec![character]);
     }
-    if let Some(levels) = remove_member(&mut st, character) {
-        st.pending.insert(character, levels);
+    // still in the run (the timer runs on) until the return window passes
+    if !st.run_of.contains_key(&character) {
+        return;
     }
+    let mark = st.generation();
+    st.away.insert(character, mark);
+    info!(character, "Lost Creations: connection lost, the run waits");
+    tokio::spawn(async move {
+        tokio::time::sleep(crate::instance::RETURN_WINDOW).await;
+        let mut st = STATE.lock().unwrap();
+        if st.away.get(&character) == Some(&mark) && !crate::sessions::is_online(character) {
+            st.away.remove(&character);
+            leave_run(&mut st, character);
+        }
+    });
 }
 
 /// Takes `character` out of their run; the levels they completed in it.
@@ -1190,6 +1231,13 @@ fn remove_member(st: &mut State, character: u32) -> Option<u32> {
 /// to the Treasure Chamber.
 fn leave_run(st: &mut State, character: u32) {
     let Some(levels) = remove_member(st, character) else { return };
+    st.away.remove(&character);
+    if !crate::sessions::is_online(character) {
+        // out while offline: the Treasure Chamber and the rewards when they come back
+        crate::community::leave(character);
+        st.pending.insert(character, levels);
+        return;
+    }
     close_window(character);
     crate::community::leave(character);
     order(character, Order::Out { levels });
@@ -1209,13 +1257,12 @@ pub fn treasure_chamber() -> Option<(u32, [f32; 3], f32)> {
     Some((world.playfield, t.treasure_arrival.pos, t.treasure_arrival.rot.map_or(0.0, |r| r.heading())))
 }
 
-/// Where the rewards' bag drops in the Treasure Chamber: its chest anchor (549087), in the
-/// client's `BA_TriggerDropLoot` area, which drops it when the player walks in.
-const REWARD_SPOT: [f32; 3] = [178.92, 41.42, 136.59];
+/// The Treasure Chamber's area that drops the rewards' chest when a player walks in.
 const REWARD_AREA: &str = "BA_TriggerDropLoot";
 
-/// Rewards waiting for their player to walk into the Treasure Chamber's loot area: levels done.
-static REWARDS: LazyLock<Mutex<HashMap<u32, u32>>> = LazyLock::new(Default::default);
+/// Rewards waiting for their player in the Treasure Chamber: levels done, and when their chest
+/// last dropped (it drops again once that bag is gone unopened).
+static REWARDS: LazyLock<Mutex<HashMap<u32, (u32, Option<Instant>)>>> = LazyLock::new(Default::default);
 
 static REWARD_SHAPE: LazyLock<Option<Shape>> = LazyLock::new(|| {
     let c = crate::gamedata::get();
@@ -1226,17 +1273,38 @@ static REWARD_SHAPE: LazyLock<Option<Shape>> = LazyLock::new(|| {
 /// Chamber (game.rs).
 pub fn rewards_wait(character: u32, levels: u32) {
     if levels > 0 {
-        REWARDS.lock().unwrap().insert(character, levels);
+        REWARDS.lock().unwrap().insert(character, (levels, None));
     }
 }
 
-/// The player moved in the Treasure Chamber: into the loot area, their rewards drop.
+/// The player moved in the Treasure Chamber: into the loot area, their rewards' chest drops (at
+/// tunables `reward_chest_pos`).
 fn reward_check(character: u32, pf: Pf, pos: [f32; 3]) {
     if treasure_chamber().is_none_or(|(model, _, _)| model != pf.model()) || !REWARD_SHAPE.as_ref().is_some_and(|s| s.contains(pos, HEIGHT_SLACK)) {
         return;
     }
-    let Some(levels) = REWARDS.lock().unwrap().remove(&character) else { return };
-    give_rewards(player(character), pf, levels);
+    let t = tunables();
+    let c = crate::gamedata::get();
+    let lifetime = c.tunables.loot.bag_lifetime.to_std();
+    let mut rewards = REWARDS.lock().unwrap();
+    let Some((levels, dropped)) = rewards.get_mut(&character) else { return };
+    if dropped.is_some_and(|at| at.elapsed() < lifetime) {
+        return;
+    }
+    let Some(chest) = c.items.get(&t.reward_chest).and_then(|i| i.template) else {
+        warn!(chest = %t.reward_chest, "Lost Creations: no reward chest item");
+        return;
+    };
+    *dropped = Some(Instant::now());
+    info!(character, levels = *levels, "Lost Creations: reward chest");
+    drop(rewards);
+    crate::loot::drop_items(player(character), pf, t.reward_chest_pos, player(character), vec![chest]);
+}
+
+/// `character` opened their rewards' chest (game.rs): the parts drop where it stood.
+pub fn open_chest(character: u32, pf: Pf, pos: [f32; 3]) {
+    let Some((levels, _)) = REWARDS.lock().unwrap().remove(&character) else { return };
+    give_rewards(player(character), pf, pos, levels);
 }
 
 /// The rewards for `levels` levels done: minifigure parts (item templates), 0-2 per unlocked
@@ -1263,11 +1331,11 @@ pub fn rewards(levels: u32) -> Vec<u32> {
     items
 }
 
-/// Drops the rewards' bag for `owner` in Treasure Chamber copy `pf`.
-fn give_rewards(owner: Id32, pf: Pf, levels: u32) {
+/// Drops the rewards' bag for `owner` at `pos` in Treasure Chamber copy `pf`.
+fn give_rewards(owner: Id32, pf: Pf, pos: [f32; 3], levels: u32) {
     let items = rewards(levels);
     info!(?owner, levels, parts = items.len(), "Lost Creations: rewards");
-    crate::loot::drop_items(owner, pf, REWARD_SPOT, owner, items);
+    crate::loot::drop_items(owner, pf, pos, owner, items);
 }
 
 // ------------------------------------------------------------------ test commands
@@ -1385,6 +1453,7 @@ pub fn command(character: u32, cmd: Command) -> Vec<String> {
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
     let mut v: Vec<_> = entry_point().map(|(pf, p)| ("the Lost Creations door".to_string(), pf, p)).into_iter().collect();
     v.extend(LEVELS.iter().map(|l| (format!("{} start", l.name), l.model, l.start.0)));
+    v.extend(treasure_chamber().map(|(model, _, _)| ("the Treasure Chamber's reward chest".to_string(), model, tunables().reward_chest_pos)));
     v
 }
 
@@ -1409,21 +1478,26 @@ mod tests {
 
     #[test]
     fn levels_picked() {
-        // (forced to Candy Mayhem for now, tunables)
-        let candy = level_of_model(7104).unwrap();
-        assert_eq!(pick_level(1), Some(candy));
-        assert_eq!(pick_level(5), Some(candy));
+        // the Gatekeeper's on every 5th level and only then; the others at random, all of them
+        let gk = level_of_model(7600).unwrap();
+        assert_eq!(pick_level(5), Some(gk));
+        assert_eq!(pick_level(10), Some(gk));
+        let picked: HashSet<usize> = (0..500).filter_map(|_| pick_level(1)).collect();
+        assert!(!picked.contains(&gk));
+        assert_eq!(picked.len(), LEVELS.len() - 1);
     }
 
     #[test]
     fn rewards_per_pool() {
-        // nothing before a level is done; then up to 2 per unlocked pool
+        // nothing before a level is done; then up to 2 per unlocked pool, a pool per 2 levels
         assert!(rewards(0).is_empty());
+        assert_eq!(tunables().reward_pools.len(), 18);
         for _ in 0..20 {
-            assert!(rewards(3).len() <= 2);
-            assert!(rewards(30).len() <= 20);
+            assert!(rewards(2).len() <= 2);
+            assert!(rewards(3).len() <= 4);
+            assert!(rewards(36).len() <= 36);
         }
-        assert!((0..50).any(|_| !rewards(30).is_empty()));
+        assert!((0..50).any(|_| !rewards(36).is_empty()));
     }
 
     #[test]

@@ -205,7 +205,7 @@ pub fn open_world_cap() -> u32 {
 
 /// How long a player who left a copy (or lost their connection) goes back to it on arriving in
 /// that world again (as worlds.rs keeps an empty extra copy).
-const RETURN_WINDOW: std::time::Duration = std::time::Duration::from_secs(180);
+pub const RETURN_WINDOW: std::time::Duration = std::time::Duration::from_secs(180);
 
 /// The copy each character left lately, by (character, playfield), and when.
 static RECENT: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<(u32, u32), (Pf, std::time::Instant)>>> =

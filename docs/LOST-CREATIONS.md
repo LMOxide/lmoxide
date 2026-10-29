@@ -18,8 +18,8 @@ Sources, in order of authority:
 - Teammates, wherever they are, get the invitation window (Cancel / Join). **A Cancel (or no answer)
   aborts the start for the whole team** ("Failed to start..." with the names).
 - Levels are picked at random from the finished maps; **Gatekeeper's Realm (7600) on every 5th level
-  (5, 10, 15, ...) and never otherwise.** TEMPORARY: always Candy Mayhem (7104) until the user has the
-  other levels' details (a content switch, see "Run record").
+  (5, 10, 15, ...) and never otherwise.** All 11 are picked (2026-10-28; `force_level` pins one for
+  testing).
 - Start: a red gate and a button (buildie cursor). **Any member** may press it: "Ready to start?" ->
   Start -> 5 s countdown for everyone -> the gate turns green and the 5-minute timer starts.
 - Objective done -> next quest step "reach the end", end gate turns green (**Mayhems: end gate always
@@ -34,10 +34,14 @@ Sources, in order of authority:
 - **The element changes every 5 levels** (levels 1-5 one element, 6-10 the next: changes on the level
   after each Gatekeeper).
 - Rewards in the Treasure Chamber: **minifigure parts** (duplicates possible), **0-2 parts per unlocked
-  pool**, a pool unlocked every 3 levels (level 30 -> all 10). Pools, lowest first:
-  [Grandma, Grampa] [Ice Skater, Fencer] [Sheriff, Lizard Man] [Roman Emperor, Baseball Fielder]
-  [Tomahawk Warrior, Elf] [Robot, Hun Warrior] [Skater Girl, Unicorn Girl] [Evil Dwarf, Cowboy]
-  [Spartan Warrior, Samurai Warrior] [Mr. Gold, Ninja]. Uniform 0-2 per pool, either minifigure of the
+  pool**, a pool unlocked every 2 levels (level 35 -> all 18; updated 2026-10-28). Pools, lowest first:
+  [Grandma, Grampa] [Ice Skater, Farmer] [Tribal Woman, Scientist] [Sheriff, Fencer]
+  [Lizard Man, Janitor] [Clumsy Guy, Jewel Thief] [Baseball Fielder, Roman Emperor] [Elf, Astronaut]
+  [Faun, Ballerina] [Tomahawk Warrior, Hun Warrior] [Robot, Shark Suit Guy] [Frightening Knight, Queen]
+  [Unicorn Girl, Skater Girl] [Evil Dwarf, Wrestling Champion] [Flying Warrior, Cowboy]
+  [Spartan Warrior, Samurai Warrior] [Laser Mech, Kendo Fighter] [Mr. Gold, Ninja]. They come in the
+  Endless Super Chest, dropped at **184.8 39.1 136.4** (the user's) when the player walks into
+  `BA_TriggerDropLoot`. Uniform 0-2 per pool, either minifigure of the
   pair, any of its parts: a guess (TUNABLES).
 - Levels have variants (enemy themes: medieval, space, mythology, ... even a chicken suit guy wave);
   variants are not one-for-one swaps, but some buildies/smashables are in every variant.
@@ -178,8 +182,8 @@ likely the portal glow). Live sent it on every dungeon door (all 14 seen match t
 - New record for the run (`content/lost_creations.json` or under content/rules): entry door 544337,
   requirement quest hash, times (level 300 s, warmup 5 s, invitation and continue answer seconds:
   unknown, pick and log), gatekeeper every 5, element block 5, Treasure Chamber + its position,
-  enemy loot table (hearts only), reward pools (slugs) + 3 levels per pool + 0..2 parts,
-  **`force_level: "lc/candy-mayhem"` (TEMPORARY; wins over the Gatekeeper rule)**.
+  enemy loot table (hearts only), reward pools (slugs) + 2 levels per pool + 0..2 parts, the reward
+  chest and its spot, `force_level` (testing only; wins over the Gatekeeper rule).
 
 ## Server design
 
@@ -265,3 +269,9 @@ Built 2026-10-28 (lost_creations.rs; content `lc` records in content/lost-creati
 Open beyond the list above: mouse clicks on the start button didn't register when injected (E
 works; the user should try clicking); the HUD portrait after the wipe showed the first slot's
 minifigure while the character wore the third's (the old teleport portrait desync?).
+
+Changes 2026-10-28 (user's list): every level picked (no enemies in any yet: only the Mayhems can be
+finished); 18 reward pools, one per 2 levels; the rewards in the Endless Super Chest at 184.8 39.1
+136.4; "Ready to start?" not re-sent for 10 s (the client stacked them, the X couldn't close the
+older ones); the entry window's X closes it; a disconnect keeps the player in the run for 180 s
+(the timer runs on) and a login within that puts them back in the level's copy where they were.
