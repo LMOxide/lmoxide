@@ -566,6 +566,10 @@ record! {
         /// A territory's roaming paths (RDB 1000050): wander points.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub paths: Vec<Vec<Vec3>>,
+        /// Not implemented yet (with the `todo` tag): what the server would have to do here and
+        /// what is still unknown (docs/WORLD-CONTENT.md "Not implemented yet").
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub todo: Option<String>,
     }
 }
 
@@ -622,6 +626,10 @@ record! {
         pub actions: Vec<Action>,
         #[serde(default, skip_serializing_if = "crate::record::is_false")]
         pub removed: bool,
+        /// Not implemented yet (with the `todo` tag): what is missing for it to work as on live
+        /// (docs/WORLD-CONTENT.md "Not implemented yet").
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub todo: Option<String>,
     }
 }
 

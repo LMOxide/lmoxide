@@ -49,7 +49,8 @@ The survey server lists and withdraws entries too (`GET /v1/editor/queue`,
 
 `tools/re/extract_server_areas.py` (rerunnable; it owns only the records whose `comment` names it
 and that no editor touched) brings the client's areas into `areas.json` of every playable world
-(a sound or quest layer pf+1/pf+2 is read into its world):
+(a sound layer pf+1/pf+2 is read into its world; a playable pf+1/pf+2 such as 1632 Dragoon Dwelling
+or 1643 Monkey Cave is a world of its own):
 
 | Role | From | What the server does (triggers.rs) |
 |---|---|---|
@@ -96,6 +97,45 @@ Not imported: the resources `0x40000000 | pf` (e.g. 4500's `BA_SpawnTentacle1/2`
 code in the Linux client builds such an id (the constant appears only in library and debug-print
 code), so the client never loads them; they look like editor or work-in-progress copies, and
 whether live's server read them is unknown.
+
+## Not implemented yet
+
+What phases 2 and 3 brought in as data only carries the `todo` tag and a `todo` note
+`<kind>: what is missing` on its area (`content/worlds/*/areas.json`; `todo` is a field of areas and
+triggers). `extract_server_areas.py` writes them on every run, so they stay up to date: an area of
+role `trigger`, `story` or `territory` with no trigger on it that no server module runs by name
+(encounter.rs `BA_SpawnChampion`, plates.rs, pistons.rs, and the tutorial and Pirate World story
+that tutorial.rs, cannon.rs and knubot.rs run), and the client walls live must have opened. A
+trigger added on an area clears its mark at the next run. Find them with
+`grep -l '"todo"' content/worlds/*/areas.json` or the world editor's tag filter.
+
+| Kind | Areas | Worlds | What is known | What is missing |
+|---|---|---|---|---|
+| `hazard` | 90 | 12 (1410, 2210, 2320, 3210, 4210, 5210, 5310, 5500, 6200, 6300, 7200, 7202) | lava bricks / fireballs (4210; candidate spells 600554 / 600594 "lava summon ball / explosion buff", lava balls 1-7 m around the target), grills (5310 `GrillVolumne1-3`; 318445 / 463750 / 463751, a 144 s ground fire, nano 319122: likely the boss fight's), snowballs (1410; 579191 / 580992 "XX_Snowball"), tar, swamps, slow fields, spider jumps, cracked floors, falling bricks, traps, ritual poison (Scry 176480 `boundedarea_castspellonself`) | which spell each casts and when (the Scry parameters are lost); the snowball time trial's rules |
+| `cannon_catapult` | 12 | 3 (4300, 5200, 5310) | `BA_CannonTraining*`, `BA_CannonDodge*`, `BA_Catapult*`, `BA_SiegeCatapult*`, `BA_MountainCatapult*` | what fires, where to and how often (cannon.rs runs only 4600's fort cannon, jumppad.rs the catapult pads) |
+| `jump` | 15 | 3 (1690, 3210, 4200) | jump sound areas, `BA_FakeJumpieTrigger*`, `BA_JumpEntry*` | what they set off |
+| `teleport` | 47 | 42 (most dungeons' `BA_TeleportEntrance` / `Exit`, 4310 `TeleportToSkull*`, 5200 `BA_Teleport_OutofThroneRoom1`, ...) | Scry 18602 `teleportplayerboundedarea_wazu` (or the name) | the destination (a script parameter, lost); only 4600 `BA_TeleportJail` runs |
+| `res` | 95 | 23 | `Res_*` (Scry 174337 `boundedarea_discoverresurrectionpoint`) | nothing to do while every respawn point is known; whether live limited respawns to discovered ones |
+| `setxp` | 2 | 1300 | `BA_FixXP1`, `BA_ResetXP1` (Scry 276794 `ba_setxp`) | the XP value (lost) |
+| `escort` | 15 | 2 (1300, 4610) | the tutorial escort chain (`BA_Start_Escort1`, `BA_TriggerEscortStage*`, Scry 597467 `genericsendmessagetoself`), 4610 `BA_EscortEngageBoss1` / `BA_EscortGoToExit1` | the escort scripts' messages (tutorial.rs runs the tutorial escort without them) |
+| `ambush` | 49 | 16 | spawn and ambush areas extract_world_content.py didn't make (`BA_VolcanoAmbush*`, `BA_HarpySpawn_*`, patrols, counters, ...) | which enemies, how many, which waves |
+| `puzzle` | 32 | 8 (1399, 1675, 2310, 2320, 4300, 5300, 5500, 6300) | plates, statues, braziers, bone cages, whack-a-pirate, Tiki buildie triggers | the rules (plates.rs, mirrors.rs, tiki.rs run the Gauntlet's and Medusa's) |
+| `door` | 20 | 9 | `BA_FirstBarrier*`, `BA_DoorCollision*`, `BA_PirateBayShield`, `BA_TutorialBossShield1`, room collisions | when they switch (the walls under them are client walls, or doors encounter.rs / gates.rs open) |
+| `encounter` | 38 | 18 | boss and event helpers (`*_Outside`, `*_NoLogin`, `BossArea*`, `Res_Boss`) | what they did (leaving or logging in mid-fight) |
+| `quest_counter` | 28 | 13 | player counters, GUI popups, `BA_AskCommoner*`, `Achievement_TimedRun(_End)` | what they counted or showed |
+| `other` | 114 | 34 | names only (`BA_Alarm*`, `BA_SlowField*` siblings, `BA_CatchDCPlayers`, ...) | everything |
+| `territory` | 4 | 2 (1300, 4500) | RDB 1000050 territories with roaming paths | NPCs don't wander by territories |
+| `wall_opening` | 9 | 3 (4500, 5210, 6300) | client walls `kraken_blocker0` (Kraken bay), `Collision_Barrier1-4` (Enchanted Forest, by `BA_FirstBarrier1/2`), `Mirror_Collision_1-4` (Gauntlet mirror room) | what opened them on live and how the server tells the client (no RPC or IIR toggles collision) |
+| `story` | 53 | 23 | story areas phase 3 left out: hand matches from story_triggers.json (the note names the tag, text or goal guessed), unmatched cinematic areas, the King's Court (5200 `BA_Cine_TheKingsCourt1`: tag 425, text 276 resolves CPIJ, then teleports out of the throne room), the Funhouse `BA_TalkingHead1` (8000, 8060: one of pushers 4725 / 4726 / 4728 / 4729; 8010's -> 4727 and 8020 / 8070 aren't playable worlds) | which beat, head or goal each is, and the throne room teleport's destination |
+
+Story leftovers without an area of their own:
+
+- dialogue 266 (`BecomeAPirate`, resolves "Complete the Pirate Trials", tag 312): nothing starts
+  it (its NPC and trigger are unknown); the `becoming-a-pirate` cinematic (tunables) waits on it;
+- texts 21000 (area hints such as "You need to join a pirate crew ...") and 50018 (scry FIFO test
+  messages): not sent; the hints belong to portals whose conditions aren't known;
+- the quarry crystals (quest/medieval-story goal 3UX1, items 464315-464318): nothing drops them
+  (the quest's `comment` says so; it is tagged `todo`).
 
 ## Approval (not built yet)
 

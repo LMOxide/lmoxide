@@ -3,8 +3,8 @@
 record (and anything an editor touched: records with an `author`) alone.
 
 Per world (content/worlds/*/world.json of kind hub, pocket, open or instance, playfield < 30000;
-a sound or quest layer pf+1 / pf+2 that isn't such a world itself is read into its parent, as
-extract_world_content.py does):
+a sound layer pf+1 / pf+2 (or one that isn't such a world itself) is read into its parent; a
+playable pf+1 / pf+2 such as 1632 Dragoon Dwelling is a world of its own):
 
   areas.json
     - the server bounded areas (Linux client RDB 1000053 `boundedareas`) not in content yet, by
@@ -27,6 +27,8 @@ extract_world_content.py does):
     - a speed buildie ("power_up_speed_buildie", the two the live capture recorded on Isle of
       Yarr's pads) on every BA_Speedbuff pad without one: source `proposed`, tag `speed-pad`.
   content/buffs/speed-pad.json from spell 459025.
+  Not implemented yet: the `todo` tag and a `todo` note ("<kind>: what is missing") on this run's
+  areas that nothing runs (TODO_RULES; docs/WORLD-CONTENT.md "Not implemented yet").
 
 Then run `cargo run -p lmoxide-content -- fmt` and `-- check`.
 
@@ -73,6 +75,8 @@ SPEED_ABOVE_BOTTOM = 1.25
 CLEAR_HATE_SCRY = 601883
 CLEAR_HATE_FOR = "5s"
 STAT_NAMES = {240: "MovementMultiplier"}
+PLAYABLE = ("hub", "pocket", "open", "instance")
+LAYER_NAME = re.compile(r"sound", re.I)
 
 
 def slug(name):
@@ -178,6 +182,12 @@ def save(path, data, key):
         f.write("\n")
 
 
+def stable(old, recs):
+    """recs in the order their ids had in old (a rerun doesn't reorder the file); new ones last."""
+    at = {r["id"]: i for i, r in enumerate(old)}
+    return sorted(recs, key=lambda r: at.get(r["id"], len(old)))
+
+
 def owned_area(a):
     return not a.get("author") and (ME in a.get("comment", ""))
 
@@ -214,6 +224,125 @@ def speed_buff():
                    f"The BA_Speedbuff pads give it once their speed buildie is built ({ME}; docs/TUNABLES.md).",
     }
 
+# ------------------------------------------------------------------ not implemented yet
+# Areas the server doesn't run yet get the `todo` tag and a `todo` note "<kind>: what is missing"
+# (docs/WORLD-CONTENT.md "Not implemented yet"): every area of role trigger, story or territory
+# without a trigger on it that no server module runs by name, and the client walls the live
+# server must have opened. The note's kind is the first rule (world, name pattern, scry) that fits.
+TELEPORT_SCRY = 18602
+TODO_RULES = [
+    # (kind, worlds or None, name pattern, scry or None, note)
+    ("teleport", None, r"", TELEPORT_SCRY,
+     "Scry 18602 teleportplayerboundedarea_wazu: teleports who walks in; the destination was a script parameter (lost)"),
+    ("res", None, r"^(Res_|res_)", None,
+     "Scry 174337 boundedarea_discoverresurrectionpoint: discovers the respawn point here (all are known already; "
+     "whether live limited respawns to discovered points is unknown)"),
+    ("setxp", None, r"FixXP|ResetXP", None, "Scry 276794 ba_setxp: sets the player's XP; the value was a script parameter (lost)"),
+    ("escort", None, r"Escort", None,
+     "the tutorial escort chain (Scry 597467 genericsendmessagetoself): messages to the escort NPC's script (lost); "
+     "tutorial.rs runs the escort without them"),
+    ("hazard", None, r"Lavabricks|fireballs", None,
+     "lava balls / bricks falling on who walks in (candidate spells 600554 / 600594 \"pirate pf volcano island lava summon "
+     "ball / explosion buff\": lava balls at random points 1-7 m around their target); timing and which spell unknown"),
+    ("hazard", None, r"^GrillVolumne", None,
+     "the Evil Sorcerer's grill fire (candidate spells 318445 / 463750 / 463751 \"evil sorcerer grill1-3 castable\": a 144 s "
+     "ground fire, nano 319122, 3 m, AbilityMod 0.25); likely cast in the boss fight, not on entering"),
+    ("hazard", None, r"Snowball", None,
+     "snowballs rolling at the player (candidate spells 579191 / 580992 \"XX_Snowball\"); the time trial's start, end and "
+     "buff removal are unknown"),
+    ("hazard", None, r"SpiderJump", None, "spiders jumping down on who walks in; spiders, spell and timing unknown"),
+    ("hazard", None, r"CrackedFloor", None, "a floor that breaks under the player; what breaks and where they fall unknown"),
+    ("hazard", None, r"FallingBricks", None, "bricks falling on who walks in; spell and timing unknown"),
+    ("hazard", None, r"(^|_)Tar|Swamp|SlowVines|SlowField", None,
+     "slows (or hurts) who walks in (tar, swamp, vines); the spell is unknown (Scry 176480 boundedarea_castspellonself where "
+     "set: its spell parameter is lost)"),
+    ("hazard", None, r"Poison|Ritual", None, "poisons who walks in (Scry 176480 boundedarea_castspellonself: the spell parameter is lost)"),
+    ("hazard", None, r"trap|DangerZone|Leaves|Piston", None, "a trap set off by walking in; what it does is unknown"),
+    ("cannon_catapult", None, r"Cannon|Catapult", None,
+     "cannon / catapult shots (training, dodging, siege); what fires, where and how often is unknown (cannon.rs runs only "
+     "4600's fort cannon, jumppad.rs the catapult pads)"),
+    ("jump", None, r"Jump", None, "jump sounds and fake jump pads around jumps (jumppad.rs runs the pads); what they set off is unknown"),
+    ("teleport", None, r"^(TP_|BA_TP_|Teleport|BA_Teleport)", None, "teleports who walks in; the destination is unknown"),
+]
+TODO_BY_CATEGORY = {
+    "spawn_ambush": ("ambush", "spawns enemies when entered; which and how many are unknown (encounter.rs runs only the "
+                               "ambush areas extract_world_content.py made)"),
+    "plate_puzzle": ("puzzle", "a puzzle step (plates, statues, braziers, whack-a-pirate, bone cages); the rules are unknown "
+                               "(plates.rs, mirrors.rs, tiki.rs run the Gauntlet's and Medusa's)"),
+    "door_wall_shield": ("door", "a door, shield or barrier switched when entered; the walls they sit on are client walls the "
+                                 "client keeps on, or doors encounter.rs / gates.rs open"),
+    "encounter": ("encounter", "a boss or event helper area (Outside, NoLogin: leaving or logging in mid-fight); what it did is unknown"),
+    "quest_story": ("quest_counter", "a player counter, GUI popup or quest helper; what it counted or showed is unknown"),
+    "hate_res": ("res", "a respawn or aggro helper area; what it did is unknown"),
+    "hazard": ("hazard", "a hazard; what it does is unknown"),
+    "speed_or_jump": ("jump", "a jump or speed helper area; what it did is unknown"),
+    "teleport": ("teleport", "teleports who walks in; the destination is unknown"),
+    "other": ("other", "purpose unknown (name only)"),
+}
+# run by name by a server module (no trigger needed)
+RUN_BY_MODULE = [
+    (None, r"^BA_SpawnChampion"),  # encounter.rs: a side dungeon's champion
+    ({6300}, r"^BA_TikiRoom_Plate\d+$"),  # plates.rs
+    ({6300}, r"^BA_Piston\d+_\d+$"),  # pistons.rs
+    ({1300, 1399, 4600, 4610}, r"^(BA_)?Cine"),  # tutorial.rs, cannon.rs, knubot.rs run the recorded story there
+]
+# client walls the live server must have opened (the client keeps them on)
+WALL_OPENINGS = [
+    (r"^Collision_Barrier", "opening: Enchanted Forest barrier (matches the server's BA_FirstBarrier1/2); what opened it "
+                            "and how the server tells the client is unknown"),
+    (r"^kraken_blocker", "opening: blocks the Kraken bay (Crikey); what opened it and how the server tells the client is unknown"),
+    (r"^Mirror_Collision", "opening: the Gauntlet's mirror room walls (movement only); what opened them and how the server "
+                           "tells the client is unknown"),
+]
+STORY_LEFT = {
+    "BA_TalkingHead1": "Funhouse talking head: one of the intro pushers 4725 / 4726 / 4728 / 4729, which one per world unknown",
+    "BA_Cine_TheKingsCourt1": "the King's Court beat (tag 425, text 276 resolves CPIJ 'Go to the Kingdom', spawns 8G4X) "
+                              "teleports out of the throne room: the destination is unknown",
+}
+
+
+def story_survey():
+    p = os.path.join(ROOT, "../research/lmoxide-notes/client-survey/story_triggers.json")
+    if not os.path.exists(p):
+        return {}
+    return {(t["pf"], t["name"]): t for t in json.load(open(p))["triggers"]}
+
+
+STORY = story_survey()
+
+
+def todo_note(W, a):
+    """`kind: note` for an area the server doesn't run yet, or None."""
+    name, role = a.get("name", ""), a.get("role")
+    if role == "wall":
+        return next((f"wall_{n}" for p, n in WALL_OPENINGS if re.search(p, name)), None)
+    if role == "territory":
+        return "territory: roaming space with paths (RDB 1000050); NPCs don't wander by territories yet"
+    if role not in ("trigger", "story"):
+        return None
+    if any((ws is None or W in ws) and re.search(p, name) for ws, p in RUN_BY_MODULE):
+        return None
+    if name in STORY_LEFT:
+        return f"story: {STORY_LEFT[name]}"
+    if role == "story":
+        t = STORY.get((str(W), name)) or {}
+        if t.get("tag") and t.get("match") == "hand":
+            what = f"tag {t['tag']} {(t.get('tag_name') or '').split('/')[-1].strip()}".strip()
+            if t.get("dialogue_texts"):
+                what += f", text {t['dialogue_texts'][0]}"
+            return f"story: hand-matched to {what} (guess); not run"
+        if t.get("goal"):
+            g = t["goal"]
+            return f"story: hand-matched to goal {g.get('hash')} '{g.get('name')}' (guess); not run"
+        if t.get("candidates"):
+            return f"story: {t['candidates']}; not run"
+        return "story: no lore flag, dialogue or goal matched; what it played is unknown"
+    for kind, ws, pat, scry, note in TODO_RULES:
+        if (ws is None or W in ws) and (scry is None or a.get("scry") == scry) and re.search(pat, name):
+            return f"{kind}: {note}"
+    kind, note = TODO_BY_CATEGORY.get(a.get("category"), TODO_BY_CATEGORY["other"])
+    return f"{kind}: {note}"
+
 
 def main():
     worlds = {}
@@ -221,9 +350,11 @@ def main():
         p = os.path.join(CONTENT, "worlds", d, "world.json")
         if os.path.exists(p):
             w = json.load(open(p))
-            worlds[w["playfield"]] = (d, w.get("kind"))
-    play = {pf for pf, (_, k) in worlds.items() if k in ("hub", "pocket", "open", "instance") and pf < 30000}
-    layers = {pf for pf in play if pf % 10 and pf - pf % 10 in play}
+            worlds[w["playfield"]] = (d, w.get("kind"), w.get("name", ""))
+    play = {pf for pf, (_, k, _) in worlds.items() if k in PLAYABLE and pf < 30000}
+    # a playable world pf+1 / pf+2 is a world of its own (1632 Dragoon Dwelling next to 1630, 1643
+    # Monkey Cave) unless it is a sound layer (1202, 4202, 4212, 5202)
+    layers = {pf for pf in play if pf % 10 in (1, 2) and pf - pf % 10 in play and LAYER_NAME.search(worlds[pf][2])}
     play -= layers
     totals = Counter()
     for W in sorted(play):
@@ -303,7 +434,7 @@ def main():
                    "comment": f"RDB 1000050:{W} territory, category {t['category'][0]} = {t['category'][1]} ({ME})"}
             put(rec, f"area/{W}/territory-{slug(t['name'])}")
             totals["territory"] += 1
-        areas["areas"] = kept + new
+        areas["areas"] = stable(areas["areas"], kept + new)
         everything = areas["areas"]
 
         # triggers on them
@@ -349,8 +480,16 @@ def main():
             tids.add(base)
             tnew.append(t)
             totals["trigger " + t["comment"].split(":")[1].strip()[:12]] += 1
-        trig["triggers"] = tkept + tnew
-        spawns["spawns"] = skept + snew
+        trig["triggers"] = stable(trig["triggers"], tkept + tnew)
+        # not implemented yet: the todo tag and note on this run's areas
+        on = {t.get("area") for t in trig["triggers"] if "todo" not in t.get("tags", [])}
+        for a in new:
+            note = None if a["id"] in on else todo_note(W, a)
+            if note:
+                a["tags"] = ["todo"]
+                a["todo"] = note
+                totals["todo " + note.split(":")[0]] += 1
+        spawns["spawns"] = stable(spawns["spawns"], skept + snew)
         totals["speed buildie spawns"] += len(snew)
         save(apath, areas, "areas")
         save(tpath, trig, "triggers")
