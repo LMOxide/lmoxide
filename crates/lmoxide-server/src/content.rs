@@ -80,6 +80,7 @@ pub fn start() {
     crate::achievements::set_smash_rules(&views::rules(&work));
     crate::quests::set_from_work(&work);
     crate::triggers::set_from_work(&work);
+    crate::story::init();
 }
 
 // ------------------------------------------------------------------ control routes

@@ -29,6 +29,10 @@
 //!   !test [n|label]           list the manual test setups, or set one up (data/test_scenarios.json)
 //!   !aura <0-4>               the active minifigure's aura tier (gives/takes its aura tags)
 //!   !dialog [n]               play recorded NPC dialogue n (without n: list them)
+//!   !cinematic [n|name|id]    play a narrated story cinematic (without an argument: list them)
+//!   !story [reset]            the story (cinematics seen, story lines, goals); reset forgets it
+//!   !story goal|beat|dialogue|seen <arg>   resolve a goal, run a beat, start a dialogue, or play
+//!                             a cinematic as its trigger would
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
 //!   !plates <solve|reset>     light every plate of the Gauntlet's plate room, or none
 //!   !revive                   every minifigure (team and collection) back to full health
@@ -140,6 +144,8 @@ pub enum Action {
     Bounce(crate::jumppad::Tumble),
     /// the Lost Creations (`!lc`)
     Lc(crate::lost_creations::Command),
+    /// the story: show it (`None`; true: clear it first), or do an order (`!cinematic`, `!story`)
+    Story(Option<crate::story::Order>, bool),
 }
 
 /// Every command with its usage and what it does (`!help`, and tools through `catalog`).
@@ -185,6 +191,9 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (the achievements only)"),
     ("!cleared", "count this playfield as cleared, as when its last enemy falls (pocket adventure achievements)"),
     ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
+    ("!cinematic [n|name|package]", "play a narrated story cinematic (again; without an argument: list them)"),
+    ("!story [reset]", "the story: cinematics seen, story lines started, goals resolved; reset: forget them (the lore flags stay)"),
+    ("!story goal <hash>|beat <text>|dialogue <id>|seen <cinematic>", "resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
     ("!fx <id> [hook] [@near|@ground]", "play effect package <id> on yourself, from a code hook (onhit, charge, ...), on the nearest enemy as target (@near) or at your feet (@ground)"),
@@ -408,6 +417,7 @@ const KINDS: &[(&str, &str)] = &[
     ("smashable", "smashables"),
     ("script", "the world editor's approved, active scripts (at their area, else their first placement)"),
     ("quest", "area quests' areas (walking in starts the quest; quests.rs)"),
+    ("story", "story trigger areas: cinematics, story beats, talking heads (tags), story goals (story.rs)"),
     ("area", "server trigger, story and territory areas (RDB 1000053 / 1000050; triggers.rs), with role and category"),
     ("wall", "invisible walls (client RDB 1040010 and server 1000053 collision; enemies' paths stop at them, server ones push players back)"),
     ("fallzone", "falling-out-of-the-world volumes: arrives above one (under the world), falls in, comes back at the nearest respawn point"),
@@ -491,6 +501,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
         "script" => crate::scripts::points(),
         "quest" => crate::quests::points(),
+        "story" => crate::story::points(),
         "lc" => crate::lost_creations::points(),
         "area" | "wall" | "fallzone" | "speedpad" => crate::triggers::points(kind),
         _ => return None,
@@ -611,6 +622,35 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             Some(n) => Action::Aura(n),
             None => reply(vec!["usage: !aura <0-4> (none, Disciple, Master, Grandmaster, Superachiever)".into()]),
         },
+        "cinematic" | "cine" => match args.first() {
+            None => {
+                let mut lines = vec!["!cinematic <n|name|package>:".to_string()];
+                lines.extend(crate::story::cinematics().into_iter().enumerate().map(|(i, (n, p, about))| format!("{} {n} ({p}): {about}", i + 1)));
+                Action::Reply(lines)
+            }
+            Some(a) => match crate::story::find_cinematic(a) {
+                Some(name) => Action::Story(Some(crate::story::Order::Replay(name)), false),
+                None => reply(vec![format!("no cinematic \"{a}\" (!cinematic lists them)")]),
+            },
+        },
+        "story" => {
+            use crate::story::Order;
+            match (args.first().copied(), args.get(1).copied()) {
+                (None, _) => Action::Story(None, false),
+                (Some("reset"), _) => Action::Story(None, true),
+                (Some("goal"), Some(h)) => Action::Story(Some(Order::Goal { hash: h.to_ascii_uppercase(), requires: Vec::new() }), false),
+                (Some("beat"), Some(t)) if t.parse::<u32>().is_ok() => Action::Story(Some(Order::Beat { text: t.parse().unwrap_or(0), requires: Vec::new() }), false),
+                (Some("dialogue"), Some(d)) => {
+                    let id = if d.starts_with("dialogue/") { d.to_string() } else { format!("dialogue/{d}") };
+                    Action::Story(Some(Order::Dialogue(id)), false)
+                }
+                (Some("seen"), Some(c)) => match crate::story::find_cinematic(c) {
+                    Some(name) => Action::Story(Some(Order::Cinematic(name)), false),
+                    None => reply(vec![format!("no cinematic \"{c}\"")]),
+                },
+                _ => reply(vec!["usage: !story [reset] | goal <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
+            }
+        }
         "ach" | "achievements" => Action::Achievements,
         "quests" | "quest" => match args.first().copied() {
             None => Action::Quests(false),

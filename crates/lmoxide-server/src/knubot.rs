@@ -15,8 +15,8 @@
 //! `ARRIVALS` are the ones it started on the player's arrival, and a dialogue that followed
 //! another (`follows`) runs when that one ends. The others are only for `!dialog`. `addtagtoplayer`
 //! gives the tag (achievements), `teleportplayer` teleports, the tutorial's script steps
-//! (`gameactiononnpc` 599417) go to tutorial.rs; quest tags (`spawn`, `resolvegoal`) and other
-//! server scripts are logged, not run.
+//! (`gameactiononnpc` 599417) go to tutorial.rs (and the story's cinematics), quest tags
+//! (`spawn`, `resolvegoal`) to story.rs; other server scripts are logged, not run.
 
 use crate::instance::Pf;
 use std::{
@@ -138,13 +138,58 @@ fn of(npc: &str, playfield: u32) -> Vec<&'static Dialogue> {
 }
 
 /// The tags a dialogue's texts give (`addtagtoplayer`).
-fn tags_given(d: &Dialogue) -> Vec<u32> {
-    d.texts
+pub fn tags_given(d: &Dialogue) -> Vec<u32> {
+    d.texts.iter().flat_map(|&t| text_tags(t)).collect()
+}
+
+/// The tags dialogue text `id` gives (`addtagtoplayer`).
+pub fn text_tags(id: u32) -> Vec<u32> {
+    DATA.texts
+        .get(&id.to_string())
+        .map(|text| tags(text))
+        .unwrap_or_default()
         .iter()
-        .filter_map(|t| DATA.texts.get(&t.to_string()))
-        .flat_map(|text| tags(text))
         .filter_map(|tag| tag.strip_prefix("addtagtoplayer ").and_then(|t| t.trim().parse().ok()))
         .collect()
+}
+
+/// Runs dialogue text `id`'s server side without a window (a story beat whose conversation
+/// isn't known): its tags, story goals, teleports and script steps; camera and actor tags are
+/// left out.
+pub fn beat(player: Id32, id: u32) {
+    let Some(text) = DATA.texts.get(&id.to_string()) else { return warn!(id, "story beat: no such text") };
+    info!(?player, id, "story beat");
+    for tag in tags(text) {
+        let words: Vec<&str> = tag.split_whitespace().collect();
+        server_tag(player, &tag, &words);
+    }
+}
+
+/// A text's tag that the server runs (not the client's camera and actors): true if it was one.
+fn server_tag(player: Id32, tag: &str, words: &[&str]) -> bool {
+    match words {
+        ["addtagtoplayer", tag, ..] => {
+            if let Ok(tag) = tag.parse() {
+                world::send_to(player, world::Out::Progress(crate::achievements::Event::Tag(tag)));
+            }
+        }
+        ["resolvegoal", hash, ..] => crate::story::send(player, crate::story::Order::Goal { hash: hash.to_string(), requires: Vec::new() }),
+        // a quest by its hash starts it; other hashes are NPC templates (not known)
+        ["spawn", hash, ..] => crate::story::send(player, crate::story::Order::Spawn(hash.to_string())),
+        [cmd @ ("teleportplayer" | "teleportplayernosplash"), args @ ..] => match teleport_args(args) {
+            Some((playfield, at, rot)) => world::send_to(player, world::Out::Teleport(playfield, at, rot)),
+            None => warn!(%cmd, ?args, "dialogue teleport not understood"),
+        },
+        // the server script 599417 with its step name (the tutorial's, the story's cinematics)
+        ["gameactiononnpc", _, "gameaction_value", "599417", "gameaction_string0", step, ..] if step.starts_with("String1=") => {
+            crate::tutorial::script(player, &step["String1=".len()..]);
+        }
+        _ => {
+            info!(?player, %tag, "dialogue tag not run");
+            return false;
+        }
+    }
+    true
 }
 
 /// The dialogue the server starts on arrival at `playfield` for a player with the tags
@@ -367,20 +412,10 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
             }
             ["addcinematicactor", alias, template, point, ..] => records.push(spawn_client_npc(s.player, alias, template.parse().unwrap_or(0), point)),
             ["delay", secs, ..] => tokio::time::sleep(Duration::from_secs_f32(secs.parse().unwrap_or(1.0))).await,
-            ["addtagtoplayer", tag, ..] => {
-                if let Ok(tag) = tag.parse() {
-                    world::send_to(s.player, world::Out::Progress(crate::achievements::Event::Tag(tag)));
-                }
+            // tags, story goals, teleports, script steps
+            _ => {
+                server_tag(s.player, &tag, &words);
             }
-            [cmd @ ("teleportplayer" | "teleportplayernosplash"), args @ ..] => match teleport_args(args) {
-                Some((playfield, at, rot)) => world::send_to(s.player, world::Out::Teleport(playfield, at, rot)),
-                None => warn!(%cmd, ?args, "dialogue teleport not understood"),
-            },
-            // the tutorial's server script (599417) with its step name
-            ["gameactiononnpc", _, "gameaction_value", "599417", "gameaction_string0", step, ..] if step.starts_with("String1=") => {
-                crate::tutorial::script(s.player, &step["String1=".len()..]);
-            }
-            _ => info!(?s.player, %tag, "dialogue tag not run"),
         }
         records.push(append(s, id, n as u32 + 1));
         send(records);

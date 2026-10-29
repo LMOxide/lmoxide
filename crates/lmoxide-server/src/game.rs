@@ -213,6 +213,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                             let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
                             send_records(&mut conn, character, records).await?;
+                            // quest pickups dropped where the defeated one was (a bag of the player's)
+                            if let crate::achievements::Event::Defeated { id, .. } = &event {
+                                let pickups = crate::quests::pickup_drops(&quest_tracker, &me, &event);
+                                if !pickups.is_empty() {
+                                    let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                    let at = world::whereabouts(*id).map(|(_, p)| p).or_else(|| world::live_position(player)).unwrap_or(me.pos);
+                                    info!(character, ?pickups, "quest pickups dropped");
+                                    crate::loot::drop_items(player, place, at, *id, pickups);
+                                }
+                            }
                             if !shared {
                                 // (a teammate's defeat counts once: as theirs)
                                 crate::lost_creations::on_event(character, &event);
@@ -323,6 +333,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let to = crate::instance::arrival(mode, chamber, character);
                         teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, &mut place, None, Some((at, rot))).await?;
                         crate::lost_creations::rewards_wait(character, levels);
+                    }
+                    world::Out::Story(order) => {
+                        let name = me.name.clone();
+                        crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
                     }
                     world::Out::Rebuilt(_) if crate::lost_creations::in_run(character) => {
                         // nothing is rebuilt inside a Lost Creations run
@@ -1524,6 +1538,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::RemoveAchievements(which) => {
                             let _ = outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(None))));
                         }
+                        crate::devcmd::Action::Story(order, reset) => {
+                            if reset {
+                                me.story.clear();
+                                crate::chat::system(character, "story progress forgotten (cinematics play again; the lore flags stay)");
+                            }
+                            match order {
+                                Some(order) => {
+                                    crate::chat::system(character, &format!("story: {order:?}"));
+                                    let name = me.name.clone();
+                                    crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
+                                }
+                                None => {
+                                    for line in crate::story::summary(&me) {
+                                        crate::chat::system(character, &line);
+                                    }
+                                }
+                            }
+                        }
                         crate::devcmd::Action::Quests(reset) => {
                             if reset {
                                 me.quests.clear();
@@ -1774,7 +1806,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::loot::open_chest(id, taken.playfield, taken.pos, bag, member)
                     }
                     crate::loot::Reward::RewardChest => crate::lost_creations::open_chest(character, taken.playfield, taken.pos),
-                    crate::loot::Reward::Nothing => {}
+                    crate::loot::Reward::Nothing => {
+                        // a quest pickup (its Lua: QuestTriggerProgress)
+                        let records = crate::quests::picked_up(&mut quest_tracker, &mut me, character, taken.template);
+                        send_records(&mut conn, character, records).await?;
+                        let name = me.name.clone();
+                        crate::story::handle(crate::story::Order::Pickup(taken.template), &mut me, id, &name, place);
+                    }
                 }
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CONVERT_MINIFIGURE_PARTS) => {
@@ -2039,6 +2077,7 @@ pub fn new_character(name: String, mode: crate::instance::Mode, playfield: u32) 
         smashed: Default::default(),
         collection: None,
         quests: Default::default(),
+        story: Default::default(),
     }
 }
 

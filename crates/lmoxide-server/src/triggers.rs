@@ -158,6 +158,11 @@ impl AreaInfo {
     }
 }
 
+/// A point in the middle of a shape (x, bottom, z).
+pub fn area_centre(shape: &Shape) -> [f32; 3] {
+    shape_centre(shape)
+}
+
 fn shape_centre(shape: &Shape) -> [f32; 3] {
     match shape {
         Shape::Polygon { points, heights } if !points.is_empty() => {
@@ -196,7 +201,7 @@ static STATE: LazyLock<Mutex<State>> = LazyLock::new(Default::default);
 static WATCHING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// What a fired trigger hands its actions (and registered commands).
-#[allow(dead_code)] // `area` and `player_name` are for registered commands (phase 3: story)
+#[allow(dead_code)] // `area` and `player_name` are for registered commands
 pub struct Fired<'a> {
     pub trigger: &'a str,
     pub area: Option<&'a str>,
@@ -210,7 +215,6 @@ pub type CommandFn = Arc<dyn Fn(&Fired, &BTreeMap<String, Value>) + Send + Sync>
 
 static COMMANDS: LazyLock<Mutex<HashMap<String, CommandFn>>> = LazyLock::new(Default::default);
 
-#[allow(dead_code)] // phase 3 (story) registers its commands here
 /// Lets a trigger's `command` action (`{ "command": { "name": <name>, "args": {..} } }`) run `f`.
 /// The names `cinematic` and `dialogue` also take those actions (args `name` / `dialogue`).
 pub fn register_command(name: &str, f: CommandFn) {

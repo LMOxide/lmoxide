@@ -16,7 +16,12 @@
 //! - the last step done: the same, then `QuestCooldownIIR` and `MainQuestUpdateIIR_c` (remove);
 //! - the client asks for the cooldowns (`QuestCooldownIIR` 4) and gets each one left.
 //!
-//! Live's reward (a loot bag and an item at completion, QuestRewardUpdateIIR) isn't given yet.
+//! Live's reward (a loot bag and an item at completion, QuestRewardUpdateIIR) isn't given yet;
+//! what the reward item's Lua does for the story is (`reward_script`: story.rs).
+//!
+//! Quest pickups (`counts: pickups`): the client's "XX_Quest Pickup" items, whose Lua adds
+//! `max / count` to the bar when picked up (`picked_up`). What dropped them was server data: a
+//! guess drops them from the goal's `dropped_by` defeats (`pickup_drops`).
 
 use crate::instance::Pf;
 use std::collections::{BTreeMap, HashMap};
@@ -282,6 +287,44 @@ fn counts(goal: &lmoxide_content::QuestGoal, event: &Event) -> bool {
 
 /// Counts `event` (`times` times) for the quests in the tracker.
 pub fn on_event(t: &mut Tracker, c: &mut Character, character: u32, event: &Event, times: u64) -> Vec<Bytes> {
+    advance_where(t, c, character, times, &|goal, paused| (!paused || goal.anywhere) && counts(goal, event))
+}
+
+/// The player picked up item `template`: the quests whose goal counts it as a quest pickup (the
+/// pickup's Lua: QuestTriggerProgress, also outside the area while the quest is in the tracker).
+pub fn picked_up(t: &mut Tracker, c: &mut Character, character: u32, template: u32) -> Vec<Bytes> {
+    advance_where(t, c, character, 1, &|goal, _| goal.counts.as_deref() == Some("pickups") && goal.pickups.contains(&template))
+}
+
+/// The quest pickups `event` (a defeat) drops for the player: one of the current goal's pickups
+/// for each running pickup quest whose `dropped_by` it is (with tunables
+/// `story.pickup_drop_chance`).
+pub fn pickup_drops(t: &Tracker, c: &Character, event: &Event) -> Vec<u32> {
+    use rand::Rng;
+    let index = INDEX.read().unwrap();
+    let Some(list) = index.by_playfield.get(&t.playfield.model()) else { return Vec::new() };
+    let chance = crate::gamedata::get().tunables.story.pickup_drop_chance.fraction();
+    let mut rng = rand::rng();
+    let mut out = Vec::new();
+    for &i in list {
+        let q = &index.quests[i];
+        let Some(&paused) = t.shown.get(&q.main) else { continue };
+        let Some(state) = c.quests.get(&q.main) else { continue };
+        let Some(goal) = q.quest.steps.get(state.step as usize).and_then(|s| s.goals.iter().find(|g| g.counts.as_deref() == Some("pickups"))) else { continue };
+        let Some(by) = goal.dropped_by.as_deref() else { continue };
+        if goal.pickups.is_empty() || (paused && !goal.anywhere) {
+            continue;
+        }
+        let dropper = lmoxide_content::QuestGoal { counts: Some(by.to_string()), ..goal.clone() };
+        if counts(&dropper, event) && rng.random_bool(chance.clamp(0.0, 1.0)) {
+            out.push(goal.pickups[rng.random_range(0..goal.pickups.len())]);
+        }
+    }
+    out
+}
+
+/// Advances (by `times`) the shown quests whose current goal `ok(goal, paused)` accepts.
+fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64, ok: &dyn Fn(&lmoxide_content::QuestGoal, bool) -> bool) -> Vec<Bytes> {
     let index = INDEX.read().unwrap();
     let Some(list) = index.by_playfield.get(&t.playfield.model()) else { return Vec::new() };
 
@@ -293,7 +336,7 @@ pub fn on_event(t: &mut Tracker, c: &mut Character, character: u32, event: &Even
         let Some(state) = c.quests.get_mut(&q.main) else { continue };
         let Some(step) = q.quest.steps.get(state.step as usize) else { continue };
         let Some(goal) = step.goals.iter().find(|g| g.counts.is_some()) else { continue };
-        if (paused && !goal.anywhere) || !counts(goal, event) {
+        if !ok(goal, paused) {
             continue;
         }
         let n = (times.min(u32::MAX as u64) as u32).min(goal.count.saturating_sub(state.progress));
@@ -329,8 +372,33 @@ pub fn on_event(t: &mut Tracker, c: &mut Character, character: u32, event: &Even
         }
         records.push(main_quest_removed(character, q.main));
         t.shown.remove(&q.main);
+        if let Some(script) = &q.quest.reward_script {
+            reward_script(character, script);
+        }
     }
     records
+}
+
+/// What the quest's reward item's Lua does (the Dino area quests' puzzle pieces: a pusher tag,
+/// the Pilot's task solved, a piece counted): sent to the player's connection.
+fn reward_script(character: u32, script: &lmoxide_content::RewardScript) {
+    use crate::story::{Order, send};
+    let p = player(character);
+    info!(character, script = ?script.script, tags = ?script.tags, "quest reward script");
+    if script.tags_if_goal.is_empty() {
+        for &tag in &script.tags {
+            crate::world::send_to(p, crate::world::Out::Progress(Event::Tag(tag)));
+        }
+    } else if !script.tags.is_empty() {
+        send(p, Order::TagsIfGoal { tags: script.tags.clone(), goals: script.tags_if_goal.clone() });
+    }
+    // (1699 solves the Pilot's task first; its buff then counts the piece a frame later)
+    for hash in &script.solves {
+        send(p, Order::Solve(hash.clone()));
+    }
+    for g in &script.progress {
+        send(p, Order::Progress { hash: g.goal.clone(), amount: g.amount });
+    }
 }
 
 /// The completed area quests for the journal at login: (main quest, its quests, times done).
@@ -572,6 +640,33 @@ mod tests {
         c.quests.get_mut(&41).unwrap().cooldown_until = 0;
         assert_eq!(names(&moved(&mut t2, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0])), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
         assert_eq!(completed(&c), [(41, vec![55], 1)]);
+
+        // a quest pickup goal (Dino airplane parts: +4 a part, Lua 1533)
+        let parts: QuestGoal = serde_json::from_value(serde_json::json!({
+            "goal": 259, "kind": "trigger", "counts": "pickups", "pickups": [516223, 522494],
+            "dropped_by": "smashes", "count": 25, "max": 100,
+        }))
+        .unwrap();
+        let square = Shape::Polygon { points: vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]], heights: [0.0, 10.0] };
+        *INDEX.write().unwrap() = build(std::iter::once(quest(parts)), &|_| Some(square.clone()));
+        let (mut t, mut c) = (Tracker::default(), crate::game::new_character("t".into(), crate::instance::Mode::Progression, 4200));
+        moved(&mut t, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0]);
+        // smashes don't count, they drop a part (tunables: always)
+        assert!(on_event(&mut t, &mut c, 7, &smash("Cage"), 1).is_empty());
+        let drops = pickup_drops(&t, &c, &smash("Cage"));
+        assert!(drops.len() == 1 && [516223, 522494].contains(&drops[0]));
+        let kill = Event::Defeated { id: Id32::default(), name: "Cage".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 4200 };
+        assert!(pickup_drops(&t, &c, &kill).is_empty());
+        // picking one up: +4 of 100; another item: nothing
+        let r = picked_up(&mut t, &mut c, 7, 522494);
+        assert_eq!(&r[0][13..], &[0, 0, 0, 55, 0, 0, 1, 3, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 4][..]);
+        assert!(picked_up(&mut t, &mut c, 7, 1).is_empty());
+        for _ in 0..23 {
+            picked_up(&mut t, &mut c, 7, 516223);
+        }
+        assert_eq!(names(&picked_up(&mut t, &mut c, 7, 516223)).last().map(String::as_str), Some("MainQuestUpdateIIR_c"));
+        // done: no more drops
+        assert!(pickup_drops(&t, &c, &smash("Cage")).is_empty());
     }
 
     #[test]

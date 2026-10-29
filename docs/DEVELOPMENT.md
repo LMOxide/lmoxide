@@ -34,7 +34,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!where` | current playfield and position |
 | `!instance [copy]` | which running copy of this world you are in (instance.rs); `!instance 1` goes to copy 1 at the same spot (other copies have no residents yet), `!instance 0` back to the main one |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas), `lc` (the Lost Creations door, each level's start), `area` (server trigger, story and territory areas), `wall` (invisible walls), `fallzone` (arrive under the world above a FallThroughWorld volume: you fall in and come back at the respawn point), `speedpad` (BA_Speedbuff pads) |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas), `lc` (the Lost Creations door, each level's start), `story` (story trigger areas: cinematics, beats, talking heads, story goals), `area` (server trigger, story and territory areas), `wall` (invisible walls), `fallzone` (arrive under the world above a FallThroughWorld volume: you fall in and come back at the respawn point), `speedpad` (BA_Speedbuff pads) |
 | `!areas [radius]` | the content areas within radius m (default 20): role, category, the triggers on them, whether you stand inside; walls and whether they block now |
 | `!wall <open\|close> <name>` | switch this playfield's walls whose name or id contains `<name>` off (open) or on, in this copy until it empties (NPC paths, server-wall push-back) |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
@@ -70,6 +70,9 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!lc time <s>` | the level's timer set to `<s>` seconds (`!lc time 3`: "Time's Up!") |
 | `!lc end` | out of the run, to the Treasure Chamber (its rewards drop in the loot area by the chests) |
 | `!lc <level>` | count Lost Creations level `<level>` as completed with the active minifigure (achievements only) |
+| `!cinematic [n\|name\|package]` | play a narrated story cinematic (again, nothing recorded); without an argument: list the 15 the server starts |
+| `!story [reset]` | the story: cinematics seen, story lines started, goals resolved and counted; reset: forget them (lore flags stay) |
+| `!story goal <hash>` / `beat <text>` / `dialogue <id>` / `seen <cinematic>` | resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once, with its conditions) |
 | `!quests [reset]` | area quests started, their progress and cooldowns; reset: clear them so they start again |
 | `!unach <id ...>` / `!unach all` | take achievements away to earn them again (the "all of" ones above go too; `all` also clears the journal and counters); story and tutorial progress stays |
 | `!count <kills\|smashes\|builds> [n] [name]` | count n defeats, smashes or builds for achievements (e.g. `!count kills 1000`, `!count kills 50 Witch`) |

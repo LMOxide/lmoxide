@@ -62,6 +62,10 @@ pub struct Character {
     /// Quests started, by the client's main quest id.
     #[serde(default)]
     pub quests: BTreeMap<u32, QuestState>,
+    /// Story progress without a lore flag: "cinematic/<name>" seen, "goal/<hash>" resolved
+    /// (unix times), "count/<hash>" counted.
+    #[serde(default)]
+    pub story: BTreeMap<String, i64>,
 }
 
 /// Where a character is in a main quest.
@@ -141,6 +145,7 @@ impl Db {
                         smashed: BTreeMap::new(),
                         collection: (r.get::<_, i64>(8)? != 0).then(BTreeMap::new),
                         quests: BTreeMap::new(),
+                        story: BTreeMap::new(),
                     })
                 },
             )
@@ -208,6 +213,8 @@ impl Db {
                 ))
             })?
             .collect::<rusqlite::Result<_>>()?;
+        let mut stmt = conn.prepare("SELECT key, value FROM character_story WHERE character_id = ?1")?;
+        c.story = stmt.query_map([id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<rusqlite::Result<_>>()?;
         Ok(Some(c))
     }
 
@@ -252,6 +259,7 @@ impl Db {
         tx.execute("DELETE FROM character_smashed WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_collection WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_quests WHERE character_id = ?1", [id])?;
+        tx.execute("DELETE FROM character_story WHERE character_id = ?1", [id])?;
         {
             let mut team = tx.prepare("INSERT INTO character_team (character_id, slot, position, template) VALUES (?1, ?2, ?3, ?4)")?;
             for (slot, (position, template)) in c.team.iter().enumerate() {
@@ -316,6 +324,10 @@ impl Db {
             )?;
             for (main, q) in &c.quests {
                 quest.execute(params![id, main, q.step, q.progress, q.completions, q.started_at, q.completed_at, q.cooldown_until])?;
+            }
+            let mut story = tx.prepare("INSERT INTO character_story (character_id, key, value) VALUES (?1, ?2, ?3)")?;
+            for (key, value) in &c.story {
+                story.execute(params![id, key, value])?;
             }
         }
         tx.commit()?;
@@ -445,6 +457,7 @@ mod tests {
             smashed: [(100, 1_700_000_060_000)].into(),
             collection: Some([(100, 1), (200, 2)].into()),
             quests: [(41, QuestState { step: 0, progress: 3, completions: 1, started_at: 5, completed_at: 6, cooldown_until: 7 })].into(),
+            story: [("cinematic/pirate-intro".into(), 9), ("count/GBWD".into(), 2)].into(),
         };
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();

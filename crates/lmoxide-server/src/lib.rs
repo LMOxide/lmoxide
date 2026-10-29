@@ -47,6 +47,7 @@ mod spawns;
 mod smash;
 mod state;
 mod store;
+mod story;
 mod survey;
 mod teleport;
 mod tiki;

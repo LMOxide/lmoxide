@@ -188,7 +188,10 @@ playfield resources) aren't listed; neither are protocol constants.
 | How many | goal `count`, `max` | the number in the goal text, else 3 (user, 2026-10-28); bar maximum 100, each one adds max/count rounded up (3: 34) | Live: prisoners 8 (+13 ×7, then done), Isle of Yarr pirates 5 (+20), three champions 3 (+34), Funhouse kills 25 of 25, Tesla tower 9 of 90. |
 | Cooldown | quest `cooldown` | 1 h (side dungeon champions 23 h); every area quest repeatable | Live: QuestCooldownIIR 3600 s (Free the pirate prisoners), 82800 s (Natives' Hollow champion); the others assumed the same. |
 | Rewards | quest `rewards` | shown in the tracker when the capture had the key; nothing given | Live dropped a loot bag and an item at completion (not decoded). |
-| Story quests | content only | not run: the login journal still lists every story line as done | Order known only for the Pirate World (capture); goals' triggers (NPC hashes, districts) not in the client. |
+| Story quests | content only; story.rs keeps resolved goals | not shown in the tracker: the login journal still lists every story line as done | Order known only for the Pirate World (capture); goals' triggers (NPC hashes, districts) not in the client. Live did show them (LMO_Captures.cap: QuestGoalIIR for 229 X7OF at the cannon, QuestFullUpdate of quest 79). |
+| Quest pickups | goal `counts: pickups`, `pickups`, `count` (tools/content/import_story.py) | apples +3, bananas +4, quarry crystals +8 (story), plane parts +4, fire embers +2, DNA +6, research data +5, ancient tablets +3 (count = 100 / amount, rounded up) | **Certain**: the pickups' Lua QuestTriggerProgress amounts (client-survey/story.md). The Funhouse Blue Crystal (+0) is left out (its goal counts champions). |
+| What drops quest pickups | goal `dropped_by` (`kills_or_smashes`), tunables `story.pickup_drop_chance` | every enemy or smashable defeated in the quest's area while it runs drops one (random of the goal's items), 100% | **Guess**: no client resource names the pickup items and the live capture has none. The quarry crystals (Medieval story) drop nowhere (story quests aren't run). |
+| Dino puzzle pieces | quest `reward_script` (Lua 1699/1701/1703/1704) | completing the airplane parts / pond / embers / egg area quests gives the pusher tag (2401 Tech, 1101 Nature, 1105 Magic, 1102 Light) and +1 of 4 on story goal GBWD; airplane parts also solves YPFX | **Certain** (Lua). "Has the goal" is approximated as "story line started, goal not resolved" (the step isn't tracked), so 1699's tag and the +1 don't wait for the GBWD step. |
 
 ## Encounters (`encounter.rs`, content/worlds/*/areas.json)
 
@@ -335,8 +338,7 @@ Not run (no client data says what they did; the areas are in content with their 
   jumps, cracked floors, falling bricks, ritual poison (176480 `boundedarea_castspellonself`,
   spell parameter lost);
 - teleports (Scry 18602 `teleportplayerboundedarea_wazu`: the destination was a script
-  parameter, lost); 4600 `BA_TeleportJail` would fit 4610's `TP_Jail` point but belongs to the
-  story flow after the cannon cinematic (cannon.rs), so it is left to phase 3;
+  parameter, lost), except 4600 `BA_TeleportJail` (Story below);
 - `Res_*` (174337 `boundedarea_discoverresurrectionpoint`: respawn points aren't discovered here,
   all are known), `BA_FixXP`/`BA_ResetXP` (276794 `ba_setxp`), the tutorial escort chain (597467
   `genericsendmessagetoself`; tutorial.rs drives the tutorial), ambush/spawn and puzzle areas
@@ -345,6 +347,30 @@ Not run (no client data says what they did; the areas are in content with their 
   `BA_PirateBayShield`, `BA_TutorialBossShield1`: the walls they sit on are client walls, which
   the client keeps on whatever the server says, or doors that encounter.rs / gates.rs already
   open).
+
+## Story (`story.rs`, tunables.json `story`, tools/content/import_story.py)
+
+Sources: research/lmoxide-notes/client-survey/story.md (client data) and LMO_Captures.cap. The
+story's triggers are `trigger/<pf>/story-*` records; each says in its `comment` how sure it is.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| How a cinematic starts | `story::record` | `EffectPackageIIR` to the player: identity = player, named target (0,0), package, no hook, fresh instance, no position, no spell | **Certain**: the live capture's game intro (635608) and Pirate World intro (636984), each sent with the server's CharInPlay answer on arrival. |
+| Game intro | `game-intro`, 1300 `BA_IntroCinematic` | on arriving in the tutorial, until its first beat (4081) | **Certain** (live, at the tutorial start). |
+| Tutorial ending | client | the client plays 636508 itself on clicking the Crystal Compass (Client_CrystalCompass) | **Certain**; nothing sent. |
+| Pirate World intro | `pirate-intro`, 4600 `BA_Cine_Arrival`(`_Catcher`), `then_dialogue` | on arrival until 4181; Video Game Guy's dialogue 812 when it ends (39 s; live 38.5 s) | **Certain** (live). |
+| Space, Mythology, Dino, Lost Creations intros, black hole | `space-intro` 3200 `BA_Space_Intro`, `mythology-intro` 2210 `BA_Medieval_Intro`, `dino-intro` 6200 `BA_Cine_Intro`, `lost-creations-portal` 6200 `BA_Cine_Lost_Creations`, `black-hole` 3210 `BA_Black_Hole_Cinematic` | once; sets its Cine_* lore flag (4285, 4282, 4283, 4284, 4281) | **Likely**: area names, the cinematic actors stand there, the flags' names. |
+| Becoming a pirate, after T-Rex | `becoming-a-pirate` (flag 4286), `after-t-rex` | dialogue 266's script step `BecomeAPirate`, dialogue 690's `DanceParty` | **Likely** (the dialogue runs the server script, the cinematic is its scene); 4286 "Cine_Pirate_Defeated_Captain_Pete" as its flag is a **guess**. Dialogue 266 itself isn't started by anything (its NPC and trigger are unknown). |
+| Medieval intro | `medieval-intro`, 5200 `BA_Story_AutoTeleportToThroneRoom1` | on arriving in the Kingdom (the arrival point lies in that area) until the King's Court (425) | **Guess**; the area's auto-teleport to the throne room isn't run (destination unknown). |
+| "After X" cinematics | `after-pirate-fort` (sets 4241), `after-pirate-world`, `after-medieval`, `after-space`, `after-mythology`; 1200 `Story_ArriveAtHub`(`Backup`) | arriving at the hub: the first one not seen whose world is done (4183 Jacket Fort, but not 316; 316; 437; 492; 676), one per arrival | **Guess**: which event played them is not in the client. Each world's story ends with "Travel to the LEGO Center", which the hub arrival also resolves (same conditions); 4241 "Enter Hub before completed Pirate World" names the first. |
+| Seen | story.rs `cinematic/<name>` (DB `character_story`) or the lore flag | once per character; `!story reset` forgets the server's record | Chosen (the flags exist only for some). |
+| Story beats | `story_beat` commands (24) | entering a `BA_Cine_<lore name>` / `Cine_G0N` / `Cine_D0N` area runs the dialogue text that sets that lore flag: its tags, goals, spawns and script steps, no window, once (until the player has its tags) | Area -> flag **likely** (names); the conversation before it isn't known (the server ordered the texts), so only its server side runs. Left out: the tutorial, 4600/4610 (tutorial.rs, cannon.rs, knubot.rs run the recorded ones), the King's Court (276 teleports out of the throne room). The T-Rex party (6300 `Cine_D06_*`, whose area covers most of the Gauntlet) waits for the T-Rex achievement (1540). |
+| Island Warrior rescue | 1643 `Cine_Rescue_Island_Warrior1` -> dialogue 773 | its recorded dialogue, once | **Likely** (area by name; the area was missing from the content, added from ba_server.json). |
+| Talking heads | `tag` commands on `BA_Head_*` / `Head_*` / `BA_TalkingHead1` (52) | entering adds the pusher's tag; the client shows the talking head (TDB 50000 keyed by tag) | Mechanism **certain** (client Lua 1597 "shows the tutorial talking [head]" = `player:addtag(385)`); area -> pusher by name: **guess**. The Funhouse's `BA_TalkingHead1` in 8000/8020/8060/8070 (one of four intros each) are left out. |
+| Story goals | `story_goal` commands | 17 `Story_*` / `BA_Story_*` areas resolve their goal (Story_ReachBeachBackup1 -> OOPN: **certain**, the live marker; Story_ReachedCannon1 -> X7OF: likely; the rest by name: **guess**); dialogue `resolvegoal`, `spawn <quest hash>` | Kept per character, not shown (Quests above). |
+| Flagged areas | content areas from `<pf>+0x40000000` | Story_ReachBeachBackup1, BA_Head_Diamonds1/Minimap1 (4600), BA_Head_VolcanoDanger1 (4210), BA_Head_MushroomField1 (3200), BA_Story_ArrivedToPortal1 (3210) | The flagged copy held the area live used for goal 116, so its story areas were live data (spatial.md called the flag a guess). |
+| Jail | 4600 `BA_TeleportJail` -> 4610 `TP_Jail` | walking through the broken fort wall teleports into the jail | **Likely**: Scry 18602 `teleportplayerboundedarea_wazu`, the jail's point; live's dialogue 211 teleports there first (capture), this catches whoever walks on. |
+| Area hints (TDB 21000), FIFO messages (50018) | not sent | — | 21000's hints ("You need to join a pirate crew ...") belong to portals whose conditions aren't known; 50018 are scry debug/test FIFOs. Neither appears in the live capture. |
 
 ## Lost Creations (`lost_creations.rs`, content/lost-creations, tunables.json `lost_creations`)
 

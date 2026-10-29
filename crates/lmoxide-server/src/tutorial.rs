@@ -298,7 +298,9 @@ pub fn script(player: Id32, step: &str) {
         "SpawnAmbush" => ("SpawnAmbush", 1..4),
         "SpawnAmbush2" => ("SpawnAmbush2", 4..7),
         _ => {
-            info!(?player, step, "tutorial script step not run");
+            if !crate::story::script_step(player, step) {
+                info!(?player, step, "tutorial script step not run");
+            }
             return;
         }
     };

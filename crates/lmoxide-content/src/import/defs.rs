@@ -1514,6 +1514,7 @@ pub fn loot_and_tunables(
         smashed: std::mem::take(&mut tree.tunables.smashed),
         elements: std::mem::take(&mut tree.tunables.elements),
         champions: std::mem::take(&mut tree.tunables.champions),
+        story: std::mem::take(&mut tree.tunables.story),
         more: std::mem::take(&mut tree.tunables.more),
     };
     Ok(())

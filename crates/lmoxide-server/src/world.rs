@@ -53,6 +53,8 @@ pub enum Out {
     Rebuilt(u32),
     /// What the player's Lost Creations run needs of their connection (lost_creations.rs).
     Lc(crate::lost_creations::Order),
+    /// The story: a cinematic, a beat, a story goal (story.rs).
+    Story(crate::story::Order),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;

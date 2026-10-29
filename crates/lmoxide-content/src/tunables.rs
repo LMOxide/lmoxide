@@ -54,6 +54,9 @@ pub struct Tunables {
     /// Champions' element auras.
     #[serde(default)]
     pub champions: Champions,
+    /// The story: narrated cinematics, quest pickups.
+    #[serde(default)]
+    pub story: Story,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
@@ -186,6 +189,61 @@ pub struct Champions {
     /// Element (`light` ... `nature`) -> the aura (`skill/...`).
     #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
     pub auras: BTreeMap<String, Ref>,
+}
+
+/// The story (story.rs; research/lmoxide-notes/client-survey/story.md).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Story {
+    /// The narrated cinematics by name (a trigger's `cinematic` action names one): client effect
+    /// packages with a CinematicState timeline, the narrator's subtitles TDB 50000. Live started
+    /// them with an EffectPackageIIR on the player.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub cinematics: BTreeMap<String, Cinematic>,
+    /// A quest pickup quest's `dropped_by` defeat drops one of its pickups this often (not in the
+    /// client).
+    #[serde(default = "full")]
+    pub pickup_drop_chance: Ratio,
+}
+
+fn full() -> Ratio {
+    Ratio(1.0)
+}
+
+impl Default for Story {
+    fn default() -> Self {
+        Story { cinematics: BTreeMap::new(), pickup_drop_chance: full() }
+    }
+}
+
+/// One narrated cinematic, played once per character.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Cinematic {
+    /// The client effect package (RDB 1000622).
+    #[schemars(extend("x-lmoxide-client" = "effect_package"))]
+    pub effect_package: u32,
+    /// Its narration (TDB 50000 instance).
+    pub text: u32,
+    /// How long it runs.
+    pub length: Duration,
+    /// The lore flag ("Cinematic Flags") it sets, which also marks it seen; none: the server
+    /// keeps that itself.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tag: Option<u32>,
+    /// Plays only for a player with all these tags ...
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub requires: Vec<u32>,
+    /// ... and none of these.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unless: Vec<u32>,
+    /// The dialogue the server starts when it ends (`dialogue/...`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["dialogue"]))]
+    pub then_dialogue: Option<Ref>,
+    /// Where it plays and how sure that is.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub comment: String,
 }
 
 /// Zone elements (the playfield controllers 464871 / 517564 / 517102 and DoElementalAffinity).

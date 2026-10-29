@@ -674,7 +674,17 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   QuestCooldownIIR (u32 2, container_len(1), cooldown id, seconds), MainQuestUpdateIIR_c remove.
   The client polls QuestCooldownIIR (u32 4, empty) every ~15 s; live answered one u32 4 record
   per quest cooling down. A teleport (even within a playfield) makes the client forget quests.
-- **Story quests** (not implemented): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
+- **Cinematics** (story.rs; LMO_Captures.cap): the 16 narrated story cinematics are client
+  effect packages (CinematicState timeline, camera paths, narrator, TDB 50000 subtitles). The
+  server starts one with `EffectPackageIIR` to the player: identity = the player, named target
+  ID32 (0, 0), u32 package, empty hook and stop strings, f32 0, u8 0, u32 instance, 3 × f32 0, u32
+  spell 0 (live: 635608 game intro and 636984 Pirate World intro, each in the same PassBlob batch
+  as the server's CharInPlayIIR_t answer on arrival). The tutorial ending (636508) the client
+  starts itself (Client_CrystalCompass). Video Game Guy's dialogue 812 followed the Pirate World
+  intro 38.5 s later.
+- **Talking heads**: TDB 50000 pushers are keyed by lore tag; the client shows one when the
+  server adds its tag (AddTag; client Lua 1597 "shows the tutorial talking [head]").
+- **Story quests** (not shown in the tracker; story.rs keeps the goals): QuestGoalIIR (u32 quest, goal, 1, 0, 0), QuestIIR_c (u32 1,
   event 2 completed / 4 removed, quest, 0), JournalUpdateIIR / QuestRewardUpdateIIR (proto),
   MainQuestUpdateIIR_c and QuestFullUpdateIIR (decoded by `tools/re/quest_record.py`, from the
   client's writers). Definitions in RDB 1000104 (QuestGiverList: main quests, quests, goals

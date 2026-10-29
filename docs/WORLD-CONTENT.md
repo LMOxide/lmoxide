@@ -55,7 +55,7 @@ and that no editor touched) brings the client's areas into `areas.json` of every
 |---|---|---|
 | `trigger` | RDB 1000053 server bounded areas not in content before, `category` by name (hazard, speed_or_jump, teleport, spawn_ambush, plate_puzzle, door_wall_shield, encounter, quest_story, hate_res, other), `scry` = their Scry script | what the triggers on them say |
 | `kill` | `FallThroughWorld` (49 worlds) | trigger: back at the nearest respawn point; everything below the volume's top counts |
-| `story` | cinematic, `Story_*` and talking-head areas (155) | nothing yet: phase 3 (story) hangs its actions on them |
+| `story` | cinematic, `Story_*` and talking-head areas (162) | story.rs: cinematics, story beats, talking heads, story goals (tools/content/import_story.py writes their `trigger/<pf>/story-*` triggers) |
 | `wall` | 1000053 `boundedareas_collision` (`blocks.by` server) and the client's own invisible walls, RDB 1040010 Collision layers of the world's resource (`by` client) | NPC paths stop at walls that block pathing; players crossing a server wall that blocks movement hop back; `set_state` opens/closes one per copy |
 | `territory` | RDB 1000050 (1300, 4500) with their roaming `paths` | data only |
 | `place` | `Area_*` regions | data only |
@@ -73,16 +73,23 @@ target world, `world` alone = its arrival, `command` `nearest_respawn`), `apply_
 `remove_buff`, `heal`, `message`, `effect`, `start_script`, `end_script`, `open_window`,
 `discover`, `set_state` (`placement` a wall area, `open` / `closed`), `command`. Others are logged.
 
-**For story actions (phase 3).** `crate::triggers::register_command(name, Arc<dyn Fn(&Fired,
-&args)>)`: a trigger's `{ "command": { "name": <name>, "args": {...} } }` then calls it with
+**Registered commands.** `crate::triggers::register_command(name, Arc<dyn Fn(&Fired, &args)>)`:
+a trigger's `{ "command": { "name": <name>, "args": {...} } }` then calls it with
 `Fired { trigger, area, player, player_name, pf, pos }`. `cinematic` (`{ "cinematic": { "name" } }`)
 and `dialogue` (`{ "dialogue": { "dialogue" } }`) actions call the commands registered under those
-names with args `name` / `dialogue`; until then they are logged. So a story beat is a trigger
-record on a `story` area (`once: per_player` usually) with those actions; nothing in triggers.rs
-needs changing.
+names with args `name` / `dialogue`. story.rs registers (each checked against the character, so
+once per character also across logins):
 
-Test: `!areas`, `!wall open|close <name>`, `!goto area|wall|fallzone|speedpad [n]`
-(docs/DEVELOPMENT.md).
+| Action | Does |
+|---|---|
+| `{ "cinematic": { "name": <tunables story.cinematics key> } }` | plays that narrated cinematic if the player hasn't seen it and has its `requires` / none of its `unless` tags (one at a time; the first of several that may) |
+| `{ "dialogue": { "dialogue": "dialogue/..." } }` | starts that recorded dialogue unless the player has every tag it gives |
+| `command` `tag` `{ "tag": n }` | adds lore tag n (a pusher tag: the client shows the talking head) |
+| `command` `story_goal` `{ "goal": <hash>, "requires": [tags] }` | resolves that story goal |
+| `command` `story_beat` `{ "text": n, "requires": [tags] }` | runs dialogue text n's server side (tags, goals, spawns, teleports, script steps; no window) unless the player has its tags |
+
+Test: `!areas`, `!wall open|close <name>`, `!goto area|wall|fallzone|speedpad|story [n]`,
+`!cinematic`, `!story` (docs/DEVELOPMENT.md).
 
 Not imported: the resources `0x40000000 | pf` (e.g. 4500's `BA_SpawnTentacle1/2`,
 `BA_SpawnTikiBoss`, 2500's `BossEncounter_Start_Hakin/Rhys`, 6300's `BA_TikiRoom_Plate31-48`). No

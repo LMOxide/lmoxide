@@ -891,6 +891,7 @@ mod tests {
             smashed: Default::default(),
             collection: None,
             quests: Default::default(),
+            story: Default::default(),
         }
     }
 

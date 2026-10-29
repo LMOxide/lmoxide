@@ -1902,13 +1902,23 @@ pub struct QuestGoal {
     #[serde(default)]
     pub kind: GoalKind,
     /// What counts toward it, as an achievement's `counts`: `kills`, `smashes`, `builds` or
-    /// `kills_or_smashes`. None: nothing the server counts yet.
+    /// `kills_or_smashes`; `pickups`: picking up one of `pickups` (the client's quest pickup
+    /// Lua: QuestTriggerProgress by `max / count` each). None: nothing the server counts yet.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub counts: Option<String>,
     /// The enemies or smashables that count, by name (`@<category>` for a smash rule category's);
-    /// empty: any.
+    /// empty: any. For `pickups`: the ones that drop them.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub enemies: Vec<String>,
+    /// `counts: pickups`: the quest pickup items (client item templates, "XX_Quest Pickup ...").
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[schemars(extend("x-lmoxide-client" = "item"))]
+    pub pickups: Vec<u32>,
+    /// `counts: pickups`: what drops them while the quest runs (`kills`, `smashes` or
+    /// `kills_or_smashes`, of `enemies`), one each with tunables `story.pickup_drop_chance`.
+    /// Not in the client (docs/TUNABLES.md).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dropped_by: Option<String>,
     /// Counts anywhere in the world; otherwise only inside the quest's area.
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub anywhere: bool,
@@ -1934,6 +1944,36 @@ impl QuestGoal {
     pub fn step(&self) -> u32 {
         self.bar_max().div_ceil(self.count.max(1))
     }
+}
+
+/// What an area quest's reward item runs on completion (its spell's Lua script, RDB 1010223).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct RewardScript {
+    /// The client's Lua script id.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub script: Option<u32>,
+    /// Tags it adds (`player:addtag`): story pushers (a talking head shows) ...
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<u32>,
+    /// ... only if the player has one of these story goals (by hash); empty: always.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags_if_goal: Vec<String>,
+    /// Story goals it solves if the player is on them (`solvegoal`), by goal hash.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub solves: Vec<String>,
+    /// Story goals it advances if the player has them (`QuestTriggerProgress(hash, n)`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub progress: Vec<GoalProgress>,
+}
+
+/// `QuestTriggerProgress(goal, amount)`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct GoalProgress {
+    /// The goal's hash.
+    pub goal: String,
+    pub amount: u32,
 }
 
 /// One quest of a main quest (the client's "quest"; a story line's step).
@@ -1986,6 +2026,10 @@ record! {
         /// The client's rewards (template, category) as its data lists them; not given yet.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub rewards: Vec<[u32; 2]>,
+        /// What its reward item's Lua script does when the quest is completed (story pushers,
+        /// story goals).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reward_script: Option<RewardScript>,
         pub steps: Vec<QuestStep>,
     }
 }
