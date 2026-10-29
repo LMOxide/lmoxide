@@ -11,6 +11,7 @@
 //! The world editor's bouncers are content records like the rest; the survey server puts its
 //! working copy's in as they change ([`set_records`]).
 
+use crate::instance::Pf;
 use std::{
     collections::{BTreeMap, HashMap},
     sync::{
@@ -190,6 +191,7 @@ static STARTED: AtomicBool = AtomicBool::new(false);
 /// Guids of placed pads (a hash of the placement id in this range, so they stay the same).
 const PLACED_GUIDS: u32 = 0x00c0_0000;
 
+/// The pads of playfield `playfield` (data: the same in every copy).
 fn pads_of(playfield: u32) -> Vec<Arc<Live>> {
     PADS.read().unwrap().get(&playfield).cloned().unwrap_or_default()
 }
@@ -243,7 +245,7 @@ pub fn set_records(pf: u32, pads: Vec<RecordPad>) {
     let new: Vec<Arc<Live>> = pads.into_iter().map(|r| Arc::new(live_of(r))).collect();
     let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
     if STARTED.load(Ordering::SeqCst) {
-        respawn(pf, &old, &new);
+        respawn(Pf::main(pf), &old, &new);
     }
 }
 
@@ -270,7 +272,7 @@ fn live_of(r: RecordPad) -> Live {
 
 /// Takes pads that changed or went out of the world and puts new and changed ones in (a changed
 /// pad keeps its id: it comes back after the client lets go of it).
-fn respawn(playfield: u32, old: &[Arc<Live>], new: &[Arc<Live>]) {
+fn respawn(playfield: Pf, old: &[Arc<Live>], new: &[Arc<Live>]) {
     let same = |a: &Live, b: &Live| a.pad.guid == b.pad.guid && format!("{:?}", a.pad) == format!("{:?}", b.pad);
     let mut presences = PRESENCES.lock().unwrap();
     for o in old.iter().filter(|o| !new.iter().any(|n| same(n, o))) {
@@ -281,12 +283,13 @@ fn respawn(playfield: u32, old: &[Arc<Live>], new: &[Arc<Live>]) {
         let live = n.clone();
         if !reused {
             presences.insert(live.pad.id(), join(&live, playfield));
+
             continue;
         }
         tokio::spawn(async move {
             // (the client needs ~1.5 s before an id is used again)
             tokio::time::sleep(Duration::from_secs(2)).await;
-            let still = pads_of(playfield).iter().any(|p| Arc::ptr_eq(p, &live));
+            let still = pads_of(playfield.model()).iter().any(|p| Arc::ptr_eq(p, &live));
             if still {
                 let presence = join(&live, playfield);
                 PRESENCES.lock().unwrap().insert(live.pad.id(), presence);
@@ -295,7 +298,7 @@ fn respawn(playfield: u32, old: &[Arc<Live>], new: &[Arc<Live>]) {
     }
 }
 
-fn join(live: &Arc<Live>, playfield: u32) -> world::Presence {
+fn join(live: &Arc<Live>, playfield: Pf) -> world::Presence {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let p = live.pad.clone();
@@ -333,14 +336,14 @@ fn listed(playfield: u32, l: &Live) -> Listed {
         pos: p.pos,
         heading: l.placement.as_ref().map_or_else(|| p.heading(), |x| x.heading),
         target: p.target,
-        chain: chain(playfield, p),
+        chain: chain(Pf::main(playfield), p),
         placement: l.placement.clone(),
         dynel: p.id(),
     }
 }
 
 /// Where a jump from `pad` goes on after its landing point (the pads it lands on that throw on).
-fn chain(playfield: u32, pad: &Pad) -> Vec<[f32; 3]> {
+fn chain(playfield: Pf, pad: &Pad) -> Vec<[f32; 3]> {
     let mut out = Vec::new();
     let (mut at, mut from) = (pad.target, pad.guid);
     while let Some(end) = at {
@@ -446,7 +449,8 @@ pub fn start() {
     let mut presences = PRESENCES.lock().unwrap();
     for (playfield, pads) in all {
         for live in pads {
-            presences.insert(live.pad.id(), join(&live, playfield));
+            presences.insert(live.pad.id(), join(&live, Pf::main(playfield)));
+
         }
     }
     STARTED.store(true, Ordering::SeqCst);
@@ -456,12 +460,12 @@ pub fn start() {
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (ProtoGameCodeDynelIIR, ProtoSimpleDynelIIR,
 /// VisualData: visual id, resource type, no particles, bounds, scale, u32, u8), then CarsGroup;
 /// matches the recorded session's pads.
-fn spawn_records(pad: &Pad, playfield: u32) -> Vec<Bytes> {
+fn spawn_records(pad: &Pad, playfield: Pf) -> Vec<Bytes> {
     let id = pad.id();
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pad.pos[0]), y: Some(pad.pos[1]), z: Some(pad.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(pad.rot[0]), y: Some(pad.rot[1]), z: Some(pad.rot[2]), w: Some(pad.rot[3]) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -492,19 +496,19 @@ fn show_record(id: Id32, shown: bool) -> Bytes {
 }
 
 /// Whether a jump pad stands at `at` (under a buildie: a bouncer).
-pub fn pad_at_spot(playfield: u32, at: [f32; 3]) -> bool {
-    pads_of(playfield).iter().any(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0)
+pub fn pad_at_spot(playfield: Pf, at: [f32; 3]) -> bool {
+    pads_of(playfield.model()).iter().any(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0)
 }
 
 /// Pads under an unbuilt buildie are inactive (CARS group 5, as recorded) until it is built.
-fn cars_group(pad: &Pad, playfield: u32) -> u32 {
+fn cars_group(pad: &Pad, playfield: Pf) -> u32 {
     if !pad.launches() || crate::buildie::unbuilt_at(playfield, pad.pos) { CARS_INACTIVE } else { CARS_GROUP }
 }
 
 /// Every pad, for the test commands (devcmd.rs): (name, playfield, position).
 /// Where pad `guid` stands.
-pub fn pad_pos(playfield: u32, guid: u32) -> Option<[f32; 3]> {
-    pads_of(playfield).iter().find(|l| l.pad.guid == guid).map(|l| l.pad.pos)
+pub fn pad_pos(playfield: Pf, guid: u32) -> Option<[f32; 3]> {
+    pads_of(playfield.model()).iter().find(|l| l.pad.guid == guid).map(|l| l.pad.pos)
 }
 
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
@@ -520,9 +524,9 @@ pub fn points() -> Vec<(String, u32, [f32; 3])> {
 
 /// A working pad at `at`, the nearest if several (6200's pond routes cross: SwampToPond3 and
 /// PondToSwamp2 stand 0.8 m apart).
-fn pad_at(playfield: u32, at: [f32; 3]) -> Option<Arc<Live>> {
+fn pad_at(playfield: Pf, at: [f32; 3]) -> Option<Arc<Live>> {
     let flat = |p: &Pad| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt();
-    pads_of(playfield)
+    pads_of(playfield.model())
         .into_iter()
         .filter(|l| flat(&l.pad) <= TRIGGER_RADIUS && (l.pad.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT)
         .min_by(|a, b| flat(&a.pad).total_cmp(&flat(&b.pad)))
@@ -531,8 +535,8 @@ fn pad_at(playfield: u32, at: [f32; 3]) -> Option<Arc<Live>> {
 
 /// The buildie at `at` was built: the pad there starts working, and whoever stands on it (the
 /// builder, usually) is launched right away rather than at their next step.
-pub fn activate(playfield: u32, at: [f32; 3]) {
-    for live in pads_of(playfield).into_iter().filter(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
+pub fn activate(playfield: Pf, at: [f32; 3]) {
+    for live in pads_of(playfield.model()).into_iter().filter(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
         let pad = &live.pad;
         let records = vec![show_record(pad.id(), true), int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)];
         world::send_playfield(pad.id(), false, world::Out::Records(records));
@@ -556,7 +560,7 @@ pub fn pad_records(guid: u32, shown: bool) -> Vec<Bytes> {
 
 /// The player reported being at `at` (`from`: where a click-to-move path started, `at` being
 /// its end). Launches them if that is on a pad.
-pub fn moved(player: Id32, playfield: u32, pos: &world::Position, at: [f32; 3], from: Option<[f32; 3]>) {
+pub fn moved(player: Id32, playfield: Pf, pos: &world::Position, at: [f32; 3], from: Option<[f32; 3]>) {
     // (the tutorial keeps a pad shut until the player beat the wave before it)
     let pad = pad_at(playfield, at).filter(|p| crate::tutorial::pad_open(player, playfield, p.pad.guid));
     let moves = {
@@ -600,7 +604,7 @@ pub fn player_left(player: Id32) {
 }
 
 /// The jump, and on through every pad it lands on that throws on (`Pad::throws_on`).
-async fn launch(player: Id32, playfield: u32, mut pad: Arc<Live>, pos: world::Position) {
+async fn launch(player: Id32, playfield: Pf, mut pad: Arc<Live>, pos: world::Position) {
     for _ in 0..MAX_HOPS {
         let Some(end) = hop(player, &pad.pad, &pos).await else { break };
         let next = pad_at(playfield, end).filter(|p| p.pad.guid != pad.pad.guid);

@@ -17,6 +17,7 @@
 //! dialogue, which gives tag 4121: the client then runs its world map tutorial, and clicking
 //! Pirate World (TeleportWindowBypass 74, 4600) ends the tutorial there.
 
+use crate::instance::Pf;
 use std::{collections::HashSet, sync::LazyLock, time::Duration};
 
 use bytes::Bytes;
@@ -83,8 +84,8 @@ struct Progress {
 static PROGRESS: LazyLock<std::sync::Mutex<std::collections::HashMap<Id32, Progress>>> = LazyLock::new(Default::default);
 
 /// Whether the player may use jump pad `guid` (always outside the tutorial or after it).
-pub fn pad_open(player: Id32, playfield: u32, guid: u32) -> bool {
-    if playfield != PLAYFIELD || !GATED_PADS.iter().any(|(g, _)| *g == guid) {
+pub fn pad_open(player: Id32, playfield: Pf, guid: u32) -> bool {
+    if playfield.model() != PLAYFIELD || !GATED_PADS.iter().any(|(g, _)| *g == guid) {
         return true;
     }
     PROGRESS.lock().unwrap().get(&player).is_none_or(|p| p.open.contains(&guid))
@@ -120,7 +121,13 @@ static CONTENT: LazyLock<Content> = LazyLock::new(|| {
     }
 });
 
+/// The copy of the tutorial `player` is in (its spawns go there).
+fn copy_of(player: Id32) -> Pf {
+    crate::world::whereabouts(player).map(|(pf, _)| pf).filter(|pf| pf.model() == PLAYFIELD).unwrap_or(Pf::main(PLAYFIELD))
+}
+
 /// Whether the tutorial spawns this NPC itself (per player) instead of it standing there.
+
 pub fn scripted(playfield: u32, name: &str) -> bool {
     playfield == PLAYFIELD && (name == "Scallywag" || name == GUIDE)
 }
@@ -176,10 +183,10 @@ impl Run {
             .npcs
             .iter()
             .find(|n| n.name == GUIDE)
-            .map(|def| crate::npc::escort(player, PLAYFIELD, def.clone(), ESCORT_LIFETIME));
+            .map(|def| crate::npc::escort(player, copy_of(player), def.clone(), ESCORT_LIFETIME));
         info!(?player, ?escort, "tutorial");
         let behind = |x: f32| x + 5.0 < at[0];
-        let pad_x = |g: u32| crate::jumppad::pad_pos(PLAYFIELD, g).map_or(f32::MAX, |p| p[0]);
+        let pad_x = |g: u32| crate::jumppad::pad_pos(Pf::main(PLAYFIELD), g).map_or(f32::MAX, |p| p[0]);
         let open: HashSet<u32> = GATED_PADS.iter().map(|(g, _)| *g).filter(|g| behind(pad_x(*g))).collect();
         let fired: HashSet<usize> = TRIGGERS
             .iter()
@@ -228,7 +235,7 @@ impl Run {
         tokio::spawn(async move {
             // after the teleport's arrival
             tokio::time::sleep(Duration::from_secs(3)).await;
-            if crate::world::whereabouts(player).is_some_and(|(pf, _)| pf == PLAYFIELD)
+            if crate::world::whereabouts(player).is_some_and(|(pf, _)| pf.model() == PLAYFIELD)
                 && let Some(d) = crate::knubot::starting_with(LAST_DIALOGUE)
             {
                 crate::knubot::start(player, &name, owner, d);
@@ -300,7 +307,7 @@ pub fn script(player: Id32, step: &str) {
     for def in pirates.get(range).unwrap_or_default() {
         // the recording caught some mid-fight: at least a regular level-1 enemy's health
         let def = SpawnDef { health: def.health.max(75), ..(*def).clone() };
-        ids.push(crate::npc::spawn_temporary(def, PLAYFIELD, SPAWN_LIFETIME));
+        ids.push(crate::npc::spawn_temporary(def, copy_of(player), SPAWN_LIFETIME));
     }
     if let Some(p) = PROGRESS.lock().unwrap().get_mut(&player) {
         p.spawned.entry(step).or_default().extend(ids);

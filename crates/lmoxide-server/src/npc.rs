@@ -7,6 +7,7 @@
 //! `npc_stats.template_id`: the client's CARS rules then let players target and attack it while
 //! its Health is non-zero. Everything an NPC does is driven from here.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, Mutex},
@@ -308,7 +309,7 @@ struct Npc {
     /// shoots.
     owner: Option<(Id32, std::time::Instant)>,
     summon: Option<(u32, Option<PetProjectile>)>,
-    playfield: u32,
+    playfield: Pf,
     health: u32,
     pos: world::Position,
     presence: Option<world::Presence>,
@@ -340,7 +341,7 @@ struct Npc {
 }
 
 impl Npc {
-    fn new(mut def: SpawnDef, playfield: u32, owner: Option<(Id32, std::time::Instant)>, temporary: Option<std::time::Instant>) -> Npc {
+    fn new(mut def: SpawnDef, playfield: Pf, owner: Option<(Id32, std::time::Instant)>, temporary: Option<std::time::Instant>) -> Npc {
         if owner.is_some() || temporary.is_some() {
             def.patrol.clear(); // copies of a patroller placed elsewhere (adds, test spawns)
         }
@@ -408,7 +409,7 @@ static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(H
 /// (`CHAMPION_RANK`) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
 /// fighters), "patrol" (NPCs with a patrol route) or "smashable":
 /// (label, playfield, home position), by playfield.
-pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
+pub fn points(rank: &str) -> Vec<(String, Pf, [f32; 3])> {
     let mut v: Vec<_> = NPCS
         .lock()
         .unwrap()
@@ -433,7 +434,7 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
 }
 
 /// A friendly (story or usable) NPC's name and playfield.
-pub fn friendly(id: Id32) -> Option<(String, u32)> {
+pub fn friendly(id: Id32) -> Option<(String, Pf)> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.def.kind == Kind::Npc).map(|n| (n.def.name.clone(), n.playfield))
 }
 
@@ -443,13 +444,13 @@ pub fn name_of(id: Id32) -> Option<String> {
 }
 
 /// A spawned NPC named `name` on `playfield`.
-pub fn find(name: &str, playfield: u32) -> Option<Id32> {
+pub fn find(name: &str, playfield: Pf) -> Option<Id32> {
     NPCS.lock().unwrap().iter().find(|(_, n)| n.playfield == playfield && n.def.name == name && n.presence.is_some()).map(|(id, _)| *id)
 }
 
 /// The playfield's own enemies (not test, event or summoned ones): defeating all of them in
 /// one visit clears it.
-pub fn resident_enemies(playfield: u32) -> std::collections::HashSet<Id32> {
+pub fn resident_enemies(playfield: Pf) -> std::collections::HashSet<Id32> {
     NPCS.lock()
         .unwrap()
         .iter()
@@ -489,7 +490,7 @@ pub fn regular_life(level: u32) -> u32 {
 }
 
 /// The strongest of the playfield's own bosses within `radius` of `at` (x, z).
-pub fn boss_near(playfield: u32, at: [f32; 2], radius: f32) -> Option<Id32> {
+pub fn boss_near(playfield: Pf, at: [f32; 2], radius: f32) -> Option<Id32> {
     NPCS.lock()
         .unwrap()
         .iter()
@@ -517,7 +518,7 @@ pub fn restore(id: Id32) {
 
 /// Up to `n` different regular enemies of the playfield, nearest to `at` (x, z) first, within
 /// `radius`: what an ambush or a boss's adds are made of.
-pub fn regulars_near(playfield: u32, at: [f32; 2], radius: f32, n: usize) -> Vec<SpawnDef> {
+pub fn regulars_near(playfield: Pf, at: [f32; 2], radius: f32, n: usize) -> Vec<SpawnDef> {
     let npcs = NPCS.lock().unwrap();
     let mut v: Vec<&SpawnDef> = npcs
         .values()
@@ -593,7 +594,7 @@ pub fn start() {
         crate::content::start(all);
     } else {
         for (playfield, def) in all {
-            spawn_as(new_id(&def), def, playfield);
+            spawn_as(new_id(&def), def, Pf::main(playfield));
         }
     }
     info!(count = NPCS.lock().unwrap().len(), "NPCs spawned");
@@ -608,7 +609,7 @@ pub fn new_id(def: &SpawnDef) -> Id32 {
 }
 
 /// Spawns a resident NPC or smashable under `id` (from `new_id`).
-pub fn spawn_as(id: Id32, def: SpawnDef, playfield: u32) {
+pub fn spawn_as(id: Id32, def: SpawnDef, playfield: Pf) {
     NPCS.lock().unwrap().insert(id, Npc::new(def, playfield, None, None));
     appear(id);
 }
@@ -616,12 +617,12 @@ pub fn spawn_as(id: Id32, def: SpawnDef, playfield: u32) {
 /// Spawns an NPC or smashable for a script wave (scripts.rs) under `id` (from `new_id`): it
 /// fights, drops loot and counts like a resident, but doesn't respawn once defeated (it is gone
 /// 3 s after) and isn't one of the playfield's own (`resident_enemies`).
-pub fn spawn_once(id: Id32, def: SpawnDef, playfield: u32) {
+pub fn spawn_once(id: Id32, def: SpawnDef, playfield: Pf) {
     NPCS.lock().unwrap().insert(id, Npc { once: true, ..Npc::new(def, playfield, None, None) });
     appear(id);
 }
 
-fn spec(def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> CharSpec<'_> {
+fn spec(def: &SpawnDef, playfield: Pf, pos: [f32; 3], health: u32) -> CharSpec<'_> {
     CharSpec {
         name: &def.name,
         playfield,
@@ -719,8 +720,8 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
                 level: d.level,
                 playfields: Vec::new(),
             });
-            if !s.playfields.contains(&n.playfield) {
-                s.playfields.push(n.playfield);
+            if !s.playfields.contains(&n.playfield.model()) {
+                s.playfields.push(n.playfield.model());
             }
         }
         if d.monster_data != 0 {
@@ -745,7 +746,7 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
 /// spawn of it gives the look, level, health and attack) in a ring around `center` on
 /// `playfield`, for `lifetime`. They fight (or break) like the others but don't respawn.
 /// Returns how many appeared.
-pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 3], lifetime: Duration) -> u32 {
+pub fn spawn_test_enemies(name: &str, count: u32, playfield: Pf, center: [f32; 3], lifetime: Duration) -> u32 {
     let wanted = name.to_ascii_lowercase();
     let Some(def) = NPCS
         .lock()
@@ -784,7 +785,7 @@ pub fn spawn_test_enemies(name: &str, count: u32, playfield: u32, center: [f32; 
 
 /// Removes the test spawns (`spawn_test_enemies`) on `playfield`, all or those within (centre,
 /// radius); how many.
-pub fn despawn_tests(playfield: u32, near: Option<([f32; 3], f32)>) -> u32 {
+pub fn despawn_tests(playfield: Pf, near: Option<([f32; 3], f32)>) -> u32 {
     let mut npcs = NPCS.lock().unwrap();
     let gone: Vec<Id32> = npcs
         .iter()
@@ -806,7 +807,7 @@ pub fn despawn_tests(playfield: u32, near: Option<([f32; 3], f32)>) -> u32 {
 
 /// Spawns `def` on `playfield` for a scripted event: it fights like the others but doesn't
 /// respawn, and is gone after `lifetime` (or when `despawn`ed).
-pub fn spawn_temporary(def: SpawnDef, playfield: u32, lifetime: Duration) -> Id32 {
+pub fn spawn_temporary(def: SpawnDef, playfield: Pf, lifetime: Duration) -> Id32 {
     let kind = if def.kind == Kind::Smashable { DESTRUCTIBLE_TYPE } else { crate::territory::CHARACTER_TYPE };
     let id = Id32::new(kind, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let until = std::time::Instant::now() + lifetime;
@@ -822,7 +823,7 @@ pub fn spawn_temporary(def: SpawnDef, playfield: u32, lifetime: Duration) -> Id3
 
 /// A friendly NPC (`def`) that follows `owner` and fights the enemies near it, like a pet, for
 /// `lifetime` (an escort: Video Game Guy in the tutorial).
-pub fn escort(owner: Id32, playfield: u32, def: SpawnDef, lifetime: Duration) -> Id32 {
+pub fn escort(owner: Id32, playfield: Pf, def: SpawnDef, lifetime: Duration) -> Id32 {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let def = SpawnDef { kind: Kind::Pet, cars_group: Some(0), ..def };
     let npc = Npc::new(def, playfield, Some((owner, std::time::Instant::now() + lifetime)), None);
@@ -846,7 +847,7 @@ pub fn is_summon(spell: u32) -> bool {
 }
 
 /// `owner` casts summon `spell` at `pos`: a pet that follows them and fights for a while.
-pub fn summon(owner: Id32, playfield: u32, spell: u32, pos: [f32; 3]) {
+pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
     let Some(def) = SUMMONS.get(&spell).and_then(|v| serde_json::from_value::<SummonDef>(v.clone()).ok()) else {
         return;
     };
@@ -988,7 +989,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
                 boss: source == crate::loot::Source::Boss,
                 champion: source == crate::loot::Source::Champion,
                 level: npc.def.level,
-                playfield: npc.playfield,
+                playfield: npc.playfield.model(),
             };
             if by_player {
                 crate::community::share(attacker.instance, npc.playfield, &event);
@@ -999,7 +1000,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         let presence = npc.presence.take();
         let temporary = npc.temporary.is_some() || npc.once;
         let home = npc.playfield;
-        let respawn = crate::cannon::respawn(home, &npc.def.name).unwrap_or(RESPAWN);
+        let respawn = crate::cannon::respawn(home.model(), &npc.def.name).unwrap_or(RESPAWN);
         drop(npcs);
         tokio::spawn(async move {
             if temporary {
@@ -1030,19 +1031,19 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
 }
 
 /// Hits every live NPC on `playfield` within `radius` of `center`.
-pub fn hit_area(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
+pub fn hit_area(attacker: Id32, playfield: Pf, center: [f32; 3], radius: f32, spell: u32, damage: u32) -> u32 {
     hit_area_with(attacker, playfield, center, radius, spell, damage, |_| ())
 }
 
 /// `hit_area`, calling `on_hit` with each NPC hit.
-pub fn hit_area_with(attacker: Id32, playfield: u32, center: [f32; 3], radius: f32, spell: u32, damage: u32, on_hit: impl Fn(Id32)) -> u32 {
+pub fn hit_area_with(attacker: Id32, playfield: Pf, center: [f32; 3], radius: f32, spell: u32, damage: u32, on_hit: impl Fn(Id32)) -> u32 {
     hit_where(attacker, playfield, spell, damage, |p| distance(p, center) <= radius, on_hit)
 }
 
 /// Hits every live NPC on `playfield` within `radius` of the line from `from` to `to` (a column,
 /// e.g. a dash's path), calling `on_hit` with each NPC hit.
 #[allow(clippy::too_many_arguments)]
-pub fn hit_column_with(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32; 3], radius: f32, spell: u32, damage: u32, on_hit: impl Fn(Id32)) -> u32 {
+pub fn hit_column_with(attacker: Id32, playfield: Pf, from: [f32; 3], to: [f32; 3], radius: f32, spell: u32, damage: u32, on_hit: impl Fn(Id32)) -> u32 {
     let (dx, dz) = (to[0] - from[0], to[2] - from[2]);
     let len2 = (dx * dx + dz * dz).max(0.0001);
     let inside = |p: [f32; 3]| {
@@ -1053,7 +1054,7 @@ pub fn hit_column_with(attacker: Id32, playfield: u32, from: [f32; 3], to: [f32;
 }
 
 /// Hits the NPCs `inside`; returns how many died.
-fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool, on_hit: impl Fn(Id32)) -> u32 {
+fn hit_where(attacker: Id32, playfield: Pf, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool, on_hit: impl Fn(Id32)) -> u32 {
     let targets = targets_where(playfield, inside);
     if crate::survey::enabled() {
         // an area attack selects the one nearest the attacker
@@ -1074,7 +1075,7 @@ fn hit_where(attacker: Id32, playfield: u32, spell: u32, damage: u32, inside: im
 }
 
 /// The live enemies and smashables on `playfield` whose position is `inside`, with their positions.
-pub fn targets_where(playfield: u32, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
+pub fn targets_where(playfield: Pf, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
     let now = std::time::Instant::now();
     NPCS.lock()
         .unwrap()
@@ -1127,7 +1128,7 @@ async fn regenerate() {
 /// Pets: vanish when their time is up, otherwise attack an enemy near them or follow the owner.
 fn pets_tick() {
     let now = std::time::Instant::now();
-    type Pet = (Id32, Id32, std::time::Instant, u32, u32, Option<PetProjectile>);
+    type Pet = (Id32, Id32, std::time::Instant, Pf, u32, Option<PetProjectile>);
     let pets: Vec<Pet> = NPCS
         .lock()
         .unwrap()
@@ -1315,7 +1316,7 @@ fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> bytes::Bytes {
 /// (1010201 = the visual is a monsterdata, as the templates' MonsterData stat says), u32 n +
 /// n × 5 u32 particles, 6 × f32 bounds, f32 scale, u32, u8); CoreDestructible (u32 health,
 /// u32, f32, u32 side, ID32 locked to); Destructible (u32, f32, f32, u32, f32). Then Life/Health.
-fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], health: u32) -> Vec<bytes::Bytes> {
+fn smashable_records(id: Id32, def: &SpawnDef, playfield: Pf, pos: [f32; 3], health: u32) -> Vec<bytes::Bytes> {
     use lmoxide_net::proto::{ProtoGameCodeDynelIir, ProtoQuat, ProtoSimpleDynelIir, ProtoVec3};
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
@@ -1324,7 +1325,7 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: u32, pos: [f32; 3], he
             let half = def.rot.filter(|_| crate::survey::enabled()).unwrap_or(0.0) / 2.0;
             ProtoQuat { x: Some(0.0), y: Some(half.sin()), z: Some(0.0), w: Some(half.cos()) }
         }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -1679,7 +1680,7 @@ fn fight_damage(target: Id32) -> u32 {
 /// the caster aimed at the target), then at the spell's strike its projectile flies (if it
 /// shoots one) and the hit lands (`hit`: damage number and the target's health). The spell's
 /// other actions (areas, nanos) only ever touch players and aren't run.
-fn strike(id: Id32, target: Id32, spell: u32, playfield: u32) {
+fn strike(id: Id32, target: Id32, spell: u32, playfield: Pf) {
     let (_, records) = observed_cast(id, target, spell);
     world::send_playfield(id, false, world::Out::Records(records.to_vec()));
     let delay = crate::npc_spells::strike_delay(spell);
@@ -1700,8 +1701,8 @@ fn strike(id: Id32, target: Id32, spell: u32, playfield: u32) {
 
 /// Friendly fighters: attack the nearest enemy near their post (FIGHTER_AGGRO from them, at most
 /// FIGHTER_LEASH from home), otherwise walk back to their post.
-fn fighters_tick(awake: &std::collections::HashSet<u32>) {
-    let fighters: Vec<(Id32, u32, [f32; 3], f32)> = NPCS
+fn fighters_tick(awake: &std::collections::HashSet<Pf>) {
+    let fighters: Vec<(Id32, Pf, [f32; 3], f32)> = NPCS
         .lock()
         .unwrap()
         .iter()
@@ -1736,7 +1737,7 @@ fn fighters_tick(awake: &std::collections::HashSet<u32>) {
 }
 
 /// The live friendly fighters on a playfield, with their positions.
-fn fighters_on(playfield: u32) -> Vec<(Id32, [f32; 3])> {
+fn fighters_on(playfield: Pf) -> Vec<(Id32, [f32; 3])> {
     NPCS.lock()
         .unwrap()
         .iter()
@@ -1825,14 +1826,14 @@ fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, serve
 
 /// A live enemy for one AI tick: id, playfield, home, reach (stationary enemies), keep
 /// distance, the player who hit it lately, its side among rival enemies.
-type Fighter = (Id32, u32, [f32; 3], Option<f32>, f32, Option<Id32>, Option<u32>);
+type Fighter = (Id32, Pf, [f32; 3], Option<f32>, f32, Option<Id32>, Option<u32>);
 
 /// Chase the nearest player in range and fight it; walk home when there is none or it ran too far.
 async fn ai() {
     let mut tick = tokio::time::interval(TICK);
     // playfields that emptied and when, until they are unloaded
-    let mut emptied: HashMap<u32, std::time::Instant> = HashMap::new();
-    let mut awake: std::collections::HashSet<u32> = Default::default();
+    let mut emptied: HashMap<Pf, std::time::Instant> = HashMap::new();
+    let mut awake: std::collections::HashSet<Pf> = Default::default();
     loop {
         tick.tick().await;
         if crate::survey::enabled() {
@@ -1866,7 +1867,7 @@ async fn ai() {
             })
             .collect();
         // rival enemies: (id, playfield, side, position)
-        let rivals: Vec<(Id32, u32, u32, [f32; 3])> = NPCS
+        let rivals: Vec<(Id32, Pf, u32, [f32; 3])> = NPCS
             .lock()
             .unwrap()
             .iter()
@@ -1877,8 +1878,8 @@ async fn ai() {
         fighters_tick(awake);
         // players and friendly fighters per playfield, collected once per tick (most
         // playfields have none)
-        let mut players: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
-        let mut fighters: HashMap<u32, Vec<(Id32, [f32; 3])>> = HashMap::new();
+        let mut players: HashMap<Pf, Vec<(Id32, [f32; 3])>> = HashMap::new();
+        let mut fighters: HashMap<Pf, Vec<(Id32, [f32; 3])>> = HashMap::new();
         for (_, playfield, _, _, _, _, _) in &live {
             players
                 .entry(*playfield)
@@ -1960,7 +1961,7 @@ async fn ai() {
 }
 
 /// The playfields players are on.
-fn occupied_playfields() -> std::collections::HashSet<u32> {
+fn occupied_playfields() -> std::collections::HashSet<Pf> {
     // world::members first: is_player locks NPCS, which mustn't be taken under MEMBERS
     world::members().into_iter().filter(|(id, _)| is_player(*id)).map(|(_, pf)| pf).collect()
 }
@@ -1968,7 +1969,7 @@ fn occupied_playfields() -> std::collections::HashSet<u32> {
 /// Puts the NPCs of a playfield nobody is on back as they were loaded: at home, full health,
 /// not walking or fighting (pets and the dead, waiting to respawn, are left alone). Nobody sees
 /// it happen; whoever comes next is sent them so (their spawn records read health and position).
-fn unload(playfield: u32) {
+fn unload(playfield: Pf) {
     let mut npcs = NPCS.lock().unwrap();
     let mut count = 0;
     for npc in npcs.values_mut().filter(|n| n.playfield == playfield && n.owner.is_none() && n.presence.is_some() && n.health > 0) {
@@ -1982,7 +1983,7 @@ fn unload(playfield: u32) {
         *npc.pos.lock().unwrap() = npc.def.pos;
         count += 1;
     }
-    info!(playfield, count, "playfield empty: NPCs reset, asleep until a player comes");
+    info!(?playfield, count, "playfield empty: NPCs reset, asleep until a player comes");
 }
 
 /// Whether NPC `id` has a patrol route.
@@ -2005,7 +2006,7 @@ pub fn test_enemy(n: u32, pos: [f32; 3], to: [f32; 3]) -> Id32 {
     let mut def: SpawnDef = serde_json::from_value(serde_json::json!({ "name": "Test Enemy", "monster_data": 82410, "level": 1, "health": 100, "pos": pos })).unwrap();
     def.kind = Kind::Enemy;
     let id = Id32::new(crate::territory::CHARACTER_TYPE, 900_000 + n);
-    let mut npc = Npc::new(def, 9999, None, None);
+    let mut npc = Npc::new(def, Pf::main(9999), None, None);
     npc.walk = Some(Walk { from: pos, to, since: std::time::Instant::now(), speed: 4.0 });
     NPCS.lock().unwrap().insert(id, npc);
     id
@@ -2084,7 +2085,7 @@ mod tests {
         let route = vec![[0.0, 0.0, 0.0], [3.0, 0.0, 0.0], [3.0, 0.0, 3.0]];
         let mut def = SpawnDef { patrol: route.clone(), ..test_spawn_def() };
         def.pos = [0.2, 0.0, 0.0];
-        NPCS.lock().unwrap().insert(id, Npc::new(def.clone(), 1, None, None));
+        NPCS.lock().unwrap().insert(id, Npc::new(def.clone(), Pf::main(1), None, None));
         patrol(id, def.pos);
         assert_eq!(NPCS.lock().unwrap()[&id].patrol.map(|p| p.0), Some(0));
         // pretend it set out long enough ago to have walked past point 1
@@ -2103,7 +2104,7 @@ mod tests {
         drop(npcs);
         NPCS.lock().unwrap().remove(&id);
         // copies placed elsewhere don't patrol
-        assert!(Npc::new(def, 1, None, Some(std::time::Instant::now())).def.patrol.is_empty());
+        assert!(Npc::new(def, Pf::main(1), None, Some(std::time::Instant::now())).def.patrol.is_empty());
     }
 
     #[test]

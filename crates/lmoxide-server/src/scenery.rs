@@ -6,6 +6,7 @@
 //! The collectibles (discovery.rs) are spawned here too, usable (CARS group 1, as the buildies),
 //! and the boss arenas' door visuals, shown or hidden as their encounter has them (encounter.rs).
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, Mutex},
@@ -101,14 +102,15 @@ pub fn start() {
                 || crate::gates::wall_blocks(p.guid).is_some()
         }) {
             PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
-            let presence = join(&piece, playfield);
+            let presence = join(&piece, Pf::main(playfield));
+
             PRESENCES.lock().unwrap().insert(piece.guid, (playfield, piece, presence));
         }
     }
     info!(count = PRESENCES.lock().unwrap().len(), "scenery spawned");
 }
 
-fn join(piece: &Piece, playfield: u32) -> world::Presence {
+fn join(piece: &Piece, playfield: Pf) -> world::Presence {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let id = Id32::new(SIMPLE_DYNEL_TYPE, piece.guid);
@@ -119,11 +121,11 @@ fn join(piece: &Piece, playfield: u32) -> world::Presence {
 
 /// An invisible marker dynel ("XX_Invisible", as live spawned to carry particles: the plain
 /// marker visual, not usable, no collision) at `pos`, facing `rot`: its spawn records.
-pub fn invisible_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4]) -> Vec<Bytes> {
+pub fn invisible_records(id: Id32, playfield: Pf, pos: [f32; 3], rot: [f32; 4]) -> Vec<Bytes> {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(rot[0]), y: Some(rot[1]), z: Some(rot[2]), w: Some(rot[3]) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -150,12 +152,12 @@ pub struct Look {
 
 /// A piece of scenery of any look: not usable, no collision. Survey mode's trigger walls are
 /// made of these.
-pub fn visual_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4], look: &Look) -> Vec<Bytes> {
+pub fn visual_records(id: Id32, playfield: Pf, pos: [f32; 3], rot: [f32; 4], look: &Look) -> Vec<Bytes> {
     let Look { name, visual, bounds, scale } = look;
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(rot[0]), y: Some(rot[1]), z: Some(rot[2]), w: Some(rot[3]) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -174,14 +176,14 @@ pub fn visual_records(id: Id32, playfield: u32, pos: [f32; 3], rot: [f32; 4], lo
 
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (as for jump pads: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
-fn spawn_records(p: &Piece, playfield: u32) -> Vec<Bytes> {
+fn spawn_records(p: &Piece, playfield: Pf) -> Vec<Bytes> {
     let id = Id32::new(SIMPLE_DYNEL_TYPE, p.guid);
     let usable = crate::discovery::is_collectible(&p.name) || crate::mirrors::is_mirror(p.guid) || crate::ballista::is_lever(p.guid);
     let cars_group = if usable { CARS_USABLE } else { CARS_INACTIVE };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(p.pos[0]), y: Some(p.pos[1]), z: Some(p.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(p.rot[0]), y: Some(p.rot[1]), z: Some(p.rot[2]), w: Some(p.rot[3]) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     // an arena's shield: a wall while its door is closed (encounter.rs); nothing else collides

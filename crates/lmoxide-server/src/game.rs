@@ -1,6 +1,7 @@
 //! Game server: the playfield connection the client opens after `LoginConnectReady`
 //! (`ClientToGameserverRPC` / `GameserverToClientRPC`, then the gamecode endpoints).
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -43,6 +44,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let store = Store;
     let mut character = 0;
     let mut me = new_character(String::new(), cfg.start_playfield);
+    // the running copy of the character's playfield it is in (`me.playfield` is the playfield
+    // saved: the copy is chosen anew on arrival, instance.rs)
+    let mut place = Pf::main(me.playfield);
     let mut collection = Collection::new(&me.team, me.collection.as_ref());
     let pos = Arc::new(Mutex::new(START_POS));
     let mut last_save = std::time::Instant::now();
@@ -103,9 +107,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 if presence.is_some() {
                     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                     let here = world::live_position(id).unwrap_or_else(|| *pos.lock().unwrap());
-                    portals.check(&mut conn, character, me.playfield, here).await?;
+                    portals.check(&mut conn, character, place, here).await?;
                     // quest areas also after teleports and throws (no movement report)
-                    let playfield = me.playfield;
+                    let playfield = place;
                     let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
                     send_records(&mut conn, character, records).await?;
                 }
@@ -134,7 +138,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             info!(character, playfield, ?at, %label, "dev tour");
                             crate::chat::system(character, &label);
                             let at = [at[0] + 6.0, at[1], at[2]];
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, -std::f32::consts::FRAC_PI_2)))
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, Some((at, -std::f32::consts::FRAC_PI_2)))
                                 .await?;
                         }
                         world::Out::Progress(event) => {
@@ -155,7 +159,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 // the last of the playfield's enemies: cleared, also for the teammates
                                 // here (one who came in later never saw every defeat)
                                 let cleared = crate::achievements::Event::Cleared { playfield: *playfield };
-                                crate::community::share(character, *playfield, &cleared);
+                                crate::community::share(character, place, &cleared);
                                 let _ = outbox.send(world::Out::Progress(cleared));
                             }
                             if let crate::achievements::Event::Built { name } = &event
@@ -184,7 +188,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
                             }
                             let out = progress(&mut me, &collection, character, Some((Some(&event), 1)));
-                            send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                            send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                             let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
                             send_records(&mut conn, character, records).await?;
                         }
@@ -221,8 +225,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                     }
                     world::Out::Teleport(playfield, at, rot) => {
-                        let playfield = playfield.unwrap_or(me.playfield);
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
+                        let playfield = playfield.unwrap_or(place.model());
+
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, Some((at, rot)))
                             .await?;
                     }
                     world::Out::Smashed(template) => {
@@ -333,7 +338,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 _online = Some(crate::sessions::online(account.id, character, &account.username, &me.name, gm_level, outbox.clone()));
                 *pos.lock().unwrap() = me.pos;
                 collection = Collection::new(&me.team, me.collection.as_ref());
-                info!(character, %version, name = %me.name, playfield = me.playfield, pos = ?me.pos, gm_level, "Authenticate2");
+                // the copy LoginConnectReady named (territory.rs)
+                place = crate::instance::arrival(me.playfield);
+                info!(character, %version, name = %me.name, playfield = ?place, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
                     .await?;
@@ -342,12 +349,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 // Give the client a moment to process the territory disconnect.
                 tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                send_world(&mut conn, character, &me, &collection).await?;
+                send_world(&mut conn, character, &me, place, &collection).await?;
                 // achievements: the earned tags and counters again (live sent them after the full
                 // update, before the client is in play, and not on playfield changes), and what
                 // is due already
                 let out = progress(&mut me, &collection, character, None);
-                send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
             }
             _ if !conn.authenticated => anyhow::bail!("{} before Authenticate2", rpc.describe()),
             (Some(Endpoint::ClientToGameserverRPC), agent::SIGNAL_PASS_BLOB) => {
@@ -403,11 +410,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
                         // the World Map's teleport spots for this world, all unlocked
-                        let args = crate::teleport::valid_spots_args(me.playfield, *pos.lock().unwrap());
+                        let args = crate::teleport::valid_spots_args(place, *pos.lock().unwrap());
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::VALID_RESURRECTION_SPOTS, args)
                             .await?;
                         if community.is_none() {
-                            community = Some(crate::community::login(character, &me.name, me.playfield, outbox.clone()));
+                            community = Some(crate::community::login(character, &me.name, place, outbox.clone()));
                         }
                         // development: LMOXIDE_DEV_COMMANDS="!test 4;!sleep 10;!xp 10" runs test
                         // commands 5 s after the first entry into the world (as if typed into the
@@ -448,28 +455,28 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                             });
                         }
-                        crate::community::entered_playfield(character, me.playfield);
+                        crate::community::entered_playfield(character, place);
                         if presence.is_none() {
                             let here = *pos.lock().unwrap();
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() }.spec());
-                            presence = Some(world::join(id, me.playfield, pos_handle, spawn, outbox.clone()));
+                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), ..snapshot.clone() }.spec(place));
+                            presence = Some(world::join(id, place, pos_handle, spawn, outbox.clone()));
                             // the journal: a visit; clearing starts over
                             let _ = outbox.send(world::Out::Progress(crate::achievements::Event::Visited { playfield: me.playfield }));
-                            residents = crate::npc::resident_enemies(me.playfield);
+                            residents = crate::npc::resident_enemies(place);
                             defeated_here.clear();
                             cleared_here = false;
                             report_finds(&me, here, &outbox);
                             // every arrival (a teleport within the playfield too) reloads the
                             // client's world: it forgot the quests
                             quest_tracker = crate::quests::Tracker::default();
-                            let playfield = me.playfield;
+                            let playfield = place;
                             let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
                             send_records(&mut conn, character, records).await?;
                             // encounters: a side dungeon's champion, an area the player arrived in
-                            crate::encounter::entered(me.playfield, here, &|n| me.defeats.contains_key(n));
-                            crate::encounter::moved(id, me.playfield, here);
+                            crate::encounter::entered(place, here, &|n| me.defeats.contains_key(n));
+                            crate::encounter::moved(id, place, here);
                             set_costume(id, monster_data_for(me.team.first().map_or(0, |&(_, t)| t)));
                             refresh_costumes(id);
                             if let Some(&(_, template)) = me.team.first() {
@@ -483,7 +490,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 tutorial = Some(crate::tutorial::Run::start(id, &me.name, here));
                             }
                             // the dialogue the live server started on arrival here (the jail's)
-                            crate::knubot::arrived(id, &me.name, me.playfield, &|t| me.tags.contains_key(&t));
+                            crate::knubot::arrived(id, &me.name, place, &|t| me.tags.contains_key(&t));
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(here)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }
@@ -525,19 +532,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             // jump pads (click-to-move reports the path's end and its start)
                             let from = (kind == "MoveTaskIIR_c").then(|| reported_position("CharDCMoveIIR_t", rest)).flatten();
-                            crate::jumppad::moved(h.identity, me.playfield, &pos, p, from);
+                            crate::jumppad::moved(h.identity, place, &pos, p, from);
                             report_finds(&me, p, &outbox);
-                            let playfield = me.playfield;
+                            let playfield = place;
                             let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, p);
                             send_records(&mut conn, character, records).await?;
-                            crate::encounter::moved(h.identity, me.playfield, p);
-                            crate::plates::moved(me.playfield, from, p);
+                            crate::encounter::moved(h.identity, place, p);
+                            crate::plates::moved(place, from, p);
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }
                             // portals: where the player is now (a click-to-move report gives the path's end)
                             let here = world::live_position(h.identity).unwrap_or(p);
-                            portals.check(&mut conn, character, me.playfield, here).await?;
+                            portals.check(&mut conn, character, place, here).await?;
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
                                 me.pos = p;
@@ -609,7 +616,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let talk_to = target
                                     .map(|(kind, instance)| Id32::new(kind, instance))
                                     .and_then(|t| crate::npc::friendly(t).map(|(name, playfield)| (t, name, playfield)))
-                                    .filter(|(_, name, playfield)| crate::knubot::has_dialogues(name, *playfield));
+                                    .filter(|(_, name, playfield)| crate::knubot::has_dialogues(name, playfield.model()));
                                 info!(?talk_to, "interaction target");
                                 if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION && let Some((npc, name, playfield)) = talk_to {
                                     // talking to an NPC with dialogues
@@ -696,7 +703,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         } else {
                                             last_summon = Some((spell, std::time::Instant::now()));
                                             let at = ground.unwrap_or_else(|| *pos.lock().unwrap());
-                                            crate::npc::summon(h.identity, me.playfield, spell, at);
+                                            crate::npc::summon(h.identity, place, spell, at);
                                         }
                                     } else if let Some(dash) = crate::dash::params(spell) {
                                         // a dash: the server moves the caster (towards the
@@ -708,7 +715,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .filter(|t| *t != h.identity)
                                             .and_then(crate::npc::position)
                                             .or(ground);
-                                        crate::dash::start(h.identity, me.playfield, spell, dash.clone(), pos.clone(), point, heading, move |m| {
+                                        crate::dash::start(h.identity, place, spell, dash.clone(), pos.clone(), point, heading, move |m| {
                                             template.map_or(50, |t| crate::combat::damage_with_mod(t, active, spell, m, level))
                                         });
                                     } else if crate::projectile::params(spell).is_some_and(|p| !p.charge_items.is_empty()) {
@@ -736,7 +743,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                 end[blob.len() - rest.len()] = BCC_FINISH_CHANNEL;
                                                 run_charge(
                                                     h.identity,
-                                                    me.playfield,
+                                                    place,
                                                     spell,
                                                     active.clone(),
                                                     pos.clone(),
@@ -752,6 +759,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                                     active,
                                                     target: npc_target,
                                                     damage,
+                                                    place,
                                                 });
                                             }
                                         }
@@ -763,7 +771,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         end[blob.len() - rest.len()] = BCC_FINISH_CHANNEL;
                                         let caster = crate::actions::Caster {
                                             id: h.identity,
-                                            playfield: me.playfield,
+                                            playfield: place,
                                             pos: pos.clone(),
                                             facing: facing.clone(),
                                             template,
@@ -780,7 +788,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let (template, upgrades) = me.team.first().map_or((0, 0), |&(_, t)| (t, me.upgrade(t)));
                                         let caster = crate::actions::Caster {
                                             id: h.identity,
-                                            playfield: me.playfield,
+                                            playfield: place,
                                             pos: pos.clone(),
                                             facing: facing.clone(),
                                             template,
@@ -800,7 +808,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             .and_then(|t| crate::projectile::aim_for(spell, t, here))
                                             .or(ground)
                                             .unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
-                                        crate::projectile::launch(h.identity, me.playfield, spell, None, here, towards, npc_target, damage);
+                                        crate::projectile::launch(h.identity, place, spell, None, here, towards, npc_target, damage);
                                     } else {
                                     match target_id {
                                         Some(t) if t != h.identity && crate::npc::is_npc(t) => {
@@ -811,7 +819,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                             let here = *pos.lock().unwrap();
                                             let ahead = [here[0] + heading[0] * MELEE_REACH, here[1], here[2] + heading[1] * MELEE_REACH];
                                             let center = ground.unwrap_or(ahead);
-                                            crate::npc::hit_area(h.identity, me.playfield, center, AREA_RADIUS, spell, damage);
+                                            crate::npc::hit_area(h.identity, place, center, AREA_RADIUS, spell, damage);
                                         }
                                     }
                                     }
@@ -978,7 +986,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let playfield = r.u32()?;
                 let spawn = r.u32()?;
                 info!(playfield, spawn, "TeleportMe");
-                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, Some(spawn), None)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, Some(spawn), None)
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
@@ -1010,7 +1018,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(answer, "teleport window answer");
                 if answer > 0 || answer < -1 {
                     let playfield = (answer as u32) & 0x7fff_ffff;
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None)
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, None)
                         .await?;
                 }
             }
@@ -1025,7 +1033,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 {
                     portals.prompt = None;
                     if answer == 1 {
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, None, None).await?;
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, to), &mut place, None, None).await?;
                     }
                 }
             }
@@ -1035,7 +1043,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let window = r.u32()?;
                 let playfield = r.u32()?;
                 info!(window, playfield, "teleport window bypass");
-                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, None)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, None)
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CLIENT_ATTEMPT_CLOSING_PLAYER_DESTINATION_PLAYFIELD) => {
@@ -1081,7 +1089,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
                     }
                     let out = progress(&mut me, &collection, character, Some((None, 0)));
-                    send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                    send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                 }
                 let args = Writer::new().u32(template).i32(if ok { 0 } else { 1 }).finish();
                 conn.send_as(
@@ -1169,7 +1177,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::ITEM_SHOP_REPLY, args)
                                 .await?;
                             let out = progress(&mut me, &collection, character, Some((None, 0)));
-                            send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                            send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                         }
                         Err(why) => {
                             info!(template, shop_id, why, "upgrade not bought");
@@ -1209,7 +1217,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 } else if crate::devcmd::is_command(&message) {
                     // a test command (devcmd.rs), not relayed
                     let here = *pos.lock().unwrap();
-                    match crate::devcmd::run(&message, me.playfield, here) {
+                    match crate::devcmd::run(&message, place, here) {
                         crate::devcmd::Action::Reply(lines) => {
                             for line in lines {
                                 crate::chat::system(character, &line);
@@ -1239,7 +1247,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::Smash => {
                             let here = *pos.lock().unwrap();
                             let d = |p: [f32; 3]| (p[0] - here[0]).hypot(p[2] - here[2]);
-                            let nearest = crate::npc::targets_where(me.playfield, |p| d(p) < 15.0)
+                            let nearest = crate::npc::targets_where(place, |p| d(p) < 15.0)
                                 .into_iter()
                                 .min_by(|a, b| d(a.1).total_cmp(&d(b.1)));
                             match nearest {
@@ -1274,7 +1282,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     crate::devcmd::FxAt::Ground => (Some(crate::effects::ground_effect(id, package, here, 0, instance)), " at your feet".into()),
                                     crate::devcmd::FxAt::Near => {
                                         let d = |p: [f32; 3]| (p[0] - here[0]).hypot(p[2] - here[2]);
-                                        let nearest = crate::npc::targets_where(me.playfield, |p| d(p) < 15.0).into_iter().min_by(|a, b| d(a.1).total_cmp(&d(b.1)));
+                                        let nearest = crate::npc::targets_where(place, |p| d(p) < 15.0).into_iter().min_by(|a, b| d(a.1).total_cmp(&d(b.1)));
                                         match nearest {
                                             Some((target, _)) => (Some(crate::effects::effect_package_on(id, target, package, &hook, instance)), format!(" on {}", crate::npc::name_of(target).unwrap_or_default())),
                                             None => (None, String::new()),
@@ -1295,12 +1303,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Despawn(all) => {
                             let here = *pos.lock().unwrap();
-                            let n = crate::npc::despawn_tests(me.playfield, (!all).then_some((here, 30.0)));
+                            let n = crate::npc::despawn_tests(place, (!all).then_some((here, 30.0)));
                             crate::chat::system(character, &format!("{n} test spawns removed"));
                         }
                         crate::devcmd::Action::Spawn(name, count) => {
                             let at = *pos.lock().unwrap();
-                            let n = crate::npc::spawn_test_enemies(&name, count, me.playfield, at, TEST_ENEMY_LIFETIME);
+                            let n = crate::npc::spawn_test_enemies(&name, count, place, at, TEST_ENEMY_LIFETIME);
                             let line = if n == 0 { format!("no enemy or smashable named {name}") } else { format!("{n} x {name} for 15 minutes") };
                             crate::chat::system(character, &line);
                         }
@@ -1340,8 +1348,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                                 let mut records = crate::knubot::end(id);
                                 records.extend([
-                                    crate::teleport::intended_teleport_record(id, playfield),
-                                    crate::teleport::teleport_record(id, playfield, at, 0.0),
+                                    crate::teleport::intended_teleport_record(id, crate::instance::arrival(playfield)),
+                                    crate::teleport::teleport_record(id, crate::instance::arrival(playfield), at, 0.0),
                                 ]);
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
                                 crate::switch::set_away(account_id, true);
@@ -1359,9 +1367,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::Loot(kind) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                             let here = *pos.lock().unwrap();
-                            let items = crate::loot::test_items(&kind, me.playfield);
+                            let items = crate::loot::test_items(&kind, place);
                             crate::chat::system(character, &format!("loot {kind}: {} items", items.len()));
-                            crate::loot::drop_items(id, me.playfield, [here[0] + 1.5, here[1], here[2]], id, items);
+                            crate::loot::drop_items(id, place, [here[0] + 1.5, here[1], here[2]], id, items);
                         }
                         crate::devcmd::Action::Own(None) => {
                             let line = match &me.collection {
@@ -1468,7 +1476,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::Progress(event, n) => {
                             let before = me.tags.len();
                             let out = progress(&mut me, &collection, character, Some((Some(&event), n as u64)));
-                            send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                            send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                             let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, n as u64);
                             send_records(&mut conn, character, records).await?;
                             let line = format!("counted {n} x {event:?}: {} new achievements", me.tags.len() - before);
@@ -1476,17 +1484,23 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         }
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
                             crate::chat::system(character, &line);
-                            // (!move, !moveto: keep facing the way the player does)
                             let rot = if rot.is_nan() { heading[0].atan2(heading[1]) } else { rot };
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, Some((at, rot)))
                                 .await?;
                         }
+                        crate::devcmd::Action::Enter(to, at, rot, line) => {
+                            crate::chat::system(character, &line);
+                            // (!move, !moveto: keep facing the way the player does)
+                            let rot = if rot.is_nan() { heading[0].atan2(heading[1]) } else { rot };
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, &mut place, None, Some((at, rot))).await?;
+                        }
+
                         crate::devcmd::Action::Dialog(n) => {
                             let me_id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                             match crate::knubot::dialogues().get(n.wrapping_sub(1)) {
                                 Some(d) => {
                                     // the speaker: that NPC if it's here, else the player
-                                    let owner = crate::npc::find(&d.npc, me.playfield).unwrap_or(me_id);
+                                    let owner = crate::npc::find(&d.npc, place).unwrap_or(me_id);
                                     crate::knubot::start(me_id, &me.name, owner, d.clone());
                                 }
                                 None => {
@@ -1538,9 +1552,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                                 learn_team_spells(&mut conn, character, &me).await?;
                             }
-                            let (playfield, at) = match setup.destination {
+                            let (_, at) = match setup.destination {
                                 Some((playfield, at, rot)) => {
-                                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, rot)))
+                                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, Some((at, rot)))
                                         .await?;
                                     (playfield, at)
                                 }
@@ -1562,7 +1576,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                             };
                             for (name, count) in &setup.spawn {
-                                let n = crate::npc::spawn_test_enemies(name, *count, playfield, at, TEST_ENEMY_LIFETIME);
+                                let n = crate::npc::spawn_test_enemies(name, *count, place, at, TEST_ENEMY_LIFETIME);
                                 let line = if n == 0 { format!("no enemy named {name}") } else { format!("{n} x {name} for 15 minutes") };
                                 crate::chat::system(character, &line);
                             }
@@ -1732,7 +1746,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;
                     let (playfield, at) =
                         if crate::progression::enabled() { (crate::tutorial::PLAYFIELD, crate::tutorial::START) } else { (cfg.start_playfield, START_POS) };
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, playfield, None, Some((at, 0.0)))
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, Some((at, 0.0)))
                         .await?;
                 }
             }
@@ -1761,7 +1775,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let tag = r.u32()?;
                 if !me.tags.contains_key(&tag) {
                     let out = progress(&mut me, &collection, character, Some((Some(&crate::achievements::Event::Tag(tag)), 1)));
-                    send_progress(&mut conn, character, &mut me, &mut collection, out).await?;
+                    send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                 }
             }
             // Client-side bookkeeping that needs no answer (to be persisted later).
@@ -1903,7 +1917,7 @@ struct Portals {
     prompt: Option<(u64, u32)>,
     cookies: u64,
     armed: bool,
-    playfield: u32,
+    playfield: Pf,
 }
 
 impl Portals {
@@ -1929,7 +1943,7 @@ impl Portals {
     }
 
     /// The player is at `p` on `playfield`.
-    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: u32, p: [f32; 3]) -> anyhow::Result<()> {
+    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: Pf, p: [f32; 3]) -> anyhow::Result<()> {
         let arrived = crate::teleport::take_arrival(character);
         if playfield != self.playfield || arrived {
             self.armed = false;
@@ -2064,11 +2078,12 @@ async fn send_world(
     conn: &mut Conn,
     character: u32,
     me: &Character,
+    place: Pf,
     collection: &Collection,
 ) -> anyhow::Result<()> {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-    let mut records = vec![playfield_full_update(me.playfield)];
-    records.extend(spawn_records(id, &me.spec()));
+    let mut records = vec![playfield_full_update(place)];
+    records.extend(spawn_records(id, &me.spec(place)));
     records.insert(3, full_player_character(id, me, collection));
     let gm_level = crate::sessions::gm_level(character);
     if gm_level != 0 {
@@ -2104,24 +2119,26 @@ async fn teleport(
     collection: &Collection,
     presence: &mut Option<world::Presence>,
     pos: &world::Position,
-    playfield: u32,
+    playfield: Pf,
+    place: &mut Pf,
     spot: Option<u32>,
     at: Option<([f32; 3], f32)>,
 ) -> anyhow::Result<()> {
     // arrive where asked (test commands), at the chosen teleport spot (World Map); through a
     // teleport window, by the portal back to where the player came from; else at the
     // playfield's arrival point
+    let model = playfield.model();
     let arrival = at
         .or_else(|| match spot {
-            Some(g) => crate::teleport::spot(playfield, g).map(|s| (s.pos, s.rot)),
-            None => crate::teleport::return_point(playfield, me.playfield).map(|d| (d.pos, d.rot)),
+            Some(g) => crate::teleport::spot(model, g).map(|s| (s.pos, s.rot)),
+            None => crate::teleport::return_point(model, me.playfield).map(|d| (d.pos, d.rot)),
         })
-        .or_else(|| crate::teleport::destination(playfield).map(|d| (d.pos, d.rot)));
+        .or_else(|| crate::teleport::destination(model).map(|d| (d.pos, d.rot)));
     let Some((arrive_pos, arrive_rot)) = arrival else {
-        warn!(playfield, "no destination data for playfield");
+        warn!(?playfield, "no destination data for playfield");
         return Ok(());
     };
-    info!(from = me.playfield, to = playfield, ?spot, "teleport");
+    info!(from = ?*place, to = ?playfield, ?spot, "teleport");
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
     // a dialogue going on ends here (its window and cinematic would stay up in the new world)
     let mut records = crate::knubot::end(id);
@@ -2132,7 +2149,8 @@ async fn teleport(
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     // leaving: despawns the character for everyone in the old playfield
     *presence = None;
-    me.playfield = playfield;
+    *place = playfield;
+    me.playfield = model;
     me.pos = arrive_pos;
     *pos.lock().unwrap() = arrive_pos;
     crate::teleport::arrived(character);
@@ -2143,8 +2161,9 @@ async fn teleport(
     }
     // let the client tear down the old playfield first
     tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-    send_world(conn, character, me, collection).await
+    send_world(conn, character, me, *place, collection).await
 }
+
 
 /// The XP bar's stats: XP, LastXP and NextXP of the level (XP 0 without progression).
 fn xp_records(id: Id32, me: &Character) -> Vec<Bytes> {
@@ -2223,6 +2242,7 @@ fn progress(
 async fn send_progress(
     conn: &mut Conn,
     character: u32,
+    place: Pf,
     me: &mut Character,
     collection: &mut Collection,
     out: crate::achievements::Output,
@@ -2240,7 +2260,7 @@ async fn send_progress(
     for (dropper, item) in out.drops {
         let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
         let at = world::whereabouts(dropper).map(|(_, p)| p).or_else(|| world::live_position(player)).unwrap_or(me.pos);
-        crate::loot::drop_items(player, me.playfield, at, dropper, vec![item]);
+        crate::loot::drop_items(player, place, at, dropper, vec![item]);
     }
     // new achievements may change the aura (the reward scripts recast the aura applier)
     if let Some(&(_, template)) = me.team.first() {
@@ -2289,6 +2309,8 @@ struct Charge {
     active: Arc<std::sync::atomic::AtomicBool>,
     target: Option<Id32>,
     damage: u32,
+    /// The running copy it was started in.
+    place: Pf,
 }
 
 /// How long the others' copy of a cast is remembered for a release or abort.
@@ -2308,7 +2330,7 @@ fn end_observed(caster: Id32, observed: Option<(u32, Id32, u32, std::time::Insta
 #[allow(clippy::too_many_arguments)]
 fn run_charge(
     caster: Id32,
-    playfield: u32,
+    playfield: Pf,
     spell: u32,
     active: Arc<std::sync::atomic::AtomicBool>,
     pos: world::Position,
@@ -2398,7 +2420,7 @@ fn fire_charge(c: &Charge, me: &Character, caster: Id32, here: [f32; 3], heading
     // reporting it while they turn). A targeted cast still goes to its target.
     let towards = c.target.and_then(|t| crate::projectile::aim_for(c.spell, t, here)).unwrap_or([here[0] + heading[0], here[1], here[2] + heading[1]]);
     info!(spell = c.spell, held, item, "charge released");
-    crate::projectile::launch(caster, me.playfield, c.spell, Some(item), here, towards, c.target, damage);
+    crate::projectile::launch(caster, c.place, c.spell, Some(item), here, towards, c.target, damage);
 }
 
 /// Fires charges whose release never arrived.
@@ -2645,13 +2667,14 @@ pub const SERVER_INSTANCE: u32 = 0x5e7e;
 
 /// A server-side character that circles whoever else is on the playfield, standing in for a
 /// second player (`--bot`).
-pub async fn run_bot(playfield: u32) {
+pub async fn run_bot(playfield: Pf) {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, BOT_INSTANCE);
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let bot = Character { name: "Bot".into(), ..new_character(String::new(), playfield) };
-    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec());
+    let bot = Character { name: "Bot".into(), ..new_character(String::new(), playfield.model()) };
+    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec(playfield));
+
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     set_costume(id, monster_data_for(START_TEAM[0].1));
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
@@ -2718,14 +2741,14 @@ pub const PLAYFIELD_TYPE: u32 = 51100;
 /// phase (0x7f5d30) reads blob 2 as dynamic pathfinding data (0xbd3900: u32 count, entries) and
 /// blob 1 as a u32 count of nested IIRs. Both must hold at least a count: reading a u32 from an
 /// empty stream yields garbage, which made the client allocate until it ran out of memory.
-fn playfield_full_update(playfield: u32) -> bytes::Bytes {
-    let id = Id32::new(PLAYFIELD_TYPE, playfield);
+fn playfield_full_update(playfield: Pf) -> bytes::Bytes {
+    let id = Id32::new(PLAYFIELD_TYPE, playfield.model());
     let proxy = PlayfieldProxyData {
         dimension_id: Some(1),
-        model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield) }),
+        model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield.model()) }),
         // key of the client's playfield map ("Inserting playfield N in map"); dynels refer to it
         // via ProtoGameCodeDynelIIR.playfield_instance
-        running_instance: Some(crate::teleport::client_key(playfield)),
+        running_instance: Some(playfield.key()),
         ..Default::default()
     };
     iir::record("PlayfieldFIIR_t", id, false, |w| {
@@ -2733,7 +2756,7 @@ fn playfield_full_update(playfield: u32) -> bytes::Bytes {
         let w = w.u32(0).u32(0).u32(0).proto(&proxy).u32(0).blob(&empty_list).blob(&empty_list);
         // 6 u32 (PlayfieldFIIR_t::ReadSubClass, +0xd8..0xec); the 5th is the area's level cap
         // (recorded: 11 in Pirate World, 0 = none in the tutorial)
-        let cap = if crate::progression::enabled() { crate::progression::level_cap(playfield) } else { 0 };
+        let cap = if crate::progression::enabled() { crate::progression::level_cap(playfield.model()) } else { 0 };
         w.u32(0).u32(0).u32(0).u32(0).u32(cap).u32(0)
     })
 }
@@ -2854,6 +2877,7 @@ fn item_shop_currencies(stars: u64) -> Bytes {
 fn respawn(id: Id32, me: &Character, here: [f32; 3], spot: Option<&crate::teleport::Spot>, outbox: &world::Outbox) {
     world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_NORMAL)]));
     match spot.or_else(|| crate::teleport::nearest_spot(me.playfield, here)) {
+
         Some(s) => {
             info!(character = id.instance, guid = s.guid, "respawn after the team was smashed");
             let _ = outbox.send(world::Out::Teleport(None, s.pos, s.rot));
@@ -2969,7 +2993,7 @@ pub fn stat_record(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
 /// What the character IIRs need to know about a character, player or NPC.
 pub struct CharSpec<'a> {
     pub name: &'a str,
-    pub playfield: u32,
+    pub playfield: Pf,
     pub pos: [f32; 3],
     /// Body and costume (RDB 1010514).
     pub monster_data: u32,
@@ -2998,7 +3022,7 @@ pub trait CharacterExt {
     fn purchased(&self, template: u32) -> u32;
     /// What the minifigure's item carries (upgrades, rank, life, achievement counters).
     fn item_state(&self, template: u32) -> crate::collection::ItemState;
-    fn spec(&self) -> CharSpec<'_>;
+    fn spec(&self, place: Pf) -> CharSpec<'_>;
 }
 
 impl CharacterExt for Character {
@@ -3036,10 +3060,11 @@ impl CharacterExt for Character {
         }
     }
 
-    fn spec(&self) -> CharSpec<'_> {
+    /// How the character appears in `place` (the running copy it is in).
+    fn spec(&self, place: Pf) -> CharSpec<'_> {
         CharSpec {
             name: &self.name,
-            playfield: self.playfield,
+            playfield: place,
             pos: self.pos,
             // the active (first) team slot's minifigure
             monster_data: self.team.first().map_or(2212, |&(_, t)| monster_data_for(t)),
@@ -3068,7 +3093,7 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let core = ProtoCoreCharacterIir {
@@ -3152,14 +3177,14 @@ fn reflect(fields: &[(u32, &[u8])]) -> Vec<u8> {
     out
 }
 
-pub fn create_game_object(id: Id32, playfield: u32, pos: [f32; 3]) -> bytes::Bytes {
+pub fn create_game_object(id: Id32, playfield: Pf, pos: [f32; 3]) -> bytes::Bytes {
     // Only Id: Position is a reflected struct (Vector3Member) and the dynel IIR carries the
     // position anyway. ID32 is itself a reflected struct {type @0, instance @4} (0x6f3e80),
     // so it nests as its own length + fields; u32 fields are plain little-endian values.
     let _ = pos;
     let id_value = reflect(&[(elf_hash("type"), &id.kind.to_le_bytes()), (elf_hash("instance"), &id.instance.to_le_bytes())]);
     let object = reflect(&[(elf_hash("Id"), &id_value)]);
-    iir::record("UpdateMessage", id, false, |w| id.write(w.u8(0)).u32(crate::teleport::client_key(playfield)).blob(&object))
+    iir::record("UpdateMessage", id, false, |w| id.write(w.u8(0)).u32(playfield.key()).blob(&object))
 }
 
 #[cfg(test)]

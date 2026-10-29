@@ -28,6 +28,7 @@
 //! TimeExist and shortened by diminishing returns (AddDiminishingReturn). Timings the client
 //! data doesn't give are in docs/TUNABLES.md.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{
@@ -354,7 +355,7 @@ pub fn is_channel(spell: u32) -> bool {
 /// Who casts, and at what.
 pub struct Caster {
     pub id: Id32,
-    pub playfield: u32,
+    pub playfield: Pf,
     pub pos: world::Position,
     pub facing: Arc<Mutex<[f32; 2]>>,
     /// The active minifigure and its upgrades (damage, upgrade criteria).
@@ -1150,7 +1151,7 @@ mod tests {
         Arc::new(Run {
             caster: Caster {
                 id: caster,
-                playfield: 9999,
+                playfield: Pf::main(9999),
                 pos: Arc::new(Mutex::new([0.0; 3])),
                 facing: Arc::new(Mutex::new([0.0, 1.0])),
                 template: 0,

@@ -18,6 +18,7 @@
 //!
 //! Live's reward (a loot bag and an item at completion, QuestRewardUpdateIIR) isn't given yet.
 
+use crate::instance::Pf;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{LazyLock, RwLock};
 
@@ -118,7 +119,7 @@ pub fn set_from_work(work: &lmoxide_content::work::Work) {
 /// a teleport, even within the playfield, reloads the client's world and it forgets them).
 #[derive(Default)]
 pub struct Tracker {
-    playfield: u32,
+    playfield: Pf,
     /// Main quests in the client's tracker -> paused (the player left the area).
     shown: BTreeMap<u32, bool>,
 }
@@ -155,13 +156,13 @@ fn available(q: &AreaQuest, state: Option<&QuestState>, now: i64) -> bool {
 }
 
 /// The player moved to `pos` on `playfield`: starts, resumes or pauses the area quests there.
-pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: u32, pos: [f32; 3]) -> Vec<Bytes> {
+pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: Pf, pos: [f32; 3]) -> Vec<Bytes> {
     if t.playfield != playfield {
         t.playfield = playfield;
         t.shown.clear();
     }
     let index = INDEX.read().unwrap();
-    let Some(list) = index.by_playfield.get(&playfield) else { return Vec::new() };
+    let Some(list) = index.by_playfield.get(&playfield.model()) else { return Vec::new() };
     let now = unix_now();
     let mut records = Vec::new();
     for &i in list {
@@ -222,7 +223,8 @@ fn counts(goal: &lmoxide_content::QuestGoal, event: &Event) -> bool {
 /// Counts `event` (`times` times) for the quests in the tracker.
 pub fn on_event(t: &mut Tracker, c: &mut Character, character: u32, event: &Event, times: u64) -> Vec<Bytes> {
     let index = INDEX.read().unwrap();
-    let Some(list) = index.by_playfield.get(&t.playfield) else { return Vec::new() };
+    let Some(list) = index.by_playfield.get(&t.playfield.model()) else { return Vec::new() };
+
     let now = unix_now();
     let mut records = Vec::new();
     for &i in list {
@@ -466,13 +468,13 @@ mod tests {
     fn area_quest_flow() {
         let (mut t, mut c) = setup();
         // outside: nothing; inside: started
-        assert!(moved(&mut t, &mut c, 7, 4200, [20.0, 5.0, 20.0]).is_empty());
-        let r = moved(&mut t, &mut c, 7, 4200, [5.0, 5.0, 5.0]);
+        assert!(moved(&mut t, &mut c, 7, Pf::main(4200), [20.0, 5.0, 20.0]).is_empty());
+        let r = moved(&mut t, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0]);
         assert_eq!(names(&r), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
         // as recorded (character 0x01000cb8) up to the goal's texts
         const RECORDED: &str = "0000000101000cb8000000010000003700000001000000000000000140000002000000010000002900000037010000000000000000000000000000000000000001000000000000000000000000000000000000000101000cb800000037000f44ac00027488b12b4df61592210445d6871dde89468e000f44ac00000000b290805c29e627cab290805c29e627ca000000010000000100000000000000000000000000000000000000000000000000000001000000010000001601000cb8000000370000005d0000000100000000000000640000000000000000000000000000000000000000000000000000000000000000000010684330cccd43c7266641a0000042940000000000";
         let mut c2 = crate::game::new_character("t".into(), 4200);
-        let r2 = moved(&mut Tracker::default(), &mut c2, 0x0100_0cb8, 4200, [5.0, 5.0, 5.0]);
+        let r2 = moved(&mut Tracker::default(), &mut c2, 0x0100_0cb8, Pf::main(4200), [5.0, 5.0, 5.0]);
         let hex: String = r2[1][13..13 + RECORDED.len() / 2].iter().map(|b| format!("{b:02x}")).collect();
         assert_eq!(hex, RECORDED);
         // the main quest: as recorded up to its name
@@ -486,13 +488,13 @@ mod tests {
         let kill = Event::Defeated { id: Id32::default(), name: "Cage".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 4200 };
         assert!(on_event(&mut t, &mut c, 7, &kill, 1).is_empty());
         // leaving pauses, progress stays; smashes outside don't count
-        assert_eq!(names(&moved(&mut t, &mut c, 7, 4200, [50.0, 5.0, 5.0])), ["QuestUpdateIIR"]);
+        assert_eq!(names(&moved(&mut t, &mut c, 7, Pf::main(4200), [50.0, 5.0, 5.0])), ["QuestUpdateIIR"]);
         assert!(on_event(&mut t, &mut c, 7, &smash("Cage"), 1).is_empty());
-        assert_eq!(names(&moved(&mut t, &mut c, 7, 4200, [5.0, 5.0, 5.0])), ["QuestUpdateIIR"]);
+        assert_eq!(names(&moved(&mut t, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0])), ["QuestUpdateIIR"]);
         assert_eq!(c.quests[&41].progress, 1);
         // a new session (or playfield): shown again with its progress
         let mut t2 = Tracker::default();
-        let r = moved(&mut t2, &mut c, 7, 4200, [5.0, 5.0, 5.0]);
+        let r = moved(&mut t2, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0]);
         assert_eq!(names(&r), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
         // the other 7: done, cooldown, removed
         let r = on_event(&mut t2, &mut c, 7, &smash("Cage"), 6);
@@ -506,9 +508,9 @@ mod tests {
         assert_eq!((s.completions, s.step, s.progress), (1, 0, 0));
         assert!(s.cooldown_until > unix_now() + 3500);
         // cooling down: not started again
-        assert!(moved(&mut t2, &mut c, 7, 4200, [5.0, 5.0, 5.0]).is_empty());
+        assert!(moved(&mut t2, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0]).is_empty());
         c.quests.get_mut(&41).unwrap().cooldown_until = 0;
-        assert_eq!(names(&moved(&mut t2, &mut c, 7, 4200, [5.0, 5.0, 5.0])), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
+        assert_eq!(names(&moved(&mut t2, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0])), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
         assert_eq!(completed(&c), [(41, vec![55], 1)]);
     }
 

@@ -27,6 +27,7 @@
 //! counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
 //! in docs/TUNABLES.md.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock},
@@ -212,7 +213,7 @@ fn cs(v: f32) -> Duration {
 /// A cast in progress.
 struct Run {
     caster: Id32,
-    playfield: u32,
+    playfield: Pf,
     /// The caster's power (`npc::enemy_damage`).
     power: f32,
     spell: u32,
@@ -230,7 +231,7 @@ struct Target {
 }
 
 /// Enemy `caster` (on `playfield`, with `power`, `npc::enemy_damage`) casts `id` at `player` (at `at`).
-pub fn cast(caster: Id32, playfield: u32, power: f32, id: u32, player: Id32, at: [f32; 3]) {
+pub fn cast(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [f32; 3]) {
     let Some(s) = spell(id) else { return };
     let here = crate::npc::position(caster).unwrap_or(at);
     let self_cast = self_centred(s);

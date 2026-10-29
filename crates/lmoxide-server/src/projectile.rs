@@ -20,6 +20,7 @@
 //! Ballistic (lobbed) shots land on the point they were thrown at and act there once, at the
 //! first report or, failing one, when their flight is over.
 
+use crate::instance::Pf;
 use std::{
     collections::{HashMap, HashSet},
     sync::{
@@ -313,7 +314,7 @@ pub fn params(spell: u32) -> Option<&'static Params> {
 #[allow(clippy::too_many_arguments)]
 pub fn launch(
     caster: Id32,
-    playfield: u32,
+    playfield: Pf,
     spell: u32,
     item: Option<u32>,
     from: [f32; 3],
@@ -330,7 +331,7 @@ pub fn launch(
 /// `target` when it has one; `on_hit` runs for what it hits (straight shots) or where it lands
 /// (ballistic ones).
 #[allow(clippy::too_many_arguments)]
-pub fn launch_shot(caster: Id32, playfield: u32, spell: u32, shot: &Shot, from: [f32; 3], towards: [f32; 3], target: Option<Id32>, on_hit: OnHit) {
+pub fn launch_shot(caster: Id32, playfield: Pf, spell: u32, shot: &Shot, from: [f32; 3], towards: [f32; 3], target: Option<Id32>, on_hit: OnHit) {
     let p = Params {
         item: shot.item,
         move_type: shot.move_type,
@@ -350,7 +351,7 @@ pub fn launch_shot(caster: Id32, playfield: u32, spell: u32, shot: &Shot, from: 
 #[allow(clippy::too_many_arguments)]
 fn send(
     caster: Id32,
-    playfield: u32,
+    playfield: Pf,
     spell: u32,
     p: Params,
     min_range: f32,
@@ -397,7 +398,7 @@ const LANDING_GRACE: f32 = 0.3;
 /// Flies straight shot `id` on the server: every `STEP` it moves on as far as its speed has
 /// taken it since the launch, and hits what it passed (`strike`), until it stopped at a hit, or
 /// flew its range.
-fn fly(id: Id32, playfield: u32) {
+fn fly(id: Id32, playfield: Pf) {
     tokio::spawn(async move {
         let launched = Instant::now();
         let mut done = 0.0f32;
@@ -428,7 +429,7 @@ fn fly(id: Id32, playfield: u32) {
 }
 
 /// What a shot from `side` can hit on `playfield`, where each is now.
-fn candidates(side: Side, playfield: u32) -> Vec<(Id32, [f32; 3])> {
+fn candidates(side: Side, playfield: Pf) -> Vec<(Id32, [f32; 3])> {
     match side {
         Side::Npcs => crate::npc::targets_where(playfield, |_| true),
         Side::Players => world::live_positions(playfield).into_iter().filter(|(id, _)| crate::npc::is_player(*id)).collect(),
@@ -463,7 +464,7 @@ fn strike(id: Id32, target: Id32, at: [f32; 3]) -> bool {
 
 /// A purely visual projectile (e.g. a pet's shot; the damage is dealt separately): flies from
 /// `from` to `to` and is removed when it arrives.
-pub fn launch_visual(caster: Id32, playfield: u32, item: u32, speed: f32, from: [f32; 3], to: [f32; 3]) {
+pub fn launch_visual(caster: Id32, playfield: Pf, item: u32, speed: f32, from: [f32; 3], to: [f32; 3]) {
     let p = Params {
         item,
         move_type: 1,
@@ -498,7 +499,7 @@ pub fn launch_visual(caster: Id32, playfield: u32, item: u32, speed: f32, from: 
 #[allow(clippy::too_many_arguments)]
 pub fn launch_at_players(
     caster: Id32,
-    playfield: u32,
+    playfield: Pf,
     spell: u32,
     item: u32,
     speed: f32,
@@ -551,7 +552,7 @@ pub fn launch_at_players(
 /// ballistic), at `target` when it has one. The caller decides the hit (`enemy_impact`).
 /// Returns the projectile and its flight time.
 #[allow(clippy::too_many_arguments)]
-pub fn launch_enemy(caster: Id32, playfield: u32, spell: u32, item: u32, move_type: u32, speed: f32, attractor: u32, from: [f32; 3], to: [f32; 3], target: Option<Id32>) -> (Id32, Duration) {
+pub fn launch_enemy(caster: Id32, playfield: Pf, spell: u32, item: u32, move_type: u32, speed: f32, attractor: u32, from: [f32; 3], to: [f32; 3], target: Option<Id32>) -> (Id32, Duration) {
     let p = Params {
         item,
         move_type,
@@ -602,11 +603,11 @@ fn hit_record(caster: Id32, id: Id32, target: Id32, at: [f32; 3]) -> Bytes {
 /// u32 ricochets, u32 pierce count, i32 max distance (m; 0: the spell's AttackRange,
 /// CoreProjectileFullUpdateIIR::Transfer).
 #[allow(clippy::too_many_arguments)]
-fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: u32, start: [f32; 3], end: [f32; 3], playfield: u32, max_distance: i32) -> Bytes {
+fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: u32, start: [f32; 3], end: [f32; 3], playfield: Pf, max_distance: i32) -> Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(start[0]), y: Some(start[1]), z: Some(start[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     iir::record("CoreProjectileFullUpdateIIR", id, false, |w| {

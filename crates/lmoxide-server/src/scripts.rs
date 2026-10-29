@@ -20,6 +20,7 @@
 //!
 //! Locks: content.rs's `STATE`, then `STATE` here, then `npc::NPCS`.
 
+use crate::instance::Pf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     sync::{
@@ -80,9 +81,10 @@ struct Run {
 struct State {
     playfields: BTreeMap<u32, Playfield>,
     /// (playfield, script id) -> the running script
-    runs: HashMap<(u32, String), Run>,
-    /// (player, playfield, area key) inside an area at the last check
-    inside: HashSet<(Id32, u32, String)>,
+    /// the scripts running, per copy of a world
+    runs: HashMap<(Pf, String), Run>,
+    /// (player, copy, area key) inside an area at the last check
+    inside: HashSet<(Id32, Pf, String)>,
 }
 
 static STATE: LazyLock<Mutex<State>> = LazyLock::new(Mutex::default);
@@ -98,17 +100,17 @@ pub fn set(playfields: BTreeMap<u32, Playfield>) {
         let placements = p.spawns.iter().filter(|(x, _)| x.wave.as_ref().is_some_and(|w| w.script == id)).map(|(x, _)| x.clone()).collect();
         (p.scripts.iter().find(|s| s.id == id).cloned(), placements)
     };
-    let changed: Vec<(u32, String)> = runs.keys().filter(|(pf, id)| of(old.get(pf), id) != of(playfields.get(pf), id)).cloned().collect();
+    let changed: Vec<(Pf, String)> = runs.keys().filter(|(pf, id)| of(old.get(&pf.model()), id) != of(playfields.get(&pf.model()), id)).cloned().collect();
     for key in changed {
         if let Some(run) = runs.remove(&key) {
-            info!(playfield = key.0, script = %key.1, "script: changed in the approved content; it ends, its spawns go");
+            info!(playfield = ?key.0, script = %key.1, "script: changed in the approved content; it ends, its spawns go");
             despawn(&run);
         }
     }
     let n: usize = playfields.values().map(|p| p.scripts.len()).sum();
     let summary: Vec<(u32, usize, usize)> = playfields.iter().filter(|(_, p)| !p.scripts.is_empty()).map(|(pf, p)| (*pf, p.scripts.len(), p.spawns.len())).collect();
     if summary != old.iter().filter(|(_, p)| !p.scripts.is_empty()).map(|(pf, p)| (*pf, p.scripts.len(), p.spawns.len())).collect::<Vec<_>>() {
-        info!(scripts = n, playfields = ?summary.iter().map(|(pf, s, w)| format!("{pf}: {s} scripts, {w} wave placements")).collect::<Vec<_>>(), "world content: scripts");
+        info!(scripts = n, playfields = ?summary.iter().map(|(pf, s, w)| format!("{pf:?}: {s} scripts, {w} wave placements")).collect::<Vec<_>>(), "world content: scripts");
     }
     *old = playfields;
     drop(st);
@@ -120,11 +122,11 @@ pub fn set(playfields: BTreeMap<u32, Playfield>) {
 /// Starts script `script` (id, name, part of the name or its number in `list`) on `pf`: wave
 /// `wave` (id, name or number; none: the first). Running already: a wave named that is still
 /// waiting starts now, else nothing happens. What happened, or why not.
-pub fn start(pf: u32, script: &str, wave: Option<&str>) -> Result<String, String> {
+pub fn start(pf: Pf, script: &str, wave: Option<&str>) -> Result<String, String> {
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, .. } = &mut *st;
-    let p = playfields.get(&pf).filter(|p| !p.scripts.is_empty()).ok_or_else(|| format!("playfield {pf} has no approved, active scripts"))?;
-    let s = find(&p.scripts, script).ok_or_else(|| format!("no script \"{script}\" on playfield {pf} (!script list)"))?;
+    let p = playfields.get(&pf.model()).filter(|p| !p.scripts.is_empty()).ok_or_else(|| format!("playfield {pf:?} has no approved, active scripts"))?;
+    let s = find(&p.scripts, script).ok_or_else(|| format!("no script \"{script}\" on playfield {pf:?} (!script list)"))?;
     let i = match wave {
         Some(w) => wave_index(s, w).ok_or_else(|| format!("script {} has no wave \"{w}\"", s.name))?,
         None if s.waves.is_empty() => return Err(format!("script {} has no waves", s.name)),
@@ -133,11 +135,11 @@ pub fn start(pf: u32, script: &str, wave: Option<&str>) -> Result<String, String
     let key = (pf, s.id.clone());
     if let Some(run) = runs.get_mut(&key) {
         if wave.is_some() && run.waves[i] == WaveState::Pending {
-            info!(playfield = pf, script = %s.name, wave = %wave_name(s, i), "script: running; the wave named starts now");
+            info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), "script: running; the wave named starts now");
             let n = spawn_wave(run, pf, s, i, &p.spawns);
             return Ok(format!("{}: {} started ({n} spawns)", s.name, wave_name(s, i)));
         }
-        info!(playfield = pf, script = %s.name, "script: running already; not started again");
+        info!(playfield = ?pf, script = %s.name, "script: running already; not started again");
         return Err(format!("{} is running already (!script stop ends it)", s.name));
     }
     let now = Instant::now();
@@ -147,11 +149,11 @@ pub fn start(pf: u32, script: &str, wave: Option<&str>) -> Result<String, String
         spawns: Vec::new(),
         logged: HashSet::new(),
     };
-    info!(playfield = pf, script = %s.name, id = %s.id, wave = %wave_name(s, i), "script starts");
+    info!(playfield = ?pf, script = %s.name, id = %s.id, wave = %wave_name(s, i), "script starts");
     let msg = match (&s.waves[i].trigger, wave) {
         // the first wave's own delay still counts from the start
         (Some(Trigger::After { seconds }), None) => {
-            info!(playfield = pf, script = %s.name, wave = %wave_name(s, i), seconds, "script: the first wave waits");
+            info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), seconds, "script: the first wave waits");
             format!("{} started: {} in {seconds} s", s.name, wave_name(s, i))
         }
         _ => {
@@ -164,25 +166,25 @@ pub fn start(pf: u32, script: &str, wave: Option<&str>) -> Result<String, String
 }
 
 /// Ends the running scripts of `pf` (only `script`, if given); their spawns go. What ended.
-pub fn stop(pf: u32, script: Option<&str>) -> Vec<String> {
+pub fn stop(pf: Pf, script: Option<&str>) -> Vec<String> {
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, .. } = &mut *st;
     let only = match script {
-        Some(q) => match playfields.get(&pf).and_then(|p| find(&p.scripts, q)) {
+        Some(q) => match playfields.get(&pf.model()).and_then(|p| find(&p.scripts, q)) {
             Some(s) => Some(s.id.clone()),
-            None => return vec![format!("no script \"{q}\" on playfield {pf}")],
+            None => return vec![format!("no script \"{q}\" on playfield {pf:?}")],
         },
         None => None,
     };
-    let keys: Vec<(u32, String)> = runs.keys().filter(|(p, id)| *p == pf && only.as_ref().is_none_or(|o| o == id)).cloned().collect();
+    let keys: Vec<(Pf, String)> = runs.keys().filter(|(p, id)| *p == pf && only.as_ref().is_none_or(|o| o == id)).cloned().collect();
     if keys.is_empty() {
         return vec!["no script is running here".into()];
     }
     keys.into_iter()
         .filter_map(|key| {
             let run = runs.remove(&key)?;
-            let name = script_name(playfields.get(&pf), &key.1);
-            info!(playfield = pf, script = %name, "script stopped; its spawns go");
+            let name = script_name(playfields.get(&pf.model()), &key.1);
+            info!(playfield = ?pf, script = %name, "script stopped; its spawns go");
             despawn(&run);
             Some(format!("{name} stopped ({} spawns removed)", run.spawns.len()))
         })
@@ -190,24 +192,24 @@ pub fn stop(pf: u32, script: Option<&str>) -> Vec<String> {
 }
 
 /// Playfield `pf` emptied and its NPCs were reset: its running scripts end, their spawns go.
-pub fn playfield_emptied(pf: u32) {
+pub fn playfield_emptied(pf: Pf) {
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, inside } = &mut *st;
     inside.retain(|(_, p, _)| *p != pf);
-    let keys: Vec<(u32, String)> = runs.keys().filter(|(p, _)| *p == pf).cloned().collect();
+    let keys: Vec<(Pf, String)> = runs.keys().filter(|(p, _)| *p == pf).cloned().collect();
     for key in keys {
         if let Some(run) = runs.remove(&key) {
-            info!(playfield = pf, script = %script_name(playfields.get(&pf), &key.1), "playfield empty: script reset, its spawns go");
+            info!(playfield = ?pf, script = %script_name(playfields.get(&pf.model()), &key.1), "playfield empty: script reset, its spawns go");
             despawn(&run);
         }
     }
 }
 
 /// `!script list`: the scripts of `pf` with their waves and what each is doing.
-pub fn list(pf: u32) -> Vec<String> {
+pub fn list(pf: Pf) -> Vec<String> {
     let st = STATE.lock().unwrap();
-    let Some(p) = st.playfields.get(&pf).filter(|p| !p.scripts.is_empty()) else {
-        let others: Vec<String> = st.playfields.iter().filter(|(_, p)| !p.scripts.is_empty()).map(|(pf, p)| format!("{pf} ({})", p.scripts.len())).collect();
+    let Some(p) = st.playfields.get(&pf.model()).filter(|p| !p.scripts.is_empty()) else {
+        let others: Vec<String> = st.playfields.iter().filter(|(_, p)| !p.scripts.is_empty()).map(|(pf, p)| format!("{pf:?} ({})", p.scripts.len())).collect();
         return vec![if others.is_empty() { "no approved, active scripts anywhere".into() } else { format!("no scripts here; scripts in playfields {}", others.join(", ")) }];
     };
     let mut out = Vec::new();
@@ -254,7 +256,7 @@ async fn watch() {
     loop {
         tick.tick().await;
         // where the players are (outside the lock)
-        let players: Vec<(Id32, u32, [f32; 3])> = crate::sessions::players()
+        let players: Vec<(Id32, Pf, [f32; 3])> = crate::sessions::players()
             .into_iter()
             .filter_map(|p| {
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, p.character_id);
@@ -267,13 +269,13 @@ async fn watch() {
 }
 
 /// One check: areas entered, waves whose trigger fired, scripts that are over.
-fn check(players: &[(Id32, u32, [f32; 3])]) {
+fn check(players: &[(Id32, Pf, [f32; 3])]) {
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, inside } = &mut *st;
     // who is in the areas the scripts watch
     let mut now_inside = HashSet::new();
     for (pf, p) in playfields.iter() {
-        let here: Vec<&(Id32, u32, [f32; 3])> = players.iter().filter(|x| x.1 == *pf).collect();
+        let here: Vec<&(Id32, Pf, [f32; 3])> = players.iter().filter(|x| x.1.model() == *pf).collect();
         if here.is_empty() {
             continue;
         }
@@ -281,29 +283,32 @@ fn check(players: &[(Id32, u32, [f32; 3])]) {
             for w in &s.waves {
                 let Some(Trigger::EnterArea { note }) = &w.trigger else { continue };
                 let Some((key, area)) = area_of(p, s, note.as_deref()) else { continue };
-                for (player, _, pos) in &here {
+                for (player, copy, pos) in &here {
                     if contains(area, *pos) {
-                        now_inside.insert((*player, *pf, key.clone()));
+                        now_inside.insert((*player, *copy, key.clone()));
                     }
                 }
             }
         }
     }
-    let entered = |pf: u32, key: &str| now_inside.iter().any(|(pl, p, k)| *p == pf && k == key && !inside.contains(&(*pl, pf, k.clone())));
-    let occupied = |pf: u32, key: &str| now_inside.iter().any(|(_, p, k)| *p == pf && k == key);
+    let entered = |pf: Pf, key: &str| now_inside.iter().any(|(pl, p, k)| *p == pf && k == key && !inside.contains(&(*pl, pf, k.clone())));
+    let occupied = |pf: Pf, key: &str| now_inside.iter().any(|(_, p, k)| *p == pf && k == key);
 
-    // scripts started by entering their first wave's area
+    // scripts started by entering their first wave's area (in the copy the player is in)
     let mut starts = Vec::new();
-    for (pf, p) in playfields.iter() {
-        for s in &p.scripts {
-            if runs.contains_key(&(*pf, s.id.clone())) {
-                continue;
-            }
-            if let Some(Trigger::EnterArea { note }) = s.waves.first().and_then(|w| w.trigger.as_ref())
-                && let Some((key, _)) = area_of(p, s, note.as_deref())
-                && entered(*pf, &key)
-            {
-                starts.push((*pf, s.id.clone()));
+    for (model, p) in playfields.iter() {
+        let copies: std::collections::BTreeSet<Pf> = players.iter().map(|x| x.1).filter(|c| c.model() == *model).collect();
+        for pf in copies {
+            for s in &p.scripts {
+                if runs.contains_key(&(pf, s.id.clone())) {
+                    continue;
+                }
+                if let Some(Trigger::EnterArea { note }) = s.waves.first().and_then(|w| w.trigger.as_ref())
+                    && let Some((key, _)) = area_of(p, s, note.as_deref())
+                    && entered(pf, &key)
+                {
+                    starts.push((pf, s.id.clone()));
+                }
             }
         }
     }
@@ -312,7 +317,7 @@ fn check(players: &[(Id32, u32, [f32; 3])]) {
     let now = Instant::now();
     let mut over = Vec::new();
     for ((pf, id), run) in runs.iter_mut() {
-        let Some(p) = playfields.get(pf) else { continue };
+        let Some(p) = playfields.get(&pf.model()) else { continue };
         let Some(s) = p.scripts.iter().find(|s| &s.id == id) else { continue };
         for i in 0..s.waves.len() {
             if run.waves[i] != WaveState::Pending {
@@ -353,7 +358,7 @@ fn check(players: &[(Id32, u32, [f32; 3])]) {
                 }
             };
             if fire {
-                info!(playfield = pf, script = %s.name, wave = %wave_name(s, i), trigger = %trigger_text(&s.waves[i].trigger), "script: wave triggered");
+                info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), trigger = %trigger_text(&s.waves[i].trigger), "script: wave triggered");
                 spawn_wave(run, *pf, s, i, &p.spawns);
             }
         }
@@ -364,16 +369,17 @@ fn check(players: &[(Id32, u32, [f32; 3])]) {
     }
     for key in over {
         if let Some(run) = runs.remove(&key) {
-            info!(playfield = key.0, script = %script_name(playfields.get(&key.0), &key.1), spawns = run.spawns.len(), "script over: every spawn defeated, no wave left to start");
+            info!(playfield = ?key.0, script = %script_name(playfields.get(&key.0.model()), &key.1)
+, spawns = run.spawns.len(), "script over: every spawn defeated, no wave left to start");
             despawn(&run);
         }
     }
     *inside = now_inside;
     drop(st);
     for (pf, id) in starts {
-        info!(playfield = pf, script = %id, "script: a player entered its first wave's area");
+        info!(playfield = ?pf, script = %id, "script: a player entered its first wave's area");
         if let Err(e) = start(pf, &id, None) {
-            info!(playfield = pf, script = %id, "script not started: {e}");
+            info!(playfield = ?pf, script = %id, "script not started: {e}");
         }
     }
 }
@@ -408,7 +414,7 @@ fn after_ready(waves: &[WaveState], i: usize, started: Instant, seconds: f32, no
 }
 
 /// Spawns wave `i`'s placements; how many.
-fn spawn_wave(run: &mut Run, pf: u32, s: &Script, i: usize, spawns: &[(Placement, SpawnDef)]) -> usize {
+fn spawn_wave(run: &mut Run, pf: Pf, s: &Script, i: usize, spawns: &[(Placement, SpawnDef)]) -> usize {
     run.waves[i] = WaveState::Started(Instant::now());
     let w = &s.waves[i];
     let mut n = 0;
@@ -419,9 +425,9 @@ fn spawn_wave(run: &mut Run, pf: u32, s: &Script, i: usize, spawns: &[(Placement
         n += 1;
     }
     if n == 0 {
-        info!(playfield = pf, script = %s.name, wave = %wave_name(s, i), "script: the wave has no approved, active placements; nothing spawns");
+        info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), "script: the wave has no approved, active placements; nothing spawns");
     } else {
-        info!(playfield = pf, script = %s.name, wave = %wave_name(s, i), spawned = n, "script: wave spawns");
+        info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), spawned = n, "script: wave spawns");
     }
     n
 }
@@ -432,9 +438,9 @@ fn despawn(run: &Run) {
     }
 }
 
-fn log_once(run: &mut Run, pf: u32, s: &Script, i: usize, why: &str) {
+fn log_once(run: &mut Run, pf: Pf, s: &Script, i: usize, why: &str) {
     if run.logged.insert(s.waves[i].id.clone()) {
-        info!(playfield = pf, script = %s.name, wave = %wave_name(s, i), "script: the wave doesn't start by itself: {why}");
+        info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), "script: the wave doesn't start by itself: {why}");
     }
 }
 

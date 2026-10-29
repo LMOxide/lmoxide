@@ -4,6 +4,7 @@
 //! opens a recorded dialogue or a portal, or shows a message. Here they are invisible, as live's
 //! trigger areas were. A script wall starts the script (or the wave it names; scripts.rs).
 
+use crate::instance::Pf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     sync::{
@@ -29,7 +30,7 @@ struct State {
     /// The walls by playfield.
     walls: BTreeMap<u32, Vec<TriggerWall>>,
     /// Where each player was at the last check (playfield, position).
-    last: HashMap<Id32, (u32, [f32; 3])>,
+    last: HashMap<Id32, (Pf, [f32; 3])>,
     /// "Only once" walls each player crossed already (wall id, player), until a restart.
     fired: HashSet<(String, Id32)>,
 }
@@ -57,7 +58,7 @@ async fn watch() {
     loop {
         tick.tick().await;
         // where the players are (outside the lock)
-        let players: Vec<(Id32, String, u32, [f32; 3])> = crate::sessions::players()
+        let players: Vec<(Id32, String, Pf, [f32; 3])> = crate::sessions::players()
             .into_iter()
             .filter_map(|p| {
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, p.character_id);
@@ -75,7 +76,7 @@ async fn watch() {
                 if last_pf != *pf || was == *pos || dist(was, *pos) > JUMP {
                     continue;
                 }
-                for w in walls.get(pf).into_iter().flatten() {
+                for w in walls.get(&pf.model()).into_iter().flatten() {
                     if w.crossed(was, *pos) && !(w.once && fired.contains(&(w.id.clone(), *player))) {
                         if w.once {
                             fired.insert((w.id.clone(), *player));
@@ -96,11 +97,11 @@ fn dist(a: [f32; 3], b: [f32; 3]) -> f32 {
 }
 
 /// What crossing wall `w` on `pf` does for `player`.
-fn fire(w: &TriggerWall, player: Id32, player_name: &str, pf: u32) {
+fn fire(w: &TriggerWall, player: Id32, player_name: &str, pf: Pf) {
     info!(wall = %w.id, name = %w.name, player = player.instance, action = ?w.action, "trigger wall crossed");
     match &w.action {
         WallAction::Discover { name, achievement } => {
-            for event in discoveries(pf, name.as_deref(), achievement.as_deref()) {
+            for event in discoveries(pf.model(), name.as_deref(), achievement.as_deref()) {
                 world::send_to(player, world::Out::Progress(event));
             }
         }
@@ -160,7 +161,8 @@ mod tests {
 
     #[test]
     fn discovering() {
-        let found = |pf: u32, n: &str| Event::Found { playfield: pf, name: n.into() };
+        let found = |pf: u32, n: &str|
+ Event::Found { playfield: pf, name: n.into() };
         // Fiery Explorer: its own location, whatever the wall names
         assert_eq!(discoveries(6200, Some("Achievement_Volcano"), Some("1613")), [found(6200, "Achievement_Volcano")]);
         assert_eq!(discoveries(6200, None, Some("1613")), [found(6200, "Achievement_Volcano")]);

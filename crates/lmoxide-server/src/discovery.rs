@@ -55,7 +55,8 @@ pub fn is_collectible(name: &str) -> bool {
 pub fn near(playfield: u32, pos: [f32; 3]) -> impl Iterator<Item = &'static Find> {
     FINDS.iter().filter(move |f| {
         let d = [0, 1, 2].map(|i| f.pos[i] - pos[i]);
-        f.playfield == playfield && (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt() <= f.radius
+        f.playfield == playfield && (d
+[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt() <= f.radius
     })
 }
 
@@ -78,7 +79,9 @@ mod tests {
         assert_eq!(points(true).len(), 5);
         assert_eq!(points(false).len(), 8);
         let eye = points(true).into_iter().find(|p| p.0 == "collectible_all_seeing_eye").unwrap();
-        assert_eq!(near(eye.1, [eye.2[0] + 1.0, eye.2[1], eye.2[2]]).count(), 1);
-        assert_eq!(near(eye.1, [eye.2[0] + 10.0, eye.2[1], eye.2[2]]).count(), 0);
+        assert_eq!(near(eye.1, [
+eye.2[0] + 1.0, eye.2[1], eye.2[2]]).count(), 1);
+        assert_eq!(near(eye.1, [
+eye.2[0] + 10.0, eye.2[1], eye.2[2]]).count(), 0);
     }
 }

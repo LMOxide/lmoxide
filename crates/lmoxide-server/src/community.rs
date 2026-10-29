@@ -6,6 +6,7 @@
 //! live in memory: a member who disconnects stays in the team (shown offline) until everyone
 //! has left.
 
+use crate::instance::Pf;
 use std::{
     collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
@@ -29,7 +30,7 @@ const MAX_TEAM_SIZE: usize = 4;
 
 struct Online {
     name: String,
-    playfield: u32,
+    playfield: Pf,
     outbox: world::Outbox,
 }
 
@@ -228,7 +229,7 @@ pub fn decode_friend_code(code: &str) -> Option<u32> {
 // ------------------------------------------------------------------ sessions
 
 /// The character is in play on its game connection; dropping the guard logs it out.
-pub fn login(character: u32, name: &str, playfield: u32, outbox: world::Outbox) -> Guard {
+pub fn login(character: u32, name: &str, playfield: Pf, outbox: world::Outbox) -> Guard {
     let mut st = STATE.lock().unwrap();
     st.online.insert(character, Online { name: name.to_string(), playfield, outbox });
     let friends = friends_of(character);
@@ -281,12 +282,12 @@ impl Drop for Guard {
 
 /// After every playfield entry (the client's CharInPlayIIR_t): live sent YouAreNotInTeam when
 /// not in a team; in a team the full team (YouJoinedTeam, no feedback text) and the group IIR.
-pub fn entered_playfield(character: u32, playfield: u32) {
+pub fn entered_playfield(character: u32, playfield: Pf) {
     entered_playfield_locked(character, playfield);
     flush();
 }
 
-fn entered_playfield_locked(character: u32, playfield: u32) {
+fn entered_playfield_locked(character: u32, playfield: Pf) {
     let mut st = STATE.lock().unwrap();
     if let Some(o) = st.online.get_mut(&character) {
         o.playfield = playfield;
@@ -507,7 +508,7 @@ fn accept(character: u32, inviter: u32) {
 /// What a player did on `playfield` that counts for the teammates there too (any distance):
 /// defeats (kill XP, counters, named enemies and bosses), smashes, builds and a pocket world's
 /// clear. Visits and finds (location discovery) aren't shared.
-pub fn share(player: u32, playfield: u32, event: &crate::achievements::Event) {
+pub fn share(player: u32, playfield: Pf, event: &crate::achievements::Event) {
     for mate in teammates(player) {
         let mate = Id32::new(CHARACTER_TYPE, mate);
         if world::whereabouts(mate).is_some_and(|(pf, _)| pf == playfield) {
@@ -665,9 +666,9 @@ mod tests {
         let (a, b) = (900_001, 900_002);
         let (ta, mut ra) = tokio::sync::mpsc::unbounded_channel();
         let (tb, mut rb) = tokio::sync::mpsc::unbounded_channel();
-        let _ga = login(a, "hosttemple", 1200, ta);
-        let _gb = login(b, "friendtemple", 1200, tb);
-        entered_playfield(a, 1200);
+        let _ga = login(a, "hosttemple", Pf::main(1200), ta);
+        let _gb = login(b, "friendtemple", Pf::main(1200), tb);
+        entered_playfield(a, Pf::main(1200));
         assert_eq!(drain(&mut ra).iter().map(|m| m.0).collect::<Vec<_>>(), [cs::YOU_ARE_NOT_IN_TEAM]);
         drain(&mut rb);
 

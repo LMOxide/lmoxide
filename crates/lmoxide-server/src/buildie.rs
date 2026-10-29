@@ -9,6 +9,7 @@
 //! launch anyone. Placements and visuals: the recorded buildies (content: buildie spawns and their objects' `client`, world_data.rs); only
 //! the recorded worlds' buildies are known.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, Mutex},
@@ -65,7 +66,7 @@ struct Def {
     /// remoteformat XML naming the localized display name
     display_name: String,
     template: u32,
-    playfield: u32,
+    playfield: Pf,
     pos: [f32; 3],
     rot: [f32; 4],
     monster_data: u32,
@@ -127,7 +128,7 @@ fn insert(def: Def, recorded: bool) -> Id32 {
 /// A buildie the recording doesn't have (gates.rs: Medusa's mirrors): the item `template` with
 /// look `monster_data` at `pos`, built like the recorded ones (their sparkle, 1600 progress,
 /// their Destructible fields); no collision once built.
-pub fn add(name: &str, template: u32, monster_data: u32, playfield: u32, pos: [f32; 3], rot: [f32; 4]) -> Id32 {
+pub fn add(name: &str, template: u32, monster_data: u32, playfield: Pf, pos: [f32; 3], rot: [f32; 4]) -> Id32 {
     insert(Def {
         name: name.into(),
         display_name: format!("<remoteformat id=\"{template}\" category=\"50200\" key=\"\" knubot=\"0\"  ></remoteformat>"),
@@ -158,7 +159,7 @@ pub struct Listed {
     pub name: String,
     pub template: u32,
     pub monster_data: u32,
-    pub playfield: u32,
+    pub playfield: Pf,
     pub pos: [f32; 3],
     pub rot: [f32; 4],
     pub recorded: bool,
@@ -166,7 +167,7 @@ pub struct Listed {
 }
 
 /// Every buildie on `playfield` (all of them: None).
-pub fn list(playfield: Option<u32>) -> Vec<Listed> {
+pub fn list(playfield: Option<Pf>) -> Vec<Listed> {
     BUILDIES
         .lock()
         .unwrap()
@@ -187,7 +188,7 @@ pub fn list(playfield: Option<u32>) -> Vec<Listed> {
 }
 
 /// Every buildie, for the test commands (devcmd.rs): (name, playfield, position, state).
-pub fn points() -> Vec<(String, u32, [f32; 3], String)> {
+pub fn points() -> Vec<(String, Pf, [f32; 3], String)> {
     let mut v: Vec<_> = BUILDIES
         .lock()
         .unwrap()
@@ -199,7 +200,7 @@ pub fn points() -> Vec<(String, u32, [f32; 3], String)> {
 }
 
 /// Whether an unbuilt buildie stands at `at` (a jump pad there doesn't work yet).
-pub fn unbuilt_at(playfield: u32, at: [f32; 3]) -> bool {
+pub fn unbuilt_at(playfield: Pf, at: [f32; 3]) -> bool {
     BUILDIES
         .lock()
         .unwrap()
@@ -319,7 +320,7 @@ fn hide_record(id: Id32) -> Bytes {
 }
 
 /// The buildie named `name` on `playfield`.
-pub fn find(name: &str, playfield: u32) -> Option<Id32> {
+pub fn find(name: &str, playfield: Pf) -> Option<Id32> {
     BUILDIES.lock().unwrap().iter().find(|(_, b)| b.def.playfield == playfield && b.def.name == name).map(|(id, _)| *id)
 }
 
@@ -361,7 +362,7 @@ fn spawn_records(id: Id32) -> Vec<Bytes> {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(d.rot[0]), y: Some(d.rot[1]), z: Some(d.rot[2]), w: Some(d.rot[3]) }),
-        playfield_instance: Some(crate::teleport::client_key(d.playfield)),
+        playfield_instance: Some(d.playfield.key()),
         running_effects: vec![],
     };
     // once built, as live re-sent it: the built visual in field 1, CARS group 5, no particles,
@@ -433,7 +434,8 @@ mod tests {
         let body = "0000002c0a0f0d4f2d574315acff2f421d168d7e4312140d0000000015f404353f1d0000000025f204353f188ad48210000000770800120758585f52616d701a623c72656d6f7465666f726d61742069643d22323430363231222063617465676f72793d22353032303022206b65793d225721405a47523173683144554c405a572831603022206b6e75626f743d22302220203e3c2f72656d6f7465666f726d61743e280140edd70e60010003ab39000f6a1900000001000272b100000000000000000000000000000000bfc020cdb423d70abdd6d80f3fbfffe1408bcd583f91985c3f800000000000000000000000000006403f800000000000000000000000000000000000003dcccccd00000000000000003f800000";
         let defs: Vec<Def> = serde_json::from_value(serde_json::json!(*crate::world_data::BUILDIES)).expect("buildies");
         let mut def = defs.into_iter().find(|d| d.name == "XX_Ramp").unwrap();
-        def.playfield = 33597962; // the recorded instance
+        def.playfield = Pf::from_key(33597962); // the recorded instance
+
         let id = Id32::new(51321, 2606);
         BUILDIES.lock().unwrap().insert(id, Buildie { def, recorded: true, progress: 0, state: State::Idle, _presence: None });
         let records = spawn_records(id);

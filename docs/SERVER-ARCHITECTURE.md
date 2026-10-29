@@ -106,9 +106,11 @@ published        (content repo main / approved queue) -> progression + maxed ins
   team, made on entry), `private` (preview).
 - Lifecycle: made on first entry, asleep when empty (already done per playfield: 10 s), dropped
   after a timeout (team instances keep state a few minutes so a disconnected player can come back).
-- Dynel ids: NPC ids are made per playfield today, and `MEMBERS` is keyed by `Id32` globally, so
-  two copies of a world would collide. NPC ids must be unique per server (or keys become
-  `(instance, id)`).
+- Dynel ids: NPCs, smashables, loot bags and projectiles already get server-wide unique ids (one
+  counter each). Fixed-id objects (portal doors = their guid, buildies `0x00b0_0000 + n`, gates,
+  mirror beams, scenery, jump pads) exist once, in the main copy; spawning them in other copies
+  needs ids per copy (step 5).
+
 - Persistence: characters save the model id + position, never the instance key. Login puts them
   into a fitting open instance.
 
@@ -163,9 +165,18 @@ and many shell scripts. Proposal:
 
 - **lmoxide-patcher**: one profile per host and a mode picker next to Play. `/lmoxide/v1/info`
   replaces `kind` / `other_servers` (PATCHING.md) with `modes: [{id, name, description,
-  universe_addr, requires}]`; the patcher writes the chosen mode's `UniverseAddr` and remembers the
-  choice per profile. `LocalConfig.xml` is in the signed manifest, so the address must become
-  patcher-owned (not verified, or rewritten after every sync), otherwise a sync "repairs" it.
+  universe_addr, requires}]`; the patcher remembers the choice per profile.
+  **Decided (2026-10-28): a `LocalConfig.xml` per mode, each pointing at its own control path.**
+  The client's built-in patcher fetches `<ControlHttpPatchAddr>/lmo_live/LocalConfig.xml`
+  (stock.rs serves `/control/{folder}/LocalConfig.xml`), and that address is inside the file. So
+  the patch server serves `/control/mode/<id>/lmo_live/LocalConfig.xml` with that mode's
+  `UniverseAddr` and `ControlHttpPatchAddr` = `<host>/control/mode/<id>`: once a mode's file is
+  installed, the built-in patcher keeps fetching that same file and never reverts it. The signed
+  manifest lists each mode's file (`modes: {id: LocalConfig blob}`), and lmoxide-patcher installs
+  the chosen one, so it stays verified. Rejected: taking `LocalConfig.xml` out of the manifest. It
+  loses verification and doesn't help, because the built-in patcher would still put the default
+  mode's file back from `/control/lmo_live/LocalConfig.xml`.
+
 - **lmoxide-dev-ui**: one API, one sign-in; debugger and editor are tools of the same server.
   Editor gets "Play this (preview)" and instance pickers; debugger lists instances and their
   counters and follows players across instances.
@@ -193,8 +204,23 @@ Each step ends with a runnable server and the client verified.
      manifest at launch (a hand-edited UniverseAddr was reverted). Choosing a mode by address
      therefore needs the patch server to serve a per-mode LocalConfig, or the file has to leave the
      manifest. See the lmoxide-patcher bullet above.
-1. **Instance key:** introduce `Instance { key, model, rules, content, kind }`; one instance per
-   playfield to begin with (behaviour unchanged). Unique NPC ids.
+1. **Copies of worlds: done 2026-10-28.** `instance.rs`: `Pf` = one running copy, key
+   `copy << 16 | model` (copy 0 = the playfield id, so nothing changed for players). No `Display`,
+   so `pf.to_string()` can't silently miss game data for a copy; data is looked up by
+   `pf.model()`. The rule used throughout: where something is (members, NPCs, loot, projectiles,
+   encounters, scripts, buildie state) is a `Pf`; game data and destinations (`teleport::
+   destination`, spawns, portals, dialogues, achievements' events, the saved character) are
+   playfield ids. The session keeps `place: Pf` beside the saved `me.playfield`.
+   `instance::arrival(model)` picks the copy a player arriving in a world joins (always the main
+   copy for now; LoginConnectReady and the game connection both use it), and `instance::towards`
+   keeps a player in their copy within the same world. `!instance [n]` shows or changes the copy;
+   `!where` names it. Verified with the Linux client in 4200: copy 1 has its own state (empty of
+   residents, its own test crates, smashing, loot), copy 0 is unchanged, travel and login land in
+   the main copy. Per copy already: arenas, ambushes, champions, scripts, the tutorial's spawns.
+   Still main-copy only (step 5): residents spawn only in the main copy; fixtures (portal doors,
+   scenery, jump pads, buildies, gates, mirror/plate/piston/ballista/tiki/cannon puzzles) and so
+   the arena doors' looks. The world editor works on main copies.
+
 2. **Rules per instance:** replace the mode switches; both rulesets in one process.
 3. **One DB, characters per mode:** merge the survey DB's characters into the play DB with
    `mode = world-editor`; retire `--share-accounts`, `switch.rs` redirect, chat proxy.

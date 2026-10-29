@@ -18,6 +18,7 @@
 //! after `loot.bag_public_after` (a second `NewAllowedLooterIIR_c` with (0,0)); an emptied bag
 //! goes about 4 s after its last item is taken.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{LazyLock, Mutex},
@@ -55,7 +56,7 @@ struct Bag {
     owner: Id32,
     /// Anyone may loot it (`loot.bag_public_after` passed with nothing taken).
     public: bool,
-    playfield: u32,
+    playfield: Pf,
     pos: [f32; 3],
     /// Item template per position; `None` once looted.
     items: Vec<Option<u32>>,
@@ -306,24 +307,24 @@ fn pick_weighted(items: &[(u32, u32)]) -> Option<u32> {
 
 /// A minifigure dropped in `playfield`: one of its region's (minifigures' `obtain.regions`), by
 /// rarity (`obtain.rarity`, tunables `rarity.tiers`); none where no minifigure drops (the hub).
-fn pick_minifigure(playfield: u32) -> Option<u32> {
-    TABLES.world_minifigures.get(&playfield).and_then(|m| pick_weighted(m))
+fn pick_minifigure(playfield: Pf) -> Option<u32> {
+    TABLES.world_minifigures.get(&playfield.model()).and_then(|m| pick_weighted(m))
 }
 
 /// A part of a minifigure dropped in `playfield` (its location by the location weights).
-fn pick_part(playfield: u32) -> Option<u32> {
+fn pick_part(playfield: Pf) -> Option<u32> {
     let minifigure = pick_minifigure(playfield)?;
     TABLES.part_items.get(&minifigure).and_then(|p| pick_weighted(p))
 }
 
 /// The bag of a minifigure dropped in `playfield`.
-fn pick_bag(playfield: u32) -> Option<u32> {
+fn pick_bag(playfield: Pf) -> Option<u32> {
     let minifigure = pick_minifigure(playfield)?;
     TABLES.minifigure_bag.get(&minifigure).copied()
 }
 
 /// A minifigure from a loot entry's `from`: the world's, or one of those listed.
-fn pick_from(from: &MinifigureSource, playfield: u32) -> Option<u32> {
+fn pick_from(from: &MinifigureSource, playfield: Pf) -> Option<u32> {
     match from {
         MinifigureSource::World(_) => pick_minifigure(playfield),
         MinifigureSource::Some(list) => {
@@ -337,7 +338,7 @@ fn pick_from(from: &MinifigureSource, playfield: u32) -> Option<u32> {
 /// One bag's contents in `playfield`: the loot table of `source` (tunables `loot.tables`).
 /// `orb_bonus`: extra chance in percent for entries raised by `orb_chance` (the Resourceful
 /// upgrade).
-pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
+pub fn roll(source: Source, orb_bonus: u64, playfield: Pf) -> Vec<u32> {
     let c = crate::gamedata::get();
     let mut items = Vec::new();
     match c.tunables.loot.tables.get(source.key()) {
@@ -349,18 +350,19 @@ pub fn roll(source: Source, orb_bonus: u64, playfield: u32) -> Vec<u32> {
 
 /// Rolls loot table `id` (`loot/...`) for a bag in `playfield` into `out` (upgrade procs'
 /// `drop`).
-pub fn roll_table_into(id: &str, orb_bonus: u64, playfield: u32, out: &mut Vec<u32>) {
+pub fn roll_table_into(id: &str, orb_bonus: u64, playfield: Pf, out: &mut Vec<u32>) {
     roll_table(id, orb_bonus, playfield, out);
 }
 
 /// Rolls loot table `id` into `out` (lmoxide_content::roll: the rules), each drop as a client
 /// item: minifigure parts and bags of the minifigures it names or the world's, one of its chests.
-fn roll_table(id: &str, orb_bonus: u64, playfield: u32, out: &mut Vec<u32>) {
+fn roll_table(id: &str, orb_bonus: u64, playfield: Pf, out: &mut Vec<u32>) {
     use lmoxide_content::roll::{Drop, Roller};
     let c = crate::gamedata::get();
     let t = &*TABLES;
     let table = |id: &str| c.loot.get(id).cloned();
-    let in_worlds = |worlds: &[String]| worlds.iter().filter_map(|w| c.worlds.get(w)).any(|w| w.playfield == playfield);
+    let in_worlds = |worlds: &[String]| worlds.iter().filter_map(|w| c.worlds.get(w)).any(|w| w.playfield == playfield.model());
+
     let mut random = random;
     let mut roller = Roller { table: &table, in_worlds: &in_worlds, orb_bonus, random: &mut random, warnings: Vec::new() };
     let mut drops = Vec::new();
@@ -388,7 +390,7 @@ fn roll_table(id: &str, orb_bonus: u64, playfield: u32, out: &mut Vec<u32>) {
 pub const TEST_KINDS: &[&str] = &["potion", "part", "bag", "chest", "memberchest", "boss", "enemy", "smashable"];
 
 /// A test bag of `kind` (TEST_KINDS) in `playfield`.
-pub fn test_items(kind: &str, playfield: u32) -> Vec<u32> {
+pub fn test_items(kind: &str, playfield: Pf) -> Vec<u32> {
     let t = &*TABLES;
     match kind {
         "potion" => vec![t.potion],
@@ -405,7 +407,7 @@ pub fn test_items(kind: &str, playfield: u32) -> Vec<u32> {
 /// Loot for a kill: a bag for the killer and one for each teammate in play nearby, each
 /// rolled separately.
 /// `table`: the dropper's own loot table instead of `source`'s.
-pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, source: Source, table: Option<&str>) {
+pub fn drop_loot(killer: Id32, playfield: Pf, pos: [f32; 3], dropper: Id32, source: Source, table: Option<&str>) {
     let mut owners = vec![killer];
     for mate in crate::community::teammates(killer.instance) {
         let id = Id32::new(killer.kind, mate);
@@ -428,7 +430,7 @@ pub fn drop_loot(killer: Id32, playfield: u32, pos: [f32; 3], dropper: Id32, sou
 }
 
 /// An opened chest: a new bag where the chest stood.
-pub fn open_chest(owner: Id32, playfield: u32, pos: [f32; 3], chest: Id32, member: bool) {
+pub fn open_chest(owner: Id32, playfield: Pf, pos: [f32; 3], chest: Id32, member: bool) {
     let source = if member { Source::MemberChest } else { Source::Chest };
     drop_items(owner, playfield, pos, chest, roll(source, 0, playfield));
 }
@@ -442,7 +444,7 @@ static NEXT_BAG: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::ne
 
 /// Drops `items` (templates) for `owner` at `pos`, sent to the owner only. `_dropper`: what
 /// dropped them (live's bags named none).
-pub fn drop_items(owner: Id32, playfield: u32, pos: [f32; 3], _dropper: Id32, items: Vec<u32>) {
+pub fn drop_items(owner: Id32, playfield: Pf, pos: [f32; 3], _dropper: Id32, items: Vec<u32>) {
     if items.is_empty() {
         return;
     }
@@ -484,11 +486,11 @@ fn make_public(bag: Id32) {
 /// `LootBagFullUpdateIIR_c` (ReadSubClass 0x123a0de): ProtoGameCodeDynelIIR, ProtoSimpleDynelIIR,
 /// VisualData (u32 resId, u32 resType, u32 n + n × 5 u32, 6 × f32 bbox, f32 scale, u32, u8;
 /// the rest can be zero, each item brings its own mesh), ProtoLootBagIIR. Item positions must be 0..n-1.
-fn bag_record(id: Id32, playfield: u32, pos: [f32; 3], owner: Id32, items: &[u32]) -> Bytes {
+fn bag_record(id: Id32, playfield: Pf, pos: [f32; 3], owner: Id32, items: &[u32]) -> Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
-        playfield_instance: Some(crate::teleport::client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let id32 = |i: Id32| ProtoId32 { r#type: Some(i.kind), instance: Some(i.instance) };
@@ -545,7 +547,7 @@ fn bag_dynel() -> ProtoSimpleDynelIir {
 /// An item taken from a bag.
 pub struct Taken {
     pub template: u32,
-    pub playfield: u32,
+    pub playfield: Pf,
     /// where the bag lies
     pub pos: [f32; 3],
 }
@@ -591,13 +593,13 @@ mod tests {
         let pirate: Vec<u32> = TABLES.world_minifigures[&4200].iter().map(|&(_, m)| m).collect();
         assert!(!pirate.is_empty());
         for _ in 0..200 {
-            let m = pick_minifigure(4200).unwrap();
+            let m = pick_minifigure(Pf::main(4200)).unwrap();
             assert!(pirate.contains(&m));
-            let part = pick_part(4200).unwrap();
+            let part = pick_part(Pf::main(4200)).unwrap();
             assert!(matches!(reward(part), Reward::Part(_)));
-            assert!(matches!(reward(pick_bag(4200).unwrap()), Reward::MinifigureBag(m) if pirate.contains(&m)));
+            assert!(matches!(reward(pick_bag(Pf::main(4200)).unwrap()), Reward::MinifigureBag(m) if pirate.contains(&m)));
         }
-        assert!(pick_minifigure(1200).is_none());
+        assert!(pick_minifigure(Pf::main(1200)).is_none());
         // side dungeons drop their world's: Beach Cave (1642) opens into Volcano Island
         assert!(TABLES.world_minifigures[&1642].iter().all(|&(_, m)| pirate.contains(&m)));
     }
@@ -607,11 +609,11 @@ mod tests {
         // about a quarter of regular kills and 71% of smashes drop a bag; regular bags hold
         // 1-3 single stars
         let n = 4000;
-        let bags = |source| (0..n).filter(|_| !roll(source, 0, 4200).is_empty()).count() as f32 / n as f32;
+        let bags = |source| (0..n).filter(|_| !roll(source, 0, Pf::main(4200)).is_empty()).count() as f32 / n as f32;
         assert!((0.21..0.30).contains(&bags(Source::Enemy)), "{}", bags(Source::Enemy));
         assert!((0.66..0.76).contains(&bags(Source::Smashable)), "{}", bags(Source::Smashable));
         for _ in 0..500 {
-            let stars = roll(Source::Enemy, 0, 4200).iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count();
+            let stars = roll(Source::Enemy, 0, Pf::main(4200)).iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count();
             assert!(stars <= 3);
         }
     }
@@ -626,12 +628,12 @@ mod tests {
         assert!(matches!(reward(580_943), Reward::Chest { member: true }));
         assert!(matches!(reward(482_326), Reward::Chest { member: false }));
         // a boss's bag: 2 stars and an orb, usually a Member Super Chest (live)
-        let boss = roll(Source::Boss, 0, 4200);
+        let boss = roll(Source::Boss, 0, Pf::main(4200));
         assert!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Stars(1))).count() >= 2);
         assert!(boss.iter().filter(|&&i| matches!(reward(i), Reward::Chest { .. })).count() <= 2);
         // summoned adds drop nothing
         let mut none = Vec::new();
-        roll_table_into("loot/none", 0, 4200, &mut none);
+        roll_table_into("loot/none", 0, Pf::main(4200), &mut none);
         assert!(none.is_empty());
         assert_eq!(achievement_minifigures().count(), 1);
         assert_eq!(membership_minifigures().len(), 2);

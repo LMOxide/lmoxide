@@ -17,6 +17,7 @@
 //! goes to FlowControl DeepTeleport), then the new playfield's records as at login; the client
 //! answers with CharInPlayIIR_t again.
 
+use crate::instance::Pf;
 use std::{
     collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
@@ -81,6 +82,7 @@ const PORTAL_RADIUS: f32 = 3.0;
 /// How far from every portal a player who arrived in one must go before portals open (assumed).
 const REARM_DISTANCE: f32 = 8.0;
 
+/// Where a player arrives in playfield `playfield` (a destination: the copy is chosen apart).
 pub fn destination(playfield: u32) -> Option<&'static Destination> {
     DATA.destinations.get(&playfield.to_string())
 }
@@ -107,9 +109,9 @@ const HUB: u32 = 1200;
 
 /// The portal the player is standing in, if any: (destination playfield, teleport window).
 /// The client has no portal trigger of its own; live, server scripts opened the window.
-pub fn portal_at(playfield: u32, pos: [f32; 3]) -> Option<(u32, u32)> {
-    let portal = DATA.portals.get(&playfield.to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
-    Some((if portal.to == playfield { HUB } else { portal.to }, portal.window))
+pub fn portal_at(playfield: Pf, pos: [f32; 3]) -> Option<(u32, u32)> {
+    let portal = DATA.portals.get(&playfield.model().to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
+    Some((if portal.to == playfield.model() { HUB } else { portal.to }, portal.window))
 }
 
 /// Dynel type of doors.
@@ -142,7 +144,8 @@ pub fn start() {
             tokio::spawn(async move { while inbox.recv().await.is_some() {} });
             let id = Id32::new(DOOR_TYPE, d.guid);
             let pos = std::sync::Arc::new(Mutex::new(d.pos));
-            doors.push(world::join(id, playfield, pos, move || door_records(&d, playfield), outbox));
+            let at = Pf::main(playfield);
+            doors.push(world::join(id, at, pos, move || door_records(&d, at), outbox));
         }
     }
     tracing::info!(count = doors.len(), "portal doors spawned");
@@ -151,12 +154,12 @@ pub fn start() {
 /// UpdateMessage + `DoorFullUpdateIIR_c` as live sent a portal's door: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR (no collision, its name, the TDB 55000 name, CARS group 1, field 7 =
 /// 51016, closed), visual, u32 0, an empty box (all f32 max), scale, 13 zero bytes.
-fn door_records(d: &Door, playfield: u32) -> Vec<Bytes> {
+fn door_records(d: &Door, playfield: Pf) -> Vec<Bytes> {
     let id = Id32::new(DOOR_TYPE, d.guid);
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(d.rot[0]), y: Some(d.rot[1]), z: Some(d.rot[2]), w: Some(d.rot[3]) }),
-        playfield_instance: Some(client_key(playfield)),
+        playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
     let simple = ProtoSimpleDynelIir {
@@ -254,57 +257,32 @@ pub fn take_arrival(character: u32) -> bool {
 /// Whether the player at `pos` is well clear of every portal (`REARM_DISTANCE`): someone who
 /// arrives in a portal (logging in, teleporting to a world whose arrival point is next to one,
 /// e.g. Volcano Island's by Pioneer Bay) must walk this far away before it opens for them.
-pub fn clear_of_portals(playfield: u32, pos: [f32; 3]) -> bool {
-    DATA.portals.get(&playfield.to_string()).is_none_or(|ps| ps.iter().all(|p| distance(p.pos, pos) > REARM_DISTANCE))
+pub fn clear_of_portals(playfield: Pf, pos: [f32; 3]) -> bool {
+    DATA.portals.get(&playfield.model().to_string()).is_none_or(|ps| ps.iter().all(|p| distance(p.pos, pos) > REARM_DISTANCE))
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
     ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
 }
 
-/// Instance spike (docs/SERVER-ARCHITECTURE.md step 0): the running instance the client keys
-/// a playfield by is `salt << 24 | playfield` (salt 0: the playfield id, as before). Live used
-/// keys apart from the model id (~23.1M, a new one per pocket adventure visit). Set per playfield
-/// by `!instance <salt>`; LMOXIDE_INSTANCE_SALT sets it for every playfield at start.
-static INSTANCE_SALTS: LazyLock<Mutex<HashMap<u32, u32>>> = LazyLock::new(Default::default);
-static DEFAULT_SALT: LazyLock<u32> =
-    LazyLock::new(|| std::env::var("LMOXIDE_INSTANCE_SALT").ok().and_then(|s| s.parse().ok()).unwrap_or(0));
-
-pub fn instance_salt(playfield: u32) -> u32 {
-    INSTANCE_SALTS.lock().unwrap().get(&playfield).copied().unwrap_or(*DEFAULT_SALT)
-}
-
-pub fn set_instance_salt(playfield: u32, salt: u32) {
-    INSTANCE_SALTS.lock().unwrap().insert(playfield, salt);
-}
-
-/// The key the client knows `playfield` by (PlayfieldProxyData.running_instance, every
-/// UpdateMessage and ProtoGameCodeDynelIIR.playfield_instance).
-pub fn client_key(playfield: u32) -> u32 {
-    match instance_salt(playfield) {
-        0 => playfield,
-        salt => (salt & 0x7f) << 24 | playfield,
-    }
-}
-
 /// PlayfieldProxy as embedded in a BinaryStream (u32 length + PlayfieldProxyData).
-pub(crate) fn proxy(playfield: u32) -> PlayfieldProxyData {
+pub(crate) fn proxy(playfield: Pf) -> PlayfieldProxyData {
     PlayfieldProxyData {
         dimension_id: Some(1),
-        model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield) }),
-        running_instance: Some(client_key(playfield)),
+        model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield.model()) }),
+        running_instance: Some(playfield.key()),
         ..Default::default()
     }
 }
 
 /// `IntendedTeleportIIR_c`: PlayfieldProxy, u8 local (0: a different playfield), u8.
-pub fn intended_teleport_record(character: Id32, playfield: u32) -> Bytes {
+pub fn intended_teleport_record(character: Id32, playfield: Pf) -> Bytes {
     iir::record("IntendedTeleportIIR_c", character, false, |w| w.proto(&proxy(playfield)).u8(0).u8(0))
 }
 
 /// `n3TeleportIIR_t` (ReadSubClass 0x12e82a8): position, rotation quaternion, PlayfieldProxy,
 /// ID32, BinaryStream (empty: u32 0), u8.
-pub fn teleport_record(character: Id32, playfield: u32, pos: [f32; 3], rot: f32) -> Bytes {
+pub fn teleport_record(character: Id32, playfield: Pf, pos: [f32; 3], rot: f32) -> Bytes {
     let (s, c) = (rot / 2.0).sin_cos();
     iir::record("n3TeleportIIR_t", character, false, |w| {
         let w = w.f32(pos[0]).f32(pos[1]).f32(pos[2]).f32(0.0).f32(s).f32(0.0).f32(c);
@@ -389,14 +367,15 @@ fn spots(w: lmoxide_net::Writer, playfield: u32) -> lmoxide_net::Writer {
 
 /// `GameCharInterface::ValidResurrectionSpots(Vector3Member position, SaveDataVec_t)`: the spots
 /// of the player's current playfield (the World Map's own-world markers).
-pub fn valid_spots_args(playfield: u32, pos: [f32; 3]) -> Bytes {
-    spots(lmoxide_net::Writer::new().f32(pos[0]).f32(pos[1]).f32(pos[2]), playfield).finish()
+pub fn valid_spots_args(playfield: Pf, pos: [f32; 3]) -> Bytes {
+    spots(lmoxide_net::Writer::new().f32(pos[0]).f32(pos[1]).f32(pos[2]), playfield.model()).finish()
 }
 
 /// `GameserverToClientRPC::SignalResurrectionSpotsReceived(InstanceId playfield, Vector3Member
 /// centre, SaveDataVec_t)`: the answer to `RequestResurrectionSpots` when the map shows another
 /// world.
 pub fn signal_spots_args(playfield: u32) -> Bytes {
+
     let centre = destination(playfield)
         .map(|d| d.pos)
         .or_else(|| SPOTS.get(&playfield.to_string()).and_then(|l| l.first()).map(|s| s.pos))
@@ -419,7 +398,8 @@ mod tests {
         assert!(door_portal(656807).is_some());
         // the record ends as live's did (LMO_Captures.cap, the hub's door 7951): visual, u32 0,
         // empty box, scale 3, zeros
-        let record = &door_records(door, 1200)[1];
+        let record = &door_records(door, Pf::main(1200))[1];
+
         let tail = "00071ba8000f6a1900000000".to_string() + &"7f7fffff".repeat(6) + "40400000" + &"00".repeat(13);
         assert!(crate::conn::hex(record).ends_with(&tail));
         // and its protobuf: no collision, the name, CARS group 1, field 7 = 51016, closed

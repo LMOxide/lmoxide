@@ -5,6 +5,7 @@
 //! (Quest_PressurePlateRoom, BA_TikiRoom_Plate1-30, 2.5 m apart) are client data, the rule is
 //! inferred. One state for the playfield, reset once nobody is left (as mirrors.rs).
 
+use crate::instance::Pf;
 use std::{
     collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
@@ -86,8 +87,8 @@ pub fn solved() -> bool {
 
 /// A player moved to `pos` (keyboard), or walks a click-to-move path from `from` to `pos`
 /// (only its ends are reported): the plates under them light, along the path as they get there.
-pub fn moved(playfield: u32, from: Option<[f32; 3]>, pos: [f32; 3]) {
-    if playfield != PLAYFIELD {
+pub fn moved(playfield: Pf, from: Option<[f32; 3]>, pos: [f32; 3]) {
+    if playfield != Pf::main(PLAYFIELD) {
         return;
     }
     let Some(from) = from else {
@@ -162,7 +163,8 @@ pub fn start() {
         let mut tick = tokio::time::interval(RESET_CHECK);
         loop {
             tick.tick().await;
-            let empty = !world::positions(PLAYFIELD).iter().any(|(id, _)| crate::npc::is_player(*id));
+            let empty = !world::positions(Pf::main(PLAYFIELD))
+.iter().any(|(id, _)| crate::npc::is_player(*id));
             if empty && !LIT_NOW.lock().unwrap().is_empty() {
                 LIT_NOW.lock().unwrap().clear();
                 info!("plate room reset");

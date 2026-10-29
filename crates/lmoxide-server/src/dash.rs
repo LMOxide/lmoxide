@@ -8,6 +8,7 @@
 //! at its "charge" hook; at the end BCC exit substate 200, the package's "execute" hook and a
 //! `StopIIR_c` at the end point. Spell data: content/skills `dash` (skills.rs).
 
+use crate::instance::Pf;
 use std::{collections::HashMap, sync::LazyLock, time::Duration};
 
 use bytes::Bytes;
@@ -76,7 +77,7 @@ impl Dash {
 /// along `facing`). `damage(ability_mod)` gives a hit's damage.
 pub fn start(
     caster: Id32,
-    playfield: u32,
+    playfield: Pf,
     spell: u32,
     dash: Dash,
     pos: world::Position,

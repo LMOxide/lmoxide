@@ -14,6 +14,8 @@ use bytes::Bytes;
 use lmoxide_net::types::Id32;
 use tokio::sync::mpsc;
 
+use crate::instance::Pf;
+
 /// What a member's connection is asked to send to its client.
 #[derive(Clone, Debug)]
 pub enum Out {
@@ -55,7 +57,7 @@ pub type Reply<T> = std::sync::Arc<std::sync::Mutex<Option<tokio::sync::oneshot:
 pub type Position = Arc<Mutex<[f32; 3]>>;
 
 struct Member {
-    playfield: u32,
+    playfield: Pf,
     pos: Position,
     /// How the player last said they move (`set_motion`).
     motion: Option<Motion>,
@@ -121,7 +123,7 @@ type Spawn = Arc<dyn Fn() -> Vec<Bytes> + Send + Sync>;
 /// else receives its own. Dropping the returned guard removes it again (see [`Presence`]).
 pub fn join(
     id: Id32,
-    playfield: u32,
+    playfield: Pf,
     pos: Position,
     spawn: impl Fn() -> Vec<Bytes> + Send + Sync + 'static,
     outbox: Outbox,
@@ -201,30 +203,30 @@ pub fn live_position(id: Id32) -> Option<[f32; 3]> {
 }
 
 /// Every character on `playfield` with where it is now (`live_position`).
-pub fn live_positions(playfield: u32) -> Vec<(Id32, [f32; 3])> {
+pub fn live_positions(playfield: Pf) -> Vec<(Id32, [f32; 3])> {
     let now = Instant::now();
     let members = MEMBERS.lock().unwrap();
     members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, m.live(now))).collect()
 }
 
 /// The shared position of every player character on `playfield` (to move them, e.g. a jump).
-pub fn position_handles(playfield: u32) -> Vec<(Id32, Position)> {
+pub fn position_handles(playfield: Pf) -> Vec<(Id32, Position)> {
     let members = MEMBERS.lock().unwrap();
     members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, m.pos.clone())).collect()
 }
 
 /// Playfield and position of a character in play.
-pub fn whereabouts(id: Id32) -> Option<(u32, [f32; 3])> {
+pub fn whereabouts(id: Id32) -> Option<(Pf, [f32; 3])> {
     MEMBERS.lock().unwrap().get(&id).map(|m| (m.playfield, *m.pos.lock().unwrap()))
 }
 
 /// Every member with its playfield.
-pub fn members() -> Vec<(Id32, u32)> {
+pub fn members() -> Vec<(Id32, Pf)> {
     MEMBERS.lock().unwrap().iter().map(|(id, m)| (*id, m.playfield)).collect()
 }
 
 /// Every character on `playfield` with its position.
-pub fn positions(playfield: u32) -> Vec<(Id32, [f32; 3])> {
+pub fn positions(playfield: Pf) -> Vec<(Id32, [f32; 3])> {
     let members = MEMBERS.lock().unwrap();
     members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, *m.pos.lock().unwrap())).collect()
 }

@@ -11,6 +11,7 @@
 //! warning's look are inferred (docs/TUNABLES.md "Gauntlet"). Built statues stay built, as all
 //! buildies, until the server restarts.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, Mutex},
@@ -115,7 +116,7 @@ pub fn start() {
     let room = &*ROOM_DATA;
     for statue in &room.statues {
         let pos = [statue.pos[0], statue.pos[1] - STATUE_MARKER_HEIGHT, statue.pos[2]];
-        let id = crate::buildie::add("XX_Statue_Buildie", STATUE_TEMPLATE, STATUE_LOOK, PLAYFIELD, pos, statue.rot);
+        let id = crate::buildie::add("XX_Statue_Buildie", STATUE_TEMPLATE, STATUE_LOOK, Pf::main(PLAYFIELD), pos, statue.rot);
         STATUES.lock().unwrap().push(id);
     }
     join(skull_id(), room.holder, [0.0, 0.0, 0.0, 1.0], || (!solved()).then_some(FORCEFIELD));
@@ -135,10 +136,10 @@ fn join(id: Id32, pos: [f32; 3], rot: [f32; 4], particle: impl Fn() -> Option<u3
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let presence = world::join(
         id,
-        PLAYFIELD,
+        Pf::main(PLAYFIELD),
         Arc::new(Mutex::new(pos)),
         move || {
-            let mut records = crate::scenery::invisible_records(id, PLAYFIELD, pos, rot);
+            let mut records = crate::scenery::invisible_records(id, Pf::main(PLAYFIELD), pos, rot);
             records.extend(particle().map(|p| particle_record(id, Some(p))));
             records
         },
@@ -171,7 +172,7 @@ pub fn built(buildie: Id32) {
 
 /// Players in the room now.
 fn in_room() -> Vec<(Id32, world::Position)> {
-    world::position_handles(PLAYFIELD)
+    world::position_handles(Pf::main(PLAYFIELD))
         .into_iter()
         .filter(|(id, pos)| {
             let p = *pos.lock().unwrap();
@@ -259,5 +260,5 @@ fn shoot(origin: [f32; 3], dir: [f32; 2], reach: f32) {
             crate::npc::hurt_player(skull_id(), player, FIREBALL, DAMAGE);
         }
     });
-    crate::projectile::launch_at_players(skull_id(), PLAYFIELD, 0, FIREBALL, FIREBALL_SPEED, 0, origin, to, reach, None, on_hit);
+    crate::projectile::launch_at_players(skull_id(), Pf::main(PLAYFIELD), 0, FIREBALL, FIREBALL_SPEED, 0, origin, to, reach, None, on_hit);
 }

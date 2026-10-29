@@ -9,6 +9,7 @@
 //! entry to the content repository, which servers then pull: not built yet
 //! (docs/WORLD-EDITOR-CONTENT.md, phase 3).
 
+use crate::instance::Pf;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::{
@@ -53,7 +54,8 @@ pub fn init(queue: Option<PathBuf>) {
 /// trigger walls, scripts and smash rules.
 pub fn start(all: Vec<(u32, SpawnDef)>) {
     for (pf, def) in all {
-        npc::spawn_as(npc::new_id(&def), def, pf);
+        npc::spawn_as(npc::new_id(&def), def, Pf::main(pf));
+
     }
     let dir = crate::gamedata::dir(None);
     let dir = crate::gamedata::loaded_from().unwrap_or(dir);

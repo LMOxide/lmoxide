@@ -25,6 +25,7 @@
 //!
 //! Locking: STATE is never held while calling into npc.rs or world.rs.
 
+use crate::instance::Pf;
 use std::{
     collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
@@ -160,13 +161,13 @@ static GATES: LazyLock<HashMap<u32, Gates>> = LazyLock::new(|| {
 
 /// Whether every boss in front of a zone (`gates`) has been beaten (an arena without a boss
 /// doesn't hold anything back).
-fn unlocked(playfield: u32, gates: &[usize]) -> bool {
+fn unlocked(playfield: Pf, gates: &[usize]) -> bool {
     let open: Vec<usize> = {
         let st = STATE.lock().unwrap();
         gates.iter().copied().filter(|i| !matches!(st.arenas.get(&(playfield, *i)), Some(Arena::Won { .. }))).collect()
     };
     open.into_iter().all(|i| {
-        DATA.get(&playfield)
+        DATA.get(&playfield.model())
             .and_then(|d| d.arenas.get(i))
             .is_none_or(|a| crate::npc::boss_near(playfield, a.area.centre(), a.area.radius() + 60.0).is_none())
     })
@@ -199,10 +200,10 @@ enum Ambush {
 
 #[derive(Default)]
 struct State {
-    arenas: HashMap<(u32, usize), Arena>,
-    ambushes: HashMap<(u32, usize), Ambush>,
+    arenas: HashMap<(Pf, usize), Arena>,
+    ambushes: HashMap<(Pf, usize), Ambush>,
     /// side dungeons: the champion and when the next may come
-    champions: HashMap<u32, (Option<Id32>, Instant)>,
+    champions: HashMap<Pf, (Option<Id32>, Instant)>,
 }
 
 static STATE: LazyLock<Mutex<State>> = LazyLock::new(Default::default);
@@ -227,8 +228,8 @@ pub fn start() {
 const OPEN_WORLDS: [u32; 11] = [1200, 4200, 4210, 4600, 5200, 5210, 3200, 3210, 2210, 6200, 1300];
 
 /// Whether `playfield` is a pocket world (instanced on live).
-pub fn pocket(playfield: u32) -> bool {
-    !OPEN_WORLDS.contains(&playfield)
+pub fn pocket(playfield: Pf) -> bool {
+    !OPEN_WORLDS.contains(&playfield.model())
 }
 
 /// The exploration areas the player at `pos` is in.
@@ -249,9 +250,9 @@ pub fn explored(playfield: u32, pos: [f32; 3]) -> Vec<&'static str> {
 }
 
 /// A player moved to `pos` on `playfield`.
-pub fn moved(player: Id32, playfield: u32, pos: [f32; 3]) {
-    let Some(def) = DATA.get(&playfield) else { return };
-    let gates = GATES.get(&playfield);
+pub fn moved(player: Id32, playfield: Pf, pos: [f32; 3]) {
+    let Some(def) = DATA.get(&playfield.model()) else { return };
+    let gates = GATES.get(&playfield.model());
     for (i, arena) in def.arenas.iter().enumerate() {
         if arena.area.contains(pos) && gates.is_none_or(|g| unlocked(playfield, &g.arenas[i])) {
             enter_arena(player, playfield, i, arena);
@@ -266,17 +267,17 @@ pub fn moved(player: Id32, playfield: u32, pos: [f32; 3]) {
 
 /// A player arrived on `playfield` at `pos`: a side dungeon's champion, if it's due.
 /// `defeated` says which champions the player has beaten already (new ones are picked first).
-pub fn entered(playfield: u32, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
-    let names = crate::achievements::champions_for(playfield);
+pub fn entered(playfield: Pf, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
+    let names = crate::achievements::champions_for(playfield.model());
     if names.is_empty() {
         return;
     }
     let due = STATE.lock().unwrap().champions.get(&playfield).is_none_or(|(id, ready)| id.is_none() && Instant::now() >= *ready);
-    if !due || GATES.get(&playfield).is_some_and(|g| !unlocked(playfield, &g.champion)) {
+    if !due || GATES.get(&playfield.model()).is_some_and(|g| !unlocked(playfield, &g.champion)) {
         return;
     }
     // where: the champion spot, else the regular enemy farthest from the entrance
-    let spot = DATA.get(&playfield).and_then(|d| d.champion);
+    let spot = DATA.get(&playfield.model()).and_then(|d| d.champion);
     let regulars = crate::npc::regulars_near(playfield, spot.unwrap_or([pos[0], pos[2]]), f32::MAX, usize::MAX);
     let base = match spot {
         Some(_) => regulars.first(),
@@ -288,7 +289,7 @@ pub fn entered(playfield: u32, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
     let at = spot.map_or([base.pos[0] + 2.0, base.pos[1], base.pos[2]], |s| [s[0], base.pos[1], s[1]]);
     let def = SpawnDef { name: name.clone(), health: crate::npc::regular_life(base.level) * CHAMPION_HEALTH, pos: at, ..base.clone() };
     let id = crate::npc::spawn_temporary(def, playfield, SPAWN_LIFETIME);
-    info!(playfield, %name, ?at, "champion");
+    info!(?playfield, %name, ?at, "champion");
     STATE.lock().unwrap().champions.insert(playfield, (Some(id), Instant::now()));
 }
 
@@ -298,7 +299,9 @@ pub fn entered(playfield: u32, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
 pub fn door_hidden(guid: u32) -> Option<bool> {
     let (playfield, i, kind) = *DOORS.get(&guid)?;
     let mirrored = DATA.get(&playfield).and_then(|d| d.arenas.get(i)).is_some_and(|a| crate::mirrors::opens_exit(playfield, &a.area.name));
-    let state = STATE.lock().unwrap().arenas.get(&(playfield, i)).cloned().unwrap_or(Arena::Idle);
+    // the doors are the main copy's (scenery is spawned there only, for now)
+    let state = STATE.lock().unwrap().arenas.get(&(Pf::main(playfield), i)).cloned().unwrap_or(Arena::Idle);
+
     Some(match (kind, state) {
         (Door::Exit, _) if mirrored => true,
         (Door::Open, Arena::Engaged { .. }) => true,
@@ -416,7 +419,7 @@ pub fn points(kind: &str) -> Vec<(String, u32, [f32; 3])> {
         };
         for a in areas {
             let c = a.centre();
-            let y = crate::npc::regulars_near(pf, c, f32::MAX, 1).first().map_or(a.heights[0], |d| d.pos[1]);
+            let y = crate::npc::regulars_near(Pf::main(pf), c, f32::MAX, 1).first().map_or(a.heights[0], |d| d.pos[1]);
             v.push((a.name.clone(), pf, [c[0], y, c[1]]));
         }
     }
@@ -424,7 +427,7 @@ pub fn points(kind: &str) -> Vec<(String, u32, [f32; 3])> {
     v
 }
 
-fn enter_arena(player: Id32, playfield: u32, i: usize, arena: &ArenaDef) {
+fn enter_arena(player: Id32, playfield: Pf, i: usize, arena: &ArenaDef) {
     let state = STATE.lock().unwrap().arenas.get(&(playfield, i)).cloned().unwrap_or(Arena::Idle);
     match state {
         Arena::Idle => {
@@ -440,7 +443,7 @@ fn enter_arena(player: Id32, playfield: u32, i: usize, arena: &ArenaDef) {
                 }
                 *entry = Arena::Engaged { boss, players: [player].into(), adds: vec![], waves: 0, empty_since: None };
             }
-            info!(playfield, arena = %arena.area.name, ?boss, ?player, "arena engaged");
+            info!(?playfield, arena = %arena.area.name, ?boss, ?player, "arena engaged");
             set_doors(arena);
             music(player, true);
         }
@@ -454,7 +457,7 @@ fn enter_arena(player: Id32, playfield: u32, i: usize, arena: &ArenaDef) {
     }
 }
 
-fn enter_ambush(playfield: u32, i: usize, area: &Area, at: [f32; 3]) {
+fn enter_ambush(playfield: Pf, i: usize, area: &Area, at: [f32; 3]) {
     {
         let mut st = STATE.lock().unwrap();
         let entry = st.ambushes.entry((playfield, i)).or_insert(Ambush::Idle);
@@ -465,7 +468,7 @@ fn enter_ambush(playfield: u32, i: usize, area: &Area, at: [f32; 3]) {
         *entry = Ambush::Wave { n: 1, ids: vec![], around: at };
     }
     let ids = spawn_wave(playfield, area.centre(), at, AMBUSH_WAVE, None);
-    info!(playfield, ambush = %area.name, spawned = ids.len(), "ambush");
+    info!(?playfield, ambush = %area.name, spawned = ids.len(), "ambush");
     let next = match (ids.is_empty(), pocket(playfield)) {
         (true, true) => Ambush::Spent,
         (true, false) => Ambush::Resting(Instant::now() + AMBUSH_REST),
@@ -476,7 +479,7 @@ fn enter_ambush(playfield: u32, i: usize, area: &Area, at: [f32; 3]) {
 
 /// `n` regular enemies from around `source` (x, z), in a ring around `at`. `loot`: their loot
 /// table instead of their own.
-fn spawn_wave(playfield: u32, source: [f32; 2], at: [f32; 3], n: usize, loot: Option<&str>) -> Vec<Id32> {
+fn spawn_wave(playfield: Pf, source: [f32; 2], at: [f32; 3], n: usize, loot: Option<&str>) -> Vec<Id32> {
     let kinds = crate::npc::regulars_near(playfield, source, AMBUSH_SOURCE, n);
     if kinds.is_empty() {
         return vec![];
@@ -493,13 +496,13 @@ fn spawn_wave(playfield: u32, source: [f32; 2], at: [f32; 3], n: usize, loot: Op
 }
 
 fn tick() {
-    let arenas: Vec<((u32, usize), Arena)> = STATE.lock().unwrap().arenas.iter().map(|(k, v)| (*k, v.clone())).collect();
+    let arenas: Vec<((Pf, usize), Arena)> = STATE.lock().unwrap().arenas.iter().map(|(k, v)| (*k, v.clone())).collect();
     for ((playfield, i), state) in arenas {
-        let Some(def) = DATA.get(&playfield).and_then(|d| d.arenas.get(i)) else { continue };
+        let Some(def) = DATA.get(&playfield.model()).and_then(|d| d.arenas.get(i)) else { continue };
         let next = match state {
             Arena::Engaged { boss, players, mut adds, mut waves, empty_since } => match crate::npc::health_of(boss) {
                 None => {
-                    info!(playfield, arena = %def.area.name, "arena won");
+                    info!(?playfield, arena = %def.area.name, "arena won");
                     for p in &players {
                         music(*p, false);
                     }
@@ -518,7 +521,7 @@ fn tick() {
                     });
                     let empty_since = if near { None } else { Some(empty_since.unwrap_or_else(Instant::now)) };
                     if empty_since.is_some_and(|t| t.elapsed() >= RESET_AFTER) {
-                        info!(playfield, arena = %def.area.name, "arena reset");
+                        info!(?playfield, arena = %def.area.name, "arena reset");
                         crate::npc::restore(boss);
                         for a in adds {
                             crate::npc::despawn(a);
@@ -545,11 +548,11 @@ fn tick() {
         }
     }
 
-    let ambushes: Vec<((u32, usize), Ambush)> = STATE.lock().unwrap().ambushes.iter().map(|(k, v)| (*k, v.clone())).collect();
+    let ambushes: Vec<((Pf, usize), Ambush)> = STATE.lock().unwrap().ambushes.iter().map(|(k, v)| (*k, v.clone())).collect();
     for ((playfield, i), state) in ambushes {
         let next = match state {
             Ambush::Wave { n, ids, around } if !ids.is_empty() && ids.iter().all(|id| crate::npc::health_of(*id).is_none()) => {
-                let area = &DATA[&playfield].ambushes[i];
+                let area = &DATA[&playfield.model()].ambushes[i];
                 match n {
                     1 => {
                         let ids = spawn_wave(playfield, area.centre(), around, AMBUSH_WAVE, None);
@@ -567,7 +570,7 @@ fn tick() {
         }
     }
 
-    let champions: Vec<(u32, Id32)> = STATE.lock().unwrap().champions.iter().filter_map(|(pf, (id, _))| Some((*pf, (*id)?))).collect();
+    let champions: Vec<(Pf, Id32)> = STATE.lock().unwrap().champions.iter().filter_map(|(pf, (id, _))| Some((*pf, (*id)?))).collect();
     for (playfield, id) in champions {
         if crate::npc::health_of(id).is_none() {
             // pocket worlds: not again in this instance (until it empties)
@@ -577,7 +580,7 @@ fn tick() {
     }
 
     // pocket worlds nobody is in any more: a new instance next time
-    let pockets: HashSet<u32> = {
+    let pockets: HashSet<Pf> = {
         let st = STATE.lock().unwrap();
         st.arenas.keys().map(|k| k.0).chain(st.ambushes.keys().map(|k| k.0)).chain(st.champions.keys().copied()).filter(|pf| pocket(*pf)).collect()
     };
@@ -594,7 +597,7 @@ fn tick() {
             won
         };
         for i in won {
-            if let Some(def) = DATA.get(&playfield).and_then(|d| d.arenas.get(i)) {
+            if let Some(def) = DATA.get(&playfield.model()).and_then(|d| d.arenas.get(i)) {
                 set_doors(def);
             }
         }
@@ -602,8 +605,8 @@ fn tick() {
 }
 
 /// Shows every arena door on `playfield` as it is now (a mirror puzzle solved or reset).
-pub fn refresh_doors(playfield: u32) {
-    for def in DATA.get(&playfield).map(|d| d.arenas.as_slice()).unwrap_or_default() {
+pub fn refresh_doors(playfield: Pf) {
+    for def in DATA.get(&playfield.model()).map(|d| d.arenas.as_slice()).unwrap_or_default() {
         set_doors(def);
     }
 }
@@ -662,7 +665,7 @@ mod tests {
         let town = DATA[&4200].explore.iter().find(|a| a.name == "Achievement_PirateTown").unwrap();
         let c = town.centre();
         assert_eq!(explored(4200, [c[0], town.heights[0] + 1.0, c[1]]), vec!["Achievement_PirateTown"]);
-        assert!(pocket(2300) && pocket(1640) && !pocket(4200) && !pocket(1200));
+        assert!(pocket(Pf::main(2300)) && pocket(Pf::main(1640)) && !pocket(Pf::main(4200)) && !pocket(Pf::main(1200)));
         // past a boss: Medusa's Lair's ambushes lie before her arena; Underworld's last arenas
         // wait for the earlier ones
         for pf in [2300, 2320, 4310, 5500] {

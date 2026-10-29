@@ -32,7 +32,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | Command | Does |
 |---|---|
 | `!where` | current playfield and position |
-| `!instance [salt]` | instance spike: re-enter this world under another playfield key (`salt << 24 \| playfield`; everyone in this world; 0 = the playfield id) |
+| `!instance [copy]` | which running copy of this world you are in (instance.rs); `!instance 1` goes to copy 1 at the same spot (other copies have no residents yet), `!instance 0` back to the main one |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
 | `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas) |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |

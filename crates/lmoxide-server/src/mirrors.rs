@@ -10,6 +10,7 @@
 //! particles from mirror to mirror (`BEAMS`). One state per playfield, shared by everyone there;
 //! it goes back to the start once nobody is left (a new instance, as live gave each group).
 
+use crate::instance::Pf;
 use std::{
     collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
@@ -269,12 +270,13 @@ fn spawn_beams() {
                 let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
                 tokio::spawn(async move { while inbox.recv().await.is_some() {} });
                 let pos = std::sync::Arc::new(Mutex::new(beam.pos));
+                // the main copy's: puzzle state is the playfield's, not per copy (yet)
                 presences.push(world::join(
                     id,
-                    pf,
+                    Pf::main(pf),
                     pos,
                     move || {
-                        let mut records = crate::scenery::invisible_records(id, pf, beam.pos, beam.rot);
+                        let mut records = crate::scenery::invisible_records(id, Pf::main(pf), beam.pos, beam.rot);
                         if lit_beams(pf).contains(&(guid, plus)) {
                             records.push(beam_record(id, guid, plus));
                         }
@@ -292,7 +294,7 @@ fn on_solved(pf: u32, puzzle: &Puzzle) {
         crate::gates::refresh(gate);
     }
     if puzzle.opens.arena_exit.is_some() {
-        crate::encounter::refresh_doors(pf);
+        crate::encounter::refresh_doors(Pf::main(pf));
     }
 }
 
@@ -304,7 +306,8 @@ pub fn start() {
         loop {
             tick.tick().await;
             for &pf in DATA.keys() {
-                let empty = !world::positions(pf).iter().any(|(id, _)| crate::npc::is_player(*id));
+                let empty = !world::positions(Pf::main(pf)).iter()
+.any(|(id, _)| crate::npc::is_player(*id));
                 let reset = empty && STATE.lock().unwrap().remove(&pf).is_some_and(|s| s != State::default());
                 if reset {
                     info!(playfield = pf, "mirror puzzle reset");
@@ -337,7 +340,7 @@ pub fn set_solved(playfield: u32, solve: bool) -> bool {
         if let Some(gate) = puzzle.opens.gate {
             crate::gates::refresh(gate);
         }
-        crate::encounter::refresh_doors(playfield);
+        crate::encounter::refresh_doors(Pf::main(playfield));
     }
     true
 }

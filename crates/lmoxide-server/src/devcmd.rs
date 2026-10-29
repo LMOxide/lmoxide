@@ -53,6 +53,7 @@
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
 
+use crate::instance::Pf;
 use lmoxide_net::types::Id32;
 
 use crate::teleport;
@@ -62,6 +63,9 @@ pub enum Action {
     Reply(Vec<String>),
     /// teleport to (playfield, position, facing; NaN: as the player faces now), with a reply
     Teleport(u32, [f32; 3], f32, String),
+    /// as `Teleport`, into one running copy of a world (`!instance`)
+    Enter(Pf, [f32; 3], f32, String),
+
     /// show the achievement summary
     Achievements,
     /// show the quests (true: clear their progress and cooldowns first)
@@ -119,7 +123,7 @@ pub enum Action {
 pub const COMMANDS: &[(&str, &str)] = &[
     ("!help", "the commands"),
     ("!where", "current playfield and position"),
-    ("!instance [salt]", "instance spike: re-enter this world under another playfield key (for everyone in this world)"),
+    ("!instance [copy]", "which running copy of this world you are in; go to another copy (0 = the main one; other copies are empty for now)"),
     ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
     ("!moveto <x> <y> <z>", "go to a position in this playfield"),
     ("!move <dx> <dy> <dz>", "move by that much from where you are (y is up: !move 0 1000 0 climbs out of a floor)"),
@@ -379,7 +383,7 @@ const PATROL_WATCH: f32 = 14.0;
 
 /// `!script list | start <script> [wave] | stop [script]`. The script's name may have spaces: the
 /// whole rest first, else its last word is the wave.
-fn script(args: &[&str], playfield: u32) -> Vec<String> {
+fn script(args: &[&str], playfield: Pf) -> Vec<String> {
     match args.first().map(|a| a.to_ascii_lowercase()).as_deref() {
         None | Some("list") => crate::scripts::list(playfield),
         Some("start") if args.len() > 1 => {
@@ -408,7 +412,7 @@ pub fn is_command(message: &str) -> bool {
 /// The targets of a kind: (label, playfield, position).
 fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
     Some(match kind {
-        "buildie" => crate::buildie::points().into_iter().map(|(n, pf, p, state)| (format!("{n} [{state}]"), pf, p)).collect(),
+        "buildie" => crate::buildie::points().into_iter().map(|(n, pf, p, state)| (format!("{n} [{state}]"), pf.model(), p)).collect(),
         "pad" => crate::jumppad::points(),
         "lever" => crate::scenery::points("lever"),
         "plate" => crate::scenery::points("pressureplate"),
@@ -420,7 +424,9 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "dialogue" => crate::knubot::points(),
         "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
-        "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
+        "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => {
+            crate::npc::points(kind).into_iter().map(|(label, pf, p)| (label, pf.model(), p)).collect()
+        }
         "script" => crate::scripts::points(),
         "quest" => crate::quests::points(),
         _ => return None,
@@ -443,20 +449,24 @@ pub fn tour_targets(kind: &str) -> Vec<(String, u32, [f32; 3])> {
 }
 
 /// Runs a command typed by a player standing at `pos` on `playfield`.
-pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
+pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
     let mut words = message[1..].split_whitespace();
     let cmd = words.next().unwrap_or("").to_ascii_lowercase();
     let args: Vec<&str> = words.collect();
     let reply = |lines: Vec<String>| Action::Reply(lines);
     match cmd.as_str() {
-        "where" => reply(vec![format!("{}: {:.1} {:.1} {:.1}", playfield_name(playfield), pos[0], pos[1], pos[2])]),
+        "where" => {
+            let copy = if playfield.is_main() { String::new() } else { format!(" copy {}", playfield.copy()) };
+            reply(vec![format!("{}{copy}: {:.1} {:.1} {:.1}", playfield_name(playfield.model()), pos[0], pos[1], pos[2])])
+        }
+
         "moveto" | "move" => {
             let n: Vec<f32> = args.iter().filter_map(|a| a.trim_end_matches(',').parse::<f32>().ok()).filter(|v| v.is_finite()).collect();
             if n.len() != 3 || args.len() != 3 {
                 return reply(vec![format!("usage: !{cmd} <{0}x> <{0}y> <{0}z> (y is up)", if cmd == "move" { "d" } else { "" })]);
             }
             let to = if cmd == "move" { [pos[0] + n[0], pos[1] + n[1], pos[2] + n[2]] } else { [n[0], n[1], n[2]] };
-            Action::Teleport(playfield, to, f32::NAN, format!("going to {:.1}, {:.1}, {:.1}", to[0], to[1], to[2]))
+            Action::Enter(playfield, to, f32::NAN, format!("going to {:.1}, {:.1}, {:.1}", to[0], to[1], to[2]))
         }
         "tp" => {
             let query = args.join(" ");
@@ -494,7 +504,7 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             match (found, at) {
                 (Some(p), Some((pf, pos))) => {
                     let to = [pos[0] + ARRIVE_OFFSET, pos[1], pos[2]];
-                    Action::Teleport(pf, to, (-ARRIVE_OFFSET).atan2(0.0), format!("going to {} in {}", p.character_name, playfield_name(pf)))
+                    Action::Enter(pf, to, (-ARRIVE_OFFSET).atan2(0.0), format!("going to {} in {}", p.character_name, playfield_name(pf.model())))
                 }
                 (Some(p), None) => reply(vec![format!("{} is online but not in a world yet", p.character_name)]),
                 (None, _) if name.is_empty() => reply(vec!["usage: !goto player <name>".into()]),
@@ -545,8 +555,8 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             let n = args.get(1).and_then(|n| n.parse::<u32>().ok()).unwrap_or(1).min(100_000);
             let name = args.get(2..).map(|w| w.join(" ")).filter(|n| !n.is_empty()).unwrap_or_else(|| "Test Dummy".into());
             let event = match args.first().copied() {
-                Some("kills") => crate::achievements::Event::Defeated { id: Id32::new(0, 0), name, smashable: false, boss: false, champion: false, level: 1, playfield },
-                Some("smashes") => crate::achievements::Event::Defeated { id: Id32::new(0, 0), name, smashable: true, boss: false, champion: false, level: 1, playfield },
+                Some("kills") => crate::achievements::Event::Defeated { id: Id32::new(0, 0), name, smashable: false, boss: false, champion: false, level: 1, playfield: playfield.model() },
+                Some("smashes") => crate::achievements::Event::Defeated { id: Id32::new(0, 0), name, smashable: true, boss: false, champion: false, level: 1, playfield: playfield.model() },
                 Some("builds") => crate::achievements::Event::Built { name },
                 _ => return reply(vec!["usage: !count <kills|smashes|builds> [n] [name]".into()]),
             };
@@ -557,14 +567,19 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
         "team" if !args.is_empty() => Action::Team(args.join(" ")),
         "team" => reply(vec!["usage: !team <character name> (online)".into()]),
         "server" => Action::Server(args.join(" ")),
-        // instance spike: re-enter this world under another client key (for everyone in it)
+        // go to another running copy of this world (instance.rs), at the same spot
         "instance" => match args.first().map(|a| a.parse::<u32>()) {
-            None => reply(vec![format!("instance salt {} (key {:#x}); usage: !instance <0-127>", teleport::instance_salt(playfield), teleport::client_key(playfield))]),
-            Some(Ok(salt)) if salt < 128 => {
-                teleport::set_instance_salt(playfield, salt);
-                Action::Teleport(playfield, pos, f32::NAN, format!("re-entering {} as key {:#x}", playfield_name(playfield), teleport::client_key(playfield)))
+            None => reply(vec![format!(
+                "{} copy {} (key {:#x}); usage: !instance <copy> (0 = the main one)",
+                playfield_name(playfield.model()),
+                playfield.copy(),
+                playfield.key()
+            )]),
+            Some(Ok(copy)) if copy <= crate::instance::MAX_COPY => {
+                let to = Pf::copy_of(playfield.model(), copy);
+                Action::Enter(to, pos, f32::NAN, format!("going to {} copy {copy} (key {:#x})", playfield_name(to.model()), to.key()))
             }
-            Some(_) => reply(vec!["usage: !instance <0-127>".into()]),
+            Some(_) => reply(vec![format!("usage: !instance <0-{}>", crate::instance::MAX_COPY)]),
         },
         "smashme" => Action::SmashMe,
         "loot" => match args.first().copied() {
@@ -679,9 +694,9 @@ pub fn run(message: &str, playfield: u32, pos: [f32; 3]) -> Action {
             Some(level) => Action::Progress(crate::achievements::Event::LostCreations { level }, 1),
             None => reply(vec!["usage: !lc <level>".into()]),
         },
-        "cleared" => Action::Progress(crate::achievements::Event::Cleared { playfield }, 1),
+        "cleared" => Action::Progress(crate::achievements::Event::Cleared { playfield: playfield.model() }, 1),
         "defeat" if !args.is_empty() => {
-            Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield }, 1)
+            Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield: playfield.model() }, 1)
         }
         _ => reply(vec![
             format!("commands: {}", COMMANDS.iter().map(|c| c.0).collect::<Vec<_>>().join(", ")),
@@ -700,13 +715,14 @@ mod tests {
 
     #[test]
     fn test_scenarios_resolve() {
-        assert!(matches!(run("!test", 1200, [0.0; 3]), Action::Reply(l) if l.len() == SCENARIOS.scenarios.len() + 1));
+        assert!(matches!(run("!test", Pf::main(1200), [0.0; 3]), Action::Reply(l) if l.len() == SCENARIOS.scenarios.len() + 1));
         for (i, s) in SCENARIOS.scenarios.iter().enumerate() {
             // every scenario's minifigures and playfields exist (target kinds need the NPCs)
             if s.goto.as_ref().is_some_and(|g| g.kind.is_some()) {
                 continue;
             }
-            match run(&format!("!test {}", i + 1), 1200, [0.0; 3]) {
+            match run(&format!("!test {}", i + 1), Pf::main(1200), [0.0; 3]) {
+
                 Action::Test(setup) => assert_eq!(setup.label, s.label),
                 Action::Reply(l) => panic!("{}: {l:?}", s.label),
                 _ => panic!("{}", s.label),
@@ -716,45 +732,45 @@ mod tests {
 
     #[test]
     fn tp_by_name_and_number() {
-        assert!(matches!(run("!tp isle of yarr", 1200, [0.0; 3]), Action::Teleport(4200, ..)));
-        assert!(matches!(run("/tp 5200", 1200, [0.0; 3]), Action::Teleport(5200, ..)));
-        assert!(matches!(run("!tp nowhere", 1200, [0.0; 3]), Action::Reply(_)));
-        assert!(matches!(run("!moveto 1 2 3", 1200, [9.0; 3]), Action::Teleport(1200, [1.0, 2.0, 3.0], r, _) if r.is_nan()));
-        assert!(matches!(run("!move 0 1000 -1", 1200, [5.0, -900.0, 5.0]), Action::Teleport(1200, [5.0, 100.0, 4.0], ..)));
-        assert!(matches!(run("!move 0 1000", 1200, [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!tp isle of yarr", Pf::main(1200), [0.0; 3]), Action::Teleport(4200, ..)));
+        assert!(matches!(run("/tp 5200", Pf::main(1200), [0.0; 3]), Action::Teleport(5200, ..)));
+        assert!(matches!(run("!tp nowhere", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!moveto 1 2 3", Pf::main(1200), [9.0; 3]), Action::Enter(pf, [1.0, 2.0, 3.0], r, _) if r.is_nan() && pf == Pf::main(1200)));
+        assert!(matches!(run("!move 0 1000 -1", Pf::main(1200), [5.0, -900.0, 5.0]), Action::Enter(pf, [5.0, 100.0, 4.0], ..) if pf == Pf::main(1200)));
+        assert!(matches!(run("!move 0 1000", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
     }
 
     #[test]
     fn goto_the_live_dialogue_speakers() {
         // in capture order: the LEGO Center, the Monster Laboratory (2), the jail (2), ...
-        assert!(matches!(run("!goto dialogue 1", 4200, [0.0; 3]), Action::Teleport(1200, ..)));
-        assert!(matches!(run("!goto dialogue 4", 4200, [0.0; 3]), Action::Teleport(4610, ..)));
-        assert!(matches!(run("!goto dialogue 6", 4610, [0.0; 3]), Action::Teleport(4200, ..)));
+        assert!(matches!(run("!goto dialogue 1", Pf::main(4200), [0.0; 3]), Action::Teleport(1200, ..)));
+        assert!(matches!(run("!goto dialogue 4", Pf::main(4200), [0.0; 3]), Action::Teleport(4610, ..)));
+        assert!(matches!(run("!goto dialogue 6", Pf::main(4610), [0.0; 3]), Action::Teleport(4200, ..)));
     }
 
     #[test]
     fn fx_takes_a_hook_and_a_place() {
-        assert!(matches!(run("!fx 966", 1200, [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Me)) if h.is_empty()));
-        assert!(matches!(run("!fx 966 onhit @near", 1200, [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Near)) if h == "onhit"));
-        assert!(matches!(run("!fx 966 @ground", 1200, [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Ground)) if h.is_empty()));
-        assert!(matches!(run("!fx 966 @moon", 1200, [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!fx 966", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Me)) if h.is_empty()));
+        assert!(matches!(run("!fx 966 onhit @near", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Near)) if h == "onhit"));
+        assert!(matches!(run("!fx 966 @ground", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Ground)) if h.is_empty()));
+        assert!(matches!(run("!fx 966 @moon", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
     }
 
     #[test]
     fn anim_plays_an_attribute_package() {
-        assert!(matches!(run("!anim limbostart", 1200, [0.0; 3]), Action::Fx(Fx::Play(_, _, FxAt::Me))));
-        assert!(matches!(run("!anim nothing_like_it", 1200, [0.0; 3]), Action::Reply(_)));
-        assert!(matches!(run("!despawn all", 1200, [0.0; 3]), Action::Despawn(true)));
-        assert!(matches!(run("!despawn", 1200, [0.0; 3]), Action::Despawn(false)));
+        assert!(matches!(run("!anim limbostart", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(_, _, FxAt::Me))));
+        assert!(matches!(run("!anim nothing_like_it", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!despawn all", Pf::main(1200), [0.0; 3]), Action::Despawn(true)));
+        assert!(matches!(run("!despawn", Pf::main(1200), [0.0; 3]), Action::Despawn(false)));
     }
 
     #[test]
     fn spawn_takes_an_optional_count() {
-        assert!(matches!(run("!spawn 3 Crate", 1200, [0.0; 3]), Action::Spawn(n, 3) if n == "Crate"));
-        assert!(matches!(run("!spawn Captain Dreadleg", 1200, [0.0; 3]), Action::Spawn(n, 1) if n == "Captain Dreadleg"));
-        assert!(matches!(run("!spawn 500 Crate", 1200, [0.0; 3]), Action::Spawn(_, MAX_SPAWN)));
-        assert!(matches!(run("!spawn", 1200, [0.0; 3]), Action::Reply(_)));
-        assert!(matches!(run("!spawn 0 Crate", 1200, [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!spawn 3 Crate", Pf::main(1200), [0.0; 3]), Action::Spawn(n, 3) if n == "Crate"));
+        assert!(matches!(run("!spawn Captain Dreadleg", Pf::main(1200), [0.0; 3]), Action::Spawn(n, 1) if n == "Captain Dreadleg"));
+        assert!(matches!(run("!spawn 500 Crate", Pf::main(1200), [0.0; 3]), Action::Spawn(_, MAX_SPAWN)));
+        assert!(matches!(run("!spawn", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
+        assert!(matches!(run("!spawn 0 Crate", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
     }
 
     #[test]
@@ -769,13 +785,13 @@ mod tests {
         for c in &COMMANDS[1..] {
             let word = c.0.split_whitespace().next().unwrap();
             let line = format!("{word} x"); // (!defeat needs a name)
-            assert!(!matches!(run(&line, 1200, [0.0; 3]), Action::Reply(l) if l[0].starts_with("commands:")), "{word}");
+            assert!(!matches!(run(&line, Pf::main(1200), [0.0; 3]), Action::Reply(l) if l[0].starts_with("commands:")), "{word}");
         }
     }
 
     #[test]
     fn commands_are_recognised() {
         assert!(is_command("!help") && is_command("/goto buildie") && !is_command("hello"));
-        assert!(matches!(run("!list nothing", 1200, [0.0; 3]), Action::Reply(l) if l.len() == KINDS.len()));
+        assert!(matches!(run("!list nothing", Pf::main(1200), [0.0; 3]), Action::Reply(l) if l.len() == KINDS.len()));
     }
 }

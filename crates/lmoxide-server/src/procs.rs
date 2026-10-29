@@ -19,6 +19,7 @@
 //! Burst, Vortex), cooldown changes (Specialist, Technician: the client keeps the recharge
 //! times), Elemental Affinity (location elements).
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{LazyLock, Mutex},
@@ -80,7 +81,7 @@ enum Later {
 #[derive(Clone, Copy)]
 struct Event {
     spell: u32,
-    playfield: u32,
+    playfield: Pf,
     at: [f32; 3],
     target: Id32,
 }
@@ -344,7 +345,8 @@ pub fn cast(player: Id32, spell: u32) {
         debug!(?player, spell, "attack procs");
         show(player, records);
     }
-    finish(player, Some(Event { spell, playfield: 0, at: [0.0; 3], target: player }), later);
+    finish(player, Some(Event { spell, playfield: Pf::default(), at
+: [0.0; 3], target: player }), later);
 }
 
 /// Whether `attacker`'s current attack knocks the enemies it hits away (Knockback), and how far.
@@ -405,7 +407,7 @@ pub fn orb_bonus(player: Id32) -> u64 {
 }
 
 /// `attacker` defeated enemy `target` with `spell` at `at` on `playfield`.
-pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: u32, at: [f32; 3]) {
+pub fn killed(attacker: Id32, target: Id32, spell: u32, playfield: Pf, at: [f32; 3]) {
     let mut records = Vec::new();
     let mut later = Vec::new();
     {

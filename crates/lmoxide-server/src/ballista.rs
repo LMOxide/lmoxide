@@ -8,6 +8,7 @@
 //! timing and the count are inferred (docs/TUNABLES.md "Gauntlet"). Reset once nobody is left in
 //! the Gauntlet.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{LazyLock, Mutex},
@@ -124,7 +125,7 @@ pub fn solved() -> bool {
 }
 
 fn occupied() -> bool {
-    world::positions(PLAYFIELD).iter().any(|(id, p)| {
+    world::positions(Pf::main(PLAYFIELD)).iter().any(|(id, p)| {
         crate::npc::is_player(*id) && (ROOM.0[0]..=ROOM.0[1]).contains(&p[0]) && (ROOM.1[0]..=ROOM.1[1]).contains(&p[2])
     })
 }
@@ -189,7 +190,7 @@ pub fn start() {
                 source: None,
                 rot: None,
             };
-            let id = crate::npc::spawn_temporary(def, PLAYFIELD, TARGET_LIFE);
+            let id = crate::npc::spawn_temporary(def, Pf::main(PLAYFIELD), TARGET_LIFE);
             info!(ballista = i + 1, high, "dummy up");
             STATE.lock().unwrap().dummy = Some((i, high, id));
             tokio::spawn(async move {
@@ -205,7 +206,7 @@ pub fn start() {
         let mut tick = tokio::time::interval(RESET_CHECK);
         loop {
             tick.tick().await;
-            let empty = !world::positions(PLAYFIELD).iter().any(|(id, _)| crate::npc::is_player(*id));
+            let empty = !world::positions(Pf::main(PLAYFIELD)).iter().any(|(id, _)| crate::npc::is_player(*id));
             let mut state = STATE.lock().unwrap();
             if empty && state.hits > 0 {
                 state.hits = 0;
@@ -229,7 +230,7 @@ pub fn pull(player: Id32, guid: u32) {
     world::send_playfield(lever, false, world::Out::Records(vec![open(lever), open(ballista)]));
     let to = b.aims[usize::from(high)];
     let from = [b.pos[0], b.pos[1] + 0.5, b.pos[2]];
-    let (shot, flight) = crate::projectile::launch_enemy(ballista, PLAYFIELD, 0, ARROW, 1, ARROW_SPEED, 0, from, to, None);
+    let (shot, flight) = crate::projectile::launch_enemy(ballista, Pf::main(PLAYFIELD), 0, ARROW, 1, ARROW_SPEED, 0, from, to, None);
     info!(?player, ballista = i + 1, high, "ballista fired");
     tokio::spawn(async move {
         tokio::time::sleep(flight).await;

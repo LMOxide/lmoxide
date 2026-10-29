@@ -18,6 +18,7 @@
 //! (`gameactiononnpc` 599417) go to tutorial.rs; quest tags (`spawn`, `resolvegoal`) and other
 //! server scripts are logged, not run.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{LazyLock, Mutex},
@@ -163,13 +164,13 @@ fn following(first: u32) -> Option<&'static Dialogue> {
 
 /// `player` arrived on `playfield`: the dialogue the live server started then, if any (its
 /// speaker: that NPC if it's here, else the player, as for the cinematics).
-pub fn arrived(player: Id32, player_name: &str, playfield: u32, has_tag: &dyn Fn(u32) -> bool) {
-    let Some((d, delay)) = arrival(playfield, has_tag) else { return };
+pub fn arrived(player: Id32, player_name: &str, playfield: Pf, has_tag: &dyn Fn(u32) -> bool) {
+    let Some((d, delay)) = arrival(playfield.model(), has_tag) else { return };
     let (d, name) = (d.clone(), player_name.to_string());
     tokio::spawn(async move {
         tokio::time::sleep(delay).await;
-        if world::whereabouts(player).is_some_and(|(pf, _)| pf == d.playfield) {
-            let owner = crate::npc::find(&d.npc, d.playfield).unwrap_or(player);
+        if world::whereabouts(player).is_some_and(|(pf, _)| pf == playfield) {
+            let owner = crate::npc::find(&d.npc, playfield).unwrap_or(player);
             start(player, &name, owner, d);
         }
     });
@@ -195,14 +196,14 @@ pub fn has_dialogues(npc: &str, playfield: u32) -> bool {
 
 /// `player` talks to NPC `npc` (named `name`): its next dialogue (the last one again once all
 /// are done).
-pub fn talk(player: Id32, player_name: &str, npc: Id32, name: &str, playfield: u32) {
-    let list = of(name, playfield);
+pub fn talk(player: Id32, player_name: &str, npc: Id32, name: &str, playfield: Pf) {
+    let list = of(name, playfield.model());
     if list.is_empty() {
         return;
     }
     let n = {
         let mut progress = PROGRESS.lock().unwrap();
-        let n = progress.entry((player, name.to_string(), playfield)).or_insert(0);
+        let n = progress.entry((player, name.to_string(), playfield.model())).or_insert(0);
         let i = (*n).min(list.len() - 1);
         *n += 1;
         i
@@ -234,7 +235,8 @@ pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
         // the live server started the next one itself (the jail: Swashbuckler's second)
         if let Some(next) = first.and_then(following).filter(|_| ended && current) {
             tokio::time::sleep(FOLLOW_DELAY).await;
-            if !TALKING.lock().unwrap().contains_key(&player) && world::whereabouts(player).is_some_and(|(pf, _)| pf == next.playfield) {
+            if !TALKING.lock().unwrap().contains_key(&player) && world::whereabouts(player).is_some_and(|(pf, _)| pf.model() == next.playfield) {
+
                 start(player, &name, owner, next.clone());
             }
         }

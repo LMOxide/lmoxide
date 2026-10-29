@@ -10,6 +10,7 @@
 //! whose points weren't shipped. The timing and the landing spots (the navmesh's floor below,
 //! straight ahead) are inferred (docs/TUNABLES.md "Gauntlet").
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{LazyLock, Mutex},
@@ -91,7 +92,8 @@ pub fn start() {
             loop {
                 tick.tick().await;
                 let players: Vec<(Id32, world::Position)> =
-                    world::position_handles(PLAYFIELD).into_iter().filter(|(id, _)| crate::npc::is_player(*id)).collect();
+                    world::position_handles(Pf::main(PLAYFIELD))
+.into_iter().filter(|(id, _)| crate::npc::is_player(*id)).collect();
                 if players.is_empty() {
                     continue;
                 }

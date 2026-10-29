@@ -21,6 +21,7 @@ mod encounter;
 mod game;
 mod gamedata;
 mod gates;
+mod instance;
 mod jumppad;
 mod knubot;
 mod loot;
@@ -321,7 +322,8 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     }
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
-        tokio::spawn(game::run_bot(cfg.start_playfield));
+        tokio::spawn(game::run_bot(crate::instance::Pf::main(cfg.start_playfield))
+);
     }
 
     tokio::select! {

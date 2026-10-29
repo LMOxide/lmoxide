@@ -10,6 +10,7 @@
 //! Locks: `STATE`, then `npc::NPCS`, then `world::MEMBERS`, then `HIDDEN`. `npc::hit` calls
 //! [`attacked`] before it locks NPCS, and `world::join` reads only `HIDDEN`.
 
+use crate::instance::Pf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     path::PathBuf,
@@ -430,7 +431,7 @@ fn spawn(surveyors: &HashMap<Id32, Surveyor>, notes: &Notes, o: &mut Object) {
         }
     }
     o.npc = Some(id);
-    npc::spawn_as(id, def, o.playfield);
+    npc::spawn_as(id, def, Pf::main(o.playfield));
 }
 
 fn despawn(o: &mut Object) {
@@ -503,14 +504,14 @@ fn sync_hidden(st: &State, viewer: Id32) {
         }
     }
     for b in crate::buildie::list(None) {
-        all.insert(b.id, (b.playfield, s.hidden.contains(&buildie_id(&b))));
+        all.insert(b.id, (b.playfield.model(), s.hidden.contains(&buildie_id(&b))));
     }
     for l in crate::jumppad::list(None) {
         all.insert(l.dynel, (l.playfield, s.hidden.contains(&l.id)));
     }
     let want: HashSet<Id32> = all.iter().filter(|(_, (_, h))| *h).map(|(id, _)| *id).collect();
     let had = HIDDEN.lock().unwrap().insert(viewer, want.clone()).unwrap_or_default();
-    let here = world::whereabouts(viewer).map(|(pf, _)| pf);
+    let here = world::whereabouts(viewer).map(|(pf, _)| pf.model());
     let on_here = |id: &Id32| all.get(id).is_some_and(|(pf, _)| Some(*pf) == here);
     let mut records = Vec::new();
     for id in want.difference(&had).filter(|id| on_here(id)) {
@@ -539,7 +540,7 @@ fn mark(st: &mut State, viewer: Id32) {
     let target = selected.as_ref().and_then(|id| st.objects.get(id)).and_then(|o| o.npc.map(|n| (n, o.def.kind, o.def.pos, o.playfield))).or_else(|| {
         let w = st.walls.get(selected.as_ref()?)?;
         Some((w.pieces.first()?.0, Kind::Smashable, w.def.pos, w.playfield))
-    }).or_else(|| buildie(selected.as_ref()?).map(|b| (b.id, Kind::Smashable, b.pos, b.playfield)))
+    }).or_else(|| buildie(selected.as_ref()?).map(|b| (b.id, Kind::Smashable, b.pos, b.playfield.model())))
     // (a bouncer: as a smashable, and its landing point marked the same way)
     .or_else(|| crate::jumppad::find(selected.as_ref()?).map(|l| (l.dynel, Kind::Smashable, l.pos, l.playfield)));
     let landing = selected.as_deref().and_then(crate::jumppad::find).and_then(|l| Some((l.playfield, l.target?)));
@@ -587,7 +588,7 @@ fn helper_at(playfield: u32, pos: [f32; 3]) -> (Id32, Vec<bytes::Bytes>) {
         helper,
         &crate::game::CharSpec {
             name: "",
-            playfield,
+            playfield: Pf::main(playfield),
             pos,
             monster_data: INVISIBLE_LOOK,
             level: 1,
@@ -650,7 +651,7 @@ impl Mark {
 /// Shows `viewer` their marks on what they see in their playfield (again: after changes there
 /// or a move to another playfield, see `watch_walls`).
 fn show_marks(st: &mut State, viewer: Id32) {
-    let Some(pf) = world::whereabouts(viewer).map(|(pf, _)| pf) else { return };
+    let Some(pf) = world::whereabouts(viewer).map(|(pf, _)| pf.model()) else { return };
     let revision = st.revision.get(&pf).copied().unwrap_or(0);
     let Some(s) = st.surveyors.get(&viewer) else { return };
     let mut records = Vec::new();
@@ -808,7 +809,7 @@ fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
         tags: Vec::new(),
         author: String::new(),
         updated: 0,
-        playfield: b.playfield,
+        playfield: b.playfield.model(),
         replaces: None,
         size: None,
         radius: None,
@@ -1092,7 +1093,7 @@ fn player_of(account: u32) -> Result<(Id32, u32), Error> {
     let character = crate::sessions::characters_of(account).into_iter().next().ok_or_else(|| Error::NotFound(format!("account {account} has no character online")))?;
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
     let (pf, _) = world::whereabouts(id).ok_or_else(|| Error::NotFound(format!("account {account} isn't in a playfield yet")))?;
-    Ok((id, pf))
+    Ok((id, pf.model()))
 }
 
 /// Who made the request (lmoxide-api's actor: "account:<name>" or "key:<name>"): the name.
@@ -1300,7 +1301,7 @@ async fn select(Path(account): Path<u32>, Json(b): Json<SelectBody>) -> R<Player
             let surveyor = st.surveyors.get(&player);
             let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.notes))).map(|o| (&o.id, o.def.pos));
             let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (w.def.id.clone(), w.def.pos));
-            let buildies = crate::buildie::list(Some(pf)).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
+            let buildies = crate::buildie::list(Some(Pf::main(pf))).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
             let bouncers = crate::jumppad::list(Some(pf)).into_iter().map(|l| (l.id, l.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
             objects
                 .map(|(id, p)| (id.clone(), p))
@@ -1417,7 +1418,7 @@ async fn objects(Path(pf): Path<u32>) -> R<ObjectList> {
                 .filter(|o| o.playfield == pf)
                 .map(Object::view)
                 .chain(st.walls.values().filter(|w| w.playfield == pf).map(Wall::view))
-                .chain(crate::buildie::list(Some(pf)).iter().map(buildie_view))
+                .chain(crate::buildie::list(Some(Pf::main(pf))).iter().map(buildie_view))
                 .chain(crate::jumppad::list(Some(pf)).iter().map(bouncer_view))
                 .collect(),
         }))
@@ -2307,7 +2308,7 @@ fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
         tokio::spawn(async move { while inbox.recv().await.is_some() {} });
         let pf = w.playfield;
         let look = crate::scenery::Look { name: name.clone(), visual, bounds: [x0, 0.0, -0.1, x1, height, 0.1], scale };
-        let presence = world::join(id, pf, Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, pf, pos, rot, &look), outbox);
+        let presence = world::join(id, Pf::main(pf), Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, Pf::main(pf), pos, rot, &look), outbox);
         w.pieces.push((id, presence));
     }
 }
@@ -2521,7 +2522,7 @@ async fn watch_walls() {
             .into_iter()
             .filter_map(|p| {
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, p.character_id);
-                let (pf, _) = world::whereabouts(id)?;
+                let pf = world::whereabouts(id)?.0.model();
                 Some((id, pf, world::live_position(id)?))
             })
             .collect();

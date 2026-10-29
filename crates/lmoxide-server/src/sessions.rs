@@ -182,7 +182,8 @@ pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {
                 username: o.username.clone(),
                 character_id: character,
                 character_name: o.character_name.clone(),
-                playfield: world::whereabouts(id).map(|(pf, _)| pf),
+                playfield: world::whereabouts(id).map(|(pf, _)| pf.model()),
+
                 position: world::live_position(id),
                 gm_level: o.gm_level,
                 logged_in_at: o.logged_in_at,

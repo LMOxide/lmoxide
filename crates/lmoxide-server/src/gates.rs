@@ -13,6 +13,7 @@
 //! Other gates stay open scenery (scenery.rs). Built mirrors stay built until the server
 //! restarts, as the other buildies.
 
+use crate::instance::Pf;
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, Mutex},
@@ -135,9 +136,11 @@ static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
 pub fn start() {
     let mut n = 0;
     for (&pf, gates) in DATA.iter() {
+        // the main copy's (the gates' state is the playfield's, not per copy)
+        let at = Pf::main(pf);
         for gate in gates {
             for spot in &gate.mirrors {
-                let buildie = crate::buildie::add("XX_boss medusa mirror buildie", MIRROR_TEMPLATE, MIRROR_LOOK, pf, spot.pos, spot.rot);
+                let buildie = crate::buildie::add("XX_boss medusa mirror buildie", MIRROR_TEMPLATE, MIRROR_LOOK, at, spot.pos, spot.rot);
                 let beam = Id32::new(SIMPLE_DYNEL_TYPE, BEAM_INSTANCES + n);
                 n += 1;
                 MIRRORS.lock().unwrap().insert(buildie, (pf, gate.gate, spot, beam));
@@ -145,10 +148,11 @@ pub fn start() {
                 tokio::spawn(async move { while inbox.recv().await.is_some() {} });
                 let presence = world::join(
                     beam,
-                    pf,
+                    at,
                     Arc::new(Mutex::new(spot.light)),
                     move || {
-                        let mut records = crate::scenery::invisible_records(beam, pf, spot.light, spot.rot);
+                        let mut records = crate::scenery::invisible_records(beam, at, spot.light, spot.rot);
+
                         if crate::buildie::built(buildie) {
                             records.push(crate::mirrors::beam_particle(beam, spot.length));
                         }
