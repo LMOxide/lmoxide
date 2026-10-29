@@ -20,6 +20,17 @@ pub enum Cmd {
         #[arg(long)]
         regenerate: bool,
     },
+    /// Copy the characters of another server's database into this one, in game mode `--mode`
+    /// (e.g. the old world editor server's var/survey-data/lmoxide.db as world-editor
+    /// characters). Accounts are matched by username (made here if missing, with their
+    /// password); characters get new ids; one already copied (same account, name and mode) is
+    /// left alone.
+    ImportCharacters {
+        /// The other database file.
+        from: std::path::PathBuf,
+        #[arg(long, default_value = "world-editor")]
+        mode: String,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -67,7 +78,42 @@ pub fn run(cmd: Cmd, storage: &Storage) -> anyhow::Result<()> {
             println!("{}", key.public_hex());
             Ok(())
         }
+        Cmd::ImportCharacters { from, mode } => import_characters(&db, &from, &mode),
     }
+}
+
+fn import_characters(db: &Db, from: &std::path::Path, mode: &str) -> anyhow::Result<()> {
+    anyhow::ensure!(crate::instance::Mode::parse(mode).is_some(), "{mode}: one of progression, maxed, world-editor");
+    let other = Db::open(from).with_context(|| format!("opening {}", from.display()))?;
+    share_accounts(&other, db, None)?;
+    let (mut copied, mut kept) = (0, 0);
+    let mut offset = 0;
+    loop {
+        let page = other.list_accounts(None, offset, 500)?;
+        offset += page.len() as u32;
+        for theirs in &page {
+            let Some(ours) = db.account_by_name(&theirs.username)? else { continue };
+            let here = db.characters_of(ours.id)?;
+            for summary in other.characters_of(theirs.id)? {
+                let Some(mut c) = other.load_character(summary.id)? else { continue };
+                if here.iter().any(|h| h.name == c.name && h.mode == mode) {
+                    kept += 1;
+                    continue;
+                }
+                c.mode = mode.to_string();
+                let id = db.new_character_id()?;
+                db.save_character(id, ours.id, &c)?;
+                println!("{} ({}): {} -> character {id}, {mode}", ours.username, ours.id, c.name);
+                copied += 1;
+            }
+        }
+        if page.len() < 500 {
+            break;
+        }
+    }
+    db.audit("cli", "import-characters", None, Some(&format!("{} ({mode}): {copied} copied", from.display())))?;
+    println!("{copied} characters copied, {kept} were here already");
+    Ok(())
 }
 
 fn account(db: &Db, cmd: AccountCmd) -> anyhow::Result<()> {
@@ -184,17 +230,6 @@ pub fn share_accounts(from: &Db, db: &Db, only: Option<&str>) -> anyhow::Result<
         }
     }
     Ok(changed)
-}
-
-/// Gives `db` the login key of `from` (creating one there if it has none).
-pub fn share_login_key(from: &Db, db: &Db) -> anyhow::Result<()> {
-    let key = login_key(from, false)?;
-    if db.setting(LOGIN_KEY_SETTING)?.as_deref() != Some(key.private_hex().as_str()) {
-        db.set_setting(LOGIN_KEY_SETTING, &key.private_hex())?;
-        db.audit("cli", "login-key-share", None, None)?;
-        tracing::info!("login key copied from the shared database");
-    }
-    Ok(())
 }
 
 pub fn login_key(db: &Db, regenerate: bool) -> anyhow::Result<LoginKey> {

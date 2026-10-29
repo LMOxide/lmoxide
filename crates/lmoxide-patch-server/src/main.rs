@@ -102,9 +102,16 @@ pub struct Config {
     #[arg(long, env = "LMOXIDE_WEBSITE")]
     pub website: Option<String>,
     /// What kind of game server this patch server serves, announced in /lmoxide/v1/info:
-    /// `progression`, `adventure`, `world-editor` (or another word).
+    /// `progression`, `adventure`, `world-editor` (or another word). With `--modes`: not needed.
     #[arg(long, env = "LMOXIDE_SERVER_KIND")]
     pub server_kind: Option<String>,
+    /// The game modes the game server runs and each one's universe port, as `mode:port`
+    /// (`progression:7100,maxed:7103,world-editor:7104`, as lmoxide-server's `--modes`), the
+    /// default first. Patchers offer them as Game Mode and install that mode's LocalConfig.xml,
+    /// which keeps the client's own patcher on the mode (its control path,
+    /// `/control/mode/<mode>/`).
+    #[arg(long, env = "LMOXIDE_MODES", value_delimiter = ',', value_parser = parse_mode_port)]
+    pub modes: Vec<(String, u16)>,
     /// Patch server URL of another game server on this host (repeatable), announced in
     /// /lmoxide/v1/info so patchers can offer to switch (e.g. http://192.168.5.69:8081).
     #[arg(long = "other-server", env = "LMOXIDE_OTHER_SERVERS", value_delimiter = ',')]
@@ -182,7 +189,37 @@ impl Config {
     }
 
     pub fn universe_addr(&self) -> String {
-        format!("{}:{}", self.universe_host.as_deref().unwrap_or(&self.public_host), self.universe_port)
+        match self.modes.first() {
+            Some((_, port)) => self.universe_addr_at(*port),
+            None => self.universe_addr_at(self.universe_port),
+        }
+    }
+
+    fn universe_addr_at(&self, port: u16) -> String {
+        format!("{}:{}", self.universe_host.as_deref().unwrap_or(&self.public_host), port)
+    }
+
+    /// The game modes (`--modes`), as /lmoxide/v1/info announces them.
+    pub fn game_modes(&self) -> Vec<lmoxide_patch::manifest::GameMode> {
+        self.modes
+            .iter()
+            .map(|(id, port)| {
+                let (name, description, requires) = match id.as_str() {
+                    "progression" => ("Progression", "As live: start at level 1, earn XP and stars, rank minifigures up.", None),
+                    "maxed" => ("Maxxed", "Everything unlocked: level 30, every minifigure owned and fully ranked.", None),
+                    "world-editor" => ("World Editor", "The world editor's worlds: nothing attacks; place and change content.", Some("editor")),
+                    other => (other, "", None),
+                };
+                lmoxide_patch::manifest::GameMode {
+                    id: id.clone(),
+                    name: name.into(),
+                    description: description.into(),
+                    universe_addr: self.universe_addr_at(*port),
+                    requires: requires.map(str::to_string),
+                    local_config: None,
+                }
+            })
+            .collect()
     }
 
     pub fn chat_filter_host(&self) -> String {
@@ -214,10 +251,18 @@ impl Config {
 /// Requests are all GETs; anything with a body larger than this is refused.
 const MAX_REQUEST_BODY: usize = 16 * 1024;
 
+/// `mode:port` (`--modes`).
+fn parse_mode_port(s: &str) -> Result<(String, u16), String> {
+    let (mode, port) = s.split_once(':').ok_or_else(|| format!("{s}: expected mode:port"))?;
+    Ok((mode.to_string(), port.parse().map_err(|e| format!("{port}: {e}"))?))
+}
+
 fn router(app: Arc<App>) -> Router {
     Router::new()
         .route("/control/{folder}/LocalConfig.xml", get(stock::local_config))
         .route("/control/{folder}/PatchInfoClient.txt", get(stock::patch_info_client))
+        .route("/control/mode/{mode}/{folder}/LocalConfig.xml", get(stock::mode_local_config))
+        .route("/control/mode/{mode}/{folder}/PatchInfoClient.txt", get(stock::patch_info_client))
         .route("/patch/rdb/res/{a}/{b}/{rest}", get(stock::rdb_resource))
         .route("/patch/rdb/full/{hash}", get(stock::full_file))
         .route("/patch/{*path}", get(stock::patch_file))

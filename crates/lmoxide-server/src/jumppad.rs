@@ -192,9 +192,26 @@ static STARTED: AtomicBool = AtomicBool::new(false);
 /// Guids of placed pads (a hash of the placement id in this range, so they stay the same).
 const PLACED_GUIDS: u32 = 0x00c0_0000;
 
-/// The pads of playfield `playfield` (data: the same in every copy).
-fn pads_of(playfield: u32) -> Vec<Arc<Live>> {
-    PADS.read().unwrap().get(&playfield).cloned().unwrap_or_default()
+/// The world editor's pads by playfield, once its bouncer records changed them (`set_records`):
+/// its copies use these, the others `PADS`.
+static EDITOR_PADS: LazyLock<RwLock<HashMap<u32, Vec<Arc<Live>>>>> = LazyLock::new(Default::default);
+
+/// The pads of copy `pf` (the world editor's own, or the content's).
+fn pads_of(pf: Pf) -> Vec<Arc<Live>> {
+    if crate::instance::rules(pf).editor
+        && let Some(pads) = EDITOR_PADS.read().unwrap().get(&pf.model())
+    {
+        return pads.clone();
+    }
+    PADS.read().unwrap().get(&pf.model()).cloned().unwrap_or_default()
+}
+
+/// The pads as the world editor has them, by playfield.
+fn editor_table() -> Vec<(u32, Vec<Arc<Live>>)> {
+    let editor = EDITOR_PADS.read().unwrap();
+    let mut all: HashMap<u32, Vec<Arc<Live>>> = PADS.read().unwrap().clone();
+    all.extend(editor.iter().map(|(pf, v)| (*pf, v.clone())));
+    all.into_iter().collect()
 }
 
 /// A base pad's category: exact landing points (the recorded worlds) are demo content, the
@@ -244,9 +261,9 @@ pub struct RecordPad {
 /// playfield's pads (spawned again where they changed).
 pub fn set_records(pf: u32, pads: Vec<RecordPad>) {
     let new: Vec<Arc<Live>> = pads.into_iter().map(|r| Arc::new(live_of(r))).collect();
-    let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
+    let old = EDITOR_PADS.write().unwrap().insert(pf, new.clone()).or_else(|| PADS.read().unwrap().get(&pf).cloned()).unwrap_or_default();
     if STARTED.load(Ordering::SeqCst) {
-        for copy in crate::worlds::copies_of(pf) {
+        for copy in crate::worlds::copies_of(pf).into_iter().filter(|c| crate::instance::rules(*c).editor) {
             respawn(copy, &old, &new);
         }
     }
@@ -292,7 +309,7 @@ fn respawn(playfield: Pf, old: &[Arc<Live>], new: &[Arc<Live>]) {
         tokio::spawn(async move {
             // (the client needs ~1.5 s before an id is used again)
             tokio::time::sleep(Duration::from_secs(2)).await;
-            let still = pads_of(playfield.model()).iter().any(|p| Arc::ptr_eq(p, &live));
+            let still = pads_of(playfield).iter().any(|p| Arc::ptr_eq(p, &live));
             if still {
                 let presence = join(&live, playfield);
                 PRESENCES.lock().unwrap().insert((playfield, live.pad.guid), presence);
@@ -369,8 +386,8 @@ fn chain(playfield: Pf, pad: &Pad) -> Vec<[f32; 3]> {
 /// The pads of `playfield` (all when none), as the world editor lists them.
 pub fn list(playfield: Option<u32>) -> Vec<Listed> {
     let all: Vec<(u32, Vec<Arc<Live>>)> = match playfield {
-        Some(pf) => vec![(pf, pads_of(pf))],
-        None => PADS.read().unwrap().iter().map(|(pf, v)| (*pf, v.clone())).collect(),
+        Some(pf) => vec![(pf, pads_of(crate::instance::Mode::WorldEditor.main(pf)))],
+        None => editor_table(),
     };
     all.into_iter().flat_map(|(pf, v)| v.into_iter().map(move |l| listed(pf, &l))).collect()
 }
@@ -378,7 +395,7 @@ pub fn list(playfield: Option<u32>) -> Vec<Listed> {
 /// The pad with survey id `id`.
 pub fn find(id: &str) -> Option<Listed> {
     // (listing reads the pads again: not under this lock)
-    let found = PADS.read().unwrap().iter().find_map(|(pf, v)| v.iter().find(|l| l.id == id).map(|l| (*pf, l.clone())));
+    let found = editor_table().into_iter().find_map(|(pf, v)| v.iter().find(|l| l.id == id).map(|l| (pf, l.clone())));
     found.map(|(pf, l)| listed(pf, &l))
 }
 
@@ -388,7 +405,7 @@ pub fn by_dynel(dynel: Id32) -> Option<Listed> {
         return None;
     }
     let guid = crate::instance::fixture_base(dynel.instance);
-    let found = PADS.read().unwrap().iter().find_map(|(pf, v)| v.iter().find(|l| l.pad.guid == guid).map(|l| (*pf, l.clone())));
+    let found = editor_table().into_iter().find_map(|(pf, v)| v.iter().find(|l| l.pad.guid == guid).map(|l| (pf, l.clone())));
     found.map(|(pf, l)| listed(pf, &l))
 }
 
@@ -457,7 +474,7 @@ pub fn start() {
 
 /// Puts the pads of copy `pf` in (worlds.rs).
 pub fn spawn_world(pf: Pf) {
-    for live in pads_of(pf.model()) {
+    for live in pads_of(pf) {
         let presence = join(&live, pf);
         PRESENCES.lock().unwrap().insert((pf, live.pad.guid), presence);
     }
@@ -513,7 +530,7 @@ fn show_record(id: Id32, shown: bool) -> Bytes {
 
 /// Whether a jump pad stands at `at` (under a buildie: a bouncer).
 pub fn pad_at_spot(playfield: Pf, at: [f32; 3]) -> bool {
-    pads_of(playfield.model()).iter().any(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0)
+    pads_of(playfield).iter().any(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0)
 }
 
 /// Pads under an unbuilt buildie are inactive (CARS group 5, as recorded) until it is built.
@@ -524,7 +541,7 @@ fn cars_group(pad: &Pad, playfield: Pf) -> u32 {
 /// Every pad, for the test commands (devcmd.rs): (name, playfield, position).
 /// Where pad `guid` stands.
 pub fn pad_pos(playfield: Pf, guid: u32) -> Option<[f32; 3]> {
-    pads_of(playfield.model()).iter().find(|l| l.pad.guid == guid).map(|l| l.pad.pos)
+    pads_of(playfield).iter().find(|l| l.pad.guid == guid).map(|l| l.pad.pos)
 }
 
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
@@ -542,7 +559,7 @@ pub fn points() -> Vec<(String, u32, [f32; 3])> {
 /// PondToSwamp2 stand 0.8 m apart).
 fn pad_at(playfield: Pf, at: [f32; 3]) -> Option<Arc<Live>> {
     let flat = |p: &Pad| ((p.pos[0] - at[0]).powi(2) + (p.pos[2] - at[2]).powi(2)).sqrt();
-    pads_of(playfield.model())
+    pads_of(playfield)
         .into_iter()
         .filter(|l| flat(&l.pad) <= TRIGGER_RADIUS && (l.pad.pos[1] - at[1]).abs() <= TRIGGER_HEIGHT)
         .min_by(|a, b| flat(&a.pad).total_cmp(&flat(&b.pad)))
@@ -552,7 +569,7 @@ fn pad_at(playfield: Pf, at: [f32; 3]) -> Option<Arc<Live>> {
 /// The buildie at `at` was built: the pad there starts working, and whoever stands on it (the
 /// builder, usually) is launched right away rather than at their next step.
 pub fn activate(playfield: Pf, at: [f32; 3]) {
-    for live in pads_of(playfield.model()).into_iter().filter(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
+    for live in pads_of(playfield).into_iter().filter(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
         let pad = &live.pad;
         let id = pad.id_in(playfield);
         let records = vec![show_record(id, true), int32_stat(id, STAT_CARS_GROUP, CARS_GROUP)];

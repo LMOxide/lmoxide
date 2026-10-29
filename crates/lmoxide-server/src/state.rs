@@ -10,34 +10,6 @@ static DB: OnceLock<Arc<Db>> = OnceLock::new();
 static LOGIN_KEY: OnceLock<LoginKey> = OnceLock::new();
 static STARTED_AT: OnceLock<i64> = OnceLock::new();
 static DATA_DIR: OnceLock<std::path::PathBuf> = OnceLock::new();
-/// Another server's database whose logins this one shares (`--share-accounts`).
-static SHARED_ACCOUNTS: OnceLock<Arc<Db>> = OnceLock::new();
-
-pub fn set_shared_accounts(db: Db) {
-    let db = Arc::new(db);
-    if SHARED_ACCOUNTS.set(db.clone()).is_ok() {
-        // new and changed logins there show up here within a minute
-        tokio::spawn(async move {
-            let mut every = tokio::time::interval(std::time::Duration::from_secs(60));
-            every.tick().await;
-            loop {
-                every.tick().await;
-                let (from, here) = (db.clone(), DB.get().cloned());
-                let Some(here) = here else { continue };
-                let r = tokio::task::spawn_blocking(move || crate::admin::share_accounts(&from, &here, None)).await;
-                if let Ok(Err(e)) = r {
-                    tracing::warn!("shared accounts: {e:#}");
-                }
-            }
-        });
-    }
-}
-
-/// The database whose logins this server shares, if any.
-pub fn shared_accounts() -> Option<&'static Db> {
-    SHARED_ACCOUNTS.get().map(|d| d.as_ref())
-}
-
 /// The server's data directory (backups of deleted characters live there).
 pub fn data_dir() -> &'static std::path::Path {
     DATA_DIR.get().map_or(std::path::Path::new("."), |p| p.as_path())

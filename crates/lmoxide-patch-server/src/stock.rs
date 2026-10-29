@@ -49,6 +49,8 @@ pub struct StockState {
     /// `FileList.bin` as served (patched LMO.exe included).
     client_files: HashMap<String, PathBuf>,
     pub local_config: String,
+    /// Each game mode's LocalConfig.xml (`--modes`), by mode id.
+    pub mode_configs: std::collections::BTreeMap<String, String>,
 }
 
 /// Fallback for files the archived client lacks: Funcom's patch server (still online as of
@@ -180,8 +182,9 @@ pub fn build(cfg: &Config, windows: Option<&Tree>) -> StockState {
             }
         }
     }
-    let local_config = local_config_xml(cfg, &patch_version);
-    StockState { rdb, patch_info, patch_version, full, client_files, local_config }
+    let local_config = local_config_xml(cfg, &patch_version, None);
+    let mode_configs = mode_configs(cfg, &patch_version);
+    StockState { rdb, patch_info, patch_version, full, client_files, local_config, mode_configs }
 }
 
 /// Placeholder until the first [`build`].
@@ -192,13 +195,21 @@ pub fn empty(cfg: &Config) -> StockState {
         patch_version: PATCH_VERSION.to_string(),
         full: HashMap::new(),
         client_files: HashMap::new(),
-        local_config: local_config_xml(cfg, PATCH_VERSION),
+        local_config: local_config_xml(cfg, PATCH_VERSION, None),
+        mode_configs: mode_configs(cfg, PATCH_VERSION),
     }
 }
 
-pub fn local_config_xml(cfg: &Config, patch_version: &str) -> String {
+fn mode_configs(cfg: &Config, patch_version: &str) -> std::collections::BTreeMap<String, String> {
+    cfg.game_modes().iter().map(|m| (m.id.clone(), local_config_xml(cfg, patch_version, Some(m)))).collect()
+}
+
+/// The client's LocalConfig.xml; for game mode `mode`, its universe agent and its own control
+/// path (`/control/mode/<mode>`), where the client's patcher finds this same file again.
+pub fn local_config_xml(cfg: &Config, patch_version: &str, mode: Option<&lmoxide_patch::manifest::GameMode>) -> String {
     let http = cfg.public_http_addr();
-    let universe = cfg.universe_addr();
+    let universe = mode.map_or_else(|| cfg.universe_addr(), |m| m.universe_addr.clone());
+    let control = mode.map_or_else(|| format!("{http}/control"), |m| format!("{http}/control/mode/{}", m.id));
     format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
 <Config>
@@ -211,7 +222,7 @@ pub fn local_config_xml(cfg: &Config, patch_version: &str) -> String {
       <ClientFileNameDX11>Lego.exe</ClientFileNameDX11>
       <HttpPatchFolder>{PATCH_FOLDER}</HttpPatchFolder>
       <HttpPatchAddr>http://{http}/patch</HttpPatchAddr>
-      <ControlHttpPatchAddr>{http}/control</ControlHttpPatchAddr>
+      <ControlHttpPatchAddr>{control}</ControlHttpPatchAddr>
       <LoginURL>http://{http}/auth/</LoginURL>
       <UniverseAddr>{universe}</UniverseAddr>
       <FunnelTrackerAddr>http://{http}/track</FunnelTrackerAddr>
@@ -228,6 +239,15 @@ pub fn local_config_xml(cfg: &Config, patch_version: &str) -> String {
 pub async fn local_config(State(app): State<Arc<App>>, Path(folder): Path<String>) -> Response {
     info!(%folder, "LocalConfig.xml");
     ([(header::CONTENT_TYPE, "text/xml")], app.stock().local_config.clone()).into_response()
+}
+
+/// A game mode's LocalConfig.xml (the client's patcher, once that mode's file is installed).
+pub async fn mode_local_config(State(app): State<Arc<App>>, Path((mode, folder)): Path<(String, String)>) -> Response {
+    info!(%mode, %folder, "LocalConfig.xml");
+    match app.stock().mode_configs.get(&mode) {
+        Some(xml) => ([(header::CONTENT_TYPE, "text/xml")], xml.clone()).into_response(),
+        None => StatusCode::NOT_FOUND.into_response(),
+    }
 }
 
 /// The rebuilt list, LMO.exe's md5, and every top-level file as `(md5, path)`.

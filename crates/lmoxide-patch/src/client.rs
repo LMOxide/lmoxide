@@ -190,6 +190,7 @@ mod tests {
             files: vec![],
             remove: vec![],
             launch: Launch::default(),
+            modes: Vec::new(),
         };
         SignedManifest::sign(&m, key).unwrap()
     }

@@ -4,23 +4,25 @@
 #   tools/lan-server.sh [--release] [lan-ip]   (default ip: this PC's address on the default route)
 # --release: optimized build (target/release; faster, slower to compile). Logging is the same.
 # Listens on all interfaces and tells clients to connect to <lan-ip>. Ports: TCP 8080 (patch
-# server), 7100 (universe), 7101 (territory), 7102 (game), 7200 (chat), 8090 (REST API for the
-# web UI and bots; LMOXIDE_API_PORT=, empty, leaves it off).
+# server), 7100/7103/7104 (universe: the game modes Progression, Maxxed and World Editor, the
+# patcher's Game Mode), 7101 (territory), 7102 (game), 7200 (chat), 8090 (REST API for the web UI,
+# the dev UI and bots; LMOXIDE_API_PORT=, empty, leaves it off).
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
 # an account without one). Everyone can chat (the patched client shows the chat window without a
 # GM level); test commands need one: LMOXIDE_DEFAULT_GM_LEVEL=1 gives it to every account.
-# Progression is on (--progression: XP, levels and minifigure ranks, as live).
-# `!server editor` in game (or the dev UI's switch) takes a player to the world editor's server
-# (tools/survey-server.sh, its ports 7112/7210 and ../var/survey-data) and `!server play` back.
-# World content: what the world editor (tools/survey-server.sh) publishes waits in ../var/content-queue
-# for an admin (docs/WORLD-CONTENT.md; LMOXIDE_CONTENT_QUEUE= moves it).
+# One server runs every game mode (LMOXIDE_MODES): Progression (XP, levels and minifigure ranks,
+# as live), Maxxed (everything unlocked) and World Editor (for GM level 1 and up; nothing moves
+# or attacks, the dev UI's world editor places content). Each has its own characters.
+# World content: the world editor edits ../var/content-work (a git clone of content/, made here
+# the first time); what it publishes waits in ../var/content-queue for an admin
+# (docs/WORLD-CONTENT.md; LMOXIDE_CONTENT_QUEUE= moves it).
 # The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
 # client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
 # is started again; the API is started again too. Rebuild and restart both while this runs:
 #   tools/lan-server.sh --restart [--release]
 # Web apps: the dev servers (vite, live reload) of ../lmoxide-webui on :5173 and
-# ../lmoxide-dev-ui on :5174 (debugger /debugger/, world editor /editor/; the editor reaches a
-# survey server's API on :8091, tools/survey-server.sh), on all interfaces (this PC and others); their /api goes to
+# ../lmoxide-dev-ui on :5174 (debugger /debugger/, world editor /editor/), on all interfaces
+# (this PC and others); their /api goes to
 # this API, so they need no CORS setup. One whose port is taken is left as it is (already
 # running). LMOXIDE_WEB_APPS="webui:5173 dev-ui:5174" picks them (empty: none).
 # Map data the clients lack comes from Funcom's CDN through the patch server (LMOXIDE_UPSTREAM);
@@ -50,6 +52,16 @@ fi
 IP=${1:-$(ip -4 route get 1.1.1.1 | sed -nE 's/.* src ([0-9.]+).*/\1/p')}
 VAR=$(realpath -m "$ROOT/../var")
 DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
+MODES=${LMOXIDE_MODES:-progression:7100,maxed:7103,world-editor:7104}
+MODE_PORTS=$(tr ',' '\n' <<<"$MODES" | cut -d: -f2 | paste -sd,)
+# the content the world editor edits: a git checkout of lmoxide-content (docs/WORLD-EDITOR-CONTENT.md),
+# made from content/ the first time, its origin the content repository
+WORK=${LMOXIDE_CONTENT_WORK:-$VAR/content-work}
+if [[ ! -d $WORK/.git ]]; then
+  git clone -q "$ROOT/content" "$WORK"
+  git -C "$WORK" remote set-url origin "$(git -C "$ROOT/content" remote get-url origin)"
+  echo "content working copy: $WORK (cloned from content/)"
+fi
 CLIENT=${LMOXIDE_CLIENT_DIR:-$(realpath -m "$ROOT/../clients/windows/LEGO Minifigures Online")}
 # The native Linux client for patchers (the `linux` manifest): the stock build, extracted once
 # from aronwk's zip, plus the client kit's prebuilt libraries and launcher as overlay. Both live
@@ -81,7 +93,8 @@ KIT=$("$ROOT/patches/linux-client/make-kit.sh" | cut -d' ' -f1)
 [[ -s $ROOT/logs/lan-api-loop.pid ]] && { kill "$(cat "$ROOT/logs/lan-api-loop.pid")" 2>/dev/null || true; }
 API_PORT=${LMOXIDE_API_PORT-8090}
 # only the servers on the LAN ports (other checkouts or sessions may run their own on side ports)
-lan_pids() { ss -ltnpH "( sport = :8080 or sport = :7100 or sport = :7101 or sport = :7102 or sport = :7200 or sport = :7300${API_PORT:+ or sport = :$API_PORT} )" | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u; }
+lan_ports="8080 7101 7102 7200 7300 ${MODE_PORTS//,/ } $API_PORT"
+lan_pids() { ss -ltnpH "( $(printf 'sport = :%s or ' $lan_ports | sed 's/ or $//') )" | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u; }
 for p in $(lan_pids); do kill "$p" 2>/dev/null || true; done
 for _ in $(seq 30); do [[ -z $(lan_pids) ]] && break; sleep 0.2; done
 cargo build --manifest-path "$ROOT/Cargo.toml" -q -p lmoxide-server -p lmoxide-patch-server -p lmoxide-api $([[ $PROFILE == release ]] && echo --release)
@@ -106,7 +119,7 @@ fi
 "$BIN/lmoxide-patch-server" --bind 0.0.0.0 --public-host "$IP" --client-dir "$CLIENT" \
   --data-dir "$VAR/patch-data" --login-public-key-file "$DATA/login-public-key.txt" \
   --upstream "$UPSTREAM" --cache-dir "$VAR/rdb-cache" \
-  --client-kit "$KIT" "${LINUX_ARGS[@]}" --server-kind progression --other-server "http://$IP:8081" \
+  --client-kit "$KIT" "${LINUX_ARGS[@]}" --modes "$MODES" \
   ${LMOXIDE_PATCH_ARGS:-} >"$ROOT/logs/lan-patch-server.log" 2>&1 &
 PATCH=$!
 # the API reaches the game server's control interface (127.0.0.1:7300) with a shared token
@@ -151,11 +164,11 @@ if [[ -n $API_PORT ]]; then
   done
 fi
 trap 'kill $PATCH ${CDN:-} ${API:-} ${WEB[*]} 2>/dev/null; [[ -s $ROOT/logs/lan-api.pid ]] && kill "$(cat "$ROOT/logs/lan-api.pid")" 2>/dev/null' EXIT
-python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports 7100,7101,7102,7200 --pidfile "$ROOT/logs/lan-server.pid" \
+python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports "$MODE_PORTS,7101,7102,7200" --pidfile "$ROOT/logs/lan-server.pid" \
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
-  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --progression \
+  --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --modes "$MODES" \
   --content-queue "${LMOXIDE_CONTENT_QUEUE:-$VAR/content-queue}" \
-  --peer-name editor --peer-data-dir "$VAR/survey-data" --peer-game-addr "$IP:7112" --peer-chat-addr "$IP:7210" \
+  --editor-content-dir "$WORK" --survey-set "${LMOXIDE_SURVEY_SET:-$VAR/survey-set}" \
   ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"

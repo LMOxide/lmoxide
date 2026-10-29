@@ -10,6 +10,11 @@ use crate::{Db, Result, now};
 impl Db {
     /// A new cookie for the account, replacing its older ones.
     pub fn create_game_session(&self, account_id: u32, ttl_secs: i64) -> Result<u32> {
+        self.create_game_session_in(account_id, ttl_secs, "progression")
+    }
+
+    /// A new cookie for the account's login in game mode `mode`, replacing its older ones.
+    pub fn create_game_session_in(&self, account_id: u32, ttl_secs: i64, mode: &str) -> Result<u32> {
         let mut conn = self.conn();
         let tx = conn.transaction()?;
         let t = now();
@@ -17,8 +22,8 @@ impl Db {
         let cookie = loop {
             let cookie = rand::random_range(1..=u32::MAX);
             let n = tx.execute(
-                "INSERT OR IGNORE INTO game_sessions (cookie, account_id, created_at, expires_at) VALUES (?1, ?2, ?3, ?4)",
-                params![cookie, account_id, t, t + ttl_secs],
+                "INSERT OR IGNORE INTO game_sessions (cookie, account_id, created_at, expires_at, mode) VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![cookie, account_id, t, t + ttl_secs, mode],
             )?;
             if n == 1 {
                 break cookie;
@@ -38,6 +43,23 @@ impl Db {
                 |r| r.get(0),
             )
             .optional()?)
+    }
+
+    /// The account and game mode a live cookie belongs to.
+    pub fn game_session_mode(&self, cookie: u32) -> Result<Option<(u32, String)>> {
+        Ok(self
+            .conn()
+            .query_row(
+                "SELECT account_id, mode FROM game_sessions WHERE cookie = ?1 AND expires_at > ?2",
+                params![cookie, now()],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .optional()?)
+    }
+
+    /// The account's characters in game mode `mode`.
+    pub fn characters_in(&self, account_id: u32, mode: &str) -> Result<Vec<crate::CharacterSummary>> {
+        Ok(self.characters_of(account_id)?.into_iter().filter(|c| c.mode == mode).collect())
     }
 
     /// Ends the account's game sessions (kick, ban, password change).

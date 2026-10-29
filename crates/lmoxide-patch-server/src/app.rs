@@ -69,6 +69,8 @@ pub struct Prepared {
     login_key: Option<String>,
     warnings: Vec<String>,
     trees: Vec<(Platform, Tree)>,
+    /// The game modes with their LocalConfig.xml blobs (`--modes`).
+    modes: Vec<(manifest::GameMode, Source)>,
 }
 
 impl App {
@@ -269,6 +271,18 @@ fn prepare_blocking(app: &App) -> anyhow::Result<Prepared> {
     let windows = trees.iter().find(|(p, _)| *p == Platform::Windows).map(|(_, t)| t);
     let stock = Arc::new(stock::build(cfg, windows));
     let local_config = write_blob(cfg, stock.local_config.as_bytes(), false)?;
+    let mut modes = Vec::new();
+    for mut mode in cfg.game_modes() {
+        let xml = stock.mode_configs.get(&mode.id).map_or(stock.local_config.as_bytes(), |x| x.as_bytes());
+        let blob = write_blob(cfg, xml, false)?;
+        mode.local_config = Some(lmoxide_patch::FileEntry {
+            path: "LocalConfig.xml".into(),
+            size: xml.len() as u64,
+            sha256: blob.sha256.clone().unwrap_or_default(),
+            executable: false,
+        });
+        modes.push((mode, blob));
+    }
     for (platform, tree) in &mut trees {
         tree.files.insert("LocalConfig.xml".into(), local_config.clone());
         // The Linux kit's `lmo` launcher reads its server from lmo-kit.conf.
@@ -284,7 +298,7 @@ fn prepare_blocking(app: &App) -> anyhow::Result<Prepared> {
     for w in &warnings {
         warn!("{w}");
     }
-    Ok(Prepared { login_key, warnings, trees })
+    Ok(Prepared { login_key, warnings, trees, modes })
 }
 
 /// Phase 2: hash, sign and publish the manifests.
@@ -320,7 +334,8 @@ fn publish_blocking(app: &App, mut prepared: Prepared) -> anyhow::Result<Catalog
 
     let mut catalog = Catalog { login_key: prepared.login_key.clone(), warnings: prepared.warnings, ..Default::default() };
     for (platform, tree) in &prepared.trees {
-        let m = install::manifest(*platform, tree, &cfg.server_name, &cfg.universe_addr(), prepared.login_key.as_deref())?;
+        let mut m = install::manifest(*platform, tree, &cfg.server_name, &cfg.universe_addr(), prepared.login_key.as_deref())?;
+        m.modes = prepared.modes.iter().map(|(mode, _)| mode.clone()).collect();
         let bytes: u64 = m.files.iter().map(|f| f.size).sum();
         info!(%platform, files = m.files.len(), mb = bytes >> 20, version = %m.version, "manifest");
         let signed = SignedManifest::sign(&m, &app.signing)?;
@@ -329,6 +344,9 @@ fn publish_blocking(app: &App, mut prepared: Prepared) -> anyhow::Result<Catalog
         for src in tree.files.values() {
             catalog.files.insert(src.sha256.clone().unwrap(), src.path.clone());
         }
+    }
+    for (_, src) in &prepared.modes {
+        catalog.files.insert(src.sha256.clone().unwrap(), src.path.clone());
     }
     if let Some(dir) = &cfg.patcher_dir {
         publish_releases(app, dir, &mut catalog).with_context(|| format!("--patcher-dir {}", dir.display()))?;

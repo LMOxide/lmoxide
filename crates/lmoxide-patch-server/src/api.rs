@@ -38,6 +38,7 @@ pub async fn info(State(app): State<Arc<App>>) -> Json<Info> {
         patchers: catalog.patchers.clone(),
         kind: app.cfg.server_kind.clone(),
         other_servers: app.cfg.other_servers.clone(),
+        modes: app.cfg.game_modes(),
     })
 }
 

@@ -571,10 +571,11 @@ fn account_dto(db: &lmoxide_db::Db, a: lmoxide_db::Account, show_ip: bool) -> lm
 /// Largest survey request (an imported set).
 pub const SURVEY_BODY_LIMIT: usize = 16 * 1024 * 1024;
 
-/// `/v1/survey/{*path}`: a survey server's routes (docs/SURVEY.md "API": placing, selecting,
+/// `/v1/survey/{*path}`: the world editor's routes (docs/SURVEY.md "API": placing, selecting,
 /// hiding, notes, scripts, import and export), passed on to the game server as they are, with
-/// the caller as the author of what they change. Scope: admin. Not in the OpenAPI document (a
-/// pass-through; the shapes are lmoxide-survey's).
+/// the caller as the author of what they change. Scope: moderate (the world editors: GM level 1
+/// and up, as the game's world editor mode). Not in the OpenAPI document (a pass-through; the
+/// shapes are lmoxide-survey's).
 pub async fn survey(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
@@ -583,7 +584,7 @@ pub async fn survey(
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
-    auth.require(Scope::Admin)?;
+    auth.require(Scope::Moderate)?;
     // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
     let path = uri.path().strip_prefix("/v1/survey/").unwrap_or_default();
     let target = match uri.query() {
@@ -601,7 +602,7 @@ pub async fn survey(
 
 /// `/v1/editor/{*path}`: a survey server's content editing routes (docs/WORLD-EDITOR-CONTENT.md:
 /// records, schemas, catalogs, changes, history), passed on like [`survey`] with the caller as
-/// the author. Admin only (every account is an admin on a survey server's API).
+/// the author. Scope: moderate, as [`survey`].
 pub async fn editor(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
@@ -610,7 +611,7 @@ pub async fn editor(
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
-    auth.require(Scope::Admin)?;
+    auth.require(Scope::Moderate)?;
     // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
     let path = uri.path().strip_prefix("/v1/editor/").unwrap_or_default();
     let target = match uri.query() {

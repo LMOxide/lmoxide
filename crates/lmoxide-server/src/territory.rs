@@ -21,6 +21,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .unwrap_or(1);
     let mut account = 0;
     let mut cookie = 0;
+    // the game mode the login is for (its universe port): only its characters are listed
+    let mut mode = cfg.default_mode();
     // a reconnect (LoginFromCrash): the client waits on its loading screen to be sent on to a
     // game server with its character, without picking it again
     let mut crashed = false;
@@ -50,8 +52,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let their_cookie = r.u32()?;
                 let extra = r.u32()?;
                 let ip_key = format!("ip:{}", conn.peer.ip());
-                let valid = crate::security::allowed(&ip_key)
-                    && crate::state::or_log(crate::state::db().game_session(their_cookie), "session", None) == Some(claimed);
+                let session = crate::state::or_log(crate::state::db().game_session_mode(their_cookie), "session", None);
+                let valid = crate::security::allowed(&ip_key) && session.as_ref().is_some_and(|(a, _)| *a == claimed);
                 let crash = method == agent::LOGIN_FROM_CRASH;
                 info!(account = claimed, valid, crash, extra, "Authenticate");
                 if !valid {
@@ -63,6 +65,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 account = claimed;
                 cookie = their_cookie;
+                mode = session.and_then(|(_, m)| crate::instance::Mode::parse(&m)).unwrap_or(mode);
                 crashed = crash;
                 conn.authenticated = true;
                 _session = Some(crate::sessions::territory_opened(account));
@@ -77,11 +80,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // Without progression there is no tutorial: a new account's character is made
                 // here (named after the account), so the client lists it instead of offering
                 // character creation.
-                if !cfg.default_mode().rules().progression && owned(account).is_empty() {
-                    create_character(account, account, cfg.default_mode(), cfg.start_playfield);
+                if !mode.rules().progression && owned(account, mode).is_empty() {
+                    create_character(account, new_id(account), mode, cfg.start_playfield);
                 }
                 let me = Some(account);
-                conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
+                conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account, mode))
                     .await?;
                 conn.send_as(me, Endpoint::PlayerInterface, interface::SET_DIMENSION_LIST, dimension_list())
                     .await?;
@@ -90,7 +93,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     .await?;
                 if std::mem::take(&mut crashed) {
                     // back with the character played last
-                    let last = listed(account).into_iter().max_by_key(|c| c.saved_at).map_or(account, |c| c.id);
+                    let last = listed(account, mode).into_iter().max_by_key(|c| c.saved_at).map_or(account, |c| c.id);
                     connect_character(&mut conn, &cfg, account, last, cookie).await?;
                 }
             }
@@ -109,16 +112,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // A new character (the account's first has the account's id). It starts in the
                 // creation playfield, where the client sends the name and minifigure picked on the
                 // creation screen (tutorial.rs). One left unfinished there is used again.
-                let pending = owned(account).into_iter().find(|c| c.playfield == crate::tutorial::CREATION_PLAYFIELD).map(|c| c.id);
+                let pending = owned(account, mode).into_iter().find(|c| c.playfield == crate::tutorial::CREATION_PLAYFIELD).map(|c| c.id);
                 let character = match pending {
                     Some(id) => id,
                     None => {
-                        let id = if owned(account).is_empty() {
-                            account
-                        } else {
-                            crate::state::or_log(crate::state::db().new_character_id(), "character id", account)
-                        };
-                        create_character(account, id, cfg.default_mode(), crate::tutorial::CREATION_PLAYFIELD);
+                        let id = new_id(account);
+                        create_character(account, id, mode, crate::tutorial::CREATION_PLAYFIELD);
                         id
                     }
                 };
@@ -130,11 +129,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let instance = r.u32()?;
                 info!(account, instance, "LoginCharacter");
                 // only the account's own characters
-                let character = if listed(account).iter().any(|c| c.id == instance) {
+                let character = if listed(account, mode).iter().any(|c| c.id == instance) {
                     instance
                 } else {
                     warn!(account, instance, "LoginCharacter: not this account's character");
-                    listed(account).first().map_or(account, |c| c.id)
+                    listed(account, mode).first().map_or(account, |c| c.id)
                 };
                 connect_character(&mut conn, &cfg, account, character, cookie).await?;
             }
@@ -143,7 +142,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // account's own characters; each is backed up before it goes. The client has no
                 // "deleted" reply: it gets the character list again.
                 let instance = r.u32()?;
-                let owned = owned(account).iter().any(|c| c.id == instance);
+                let owned = owned(account, mode).iter().any(|c| c.id == instance);
                 info!(account, instance, owned, "RequestDeleteCharacter");
                 if owned {
                     if crate::sessions::is_online(instance) {
@@ -152,7 +151,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         delete_character(account, instance);
                     }
                 }
-                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
+                conn.send_as(Some(account), Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account, mode))
                     .await?;
             }
             (Some(Endpoint::PlayerAgent), agent::GET_DIMENSION_LIST) => {
@@ -166,14 +165,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
 }
 
 /// The account's characters.
-fn owned(account: u32) -> Vec<lmoxide_db::CharacterSummary> {
-    crate::state::or_log(crate::state::db().characters_of(account), "characters", vec![])
+/// The account's characters in game mode `mode`.
+fn owned(account: u32, mode: crate::instance::Mode) -> Vec<lmoxide_db::CharacterSummary> {
+    crate::state::or_log(crate::state::db().characters_in(account, mode.id()), "characters", vec![])
+}
+
+/// The id of a new character of `account`: the account's own for its first (in any mode).
+fn new_id(account: u32) -> u32 {
+    if crate::state::or_log(crate::state::db().characters_of(account), "characters", vec![]).is_empty() {
+        account
+    } else {
+        crate::state::or_log(crate::state::db().new_character_id(), "character id", account)
+    }
 }
 
 /// The account's characters the client lists: not those still being created (the client keeps
 /// the picked name only until it quits, so it offers creation again for them).
-fn listed(account: u32) -> Vec<lmoxide_db::CharacterSummary> {
-    owned(account).into_iter().filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD).collect()
+fn listed(account: u32, mode: crate::instance::Mode) -> Vec<lmoxide_db::CharacterSummary> {
+    owned(account, mode).into_iter().filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD).collect()
 }
 
 /// Deletes `character` of `account`, first writing everything it had to
@@ -243,7 +252,7 @@ const KEEPALIVE: std::time::Duration = std::time::Duration::from_secs(10);
 /// 0x7c0000: ClientPlayerData_t = u32, map<u32, character> (entry reader 0xb49e80), map<u32, u32>;
 /// FidData_c = embedded `FidData` protobuf; then a u32 territory ID. The account's saved
 /// character goes in the map, else the client offers character creation at every login.
-fn client_player_data(account: u32) -> bytes::Bytes {
+fn client_player_data(account: u32, mode: crate::instance::Mode) -> bytes::Bytes {
     let fid = FidData {
         player_instance: account,
         expansion_flags: 0,
@@ -257,7 +266,7 @@ fn client_player_data(account: u32) -> bytes::Bytes {
     };
     Writer::new()
         .u32(account) // meaning unknown; first ClientPlayerData_t field
-        .raw(&characters(account))
+        .raw(&characters(account, mode))
         .container_len(0) // u32 -> u32 map
         .proto(&fid)
         .u32(TERRITORY_ID)
@@ -271,9 +280,9 @@ const TERRITORY_ID: u32 = 1;
 /// dimension, u32, string creation date, u32 playtime (s), u32 playfield, u32 level, u32, u32,
 /// u64 last login (Unix time), u32, u32, string language, u32, u32, string, u32 level, u32.
 /// Values as in the recorded session (its 2, 11 and 41757 unknown fields are left 0).
-fn characters(account: u32) -> Vec<u8> {
+fn characters(account: u32, mode: crate::instance::Mode) -> Vec<u8> {
     let list: Vec<(u32, crate::store::Character)> =
-        listed(account).into_iter().filter_map(|s| Some((s.id, crate::store::Store.load(s.id)?))).collect();
+        listed(account, mode).into_iter().filter_map(|s| Some((s.id, crate::store::Store.load(s.id)?))).collect();
     let mut w = Writer::new().container_len(list.len());
     for (id, c) in &list {
         let level = c.level.max(1);

@@ -67,11 +67,14 @@ pub struct Options {
     /// Set it to stop [`plan`] and [`apply`] soon, with [`Error::Cancelled`] (between files
     /// while hashing, between chunks while downloading; partial downloads resume later).
     pub cancel: Option<Arc<AtomicBool>>,
+    /// The game mode to install ([`Manifest::for_mode`]: its LocalConfig.xml); `None`: the
+    /// server's default.
+    pub mode: Option<String>,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { jobs: 4, full_check: false, attempts: 4, cancel: None }
+        Self { jobs: 4, full_check: false, attempts: 4, cancel: None, mode: None }
     }
 }
 
@@ -159,6 +162,30 @@ fn manifest_path(dir: &Path) -> PathBuf {
     state_dir(dir).join("manifest.json")
 }
 
+/// The game mode the install is for (`.lmoxide/mode`, written by [`save_mode`]); `None`: the
+/// server's default.
+pub fn load_mode(dir: &Path) -> Option<String> {
+    let mode = fs::read_to_string(state_dir(dir).join("mode")).ok()?;
+    let mode = mode.trim();
+    (!mode.is_empty()).then(|| mode.to_string())
+}
+
+/// Remembers the game mode the install is for (`None`: the default), so a later update or check
+/// keeps it.
+pub fn save_mode(dir: &Path, mode: Option<&str>) -> Result<()> {
+    let path = state_dir(dir).join("mode");
+    match mode {
+        Some(m) => {
+            fs::create_dir_all(state_dir(dir))?;
+            fs::write(path, format!("{m}\n"))?;
+        }
+        None => {
+            let _ = fs::remove_file(path);
+        }
+    }
+    Ok(())
+}
+
 /// Saves the verified manifest envelope as `.lmoxide/manifest.json` (for launchers and as a
 /// record of what was installed).
 pub fn save_manifest(dir: &Path, signed: &SignedManifest) -> Result<()> {
@@ -218,6 +245,7 @@ pub async fn plan(dir: &Path, manifest: &Manifest, opts: &Options, progress: &Pr
 
 fn plan_blocking(dir: &Path, manifest: &Manifest, opts: &Options, progress: &ProgressFn) -> Result<Plan> {
     manifest.validate()?;
+    let manifest = &manifest.for_mode(opts.mode.as_deref());
     let mut cache = HashCache::load(&cache_path(dir));
     let mut plan = Plan::default();
     let total = manifest.files.len();
@@ -540,6 +568,7 @@ mod tests {
             files,
             remove: remove.iter().map(|s| s.to_string()).collect(),
             launch: Launch::default(),
+            modes: Vec::new(),
         }
     }
 

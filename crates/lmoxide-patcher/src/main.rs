@@ -89,6 +89,17 @@ struct SyncArgs {
     /// Parallel downloads.
     #[arg(long, short, default_value_t = 4)]
     jobs: usize,
+    /// Game mode to install (`progression`, `maxed`, `world-editor`; the server lists them in
+    /// `info`); default: the one installed last, else the server's default.
+    #[arg(long)]
+    mode: Option<String>,
+}
+
+impl SyncArgs {
+    /// The game mode to install into `dir`.
+    fn mode(&self, dir: &std::path::Path) -> Option<String> {
+        self.mode.clone().or_else(|| sync::load_mode(dir))
+    }
 }
 
 impl SyncArgs {
@@ -130,6 +141,10 @@ async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
             println!("http:         {}", info.http_addr);
             if let Some(kind) = &info.kind {
                 println!("kind:         {kind}");
+            }
+            for m in &info.modes {
+                let requires = m.requires.as_deref().map(|r| format!(" (needs {r})")).unwrap_or_default();
+                println!("game mode:    {} — {} ({}){requires}", m.id, m.name, m.universe_addr);
             }
             for other in &info.other_servers {
                 println!("also here:    {other}");
@@ -203,11 +218,17 @@ async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
                 manifest.server,
                 dir.display()
             );
-            let opts = Options { jobs: args.jobs.max(1), ..Default::default() };
+            let mode = args.mode(&dir);
+            if let Some(m) = &mode {
+                anyhow::ensure!(manifest.modes.iter().any(|g| &g.id == m), "the server has no game mode {m:?}");
+                println!("game mode: {m}");
+            }
+            let opts = Options { jobs: args.jobs.max(1), mode: mode.clone(), ..Default::default() };
             let bars = Bars::default();
             let (plan, report) = sync::sync(&client, &dir, &manifest, &opts, &bars.progress()).await?;
             bars.finish();
             sync::save_manifest(&dir, &signed)?;
+            sync::save_mode(&dir, mode.as_deref())?;
             if plan.is_up_to_date() {
                 println!("up to date ({} files)", report.unchanged);
             } else {
@@ -225,7 +246,7 @@ async fn run(cli: Cli) -> anyhow::Result<ExitCode> {
         Cmd::Verify { args, full } => {
             let dir = args.dir()?;
             let (_, _, manifest) = fetch(&args, &dir).await?;
-            let opts = Options { jobs: args.jobs.max(1), full_check: full, ..Default::default() };
+            let opts = Options { jobs: args.jobs.max(1), full_check: full, mode: args.mode(&dir), ..Default::default() };
             let bars = Bars::default();
             let plan = sync::plan(&dir, &manifest, &opts, &bars.progress()).await?;
             bars.finish();

@@ -88,8 +88,9 @@ EXE=LMO.exe
 python3 "$ROOT/patches/patch-client.py" --exe "$CLIENT/$EXE" --host 127.0.0.1:$HTTP \
   --login-key-url http://127.0.0.1:$HTTP/lmoxide/v1/login-key >/dev/null
 
-# The launcher normally fetches this; point the client at our control server.
-curl -sf http://127.0.0.1:$HTTP/control/lmo_live/LocalConfig.xml >"$CLIENT/LocalConfig.xml"
+# The launcher normally fetches this; point the client at our control server (LMOXIDE_GAME_MODE=
+# progression|maxed|world-editor: that game mode's, as the patcher's Game Mode installs it).
+curl -sf http://127.0.0.1:$HTTP/control/${LMOXIDE_GAME_MODE:+mode/$LMOXIDE_GAME_MODE/}lmo_live/LocalConfig.xml >"$CLIENT/LocalConfig.xml"
 rm -f "$CLIENT/ClientLog.txt"
 # LMO_AUTOPLAY=1 swaps in tools/client/startup.lua (scripted login flow); otherwise restore stock.
 if [[ ! -f "$CLIENT/Data/startup.lua.orig" ]]; then cp "$CLIENT/Data/startup.lua" "$CLIENT/Data/startup.lua.orig"; fi

@@ -24,7 +24,9 @@ const PLAYER_ID_TYPE: u32 = 0x2712;
 /// How long a login cookie stays valid (reconnects after a crash reuse it).
 const SESSION_TTL: i64 = 24 * 3600;
 
-pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
+/// A universe agent connection on the universe port of game mode `mode`: logins through it are
+/// for that mode (territory.rs lists that mode's characters).
+pub async fn handle(mut conn: Conn, cfg: Arc<Config>, mode: crate::instance::Mode) -> anyhow::Result<()> {
     conn.local = Endpoint::UniverseAgent;
     let mut username = String::new();
     let mut challenge = String::new();
@@ -44,14 +46,21 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 if challenge.is_empty() {
                     anyhow::bail!("AnswerChallenge before InitiateAuthentication");
                 }
-                let result = authenticate(&cfg, &conn, &username, &challenge, &answer);
+                let result = authenticate(&cfg, &conn, &username, &challenge, &answer).and_then(|(account, gm_level)| {
+                    // the world editor's mode is for editors only
+                    if mode.rules().editor && gm_level.max(cfg.default_gm_level) < cfg.world_editor_gm_level {
+                        warn!(%username, "login refused: the world editor needs GM level {}", cfg.world_editor_gm_level);
+                        return Err(LoginStatus::AuthFailure);
+                    }
+                    Ok((account, gm_level))
+                });
                 challenge.clear();
                 match result {
                     Ok((account, gm_level)) => {
                         let player = Id32::new(PLAYER_ID_TYPE, account);
-                        let cookie = state::db().create_game_session(account, SESSION_TTL)?;
+                        let cookie = state::db().create_game_session_in(account, SESSION_TTL, mode.id())?;
                         crate::sessions::set_name(account, &username);
-                        info!(%username, account, gm_level, "login accepted");
+                        info!(%username, account, gm_level, mode = mode.id(), "login accepted");
                         // The client handler (0xb4b580) treats nAuthStatus 1 as authenticated,
                         // reports any non-zero eReason as a login problem, and asserts that our
                         // caller instance equals the player instance and the cookie isn't 0.
@@ -115,12 +124,6 @@ fn authenticate(cfg: &Config, conn: &Conn, username: &str, challenge: &str, answ
         error!("database: login: {e}");
         LoginStatus::SystemError
     };
-    // a server sharing another's logins takes that one's password (and new accounts) first
-    if let Some(shared) = state::shared_accounts()
-        && let Err(e) = crate::admin::share_accounts(shared, db, Some(username))
-    {
-        warn!(%username, "shared account: {e:#}");
-    }
     let account = match db.account_by_name(username).map_err(internal)? {
         Some(a) if a.has_password => {
             if !db.verify_password(a.id, &password).map_err(internal)? {

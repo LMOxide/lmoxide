@@ -72,8 +72,35 @@ pub struct Info {
     pub kind: Option<String>,
     /// Patch server URLs of the other game servers on this host (e.g. the survey server next to
     /// the LAN server), so patchers can offer to switch; each has its own `/lmoxide/v1/info`.
+    /// Servers running several game modes announce `modes` instead.
     #[serde(default)]
     pub other_servers: Vec<String>,
+    /// The game modes the server runs (the patcher's Game Mode choice), the default first.
+    /// Empty: one mode, `kind`.
+    #[serde(default)]
+    pub modes: Vec<GameMode>,
+}
+
+/// A game mode a server runs. The client logs in to the mode's universe agent (its
+/// LocalConfig.xml `UniverseAddr`); each mode has its own characters.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GameMode {
+    /// `progression`, `maxed`, `world-editor`.
+    pub id: String,
+    /// For players: "Progression", "Maxxed", "World Editor".
+    pub name: String,
+    /// What it is, in a sentence.
+    #[serde(default)]
+    pub description: String,
+    /// The mode's universe agent, `host:port`.
+    pub universe_addr: String,
+    /// Who may play it: `None` everyone, `editor` the accounts the server lets edit the world.
+    #[serde(default)]
+    pub requires: Option<String>,
+    /// In a manifest: the mode's LocalConfig.xml, installed instead of the one in `files`
+    /// ([`Manifest::for_mode`]). Not in [`Info`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub local_config: Option<FileEntry>,
 }
 
 /// One platform's complete install.
@@ -99,6 +126,9 @@ pub struct Manifest {
     #[serde(default)]
     pub remove: Vec<String>,
     pub launch: Launch,
+    /// The game modes, each with its LocalConfig.xml (empty: the server runs one mode).
+    #[serde(default)]
+    pub modes: Vec<GameMode>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -180,8 +210,30 @@ impl Manifest {
         crate::sha256_hex(&serde_json::to_vec(&m).expect("manifests serialize"))
     }
 
+    /// The manifest as installed for game mode `mode`: that mode's LocalConfig.xml (and universe
+    /// address) instead of the default's. An unknown mode or `None`: the manifest as it is.
+    pub fn for_mode(&self, mode: Option<&str>) -> Manifest {
+        let mut m = self.clone();
+        let Some(gm) = mode.and_then(|id| self.modes.iter().find(|g| g.id == id)) else { return m };
+        if let Some(entry) = &gm.local_config {
+            match m.files.iter_mut().find(|f| f.path == entry.path) {
+                Some(f) => *f = entry.clone(),
+                None => m.files.push(entry.clone()),
+            }
+        }
+        m.universe_addr = gm.universe_addr.clone();
+        m
+    }
+
     /// Checks paths and hashes; run on every manifest from the network.
     pub fn validate(&self) -> Result<()> {
+        for gm in &self.modes {
+            if let Some(f) = &gm.local_config
+                && (f.path != "LocalConfig.xml" || !is_sha256_hex(&f.sha256))
+            {
+                return Err(Error::Other(format!("game mode {}: bad LocalConfig.xml entry", gm.id)));
+            }
+        }
         if self.format != MANIFEST_FORMAT {
             return Err(Error::Format(self.format));
         }
@@ -327,7 +379,30 @@ mod tests {
             files,
             remove: vec!["old.dll".into()],
             launch: Launch { executable: "LMO.exe".into(), args: vec!["-verified".into()], ..Default::default() },
+            modes: Vec::new(),
         }
+    }
+
+    #[test]
+    fn a_game_mode_installs_its_local_config() {
+        let config = |text: &[u8]| FileEntry { path: "LocalConfig.xml".into(), size: text.len() as u64, sha256: crate::sha256_hex(text), executable: false };
+        let mut m = sample();
+        m.files.push(config(b"default"));
+        m.modes = vec![GameMode {
+            id: "maxed".into(),
+            name: "Maxxed".into(),
+            description: String::new(),
+            universe_addr: "127.0.0.1:7103".into(),
+            requires: None,
+            local_config: Some(config(b"maxed")),
+        }];
+        m.validate().unwrap();
+        let maxed = m.for_mode(Some("maxed"));
+        assert_eq!(maxed.files.iter().find(|f| f.path == "LocalConfig.xml"), Some(&config(b"maxed")));
+        assert_eq!(maxed.universe_addr, "127.0.0.1:7103");
+        assert_eq!(maxed.files.len(), m.files.len());
+        assert_eq!(m.for_mode(None), m);
+        assert_eq!(m.for_mode(Some("nope")), m);
     }
 
     #[test]

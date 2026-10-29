@@ -53,18 +53,6 @@ static CHANNELS: LazyLock<Mutex<HashMap<String, HashSet<u32>>>> = LazyLock::new(
 /// a single client.
 pub static BOT_ECHO: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// Sent through a connection's queue: close it (`disconnect`).
-const HANG_UP: &str = "\0hang up";
-
-/// Closes the character's chat connection: the client then connects to the chat server the
-/// next game login names (a player going to the peer server, switch.rs; a client keeps its
-/// chat connection through a relocate otherwise).
-pub fn disconnect(character: u32) {
-    if let Some(tx) = CLIENTS.lock().unwrap().get(&character) {
-        let _ = tx.send(HANG_UP.into());
-    }
-}
-
 /// Longest line accepted from a client.
 const MAX_LINE: usize = 8 * 1024;
 /// How long a connection may take to log in (`PASS`).
@@ -112,7 +100,6 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
     let mut account = None;
     let mut nick = String::new();
     // a player this server sent to the peer server: its chat goes there (switch.rs)
-    let mut pass_on = None;
     loop {
         tokio::select! {
             _ = tokio::time::sleep_until(login_deadline), if account.is_none() => {
@@ -125,11 +112,7 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                 match cmd.to_ascii_uppercase().as_str() {
                     "PASS" => {
                         let cookie: u32 = rest.trim_start_matches(':').trim().parse().unwrap_or(0);
-                        let logged_in = crate::switch::session_account(cookie);
-                        if let Some(peer) = logged_in.and_then(crate::switch::away) {
-                            pass_on = Some((peer, line.clone()));
-                            break;
-                        }
+                        let logged_in = crate::state::or_log(crate::state::db().game_session(cookie), "session", None);
                         // chat is addressed to characters: the one the account plays
                         account = logged_in.map(crate::sessions::character_of);
                         info!(?account, "chat login");
@@ -196,16 +179,8 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                     _ => debug!(%line, "chat command ignored"),
                 }
             }
-            Some(out) = rx.recv() => {
-                if out == HANG_UP {
-                    break;
-                }
-                send(&mut wr, &out).await?
-            }
+            Some(out) = rx.recv() => send(&mut wr, &out).await?,
         }
-    }
-    if let Some((peer, pass)) = pass_on {
-        return pass_on_to(peer, &pass, lines, wr).await;
     }
     if let Some(a) = account {
         let mut clients = CLIENTS.lock().unwrap();
@@ -217,27 +192,6 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                 members.remove(&a);
             }
         }
-    }
-    Ok(())
-}
-
-/// Connects the client to the peer's chat server (from its `PASS` line on) and copies both ways
-/// until either side closes: the peer closes it when the player comes back here.
-async fn pass_on_to(
-    peer: &crate::switch::Peer,
-    pass: &str,
-    lines: FramedRead<tokio::net::tcp::OwnedReadHalf, LinesCodec>,
-    mut wr: tokio::net::tcp::OwnedWriteHalf,
-) -> anyhow::Result<()> {
-    info!(to = %peer.name, "chat passed on to the peer server");
-    let (mut their_rd, mut their_wr) = TcpStream::connect(&peer.chat_addr).await?.into_split();
-    their_wr.write_all(format!("{pass}\r\n").as_bytes()).await?;
-    // what the client sent after PASS, already read
-    their_wr.write_all(lines.read_buffer()).await?;
-    let mut rd = lines.into_inner();
-    tokio::select! {
-        r = tokio::io::copy(&mut rd, &mut their_wr) => { r?; }
-        r = tokio::io::copy(&mut their_rd, &mut wr) => { r?; }
     }
     Ok(())
 }

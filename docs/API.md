@@ -58,7 +58,8 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/players` | read | online players with account ids and usernames |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
 | any | `/v1/content/{path}` | admin | a play server's world content (docs/WORLD-CONTENT.md: approval queue, rules, summaries, features), passed to the game server as they are. Not in openapi.json |
-| any | `/v1/survey/{path}` | admin | a survey server's routes (`--mode survey`, docs/SURVEY.md "API"), passed to the game server as they are; the caller is the author of what they change. Not in openapi.json; bodies up to 16 MB |
+| any | `/v1/survey/{path}` | moderate | the world editor's routes (docs/SURVEY.md "API"), passed to the game server as they are; the caller is the author of what they change. Not in openapi.json; bodies up to 16 MB |
+| any | `/v1/editor/{path}` | moderate | the world editor's content editing routes (docs/WORLD-EDITOR-CONTENT.md: records, schemas, catalogs, changes, history), passed on like `/v1/survey`; the caller is the author |
 | POST | `/v1/players/{account_id}/command` | admin | `{command}`: a test command (`!fx 163540`, `!skin 2212`, `!state 29`) run as the player, as if typed in chat (its GM level still applies) → `{affected, replies}`: the chat answers it produced |
 | GET | `/v1/catalog/effects` | read | every effect package / particle system: timelines (with the code hook that starts each, `until_stopped`), particles and sounds (with RDB ids), animation attributes, code hooks, items and spells using it |
 | GET | `/v1/catalog/sounds/{id}` | read | a sound of an effect package (`sounds[].id`) as Ogg Vorbis; needs `--client-dir` |

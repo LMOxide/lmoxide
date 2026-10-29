@@ -46,7 +46,6 @@ mod smash;
 mod state;
 mod store;
 mod survey;
-mod switch;
 mod teleport;
 mod tiki;
 mod tutorial;
@@ -108,9 +107,19 @@ pub struct Config {
     /// Host name or IP the client should use to reach this server.
     #[arg(long, env = "LMOXIDE_PUBLIC_HOST", default_value = "127.0.0.1")]
     pub public_host: String,
-    /// Universe agent port (the client's `UniverseAddr`).
+    /// Universe agent port (the client's `UniverseAddr`) when `--modes` isn't given.
     #[arg(long, env = "LMOXIDE_UNIVERSE_PORT", default_value_t = 7100)]
     pub universe_port: u16,
+    /// The game modes this server runs and the universe port of each, as `mode:port`
+    /// (`progression:7100,maxed:7103,world-editor:7104`). A client's mode is the universe port
+    /// it logs in on (its LocalConfig.xml `UniverseAddr`, which the patcher's Game Mode writes);
+    /// each mode has its own characters. Territory, game and chat ports are shared.
+    /// Default: `--mode`'s mode on `--universe-port`.
+    #[arg(long, env = "LMOXIDE_MODES", value_delimiter = ',', value_parser = parse_mode_port)]
+    pub modes: Vec<(instance::Mode, u16)>,
+    /// The lowest GM level an account needs to log in to the world editor's mode.
+    #[arg(long, env = "LMOXIDE_WORLD_EDITOR_GM_LEVEL", default_value_t = 1)]
+    pub world_editor_gm_level: u32,
     /// Territory manager / player agent port.
     #[arg(long, env = "LMOXIDE_TERRITORY_PORT", default_value_t = 7101)]
     pub territory_port: u16,
@@ -136,10 +145,10 @@ pub struct Config {
     /// GM level needed for the test commands typed into chat (`!tp`, `!goto`, ...).
     #[arg(long, env = "LMOXIDE_DEVCMD_GM_LEVEL", default_value_t = 1)]
     pub devcmd_gm_level: u32,
-    /// What kind of server this is: `play` (every character at the level cap with every
-    /// minifigure fully ranked), `progression` (characters level up from level 1, see
-    /// --progression) or `survey` (nothing moves or attacks; surveyors place and mark content
-    /// from the web UI, docs/SURVEY.md). Run one server per mode, on its own ports and data dir.
+    /// The game mode when `--modes` isn't given: `play` (maxed: every character at the level cap
+    /// with every minifigure fully ranked), `progression` (characters level up from level 1, see
+    /// --progression) or `survey` (the world editor's: nothing moves or attacks; editors place and
+    /// mark content from the dev UI, docs/SURVEY.md).
     #[arg(long, env = "LMOXIDE_MODE", value_enum, default_value_t = Mode::Play)]
     pub mode: Mode,
     /// Character progression (the same as `--mode progression`): characters start at level 1
@@ -148,12 +157,12 @@ pub struct Config {
     /// fully ranked.
     #[arg(long, env = "LMOXIDE_PROGRESSION")]
     pub progression: bool,
-    /// Survey mode: the survey set's folder (default <data-dir>/survey) of the world editor before
-    /// content records: taken into the content working copy once (its migrated.json).
+    /// World editor: the survey set's folder (default <data-dir>/survey) of the world editor
+    /// before content records: taken into the content working copy once (its migrated.json).
     #[arg(long, env = "LMOXIDE_SURVEY_SET")]
     pub survey_set: Option<PathBuf>,
-    /// Play servers: the world editor's publish queue (the survey server's var/content-queue),
-    /// which admins see and decide on here (docs/WORLD-CONTENT.md).
+    /// The world editor's publish queue (var/content-queue), which admins see and decide on
+    /// (docs/WORLD-CONTENT.md).
     #[arg(long, env = "LMOXIDE_CONTENT_QUEUE")]
     pub content_queue: Option<PathBuf>,
     /// The game's content tree (docs/CONTENT.md; default: the source checkout's content/).
@@ -185,28 +194,21 @@ pub struct Config {
     /// clients (default <data-dir>/login-public-key.txt).
     #[arg(long, env = "LMOXIDE_LOGIN_PUBLIC_KEY_FILE")]
     pub login_public_key_file: Option<PathBuf>,
-    /// Use the login key and the logins (usernames, passwords) of another server's database,
-    /// e.g. the play server's for a survey server next to it: clients patched for that server log
-    /// in here too, with the same accounts. Characters, GM levels and bans stay this server's
-    /// own. Logins are copied at startup, every minute and when someone logs in.
-    #[arg(long, env = "LMOXIDE_SHARE_ACCOUNTS")]
-    pub share_accounts: Option<PathBuf>,
-    /// A server next to this one players can switch to in game (`!server <name>`, the dev UI),
-    /// e.g. the world editor's survey server for the play server and the other way round: its
-    /// name, its data directory (its database checks login cookies), and the addresses clients
-    /// reach its game and chat servers at ("host:port"). The peer needs this server as its peer.
-    #[arg(long, env = "LMOXIDE_PEER_NAME", requires_all = ["peer_data_dir", "peer_game_addr", "peer_chat_addr"])]
-    pub peer_name: Option<String>,
-    #[arg(long, env = "LMOXIDE_PEER_DATA_DIR")]
-    pub peer_data_dir: Option<PathBuf>,
-    #[arg(long, env = "LMOXIDE_PEER_GAME_ADDR")]
-    pub peer_game_addr: Option<String>,
-    #[arg(long, env = "LMOXIDE_PEER_CHAT_ADDR")]
-    pub peer_chat_addr: Option<String>,
+    /// The world editor's content working copy: a git clone of the content repository the
+    /// editor saves to (docs/WORLD-EDITOR-CONTENT.md; default: `--content-dir`).
+    #[arg(long, env = "LMOXIDE_EDITOR_CONTENT_DIR")]
+    pub editor_content_dir: Option<PathBuf>,
     /// Add a server-side character that walks around the start position (for testing what
     /// other players look like).
     #[arg(long, env = "LMOXIDE_BOT")]
     pub bot: bool,
+}
+
+/// `mode:port` (`--modes`).
+fn parse_mode_port(s: &str) -> Result<(instance::Mode, u16), String> {
+    let (mode, port) = s.split_once(':').ok_or_else(|| format!("{s}: expected mode:port"))?;
+    let mode = instance::Mode::parse(mode).ok_or_else(|| format!("{mode}: one of progression, maxed, world-editor"))?;
+    Ok((mode, port.parse().map_err(|e| format!("{port}: {e}"))?))
 }
 
 #[derive(clap::ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
@@ -217,8 +219,22 @@ pub enum Mode {
 }
 
 impl Config {
-    /// The game mode of this server's players (characters made here, the copies they join).
+    /// The modes this server runs with their universe ports.
+    pub fn mode_ports(&self) -> Vec<(instance::Mode, u16)> {
+        if self.modes.is_empty() { vec![(self.default_mode(), self.universe_port)] } else { self.modes.clone() }
+    }
+
+    /// Whether this server runs game mode `mode`.
+    pub fn runs(&self, mode: instance::Mode) -> bool {
+        self.mode_ports().iter().any(|(m, _)| *m == mode)
+    }
+
+    /// The game mode of players whose mode isn't known otherwise (the first `--modes`, else
+    /// `--mode`).
     pub fn default_mode(&self) -> instance::Mode {
+        if let Some(&(m, _)) = self.modes.first() {
+            return m;
+        }
         match self.mode {
             Mode::Survey => instance::Mode::WorldEditor,
             _ if self.progression => instance::Mode::Progression,
@@ -250,13 +266,6 @@ fn main() -> anyhow::Result<()> {
 async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     gamedata::init(cfg.content_dir.clone())?;
     let db = Arc::new(storage.open()?);
-    if let Some(path) = &cfg.share_accounts {
-        let other = lmoxide_db::Db::open(path).map_err(|e| anyhow::anyhow!("opening {}: {e}", path.display()))?;
-        admin::share_login_key(&other, &db)?;
-        let n = admin::share_accounts(&other, &db, None)?;
-        info!(from = %path.display(), changed = n, "shared accounts");
-        state::set_shared_accounts(other);
-    }
     let key = admin::login_key(&db, false)?;
     let key_file = cfg.login_public_key_file.clone().unwrap_or_else(|| storage.data_dir.join("login-public-key.txt"));
     if let Some(dir) = key_file.parent() {
@@ -267,7 +276,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     if cfg.auto_register {
         warn!("--auto-register: anyone who can reach the server can create an account by logging in");
     }
-    if cfg.mode == Mode::Survey {
+    if cfg.modes.is_empty() && cfg.mode == Mode::Survey {
         // a world editor server's characters are world editors
         let n = db.set_all_character_modes(instance::Mode::WorldEditor.id())?;
         if n > 0 {
@@ -280,21 +289,15 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     if cfg.mode == Mode::Progression {
         cfg.progression = true;
     }
-    if cfg.mode == Mode::Survey {
-        anyhow::ensure!(!cfg.progression, "survey servers have no progression: drop --progression");
-        // surveyors teleport and use the test commands
-        cfg.default_gm_level = cfg.default_gm_level.max(cfg.devcmd_gm_level).max(1);
+    if cfg.runs(instance::Mode::WorldEditor) {
         let dir = cfg.survey_set.clone().unwrap_or_else(|| storage.data_dir.join("survey"));
         survey::init(dir);
-        editor::init(&gamedata::dir(cfg.content_dir.clone()));
-    } else {
+        editor::init(&cfg.editor_content_dir.clone().unwrap_or_else(|| gamedata::dir(cfg.content_dir.clone())));
+    }
+    if cfg.runs(instance::Mode::Progression) || cfg.runs(instance::Mode::Maxed) {
         content::init(cfg.content_queue.clone());
     }
-    let peer = cfg.peer_name.clone().map(|name| {
-        let dir = cfg.peer_data_dir.clone().unwrap_or_default();
-        (name, dir.join("lmoxide.db"), cfg.peer_game_addr.clone().unwrap_or_default(), cfg.peer_chat_addr.clone().unwrap_or_default())
-    });
-    switch::init(if cfg.mode == Mode::Survey { "editor" } else { "play" }, peer)?;
+    info!(modes = ?cfg.mode_ports().iter().map(|(m, p)| format!("{}:{p}", m.id())).collect::<Vec<_>>(), "game modes");
     for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {
         anyhow::ensure!(projectile::set_player_aim(shots, aim), "aim {} isn't implemented yet", aim.name());
     }
@@ -318,7 +321,16 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         None => info!("no --control-token: control interface (lmoxide-api) disabled"),
     }
 
-    let universe = tokio::spawn(conn::listen("universe", cfg.addr(cfg.universe_port), cfg.clone(), universe::handle));
+    let mut universes = tokio::task::JoinSet::new();
+    for (mode, port) in cfg.mode_ports() {
+        universes.spawn(conn::listen(mode.id(), cfg.addr(port), cfg.clone(), move |c, cfg| universe::handle(c, cfg, mode)));
+    }
+    let universe = tokio::spawn(async move {
+        while let Some(r) = universes.join_next().await {
+            r??;
+        }
+        anyhow::Ok(())
+    });
     let territory = tokio::spawn(conn::listen("territory", cfg.addr(cfg.territory_port), cfg.clone(), territory::handle));
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
     let chat = tokio::spawn(chat::listen(cfg.addr(cfg.chat_port), cfg.max_connections_per_ip));
@@ -333,10 +345,8 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     pistons::start();
     tiki::start();
     ballista::start();
-    if cfg.mode != Mode::Survey {
-        // arenas close doors and spawn adds
-        encounter::start();
-    }
+    // arenas close doors and spawn adds (not in the world editor's copies)
+    encounter::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(crate::instance::Pf::main(cfg.start_playfield))

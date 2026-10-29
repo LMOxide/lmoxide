@@ -253,6 +253,7 @@ pub fn manifest(
         files,
         remove: tree.remove.clone(),
         launch: launch_info(platform, tree),
+        modes: Vec::new(),
     })
 }
 
