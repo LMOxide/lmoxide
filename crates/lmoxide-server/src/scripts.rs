@@ -260,7 +260,8 @@ async fn watch() {
             .into_iter()
             .filter_map(|p| {
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, p.character_id);
-                let (pf, _) = world::whereabouts(id)?;
+                // (the world editor's copies run no play content)
+                let (pf, _) = world::whereabouts(id).filter(|(pf, _)| !crate::instance::rules(*pf).editor)?;
                 Some((id, pf, world::live_position(id)?))
             })
             .collect();

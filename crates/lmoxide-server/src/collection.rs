@@ -138,12 +138,14 @@ pub struct ItemState {
     /// Achievement counters (item stat, value): the Achievements window reads a minifigure's
     /// progress from its item, so every copy of the item must carry them.
     pub counters: Vec<(u32, u32)>,
+    /// The character's mode has progression (else the item shows the highest level).
+    pub progression: bool,
 }
 
 fn entry(template: u32, state: &ItemState, id_salt: u64) -> ProtoInventoryGameEntry {
     let stat = |stat, value| StatValue { stat: Some(stat), value: Some(value) };
     let (rank, purchased) = state.rank;
-    let level = if crate::progression::enabled() { rank } else { MAX_LEVEL };
+    let level = if state.progression { rank } else { MAX_LEVEL };
     let mut stat_list = vec![
         stat(STAT_MINIFIGURE_LEVEL, level),
         stat(STAT_MINIFIGURE_XP, crate::progression::rank_xp(rank).unwrap_or(0) as u32),

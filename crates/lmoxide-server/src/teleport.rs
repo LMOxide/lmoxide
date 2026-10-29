@@ -130,32 +130,51 @@ pub fn door_portal(guid: u32) -> Option<(u32, u32)> {
     })
 }
 
-/// The portals' doors, spawned once (two portals can share one: the tutorial's compass).
-static DOORS: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
-
-/// Puts every portal's door into its world.
-pub fn start() {
+/// The portals' doors by playfield, each once (two portals can share one: the tutorial's
+/// compass).
+static DOORS_OF: LazyLock<HashMap<u32, Vec<Door>>> = LazyLock::new(|| {
     let mut seen = HashSet::new();
-    let mut doors = DOORS.lock().unwrap();
+    let mut doors: HashMap<u32, Vec<Door>> = HashMap::new();
     for (k, ps) in &DATA.portals {
         let Ok(playfield) = k.parse::<u32>() else { continue };
         for d in ps.iter().filter_map(|p| p.door.clone()).filter(|d| seen.insert(d.guid)) {
-            let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
-            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-            let id = Id32::new(DOOR_TYPE, d.guid);
-            let pos = std::sync::Arc::new(Mutex::new(d.pos));
-            let at = Pf::main(playfield);
-            doors.push(world::join(id, at, pos, move || door_records(&d, at), outbox));
+            doors.entry(playfield).or_default().push(d);
         }
     }
-    tracing::info!(count = doors.len(), "portal doors spawned");
+    doors
+});
+
+/// The doors in the world, by copy.
+static DOORS: LazyLock<Mutex<HashMap<Pf, Vec<world::Presence>>>> = LazyLock::new(Default::default);
+
+pub fn start() {
+    tracing::info!(count = DOORS_OF.values().map(Vec::len).sum::<usize>(), "portal doors read");
+}
+
+/// Puts the portals' doors of copy `pf` in (worlds.rs).
+pub fn spawn_world(pf: Pf) {
+    let mut presences = Vec::new();
+    for d in DOORS_OF.get(&pf.model()).into_iter().flatten().cloned() {
+        let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
+        tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+        let id = Id32::new(DOOR_TYPE, crate::instance::fixture(pf, d.guid));
+        let pos = std::sync::Arc::new(Mutex::new(d.pos));
+        presences.push(world::join(id, pf, pos, move || door_records(&d, pf), outbox));
+    }
+    DOORS.lock().unwrap().insert(pf, presences);
+}
+
+/// Takes the doors of copy `pf` out.
+pub fn despawn_world(pf: Pf) {
+    let gone = DOORS.lock().unwrap().remove(&pf);
+    drop(gone);
 }
 
 /// UpdateMessage + `DoorFullUpdateIIR_c` as live sent a portal's door: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR (no collision, its name, the TDB 55000 name, CARS group 1, field 7 =
 /// 51016, closed), visual, u32 0, an empty box (all f32 max), scale, 13 zero bytes.
 fn door_records(d: &Door, playfield: Pf) -> Vec<Bytes> {
-    let id = Id32::new(DOOR_TYPE, d.guid);
+    let id = Id32::new(DOOR_TYPE, crate::instance::fixture(playfield, d.guid));
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(d.rot[0]), y: Some(d.rot[1]), z: Some(d.rot[2]), w: Some(d.rot[3]) }),
@@ -386,6 +405,11 @@ pub fn signal_spots_args(playfield: u32) -> Bytes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn door_guids_leave_the_copy_byte_free() {
+        assert!(DOORS_OF.values().flatten().all(|d| d.guid < 1 << 24));
+    }
 
     #[test]
     fn portal_doors() {

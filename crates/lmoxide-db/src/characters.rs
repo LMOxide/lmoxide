@@ -9,6 +9,8 @@ use crate::{Db, Error, Result, now};
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Character {
     pub name: String,
+    /// The game mode it belongs to (`progression`, `maxed`, `world-editor`).
+    pub mode: String,
     pub playfield: u32,
     pub pos: [f32; 3],
     /// Minifigure team: (inventory 101 position, item template). The first entry is active.
@@ -102,6 +104,8 @@ pub struct CharacterSummary {
     pub id: u32,
     pub account_id: u32,
     pub name: String,
+    /// The game mode it belongs to.
+    pub mode: String,
     pub playfield: u32,
     pub stars: u64,
     /// Unix time of the last save.
@@ -113,11 +117,12 @@ impl Db {
         let conn = self.conn();
         let Some(mut c) = conn
             .query_row(
-                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level, limited_collection FROM characters WHERE id = ?1",
+                "SELECT name, playfield, pos_x, pos_y, pos_z, stars, xp, level, limited_collection, mode FROM characters WHERE id = ?1",
                 [id],
                 |r| {
                     Ok(Character {
                         name: r.get(0)?,
+                        mode: r.get(9)?,
                         playfield: r.get(1)?,
                         pos: [r.get(2)?, r.get(3)?, r.get(4)?],
                         team: Vec::new(),
@@ -213,9 +218,9 @@ impl Db {
         let t = now();
         tx.execute(
             "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, xp, level, created_at, saved_at,
-               limited_collection)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11, ?12)
-             ON CONFLICT (id) DO UPDATE SET name = excluded.name, playfield = excluded.playfield,
+               limited_collection, mode)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?11, ?12, ?13)
+             ON CONFLICT (id) DO UPDATE SET name = excluded.name, playfield = excluded.playfield, mode = excluded.mode,
                pos_x = excluded.pos_x, pos_y = excluded.pos_y, pos_z = excluded.pos_z,
                stars = excluded.stars, xp = excluded.xp, level = excluded.level, saved_at = excluded.saved_at,
                limited_collection = excluded.limited_collection",
@@ -231,7 +236,8 @@ impl Db {
                 c.xp as i64,
                 c.level,
                 t,
-                c.collection.is_some()
+                c.collection.is_some(),
+                c.mode
             ],
         )?;
         tx.execute("DELETE FROM character_team WHERE character_id = ?1", [id])?;
@@ -350,6 +356,12 @@ impl Db {
         }
     }
 
+    /// Puts every character of this database in game mode `mode` (a world editor server's
+    /// database: all its characters are world editors). Returns how many changed.
+    pub fn set_all_character_modes(&self, mode: &str) -> Result<usize> {
+        Ok(self.conn().execute("UPDATE characters SET mode = ?1 WHERE mode <> ?1", [mode])?)
+    }
+
     pub fn character_name(&self, id: u32) -> Result<Option<String>> {
         Ok(self.conn().query_row("SELECT name FROM characters WHERE id = ?1", [id], |r| r.get(0)).optional()?)
     }
@@ -357,17 +369,19 @@ impl Db {
     pub fn characters_of(&self, account_id: u32) -> Result<Vec<CharacterSummary>> {
         let conn = self.conn();
         let mut stmt = conn.prepare(
-            "SELECT id, account_id, name, playfield, stars, saved_at FROM characters WHERE account_id = ?1 ORDER BY id",
+            "SELECT id, account_id, name, playfield, stars, saved_at, mode FROM characters WHERE account_id = ?1 ORDER BY id",
         )?;
         let rows = stmt.query_map([account_id], |r| {
             Ok(CharacterSummary {
                 id: r.get(0)?,
                 account_id: r.get(1)?,
                 name: r.get(2)?,
+                mode: r.get(6)?,
                 playfield: r.get(3)?,
                 stars: r.get::<_, i64>(4)? as u64,
                 saved_at: r.get(5)?,
             })
+
         })?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
@@ -411,6 +425,8 @@ mod tests {
         let b = db.create_account("bob", None, 0).unwrap();
         let mut c = Character {
             name: "alice".into(),
+            mode: "maxed".into(),
+
             playfield: 1200,
             pos: [1.0, 2.5, -3.0],
             team: vec![(0, 100), (1, 200)],

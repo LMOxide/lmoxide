@@ -77,8 +77,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // Without progression there is no tutorial: a new account's character is made
                 // here (named after the account), so the client lists it instead of offering
                 // character creation.
-                if !crate::progression::enabled() && owned(account).is_empty() {
-                    create_character(account, account, cfg.start_playfield);
+                if !cfg.default_mode().rules().progression && owned(account).is_empty() {
+                    create_character(account, account, cfg.default_mode(), cfg.start_playfield);
                 }
                 let me = Some(account);
                 conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account))
@@ -118,7 +118,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         } else {
                             crate::state::or_log(crate::state::db().new_character_id(), "character id", account)
                         };
-                        create_character(account, id, crate::tutorial::CREATION_PLAYFIELD);
+                        create_character(account, id, cfg.default_mode(), crate::tutorial::CREATION_PLAYFIELD);
                         id
                     }
                 };
@@ -197,10 +197,10 @@ fn delete_character(account: u32, character: u32) {
 }
 
 /// Saves a new character `id` for `account`, named after it, in `playfield`.
-fn create_character(account: u32, id: u32, playfield: u32) {
+fn create_character(account: u32, id: u32, mode: crate::instance::Mode, playfield: u32) {
     let name = crate::state::or_log(crate::state::db().account(account), "account", None).map(|a| a.username);
     let Some(name) = name else { return };
-    let mut c = crate::game::new_character(name, playfield);
+    let mut c = crate::game::new_character(name, mode, playfield);
     if playfield == crate::tutorial::CREATION_PLAYFIELD {
         // as live: no minifigure until the player's pick arrives; the character owns only the
         // members' minifigures until then (its starter is added with the pick)
@@ -303,14 +303,13 @@ pub const CHARACTER_TYPE: u32 = 50000;
 /// (decoder 0x7bf400): string, u32, ID32, embedded `PlayfieldProxyData` protobuf.
 /// The playfield is the character's saved one (new characters: `--start-playfield`).
 fn login_connect_ready(cfg: &Config, character: Id32, cookie: u32) -> bytes::Bytes {
-    let playfield = crate::store::Store
+    let (mode, playfield) = crate::store::Store
         .load(character.instance)
-        .map_or(cfg.start_playfield, |c| c.playfield);
+        .map_or((cfg.default_mode(), cfg.start_playfield), |c| (crate::instance::Mode::of_character(&c), c.playfield));
     let pf = PlayfieldProxyData {
         dimension_id: Some(1),
         model_id: Some(ProtoId32 { r#type: Some(crate::game::PLAYFIELD_TYPE), instance: Some(playfield) }),
-        running_instance: Some(crate::instance::arrival(playfield).key()),
-
+        running_instance: Some(crate::instance::arrival(mode, playfield).key()),
         ..Default::default()
     };
     character

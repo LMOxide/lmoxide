@@ -4,7 +4,6 @@
 //! the Guard Captain's cinematic ("Cinematic Start Oops", texts 206-211) throws the player in
 //! jail (4610). The wall and the cannon come back for the next player.
 
-use crate::instance::Pf;
 use std::time::Duration;
 
 use lmoxide_net::types::Id32;
@@ -46,24 +45,26 @@ pub fn respawn(playfield: u32, name: &str) -> Option<Duration> {
     (playfield == PLAYFIELD && name == WALL).then_some(WALL_RESPAWN)
 }
 
-/// `player` built the cannon: it fires, the wall falls, the guards come.
+/// `player` built the cannon: it fires, the wall falls, the guards come (in the player's copy
+/// of Pirate World).
 pub fn fire(player: Id32, player_name: String) {
+    let Some(pf) = world::whereabouts(player).map(|(pf, _)| pf).filter(|pf| pf.model() == PLAYFIELD) else { return };
     tokio::spawn(async move {
-        let Some(cannon) = crate::buildie::find(BUILDIE, Pf::main(PLAYFIELD)) else { return };
+        let Some(cannon) = crate::buildie::find(BUILDIE, pf) else { return };
         info!(?player, "cannon fires at the wall");
         tokio::time::sleep(Duration::from_millis(500)).await;
         world::send_playfield(cannon, false, world::Out::Records(vec![effects::effect_package(cannon, SHOT_EFFECT)]));
         // (launch_visual starts 1 m above `from`)
-        crate::projectile::launch_visual(cannon, Pf::main(PLAYFIELD), SHOT_ITEM, SHOT_SPEED, [MUZZLE[0], MUZZLE[1] - 1.0, MUZZLE[2]], AIM);
+        crate::projectile::launch_visual(cannon, pf, SHOT_ITEM, SHOT_SPEED, [MUZZLE[0], MUZZLE[1] - 1.0, MUZZLE[2]], AIM);
         let flight = ((AIM[0] - MUZZLE[0]).powi(2) + (AIM[2] - MUZZLE[2]).powi(2)).sqrt() / SHOT_SPEED;
         tokio::time::sleep(Duration::from_secs_f32(flight)).await;
         // someone else's shot may have broken it already
-        if let Some(wall) = crate::npc::find(WALL, Pf::main(PLAYFIELD)) {
+        if let Some(wall) = crate::npc::find(WALL, pf) {
             world::send_playfield(wall, false, world::Out::Records(vec![effects::effect_package(wall, IMPACT_EFFECT)]));
             crate::npc::hit(cannon, wall, SPELL, WALL_HEALTH);
         }
         tokio::time::sleep(Duration::from_secs(1)).await;
-        if world::whereabouts(player).is_some_and(|(pf, _)| pf == Pf::main(PLAYFIELD))
+        if world::whereabouts(player).is_some_and(|(at, _)| at == pf)
             && let Some(d) = crate::knubot::starting_with(DIALOGUE)
         {
             // a cinematic: the player speaks for the unspawned trigger NPC

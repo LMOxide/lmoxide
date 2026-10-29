@@ -20,7 +20,7 @@ use std::{
 use lmoxide_net::types::Id32;
 use serde::Deserialize;
 
-use crate::{scenery::SIMPLE_DYNEL_TYPE, world};
+use crate::world;
 
 pub const PLAYFIELD: u32 = 6300;
 /// A piston pushes out for this long, every `PERIOD`; neighbours one `STAGGER` apart.
@@ -65,8 +65,8 @@ static PISTONS: LazyLock<Vec<(u32, usize, usize, [f32; 3])>> = LazyLock::new(|| 
         .collect()
 });
 
-/// Pistons out now.
-static OUT_NOW: LazyLock<Mutex<std::collections::HashSet<u32>>> = LazyLock::new(|| Mutex::new(Default::default()));
+/// Pistons out now (copy, guid).
+static OUT_NOW: LazyLock<Mutex<std::collections::HashSet<(Pf, u32)>>> = LazyLock::new(|| Mutex::new(Default::default()));
 
 /// Whether scenery.rs spawns this piece (a piston).
 pub fn is_piston(playfield: u32, name: &str) -> bool {
@@ -74,15 +74,16 @@ pub fn is_piston(playfield: u32, name: &str) -> bool {
 }
 
 /// A piston's pose for its spawn (out: the open motion).
-pub fn pose_records(guid: u32) -> Vec<bytes::Bytes> {
-    if OUT_NOW.lock().unwrap().contains(&guid) {
-        vec![crate::effects::effect_package(Id32::new(SIMPLE_DYNEL_TYPE, guid), crate::mirrors::TURN_PLUS)]
+pub fn pose_records(pf: Pf, guid: u32) -> Vec<bytes::Bytes> {
+    if OUT_NOW.lock().unwrap().contains(&(pf, guid)) {
+        vec![crate::effects::effect_package(crate::scenery::piece_id(pf, guid), crate::mirrors::TURN_PLUS)]
     } else {
         Vec::new()
     }
 }
 
-/// Runs every piston's cycle (only while someone is in the Gauntlet).
+/// Runs every piston's cycle in each copy of the Gauntlet someone is in (not the world
+/// editor's, where nothing moves).
 pub fn start() {
     for &(guid, row, col, pos) in PISTONS.iter() {
         tokio::spawn(async move {
@@ -91,22 +92,22 @@ pub fn start() {
             let mut tick = tokio::time::interval(PERIOD);
             loop {
                 tick.tick().await;
-                let players: Vec<(Id32, world::Position)> =
-                    world::position_handles(Pf::main(PLAYFIELD))
-.into_iter().filter(|(id, _)| crate::npc::is_player(*id)).collect();
-                if players.is_empty() {
-                    continue;
+                for pf in crate::worlds::copies_of(PLAYFIELD).into_iter().filter(|pf| !crate::instance::rules(*pf).editor) {
+                    let players: Vec<(Id32, world::Position)> =
+                        world::position_handles(pf).into_iter().filter(|(id, _)| crate::npc::is_player(*id)).collect();
+                    if !players.is_empty() {
+                        tokio::spawn(cycle(pf, guid, row, pos, players));
+                    }
                 }
-                cycle(guid, row, pos, players).await;
             }
         });
     }
 }
 
 /// Out, knock whoever is in front off the corridor, back in.
-async fn cycle(guid: u32, row: usize, pos: [f32; 3], players: Vec<(Id32, world::Position)>) {
-    let id = Id32::new(SIMPLE_DYNEL_TYPE, guid);
-    OUT_NOW.lock().unwrap().insert(guid);
+async fn cycle(pf: Pf, guid: u32, row: usize, pos: [f32; 3], players: Vec<(Id32, world::Position)>) {
+    let id = crate::scenery::piece_id(pf, guid);
+    OUT_NOW.lock().unwrap().insert((pf, guid));
     world::send_playfield(id, false, world::Out::Records(vec![crate::effects::effect_package(id, crate::mirrors::TURN_PLUS)]));
     tokio::time::sleep(HIT_AFTER).await;
     let (land_z, land_y) = LANDINGS[(row - 1).min(LANDINGS.len() - 1)];
@@ -120,6 +121,6 @@ async fn cycle(guid: u32, row: usize, pos: [f32; 3], players: Vec<(Id32, world::
         }
     }
     tokio::time::sleep(OUT.saturating_sub(HIT_AFTER)).await;
-    OUT_NOW.lock().unwrap().remove(&guid);
+    OUT_NOW.lock().unwrap().remove(&(pf, guid));
     world::send_playfield(id, false, world::Out::Records(vec![crate::effects::effect_package(id, crate::mirrors::TURN_MINUS)]));
 }

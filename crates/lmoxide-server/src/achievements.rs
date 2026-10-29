@@ -824,7 +824,9 @@ mod tests {
     fn character() -> Character {
         Character {
             name: "t".into(),
+            mode: "progression".into(),
             playfield: 1200,
+
             pos: [0.0; 3],
             team: vec![],
             stars: 0,

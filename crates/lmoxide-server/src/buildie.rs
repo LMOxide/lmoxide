@@ -100,19 +100,37 @@ struct Buildie {
 
 static BUILDIES: LazyLock<Mutex<HashMap<Id32, Buildie>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
-/// Puts every buildie into its world.
+/// The recorded buildies (each copy of their world gets its own, `spawn_world`).
+static RECORDED: LazyLock<Vec<Def>> =
+    LazyLock::new(|| serde_json::from_value(serde_json::json!(*crate::world_data::BUILDIES)).expect("buildies"));
+/// Buildie instances: clear of the NPC module's destructibles, a new one per buildie spawned.
+static NEXT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0x00b0_0000);
+
 pub fn start() {
-    let defs: Vec<Def> = serde_json::from_value(serde_json::json!(*crate::world_data::BUILDIES)).expect("buildies");
-    for def in defs {
-        insert(def, true);
+    info!(count = RECORDED.len(), "buildies read");
+}
+
+/// Puts the recorded buildies of copy `pf` in (worlds.rs).
+pub fn spawn_world(pf: Pf) {
+    for def in RECORDED.iter().filter(|d| d.playfield.model() == pf.model()) {
+        insert(Def { playfield: pf, ..def.clone() }, true);
     }
-    info!(count = BUILDIES.lock().unwrap().len(), "buildies spawned");
+}
+
+/// Takes every buildie of copy `pf` out (the recorded ones and the puzzles').
+pub fn despawn_world(pf: Pf) {
+    let gone: Vec<Buildie> = {
+        let mut buildies = BUILDIES.lock().unwrap();
+        let ids: Vec<Id32> = buildies.iter().filter(|(_, b)| b.def.playfield == pf).map(|(id, _)| *id).collect();
+        ids.iter().filter_map(|id| buildies.remove(id)).collect()
+    };
+    // (outside BUILDIES: leaving the world takes the members lock)
+    drop(gone);
 }
 
 /// Puts a buildie into its world; returns its id.
 fn insert(def: Def, recorded: bool) -> Id32 {
-    // instances clear of the NPC module's destructibles
-    let id = Id32::new(DESTRUCTIBLE_TYPE, 0x00b0_0000 + BUILDIES.lock().unwrap().len() as u32);
+    let id = Id32::new(DESTRUCTIBLE_TYPE, NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let playfield = def.playfield;
     let pos = Arc::new(Mutex::new(def.pos));
     BUILDIES.lock().unwrap().insert(id, Buildie { def, recorded, progress: 0, state: State::Idle, _presence: None });
@@ -213,8 +231,8 @@ pub fn unbuilt_at(playfield: Pf, at: [f32; 3]) -> bool {
 /// success then failure, as live answered repeats).
 pub fn interact(player: Id32, data: &[u8]) -> Option<bool> {
     let target = Id32::new(u32::from_be_bytes(data.get(0..4)?.try_into().ok()?), u32::from_be_bytes(data.get(4..8)?.try_into().ok()?));
-    if crate::survey::enabled() {
-        // survey servers: interacting selects it for the world editor instead of building
+    if crate::world::whereabouts(player).is_some_and(|(pf, _)| crate::instance::rules(pf).editor) {
+        // the world editor's worlds: interacting selects it for the editor instead of building
         let known = BUILDIES.lock().unwrap().contains_key(&target);
         if known {
             crate::survey::interacted(player, target);

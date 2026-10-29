@@ -19,7 +19,7 @@ use lmoxide_net::types::Id32;
 use serde::Deserialize;
 use tracing::info;
 
-use crate::{scenery::SIMPLE_DYNEL_TYPE, world};
+use crate::world;
 
 pub const PLAYFIELD: u32 = 6300;
 /// The gate the hits open (the shooting room's east gate).
@@ -90,9 +90,19 @@ struct State {
     /// the dummy up now: (ballista, high, id)
     dummy: Option<(usize, bool, Id32)>,
     hits: usize,
+    /// which aim point the next dummy takes
+    turn: usize,
 }
 
-static STATE: LazyLock<Mutex<State>> = LazyLock::new(|| Mutex::new(State { high: vec![false; BALLISTAS.len()], ..Default::default() }));
+/// Each copy's room (by the copy of the Gauntlet).
+static STATE: LazyLock<Mutex<HashMap<Pf, State>>> = LazyLock::new(Default::default);
+
+/// Runs `f` on copy `pf`'s room state.
+fn with<T>(pf: Pf, f: impl FnOnce(&mut State) -> T) -> T {
+    let mut states = STATE.lock().unwrap();
+    let state = states.entry(pf).or_insert_with(|| State { high: vec![false; BALLISTAS.len()], ..Default::default() });
+    f(state)
+}
 
 /// Whether scenery.rs spawns this piece (the ballistas; the levers it spawns anyway).
 pub fn is_ballista(playfield: u32, name: &str) -> bool {
@@ -104,42 +114,39 @@ pub fn is_lever(guid: u32) -> bool {
     BALLISTAS.iter().any(|b| b.lever == guid)
 }
 
-/// Whether a ballista piece is hidden now (the aim it doesn't have).
-pub fn hidden(guid: u32) -> Option<bool> {
-    let state = STATE.lock().unwrap();
-    BALLISTAS.iter().enumerate().find_map(|(i, b)| {
-        let high = state.high.get(i).copied().unwrap_or(false);
-        if guid == b.low {
-            Some(high)
-        } else if guid == b.high {
-            Some(!high)
-        } else {
-            None
-        }
-    })
+/// Whether a ballista piece is hidden now in copy `pf` (the aim it doesn't have).
+pub fn hidden(pf: Pf, guid: u32) -> Option<bool> {
+    let (i, b) = BALLISTAS.iter().enumerate().find(|(_, b)| guid == b.low || guid == b.high)?;
+    let high = with(pf, |s| s.high.get(i).copied().unwrap_or(false));
+    Some(if guid == b.low { high } else { !high })
 }
 
-/// Whether the room's gate is open.
-pub fn solved() -> bool {
-    STATE.lock().unwrap().hits >= HITS_NEEDED
+/// Whether the room's gate is open in copy `pf`.
+pub fn solved(pf: Pf) -> bool {
+    with(pf, |s| s.hits >= HITS_NEEDED)
 }
 
-fn occupied() -> bool {
-    world::positions(Pf::main(PLAYFIELD)).iter().any(|(id, p)| {
-        crate::npc::is_player(*id) && (ROOM.0[0]..=ROOM.0[1]).contains(&p[0]) && (ROOM.1[0]..=ROOM.1[1]).contains(&p[2])
-    })
+/// The copies of the Gauntlet whose room someone is in (not the world editor's).
+fn occupied() -> Vec<Pf> {
+    crate::worlds::copies_of(PLAYFIELD)
+        .into_iter()
+        .filter(|pf| !crate::instance::rules(*pf).editor)
+        .filter(|pf| {
+            world::positions(*pf).iter().any(|(id, p)| {
+                crate::npc::is_player(*id) && (ROOM.0[0]..=ROOM.0[1]).contains(&p[0]) && (ROOM.1[0]..=ROOM.1[1]).contains(&p[2])
+            })
+        })
+        .collect()
 }
 
-fn show_aim(i: usize, high: bool) {
+fn show_aim(pf: Pf, i: usize, high: bool) {
     let b = &BALLISTAS[i];
-    let records = vec![
-        crate::encounter::door_record(Id32::new(SIMPLE_DYNEL_TYPE, b.low), high),
-        crate::encounter::door_record(Id32::new(SIMPLE_DYNEL_TYPE, b.high), !high),
-    ];
-    world::send_playfield(Id32::new(SIMPLE_DYNEL_TYPE, b.low), false, world::Out::Records(records));
+    let (low_id, high_id) = (crate::scenery::piece_id(pf, b.low), crate::scenery::piece_id(pf, b.high));
+    let records = vec![crate::encounter::door_record(low_id, high), crate::encounter::door_record(high_id, !high)];
+    world::send_playfield(low_id, false, world::Out::Records(records));
 }
 
-/// Runs the aiming and the dummies.
+/// Runs the aiming and the dummies in each copy of the room someone is in.
 pub fn start() {
     for i in 0..BALLISTAS.len() {
         tokio::spawn(async move {
@@ -147,111 +154,113 @@ pub fn start() {
             let mut tick = tokio::time::interval(AIM_PERIOD);
             loop {
                 tick.tick().await;
-                if solved() || !occupied() {
-                    continue;
+                for pf in occupied().into_iter().filter(|pf| !solved(*pf)) {
+                    let high = with(pf, |s| {
+                        s.high[i] = !s.high[i];
+                        s.high[i]
+                    });
+                    show_aim(pf, i, high);
                 }
-                let high = {
-                    let mut state = STATE.lock().unwrap();
-                    state.high[i] = !state.high[i];
-                    state.high[i]
-                };
-                show_aim(i, high);
             }
         });
     }
     tokio::spawn(async {
         let mut tick = tokio::time::interval(TARGET_PERIOD);
-        let mut turn = 0usize;
         loop {
             tick.tick().await;
-            if solved() || !occupied() || STATE.lock().unwrap().dummy.is_some() || BALLISTAS.is_empty() {
+            if BALLISTAS.is_empty() {
                 continue;
             }
-            // each aim point in turn: ballista 1 low, 2 high, 1 high, 2 low, ...
-            let (i, high) = (turn % BALLISTAS.len(), (turn / BALLISTAS.len() + turn) % 2 == 1);
-            turn += 1;
-            let def = crate::npc::SpawnDef {
-                kind: crate::npc::Kind::Smashable,
-                template: DUMMY_TEMPLATE,
-                name: "XX_Combat Dummy".into(),
-                monster_data: DUMMY_LOOK,
-                level: 1,
-                health: 1,
-                pos: BALLISTAS[i].aims[usize::from(high)],
-                spell: 0,
-                cars_group: Some(5),
-                npc_template: None,
-                reach: None,
-                anchor: None,
-                fights: false,
-                faction: None,
-                patrol: Vec::new(),
-                loot: None,
-                source: None,
-                rot: None,
-            };
-            let id = crate::npc::spawn_temporary(def, Pf::main(PLAYFIELD), TARGET_LIFE);
-            info!(ballista = i + 1, high, "dummy up");
-            STATE.lock().unwrap().dummy = Some((i, high, id));
-            tokio::spawn(async move {
-                tokio::time::sleep(TARGET_LIFE).await;
-                let mut state = STATE.lock().unwrap();
-                if state.dummy.is_some_and(|d| d.2 == id) {
-                    state.dummy = None;
-                }
-            });
+            for pf in occupied().into_iter().filter(|pf| !solved(*pf)) {
+                let Some(turn) = with(pf, |s| s.dummy.is_none().then(|| {
+                    s.turn += 1;
+                    s.turn - 1
+                })) else {
+                    continue;
+                };
+                // each aim point in turn: ballista 1 low, 2 high, 1 high, 2 low, ...
+                let (i, high) = (turn % BALLISTAS.len(), (turn / BALLISTAS.len() + turn) % 2 == 1);
+                let def = crate::npc::SpawnDef {
+                    kind: crate::npc::Kind::Smashable,
+                    template: DUMMY_TEMPLATE,
+                    name: "XX_Combat Dummy".into(),
+                    monster_data: DUMMY_LOOK,
+                    level: 1,
+                    health: 1,
+                    pos: BALLISTAS[i].aims[usize::from(high)],
+                    spell: 0,
+                    cars_group: Some(5),
+                    npc_template: None,
+                    reach: None,
+                    anchor: None,
+                    fights: false,
+                    faction: None,
+                    patrol: Vec::new(),
+                    loot: None,
+                    source: None,
+                    rot: None,
+                };
+                let id = crate::npc::spawn_temporary(def, pf, TARGET_LIFE);
+                info!(playfield = ?pf, ballista = i + 1, high, "dummy up");
+                with(pf, |s| s.dummy = Some((i, high, id)));
+                tokio::spawn(async move {
+                    tokio::time::sleep(TARGET_LIFE).await;
+                    with(pf, |s| {
+                        if s.dummy.is_some_and(|d| d.2 == id) {
+                            s.dummy = None;
+                        }
+                    });
+                });
+            }
         }
     });
     tokio::spawn(async {
         let mut tick = tokio::time::interval(RESET_CHECK);
         loop {
             tick.tick().await;
-            let empty = !world::positions(Pf::main(PLAYFIELD)).iter().any(|(id, _)| crate::npc::is_player(*id));
-            let mut state = STATE.lock().unwrap();
-            if empty && state.hits > 0 {
-                state.hits = 0;
-                info!("shooting room reset");
-                drop(state);
-                crate::gates::refresh(GATE);
+            for pf in crate::worlds::copies_of(PLAYFIELD) {
+                let empty = !world::positions(pf).iter().any(|(id, _)| crate::npc::is_player(*id));
+                if empty && with(pf, |s| std::mem::take(&mut s.hits)) > 0 {
+                    info!(playfield = ?pf, "shooting room reset");
+                    crate::gates::refresh(pf, GATE);
+                }
             }
         }
     });
 }
 
 /// `player` pulled lever `guid`: the lever and the ballista move, its arrow flies at the point
-/// it aims at, and a dummy there falls.
+/// it aims at, and a dummy there falls (in the player's copy of the room).
 pub fn pull(player: Id32, guid: u32) {
     let Some(i) = BALLISTAS.iter().position(|b| b.lever == guid) else { return };
+    let Some(pf) = world::whereabouts(player).map(|(pf, _)| pf).filter(|pf| pf.model() == PLAYFIELD) else { return };
     let b = &BALLISTAS[i];
-    let high = STATE.lock().unwrap().high[i];
-    let lever = Id32::new(SIMPLE_DYNEL_TYPE, b.lever);
-    let ballista = Id32::new(SIMPLE_DYNEL_TYPE, if high { b.high } else { b.low });
+    let high = with(pf, |s| s.high[i]);
+    let lever = crate::scenery::piece_id(pf, b.lever);
+    let ballista = crate::scenery::piece_id(pf, if high { b.high } else { b.low });
     let open = |id| crate::effects::effect_package(id, crate::mirrors::TURN_PLUS);
     world::send_playfield(lever, false, world::Out::Records(vec![open(lever), open(ballista)]));
     let to = b.aims[usize::from(high)];
     let from = [b.pos[0], b.pos[1] + 0.5, b.pos[2]];
-    let (shot, flight) = crate::projectile::launch_enemy(ballista, Pf::main(PLAYFIELD), 0, ARROW, 1, ARROW_SPEED, 0, from, to, None);
+    let (shot, flight) = crate::projectile::launch_enemy(ballista, pf, 0, ARROW, 1, ARROW_SPEED, 0, from, to, None);
     info!(?player, ballista = i + 1, high, "ballista fired");
     tokio::spawn(async move {
         tokio::time::sleep(flight).await;
-        let target = {
-            let mut state = STATE.lock().unwrap();
-            match state.dummy {
-                Some((d, h, id)) if d == i && h == high => {
-                    state.dummy = None;
-                    state.hits += 1;
-                    Some((id, state.hits))
-                }
-                _ => None,
+        let target = with(pf, |s| match s.dummy {
+            Some((d, h, id)) if d == i && h == high => {
+                s.dummy = None;
+                s.hits += 1;
+                Some((id, s.hits))
             }
-        };
+            _ => None,
+        });
         crate::projectile::enemy_impact(ballista, shot, None);
         if let Some((id, hits)) = target {
             info!(hits, "ballista hit a dummy");
             crate::npc::hit(player, id, 0, 100);
             if hits == HITS_NEEDED {
-                info!("shooting room solved");
-                crate::gates::refresh(GATE);
+                info!(playfield = ?pf, "shooting room solved");
+                crate::gates::refresh(pf, GATE);
             }
         }
         let close = |id| crate::effects::effect_package(id, crate::mirrors::TURN_MINUS);

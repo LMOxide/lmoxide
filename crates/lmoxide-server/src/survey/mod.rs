@@ -10,7 +10,6 @@
 //! Locks: `STATE`, then `npc::NPCS`, then `world::MEMBERS`, then `HIDDEN`. `npc::hit` calls
 //! [`attacked`] before it locks NPCS, and `world::join` reads only `HIDDEN`.
 
-use crate::instance::Pf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     path::PathBuf,
@@ -431,7 +430,7 @@ fn spawn(surveyors: &HashMap<Id32, Surveyor>, notes: &Notes, o: &mut Object) {
         }
     }
     o.npc = Some(id);
-    npc::spawn_as(id, def, Pf::main(o.playfield));
+    npc::spawn_as(id, def, crate::instance::Mode::WorldEditor.main(o.playfield));
 }
 
 fn despawn(o: &mut Object) {
@@ -588,7 +587,7 @@ fn helper_at(playfield: u32, pos: [f32; 3]) -> (Id32, Vec<bytes::Bytes>) {
         helper,
         &crate::game::CharSpec {
             name: "",
-            playfield: Pf::main(playfield),
+            playfield: crate::instance::Mode::WorldEditor.main(playfield),
             pos,
             monster_data: INVISIBLE_LOOK,
             level: 1,
@@ -1301,7 +1300,7 @@ async fn select(Path(account): Path<u32>, Json(b): Json<SelectBody>) -> R<Player
             let surveyor = st.surveyors.get(&player);
             let objects = st.objects.values().filter(|o| o.playfield == pf && surveyor.is_none_or(|s| !is_hidden_for(s, o, &st.notes))).map(|o| (&o.id, o.def.pos));
             let walls = st.walls.values().filter(|w| w.playfield == pf && surveyor.is_none_or(|s| !s.hidden.contains(&w.def.id))).map(|w| (w.def.id.clone(), w.def.pos));
-            let buildies = crate::buildie::list(Some(Pf::main(pf))).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
+            let buildies = crate::buildie::list(Some(crate::instance::Mode::WorldEditor.main(pf))).into_iter().map(|b| (buildie_id(&b), b.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
             let bouncers = crate::jumppad::list(Some(pf)).into_iter().map(|l| (l.id, l.pos)).filter(|(id, _)| surveyor.is_none_or(|s| !s.hidden.contains(id)));
             objects
                 .map(|(id, p)| (id.clone(), p))
@@ -1418,7 +1417,7 @@ async fn objects(Path(pf): Path<u32>) -> R<ObjectList> {
                 .filter(|o| o.playfield == pf)
                 .map(Object::view)
                 .chain(st.walls.values().filter(|w| w.playfield == pf).map(Wall::view))
-                .chain(crate::buildie::list(Some(Pf::main(pf))).iter().map(buildie_view))
+                .chain(crate::buildie::list(Some(crate::instance::Mode::WorldEditor.main(pf))).iter().map(buildie_view))
                 .chain(crate::jumppad::list(Some(pf)).iter().map(bouncer_view))
                 .collect(),
         }))
@@ -2308,7 +2307,7 @@ fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
         tokio::spawn(async move { while inbox.recv().await.is_some() {} });
         let pf = w.playfield;
         let look = crate::scenery::Look { name: name.clone(), visual, bounds: [x0, 0.0, -0.1, x1, height, 0.1], scale };
-        let presence = world::join(id, Pf::main(pf), Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, Pf::main(pf), pos, rot, &look), outbox);
+        let presence = world::join(id, crate::instance::Mode::WorldEditor.main(pf), Arc::new(Mutex::new(pos)), move || crate::scenery::visual_records(id, crate::instance::Mode::WorldEditor.main(pf), pos, rot, &look), outbox);
         w.pieces.push((id, presence));
     }
 }

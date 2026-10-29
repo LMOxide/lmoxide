@@ -452,7 +452,7 @@ mod tests {
         let square = Shape::Polygon { points: vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]], heights: [0.0, 10.0] };
         let index = build(std::iter::once(quest(goal())), &|_| Some(square.clone()));
         *INDEX.write().unwrap() = index;
-        (Tracker::default(), crate::game::new_character("t".into(), 4200))
+        (Tracker::default(), crate::game::new_character("t".into(), crate::instance::Mode::Progression, 4200))
     }
 
     fn smash(name: &str) -> Event {
@@ -473,7 +473,7 @@ mod tests {
         assert_eq!(names(&r), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
         // as recorded (character 0x01000cb8) up to the goal's texts
         const RECORDED: &str = "0000000101000cb8000000010000003700000001000000000000000140000002000000010000002900000037010000000000000000000000000000000000000001000000000000000000000000000000000000000101000cb800000037000f44ac00027488b12b4df61592210445d6871dde89468e000f44ac00000000b290805c29e627cab290805c29e627ca000000010000000100000000000000000000000000000000000000000000000000000001000000010000001601000cb8000000370000005d0000000100000000000000640000000000000000000000000000000000000000000000000000000000000000000010684330cccd43c7266641a0000042940000000000";
-        let mut c2 = crate::game::new_character("t".into(), 4200);
+        let mut c2 = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 4200);
         let r2 = moved(&mut Tracker::default(), &mut c2, 0x0100_0cb8, Pf::main(4200), [5.0, 5.0, 5.0]);
         let hex: String = r2[1][13..13 + RECORDED.len() / 2].iter().map(|b| format!("{b:02x}")).collect();
         assert_eq!(hex, RECORDED);

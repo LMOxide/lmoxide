@@ -195,7 +195,7 @@ impl Run {
             .map(|(i, _)| i)
             .collect();
         // the gated pads ahead are shut for this player until their waves are beaten
-        let shut: Vec<Bytes> = GATED_PADS.iter().filter(|(g, _)| !open.contains(g)).flat_map(|(g, _)| crate::jumppad::pad_records(*g, false)).collect();
+        let shut: Vec<Bytes> = GATED_PADS.iter().filter(|(g, _)| !open.contains(g)).flat_map(|(g, _)| crate::jumppad::pad_records(copy_of(player), *g, false)).collect();
         crate::world::send_to(player, crate::world::Out::Records(shut));
         PROGRESS.lock().unwrap().insert(player, Progress { spawned: Default::default(), open });
         Run { player, name: name.to_string(), fired, escort }
@@ -263,7 +263,7 @@ impl Run {
         };
         for g in opened {
             info!(player = ?self.player, pad = g, "tutorial pad opened");
-            crate::world::send_to(self.player, crate::world::Out::Records(crate::jumppad::pad_records(g, true)));
+            crate::world::send_to(self.player, crate::world::Out::Records(crate::jumppad::pad_records(copy_of(self.player), g, true)));
         }
     }
 

@@ -17,22 +17,9 @@
 //! The player XP curve, the XP per kill and the other worlds' caps were server data; the values
 //! here are fitted to the recording where possible (docs/TUNABLES.md).
 
-use std::sync::{
-    LazyLock,
-    atomic::{AtomicBool, Ordering},
-};
+use std::sync::LazyLock;
 
 use serde::Deserialize;
-
-static ENABLED: AtomicBool = AtomicBool::new(false);
-
-pub fn set_enabled(on: bool) {
-    ENABLED.store(on, Ordering::Relaxed);
-}
-
-pub fn enabled() -> bool {
-    ENABLED.load(Ordering::Relaxed)
-}
 
 /// TWK_MaxPlayerLevel.
 pub const MAX_PLAYER_LEVEL: u32 = crate::combat::LEVEL;

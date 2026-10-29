@@ -122,99 +122,109 @@ static WALLS: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
     m
 });
 
-/// Whether a simple dynel is a gate's wall piece (scenery.rs spawns it); `Some(blocks now)`.
-pub fn wall_blocks(guid: u32) -> Option<bool> {
-    let gate = *WALLS.get(&guid)?;
-    gate_open(gate).map(|open| !open)
+/// Whether a simple dynel is a gate's wall piece (scenery.rs spawns it).
+pub fn is_wall(guid: u32) -> bool {
+    WALLS.contains_key(&guid)
 }
 
-/// Mirror buildie -> (playfield, gate, spot, beam dynel).
-static MIRRORS: LazyLock<Mutex<HashMap<Id32, (u32, u32, &'static Spot, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+/// Whether a gate's wall piece blocks now in copy `pf` (`None`: not a wall piece).
+pub fn wall_blocks(pf: Pf, guid: u32) -> Option<bool> {
+    let gate = *WALLS.get(&guid)?;
+    gate_open(pf, gate).map(|open| !open)
+}
 
-/// Puts the mirror buildies and their (dark) beam dynels into Medusa's Lair.
+/// Mirror buildie -> (copy, gate, spot, beam dynel).
+static MIRRORS: LazyLock<Mutex<HashMap<Id32, (Pf, u32, &'static Spot, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+static PRESENCES: LazyLock<Mutex<HashMap<Pf, Vec<world::Presence>>>> = LazyLock::new(Default::default);
+
 pub fn start() {
-    let mut n = 0;
-    for (&pf, gates) in DATA.iter() {
-        // the main copy's (the gates' state is the playfield's, not per copy)
-        let at = Pf::main(pf);
-        for gate in gates {
-            for spot in &gate.mirrors {
-                let buildie = crate::buildie::add("XX_boss medusa mirror buildie", MIRROR_TEMPLATE, MIRROR_LOOK, at, spot.pos, spot.rot);
-                let beam = Id32::new(SIMPLE_DYNEL_TYPE, BEAM_INSTANCES + n);
-                n += 1;
-                MIRRORS.lock().unwrap().insert(buildie, (pf, gate.gate, spot, beam));
-                let (outbox, mut inbox) = mpsc::unbounded_channel();
-                tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-                let presence = world::join(
-                    beam,
-                    at,
-                    Arc::new(Mutex::new(spot.light)),
-                    move || {
-                        let mut records = crate::scenery::invisible_records(beam, at, spot.light, spot.rot);
+    info!(mirrors = DATA.values().flatten().map(|g| g.mirrors.len()).sum::<usize>(), exit_gates = EXIT_GATES.len(), "light gates");
+}
 
-                        if crate::buildie::built(buildie) {
-                            records.push(crate::mirrors::beam_particle(beam, spot.length));
-                        }
-                        records
-                    },
-                    outbox,
-                );
-                PRESENCES.lock().unwrap().push(presence);
-            }
+/// Puts the mirror buildies and their (dark) beam dynels into copy `pf` (Medusa's Lair).
+pub fn spawn_world(pf: Pf) {
+    let mut n = 0;
+    for gate in DATA.get(&pf.model()).into_iter().flatten() {
+        for spot in &gate.mirrors {
+            let buildie = crate::buildie::add("XX_boss medusa mirror buildie", MIRROR_TEMPLATE, MIRROR_LOOK, pf, spot.pos, spot.rot);
+            let beam = Id32::new(SIMPLE_DYNEL_TYPE, crate::instance::fixture(pf, BEAM_INSTANCES + n));
+            n += 1;
+            MIRRORS.lock().unwrap().insert(buildie, (pf, gate.gate, spot, beam));
+            let (outbox, mut inbox) = mpsc::unbounded_channel();
+            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+            let presence = world::join(
+                beam,
+                pf,
+                Arc::new(Mutex::new(spot.light)),
+                move || {
+                    let mut records = crate::scenery::invisible_records(beam, pf, spot.light, spot.rot);
+                    if crate::buildie::built(buildie) {
+                        records.push(crate::mirrors::beam_particle(beam, spot.length));
+                    }
+                    records
+                },
+                outbox,
+            );
+            PRESENCES.lock().unwrap().entry(pf).or_default().push(presence);
         }
     }
-    info!(mirrors = n, exit_gates = EXIT_GATES.len(), "light gates");
+}
+
+/// Takes copy `pf`'s beams out (its buildies go with the copy's, buildie.rs).
+pub fn despawn_world(pf: Pf) {
+    MIRRORS.lock().unwrap().retain(|_, m| m.0 != pf);
+    let gone = PRESENCES.lock().unwrap().remove(&pf);
+    drop(gone);
 }
 
 /// A buildie was built: a mirror's beam comes on, and its gate opens once all its mirrors shine.
 pub fn built(buildie: Id32) {
     let Some(&(pf, gate, spot, beam)) = MIRRORS.lock().unwrap().get(&buildie) else { return };
-    info!(playfield = pf, gate, spot = spot.guid, "mirror built: light on the gate");
+    info!(playfield = ?pf, gate, spot = spot.guid, "mirror built: light on the gate");
     world::send_playfield(beam, false, world::Out::Records(vec![crate::mirrors::beam_particle(beam, spot.length)]));
-    if gate_open(gate) == Some(true) {
-        info!(playfield = pf, gate, "light gate opens");
-        send_state(gate, true);
+    if gate_open(pf, gate) == Some(true) {
+        info!(playfield = ?pf, gate, "light gate opens");
+        send_state(pf, gate, true);
     }
 }
 
 /// Shows a gate open or shut: its motion and collision, and its wall piece's.
-fn send_state(gate: u32, open: bool) {
-    let id = Id32::new(SIMPLE_DYNEL_TYPE, gate);
+fn send_state(pf: Pf, gate: u32, open: bool) {
+    let id = crate::scenery::piece_id(pf, gate);
     world::send_playfield(id, false, world::Out::Records(open_records(id, open)));
     for (&wall, _) in WALLS.iter().filter(|(_, g)| **g == gate) {
-        let id = Id32::new(SIMPLE_DYNEL_TYPE, wall);
+        let id = crate::scenery::piece_id(pf, wall);
         world::send_playfield(id, false, world::Out::Records(vec![crate::encounter::collision_record(id, !open)]));
     }
 }
 
-/// Whether a gate this module runs is open now (`None`: not one of them).
-fn gate_open(guid: u32) -> Option<bool> {
+/// Whether a gate this module runs is open now in copy `pf` (`None`: not one of them).
+fn gate_open(pf: Pf, guid: u32) -> Option<bool> {
     // room puzzles: the Gauntlet's plate room (plates.rs) and mirror room (mirrors.rs)
     if guid == crate::plates::GATE {
-        return Some(crate::plates::solved());
+        return Some(crate::plates::solved(pf));
     }
     if guid == crate::tiki::GATE {
-        return Some(crate::tiki::solved());
+        return Some(crate::tiki::solved(pf));
     }
     if guid == crate::ballista::GATE {
-        return Some(crate::ballista::solved());
+        return Some(crate::ballista::solved(pf));
     }
-    if let Some(open) = crate::mirrors::gate_open(guid) {
+    if let Some(open) = crate::mirrors::gate_open(pf, guid) {
         return Some(open);
     }
     if let Some(&exit) = EXIT_GATES.get(&guid) {
-        return Some(crate::encounter::door_hidden(exit) == Some(true));
+        return Some(crate::encounter::door_hidden(pf, exit) == Some(true));
     }
     let mirrors = MIRRORS.lock().unwrap();
-    let spots: Vec<Id32> = mirrors.iter().filter(|(_, m)| m.1 == guid).map(|(b, _)| *b).collect();
+    let spots: Vec<Id32> = mirrors.iter().filter(|(_, m)| m.0 == pf && m.1 == guid).map(|(b, _)| *b).collect();
     drop(mirrors);
     (!spots.is_empty()).then(|| spots.iter().all(|b| crate::buildie::built(*b)))
 }
 
-/// Whether a gate blocks now (scenery.rs spawns it with the gate's collision).
-pub fn blocks(guid: u32) -> bool {
-    gate_open(guid) == Some(false)
+/// Whether a gate blocks now in copy `pf` (scenery.rs spawns it with the gate's collision).
+pub fn blocks(pf: Pf, guid: u32) -> bool {
+    gate_open(pf, guid) == Some(false)
 }
 
 pub fn collision() -> u32 {
@@ -222,9 +232,9 @@ pub fn collision() -> u32 {
 }
 
 /// What a gate's spawn adds: its open pose, if it's open.
-pub fn pose_records(guid: u32) -> Vec<Bytes> {
-    match gate_open(guid) {
-        Some(true) => vec![crate::effects::effect_package(Id32::new(SIMPLE_DYNEL_TYPE, guid), OPEN)],
+pub fn pose_records(pf: Pf, guid: u32) -> Vec<Bytes> {
+    match gate_open(pf, guid) {
+        Some(true) => vec![crate::effects::effect_package(crate::scenery::piece_id(pf, guid), OPEN)],
         _ => Vec::new(),
     }
 }
@@ -236,17 +246,17 @@ fn open_records(id: Id32, open: bool) -> Vec<Bytes> {
     vec![motion, collision]
 }
 
-/// A room puzzle was solved or reset: its gate opens or shuts to match.
-pub fn refresh(guid: u32) {
-    if let Some(open) = gate_open(guid) {
-        send_state(guid, open);
+/// A room puzzle in copy `pf` was solved or reset: its gate opens or shuts to match.
+pub fn refresh(pf: Pf, guid: u32) {
+    if let Some(open) = gate_open(pf, guid) {
+        send_state(pf, guid, open);
     }
 }
 
-/// An arena's doors changed (encounter.rs): its exit gates open or shut with them.
-pub fn arena_doors_changed(doors: &[u32]) {
+/// An arena's doors changed in copy `pf` (encounter.rs): its exit gates open or shut with them.
+pub fn arena_doors_changed(pf: Pf, doors: &[u32]) {
     for (&gate, exit) in EXIT_GATES.iter().filter(|(_, exit)| doors.contains(exit)) {
-        send_state(gate, crate::encounter::door_hidden(*exit) == Some(true));
+        send_state(pf, gate, crate::encounter::door_hidden(pf, *exit) == Some(true));
     }
 }
 

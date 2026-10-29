@@ -251,7 +251,8 @@ pub fn explored(playfield: u32, pos: [f32; 3]) -> Vec<&'static str> {
 
 /// A player moved to `pos` on `playfield`.
 pub fn moved(player: Id32, playfield: Pf, pos: [f32; 3]) {
-    let Some(def) = DATA.get(&playfield.model()) else { return };
+    // (nothing fights in the world editor's copies)
+    let Some(def) = DATA.get(&playfield.model()).filter(|_| !crate::instance::rules(playfield).editor) else { return };
     let gates = GATES.get(&playfield.model());
     for (i, arena) in def.arenas.iter().enumerate() {
         if arena.area.contains(pos) && gates.is_none_or(|g| unlocked(playfield, &g.arenas[i])) {
@@ -269,7 +270,7 @@ pub fn moved(player: Id32, playfield: Pf, pos: [f32; 3]) {
 /// `defeated` says which champions the player has beaten already (new ones are picked first).
 pub fn entered(playfield: Pf, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
     let names = crate::achievements::champions_for(playfield.model());
-    if names.is_empty() {
+    if names.is_empty() || crate::instance::rules(playfield).editor {
         return;
     }
     let due = STATE.lock().unwrap().champions.get(&playfield).is_none_or(|(id, ready)| id.is_none() && Instant::now() >= *ready);
@@ -296,11 +297,10 @@ pub fn entered(playfield: Pf, pos: [f32; 3], defeated: &dyn Fn(&str) -> bool) {
 /// Whether a door (simple dynel instance) is hidden now: entrances are open (VisualOpen shown,
 /// VisualClosed hidden) unless the arena is engaged; the exit opens when the boss is beaten (or
 /// its mirror puzzle is solved, mirrors.rs).
-pub fn door_hidden(guid: u32) -> Option<bool> {
+pub fn door_hidden(pf: Pf, guid: u32) -> Option<bool> {
     let (playfield, i, kind) = *DOORS.get(&guid)?;
-    let mirrored = DATA.get(&playfield).and_then(|d| d.arenas.get(i)).is_some_and(|a| crate::mirrors::opens_exit(playfield, &a.area.name));
-    // the doors are the main copy's (scenery is spawned there only, for now)
-    let state = STATE.lock().unwrap().arenas.get(&(Pf::main(playfield), i)).cloned().unwrap_or(Arena::Idle);
+    let mirrored = DATA.get(&playfield).and_then(|d| d.arenas.get(i)).is_some_and(|a| crate::mirrors::opens_exit(pf, &a.area.name));
+    let state = STATE.lock().unwrap().arenas.get(&(pf, i)).cloned().unwrap_or(Arena::Idle);
 
     Some(match (kind, state) {
         (Door::Exit, _) if mirrored => true,
@@ -376,9 +376,9 @@ pub fn is_shield(guid: u32) -> bool {
     SHIELDS.contains_key(&guid)
 }
 
-/// Whether a shield blocks now (its door's closed visual is shown).
-pub fn shield_blocks(guid: u32) -> Option<bool> {
-    door_hidden(*SHIELDS.get(&guid)?).map(|hidden| !hidden)
+/// Whether a shield blocks now in copy `pf` (its door's closed visual is shown).
+pub fn shield_blocks(pf: Pf, guid: u32) -> Option<bool> {
+    door_hidden(pf, *SHIELDS.get(&guid)?).map(|hidden| !hidden)
 }
 
 /// `SimpleDynelVisualChangeIIR_c` state 4: the collision KD-tree (0: none), as recorded.
@@ -444,7 +444,7 @@ fn enter_arena(player: Id32, playfield: Pf, i: usize, arena: &ArenaDef) {
                 *entry = Arena::Engaged { boss, players: [player].into(), adds: vec![], waves: 0, empty_since: None };
             }
             info!(?playfield, arena = %arena.area.name, ?boss, ?player, "arena engaged");
-            set_doors(arena);
+            set_doors(playfield, arena);
             music(player, true);
         }
         Arena::Engaged { players, .. } if !players.contains(&player) => {
@@ -543,7 +543,7 @@ fn tick() {
             let changed = std::mem::discriminant(&next) != std::mem::discriminant(&STATE.lock().unwrap().arenas[&(playfield, i)]);
             STATE.lock().unwrap().arenas.insert((playfield, i), next);
             if changed {
-                set_doors(def);
+                set_doors(playfield, def);
             }
         }
     }
@@ -598,32 +598,40 @@ fn tick() {
         };
         for i in won {
             if let Some(def) = DATA.get(&playfield.model()).and_then(|d| d.arenas.get(i)) {
-                set_doors(def);
+                set_doors(playfield, def);
             }
         }
     }
 }
 
+/// Forgets copy `pf`'s arenas, ambushes and champion (the copy was dropped, worlds.rs).
+pub fn forget(pf: Pf) {
+    let mut st = STATE.lock().unwrap();
+    st.arenas.retain(|k, _| k.0 != pf);
+    st.ambushes.retain(|k, _| k.0 != pf);
+    st.champions.remove(&pf);
+}
+
 /// Shows every arena door on `playfield` as it is now (a mirror puzzle solved or reset).
 pub fn refresh_doors(playfield: Pf) {
     for def in DATA.get(&playfield.model()).map(|d| d.arenas.as_slice()).unwrap_or_default() {
-        set_doors(def);
+        set_doors(playfield, def);
     }
 }
 
 /// Shows the arena's doors as its state has them, and makes their shields walls or not.
-fn set_doors(def: &ArenaDef) {
+fn set_doors(pf: Pf, def: &ArenaDef) {
     let doors: Vec<u32> = def.doors.open.iter().chain(&def.doors.closed).chain(&def.doors.exit).copied().collect();
     for &guid in &doors {
-        if let Some(hidden) = door_hidden(guid) {
-            let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, guid);
+        if let Some(hidden) = door_hidden(pf, guid) {
+            let id = crate::scenery::piece_id(pf, guid);
             world::send_playfield(id, false, world::Out::Records(vec![door_record(id, hidden)]));
         }
     }
-    crate::gates::arena_doors_changed(&doors);
+    crate::gates::arena_doors_changed(pf, &doors);
     for (&shield, door) in SHIELDS.iter().filter(|(_, door)| doors.contains(door)) {
-        if let Some(hidden) = door_hidden(*door) {
-            let id = Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, shield);
+        if let Some(hidden) = door_hidden(pf, *door) {
+            let id = crate::scenery::piece_id(pf, shield);
             world::send_playfield(id, false, world::Out::Records(vec![collision_record(id, !hidden)]));
         }
     }
@@ -658,8 +666,8 @@ mod tests {
         assert!(medusa.area.contains([c[0], medusa.area.heights[0] + 1.0, c[1]]));
         assert!(!medusa.area.contains([c[0] + 500.0, medusa.area.heights[0] + 1.0, c[1]]));
         assert!(!DATA.contains_key(&crate::tutorial::PLAYFIELD));
-        assert_eq!(door_hidden(medusa.doors.closed[0]), Some(true));
-        assert_eq!(door_hidden(medusa.doors.open[0]), Some(false));
+        assert_eq!(door_hidden(crate::instance::Pf::main(0), medusa.doors.closed[0]), Some(true));
+        assert_eq!(door_hidden(crate::instance::Pf::main(0), medusa.doors.open[0]), Some(false));
         assert!(DATA.values().map(|d| d.ambushes.len()).sum::<usize>() > 50);
         // Pirate Town (exploration) and which playfields are pocket worlds
         let town = DATA[&4200].explore.iter().find(|a| a.name == "Achievement_PirateTown").unwrap();

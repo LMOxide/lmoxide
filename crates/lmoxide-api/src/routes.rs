@@ -145,6 +145,8 @@ pub struct Account {
 pub struct CharacterSummary {
     pub id: u32,
     pub name: String,
+    /// The game mode the character belongs to: `progression`, `maxed` or `world-editor`.
+    pub mode: String,
     pub playfield: u32,
     pub stars: u64,
     /// Unix time of the last save.
@@ -155,8 +157,11 @@ pub struct CharacterSummary {
 pub struct Character {
     pub id: u32,
     pub name: String,
+    /// The game mode the character belongs to: `progression`, `maxed` or `world-editor`.
+    pub mode: String,
     pub playfield: u32,
     pub position: [f32; 3],
+
     /// Minifigure item templates in team order (the first is active).
     pub team: Vec<u32>,
     pub stars: u64,
@@ -547,7 +552,7 @@ fn account_dto(db: &lmoxide_db::Db, a: lmoxide_db::Account, show_ip: bool) -> lm
     let characters = db
         .characters_of(a.id)?
         .into_iter()
-        .map(|c| CharacterSummary { id: c.id, name: c.name, playfield: c.playfield, stars: c.stars, saved_at: c.saved_at })
+        .map(|c| CharacterSummary { id: c.id, name: c.name, mode: c.mode, playfield: c.playfield, stars: c.stars, saved_at: c.saved_at })
         .collect();
     let ban = a.active_ban().map(|b| BanInfo { until: b.until, reason: b.reason.clone() });
     Ok(Account {
@@ -1376,6 +1381,8 @@ async fn get_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id):
         Ok(Json(Character {
             id,
             name: c.name,
+            mode: c.mode,
+
             playfield: c.playfield,
             position: c.pos,
             team: c.team.iter().map(|&(_, template)| template).collect(),

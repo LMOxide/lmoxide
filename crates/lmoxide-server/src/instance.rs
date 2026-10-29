@@ -14,8 +14,8 @@ use std::fmt;
 /// Playfield ids fit in 16 bits (the largest is 33000).
 const MODEL_BITS: u32 = 16;
 const MODEL_MASK: u32 = (1 << MODEL_BITS) - 1;
-/// Copies per world: the key's top bit stays clear.
-pub const MAX_COPY: u32 = (1 << (31 - MODEL_BITS)) - 1;
+/// Copies per world: a fixture's dynel instance carries its copy in its top byte (`fixture`).
+pub const MAX_COPY: u32 = 255;
 
 /// One running copy of a world. In JSON it is its key, so a main copy reads and writes as the
 /// plain playfield id.
@@ -60,19 +60,149 @@ impl Pf {
     }
 }
 
-/// The copy of playfield `model` a player arriving there (logging in, teleporting) joins. For
-/// now always the main copy; later the open-world player cap and team copies (pocket
+/// A game mode: the rules a character plays by. Each mode has its own characters and its own
+/// copies of the worlds (a character never changes mode).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, serde::Serialize, serde::Deserialize, clap::ValueEnum)]
+#[serde(rename_all = "kebab-case")]
+#[value(rename_all = "kebab-case")]
+pub enum Mode {
+    /// As live: characters start at level 1, earn XP and stars, rank minifigures up and buy
+    /// upgrades; the collection grows from drops.
+    Progression,
+    /// Everything unlocked: level 30, every minifigure owned and fully ranked.
+    Maxed,
+    /// The world editor's worlds: nothing moves or attacks; attacking something selects it, and
+    /// everyone may use the test commands (docs/SURVEY.md).
+    WorldEditor,
+}
+
+/// What a mode changes.
+#[derive(Debug)]
+pub struct Rules {
+    /// Levels, XP, minifigure ranks, upgrade purchases and a collection that grows; otherwise
+    /// everything is unlocked and at its maximum.
+    pub progression: bool,
+    /// The world editor's: nothing moves or attacks, interactions select things for the editor,
+    /// names and headings show as placed.
+    pub editor: bool,
+    /// The lowest GM level a player has here (world editors teleport and use test commands).
+    pub min_gm_level: u32,
+}
+
+const RULES: [Rules; 3] = [
+    Rules { progression: true, editor: false, min_gm_level: 0 },
+    Rules { progression: false, editor: false, min_gm_level: 0 },
+    Rules { progression: false, editor: true, min_gm_level: 1 },
+];
+
+impl Mode {
+    pub const ALL: [Mode; 3] = [Mode::Progression, Mode::Maxed, Mode::WorldEditor];
+
+    const fn index(self) -> usize {
+        match self {
+            Mode::Progression => 0,
+            Mode::Maxed => 1,
+            Mode::WorldEditor => 2,
+        }
+    }
+
+    /// Its id in the database, the API and configuration.
+    pub const fn id(self) -> &'static str {
+        match self {
+            Mode::Progression => "progression",
+            Mode::Maxed => "maxed",
+            Mode::WorldEditor => "world-editor",
+        }
+    }
+
+    /// Its name for players (the patcher's Game Mode list).
+    pub const fn name(self) -> &'static str {
+        match self {
+            Mode::Progression => "Progression",
+            Mode::Maxed => "Maxxed",
+            Mode::WorldEditor => "World Editor",
+        }
+    }
+
+    pub fn parse(id: &str) -> Option<Mode> {
+        Mode::ALL.into_iter().find(|m| m.id() == id)
+    }
+
+    /// A character's mode from its saved `mode` (unknown: progression, the mode of every
+    /// character made before modes existed).
+    pub fn of_character(c: &lmoxide_db::Character) -> Mode {
+        Mode::parse(&c.mode).unwrap_or(Mode::Progression)
+    }
+
+    pub fn rules(self) -> &'static Rules {
+        &RULES[self.index()]
+    }
+
+    /// The mode's main copy of playfield `model`: copy 0, 1, 2 for the modes in [`Mode::ALL`]
+    /// order (copy 0, the playfield id as key, is progression's: the characters made before
+    /// modes keep the copy they had).
+    pub fn main(self, model: u32) -> Pf {
+        Pf::copy_of(model, self.index() as u32)
+    }
+}
+
+/// Copies beyond the modes' main ones start here.
+pub const FIRST_EXTRA_COPY: u32 = Mode::ALL.len() as u32;
+
+/// The mode copy `pf` belongs to.
+pub fn mode_of(pf: Pf) -> Mode {
+    match Mode::ALL.get(pf.copy() as usize) {
+        Some(&m) => m,
+        None => extra_mode(pf).unwrap_or(Mode::Progression),
+    }
+}
+
+/// The rules of copy `pf`.
+pub fn rules(pf: Pf) -> &'static Rules {
+    mode_of(pf).rules()
+}
+
+/// The mode of an extra copy (beyond the main ones), as it was made.
+fn extra_mode(pf: Pf) -> Option<Mode> {
+    EXTRAS.lock().unwrap().get(&pf).map(|e| e.mode)
+}
+
+/// An extra copy of a world: who it is for.
+struct Extra {
+    mode: Mode,
+}
+
+static EXTRAS: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<Pf, Extra>>> = std::sync::LazyLock::new(Default::default);
+
+/// The copy of playfield `model` a player of `mode` arriving there (logging in, teleporting)
+/// joins: the mode's main copy. Later the open-world player cap and team copies (pocket
 /// adventures, Lost Creations) are chosen here.
-pub fn arrival(model: u32) -> Pf {
-    Pf::main(model)
+pub fn arrival(mode: Mode, model: u32) -> Pf {
+    mode.main(model)
 }
 
 /// The copy a player in `from` going to playfield `to` ends up in: the same copy within its own
-/// world (a teleport spot, a script moving them), else the one [`arrival`] picks.
+/// world (a teleport spot, a script moving them), else the one [`arrival`] picks for the mode
+/// of `from`.
 pub fn towards(from: Pf, to: u32) -> Pf {
-    if from.model() == to { from } else { arrival(to) }
+    if from.model() == to { from } else { arrival(mode_of(from), to) }
 }
 
+
+
+/// Fixture ids: a world's fixed objects (doors, scenery, jump pads, puzzle markers) have one
+/// dynel per copy, the base instance (their guid, < 2^24) with the copy in the top byte. Copy
+/// 0's are the bare guids. Fixtures are never characters, so they can't meet a player's id.
+pub const fn fixture(pf: Pf, base: u32) -> u32 {
+    base & FIXTURE_MASK | pf.copy() << 24
+}
+
+/// The base instance (guid) of a fixture's dynel instance.
+pub const fn fixture_base(instance: u32) -> u32 {
+    instance & FIXTURE_MASK
+}
+
+const FIXTURE_MASK: u32 = 0x00ff_ffff;
 
 /// `4200`, or `4200#3` for copy 3. No `Display` on purpose: game data is keyed by playfield
 /// number strings, and `pf.to_string()` would silently miss for copies; use `pf.model()`.

@@ -92,60 +92,78 @@ static ROOM_DATA: LazyLock<Room> = LazyLock::new(|| {
     Room { holder, statues, spells }
 });
 
-/// Statue buildies (in marker order) and the room's invisible dynels: the skull (forcefield
-/// and fireballs) and one glow per statue.
-static STATUES: Mutex<Vec<Id32>> = Mutex::new(Vec::new());
-static PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+/// Per copy of the Gauntlet: the statue buildies (in marker order), and the room's invisible
+/// dynels: the skull (forcefield and fireballs) and one glow per statue.
+static STATUES: LazyLock<Mutex<HashMap<Pf, Vec<Id32>>>> = LazyLock::new(Default::default);
+static PRESENCES: LazyLock<Mutex<HashMap<Pf, Vec<world::Presence>>>> = LazyLock::new(Default::default);
 
-fn skull_id() -> Id32 {
-    Id32::new(SIMPLE_DYNEL_TYPE, INSTANCES)
+fn skull_id(pf: Pf) -> Id32 {
+    Id32::new(SIMPLE_DYNEL_TYPE, crate::instance::fixture(pf, INSTANCES))
 }
 
-fn glow_id(i: usize) -> Id32 {
-    Id32::new(SIMPLE_DYNEL_TYPE, INSTANCES + 1 + i as u32)
+fn glow_id(pf: Pf, i: usize) -> Id32 {
+    Id32::new(SIMPLE_DYNEL_TYPE, crate::instance::fixture(pf, INSTANCES + 1 + i as u32))
 }
 
-/// Whether every statue is built (the gate opens).
-pub fn solved() -> bool {
-    let statues = STATUES.lock().unwrap();
+/// Whether every statue of copy `pf` is built (the gate opens).
+pub fn solved(pf: Pf) -> bool {
+    let statues = STATUES.lock().unwrap().get(&pf).cloned().unwrap_or_default();
     !statues.is_empty() && statues.iter().all(|b| crate::buildie::built(*b))
 }
 
-/// Puts the statues, the skull and the glows in, and runs the skull's fire.
+/// Runs the skull's fire (the room itself comes with each copy, `spawn_world`).
 pub fn start() {
-    let room = &*ROOM_DATA;
-    for statue in &room.statues {
-        let pos = [statue.pos[0], statue.pos[1] - STATUE_MARKER_HEIGHT, statue.pos[2]];
-        let id = crate::buildie::add("XX_Statue_Buildie", STATUE_TEMPLATE, STATUE_LOOK, Pf::main(PLAYFIELD), pos, statue.rot);
-        STATUES.lock().unwrap().push(id);
-    }
-    join(skull_id(), room.holder, [0.0, 0.0, 0.0, 1.0], || (!solved()).then_some(FORCEFIELD));
-    for (i, statue) in room.statues.iter().enumerate() {
-        join(glow_id(i), statue.pos, statue.rot, move || {
-            let built = STATUES.lock().unwrap().get(i).is_some_and(|b| crate::buildie::built(*b));
-            built.then_some(STATUE_GLOW)
-        });
-    }
-    info!(statues = room.statues.len(), "tiki room");
+    info!(statues = ROOM_DATA.statues.len(), "tiki room");
     tokio::spawn(fire());
 }
 
+/// Puts the statues, the skull and the glows into copy `pf` of the Gauntlet.
+pub fn spawn_world(pf: Pf) {
+    if pf.model() != PLAYFIELD {
+        return;
+    }
+    let room = &*ROOM_DATA;
+    let statues: Vec<Id32> = room
+        .statues
+        .iter()
+        .map(|statue| {
+            let pos = [statue.pos[0], statue.pos[1] - STATUE_MARKER_HEIGHT, statue.pos[2]];
+            crate::buildie::add("XX_Statue_Buildie", STATUE_TEMPLATE, STATUE_LOOK, pf, pos, statue.rot)
+        })
+        .collect();
+    STATUES.lock().unwrap().insert(pf, statues);
+    join(pf, skull_id(pf), room.holder, [0.0, 0.0, 0.0, 1.0], move || (!solved(pf)).then_some(FORCEFIELD));
+    for (i, statue) in room.statues.iter().enumerate() {
+        join(pf, glow_id(pf, i), statue.pos, statue.rot, move || {
+            let built = STATUES.lock().unwrap().get(&pf).and_then(|s| s.get(i).copied()).is_some_and(crate::buildie::built);
+            built.then_some(STATUE_GLOW)
+        });
+    }
+}
+
+/// Takes copy `pf`'s room out (its statue buildies go with the copy's, buildie.rs).
+pub fn despawn_world(pf: Pf) {
+    STATUES.lock().unwrap().remove(&pf);
+    let gone = PRESENCES.lock().unwrap().remove(&pf);
+    drop(gone);
+}
+
 /// An invisible dynel showing `particle()` (looping) while it gives one.
-fn join(id: Id32, pos: [f32; 3], rot: [f32; 4], particle: impl Fn() -> Option<u32> + Send + Sync + 'static) {
+fn join(pf: Pf, id: Id32, pos: [f32; 3], rot: [f32; 4], particle: impl Fn() -> Option<u32> + Send + Sync + 'static) {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let presence = world::join(
         id,
-        Pf::main(PLAYFIELD),
+        pf,
         Arc::new(Mutex::new(pos)),
         move || {
-            let mut records = crate::scenery::invisible_records(id, Pf::main(PLAYFIELD), pos, rot);
+            let mut records = crate::scenery::invisible_records(id, pf, pos, rot);
             records.extend(particle().map(|p| particle_record(id, Some(p))));
             records
         },
         outbox,
     );
-    PRESENCES.lock().unwrap().push(presence);
+    PRESENCES.lock().unwrap().entry(pf).or_default().push(presence);
 }
 
 /// `SimpleDynelVisualChangeIIR_c`: state 0 starts a looping particle (attractor 35, as live), 2
@@ -160,19 +178,20 @@ fn particle_record(id: Id32, particle: Option<u32>) -> bytes::Bytes {
 /// A buildie was built (buildie.rs): a statue's glow comes on, and with all four the skull's
 /// forcefield goes and the gate opens.
 pub fn built(buildie: Id32) {
-    let Some(i) = STATUES.lock().unwrap().iter().position(|b| *b == buildie) else { return };
-    info!(statue = i + 1, "tiki statue built");
-    world::send_playfield(glow_id(i), false, world::Out::Records(vec![particle_record(glow_id(i), Some(STATUE_GLOW))]));
-    if solved() {
-        info!("tiki room solved: the skull's forcefield falls");
-        world::send_playfield(skull_id(), false, world::Out::Records(vec![particle_record(skull_id(), None)]));
-        crate::gates::refresh(GATE);
+    let found = STATUES.lock().unwrap().iter().find_map(|(pf, s)| Some((*pf, s.iter().position(|b| *b == buildie)?)));
+    let Some((pf, i)) = found else { return };
+    info!(playfield = ?pf, statue = i + 1, "tiki statue built");
+    world::send_playfield(glow_id(pf, i), false, world::Out::Records(vec![particle_record(glow_id(pf, i), Some(STATUE_GLOW))]));
+    if solved(pf) {
+        info!(playfield = ?pf, "tiki room solved: the skull's forcefield falls");
+        world::send_playfield(skull_id(pf), false, world::Out::Records(vec![particle_record(skull_id(pf), None)]));
+        crate::gates::refresh(pf, GATE);
     }
 }
 
-/// Players in the room now.
-fn in_room() -> Vec<(Id32, world::Position)> {
-    world::position_handles(Pf::main(PLAYFIELD))
+/// Players in copy `pf`'s room now.
+fn in_room(pf: Pf) -> Vec<(Id32, world::Position)> {
+    world::position_handles(pf)
         .into_iter()
         .filter(|(id, pos)| {
             let p = *pos.lock().unwrap();
@@ -199,53 +218,66 @@ const SPIRAL_ANGLE: f32 = std::f32::consts::FRAC_PI_4;
 /// How far out of the skull the spiral's fireballs start (the side markers stand ~0.8 m out).
 const SPIRAL_START: f32 = 1.2;
 
-/// The skull's fire: a pattern every `VOLLEY` while the room is occupied and unsolved.
+/// The skull's fire: a pattern every `VOLLEY` in each copy whose room is occupied and unsolved
+/// (not the world editor's, where nothing attacks).
 async fn fire() {
-    let room = &*ROOM_DATA;
     let mut tick = tokio::time::interval(VOLLEY);
-    let (mut turn, mut side) = (0, 0);
+    // per copy: (pattern turn, side turn)
+    let mut turns: HashMap<Pf, (usize, usize)> = HashMap::new();
     loop {
         tick.tick().await;
-        if solved() || in_room().is_empty() {
-            continue;
+        let copies = crate::worlds::copies_of(PLAYFIELD);
+        turns.retain(|pf, _| copies.contains(pf));
+        for pf in copies {
+            if crate::instance::rules(pf).editor || solved(pf) || in_room(pf).is_empty() {
+                continue;
+            }
+            let (turn, side) = turns.entry(pf).or_default();
+            let pattern = PATTERNS[*turn % PATTERNS.len()];
+            *turn += 1;
+            let room = &*ROOM_DATA;
+            let shots: Vec<([f32; 3], [f32; 2])> = match pattern {
+                Pattern::Side => {
+                    let (dir, origins) = &room.spells[*side % room.spells.len()];
+                    *side += 1;
+                    origins.iter().map(|o| (*o, *dir)).collect()
+                }
+                Pattern::Cross => room.spells.iter().filter_map(|(dir, origins)| origins.get(1).map(|o| (*o, *dir))).collect(),
+                Pattern::Spiral => Vec::new(),
+            };
+            tokio::spawn(volley(pf, pattern, shots));
         }
-        let pattern = PATTERNS[turn % PATTERNS.len()];
-        turn += 1;
-        let shots: Vec<([f32; 3], [f32; 2])> = match pattern {
-            Pattern::Side => {
-                let (dir, origins) = &room.spells[side % room.spells.len()];
-                side += 1;
-                origins.iter().map(|o| (*o, *dir)).collect()
+    }
+}
+
+/// One pattern in copy `pf`: the ground warning, then the fireballs.
+async fn volley(pf: Pf, pattern: Pattern, shots: Vec<([f32; 3], [f32; 2])>) {
+    let room = &*ROOM_DATA;
+    // the warning: ground fire along each line
+    let warnings: Vec<[f32; 3]> = match pattern {
+        // (none before a spiral: ground fire round the skull looked like fireballs bursting on it)
+        Pattern::Spiral => Vec::new(),
+        _ => shots
+            .iter()
+            .flat_map(|(o, d)| (1..=3).map(move |k| [o[0] + d[0] * REACH * k as f32 / 3.0, o[1] - 0.7, o[2] + d[1] * REACH * k as f32 / 3.0]))
+            .collect(),
+    };
+    let records = warnings.into_iter().map(|at| crate::effects::effect_package_at(skull_id(pf), WARNING, at)).collect();
+    world::send_playfield(skull_id(pf), false, world::Out::Records(records));
+    tokio::time::sleep(WARN).await;
+    match pattern {
+        Pattern::Spiral => {
+            for k in 0..SPIRAL_SHOTS {
+                let a = k as f32 * SPIRAL_ANGLE;
+                // from just outside the skull (from its centre the fireball burst on it)
+                let from = [room.holder[0] + a.sin() * SPIRAL_START, room.holder[1] - 0.9, room.holder[2] + a.cos() * SPIRAL_START];
+                shoot(pf, from, [a.sin(), a.cos()], SPIRAL_REACH);
+                tokio::time::sleep(SPIRAL_STEP).await;
             }
-            Pattern::Cross => room.spells.iter().filter_map(|(dir, origins)| origins.get(1).map(|o| (*o, *dir))).collect(),
-            Pattern::Spiral => Vec::new(),
-        };
-        // the warning: ground fire along each line
-        let warnings: Vec<[f32; 3]> = match pattern {
-            // (none before a spiral: ground fire round the skull looked like fireballs bursting on it)
-            Pattern::Spiral => Vec::new(),
-            _ => shots
-                .iter()
-                .flat_map(|(o, d)| (1..=3).map(move |k| [o[0] + d[0] * REACH * k as f32 / 3.0, o[1] - 0.7, o[2] + d[1] * REACH * k as f32 / 3.0]))
-                .collect(),
-        };
-        let records = warnings.into_iter().map(|at| crate::effects::effect_package_at(skull_id(), WARNING, at)).collect();
-        world::send_playfield(skull_id(), false, world::Out::Records(records));
-        tokio::time::sleep(WARN).await;
-        match pattern {
-            Pattern::Spiral => {
-                for k in 0..SPIRAL_SHOTS {
-                    let a = k as f32 * SPIRAL_ANGLE;
-                    // from just outside the skull (from its centre the fireball burst on it)
-                    let from = [room.holder[0] + a.sin() * SPIRAL_START, room.holder[1] - 0.9, room.holder[2] + a.cos() * SPIRAL_START];
-                    shoot(from, [a.sin(), a.cos()], SPIRAL_REACH);
-                    tokio::time::sleep(SPIRAL_STEP).await;
-                }
-            }
-            _ => {
-                for (origin, dir) in shots {
-                    shoot(origin, dir, REACH);
-                }
+        }
+        _ => {
+            for (origin, dir) in shots {
+                shoot(pf, origin, dir, REACH);
             }
         }
     }
@@ -253,12 +285,12 @@ async fn fire() {
 
 /// One fireball from `origin` along `dir` (x, z): the first player in the room it touches on
 /// its way is hit (`projectile::launch_at_players`).
-fn shoot(origin: [f32; 3], dir: [f32; 2], reach: f32) {
+fn shoot(pf: Pf, origin: [f32; 3], dir: [f32; 2], reach: f32) {
     let to = [origin[0] + dir[0] * reach, origin[1], origin[2] + dir[1] * reach];
-    let on_hit: crate::projectile::OnHit = std::sync::Arc::new(|player, _| {
-        if let Some(player) = player.filter(|p| in_room().iter().any(|(id, _)| id == p)) {
-            crate::npc::hurt_player(skull_id(), player, FIREBALL, DAMAGE);
+    let on_hit: crate::projectile::OnHit = std::sync::Arc::new(move |player, _| {
+        if let Some(player) = player.filter(|p| in_room(pf).iter().any(|(id, _)| id == p)) {
+            crate::npc::hurt_player(skull_id(pf), player, FIREBALL, DAMAGE);
         }
     });
-    crate::projectile::launch_at_players(skull_id(), Pf::main(PLAYFIELD), 0, FIREBALL, FIREBALL_SPEED, 0, origin, to, reach, None, on_hit);
+    crate::projectile::launch_at_players(skull_id(pf), pf, 0, FIREBALL, FIREBALL_SPEED, 0, origin, to, reach, None, on_hit);
 }

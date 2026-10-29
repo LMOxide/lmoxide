@@ -12,11 +12,10 @@ use std::{
     time::Duration,
 };
 
-use lmoxide_net::types::Id32;
 use serde::Deserialize;
 use tracing::info;
 
-use crate::{scenery::SIMPLE_DYNEL_TYPE, world};
+use crate::world;
 
 pub const PLAYFIELD: u32 = 6300;
 const UNLIT: &str = "ruined_fort_floor_plate_2x2_b_medieval";
@@ -58,41 +57,43 @@ static PLATES: LazyLock<Vec<(u32, u32, [f32; 3])>> = LazyLock::new(|| {
         .collect()
 });
 
-/// The plates lit (by unlit guid).
-static LIT_NOW: LazyLock<Mutex<HashSet<u32>>> = LazyLock::new(|| Mutex::new(HashSet::new()));
+/// The plates lit (by unlit guid), per copy of the Gauntlet.
+static LIT_NOW: LazyLock<Mutex<HashMap<Pf, HashSet<u32>>>> = LazyLock::new(Default::default);
 
 /// Whether scenery.rs spawns this piece (the plates of the plate room).
 pub fn is_plate(playfield: u32, name: &str) -> bool {
     playfield == PLAYFIELD && (name == UNLIT || name == LIT)
 }
 
-/// Whether a plate piece is hidden now: the lit look until its plate is lit, the unlit after.
-pub fn hidden(guid: u32) -> Option<bool> {
-    let lit = LIT_NOW.lock().unwrap();
+/// Whether a plate piece is hidden now in copy `pf`: the lit look until its plate is lit, the
+/// unlit after.
+pub fn hidden(pf: Pf, guid: u32) -> Option<bool> {
+    let lit_now = LIT_NOW.lock().unwrap();
+    let lit = |u: u32| lit_now.get(&pf).is_some_and(|l| l.contains(&u));
     PLATES.iter().find_map(|&(u, l, _)| {
         if guid == u {
-            Some(lit.contains(&u))
+            Some(lit(u))
         } else if guid == l {
-            Some(!lit.contains(&u))
+            Some(!lit(u))
         } else {
             None
         }
     })
 }
 
-/// Whether the plates' gate is open (every plate lit).
-pub fn solved() -> bool {
-    !PLATES.is_empty() && LIT_NOW.lock().unwrap().len() == PLATES.len()
+/// Whether the plates' gate is open in copy `pf` (every plate lit).
+pub fn solved(pf: Pf) -> bool {
+    !PLATES.is_empty() && LIT_NOW.lock().unwrap().get(&pf).is_some_and(|l| l.len() == PLATES.len())
 }
 
 /// A player moved to `pos` (keyboard), or walks a click-to-move path from `from` to `pos`
 /// (only its ends are reported): the plates under them light, along the path as they get there.
 pub fn moved(playfield: Pf, from: Option<[f32; 3]>, pos: [f32; 3]) {
-    if playfield != Pf::main(PLAYFIELD) {
+    if playfield.model() != PLAYFIELD || crate::instance::rules(playfield).editor {
         return;
     }
     let Some(from) = from else {
-        step(pos);
+        step(playfield, pos);
         return;
     };
     let length = ((pos[0] - from[0]).powi(2) + (pos[2] - from[2]).powi(2)).sqrt();
@@ -101,13 +102,13 @@ pub fn moved(playfield: Pf, from: Option<[f32; 3]>, pos: [f32; 3]) {
         for i in 1..=steps {
             let t = i as f32 / steps as f32;
             tokio::time::sleep(Duration::from_secs_f32(length / steps as f32 / WALK_SPEED)).await;
-            step([from[0] + (pos[0] - from[0]) * t, from[1] + (pos[1] - from[1]) * t, from[2] + (pos[2] - from[2]) * t]);
+            step(playfield, [from[0] + (pos[0] - from[0]) * t, from[1] + (pos[1] - from[1]) * t, from[2] + (pos[2] - from[2]) * t]);
         }
     });
 }
 
-/// Lights the plate at `pos`, if any.
-fn step(pos: [f32; 3]) {
+/// Lights the plate at `pos` in copy `pf`, if any.
+fn step(pf: Pf, pos: [f32; 3]) {
     let Some(&(unlit, lit, _)) = PLATES
         .iter()
         .find(|(_, _, p)| (pos[0] - p[0]).abs() <= HALF && (pos[2] - p[2]).abs() <= HALF && pos[1] >= p[1] - 0.5 && pos[1] <= p[1] + ABOVE)
@@ -116,58 +117,52 @@ fn step(pos: [f32; 3]) {
     };
     let (new, done) = {
         let mut lit_now = LIT_NOW.lock().unwrap();
+        let lit_now = lit_now.entry(pf).or_default();
         let new = lit_now.insert(unlit);
         (new, new && lit_now.len() == PLATES.len())
     };
     if !new {
         return;
     }
-    let records = vec![
-        crate::encounter::door_record(Id32::new(SIMPLE_DYNEL_TYPE, unlit), true),
-        crate::encounter::door_record(Id32::new(SIMPLE_DYNEL_TYPE, lit), false),
-    ];
-    world::send_playfield(Id32::new(SIMPLE_DYNEL_TYPE, unlit), false, world::Out::Records(records));
+    let piece = |g| crate::scenery::piece_id(pf, g);
+    let records = vec![crate::encounter::door_record(piece(unlit), true), crate::encounter::door_record(piece(lit), false)];
+    world::send_playfield(piece(unlit), false, world::Out::Records(records));
     if done {
-        info!("plate room solved");
-        crate::gates::refresh(GATE);
+        info!(playfield = ?pf, "plate room solved");
+        crate::gates::refresh(pf, GATE);
     }
 }
 
-/// Test command: lights every plate (or none).
-pub fn set_all(lit: bool) {
+/// Test command: lights every plate of copy `pf` (or none).
+pub fn set_all(pf: Pf, lit: bool) {
     {
         let mut lit_now = LIT_NOW.lock().unwrap();
+        let lit_now = lit_now.entry(pf).or_default();
         lit_now.clear();
         if lit {
             lit_now.extend(PLATES.iter().map(|p| p.0));
         }
     }
-    let records: Vec<_> = PLATES
-        .iter()
-        .flat_map(|&(unlit, l, _)| {
-            [
-                crate::encounter::door_record(Id32::new(SIMPLE_DYNEL_TYPE, unlit), lit),
-                crate::encounter::door_record(Id32::new(SIMPLE_DYNEL_TYPE, l), !lit),
-            ]
-        })
-        .collect();
+    let piece = |g| crate::scenery::piece_id(pf, g);
+    let records: Vec<_> =
+        PLATES.iter().flat_map(|&(unlit, l, _)| [crate::encounter::door_record(piece(unlit), lit), crate::encounter::door_record(piece(l), !lit)]).collect();
     if let Some(&(first, ..)) = PLATES.first() {
-        world::send_playfield(Id32::new(SIMPLE_DYNEL_TYPE, first), false, world::Out::Records(records));
+        world::send_playfield(piece(first), false, world::Out::Records(records));
     }
-    crate::gates::refresh(GATE);
+    crate::gates::refresh(pf, GATE);
 }
 
-/// Puts the plates back once nobody is left in the Gauntlet.
+/// Puts the plates back once nobody is left in a copy of the Gauntlet.
 pub fn start() {
     tokio::spawn(async {
         let mut tick = tokio::time::interval(RESET_CHECK);
         loop {
             tick.tick().await;
-            let empty = !world::positions(Pf::main(PLAYFIELD))
-.iter().any(|(id, _)| crate::npc::is_player(*id));
-            if empty && !LIT_NOW.lock().unwrap().is_empty() {
-                LIT_NOW.lock().unwrap().clear();
-                info!("plate room reset");
+            for pf in crate::worlds::copies_of(PLAYFIELD) {
+                let empty = !world::positions(pf).iter().any(|(id, _)| crate::npc::is_player(*id));
+                if empty && LIT_NOW.lock().unwrap().remove(&pf).is_some_and(|l| !l.is_empty()) {
+                    info!(playfield = ?pf, "plate room reset");
+                }
             }
         }
     });

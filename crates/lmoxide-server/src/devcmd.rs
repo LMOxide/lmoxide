@@ -424,9 +424,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "dialogue" => crate::knubot::points(),
         "portal" => teleport::points(),
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
-        "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => {
-            crate::npc::points(kind).into_iter().map(|(label, pf, p)| (label, pf.model(), p)).collect()
-        }
+        "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
         "script" => crate::scripts::points(),
         "quest" => crate::quests::points(),
         _ => return None,
@@ -658,7 +656,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         "script" | "scripts" => reply(script(&args, playfield)),
         "plates" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => {
-                crate::plates::set_all(how == "solve");
+                crate::plates::set_all(crate::instance::towards(playfield, crate::plates::PLAYFIELD), how == "solve");
                 reply(vec![format!("plates: {how}")])
             }
             _ => reply(vec!["usage: !plates <solve|reset>".into()]),

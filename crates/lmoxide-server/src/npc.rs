@@ -409,25 +409,21 @@ static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(H
 /// (`CHAMPION_RANK`) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
 /// fighters), "patrol" (NPCs with a patrol route) or "smashable":
 /// (label, playfield, home position), by playfield.
-pub fn points(rank: &str) -> Vec<(String, Pf, [f32; 3])> {
-    let mut v: Vec<_> = NPCS
-        .lock()
-        .unwrap()
-        .values()
-        .filter(|n| n.owner.is_none())
-        .filter(|n| {
-            let r = rank_of(&n.def);
+pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
+    let mut v: Vec<_> = residents()
+        .filter(|(_, d)| {
+            let r = rank_of(d);
             match rank {
-                "boss" => n.def.kind == Kind::Enemy && r >= BOSS_RANK,
-                "champion" => n.def.kind == Kind::Enemy && (CHAMPION_RANK..BOSS_RANK).contains(&r),
-                "npc" => n.def.kind == Kind::Npc,
-                "fighter" => n.def.fights(),
-                "patrol" => n.def.patrol.len() >= 2,
-                "smashable" => n.def.kind == Kind::Smashable,
-                _ => n.def.kind == Kind::Enemy,
+                "boss" => d.kind == Kind::Enemy && r >= BOSS_RANK,
+                "champion" => d.kind == Kind::Enemy && (CHAMPION_RANK..BOSS_RANK).contains(&r),
+                "npc" => d.kind == Kind::Npc,
+                "fighter" => d.fights(),
+                "patrol" => d.patrol.len() >= 2,
+                "smashable" => d.kind == Kind::Smashable,
+                _ => d.kind == Kind::Enemy,
             }
         })
-        .map(|n| (format!("{} (level {}, {} health)", n.def.name, n.def.level, n.def.health), n.playfield, n.def.pos))
+        .map(|(pf, d)| (format!("{} (level {}, {} health)", d.name, d.level, d.health), pf, d.pos))
         .collect();
     v.sort_by(|a, b| (a.1, &a.0).cmp(&(b.1, &b.0)));
     v
@@ -569,8 +565,40 @@ pub fn is_smashable(id: Id32) -> bool {
     NPCS.lock().unwrap().get(&id).is_some_and(|n| n.def.kind == Kind::Smashable)
 }
 
-/// Spawns every playfield's NPCs and smashables (the content tree's spawns, spawns.rs) and
-/// starts their AI.
+/// Every playfield's residents (the content's spawns, without the tutorial's per-player ones),
+/// by playfield: what a copy of the world spawns (`spawn_world`).
+static RESIDENTS: std::sync::OnceLock<std::collections::BTreeMap<u32, Vec<SpawnDef>>> = std::sync::OnceLock::new();
+
+/// Every playfield's residents (playfield, spawn).
+pub fn residents() -> impl Iterator<Item = (u32, &'static SpawnDef)> {
+    RESIDENTS.get().into_iter().flatten().flat_map(|(&pf, defs)| defs.iter().map(move |d| (pf, d)))
+}
+
+/// Spawns the residents of a copy of their world (worlds.rs). The world editor's copies are the
+/// survey set's (survey.rs spawns them).
+pub fn spawn_world(pf: Pf) {
+    if crate::instance::rules(pf).editor {
+        return;
+    }
+    for def in RESIDENTS.get().and_then(|r| r.get(&pf.model())).into_iter().flatten() {
+        spawn_as(new_id(def), def.clone(), pf);
+    }
+}
+
+/// Removes every NPC of copy `pf` (worlds.rs, a copy dropped).
+pub fn despawn_world(pf: Pf) {
+    let gone: Vec<Npc> = {
+        let mut npcs = NPCS.lock().unwrap();
+        let ids: Vec<Id32> = npcs.iter().filter(|(_, n)| n.playfield == pf).map(|(id, _)| *id).collect();
+        ids.iter().filter_map(|id| npcs.remove(id)).collect()
+    };
+    // (their presences despawn them outside the NPCS lock)
+    drop(gone);
+}
+
+/// Reads every playfield's residents (the content tree's spawns, spawns.rs), starts the world
+/// editor's survey set or the play content, and the NPCs' AI. Copies of worlds spawn their
+/// residents when someone first comes (worlds.rs).
 pub fn start() {
     let mut all = Vec::new();
     for (playfield, defs) in crate::spawns::table() {
@@ -586,18 +614,19 @@ pub fn start() {
             all.push((playfield, def));
         }
     }
+    let mut by_playfield: std::collections::BTreeMap<u32, Vec<SpawnDef>> = Default::default();
+    for (pf, def) in &all {
+        by_playfield.entry(*pf).or_default().push(def.clone());
+    }
+    let _ = RESIDENTS.set(by_playfield);
     if crate::survey::enabled() {
-        // what is spawned, and as what, is the survey set's business
+        // what the world editor's copies show, and as what, is the survey set's business
         crate::survey::start(all);
     } else if crate::content::enabled() {
-        // the approved world content applied, reloaded as it changes
-        crate::content::start(all);
-    } else {
-        for (playfield, def) in all {
-            spawn_as(new_id(&def), def, Pf::main(playfield));
-        }
+        // the approved world content's walls, scripts and rules
+        crate::content::start();
     }
-    info!(count = NPCS.lock().unwrap().len(), "NPCs spawned");
+    info!(playfields = RESIDENTS.get().map_or(0, |r| r.len()), "NPCs read");
     tokio::spawn(ai());
     tokio::spawn(regenerate());
 }
@@ -660,11 +689,12 @@ fn appear(id: Id32) {
             Kind::Smashable => return smashable_records(id, &def, playfield, pos, health),
         };
         // survey mode names everything by its category ("[guess] Crate"), so the name must show
-        if def.npc_template.is_none() || crate::survey::enabled() {
+        let editor = crate::instance::rules(playfield).editor;
+        if def.npc_template.is_none() || editor {
             // after the full update (which sets Flags from its stats)
             records.insert(2, int32_stat(id, STAT_FLAGS, FLAG_CUSTOM_NAME));
         }
-        if let (Some(rot), true) = (def.rot, crate::survey::enabled()) {
+        if let (Some(rot), true) = (def.rot, editor) {
             records.push(stop_record(id, pos, [rot.sin(), rot.cos()]));
         }
         records
@@ -711,8 +741,7 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
     };
     let mut spawnable: BTreeMap<String, lmoxide_control::Spawnable> = BTreeMap::new();
     let mut looks: BTreeMap<u32, lmoxide_control::Look> = BTreeMap::new();
-    for n in NPCS.lock().unwrap().values().filter(|n| n.owner.is_none()) {
-        let d = &n.def;
+    for (playfield, d) in residents() {
         if matches!(d.kind, Kind::Enemy | Kind::Smashable) {
             let s = spawnable.entry(d.name.to_ascii_lowercase()).or_insert_with(|| lmoxide_control::Spawnable {
                 name: d.name.clone(),
@@ -720,8 +749,8 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
                 level: d.level,
                 playfields: Vec::new(),
             });
-            if !s.playfields.contains(&n.playfield.model()) {
-                s.playfields.push(n.playfield.model());
+            if !s.playfields.contains(&playfield) {
+                s.playfields.push(playfield);
             }
         }
         if d.monster_data != 0 {
@@ -748,12 +777,9 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
 /// Returns how many appeared.
 pub fn spawn_test_enemies(name: &str, count: u32, playfield: Pf, center: [f32; 3], lifetime: Duration) -> u32 {
     let wanted = name.to_ascii_lowercase();
-    let Some(def) = NPCS
-        .lock()
-        .unwrap()
-        .values()
-        .find(|n| matches!(n.def.kind, Kind::Enemy | Kind::Smashable) && n.owner.is_none() && n.def.name.to_ascii_lowercase() == wanted)
-        .map(|n| n.def.clone())
+    let Some(def) = residents()
+        .find(|(_, d)| matches!(d.kind, Kind::Enemy | Kind::Smashable) && d.name.to_ascii_lowercase() == wanted)
+        .map(|(_, d)| d.clone())
     else {
         return 0;
     };
@@ -895,7 +921,8 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
 /// `attacker` hits NPC `target` with `spell` for `damage`. Returns whether it died, or `None`
 /// if `target` isn't a live NPC. A defeated NPC drops loot for the attacker.
 pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool> {
-    if crate::survey::enabled() {
+    let in_editor = NPCS.lock().unwrap().get(&target).is_some_and(|n| crate::instance::rules(n.playfield).editor);
+    if in_editor {
         // nothing is hurt: attacking something selects it
         crate::survey::attacked(attacker, target);
         return None;
@@ -1056,7 +1083,7 @@ pub fn hit_column_with(attacker: Id32, playfield: Pf, from: [f32; 3], to: [f32; 
 /// Hits the NPCs `inside`; returns how many died.
 fn hit_where(attacker: Id32, playfield: Pf, spell: u32, damage: u32, inside: impl Fn([f32; 3]) -> bool, on_hit: impl Fn(Id32)) -> u32 {
     let targets = targets_where(playfield, inside);
-    if crate::survey::enabled() {
+    if crate::instance::rules(playfield).editor {
         // an area attack selects the one nearest the attacker
         let from = world::position_of(attacker).unwrap_or_default();
         if let Some((t, _)) = targets.iter().min_by(|a, b| distance(a.1, from).total_cmp(&distance(b.1, from))) {
@@ -1081,7 +1108,7 @@ pub fn targets_where(playfield: Pf, inside: impl Fn([f32; 3]) -> bool) -> Vec<(I
         .unwrap()
         .iter()
         .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0)
-        .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable) || (crate::survey::enabled() && matches!(n.def.kind, Kind::Npc | Kind::Fighter)))
+        .filter(|(_, n)| matches!(n.def.kind, Kind::Enemy | Kind::Smashable) || (crate::instance::rules(playfield).editor && matches!(n.def.kind, Kind::Npc | Kind::Fighter)))
         .map(|(id, n)| (*id, n.now_at(now)))
         .filter(|(_, p)| inside(*p))
         .collect()
@@ -1322,7 +1349,7 @@ fn smashable_records(id: Id32, def: &SpawnDef, playfield: Pf, pos: [f32; 3], hea
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
         rotation: Some({
             // survey mode shows how it was turned (yaw only)
-            let half = def.rot.filter(|_| crate::survey::enabled()).unwrap_or(0.0) / 2.0;
+            let half = def.rot.filter(|_| crate::instance::rules(playfield).editor).unwrap_or(0.0) / 2.0;
             ProtoQuat { x: Some(0.0), y: Some(half.sin()), z: Some(0.0), w: Some(half.cos()) }
         }),
         playfield_instance: Some(playfield.key()),
@@ -1836,11 +1863,10 @@ async fn ai() {
     let mut awake: std::collections::HashSet<Pf> = Default::default();
     loop {
         tick.tick().await;
-        if crate::survey::enabled() {
-            continue; // nothing moves or attacks
-        }
-        // only playfields with players run (others' fights went on with nobody watching)
-        let occupied = occupied_playfields();
+        // only playfields with players run (others' fights went on with nobody watching), and
+        // in the world editor's nothing moves or attacks
+        let mut occupied = occupied_playfields();
+        occupied.retain(|pf| !crate::instance::rules(*pf).editor);
         let now = std::time::Instant::now();
         for pf in awake.difference(&occupied) {
             emptied.insert(*pf, now);

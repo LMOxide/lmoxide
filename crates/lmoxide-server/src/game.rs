@@ -43,7 +43,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         .unwrap_or(1);
     let store = Store;
     let mut character = 0;
-    let mut me = new_character(String::new(), cfg.start_playfield);
+    let mut me = new_character(String::new(), cfg.default_mode(), cfg.start_playfield);
     // the running copy of the character's playfield it is in (`me.playfield` is the playfield
     // saved: the copy is chosen anew on arrival, instance.rs)
     let mut place = Pf::main(me.playfield);
@@ -182,7 +182,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let _ = outbox.send(world::Out::Teleport(None, crate::tutorial::AFTER_BOSS, 0.0));
                             }
                             if let crate::achievements::Event::Defeated { smashable: false, level, boss, champion, .. } = &event
-                                && crate::progression::enabled()
+                                && me.rules().progression
                             {
                                 let records = gain_xp(&mut me, character, crate::progression::kill_xp(*level, *boss, *champion));
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
@@ -310,7 +310,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // from the peer server, first visit: the character this server keeps under the
                 // client's id
                 if arrived.is_some() && store.load(character).is_none() {
-                    let new = new_character(account.username.clone(), cfg.start_playfield);
+                    let new = new_character(account.username.clone(), cfg.default_mode(), cfg.start_playfield);
                     match store.create(character, account.id, &new) {
                         Ok(()) => info!(account = account.id, character, "character made for a player from the peer server"),
                         Err(e) => warn!(character, "creating the character failed: {e:#}"),
@@ -339,7 +339,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 *pos.lock().unwrap() = me.pos;
                 collection = Collection::new(&me.team, me.collection.as_ref());
                 // the copy LoginConnectReady named (territory.rs)
-                place = crate::instance::arrival(me.playfield);
+                place = crate::instance::arrival(crate::instance::Mode::of_character(&me), me.playfield);
                 info!(character, %version, name = %me.name, playfield = ?place, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
@@ -623,8 +623,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     crate::knubot::talk(h.identity, &me.name, npc, &name, playfield);
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some((guid, action)) = interaction_object(data)
-                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::ballista::is_lever(object.instance))
-                                        .map(|(object, action)| (object.instance, action))
+                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::ballista::is_lever(crate::instance::fixture_base(object.instance)))
+                                        .map(|(object, action)| (crate::instance::fixture_base(object.instance), action))
                                 {
                                     // pulling a ballista's lever (the Gauntlet's shooting room)
                                     if action != INTERACTION_STOP_USE {
@@ -633,8 +633,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     stop_after_success = true;
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some((guid, action)) = interaction_object(data)
-                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::mirrors::is_mirror(object.instance))
-                                        .map(|(object, action)| (object.instance, action))
+                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::mirrors::is_mirror(crate::instance::fixture_base(object.instance)))
+                                        .map(|(object, action)| (crate::instance::fixture_base(object.instance), action))
                                 {
                                     // turning a Medusa mirror (not again for the stop-use the client queues after it)
                                     if action != INTERACTION_STOP_USE {
@@ -644,7 +644,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some((portal, action)) = interaction_object(data)
                                         .filter(|&(object, _)| object.kind == crate::teleport::DOOR_TYPE)
-                                        .and_then(|(object, action)| Some((crate::teleport::door_portal(object.instance)?, action)))
+                                        .and_then(|(object, action)| Some((crate::teleport::door_portal(crate::instance::fixture_base(object.instance))?, action)))
                                 {
                                     // using a portal's door (click or E) opens its window wherever
                                     // the player stands, as live did
@@ -1063,7 +1063,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let template = r.u32()?;
                 let rank = me.rank(template);
                 let cost = crate::progression::rank_cost(rank);
-                let ok = crate::progression::enabled()
+                let ok = me.rules().progression
                     && cost.is_some_and(|c| me.stars >= c)
                     && me.level() >= crate::progression::rank_player_level(rank);
                 info!(template, rank, ?cost, stars = me.stars, ok, "level up minifigure");
@@ -1131,7 +1131,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 } else if request == crate::shop::REQUEST_BUY {
                     let owned = collection.position_of(template).is_some() || me.team.iter().any(|&(_, t)| t == template);
                     let bought = match crate::shop::upgrade_position(shop_id) {
-                        _ if !crate::progression::enabled() => Err("Every upgrade is unlocked on this server."),
+                        _ if !me.rules().progression => Err("Every upgrade is unlocked in this game mode."),
                         _ if currency != crate::shop::STARS => Err("Upgrades are bought with stars."),
                         _ if !owned => Err("You don't have this minifigure."),
                         None => Err("This item isn't for sale."),
@@ -1224,7 +1224,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                         }
                         crate::devcmd::Action::Xp(xp) => {
-                            if crate::progression::enabled() {
+                            if me.rules().progression {
                                 let records = gain_xp(&mut me, character, xp);
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
                             }
@@ -1237,7 +1237,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             crate::chat::system(character, &format!("{} stars", me.stars));
                         }
                         crate::devcmd::Action::Mirrors(solve) => {
-                            let line = if crate::mirrors::set_solved(me.playfield, solve) {
+                            let line = if crate::mirrors::set_solved(place, solve) {
                                 format!("mirrors: {}", if solve { "solved" } else { "reset" })
                             } else {
                                 "no mirror puzzle here (Armory 2310, Gauntlet 6300)".to_string()
@@ -1348,8 +1348,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                                 let mut records = crate::knubot::end(id);
                                 records.extend([
-                                    crate::teleport::intended_teleport_record(id, crate::instance::arrival(playfield)),
-                                    crate::teleport::teleport_record(id, crate::instance::arrival(playfield), at, 0.0),
+                                    crate::teleport::intended_teleport_record(id, crate::instance::arrival(crate::instance::Mode::of_character(&me), playfield)),
+                                    crate::teleport::teleport_record(id, crate::instance::arrival(crate::instance::Mode::of_character(&me), playfield), at, 0.0),
                                 ]);
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
                                 crate::switch::set_away(account_id, true);
@@ -1745,7 +1745,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     // sends the character again, with its team)
                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;
                     let (playfield, at) =
-                        if crate::progression::enabled() { (crate::tutorial::PLAYFIELD, crate::tutorial::START) } else { (cfg.start_playfield, START_POS) };
+                        if me.rules().progression { (crate::tutorial::PLAYFIELD, crate::tutorial::START) } else { (cfg.start_playfield, START_POS) };
                     teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(place, playfield), &mut place, None, Some((at, 0.0)))
                         .await?;
                 }
@@ -1854,10 +1854,11 @@ async fn send_upgrades(conn: &mut Conn, character: u32, me: &Character, collecti
     Ok(())
 }
 
-/// A new character named `name`, starting in `playfield`.
-pub fn new_character(name: String, playfield: u32) -> Character {
+/// A new character of game mode `mode` named `name`, starting in `playfield`.
+pub fn new_character(name: String, mode: crate::instance::Mode, playfield: u32) -> Character {
     Character {
         name,
+        mode: mode.id().to_string(),
         playfield,
         pos: START_POS,
         team: START_TEAM.to_vec(),
@@ -2081,6 +2082,8 @@ async fn send_world(
     place: Pf,
     collection: &Collection,
 ) -> anyhow::Result<()> {
+    // the copy's residents and fixtures, if nobody brought them in yet
+    crate::worlds::ensure(place);
     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
     let mut records = vec![playfield_full_update(place)];
     records.extend(spawn_records(id, &me.spec(place)));
@@ -2168,7 +2171,7 @@ async fn teleport(
 /// The XP bar's stats: XP, LastXP and NextXP of the level (XP 0 without progression).
 fn xp_records(id: Id32, me: &Character) -> Vec<Bytes> {
     let level = me.level();
-    let (last, next) = if crate::progression::enabled() {
+    let (last, next) = if me.rules().progression {
         (crate::progression::last_xp(level), crate::progression::next_xp(level))
     } else {
         (0, 0)
@@ -2669,10 +2672,11 @@ pub const SERVER_INSTANCE: u32 = 0x5e7e;
 /// second player (`--bot`).
 pub async fn run_bot(playfield: Pf) {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, BOT_INSTANCE);
+    crate::worlds::ensure(playfield);
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
-    let bot = Character { name: "Bot".into(), ..new_character(String::new(), playfield.model()) };
+    let bot = Character { name: "Bot".into(), ..new_character(String::new(), crate::instance::mode_of(playfield), playfield.model()) };
     let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec(playfield));
 
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
@@ -2756,7 +2760,7 @@ fn playfield_full_update(playfield: Pf) -> bytes::Bytes {
         let w = w.u32(0).u32(0).u32(0).proto(&proxy).u32(0).blob(&empty_list).blob(&empty_list);
         // 6 u32 (PlayfieldFIIR_t::ReadSubClass, +0xd8..0xec); the 5th is the area's level cap
         // (recorded: 11 in Pirate World, 0 = none in the tutorial)
-        let cap = if crate::progression::enabled() { crate::progression::level_cap(playfield.model()) } else { 0 };
+        let cap = if crate::instance::rules(playfield).progression { crate::progression::level_cap(playfield.model()) } else { 0 };
         w.u32(0).u32(0).u32(0).u32(0).u32(cap).u32(0)
     })
 }
@@ -3015,6 +3019,8 @@ pub trait CharacterExt {
     fn upgrade(&self, template: u32) -> u32;
     /// Player level (stat 54).
     fn level(&self) -> u32;
+    /// The rules of the character's game mode.
+    fn rules(&self) -> &'static crate::instance::Rules;
     /// Minifigure rank (item stat MinifigureLevel).
     fn rank(&self, template: u32) -> u32;
     /// The upgrades bought for a minifigure (item stat PurchasedUpgrades): all without
@@ -3032,11 +3038,15 @@ impl CharacterExt for Character {
     }
 
     fn level(&self) -> u32 {
-        if crate::progression::enabled() { self.level.max(1) } else { CHARACTER_LEVEL }
+        if self.rules().progression { self.level.max(1) } else { CHARACTER_LEVEL }
+    }
+
+    fn rules(&self) -> &'static crate::instance::Rules {
+        crate::instance::Mode::of_character(self).rules()
     }
 
     fn rank(&self, template: u32) -> u32 {
-        if crate::progression::enabled() {
+        if self.rules().progression {
             self.minifigure_levels.get(&template).copied().unwrap_or(0)
         } else {
             crate::progression::MAX_RANK
@@ -3044,7 +3054,7 @@ impl CharacterExt for Character {
     }
 
     fn purchased(&self, template: u32) -> u32 {
-        if crate::progression::enabled() {
+        if self.rules().progression {
             self.purchased_upgrades.get(&template).copied().unwrap_or_else(|| crate::progression::unlocked_upgrades(self.rank(template)))
         } else {
             crate::progression::unlocked_upgrades(crate::progression::MAX_RANK)
@@ -3055,6 +3065,7 @@ impl CharacterExt for Character {
         crate::collection::ItemState {
             active: self.upgrade(template),
             rank: (self.rank(template), self.purchased(template)),
+            progression: self.rules().progression,
             life: crate::combat::item_life(template, self.upgrade(template), self.level()),
             counters: crate::achievements::item_counters(self, template),
         }
@@ -3204,7 +3215,7 @@ mod tests {
     #[test]
     fn test_team_keeps_slots_and_active() {
         let (a, b, c, d) = (550_248, 196_023, 595_244, 357_916);
-        let mut me = new_character("t".into(), 1200);
+        let mut me = new_character("t".into(), crate::instance::Mode::Maxed, 1200);
         // Revolutionary Soldier (b) active in slot 8, the same team asked for: nothing changes
         me.team = vec![(8, b), (6, a), (20, c)];
         let mut collection = Collection::new(&me.team, me.collection.as_ref());

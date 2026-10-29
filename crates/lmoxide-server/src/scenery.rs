@@ -73,47 +73,72 @@ fn wanted(name: &str) -> bool {
         || crate::discovery::is_collectible(name)
 }
 
-/// The spawned pieces by guid: playfield, piece, presence (respawn: mirrors turned).
-static PRESENCES: LazyLock<Mutex<HashMap<u32, (u32, Piece, world::Presence)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-/// (name, playfield, position) of every spawned piece, for the test commands (devcmd.rs).
-static PIECES: Mutex<Vec<(String, u32, [f32; 3])>> = Mutex::new(Vec::new());
-
-/// Spawned pieces whose name contains `pattern`, sorted by playfield.
-pub fn points(pattern: &str) -> Vec<(String, u32, [f32; 3])> {
-    let mut v: Vec<_> = PIECES.lock().unwrap().iter().filter(|p| p.0.contains(pattern)).cloned().collect();
-    v.sort_by(|a, b| a.1.cmp(&b.1));
-    v
-}
-
-/// Puts every piece into its world.
-pub fn start() {
+/// The pieces each world has, by playfield.
+static PIECES: LazyLock<HashMap<u32, Vec<Piece>>> = LazyLock::new(|| {
     let worlds: std::collections::HashMap<String, serde_json::Value> =
         serde_json::from_value(serde_json::json!(*crate::world_data::WORLD_CONTENT)).expect("world content");
+    let mut by_playfield: HashMap<u32, Vec<Piece>> = HashMap::new();
     for (pf, w) in worlds {
         let Ok(playfield) = pf.parse::<u32>() else { continue };
         let Some(list) = w.get("simple_dynels").and_then(|v| v.as_array()) else { continue };
-        for piece in list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| {
+        let pieces = list.iter().filter_map(|d| serde_json::from_value::<Piece>(d.clone()).ok()).filter(|p| {
             wanted(&p.name)
                 || crate::encounter::is_door(p.guid)
                 || crate::encounter::is_shield(p.guid)
                 || crate::plates::is_plate(playfield, &p.name)
                 || crate::pistons::is_piston(playfield, &p.name)
                 || crate::ballista::is_ballista(playfield, &p.name)
-                || crate::gates::wall_blocks(p.guid).is_some()
-        }) {
-            PIECES.lock().unwrap().push((piece.name.clone(), playfield, piece.pos));
-            let presence = join(&piece, Pf::main(playfield));
-
-            PRESENCES.lock().unwrap().insert(piece.guid, (playfield, piece, presence));
-        }
+                || crate::gates::is_wall(p.guid)
+        });
+        by_playfield.entry(playfield).or_default().extend(pieces);
     }
-    info!(count = PRESENCES.lock().unwrap().len(), "scenery spawned");
+    by_playfield
+});
+
+/// The spawned pieces by copy and guid (respawn: mirrors turned).
+static PRESENCES: LazyLock<Mutex<HashMap<(Pf, u32), world::Presence>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// The dynel of piece `guid` in copy `pf`.
+pub fn piece_id(pf: Pf, guid: u32) -> Id32 {
+    Id32::new(SIMPLE_DYNEL_TYPE, crate::instance::fixture(pf, guid))
+}
+
+/// Pieces whose name contains `pattern`, for the test commands (devcmd.rs): (name, playfield,
+/// position), sorted by playfield.
+pub fn points(pattern: &str) -> Vec<(String, u32, [f32; 3])> {
+    let mut v: Vec<_> =
+        PIECES.iter().flat_map(|(&pf, pieces)| pieces.iter().filter(|p| p.name.contains(pattern)).map(move |p| (p.name.clone(), pf, p.pos))).collect();
+    v.sort_by(|a, b| a.1.cmp(&b.1));
+    v
+}
+
+/// Reads the pieces (each copy of a world spawns its own, `spawn_world`).
+pub fn start() {
+    info!(count = PIECES.values().map(Vec::len).sum::<usize>(), "scenery read");
+}
+
+/// Puts the pieces of copy `pf` in (worlds.rs).
+pub fn spawn_world(pf: Pf) {
+    for piece in PIECES.get(&pf.model()).into_iter().flatten() {
+        let presence = join(piece, pf);
+        PRESENCES.lock().unwrap().insert((pf, piece.guid), presence);
+    }
+}
+
+/// Takes the pieces of copy `pf` out.
+pub fn despawn_world(pf: Pf) {
+    let gone: Vec<world::Presence> = {
+        let mut presences = PRESENCES.lock().unwrap();
+        let keys: Vec<(Pf, u32)> = presences.keys().filter(|k| k.0 == pf).copied().collect();
+        keys.iter().filter_map(|k| presences.remove(k)).collect()
+    };
+    drop(gone);
 }
 
 fn join(piece: &Piece, playfield: Pf) -> world::Presence {
     let (outbox, mut inbox) = mpsc::unbounded_channel();
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-    let id = Id32::new(SIMPLE_DYNEL_TYPE, piece.guid);
+    let id = piece_id(playfield, piece.guid);
     let pos = Arc::new(Mutex::new(piece.pos));
     let p = piece.clone();
     world::join(id, playfield, pos, move || spawn_records(&p, playfield), outbox)
@@ -177,7 +202,7 @@ pub fn visual_records(id: Id32, playfield: Pf, pos: [f32; 3], rot: [f32; 4], loo
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (as for jump pads: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR, VisualData with no particles, bounds, scale, u32, u8), then CarsGroup.
 fn spawn_records(p: &Piece, playfield: Pf) -> Vec<Bytes> {
-    let id = Id32::new(SIMPLE_DYNEL_TYPE, p.guid);
+    let id = piece_id(playfield, p.guid);
     let usable = crate::discovery::is_collectible(&p.name) || crate::mirrors::is_mirror(p.guid) || crate::ballista::is_lever(p.guid);
     let cars_group = if usable { CARS_USABLE } else { CARS_INACTIVE };
     let dynel = ProtoGameCodeDynelIir {
@@ -188,18 +213,18 @@ fn spawn_records(p: &Piece, playfield: Pf) -> Vec<Bytes> {
     };
     // an arena's shield: a wall while its door is closed (encounter.rs); nothing else collides
     // (n3VisualDynel::EnableCollision(0))
-    let shield = crate::encounter::shield_blocks(p.guid).or_else(|| crate::gates::wall_blocks(p.guid));
+    let shield = crate::encounter::shield_blocks(playfield, p.guid).or_else(|| crate::gates::wall_blocks(playfield, p.guid));
     let simple = ProtoSimpleDynelIir {
         kdtree: Some(match shield {
             Some(true) => crate::encounter::SHIELD_COLLISION,
             // a gate that waits to be opened (gates.rs)
-            _ if crate::gates::blocks(p.guid) => crate::gates::collision(),
+            _ if crate::gates::blocks(playfield, p.guid) => crate::gates::collision(),
             _ => 0,
         }),
         name: Some(p.name.clone()),
         cars_group: Some(cars_group),
         // gates open; mirrors as turned (mirrors.rs)
-        is_closed: Some(crate::mirrors::closed(p.guid).unwrap_or(!p.is_gate())),
+        is_closed: Some(crate::mirrors::closed(playfield, p.guid).unwrap_or(!p.is_gate())),
         ..Default::default()
     };
     // the RDB gives the animated pieces an empty box (min +3.4e38, max -3.4e38); send a generous
@@ -219,13 +244,30 @@ fn spawn_records(p: &Piece, playfield: Pf) -> Vec<Bytes> {
         bounds.iter().fold(w, |w, v| w.f32(*v)).f32(p.scale).u32(0).u8(0)
     });
     let mut records = vec![create_game_object(id, playfield, p.pos), record, int32_stat(id, STAT_CARS_GROUP, cars_group)];
-    records.extend(crate::mirrors::pose_records(p.guid));
-    records.extend(crate::gates::pose_records(p.guid));
-    records.extend(crate::pistons::pose_records(p.guid));
+    records.extend(crate::mirrors::pose_records(playfield, p.guid));
+    records.extend(crate::gates::pose_records(playfield, p.guid));
+    records.extend(crate::pistons::pose_records(playfield, p.guid));
     // hidden: an arena door that's open now, the plate room's plates' other look
-    let hidden = crate::encounter::door_hidden(p.guid).or_else(|| crate::plates::hidden(p.guid)).or_else(|| crate::ballista::hidden(p.guid));
+    let hidden = crate::encounter::door_hidden(playfield, p.guid)
+        .or_else(|| crate::plates::hidden(playfield, p.guid))
+        .or_else(|| crate::ballista::hidden(playfield, p.guid));
     if hidden == Some(true) {
         records.push(crate::encounter::door_record(id, true));
     }
     records
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn piece_guids_leave_the_copy_byte_free() {
+        // instance::fixture puts the copy in the top byte of every piece's dynel instance
+        assert!(PIECES.values().flatten().all(|p| p.guid < 1 << 24));
+        assert!(DOOR_LIKE.iter().all(|g| *g < 1 << 24));
+    }
+
+    /// Instances the puzzles use beside the pieces (mirrors, gates, Tiki room).
+    const DOOR_LIKE: [u32; 3] = [0x00c0_0000, 0x00c1_0000, 0x00c2_0000];
 }

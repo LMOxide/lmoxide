@@ -96,8 +96,9 @@ struct Pad {
 }
 
 impl Pad {
-    fn id(&self) -> Id32 {
-        Id32::new(PAD_TYPE, self.guid)
+    /// The pad's dynel in copy `pf`.
+    fn id_in(&self, pf: Pf) -> Id32 {
+        Id32::new(PAD_TYPE, crate::instance::fixture(pf, self.guid))
     }
 
     /// Whether landing on this pad throws the player on at once: the invisible jumpers (the
@@ -245,7 +246,9 @@ pub fn set_records(pf: u32, pads: Vec<RecordPad>) {
     let new: Vec<Arc<Live>> = pads.into_iter().map(|r| Arc::new(live_of(r))).collect();
     let old = PADS.write().unwrap().insert(pf, new.clone()).unwrap_or_default();
     if STARTED.load(Ordering::SeqCst) {
-        respawn(Pf::main(pf), &old, &new);
+        for copy in crate::worlds::copies_of(pf) {
+            respawn(copy, &old, &new);
+        }
     }
 }
 
@@ -276,13 +279,13 @@ fn respawn(playfield: Pf, old: &[Arc<Live>], new: &[Arc<Live>]) {
     let same = |a: &Live, b: &Live| a.pad.guid == b.pad.guid && format!("{:?}", a.pad) == format!("{:?}", b.pad);
     let mut presences = PRESENCES.lock().unwrap();
     for o in old.iter().filter(|o| !new.iter().any(|n| same(n, o))) {
-        presences.remove(&o.pad.id());
+        presences.remove(&(playfield, o.pad.guid));
     }
     for n in new.iter().filter(|n| !old.iter().any(|o| same(n, o))) {
         let reused = old.iter().any(|o| o.pad.guid == n.pad.guid);
         let live = n.clone();
         if !reused {
-            presences.insert(live.pad.id(), join(&live, playfield));
+            presences.insert((playfield, live.pad.guid), join(&live, playfield));
 
             continue;
         }
@@ -292,7 +295,7 @@ fn respawn(playfield: Pf, old: &[Arc<Live>], new: &[Arc<Live>]) {
             let still = pads_of(playfield.model()).iter().any(|p| Arc::ptr_eq(p, &live));
             if still {
                 let presence = join(&live, playfield);
-                PRESENCES.lock().unwrap().insert(live.pad.id(), presence);
+                PRESENCES.lock().unwrap().insert((playfield, live.pad.guid), presence);
             }
         });
     }
@@ -303,7 +306,7 @@ fn join(live: &Arc<Live>, playfield: Pf) -> world::Presence {
     tokio::spawn(async move { while inbox.recv().await.is_some() {} });
     let p = live.pad.clone();
     let pos = Arc::new(Mutex::new(p.pos));
-    world::join(p.id(), playfield, pos, move || spawn_records(&p, playfield), outbox)
+    world::join(p.id_in(playfield), playfield, pos, move || spawn_records(&p, playfield), outbox)
 }
 
 /// A pad as the world editor lists it.
@@ -338,7 +341,8 @@ fn listed(playfield: u32, l: &Live) -> Listed {
         target: p.target,
         chain: chain(Pf::main(playfield), p),
         placement: l.placement.clone(),
-        dynel: p.id(),
+        // the world editor's (it lists the pads)
+        dynel: p.id_in(crate::instance::Mode::WorldEditor.main(playfield)),
     }
 }
 
@@ -383,7 +387,8 @@ pub fn by_dynel(dynel: Id32) -> Option<Listed> {
     if dynel.kind != PAD_TYPE {
         return None;
     }
-    let found = PADS.read().unwrap().iter().find_map(|(pf, v)| v.iter().find(|l| l.pad.guid == dynel.instance).map(|l| (*pf, l.clone())));
+    let guid = crate::instance::fixture_base(dynel.instance);
+    let found = PADS.read().unwrap().iter().find_map(|(pf, v)| v.iter().find(|l| l.pad.guid == guid).map(|l| (*pf, l.clone())));
     found.map(|(pf, l)| listed(pf, &l))
 }
 
@@ -441,27 +446,38 @@ struct State {
 }
 
 static STATES: LazyLock<Mutex<HashMap<Id32, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-static PRESENCES: LazyLock<Mutex<HashMap<Id32, world::Presence>>> = LazyLock::new(Default::default);
+/// The pads in the world, by copy and guid.
+static PRESENCES: LazyLock<Mutex<HashMap<(Pf, u32), world::Presence>>> = LazyLock::new(Default::default);
 
-/// Puts every pad into its world.
+/// From now on pad changes respawn the pads of the copies there are (`set_records`).
 pub fn start() {
-    let all: Vec<(u32, Vec<Arc<Live>>)> = PADS.read().unwrap().iter().map(|(pf, v)| (*pf, v.clone())).collect();
-    let mut presences = PRESENCES.lock().unwrap();
-    for (playfield, pads) in all {
-        for live in pads {
-            presences.insert(live.pad.id(), join(&live, Pf::main(playfield)));
-
-        }
-    }
     STARTED.store(true, Ordering::SeqCst);
-    info!(count = presences.len(), "jump pads spawned");
+    info!(count = PADS.read().unwrap().values().map(Vec::len).sum::<usize>(), "jump pads read");
+}
+
+/// Puts the pads of copy `pf` in (worlds.rs).
+pub fn spawn_world(pf: Pf) {
+    for live in pads_of(pf.model()) {
+        let presence = join(&live, pf);
+        PRESENCES.lock().unwrap().insert((pf, live.pad.guid), presence);
+    }
+}
+
+/// Takes the pads of copy `pf` out.
+pub fn despawn_world(pf: Pf) {
+    let gone: Vec<world::Presence> = {
+        let mut presences = PRESENCES.lock().unwrap();
+        let keys: Vec<(Pf, u32)> = presences.keys().filter(|k| k.0 == pf).copied().collect();
+        keys.iter().filter_map(|k| presences.remove(k)).collect()
+    };
+    drop(gone);
 }
 
 /// UpdateMessage + `SimpleDynelFullUpdateIIR_c` (ProtoGameCodeDynelIIR, ProtoSimpleDynelIIR,
 /// VisualData: visual id, resource type, no particles, bounds, scale, u32, u8), then CarsGroup;
 /// matches the recorded session's pads.
 fn spawn_records(pad: &Pad, playfield: Pf) -> Vec<Bytes> {
-    let id = pad.id();
+    let id = pad.id_in(playfield);
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pad.pos[0]), y: Some(pad.pos[1]), z: Some(pad.pos[2]) }),
         rotation: Some(ProtoQuat { x: Some(pad.rot[0]), y: Some(pad.rot[1]), z: Some(pad.rot[2]), w: Some(pad.rot[3]) }),
@@ -538,8 +554,9 @@ fn pad_at(playfield: Pf, at: [f32; 3]) -> Option<Arc<Live>> {
 pub fn activate(playfield: Pf, at: [f32; 3]) {
     for live in pads_of(playfield.model()).into_iter().filter(|l| ((l.pad.pos[0] - at[0]).powi(2) + (l.pad.pos[2] - at[2]).powi(2)).sqrt() < 1.0) {
         let pad = &live.pad;
-        let records = vec![show_record(pad.id(), true), int32_stat(pad.id(), STAT_CARS_GROUP, CARS_GROUP)];
-        world::send_playfield(pad.id(), false, world::Out::Records(records));
+        let id = pad.id_in(playfield);
+        let records = vec![show_record(id, true), int32_stat(id, STAT_CARS_GROUP, CARS_GROUP)];
+        world::send_playfield(id, false, world::Out::Records(records));
         for (player, pos) in world::position_handles(playfield) {
             let here = *pos.lock().unwrap();
             if !crate::npc::is_player(player) || pad_at(playfield, here).is_none_or(|p| p.pad.guid != pad.guid) {
@@ -552,9 +569,10 @@ pub fn activate(playfield: Pf, at: [f32; 3]) {
     }
 }
 
-/// `UpdateSimpleDynelIIR_c` showing or hiding a pad and its CARS group, for one player.
-pub fn pad_records(guid: u32, shown: bool) -> Vec<Bytes> {
-    let id = Id32::new(PAD_TYPE, guid);
+/// `UpdateSimpleDynelIIR_c` showing or hiding pad `guid` of copy `pf` and its CARS group, for
+/// one player.
+pub fn pad_records(pf: Pf, guid: u32, shown: bool) -> Vec<Bytes> {
+    let id = Id32::new(PAD_TYPE, crate::instance::fixture(pf, guid));
     vec![show_record(id, shown), int32_stat(id, STAT_CARS_GROUP, if shown { CARS_GROUP } else { CARS_INACTIVE })]
 }
 
@@ -628,7 +646,7 @@ async fn hop(player: Id32, pad: &Pad, pos: &world::Position) -> Option<[f32; 3]>
     info!(?player, pad = pad.guid, end = ?target, "jump pad");
     let how = pad.tumble();
     world::send_playfield(player, true, world::Out::Records(how.start_records(player)));
-    let end = fly(player, pos, target, pad.apex.unwrap_or(DEFAULT_APEX), Some(effects::effect_package(pad.id(), pad.effect())), how.direction).await;
+    let end = fly(player, pos, target, pad.apex.unwrap_or(DEFAULT_APEX), world::whereabouts(player).map(|(pf, _)| effects::effect_package(pad.id_in(pf), pad.effect())), how.direction).await;
     world::send_playfield(player, true, world::Out::Records(how.end_records(player)));
     Some(end)
 }
@@ -739,6 +757,11 @@ fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> Bytes {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pad_guids_leave_the_copy_byte_free() {
+        assert!(BASE.values().flatten().all(|p| p.guid < 1 << 24));
+    }
 
     fn bouncer(id: &str, pos: [f32; 3], target: Option<[f32; 3]>) -> Placement {
         Placement {

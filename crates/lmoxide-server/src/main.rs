@@ -55,6 +55,7 @@ mod universe;
 mod walls;
 mod world;
 mod world_data;
+mod worlds;
 
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
@@ -216,6 +217,16 @@ pub enum Mode {
 }
 
 impl Config {
+    /// The game mode of this server's players (characters made here, the copies they join).
+    pub fn default_mode(&self) -> instance::Mode {
+        match self.mode {
+            Mode::Survey => instance::Mode::WorldEditor,
+            _ if self.progression => instance::Mode::Progression,
+            Mode::Progression => instance::Mode::Progression,
+            Mode::Play => instance::Mode::Maxed,
+        }
+    }
+
     fn addr(&self, port: u16) -> SocketAddr {
         SocketAddr::new(self.bind, port)
     }
@@ -256,6 +267,13 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     if cfg.auto_register {
         warn!("--auto-register: anyone who can reach the server can create an account by logging in");
     }
+    if cfg.mode == Mode::Survey {
+        // a world editor server's characters are world editors
+        let n = db.set_all_character_modes(instance::Mode::WorldEditor.id())?;
+        if n > 0 {
+            info!(characters = n, "characters made world editors");
+        }
+    }
     state::init(db, key);
     state::set_data_dir(storage.data_dir.clone());
     let mut cfg = cfg;
@@ -272,7 +290,6 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     } else {
         content::init(cfg.content_queue.clone());
     }
-    progression::set_enabled(cfg.progression);
     let peer = cfg.peer_name.clone().map(|name| {
         let dir = cfg.peer_data_dir.clone().unwrap_or_default();
         (name, dir.join("lmoxide.db"), cfg.peer_game_addr.clone().unwrap_or_default(), cfg.peer_chat_addr.clone().unwrap_or_default())

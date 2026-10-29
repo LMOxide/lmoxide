@@ -99,7 +99,8 @@ struct State {
     solved: bool,
 }
 
-static STATE: LazyLock<Mutex<HashMap<u32, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+/// Each copy's puzzle state (by the copy of its world).
+static STATE: LazyLock<Mutex<HashMap<Pf, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 fn find(guid: u32) -> Option<(u32, &'static Mirror)> {
     DATA.iter().find_map(|(&pf, p)| p.mirrors.iter().find(|m| m.guid == guid).map(|m| (pf, m)))
@@ -110,10 +111,11 @@ pub fn is_mirror(guid: u32) -> bool {
     find(guid).is_some()
 }
 
-/// A mirror's `is_closed` now: "-" closed, "+" open (the client keeps the same pose either way).
-pub fn closed(guid: u32) -> Option<bool> {
-    let (pf, m) = find(guid)?;
-    Some(!STATE.lock().unwrap().get(&pf).is_some_and(|s| s.plus.contains(&m.guid)))
+/// A mirror's `is_closed` now in copy `pf`: "-" closed, "+" open (the client keeps the same
+/// pose either way).
+pub fn closed(pf: Pf, guid: u32) -> Option<bool> {
+    let (_, m) = find(guid)?;
+    Some(!plus_now(pf, m.guid))
 }
 
 /// The mirror's pose effect (blend setup 474600's `anim` parameter, effect packages in RDB
@@ -123,37 +125,38 @@ pub const TURN_PLUS: u32 = 474576;
 pub const TURN_MINUS: u32 = 474575;
 
 /// The records that put a mirror in its pose now (for its spawn: a mirror at "+" turns there).
-pub fn pose_records(guid: u32) -> Vec<Bytes> {
-    match closed(guid) {
-        Some(false) => vec![crate::effects::effect_package(Id32::new(SIMPLE_DYNEL_TYPE, guid), TURN_PLUS)],
+pub fn pose_records(pf: Pf, guid: u32) -> Vec<Bytes> {
+    match closed(pf, guid) {
+        Some(false) => vec![crate::effects::effect_package(crate::scenery::piece_id(pf, guid), TURN_PLUS)],
         _ => Vec::new(),
     }
 }
 
-fn plus_now(pf: u32, guid: u32) -> bool {
+fn plus_now(pf: Pf, guid: u32) -> bool {
     STATE.lock().unwrap().get(&pf).is_some_and(|s| s.plus.contains(&guid))
 }
 
-/// Whether a puzzle's gate is open now (its puzzle solved; gates.rs runs it).
-pub fn gate_open(guid: u32) -> Option<bool> {
-    let (&pf, _) = DATA.iter().find(|(_, p)| p.opens.gate == Some(guid))?;
+/// Whether a puzzle's gate is open now in copy `pf` (its puzzle solved; gates.rs runs it).
+pub fn gate_open(pf: Pf, guid: u32) -> Option<bool> {
+    DATA.get(&pf.model()).filter(|p| p.opens.gate == Some(guid))?;
     Some(solved(pf))
 }
 
-/// Whether a solved mirror puzzle opens the exit of arena `name` on `playfield`.
-pub fn opens_exit(playfield: u32, name: &str) -> bool {
-    DATA.get(&playfield).is_some_and(|p| p.opens.arena_exit.as_deref() == Some(name)) && solved(playfield)
+/// Whether a solved mirror puzzle opens the exit of arena `name` in copy `pf`.
+pub fn opens_exit(pf: Pf, name: &str) -> bool {
+    DATA.get(&pf.model()).is_some_and(|p| p.opens.arena_exit.as_deref() == Some(name)) && solved(pf)
 }
 
-fn solved(playfield: u32) -> bool {
-    STATE.lock().unwrap().get(&playfield).is_some_and(|s| s.solved)
+fn solved(pf: Pf) -> bool {
+    STATE.lock().unwrap().get(&pf).is_some_and(|s| s.solved)
 }
 
 /// `player` used mirror `guid`: it turns, the light follows, and lighting every target solves
-/// the puzzle.
+/// the puzzle (in the copy the player is in).
 pub fn turn(player: Id32, guid: u32) {
-    let Some((pf, m)) = find(guid) else { return };
-    let puzzle = &DATA[&pf];
+    let Some((model, m)) = find(guid) else { return };
+    let Some(pf) = world::whereabouts(player).map(|(pf, _)| pf).filter(|pf| pf.model() == model) else { return };
+    let puzzle = &DATA[&model];
     let before = lit_beams(pf);
     let (plus, newly_solved) = {
         let mut states = STATE.lock().unwrap();
@@ -166,13 +169,13 @@ pub fn turn(player: Id32, guid: u32) {
         s.solved |= newly_solved;
         (s.plus.contains(&guid), newly_solved)
     };
-    info!(?player, playfield = pf, mirror = %m.name, plus, "mirror turned");
-    let id = Id32::new(SIMPLE_DYNEL_TYPE, guid);
+    info!(?player, playfield = ?pf, mirror = %m.name, plus, "mirror turned");
+    let id = crate::scenery::piece_id(pf, guid);
     let effect = crate::effects::effect_package(id, if plus { TURN_PLUS } else { TURN_MINUS });
     world::send_playfield(id, false, world::Out::Records(vec![effect]));
     show_beams(pf, &before);
     if newly_solved {
-        info!(playfield = pf, "mirror puzzle solved");
+        info!(playfield = ?pf, "mirror puzzle solved");
         on_solved(pf, puzzle);
     }
 }
@@ -203,37 +206,34 @@ fn reached<'a>(puzzle: &'a Puzzle, plus: &HashSet<u32>) -> (HashSet<&'a str>, Ha
 }
 
 /// The beams shown now on `pf`: (mirror, "+") for every mirror the light falls on.
-fn lit_beams(pf: u32) -> HashSet<(u32, bool)> {
+fn lit_beams(pf: Pf) -> HashSet<(u32, bool)> {
+    let Some(puzzle) = DATA.get(&pf.model()) else { return HashSet::new() };
     let plus = STATE.lock().unwrap().get(&pf).map(|s| s.plus.clone()).unwrap_or_default();
-    reached(&DATA[&pf], &plus).1.into_iter().map(|g| (g, plus.contains(&g))).collect()
+    reached(puzzle, &plus).1.into_iter().map(|g| (g, plus.contains(&g))).collect()
 }
 
 /// Starts the beams that came on and stops those that went out since `before`.
-fn show_beams(pf: u32, before: &HashSet<(u32, bool)>) {
+fn show_beams(pf: Pf, before: &HashSet<(u32, bool)>) {
     let now = lit_beams(pf);
     for &(guid, plus) in now.difference(before) {
-        let id = beam_id(guid, plus);
+        let id = beam_id(pf, guid, plus);
         world::send_playfield(id, false, world::Out::Records(vec![beam_record(id, guid, plus)]));
     }
     for &(guid, plus) in before.difference(&now) {
-        let id = beam_id(guid, plus);
+        let id = beam_id(pf, guid, plus);
         world::send_playfield(id, false, world::Out::Records(vec![beam_stop_record(id)]));
     }
 }
 
-/// Mirror and position -> its beam dynel.
-static BEAM_IDS: LazyLock<HashMap<(u32, bool), Id32>> = LazyLock::new(|| {
+/// Mirror and position -> its beam dynel's instance (in each copy, `instance::fixture`).
+static BEAM_IDS: LazyLock<HashMap<(u32, bool), u32>> = LazyLock::new(|| {
     let mut guids: Vec<u32> = DATA.values().flat_map(|p| p.mirrors.iter().map(|m| m.guid)).collect();
     guids.sort();
-    guids
-        .into_iter()
-        .enumerate()
-        .flat_map(|(i, g)| [false, true].map(|plus| ((g, plus), Id32::new(SIMPLE_DYNEL_TYPE, BEAM_INSTANCES + 2 * i as u32 + u32::from(plus)))))
-        .collect()
+    guids.into_iter().enumerate().flat_map(|(i, g)| [false, true].map(|plus| ((g, plus), BEAM_INSTANCES + 2 * i as u32 + u32::from(plus)))).collect()
 });
 
-fn beam_id(guid: u32, plus: bool) -> Id32 {
-    BEAM_IDS[&(guid, plus)]
+fn beam_id(pf: Pf, guid: u32, plus: bool) -> Id32 {
+    Id32::new(SIMPLE_DYNEL_TYPE, crate::instance::fixture(pf, BEAM_IDS[&(guid, plus)]))
 }
 
 fn beam_of(guid: u32, plus: bool) -> &'static Beam {
@@ -258,68 +258,72 @@ fn beam_stop_record(id: Id32) -> Bytes {
     lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(2).u32(0))
 }
 
-static BEAM_PRESENCES: Mutex<Vec<world::Presence>> = Mutex::new(Vec::new());
+static BEAM_PRESENCES: LazyLock<Mutex<HashMap<Pf, Vec<world::Presence>>>> = LazyLock::new(Default::default);
 
-/// Puts the beam dynels into their worlds (each shows its beam while the light takes it).
-fn spawn_beams() {
-    let mut presences = BEAM_PRESENCES.lock().unwrap();
-    for (&pf, puzzle) in DATA.iter() {
-        for m in &puzzle.mirrors {
-            for plus in [false, true] {
-                let (id, guid, beam) = (beam_id(m.guid, plus), m.guid, beam_of(m.guid, plus));
-                let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
-                tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-                let pos = std::sync::Arc::new(Mutex::new(beam.pos));
-                // the main copy's: puzzle state is the playfield's, not per copy (yet)
-                presences.push(world::join(
-                    id,
-                    Pf::main(pf),
-                    pos,
-                    move || {
-                        let mut records = crate::scenery::invisible_records(id, Pf::main(pf), beam.pos, beam.rot);
-                        if lit_beams(pf).contains(&(guid, plus)) {
-                            records.push(beam_record(id, guid, plus));
-                        }
-                        records
-                    },
-                    outbox,
-                ));
-            }
+/// Puts the beam dynels into copy `pf` (each shows its beam while the light takes it).
+pub fn spawn_world(pf: Pf) {
+    let Some(puzzle) = DATA.get(&pf.model()) else { return };
+    let mut presences = Vec::new();
+    for m in &puzzle.mirrors {
+        for plus in [false, true] {
+            let (id, guid, beam) = (beam_id(pf, m.guid, plus), m.guid, beam_of(m.guid, plus));
+            let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
+            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+            let pos = std::sync::Arc::new(Mutex::new(beam.pos));
+            presences.push(world::join(
+                id,
+                pf,
+                pos,
+                move || {
+                    let mut records = crate::scenery::invisible_records(id, pf, beam.pos, beam.rot);
+                    if lit_beams(pf).contains(&(guid, plus)) {
+                        records.push(beam_record(id, guid, plus));
+                    }
+                    records
+                },
+                outbox,
+            ));
         }
     }
+    BEAM_PRESENCES.lock().unwrap().insert(pf, presences);
 }
 
-fn on_solved(pf: u32, puzzle: &Puzzle) {
+/// Takes copy `pf`'s beams and puzzle state out.
+pub fn despawn_world(pf: Pf) {
+    let gone = BEAM_PRESENCES.lock().unwrap().remove(&pf);
+    drop(gone);
+    STATE.lock().unwrap().remove(&pf);
+}
+
+fn on_solved(pf: Pf, puzzle: &Puzzle) {
     if let Some(gate) = puzzle.opens.gate {
-        crate::gates::refresh(gate);
+        crate::gates::refresh(pf, gate);
     }
     if puzzle.opens.arena_exit.is_some() {
-        crate::encounter::refresh_doors(Pf::main(pf));
+        crate::encounter::refresh_doors(pf);
     }
 }
 
-/// Puts the puzzles of empty playfields back to the start, now and then.
+/// Puts the puzzles of empty copies back to the start, now and then.
 pub fn start() {
-    spawn_beams();
     tokio::spawn(async {
         let mut tick = tokio::time::interval(RESET_CHECK);
         loop {
             tick.tick().await;
-            for &pf in DATA.keys() {
-                let empty = !world::positions(Pf::main(pf)).iter()
-.any(|(id, _)| crate::npc::is_player(*id));
+            for pf in crate::worlds::spawned().into_iter().filter(|pf| DATA.contains_key(&pf.model())) {
+                let empty = !world::positions(pf).iter().any(|(id, _)| crate::npc::is_player(*id));
                 let reset = empty && STATE.lock().unwrap().remove(&pf).is_some_and(|s| s != State::default());
                 if reset {
-                    info!(playfield = pf, "mirror puzzle reset");
+                    info!(playfield = ?pf, "mirror puzzle reset");
                 }
             }
         }
     });
 }
 
-/// Test command: turns the playfield's mirrors to the solution (or back to the start).
-pub fn set_solved(playfield: u32, solve: bool) -> bool {
-    let Some(puzzle) = DATA.get(&playfield) else { return false };
+/// Test command: turns the mirrors of copy `playfield` to the solution (or back to the start).
+pub fn set_solved(playfield: Pf, solve: bool) -> bool {
+    let Some(puzzle) = DATA.get(&playfield.model()) else { return false };
     let plus = if solve {
         let Some(plus) = solution(puzzle) else { return false };
         plus
@@ -330,7 +334,7 @@ pub fn set_solved(playfield: u32, solve: bool) -> bool {
     STATE.lock().unwrap().insert(playfield, State { plus, solved: solve });
     show_beams(playfield, &before);
     for m in &puzzle.mirrors {
-        let id = Id32::new(SIMPLE_DYNEL_TYPE, m.guid);
+        let id = crate::scenery::piece_id(playfield, m.guid);
         let effect = crate::effects::effect_package(id, if plus_now(playfield, m.guid) { TURN_PLUS } else { TURN_MINUS });
         world::send_playfield(id, false, world::Out::Records(vec![effect]));
     }
@@ -338,9 +342,9 @@ pub fn set_solved(playfield: u32, solve: bool) -> bool {
         on_solved(playfield, puzzle);
     } else {
         if let Some(gate) = puzzle.opens.gate {
-            crate::gates::refresh(gate);
+            crate::gates::refresh(playfield, gate);
         }
-        crate::encounter::refresh_doors(Pf::main(playfield));
+        crate::encounter::refresh_doors(playfield);
     }
     true
 }

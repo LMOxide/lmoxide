@@ -9,7 +9,6 @@
 //! entry to the content repository, which servers then pull: not built yet
 //! (docs/WORLD-EDITOR-CONTENT.md, phase 3).
 
-use crate::instance::Pf;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::{
@@ -32,8 +31,6 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use tracing::{info, warn};
 
-use crate::npc::{self, SpawnDef};
-
 static ENABLED: AtomicBool = AtomicBool::new(false);
 /// The publish queue's folder, if this server has one.
 static QUEUE: LazyLock<Mutex<Option<PathBuf>>> = LazyLock::new(Mutex::default);
@@ -50,13 +47,9 @@ pub fn init(queue: Option<PathBuf>) {
     ENABLED.store(true, Ordering::Relaxed);
 }
 
-/// Spawns `all` (npc::start's list: what the content spawns at start) and starts the content's
-/// trigger walls, scripts and smash rules.
-pub fn start(all: Vec<(u32, SpawnDef)>) {
-    for (pf, def) in all {
-        npc::spawn_as(npc::new_id(&def), def, Pf::main(pf));
-
-    }
+/// Starts the content's trigger walls, scripts and smash rules (the worlds' residents spawn
+/// with each copy, npc::spawn_world).
+pub fn start() {
     let dir = crate::gamedata::dir(None);
     let dir = crate::gamedata::loaded_from().unwrap_or(dir);
     let work = match Work::open(&dir) {
