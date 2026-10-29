@@ -66,9 +66,12 @@ class Doc:
         return done, total
 
     def boxes(self, items):
-        """items: (key, text, depth[, tick]) -> (done, total)."""
+        """items: (key, text, depth[, tick]) -> (done, total); key None = a plain line `text`."""
         done = total = 0
         for item in items:
+            if item[0] is None:
+                self.lines.append(item[1])
+                continue
             done += self.box(*item)
             total += 1
         return done, total
@@ -139,6 +142,34 @@ def shared_unique(rows):
     return {'Shared (2+ minifigures)': shared, 'Unique (1 minifigure)': unique}
 
 
+def folded_tree(rows):
+    """Achievement rows in tree order (`depth`) as boxes, each one's children folded in a
+    <details> ('{n} achievements') under it."""
+    out = []
+    i = 0
+
+    def walk(depth):
+        nonlocal i
+        while i < len(rows) and rows[i]['depth'] == depth:
+            r = rows[i]
+            out.append((r['key'], ach_text(r), depth))
+            i += 1
+            j = i
+            n = 0
+            while j < len(rows) and rows[j]['depth'] > depth:
+                n += rows[j]['depth'] == depth + 1
+                j += 1
+            if n:
+                pad = '  ' * (depth + 1)
+                out.append((None, f'{pad}<details><summary>{n} achievements</summary>'))
+                out.append((None, ''))
+                walk(depth + 1)
+                out.append((None, ''))
+                out.append((None, f'{pad}</details>'))
+    walk(0)
+    return out
+
+
 def ach_text(r):
     obj = f' · _{esc(r["objective"])}_' if r['objective'] else ''
     desc = f' — {esc(r["description"])}' if r['description'] else ''
@@ -179,8 +210,8 @@ def build(state):
                     + f' — {fold(a["enemies"], "NPCs")}', 0)]))
 
     totals.append(section(
-        doc, '5. World achievements', None, lists.world_achievements(),
-        lambda r: [(r['key'], ach_text(r), r['depth'])]))
+        doc, '5. World achievements', None, {w: [rows] for w, rows in lists.world_achievements().items()},
+        folded_tree))
 
     totals.append(section(
         doc, '6. Global achievements', None, {'Global': lists.global_achievements()},
