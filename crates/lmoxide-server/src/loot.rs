@@ -303,8 +303,21 @@ fn random() -> u64 {
     s.wrapping_mul(0x2545_f491_4f6c_dd1d)
 }
 
-pub fn chance(percent: u64) -> bool {
-    random() % 100 < percent
+/// The loot power level a chest or quest reward rolls at for a character of `level` on playfield
+/// `model` (the Lua's DoSuperChestPowerLevel): `level × power_per_level`, at most its
+/// super-region's cap (tunables `loot.power_caps`); the Treasure Chamber (7001) and unknown
+/// super-regions aren't capped. LMOxide's loot tables don't scale by it yet (how the live tables
+/// did was server data): it is logged with each chest.
+pub fn power_level(level: u32, model: u32) -> u32 {
+    let c = crate::gamedata::get();
+    let power = level * c.tunables.loot.power_per_level;
+    let cap = c.world_by_playfield(model).and_then(|w| w.super_region).filter(|_| model != 7001).and_then(|r| c.tunables.loot.power_caps.get(&r.to_string()).copied());
+    cap.map_or(power, |cap| power.min(cap))
+}
+
+/// True with probability `p` (0..1), to 0.01%.
+pub fn chance_fraction(p: f64) -> bool {
+    (random() % 10_000) < (p * 10_000.0).round() as u64
 }
 
 fn pick(items: &[u32]) -> Option<u32> {
@@ -442,7 +455,12 @@ pub fn test_items(kind: &str, playfield: Pf) -> Vec<u32> {
         "memberchest" => pick(&t.member_chests).into_iter().collect(),
         "boss" => roll(Source::Boss, 0, playfield),
         "enemy" => roll(Source::Enemy, 0, playfield),
-        _ => roll(Source::Smashable, 0, playfield),
+        "smashable" => roll(Source::Smashable, 0, playfield),
+        table => {
+            let mut out = Vec::new();
+            roll_table_into(table, 0, playfield, &mut out);
+            out
+        }
     }
 }
 
@@ -693,5 +711,17 @@ mod tests {
         assert!(none.is_empty());
         assert_eq!(achievement_minifigures().count(), 1);
         assert_eq!(membership_minifigures().len(), 2);
+    }
+}
+
+#[cfg(test)]
+mod power_tests {
+    #[test]
+    fn power_level_is_capped_by_super_region() {
+        assert_eq!(super::power_level(30, 4200), 1000, "Pirate");
+        assert_eq!(super::power_level(5, 4200), 500);
+        assert_eq!(super::power_level(30, 1643), 1000, "a Pirate micro-dungeon");
+        assert_eq!(super::power_level(30, 2210), 2500, "Mythology");
+        assert_eq!(super::power_level(30, 7001), 3000, "the Treasure Chamber isn't capped");
     }
 }

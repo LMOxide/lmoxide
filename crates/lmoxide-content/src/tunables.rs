@@ -42,6 +42,15 @@ pub struct Tunables {
     /// The Lost Creations runs (docs/LOST-CREATIONS.md; the levels are `lc` records).
     #[serde(default)]
     pub lost_creations: LostCreations,
+    /// Potions, health orbs and level-ups.
+    #[serde(default)]
+    pub health: Health,
+    /// Smashed minifigures: rebuild time, the swap's knockaway and immunity.
+    #[serde(default)]
+    pub smashed: Smashed,
+    /// Zone elements: Wrong Element and Elemental Affinity.
+    #[serde(default)]
+    pub elements: Elements,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
@@ -78,6 +87,13 @@ pub struct Loot {
     pub tables: BTreeMap<String, String>,
     /// Items the loot rules name (`star`, `health_orb`, `potion`, `stars_25`, ...).
     pub items: BTreeMap<String, String>,
+    /// Loot power level per player level (the server Lua: `playerLevel * 100`).
+    #[serde(default)]
+    pub power_per_level: u32,
+    /// Super-region -> the highest loot power level its chests and quest rewards roll at
+    /// (DoSuperChestPowerLevel: Pirate 1000, Medieval 1500, Space 2000, Mythology 2500, Dino 3000).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub power_caps: BTreeMap<String, u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
@@ -100,6 +116,72 @@ pub struct Progression {
     pub minifigure_xp: BTreeMap<String, u32>,
     /// Player level needed per minifigure rank.
     pub rank_player_level: Vec<u32>,
+    /// Super-region (world `super_region`) -> the level cap there; none: no cap.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub level_caps: BTreeMap<String, u32>,
+}
+
+/// A push away from a point (the client's AreaKnockaway: Radius, Distance, Speed).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Knockaway {
+    pub radius: f32,
+    pub distance: f32,
+    pub speed: f32,
+    /// The client spell that does it (shown).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spell: Option<u32>,
+}
+
+/// Potions, health orbs and level-ups (the server Lua shipped with the client).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Health {
+    /// A Potion of Health heals this share of the maximum (script 464: `life * 0.8`).
+    pub potion_heal: Ratio,
+    /// Drinking one at or below this share of health adds `barely_alive_tag` ("Close Call!").
+    pub barely_alive_below: Ratio,
+    #[schemars(extend("x-lmoxide-client" = "lore"))]
+    pub barely_alive_tag: u32,
+    /// A level-up heals fully and knocks the enemies around away (script 990, spell 423601).
+    pub level_up_knockaway: Knockaway,
+}
+
+/// Smashed minifigures (scripts 973 and 3804, "minifigure swapper smashed").
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Smashed {
+    /// Rebuild time by player level: the entry of the highest listed level at or below the
+    /// player's.
+    pub rebuild_by_level: BTreeMap<String, Duration>,
+    /// The rebuild time of members (a subscribed account or UseMemberSmashedTimer) and in
+    /// `free_super_regions`.
+    pub free_rebuild: Duration,
+    pub free_super_regions: Vec<u32>,
+    /// Whether players count as members (LMOxide: everyone is).
+    pub everyone_member: bool,
+    /// The swap pushes the enemies around away (465935) ...
+    pub knockaway: Knockaway,
+    /// ... and the next minifigure can't be hurt for this long (465943, MitigationOverrideFlat 100).
+    pub immunity: Duration,
+    #[schemars(extend("x-lmoxide-client" = "nano"))]
+    pub immunity_nano: u32,
+}
+
+/// Zone elements (the playfield controllers 464871 / 517564 / 517102 and DoElementalAffinity).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Elements {
+    /// A minifigure whose element isn't the zone's gets this buff (the controller's Wrong
+    /// Element; which controller each zone used is unknown).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["buff"]))]
+    pub wrong_element: Option<Ref>,
+    /// Elemental Affinity (an upgrade with the stat `elemental_affinity`) in a zone of the
+    /// minifigure's element: its role (`striker`, `defender`, `builder`) -> buff.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[schemars(extend("x-lmoxide-ref" = ["buff"]))]
+    pub affinity: BTreeMap<String, Ref>,
 }
 
 /// NPC life on the live server: life = base[level] x the template's life factor.

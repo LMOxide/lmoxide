@@ -141,10 +141,30 @@ pub fn set_active_minifigure(player: Id32, template: u32, max: u32, mitigation: 
     *h
 }
 
+/// Whether `player` is in combat (hit, attacked or hitting an enemy within `regen_delay`).
+pub fn in_combat(player: Id32) -> bool {
+    let delay = crate::gamedata::get().tunables.npc.regen_delay.to_std();
+    IN_COMBAT.lock().unwrap().get(&player).is_some_and(|t| t.elapsed() < delay)
+}
+
 pub fn player_left(player: Id32) {
     PLAYERS.lock().unwrap().remove(&player);
     IN_COMBAT.lock().unwrap().remove(&player);
     crate::procs::left(player);
+}
+
+/// Sets the player's active minifigure's health (at most its maximum; `!hurt`); returns it.
+pub fn set_player_health(player: Id32, health: u32) -> u32 {
+    let mut players = PLAYERS.lock().unwrap();
+    let p = players.entry(player).or_default();
+    let h = health.min(p.max);
+    p.health.insert(p.active, h);
+    h
+}
+
+/// The player's active minifigure's health now.
+pub fn player_health(player: Id32) -> Option<u32> {
+    PLAYERS.lock().unwrap().get(&player).map(|p| p.health.get(&p.active).copied().unwrap_or(p.max))
 }
 
 /// The player's active minifigure's maximum health (0 if unknown).
@@ -329,6 +349,8 @@ struct Npc {
     cooldowns: HashMap<u32, std::time::Instant>,
     /// Casting (or stunned) until then: it stands still.
     busy_until: Option<std::time::Instant>,
+    /// Stunned by a player's ability until then.
+    stunned_until: Option<std::time::Instant>,
     /// The player who last hit it, and when (enemies keep fighting them).
     threat: Option<(Id32, std::time::Instant)>,
     /// Walking its patrol route: the route point it is heading for, and when the route was
@@ -363,6 +385,7 @@ impl Npc {
             test_spawn: false,
             cooldowns: HashMap::new(),
             busy_until: None,
+            stunned_until: None,
             threat: None,
             snares: Vec::new(),
             speed_factor: 1.0,
@@ -974,25 +997,18 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     } else {
         0.0
     };
-    // the attacking player's upgrade procs (damage bonuses)
-    let damage = if by_player { crate::procs::outgoing(attacker, spell, damage) } else { damage };
+    // the attacking player's upgrade procs (damage bonuses; what they do to the target runs
+    // after NPCS is released)
+    let damage = if by_player {
+        let now = std::time::Instant::now();
+        let slowed = npc.snares.iter().any(|(_, until)| *until > now) || npc.stunned_until.is_some_and(|t| t > now);
+        crate::procs::outgoing(attacker, target, spell, damage, slowed && npc.def.kind == Kind::Enemy)
+    } else {
+        damage
+    };
     let dealt = (((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32).min(npc.health);
     npc.health -= dealt;
     let health = npc.health;
-    // a knockback upgrade pushes a surviving enemy away from the attacker
-    if by_player
-        && health > 0
-        && npc.def.kind == Kind::Enemy
-        && let Some(distance) = crate::procs::knockback(attacker)
-        && let Some(from) = world::position_of(attacker)
-    {
-        let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(std::time::Instant::now()).0);
-        let (dx, dz) = (here[0] - from[0], here[2] - from[2]);
-        let d = dx.hypot(dz).max(0.1);
-        let to = [here[0] + dx / d * distance, here[1], here[2] + dz / d * distance];
-        *npc.pos.lock().unwrap() = to;
-        world::send_playfield(target, false, world::Out::Records(vec![crate::game::move_task_record(target, here, to)]));
-    }
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
     let kind = npc.def.kind;
     let mut records = if kind == Kind::Smashable {
@@ -1123,6 +1139,18 @@ fn hit_where(attacker: Id32, playfield: Pf, spell: u32, damage: u32, inside: imp
 }
 
 /// The live enemies and smashables on `playfield` whose position is `inside`, with their positions.
+/// The live enemies on `playfield` within `radius` of `center`.
+pub fn enemies_near(playfield: Pf, center: [f32; 3], radius: f32) -> Vec<Id32> {
+    let now = std::time::Instant::now();
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0 && n.def.kind == Kind::Enemy)
+        .filter(|(_, n)| distance(n.now_at(now), center) <= radius)
+        .map(|(id, _)| *id)
+        .collect()
+}
+
 pub fn targets_where(playfield: Pf, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
     let now = std::time::Instant::now();
     NPCS.lock()
@@ -1499,8 +1527,14 @@ pub fn enemy_hit(power: f32, ability_mod: f32) -> u32 {
 /// next minifigure itself.
 pub fn hurt_player(id: Id32, player: Id32, spell: u32, damage: u32) {
     mark_in_combat(player);
+    // just after a minifigure swap the next one can't be hurt (465943)
+    if crate::procs::immune(player) {
+        return;
+    }
+    // an enemy weakened by an upgrade (Puff of Smoke, Oil Slick) does less
+    let damage = ((damage as f32) * crate::procs::enemy_damage_factor(id)).round().max(1.0) as u32;
     // the player's defensive upgrade procs
-    let damage = crate::procs::incoming(player, damage, crate::actions::is_channelling(player));
+    let damage = crate::procs::incoming(player, id, damage, crate::actions::is_channelling(player));
     let Some((minifigure, health)) = damage_player(player, damage) else { return };
     crate::procs::after_damage(player, health, player_max_health(player));
     let records = vec![combat_log_record(id, player, spell, damage), int32_stat(player, STAT_HEALTH, health)];
@@ -1612,6 +1646,7 @@ pub fn stun(id: Id32, duration: Duration) -> Option<Duration> {
         }
         let until = now + duration;
         npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
+        npc.stunned_until = Some(until);
         // it stops where it is (facing the way it went)
         let stop = npc.walk.take().map(|w| {
             let (here, _) = w.at(now);

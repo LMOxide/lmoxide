@@ -133,6 +133,8 @@ const GROUND_MIN_VISUAL: Duration = Duration::from_secs(1);
 /// Range of a projectile without AttackRange.
 const DEFAULT_PROJECTILE_RANGE: f32 = 15.0;
 const MAX_DEPTH: u32 = 5;
+/// Crowd control actions (what NanoResistance strain 800 resists).
+const CROWD_CONTROL: &[&str] = &["AddSnare", "Stun", "Knockaway", "AreaKnockaway", "Root", "Fear"];
 /// Traps (PlaceTrap) spring when a player comes this close (the islander scout's trap area
 /// formula's Radius), checked this often.
 const TRAP_RADIUS: f32 = 2.0;
@@ -436,6 +438,13 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
     let on_caster = target.id == Some(caster);
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client));
     let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
+    // a player immune to crowd control (True Grit, Stalwart) doesn't get slows, stuns and
+    // knockbacks (the client would run them)
+    let crowd_control = n.lists.values().flatten().any(|a| CROWD_CONTROL.contains(&a.kind.as_str()));
+    if is_buff && crowd_control && target.id.is_some_and(|p| p != caster && crate::npc::is_player(p) && crate::procs::cc_immune(p)) {
+        debug!(nano, "crowd control resisted");
+        return;
+    }
     match target.id {
         Some(on) if is_buff => {
             let duration = n.stats.time_exist.map_or(DEFAULT_BUFF, cs);

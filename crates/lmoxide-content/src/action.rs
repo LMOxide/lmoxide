@@ -144,8 +144,14 @@ pub enum Action {
         #[serde(default, skip_serializing_if = "is_default_target")]
         target: Target,
     },
+    /// Knocks the target away (`radius`: everyone around the owner), or pulls it closer.
     Knockback {
         distance: f32,
+        /// The client's Knockaway Speed, taken as m/s as actions.rs does (default 25).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        speed: Option<f32>,
+        #[serde(default, skip_serializing_if = "crate::record::is_false")]
+        pull: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         radius: Option<f32>,
         #[serde(default, skip_serializing_if = "is_default_target")]

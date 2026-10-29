@@ -59,19 +59,18 @@ pub fn level_for(xp: u64, cap: u32) -> u32 {
     level
 }
 
-/// A playfield's level cap: the world's (by playfield number), 0 = none (the hub, the
-/// tutorial). Pirate World's 11 is recorded; the others assume each world caps two levels above
-/// where the next world's proposed enemies start (TUNABLES).
+/// A playfield's level cap, 0 = none: its world's `level.cap`, else its super-region's
+/// (tunables `progression.level_caps` by world `super_region`, RDB 1000052: micro-dungeons and
+/// the hub get their world's); the tutorial has none. Pirate World's 11 and the tutorial's none
+/// are recorded; the others assume each world caps two levels above where the next world's
+/// proposed enemies start (TUNABLES).
 pub fn level_cap(playfield: u32) -> u32 {
-    match playfield / 1000 {
-
-        4 => 11,
-        5 => 15,
-        3 => 19,
-        2 => 21,
-        6 => MAX_PLAYER_LEVEL,
-        _ => 0,
+    let c = crate::gamedata::get();
+    let Some(w) = c.world_by_playfield(playfield) else { return 0 };
+    if let Some(cap) = w.level.as_ref().and_then(|l| l.cap) {
+        return cap;
     }
+    w.super_region.and_then(|r| c.tunables.progression.level_caps.get(&r.to_string()).copied()).unwrap_or(0)
 }
 
 /// The cap that applies on `playfield` (0 there = the game's maximum).
@@ -146,5 +145,19 @@ mod tests {
         assert_eq!(unlocked_upgrades(0), 0);
         assert_eq!(unlocked_upgrades(2), 0b111);
         assert_eq!(unlocked_upgrades(MAX_RANK), 0xfff);
+    }
+}
+
+#[cfg(test)]
+mod cap_tests {
+    use super::*;
+
+    #[test]
+    fn caps_by_world_and_super_region() {
+        assert_eq!(level_cap(4200), 11, "Isle of Yarr");
+        assert_eq!(level_cap(1200), 11, "the hub is in the Pirate super-region");
+        assert_eq!(level_cap(1643), 11, "Monkey Cave, a Pirate micro-dungeon");
+        assert_eq!(level_cap(1600), 19, "a Space micro-dungeon");
+        assert_eq!(level_cap(1300), 0, "the tutorial");
     }
 }

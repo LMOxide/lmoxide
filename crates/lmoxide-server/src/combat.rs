@@ -158,11 +158,18 @@ pub fn has_ability(template: u32, active: u32, ability: u32) -> bool {
     minifigure(template).is_some_and(|m| active_upgrades(m, active).any(|b| b.nano == Some(ability)))
 }
 
-/// Share of incoming damage a minifigure absorbs at `level`: its defence plus its upgrades'
-/// ("Tough": MitigationOverrideFlat), each at most MaxMitigation.
-pub fn mitigation(template: u32, active: u32, level: u32) -> f32 {
+/// Share of incoming damage a minifigure absorbs at `level`: its defence (multiplied by
+/// `defence_factor`, 1 + FinalDefenseMultiplier: Wrong Element's -99%, Elemental Affinity's
+/// +20%) plus its upgrades' ("Tough": MitigationOverrideFlat), each at most MaxMitigation.
+pub fn mitigation_scaled(template: u32, active: u32, level: u32, defence_factor: f32) -> f32 {
     let max = player_default("MaxMitigation", 0.55);
-    minifigure(template).map_or(0.0, |m| defence(m, level) + upgrade_sum(m, active, "MitigationOverrideFlat").min(max))
+    minifigure(template).map_or(0.0, |m| (defence(m, level) * defence_factor.max(0.0)).min(max) + upgrade_sum(m, active, "MitigationOverrideFlat").min(max))
+}
+
+/// A minifigure's element (MinifigureElement: 1 Light .. 5 Nature, 0 none) and role
+/// (MinifigureRole: 1 Striker, 2 Defender, 3 Builder).
+pub fn element_role(template: u32) -> (u32, u32) {
+    minifigure(template).map_or((0, 0), |m| (m.stats.element, m.stats.role))
 }
 
 /// A minifigure's defence: (int(Defense × level × StarFactor) + DefenseRatingAll) /

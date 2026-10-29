@@ -31,6 +31,7 @@ pub fn achievements_file(c: &Content) -> Value {
             put("find", json!(a.find));
             put("place", json!(a.place));
             put("stars", json!(a.stars));
+            put("reward", json!(a.reward));
             put("target", a.target.clone().unwrap_or(Value::Null));
             if !a.children.is_empty() {
                 put("children", json!(a.children.iter().filter_map(|ch| c.achievements.get(ch)?.lore).collect::<Vec<_>>()));
@@ -42,6 +43,9 @@ pub fn achievements_file(c: &Content) -> Value {
             put("series", json!(a.series));
             if a.invisible {
                 put("invisible", json!(true));
+            }
+            if a.minifigure_counter {
+                put("minifigure_counter", json!(true));
             }
             Some((id, Value::Object(v)))
         })

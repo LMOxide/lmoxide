@@ -56,6 +56,10 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!aim [shots\|lobs] [current\|lead\|homing]` | how players' straight shots and lobbed shots (both without `shots`/`lobs`) are aimed at the enemy they target, for everyone: `current` (where it is at the shot) or `lead` (where it will be when the shot gets there); `homing` isn't implemented. Start values: `--shot-aim` (current), `--lob-aim` (lead). Without a mode: the current ones |
 | `!bounce [bounce\|spin\|<knockback 0/1> <launched 0/1> <direction>]` | throw yourself 6 m along +x as a bouncer (default) or a cannon/piston does, or with raw animation settings |
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
+| `!stats` | the active minifigure's upgrade procs and lockouts, the zone's element buffs (Wrong Element, Elemental Affinity) with the damage, defence and build factors, crowd control immunity, then level and level cap here, smash timer, loot power |
+| `!hurt <percent>` | set the active minifigure's health to that share of its maximum and run the low-health procs (Second Wind, True Grit, Escape Artist below 21%); a potion drunk at 5% or less adds "Close Call!" |
+| `!element <0-5\|name>` | play as if this zone had that element (0 none, 1 light, 2 shadow, 3 tech, 4 magic, 5 nature) until the next zone: Wrong Element when it isn't the minifigure's, the role's Elemental Affinity buff when it is (with the upgrade) |
+| `!loot <kind\|loot/table>` | drop a loot bag at your feet: `potion`, `part`, `bag`, `chest`, `memberchest`, `boss`, `enemy`, `smashable`, or any content loot table (`!loot loot/achievement-stars-small`, `!loot loot/power-ups`) |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
 | `!lc` | the Lost Creations run you're in: level, map, copy, element, phase, quest step, who is across, time left |

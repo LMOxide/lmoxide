@@ -127,6 +127,12 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["region"]))]
         pub region: Option<Ref>,
+        /// The client's super-region (RDB 1000052, the server Lua's `playfield.superregion`):
+        /// 1300 tutorial, 2000 Mythology, 3000 Space, 4000 Pirate (with the hub), 5000 Medieval,
+        /// 6000 Dino, 7000 Lost Creations; none: not in the table. Level caps, chest loot power
+        /// and the smashed-minifigure timer go by it.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub super_region: Option<u32>,
         /// A pocket adventure's minifigure (its teleport window's reward, RDB 1000644): given for
         /// clearing it or defeating its boss, and never dropped.
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1166,6 +1172,10 @@ pub enum ProcOn {
     Smash,
     /// The holder builds a buildie.
     Build,
+    /// The holder picks up a power-up (a health orb).
+    Pickup,
+    /// While the holder is in combat (a condition, like `not_hit_for`).
+    InCombat,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
@@ -1189,6 +1199,13 @@ pub struct Proc {
     /// Only while the holder channels a special.
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub channelling: bool,
+    /// `every`'s count starts over when the last count is this old (the client's buff counter's
+    /// TimeExist).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub count_for: Option<Duration>,
+    /// Only on a target that is slowed or stunned (stacking lines 802/803).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub target_slowed: bool,
     pub then: Vec<Action>,
 }
 
@@ -1373,6 +1390,10 @@ record! {
     /// A loot table (several enemies or objects can share one): `loot/<slug>.json`.
     #[derive(Default)]
     pub struct LootTable: "loot" {
+        /// The client loot table id the server scripts name (`engine.gethashfromloot(id, ...)`);
+        /// its contents were server data.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub client_table: Option<u32>,
         /// How many times the weighted entries are rolled.
         #[serde(default = "one_u32")]
         pub rolls: u32,
@@ -1681,8 +1702,15 @@ record! {
         pub find: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub place: Option<String>,
+        /// AchievementRewardValue: the stars the client shows as the reward.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub stars: Option<u32>,
+        /// The reward: a loot bag dropped at the player from this table (the lore node's reward
+        /// script, field 7: `spawnloot` of the "Stars Small/Medium/Large/Very Large" tables).
+        /// None: `stars` are given directly.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
+        pub reward: Option<Ref>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub target: Option<serde_json::Value>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -1694,6 +1722,10 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
         pub minifigure: Option<Ref>,
+        /// Its reward script counts it on its minifigure (InventoryItemGeneric3 3000114 +1, the
+        /// Heroic and Legendary "Complete Any 5/10" go by that count).
+        #[serde(default, skip_serializing_if = "crate::record::is_false")]
+        pub minifigure_counter: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub n: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]

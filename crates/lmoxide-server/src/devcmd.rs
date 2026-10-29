@@ -32,7 +32,13 @@
 //!   !revive                   every minifigure (team and collection) back to full health
 //!   !smashme                  smash the active minifigure (it rebuilds after the smash timer)
 //!   !loot <kind>              drop a loot bag at your feet: potion, part, bag, chest, memberchest,
-//!                             boss (a boss's roll: free and member chest), enemy, smashable
+//!                             boss (a boss's roll: free and member chest), enemy, smashable, or
+//!                             any content loot table (`!loot loot/achievement-stars-small`)
+//!   !stats                    the active minifigure's upgrade procs, zone element buffs, damage,
+//!                             defence and build factors, smash timer, level cap, loot power
+//!   !hurt <percent>           set the active minifigure's health to that share (low-health procs)
+//!   !element <0-5|name>       play as if this zone had that element (Wrong Element / Elemental
+//!                             Affinity; 0 none, 1 light ... 5 nature)
 //!   !own [name]               obtain a minifigure (as from a bag); without a name: how many you own
 //!   !collection <limit|all>   own only the team and the members' minifigures, or every one
 //!                             (relog to see it in the Collection)
@@ -106,6 +112,12 @@ pub enum Action {
     SmashMe,
     /// drop a loot bag of a kind (`!loot`)
     Loot(String),
+    /// the active minifigure's stats, procs and zone buffs (`!stats`)
+    Stats,
+    /// the active minifigure's health to this percent of its maximum (`!hurt`)
+    Hurt(u32),
+    /// the zone's element for the player (`!element`)
+    Element(u32),
     /// obtain a minifigure (`None`: tell how many are owned)
     Own(Option<u32>),
     /// limit the collection (true) or own every minifigure
@@ -147,6 +159,9 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!loot <kind>", "drop a loot bag at your feet"),
     ("!smash", "smash the nearest smashable (or defeat the nearest enemy) within 15 m"),
     ("!smashme", "smash the active minifigure (it rebuilds after the smash timer)"),
+    ("!stats", "the active minifigure's upgrade procs, zone element buffs (Wrong Element, Elemental Affinity), damage/defence/build factors, smash timer, level cap and loot power"),
+    ("!hurt <percent>", "set the active minifigure's health to that share of its maximum (Second Wind, True Grit, Escape Artist below 21%; a potion at 5% or less: Close Call!)"),
+    ("!element <0-5|name>", "play as if this zone had that element: 0 none, 1 light, 2 shadow, 3 tech, 4 magic, 5 nature (Wrong Element / Elemental Affinity)"),
     ("!revive", "every minifigure (team and collection) back to full health"),
     ("!own [name]", "obtain a minifigure (as from a bag); without a name: how many you own"),
     ("!collection <limit|all>", "own only the team and the members' minifigures, or every one (relog to see it)"),
@@ -602,9 +617,21 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         },
         "smashme" => Action::SmashMe,
         "loot" => match args.first().copied() {
-            Some(kind) if crate::loot::TEST_KINDS.contains(&kind) => Action::Loot(kind.to_string()),
-            _ => reply(vec![format!("usage: !loot <{}>", crate::loot::TEST_KINDS.join("|"))]),
+            Some(kind) if crate::loot::TEST_KINDS.contains(&kind) || crate::gamedata::get().loot.contains_key(kind) => Action::Loot(kind.to_string()),
+            _ => reply(vec![format!("usage: !loot <{}|loot/<table>>", crate::loot::TEST_KINDS.join("|"))]),
         },
+        "stats" => Action::Stats,
+        "hurt" => match args.first().and_then(|n| n.trim_end_matches('%').parse::<u32>().ok()).filter(|n| (1..=100).contains(n)) {
+            Some(n) => Action::Hurt(n),
+            None => reply(vec!["usage: !hurt <1-100> (percent of the maximum health)".into()]),
+        },
+        "element" => {
+            let names = ["none", "light", "shadow", "tech", "magic", "nature"];
+            match args.first().and_then(|a| a.parse::<u32>().ok().filter(|n| *n <= 5).or_else(|| names.iter().position(|n| n.eq_ignore_ascii_case(a)).map(|i| i as u32))) {
+                Some(e) => Action::Element(e),
+                None => reply(vec!["usage: !element <0-5|none|light|shadow|tech|magic|nature>".into()]),
+            }
+        }
         "own" if args.is_empty() => Action::Own(None),
         "own" => match crate::collection::template_by_name(&args.join(" ")) {
             Some(t) => Action::Own(Some(t)),

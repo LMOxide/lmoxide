@@ -38,7 +38,8 @@ fn content_is_formatted() {
 /// The achievement tree as achievements.json had it (the server, world editor and API read it in
 /// that shape): the same entries, and the same playfield names but for Kingdom (5200), whose
 /// display name is its teleport destination's ("Medieval Kingdom", as the achievements took it),
-/// and the test asset playfield 1.
+/// and the test asset playfield 1. Fields added since (`reward`, `minifigure_counter`: from the
+/// client's reward scripts) are left out of the comparison.
 #[test]
 fn achievements_same_as_the_old_file() {
     let (content, _) = load(tree(), &Options::default());
@@ -48,7 +49,10 @@ fn achievements_same_as_the_old_file() {
     let (o, n) = (old["achievements"].as_array().unwrap(), new["achievements"].as_array().unwrap());
     assert_eq!(o.len(), n.len());
     for (a, b) in o.iter().zip(n) {
-        assert_eq!(a, b);
+        let mut b = b.clone();
+        b.as_object_mut().unwrap().remove("reward");
+        b.as_object_mut().unwrap().remove("minifigure_counter");
+        assert_eq!(a, &b);
     }
     let mut names = old["playfields"].clone();
     names["5200"] = "Medieval Kingdom".into();

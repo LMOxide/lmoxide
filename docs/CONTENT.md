@@ -159,7 +159,7 @@ uses new ids.
 
 | Kind | File | What |
 |---|---|---|
-| `world` | `worlds/<pf>-<slug>/world.json` | playfield id, `kind` (open, pocket, hub, instance, other), `element` (light, shadow, tech, magic, nature: the minimap ring and portal glow; tools/re/extract_elements.py), `region`, `level.cap`, `arrival` (+ `arrival_guid`, `window`), `arrival_from` (coming back from a world), `respawn_points`, `npc_fights` |
+| `world` | `worlds/<pf>-<slug>/world.json` | playfield id, `kind` (open, pocket, hub, instance, other), `element` (light, shadow, tech, magic, nature: the minimap ring and portal glow, Wrong Element / Elemental Affinity; tools/re/extract_elements.py), `region`, `super_region` (RDB 1000052: level caps, loot power, the smash timer), `level.cap`, `arrival` (+ `arrival_guid`, `window`), `arrival_from` (coming back from a world), `respawn_points`, `npc_fights` |
 | `spawn` | `spawns.json` | `kind` (enemy, npc, smashable, buildie, interactable, door, scenery, trigger, actor), `template` (`npc/` or `object/`), `pos`, `rot`, `scale`, `overrides`, `respawn`, `patrol`, `wave` (spawned by a script), `anchor`, `fight`, `replaces` + `removed` (world-editor changes), `variants` (a Lost Creations level's variants it is in; none: in all), `client` (guid, tag, script group, visual, bounds ...) |
 | `portal` | `portals.json` | `pos`, `radius`, `window`, `to` (a destination, below) |
 | `bouncer` | `bouncers.json` | `template` (an `object/` of kind bouncer: the look), `pos`, `rot`, `target`, `target_by`, `apex`, `flight`, `then` (next pad), `requires_built` |
@@ -172,11 +172,11 @@ uses new ids.
 | `object` | `objects/` | `kind` (smashable, buildie, bouncer, door, interactable, scenery), `render`, `level`, `health`, `loot`, `build`, `launch`, `states`, `on_use`, `on_built`, `on_smashed` |
 | `skill` | `skills/` | `client` (the client spell: id, stats, game action lists), `projectile`, `dash`, `summon`, `range`, `area`, `effects`, `target`, `cooldown`, `cast_time`, `ai_category` |
 | `buff` | `buffs/` | `nano` (the client buff that shows it), `amount`, `duration`, `ends_on`, `stacking`, `max_stacks`, `effects` |
-| `loot` | `loot/` | `rolls`, `entries` |
+| `loot` | `loot/` | `client_table` (the client loot table id the server scripts name), `rolls`, `entries` |
 | `item` | `items/` | `kind` (part, minifig_bag, chest, token, health_orb, projectile, mission_item), `template`, `tokens`, `minifigure`, `chest`, `actions` |
 | `minifig` | `minifigures/` | `template`, `series`, `stats`, `normal`, `special`, `upgrades`, `aura_tags`, `parts`, `bag`, `obtain` |
 | `dialogue` | `dialogues/` | `texts` (client text ids, `texts.json`), `world`, `npc`, `start`, `pos`, `follows` |
-| `achievement` | `achievements/` | the client's lore tree (`lore` id, `parent`, `children`, `kind`, `counter`, ...) and world-editor `rule`s (smash/collect enemies, drops) |
+| `achievement` | `achievements/` | the client's lore tree (`lore` id, `parent`, `children`, `kind`, `counter`, ...), `stars` (the reward the client shows), `reward` (the loot table its reward script drops), `minifigure_counter`, and world-editor `rule`s (smash/collect enemies, drops) |
 | `quest` | `quests/` | a main quest: `kind` (story, area, test), `main` (client id), `world`, `area` (an area of role `quest`: entering starts it, leaving pauses it), `repeatable`, `cooldown`, `cooldown_id`, `steps` (client quests in order) with `goals`: `kind` (how the client draws it), `counts` (kills, smashes, kills_or_smashes, champions, builds), `enemies` (names, `@category`), `anywhere`, `count`, `max` (progress bar), `marker` (minimap arrow). A goal's `text` is informational: the client shows its own text for the goal id |
 | `lc` | `lost-creations/` | a Lost Creations level (docs/LOST-CREATIONS.md): `world`, `mode` (mayhem, brawl, champions, survival, smash, gatekeeper), `start` (where the team arrives), `start_gate` / `exit_gate` (`shield`, `visual` guids, `open`), `button`, `exit_door`, `quest`, `end_area`, `variants`, `gatekeeper`, `gatekeepers`. The run's numbers are tunables.json `lost_creations` (entry door, times, Gatekeeper and element blocks, Treasure Chamber, enemy loot, reward pools, `force_level`). tools/re/extract_lost_creations.py writes the levels from the client |
 | `faction` | `factions/` | who fights whom (none yet) |
@@ -254,11 +254,17 @@ their procs, e.g. Berserker:
 
 Proc triggers: `hit`, `normal_hit`, `special_hit`, `attack`, `normal_attack`, `special_attack`,
 `damaged`, `kill`, `special_kill`, `health_below` (`below`), `not_hit_for` (`after`),
-`interval`, `smash`, `build`; with `every`, `chance`, `lockout`, `channelling`. A `not_hit_for`
-proc is a condition: while it holds, the stats of the buffs it applies count (nothing is shown).
-The server applies the buff stats `damage`, `defense` and `mitigation`; client stat names
-(`MovementMultiplier` ...) are the client's to apply through the buff's nano. Upgrades whose
-server effect isn't known are tagged `todo`.
+`in_combat`, `pickup` (a power-up), `interval` (`every_time`), `smash`, `build`; with `every`
+(`count_for`: the count starts over when the last one is that old, a client buff counter's
+TimeExist), `chance`, `lockout`, `channelling`, `target_slowed`. `not_hit_for` and `in_combat`
+procs are conditions: while they hold, the stats of the buffs they apply count (nothing is
+shown). An `apply_buff` without `target` puts the buff on the enemy the event is about (its nano
+shown there, its `damage` weakening the enemy, its `interval` procs' `damage` hurting it). The
+server applies the buff stats `damage`, `defense`, `mitigation`, `cc_immunity`, `build_speed`
+(and on upgrades `orb_chance`, `elemental_affinity`, `cc_immunity_channelling`); client stat names
+(`MovementMultiplier` ...) are the client's to apply through the buff's nano. The rules follow the
+server Lua shipped with the client (each buff's `comment` names its script); upgrades whose server
+effect isn't known are tagged `todo`.
 
 ### Loot
 

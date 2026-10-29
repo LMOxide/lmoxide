@@ -263,15 +263,25 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                     world::Out::Smashed(template) => {
                         // locked for the rebuild time; the client switches to the next minifigure
+                        let level = me.level();
                         if let std::collections::btree_map::Entry::Vacant(e) = me.smashed.entry(template) {
                             // in a Lost Creations run: until the run is over for the player
                             let in_run = crate::lost_creations::in_run(character);
-                            let rebuild = if in_run { crate::lost_creations::NO_REBUILD } else { crate::smash::REBUILD };
+                            let rebuild = if in_run { crate::lost_creations::NO_REBUILD } else { crate::smash::rebuild_time(level, place.model()) };
                             let until = crate::smash::now_ms() + rebuild.as_millis() as i64;
                             e.insert(until);
-                            info!(character, template, in_run, "minifigure smashed");
-                            let args = crate::smash::lock_args(template, until);
+                            info!(character, template, in_run, ?rebuild, "minifigure smashed");
+                            let shown = if in_run { crate::smash::REBUILD } else { rebuild };
+                            let args = crate::smash::lock_args(template, until, shown);
                             conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LOCK_TEMPLATE, args).await?;
+                            // the swap: the enemies around are pushed away (465935) and the next
+                            // minifigure can't be hurt for a moment (465943)
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let sm = &crate::gamedata::get().tunables.smashed;
+                            crate::procs::set_immune(id, sm.immunity.to_std());
+                            crate::procs::knock_around(id, &sm.knockaway);
+                            let shield = crate::effects::show_buff(id, sm.immunity_nano, id, Some(sm.immunity.to_std()));
+                            world::send_playfield(id, true, world::Out::Records(shield));
                             if !in_run {
                                 schedule_rebuild(&outbox, template, until);
                             }
@@ -428,6 +438,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let team = crate::collection::team_refresh(character, &me.team, &|t| me.item_state(t), team_salt);
                             records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&team)));
                         }
+                        // the zone's element decides the Wrong Element / Elemental Affinity buffs
+                        crate::procs::set_zone(h.identity, crate::worlds::element(place));
                         if let Some(&(slot, template)) = me.team.first() {
                             // ParentStatChanged only reacts to a different slot, and the client
                             // may already assume this one: clear it first.
@@ -738,7 +750,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UPDATE_TOKEN_AMOUNT, args)
                                             .await?;
                                         let max = me.team.first().map_or(START_HEALTH, |&(_, t)| crate::combat::max_life(t, me.upgrade(t), me.level()));
-                                        let health = crate::npc::heal_player(h.identity, (max as f32 * POTION_HEAL_SHARE) as u32);
+                                        let t = &crate::gamedata::get().tunables.health;
+                                        // drunk at 5% health or less: "Close Call!" (script 464)
+                                        let before = crate::npc::player_health(h.identity).unwrap_or(max);
+                                        if (before as f64) <= max as f64 * t.barely_alive_below.fraction() && !me.tags.contains_key(&t.barely_alive_tag) {
+                                            me.tags.insert(t.barely_alive_tag, crate::smash::now_ms() / 1000);
+                                            let (endpoint, method, args) = crate::achievements::add_tag(t.barely_alive_tag);
+                                            conn.send_as(Some(character), endpoint, method, args).await?;
+                                        }
+                                        let health = crate::npc::heal_player(h.identity, (max as f64 * t.potion_heal.fraction()) as u32);
+                                        info!(character, before, health, max, "health potion");
                                         extra.push(int32_stat(h.identity, STAT_HEALTH, health));
                                         // the heal visual (hearts), shown to everyone
                                         let effect = crate::effects::effect_package(h.identity, POTION_EFFECT);
@@ -1416,6 +1437,40 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             crate::chat::system(character, &format!("look {look}"));
                         }
                         crate::devcmd::Action::SmashMe => crate::npc::smash_player(Id32::new(crate::territory::CHARACTER_TYPE, character)),
+                        crate::devcmd::Action::Stats => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let mut lines = crate::procs::describe(id);
+                            lines.push(format!(
+                                "level {} (cap here {}), smash timer {:?}, loot power {}",
+                                me.level(),
+                                crate::progression::level_cap(place.model()),
+                                crate::smash::rebuild_time(me.level(), place.model()),
+                                crate::loot::power_level(me.level(), place.model())
+                            ));
+                            for line in lines {
+                                crate::chat::system(character, &line);
+                            }
+                        }
+                        crate::devcmd::Action::Hurt(percent) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let max = crate::npc::player_max_health(id);
+                            let health = crate::npc::set_player_health(id, (max as u64 * u64::from(percent) / 100).max(1) as u32);
+                            let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);
+                            conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+                            crate::procs::after_damage(id, health, max);
+                            crate::chat::system(character, &format!("health {health} of {max}"));
+                        }
+                        crate::devcmd::Action::Element(element) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            crate::procs::set_zone(id, element);
+                            if let Some(&(_, t)) = me.team.first() {
+                                let records = health_records(id, t, me.upgrade(t), me.level());
+                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                            }
+                            for line in crate::procs::describe(id) {
+                                crate::chat::system(character, &line);
+                            }
+                        }
                         crate::devcmd::Action::Loot(kind) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                             let here = *pos.lock().unwrap();
@@ -1685,6 +1740,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let health = crate::npc::heal_player(id, (max as f32 * HEALTH_ORB_HEAL_SHARE).round() as u32);
                         let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, blob).await?;
+                        // picking up a power-up (Pickup Artist)
+                        crate::procs::picked_up(id);
                     }
                     crate::loot::Reward::Part(token) => {
                         let (gained, spent) = me.tokens.entry(token).or_default();
@@ -1711,7 +1768,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             info!(character, minifigure, "minifigure bag (duplicate)");
                         }
                     }
-                    crate::loot::Reward::Chest { member } => crate::loot::open_chest(id, taken.playfield, taken.pos, bag, member),
+                    crate::loot::Reward::Chest { member } => {
+                        let power = crate::loot::power_level(me.level(), taken.playfield.model());
+                        info!(character, member, power, "chest opened");
+                        crate::loot::open_chest(id, taken.playfield, taken.pos, bag, member)
+                    }
                     crate::loot::Reward::RewardChest => crate::lost_creations::open_chest(character, taken.playfield, taken.pos),
                     crate::loot::Reward::Nothing => {}
                 }
@@ -2201,7 +2262,8 @@ async fn send_world(
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     // the smashed minifigures' locks (the character's items were sent anew)
     for (&template, &until) in &me.smashed {
-        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LOCK_TEMPLATE, crate::smash::lock_args(template, until))
+        let total = crate::smash::rebuild_time(me.level(), place.model()).max(crate::smash::left(until));
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LOCK_TEMPLATE, crate::smash::lock_args(template, until, total))
             .await?;
     }
     let saved = me.tokens.iter().map(|(&t, &(g, s))| (t, g, s));
@@ -2302,9 +2364,15 @@ fn gain_xp(me: &mut Character, character: u32, xp: u64) -> Vec<Bytes> {
         me.level = level;
         info!(character, level, xp = me.xp, "level up");
         records.push(int32_stat(id, STAT_LEVEL, me.level()));
-        // the client recomputes Life from the level; send it and the health with it
+        // the client recomputes Life from the level; send it and the health with it. A level-up
+        // heals fully and knocks the enemies around away (script 990, spell 423601).
         if let Some(&(_, t)) = me.team.first() {
-            records.extend(health_records(id, t, me.upgrade(t), me.level()));
+            let mut health = health_records(id, t, me.upgrade(t), me.level());
+            let max = crate::npc::player_max_health(id);
+            let full = crate::npc::heal_player(id, max);
+            health.push(int32_stat(id, STAT_HEALTH, full));
+            records.extend(health);
+            crate::procs::knock_around(id, &crate::gamedata::get().tunables.health.level_up_knockaway);
         }
     }
     records.push(stat_record(id, STAT_XP, me.xp.min(i32::MAX as u64) as u32));
@@ -2362,6 +2430,17 @@ async fn send_progress(
     }
     if out.stars > 0 {
         send_token(conn, character, TOKEN_STARS, me.stars, 0).await?;
+    }
+    // achievement rewards: a loot bag at the player (the reward scripts' spawnloot)
+    if !out.loot.is_empty() {
+        let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+        let at = world::live_position(player).unwrap_or(me.pos);
+        for table in &out.loot {
+            let mut items = Vec::new();
+            crate::loot::roll_table_into(table, 0, place, &mut items);
+            info!(character, table, ?items, "achievement reward bag");
+            crate::loot::drop_items(player, place, at, player, items);
+        }
     }
     // items the world editor's drop rules drop (where the defeated one was, else at the player)
     for (dropper, item) in out.drops {
@@ -2722,9 +2801,13 @@ fn parse_command(rest: &[u8]) -> Option<(lmoxide_net::proto::CommandMessage, &[u
 /// Life is the maximum).
 fn health_records(id: Id32, template: u32, upgrades: u32, level: u32) -> Vec<Bytes> {
     let max = crate::combat::max_life(template, upgrades, level);
-    let health = crate::npc::set_active_minifigure(id, template, max, crate::combat::mitigation(template, upgrades, level));
-    crate::procs::set_active(id, template, upgrades, level);
-    vec![int32_stat(id, STAT_LIFE, max), int32_stat(id, STAT_HEALTH, health)]
+    // the upgrades' procs and the zone's element buffs first: Wrong Element and the Defender's
+    // affinity change the minifigure's defence
+    let mut records = crate::procs::set_active(id, template, upgrades, level);
+    let mitigation = crate::combat::mitigation_scaled(template, upgrades, level, crate::procs::defense_factor(id));
+    let health = crate::npc::set_active_minifigure(id, template, max, mitigation);
+    records.extend([int32_stat(id, STAT_LIFE, max), int32_stat(id, STAT_HEALTH, health)]);
+    records
 }
 
 /// `CombatLogIIR` (AttackUtils_c::ActivateCombatLog 0x175bc26): the floating damage number.
@@ -3023,10 +3106,9 @@ async fn send_token(conn: &mut Conn, character: u32, token: u32, gained: u64, sp
 const HEALTH_ORB_HEAL_SHARE: f32 = 0.15;
 /// Potions a new character starts with (the count is saved; enemies drop more, loot.rs).
 pub const START_POTIONS: u64 = 5;
-/// "Potion of Health" (in shortcut slot 100): the heal was server-side; it restores the active
-/// minifigure to full health (as the user remembers live).
+/// "Potion of Health" (in shortcut slot 100): the heal was server-side (script 464: 80% of the
+/// maximum, tunables `health.potion_heal`).
 const POTION_SPELL: u32 = 104_554;
-const POTION_HEAL_SHARE: f32 = 1.0;
 /// Effect package of the potion's heal (hearts on the character).
 const POTION_EFFECT: u32 = 4456;
 /// BehaviorControlCenterIIR_c (WriteSubClass 0x1a37690): u8 action, u32 CommandType,

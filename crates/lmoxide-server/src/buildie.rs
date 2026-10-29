@@ -253,7 +253,7 @@ pub fn interact(player: Id32, data: &[u8]) -> Option<bool> {
     }
     b.state = State::Building(player);
     info!(?player, buildie = %b.def.name, "build started");
-    records.extend(start_records(target));
+    records.extend(start_records(target, rate_of(player)));
     drop(buildies);
     world::send_playfield(target, false, world::Out::Records(records));
     tokio::spawn(build(target, player));
@@ -267,6 +267,7 @@ async fn build(id: Id32, player: Id32) {
         tick.tick().await;
         // before taking BUILDIES: world::join holds the members lock while spawn_records takes it
         let builder = world::whereabouts(player);
+        let rate = rate_of(player);
         let mut buildies = BUILDIES.lock().unwrap();
         let Some(b) = buildies.get_mut(&id) else { return };
         if b.state != State::Building(player) {
@@ -281,7 +282,7 @@ async fn build(id: Id32, player: Id32) {
             world::send_playfield(id, false, world::Out::Records(records));
             return;
         }
-        b.progress = (b.progress + PLAYER_RATE).min(b.def.max);
+        b.progress = (b.progress + rate).min(b.def.max);
         let mut records = vec![stat_record(id, STAT_HEALTH, b.progress)];
         let done = b.progress >= b.def.max;
         if done {
@@ -307,8 +308,14 @@ async fn build(id: Id32, player: Id32) {
 }
 
 /// What starting a build sends (recorded order): the build rate, `buildableStart`, Building 1.
-fn start_records(id: Id32) -> Vec<Bytes> {
-    vec![float_stat_record(id, STAT_BUILD_RATE, PLAYER_RATE as f32), script_record(id, "buildableStart"), stat_record(id, STAT_BUILDING, 1)]
+fn start_records(id: Id32, rate: u32) -> Vec<Bytes> {
+    vec![float_stat_record(id, STAT_BUILD_RATE, rate as f32), script_record(id, "buildableStart"), stat_record(id, STAT_BUILDING, 1)]
+}
+
+/// `player`'s build rate: PLAYER_RATE times its build speed (Wrong Element, the Builder's
+/// Elemental Affinity, Jury Rigging in combat: procs.rs).
+fn rate_of(player: Id32) -> u32 {
+    ((PLAYER_RATE as f32) * crate::procs::build_factor(player)).round().max(1.0) as u32
 }
 
 /// What completing a build sends (recorded order).
@@ -408,8 +415,8 @@ fn spawn_records(id: Id32) -> Vec<Bytes> {
     if built && crate::jumppad::pad_at_spot(d.playfield, d.pos) {
         records.push(hide_record(id));
     }
-    if let State::Building(_) = b.state {
-        records.extend(start_records(id));
+    if let State::Building(player) = b.state {
+        records.extend(start_records(id, rate_of(player)));
     }
     records
 }

@@ -519,6 +519,8 @@ fn proc_(on: ProcOn, then: Vec<Action>) -> Proc {
         every_time: None,
         lockout: None,
         channelling: false,
+        count_for: None,
+        target_slowed: false,
         then,
     }
 }
@@ -927,6 +929,8 @@ pub fn buffs(tree: &mut Tree, ctx: &mut Ctx, data: &dyn Fn(&str) -> Result<Value
                 3,
                 vec![Action::Knockback {
                     distance: 4.0,
+                    speed: None,
+                    pull: false,
                     radius: None,
                     target: Target::Target,
                 }],
@@ -1464,6 +1468,7 @@ pub fn loot_and_tunables(
             .into_iter()
             .map(|(k, t)| (k.to_string(), item(t)))
             .collect(),
+            ..Default::default()
         },
         npc: NpcTunables {
             regen_delay: Duration(10.0),
@@ -1479,6 +1484,7 @@ pub fn loot_and_tunables(
                 .flatten()
                 .filter_map(u32_of)
                 .collect(),
+            ..Default::default()
         },
         npc_life: NpcLife {
             interpolation: str_of(&npc_life["interpolation"]).unwrap_or_default(),
@@ -1504,6 +1510,9 @@ pub fn loot_and_tunables(
             .collect(),
         // (written by hand, not imported)
         lost_creations: std::mem::take(&mut tree.tunables.lost_creations),
+        health: std::mem::take(&mut tree.tunables.health),
+        smashed: std::mem::take(&mut tree.tunables.smashed),
+        elements: std::mem::take(&mut tree.tunables.elements),
         more: std::mem::take(&mut tree.tunables.more),
     };
     Ok(())

@@ -12,7 +12,12 @@
 //!
 //! What earns the other achievements was server script; the rules here (`kind` in the data) are
 //! inferred from their names. Most exploration, seasonal events and Lost Creations have no rule.
-//! Rewards: AchievementRewardValue stars where the reward icon is the stars icon.
+//! Rewards: the lore node's reward script (content `reward`) drops a loot bag at the player
+//! from the "Stars Small/Medium/Large/Very Large" tables; achievements without one give their
+//! AchievementRewardValue stars directly. The minifigure achievements' scripts also count them on
+//! the minifigure item (InventoryItemGeneric3 3000114, `minifigure_counter`): the Heroic and
+//! Legendary "Complete Any 5/10" go by that count, which is sent again at every login (as the
+//! client's login fix script 3729 recomputed it).
 //!
 //! Which enemies count toward a smash achievement can be set by the world editor's smash rules
 //! (approved world content, [`set_smash_rules`]): a defeat then counts only when the defeated one
@@ -46,6 +51,8 @@ const STAT_PLAYER_SMASHES: u32 = 3_000_126;
 /// Minifigure item counters (InventoryItemGeneric1/2).
 const STAT_MINIFIGURE_COUNTER1: u32 = 3_000_112;
 const STAT_MINIFIGURE_COUNTER2: u32 = 3_000_113;
+/// InventoryItemGeneric3: the minifigure's achievements done.
+const STAT_MINIFIGURE_ACHIEVEMENTS: u32 = 3_000_114;
 
 #[derive(Debug, Deserialize)]
 struct Achievement {
@@ -60,8 +67,13 @@ struct Achievement {
     invisible: bool,
     #[serde(default)]
     stars: u64,
+    /// The reward loot table (`loot/...`), instead of `stars`.
+    #[serde(default)]
+    reward: Option<String>,
     #[serde(default)]
     minifigure: Option<u32>,
+    #[serde(default)]
+    minifigure_counter: bool,
     kind: String,
     /// counter: [stat, target]
     #[serde(default)]
@@ -355,6 +367,8 @@ pub struct Output {
     pub records: Vec<Bytes>,
     /// Stars rewarded (already added to the character).
     pub stars: u64,
+    /// Reward loot tables to drop at the player (`loot/...`).
+    pub loot: Vec<String>,
     /// Items to drop for the player (dropper, item template): `drop:<name>` rules.
     pub drops: Vec<(Id32, u32)>,
 }
@@ -388,8 +402,25 @@ pub fn login(c: &mut Character, ctx: &Ctx) -> Output {
             push_counter(&mut out, ctx, stat, template, value);
         }
     }
+    for (template, n) in minifigure_achievements(c) {
+        push_counter(&mut out, ctx, STAT_MINIFIGURE_ACHIEVEMENTS, template, n);
+    }
     evaluate(c, ctx, &mut out);
     out
+}
+
+/// Each minifigure's achievements done that its counter counts (InventoryItemGeneric3).
+fn minifigure_achievements(c: &Character) -> BTreeMap<u32, u64> {
+    let mut n = BTreeMap::new();
+    for id in c.tags.keys() {
+        if let Some(&i) = TREE.by_id.get(id)
+            && TREE.all[i].minifigure_counter
+            && let Some(t) = TREE.all[i].minifigure
+        {
+            *n.entry(t).or_default() += 1;
+        }
+    }
+    n
 }
 
 /// Grants what holds now (after a minifigure rank-up, ...).
@@ -589,7 +620,7 @@ fn push_counter(out: &mut Output, ctx: &Ctx, stat: u32, template: u32, value: u6
     }
 }
 
-fn add_tag(tag: u32) -> (Endpoint, u32, Bytes) {
+pub fn add_tag(tag: u32) -> (Endpoint, u32, Bytes) {
     // AddTag(uint32 tagID, uint32 timestamp): live sent 0
     (Endpoint::GameCharInterface, game_char_interface::ADD_TAG, Writer::new().u32(tag).u32(0).finish())
 }
@@ -667,11 +698,20 @@ fn grant(c: &mut Character, _ctx: &Ctx, out: &mut Output, id: u32) {
     let a = &TREE.all[i];
     c.tags.insert(id, unix_now());
     out.rpcs.push(add_tag(id));
-    if a.stars > 0 {
+    if let Some(table) = &a.reward {
+        // a loot bag at the player (the reward script's spawnloot)
+        out.loot.push(table.clone());
+    } else if a.stars > 0 {
         c.stars += a.stars;
         out.stars += a.stars;
     }
-    info!(character = _ctx.character, achievement = id, name = %a.name, stars = a.stars, "achievement");
+    if a.minifigure_counter
+        && let Some(t) = a.minifigure
+    {
+        let n = minifigure_achievements(c).get(&t).copied().unwrap_or(0);
+        push_counter(out, _ctx, STAT_MINIFIGURE_ACHIEVEMENTS, t, n);
+    }
+    info!(character = _ctx.character, achievement = id, name = %a.name, stars = a.stars, reward = ?a.reward, "achievement");
 }
 
 /// Grants every achievement whose rule holds now, until nothing changes (parents follow their
@@ -698,7 +738,14 @@ fn evaluate(c: &mut Character, ctx: &Ctx, out: &mut Output) {
                 // the other "Complete Any" ones count too: "Complete Any 10" says "any 11", which
                 // is 10 others and "Complete Any 5"
                 "any" => {
-                    let siblings = TREE.children.get(&a.parent).map_or(0, |s| s.iter().filter(|&&s| s != a.id && c.tags.contains_key(&s)).count());
+                    // a minifigure's Heroic/Legendary: its achievements its counter counts
+                    // (InventoryItemGeneric3; the Lua adds the tags at 5 and 10, the data's
+                    // "any 11" counts Heroic too); others: any done sibling
+                    let counted = |s: u32| TREE.by_id.get(&s).is_some_and(|&i| TREE.all[i].minifigure_counter || TREE.all[i].kind == "any");
+                    let by_counter = TREE.children.get(&a.parent).is_some_and(|s| s.iter().any(|&s| TREE.by_id.get(&s).is_some_and(|&i| TREE.all[i].minifigure_counter)));
+                    let siblings = TREE.children.get(&a.parent).map_or(0, |s| {
+                        s.iter().filter(|&&s| s != a.id && c.tags.contains_key(&s) && (!by_counter || counted(s))).count()
+                    });
                     siblings >= a.n as usize
                 }
                 "all" => !a.children.is_empty() && a.children.iter().all(|ch| c.tags.contains_key(ch)),
@@ -896,7 +943,8 @@ mod tests {
         let boss = Event::Defeated { id: Id32::new(0, 0), name: "Hades".into(), smashable: false, boss: true, champion: false, level: 20, playfield: 0 };
         let out = on_event(&mut c, &ctx, &boss, 1);
         assert!(c.tags.contains_key(&847), "Mythology_Story_Defeat Hades");
-        assert!(out.stars >= 500);
+        // its reward is a loot bag (the reward script's table), not stars given directly
+        assert!(out.loot.iter().any(|t| t.starts_with("loot/achievement-stars")), "{:?}", out.loot);
     }
 
     #[test]
@@ -925,6 +973,8 @@ mod tests {
         assert!(!c.tags.contains_key(&2527), "9 others and Complete Any 5");
         on_event(&mut c, &ctx, &Event::Cleared { playfield: 4500 }, 1);
         assert!(c.tags.contains_key(&2527), "10 others and Complete Any 5");
+        // InventoryItemGeneric3: the ten Plumber achievements its counter counts
+        assert_eq!(super::minifigure_achievements(&c).get(&plumber), Some(&10));
         // the counters every copy of the item carries
         on_event(&mut c, &ctx, &Event::Built { name: "Mythology Statue 3".into() }, 2);
         assert_eq!(item_counters(&c, plumber), vec![(STAT_MINIFIGURE_COUNTER1, 2), (STAT_MINIFIGURE_COUNTER2, 2)]);
