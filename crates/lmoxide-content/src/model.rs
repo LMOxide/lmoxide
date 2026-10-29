@@ -128,7 +128,7 @@ record! {
         #[schemars(extend("x-lmoxide-ref" = ["region"]))]
         pub region: Option<Ref>,
         /// A pocket adventure's minifigure (its teleport window's reward, RDB 1000644): given for
-        /// clearing it.
+        /// clearing it or defeating its boss, and never dropped.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
         pub minifigure: Option<Ref>,

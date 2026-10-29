@@ -83,6 +83,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
     // the playfield was cleared in this visit (by this player or a teammate here)
     let mut cleared_here = false;
+    // its pocket adventure's minifigure was given in this visit
+    let mut pocket_rewarded = false;
     // a test setup changed the team (sent again at the next CharInPlay), and the item id salt
     let mut team_changed = false;
     // in play before: a later CharInPlayIIR_t is the arrival after a teleport
@@ -151,14 +153,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     continue;
                                 }
                                 cleared_here = true;
-                                // a pocket adventure gives its minifigure (a bag at the player's
-                                // feet; a duplicate pays stars when opened)
-                                if let Some(bag) = crate::loot::pocket_reward(*playfield) {
-                                    let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                                    let at = world::live_position(player).unwrap_or(me.pos);
-                                    info!(character, playfield, bag, "pocket adventure reward");
-                                    crate::loot::drop_items(player, place, at, player, vec![bag]);
-                                }
+                            }
+                            // a pocket adventure completed (cleared, or its boss defeated, also by
+                            // a teammate here) gives its minifigure once a visit: a bag at the
+                            // player's feet (a duplicate pays stars when opened)
+                            let completed = match &event {
+                                crate::achievements::Event::Cleared { .. } => true,
+                                crate::achievements::Event::Defeated { boss: true, smashable: false, playfield, .. } => *playfield == me.playfield,
+                                _ => false,
+                            };
+                            if completed
+                                && !pocket_rewarded
+                                && let Some(bag) = crate::loot::pocket_reward(me.playfield)
+                            {
+                                pocket_rewarded = true;
+                                let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                let at = world::live_position(player).unwrap_or(me.pos);
+                                info!(character, playfield = me.playfield, bag, "pocket adventure reward");
+                                crate::loot::drop_items(player, place, at, player, vec![bag]);
                             }
                             if let crate::achievements::Event::Defeated { id, smashable: false, playfield, .. } = &event
                                 && *playfield == me.playfield
@@ -498,6 +510,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             residents = crate::npc::resident_enemies(place);
                             defeated_here.clear();
                             cleared_here = false;
+                            pocket_rewarded = false;
                             report_finds(&me, here, &outbox);
                             // every arrival (a teleport within the playfield too) reloads the
                             // client's world: it forgot the quests

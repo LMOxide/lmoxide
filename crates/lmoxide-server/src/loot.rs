@@ -180,6 +180,11 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
             _ => {}
         }
     }
+    // a pocket adventure's own minifigure is only given for completing it (game.rs), never dropped
+    let rewards: Vec<u32> = c.worlds.values().filter_map(|w| Some(c.minifigures.get(w.minifigure.as_ref()?)?.template)).collect();
+    for list in t.world_minifigures.values_mut() {
+        list.retain(|(_, m)| !rewards.contains(m));
+    }
     // a pocket adventure drops its own minifigures' (world `parts`) instead of its region's
     for w in c.worlds.values().filter(|w| !w.parts.is_empty()) {
         let list = w
@@ -650,6 +655,8 @@ mod tests {
         assert_eq!(beach, parts);
         let lifeguard = c.minifigures["minifig/lifeguard-guy"].template;
         assert!(matches!(reward(pocket_reward(1642).unwrap()), Reward::MinifigureBag(m) if m == lifeguard));
+        // and only so: its parts and bag drop nowhere
+        assert!(TABLES.world_minifigures.values().flatten().all(|&(_, m)| m != lifeguard));
         assert!(pocket_reward(4200).is_none());
     }
 
