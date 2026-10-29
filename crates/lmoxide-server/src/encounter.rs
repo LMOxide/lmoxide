@@ -229,7 +229,13 @@ const OPEN_WORLDS: [u32; 11] = [1200, 4200, 4210, 4600, 5200, 5210, 3200, 3210, 
 
 /// Whether `playfield` is a pocket world (instanced on live).
 pub fn pocket(playfield: Pf) -> bool {
-    !OPEN_WORLDS.contains(&playfield.model())
+    !is_open_world(playfield.model())
+}
+
+/// Whether playfield `model` is an open world (everyone of a mode in one copy, up to its cap;
+/// the others are pocket worlds, a copy per team: instance.rs).
+pub fn is_open_world(model: u32) -> bool {
+    OPEN_WORLDS.contains(&model)
 }
 
 /// The exploration areas the player at `pos` is in.

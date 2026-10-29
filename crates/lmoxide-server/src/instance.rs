@@ -11,6 +11,8 @@
 
 use std::fmt;
 
+use lmoxide_net::types::Id32;
+
 /// Playfield ids fit in 16 bits (the largest is 33000).
 const MODEL_BITS: u32 = 16;
 const MODEL_MASK: u32 = (1 << MODEL_BITS) - 1;
@@ -189,17 +191,93 @@ pub fn forget_copy(pf: Pf) {
     EXTRAS.lock().unwrap().remove(&pf);
 }
 
-/// The copy of playfield `model` a player of `mode` arriving there (logging in, teleporting)
-/// joins: the mode's main copy. Later the open-world player cap and team copies (pocket
-/// adventures, Lost Creations) are chosen here.
-pub fn arrival(mode: Mode, model: u32) -> Pf {
-    mode.main(model)
+/// How many players an open world's copy takes before arrivals get another copy
+/// (`--open-world-cap`).
+static OPEN_WORLD_CAP: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(40);
+
+pub fn set_open_world_cap(players: u32) {
+    OPEN_WORLD_CAP.store(players.max(1), std::sync::atomic::Ordering::Relaxed);
 }
 
-/// The copy a player of `mode` in `from` going to playfield `to` ends up in: the same copy within
-/// its own world (a teleport spot, a script moving them), else the one [`arrival`] picks.
-pub fn towards(mode: Mode, from: Pf, to: u32) -> Pf {
-    if from.model() == to { from } else { arrival(mode, to) }
+/// How long a player who left a copy (or lost their connection) goes back to it on arriving in
+/// that world again (as worlds.rs keeps an empty extra copy).
+const RETURN_WINDOW: std::time::Duration = std::time::Duration::from_secs(180);
+
+/// The copy each character left lately, by (character, playfield), and when.
+static RECENT: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<(u32, u32), (Pf, std::time::Instant)>>> =
+    std::sync::LazyLock::new(Default::default);
+
+/// The copies picked at login (territory.rs) for the game connection to use (game.rs).
+static LOGINS: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<u32, Pf>>> = std::sync::LazyLock::new(Default::default);
+
+/// `character` left copy `pf` (a teleport, a lost connection).
+pub fn left(character: u32, pf: Pf) {
+    let mut recent = RECENT.lock().unwrap();
+    recent.retain(|_, (_, at)| at.elapsed() < RETURN_WINDOW);
+    recent.insert((character, pf.model()), (pf, std::time::Instant::now()));
+}
+
+/// Players in copy `pf` now.
+fn players_in(pf: Pf) -> usize {
+    crate::world::positions(pf).iter().filter(|(id, _)| crate::npc::is_player(*id)).count()
+}
+
+/// The copy of playfield `model` character `character` of `mode` arriving there (logging in,
+/// teleporting) joins:
+/// - the world editor's: its main copy;
+/// - the copy they left lately (`RETURN_WINDOW`: a reconnect, a quick return);
+/// - a teammate's copy of that world;
+/// - a pocket world (adventures, dungeons, Lost Creations; encounter.rs): a new copy, the
+///   team's own;
+/// - an open world: the mode's main copy, or the first of its copies with room
+///   (`OPEN_WORLD_CAP`), or a new one.
+pub fn arrival(mode: Mode, model: u32, character: u32) -> Pf {
+    let main = mode.main(model);
+    if mode.rules().editor {
+        return main;
+    }
+    let usable = |pf: Pf| pf.model() == model && mode_of(pf) == mode && crate::preview::of(pf).is_none();
+    let recent = RECENT.lock().unwrap().get(&(character, model)).copied();
+    if let Some((pf, at)) = recent
+        && at.elapsed() < RETURN_WINDOW
+        && usable(pf)
+        && (pf.is_main() || crate::worlds::is_spawned(pf))
+    {
+        return pf;
+    }
+    let mates = crate::community::teammates(character);
+    let with_mates = mates.iter().filter_map(|m| crate::world::whereabouts(Id32::new(crate::territory::CHARACTER_TYPE, *m)).map(|(pf, _)| pf)).find(|pf| usable(*pf));
+    if let Some(pf) = with_mates {
+        return pf;
+    }
+    if !crate::encounter::is_open_world(model) {
+        return new_copy(model, mode).unwrap_or(main);
+    }
+    let cap = OPEN_WORLD_CAP.load(std::sync::atomic::Ordering::Relaxed) as usize;
+    let mut copies = vec![main];
+    copies.extend(crate::worlds::copies_of(model).into_iter().filter(|pf| !pf.is_main() && usable(*pf)));
+    copies.into_iter().find(|pf| players_in(*pf) < cap).or_else(|| new_copy(model, mode)).unwrap_or(main)
+}
+
+/// [`arrival`] at login (territory.rs, LoginConnectReady names the copy): remembered for the
+/// game connection ([`login_arrival_taken`]).
+pub fn login_arrival(mode: Mode, model: u32, character: u32) -> Pf {
+    let pf = arrival(mode, model, character);
+    LOGINS.lock().unwrap().insert(character, pf);
+    pf
+}
+
+/// The copy [`login_arrival`] picked for `character` (else [`arrival`] now).
+pub fn login_arrival_taken(mode: Mode, model: u32, character: u32) -> Pf {
+    let picked = LOGINS.lock().unwrap().remove(&character).filter(|pf| pf.model() == model);
+    picked.unwrap_or_else(|| arrival(mode, model, character))
+}
+
+/// The copy character `character` of `mode` in `from` going to playfield `to` ends up in: the
+/// same copy within its own world (a teleport spot, a script moving them), else the one
+/// [`arrival`] picks.
+pub fn towards(mode: Mode, from: Pf, to: u32, character: u32) -> Pf {
+    if from.model() == to { from } else { arrival(mode, to, character) }
 }
 
 

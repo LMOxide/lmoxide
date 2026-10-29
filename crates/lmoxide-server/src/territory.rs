@@ -318,7 +318,7 @@ fn login_connect_ready(cfg: &Config, character: Id32, cookie: u32) -> bytes::Byt
     let pf = PlayfieldProxyData {
         dimension_id: Some(1),
         model_id: Some(ProtoId32 { r#type: Some(crate::game::PLAYFIELD_TYPE), instance: Some(playfield) }),
-        running_instance: Some(crate::instance::arrival(mode, playfield).key()),
+        running_instance: Some(crate::instance::login_arrival(mode, playfield, character.instance).key()),
         ..Default::default()
     };
     character

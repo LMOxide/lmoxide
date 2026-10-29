@@ -118,6 +118,10 @@ pub struct Config {
     /// Default: `--mode`'s mode on `--universe-port`.
     #[arg(long, env = "LMOXIDE_MODES", value_delimiter = ',', value_parser = parse_mode_port)]
     pub modes: Vec<(instance::Mode, u16)>,
+    /// How many players an open world's copy takes before arriving players get another copy of
+    /// it (pocket worlds have a copy per team anyway; docs/SERVER-ARCHITECTURE.md "Instances").
+    #[arg(long, env = "LMOXIDE_OPEN_WORLD_CAP", default_value_t = 40)]
+    pub open_world_cap: u32,
     /// The lowest GM level an account needs to log in to the world editor's mode.
     #[arg(long, env = "LMOXIDE_WORLD_EDITOR_GM_LEVEL", default_value_t = 1)]
     pub world_editor_gm_level: u32,
@@ -298,6 +302,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     if cfg.runs(instance::Mode::Progression) || cfg.runs(instance::Mode::Maxed) {
         content::init(cfg.content_queue.clone());
     }
+    instance::set_open_world_cap(cfg.open_world_cap);
     info!(modes = ?cfg.mode_ports().iter().map(|(m, p)| format!("{}:{p}", m.id())).collect::<Vec<_>>(), "game modes");
     for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {
         anyhow::ensure!(projectile::set_player_aim(shots, aim), "aim {} isn't implemented yet", aim.name());

@@ -661,7 +661,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         "script" | "scripts" => reply(script(&args, playfield)),
         "plates" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => {
-                crate::plates::set_all(crate::instance::towards(crate::instance::mode_of(playfield), playfield, crate::plates::PLAYFIELD), how == "solve");
+                crate::plates::set_all(crate::instance::towards(crate::instance::mode_of(playfield), playfield, crate::plates::PLAYFIELD, 0), how == "solve");
                 reply(vec![format!("plates: {how}")])
             }
             _ => reply(vec!["usage: !plates <solve|reset>".into()]),

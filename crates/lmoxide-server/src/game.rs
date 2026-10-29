@@ -139,7 +139,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             info!(character, playfield, ?at, %label, "dev tour");
                             crate::chat::system(character, &label);
                             let at = [at[0] + 6.0, at[1], at[2]];
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, Some((at, -std::f32::consts::FRAC_PI_2)))
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, Some((at, -std::f32::consts::FRAC_PI_2)))
                                 .await?;
                         }
                         world::Out::Progress(event) => {
@@ -233,7 +233,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                     world::Out::Teleport(playfield, at, rot) => {
                         let playfield = playfield.unwrap_or(place.model());
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, Some((at, rot)))
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, Some((at, rot)))
                             .await?;
                     }
                     world::Out::Smashed(template) => {
@@ -332,7 +332,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 collection = Collection::new(&me.team, me.collection.as_ref());
                 // the copy LoginConnectReady named (territory.rs)
                 mode = crate::instance::Mode::of_character(&me);
-                place = crate::instance::arrival(mode, me.playfield);
+                place = crate::instance::login_arrival_taken(mode, me.playfield, character);
                 info!(character, %version, name = %me.name, playfield = ?place, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();
                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args)
@@ -979,7 +979,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let playfield = r.u32()?;
                 let spawn = r.u32()?;
                 info!(playfield, spawn, "TeleportMe");
-                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, Some(spawn), None)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, Some(spawn), None)
                     .await?;
             }
             (Some(Endpoint::GameCharAgent), game_char_agent::CLIENT_REQUEST_DESTINATION_PLAYFIELD_STATUS) => {
@@ -1011,7 +1011,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 info!(answer, "teleport window answer");
                 if answer > 0 || answer < -1 {
                     let playfield = (answer as u32) & 0x7fff_ffff;
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, None)
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, None)
                         .await?;
                 }
             }
@@ -1026,7 +1026,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 {
                     portals.prompt = None;
                     if answer == 1 {
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, to), &mut place, None, None).await?;
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, to, character), &mut place, None, None).await?;
                     }
                 }
             }
@@ -1036,7 +1036,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let window = r.u32()?;
                 let playfield = r.u32()?;
                 info!(window, playfield, "teleport window bypass");
-                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, None)
+                teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, None)
                     .await?;
             }
             (Some(Endpoint::GameCharAgentProject), game_char_agent_project::CLIENT_ATTEMPT_CLOSING_PLAYER_DESTINATION_PLAYFIELD) => {
@@ -1447,7 +1447,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::Teleport(playfield, at, rot, line) => {
                             crate::chat::system(character, &line);
                             let rot = if rot.is_nan() { heading[0].atan2(heading[1]) } else { rot };
-                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, Some((at, rot)))
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, Some((at, rot)))
                                 .await?;
                         }
                         crate::devcmd::Action::Preview(true) => {
@@ -1472,7 +1472,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             if crate::preview::of(place).is_none() {
                                 crate::chat::system(character, "not in a preview");
                             } else {
-                                let to = crate::instance::arrival(mode, place.model());
+                                let to = crate::instance::arrival(mode, place.model(), character);
                                 let at = *pos.lock().unwrap();
                                 crate::chat::system(character, "back from the preview");
                                 teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, &mut place, None, Some((at, heading[0].atan2(heading[1]))))
@@ -1550,7 +1550,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             let (_, at) = match setup.destination {
                                 Some((playfield, at, rot)) => {
-                                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, Some((at, rot)))
+                                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, Some((at, rot)))
                                         .await?;
                                     (playfield, at)
                                 }
@@ -1742,7 +1742,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;
                     let (playfield, at) =
                         if me.rules().progression { (crate::tutorial::PLAYFIELD, crate::tutorial::START) } else { (cfg.start_playfield, START_POS) };
-                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield), &mut place, None, Some((at, 0.0)))
+                    teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, Some((at, 0.0)))
                         .await?;
                 }
             }
@@ -1797,6 +1797,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         crate::auras::left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         crate::knubot::left(Id32::new(crate::territory::CHARACTER_TYPE, character));
         crate::jumppad::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
+        // a reconnect soon goes back to this copy (instance.rs)
+        crate::instance::left(character, place);
         me.pos = *pos.lock().unwrap();
         match store.save(character, &me) {
             Ok(()) => info!(character, pos = ?me.pos, "character saved"),
@@ -2148,6 +2150,9 @@ async fn teleport(
     conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
     // leaving: despawns the character for everyone in the old playfield
     *presence = None;
+    if *place != playfield {
+        crate::instance::left(character, *place);
+    }
     *place = playfield;
     me.playfield = model;
     me.pos = arrive_pos;
