@@ -915,6 +915,35 @@
         ]
       }
     },
+    "/v1/instances": {
+      "get": {
+        "tags": [
+          "players"
+        ],
+        "summary": "The running copies of worlds (game modes' main copies, team copies, previews) with their\nplayers and NPCs, and the AI's tick time. Scope: moderate.",
+        "operationId": "instances",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Instances"
+                }
+              }
+            }
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/maintenance": {
       "post": {
         "tags": [
@@ -2221,6 +2250,106 @@
           }
         }
       },
+      "Instance": {
+        "type": "object",
+        "description": "A running copy of a world.",
+        "required": [
+          "playfield",
+          "copy",
+          "key",
+          "mode",
+          "kind",
+          "characters",
+          "players",
+          "npcs"
+        ],
+        "properties": {
+          "characters": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Characters in it (players and the NPCs that joined the world: pets, escorts).",
+            "minimum": 0
+          },
+          "copy": {
+            "type": "integer",
+            "format": "int32",
+            "description": "0, 1, 2: the progression, maxed and world editor modes' main copies; 3 and up: extra\ncopies (a team's pocket world, an open world past its cap, a preview).",
+            "minimum": 0
+          },
+          "key": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The key clients know it by.",
+            "minimum": 0
+          },
+          "kind": {
+            "type": "string",
+            "description": "`main`, `extra` or `preview`."
+          },
+          "mode": {
+            "type": "string",
+            "description": "Its game mode: `progression`, `maxed` or `world-editor`."
+          },
+          "npcs": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Its NPCs and smashables.",
+            "minimum": 0
+          },
+          "players": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "playfield": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "preview_owner": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "A preview's owner (character id).",
+            "minimum": 0
+          }
+        }
+      },
+      "Instances": {
+        "type": "object",
+        "description": "Every running copy of a world, and how long the NPCs' AI takes.",
+        "required": [
+          "instances",
+          "ai_tick_ms",
+          "ai_tick_max_ms",
+          "open_world_cap"
+        ],
+        "properties": {
+          "ai_tick_max_ms": {
+            "type": "number",
+            "format": "float"
+          },
+          "ai_tick_ms": {
+            "type": "number",
+            "format": "float",
+            "description": "The last AI tick (every copy with players), ms, and the longest in the last minute."
+          },
+          "instances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Instance"
+            }
+          },
+          "open_world_cap": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Players an open world's copy takes before arrivals get another.",
+            "minimum": 0
+          }
+        }
+      },
       "KickRequest": {
         "type": "object",
         "properties": {
@@ -2669,6 +2798,15 @@
           "character_name": {
             "type": "string"
           },
+          "copy": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Which running copy of the playfield (`/v1/instances`); `null` until it is in play.",
+            "minimum": 0
+          },
           "gm_level": {
             "type": "integer",
             "format": "int32",
@@ -2678,6 +2816,13 @@
             "type": "integer",
             "format": "int64",
             "description": "Unix time."
+          },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The character's game mode: `progression`, `maxed` or `world-editor`."
           },
           "playfield": {
             "type": [

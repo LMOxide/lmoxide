@@ -28,6 +28,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
     let app = Router::new()
         .route("/v1/status", get(status))
         .route("/v1/players", get(players))
+        .route("/v1/instances", get(instances))
         .route("/v1/players/{account}/kick", post(kick))
         .route("/v1/players/{account}/command", post(command))
         .route("/v1/test-commands", get(test_commands))
@@ -76,6 +77,33 @@ async fn status() -> Json<Status> {
 
 async fn players() -> Json<Vec<OnlinePlayer>> {
     Json(sessions::players())
+}
+
+async fn instances() -> Json<lmoxide_control::Instances> {
+    let members = crate::world::counts();
+    let npcs = crate::npc::counts();
+    let mut copies = crate::worlds::spawned();
+    copies.extend(members.keys().filter(|pf| !crate::worlds::is_spawned(**pf)));
+    let instances = copies
+        .into_iter()
+        .map(|pf| {
+            let preview = crate::preview::of(pf);
+            let (characters, players) = members.get(&pf).copied().unwrap_or_default();
+            lmoxide_control::Instance {
+                playfield: pf.model(),
+                copy: pf.copy(),
+                key: pf.key(),
+                mode: crate::instance::mode_of(pf).id().into(),
+                kind: if preview.is_some() { "preview" } else if pf.copy() >= crate::instance::FIRST_EXTRA_COPY { "extra" } else { "main" }.into(),
+                preview_owner: preview.map(|p| p.owner.instance),
+                characters: characters as u32,
+                players: players as u32,
+                npcs: npcs.get(&pf).copied().unwrap_or(0) as u32,
+            }
+        })
+        .collect();
+    let (ai_tick_ms, ai_tick_max_ms) = crate::npc::tick_stats();
+    Json(lmoxide_control::Instances { instances, ai_tick_ms, ai_tick_max_ms, open_world_cap: crate::instance::open_world_cap() })
 }
 
 async fn kick(Path(account): Path<u32>, Json(k): Json<Kick>) -> Json<Done> {

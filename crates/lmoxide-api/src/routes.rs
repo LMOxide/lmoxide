@@ -34,6 +34,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(register))
         .routes(routes!(me))
         .routes(routes!(change_own_password))
+        .routes(routes!(instances))
         .routes(routes!(players))
         .routes(routes!(kick))
         .routes(routes!(player_command))
@@ -111,11 +112,48 @@ pub struct Player {
     pub character_id: u32,
     pub character_name: String,
     pub playfield: Option<u32>,
+    /// Which running copy of the playfield (`/v1/instances`); `null` until it is in play.
+    pub copy: Option<u32>,
+    /// The character's game mode: `progression`, `maxed` or `world-editor`.
+    pub mode: Option<String>,
     /// Where the character is now (x, y up, z); `null` until it is in play.
     pub position: Option<[f32; 3]>,
     pub gm_level: u32,
     /// Unix time.
     pub logged_in_at: i64,
+}
+
+/// A running copy of a world.
+#[derive(Serialize, ToSchema)]
+pub struct Instance {
+    pub playfield: u32,
+    /// 0, 1, 2: the progression, maxed and world editor modes' main copies; 3 and up: extra
+    /// copies (a team's pocket world, an open world past its cap, a preview).
+    pub copy: u32,
+    /// The key clients know it by.
+    pub key: u32,
+    /// Its game mode: `progression`, `maxed` or `world-editor`.
+    pub mode: String,
+    /// `main`, `extra` or `preview`.
+    pub kind: String,
+    /// A preview's owner (character id).
+    pub preview_owner: Option<u32>,
+    /// Characters in it (players and the NPCs that joined the world: pets, escorts).
+    pub characters: u32,
+    pub players: u32,
+    /// Its NPCs and smashables.
+    pub npcs: u32,
+}
+
+/// Every running copy of a world, and how long the NPCs' AI takes.
+#[derive(Serialize, ToSchema)]
+pub struct Instances {
+    pub instances: Vec<Instance>,
+    /// The last AI tick (every copy with players), ms, and the longest in the last minute.
+    pub ai_tick_ms: f32,
+    pub ai_tick_max_ms: f32,
+    /// Players an open world's copy takes before arrivals get another.
+    pub open_world_cap: u32,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -1097,12 +1135,43 @@ async fn players(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Js
                 character_id: p.character_id,
                 character_name: p.character_name,
                 playfield: p.playfield,
+                copy: p.copy,
+                mode: p.mode,
                 position: p.position,
                 gm_level: p.gm_level,
                 logged_in_at: p.logged_in_at,
             })
             .collect(),
     ))
+}
+
+/// The running copies of worlds (game modes' main copies, team copies, previews) with their
+/// players and NPCs, and the AI's tick time. Scope: moderate.
+#[utoipa::path(get, path = "/v1/instances", tag = "players",
+    responses((status = OK, body = Instances), (status = BAD_GATEWAY, body = ErrorBody)))]
+async fn instances(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Json<Instances>> {
+    auth.require(Scope::Moderate)?;
+    let i = control(&state)?.instances().await.map_err(ApiError::game_server)?;
+    Ok(Json(Instances {
+        instances: i
+            .instances
+            .into_iter()
+            .map(|c| Instance {
+                playfield: c.playfield,
+                copy: c.copy,
+                key: c.key,
+                mode: c.mode,
+                kind: c.kind,
+                preview_owner: c.preview_owner,
+                characters: c.characters,
+                players: c.players,
+                npcs: c.npcs,
+            })
+            .collect(),
+        ai_tick_ms: i.ai_tick_ms,
+        ai_tick_max_ms: i.ai_tick_max_ms,
+        open_world_cap: i.open_world_cap,
+    }))
 }
 
 /// Disconnect a player. Scope: moderate.

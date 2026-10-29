@@ -199,6 +199,10 @@ pub fn set_open_world_cap(players: u32) {
     OPEN_WORLD_CAP.store(players.max(1), std::sync::atomic::Ordering::Relaxed);
 }
 
+pub fn open_world_cap() -> u32 {
+    OPEN_WORLD_CAP.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 /// How long a player who left a copy (or lost their connection) goes back to it on arriving in
 /// that world again (as worlds.rs keeps an empty extra copy).
 const RETURN_WINDOW: std::time::Duration = std::time::Duration::from_secs(180);

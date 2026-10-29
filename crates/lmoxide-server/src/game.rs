@@ -317,7 +317,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 });
                 active_at_first_position(&mut me.team);
                 // world editors teleport and use the test commands
-                gm_level = gm_level.max(crate::instance::Mode::of_character(&me).rules().min_gm_level);
+                mode = crate::instance::Mode::of_character(&me);
+                gm_level = gm_level.max(mode.rules().min_gm_level);
                 // older saves had potions per session: they start with the new character's
                 me.tokens.entry(TOKEN_HEALTH_POTIONS).or_insert((START_POTIONS, 0));
                 // smashed minifigures stay smashed until their rebuild time, across logins
@@ -327,11 +328,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     crate::npc::set_smashed(Id32::new(crate::territory::CHARACTER_TYPE, character), template);
                     schedule_rebuild(&outbox, template, until);
                 }
-                _online = Some(crate::sessions::online(account.id, character, &account.username, &me.name, gm_level, outbox.clone()));
+                _online = Some(crate::sessions::online(account.id, character, &account.username, &me.name, gm_level, mode, outbox.clone()));
                 *pos.lock().unwrap() = me.pos;
                 collection = Collection::new(&me.team, me.collection.as_ref());
                 // the copy LoginConnectReady named (territory.rs)
-                mode = crate::instance::Mode::of_character(&me);
                 place = crate::instance::login_arrival_taken(mode, me.playfield, character);
                 info!(character, %version, name = %me.name, playfield = ?place, pos = ?me.pos, gm_level, "Authenticate2");
                 let args = Writer::new().i32(status).finish();

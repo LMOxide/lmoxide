@@ -79,6 +79,8 @@ struct Online {
     username: String,
     character_name: String,
     gm_level: u32,
+    /// The character's game mode.
+    mode: crate::instance::Mode,
     logged_in_at: i64,
     outbox: world::Outbox,
 }
@@ -88,7 +90,16 @@ static NEXT_CONN: AtomicU64 = AtomicU64::new(1);
 
 /// Registers the account's game connection with `character`, kicking an older one of the
 /// account; dropping the guard unregisters it.
-pub fn online(account: u32, character: u32, username: &str, character_name: &str, gm_level: u32, outbox: world::Outbox) -> OnlineGuard {
+#[allow(clippy::too_many_arguments)]
+pub fn online(
+    account: u32,
+    character: u32,
+    username: &str,
+    character_name: &str,
+    gm_level: u32,
+    mode: crate::instance::Mode,
+    outbox: world::Outbox,
+) -> OnlineGuard {
     let conn_id = NEXT_CONN.fetch_add(1, Ordering::Relaxed);
     let entry = Online {
         account,
@@ -96,6 +107,7 @@ pub fn online(account: u32, character: u32, username: &str, character_name: &str
         username: username.into(),
         character_name: character_name.into(),
         gm_level,
+        mode,
         logged_in_at: lmoxide_db::now(),
         outbox,
     };
@@ -183,6 +195,8 @@ pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {
                 character_id: character,
                 character_name: o.character_name.clone(),
                 playfield: world::whereabouts(id).map(|(pf, _)| pf.model()),
+                copy: world::whereabouts(id).map(|(pf, _)| pf.copy()),
+                mode: Some(o.mode.id().into()),
 
                 position: world::live_position(id),
                 gm_level: o.gm_level,

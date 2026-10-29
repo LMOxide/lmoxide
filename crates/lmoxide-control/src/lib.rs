@@ -37,12 +37,52 @@ pub struct OnlinePlayer {
     pub character_name: String,
     /// `None` until the character is in play.
     pub playfield: Option<u32>,
+    /// Which running copy of the playfield (0: the progression mode's main one; see
+    /// `/v1/instances`).
+    #[serde(default)]
+    pub copy: Option<u32>,
+    /// The character's game mode (`progression`, `maxed`, `world-editor`).
+    #[serde(default)]
+    pub mode: Option<String>,
     /// Where the character is now (x, y up, z); `None` until it is in play.
     #[serde(default)]
     pub position: Option<[f32; 3]>,
     pub gm_level: u32,
     /// Unix time of the login.
     pub logged_in_at: i64,
+}
+
+/// A running copy of a world (`GET /v1/instances`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Instance {
+    pub playfield: u32,
+    /// 0, 1, 2: the progression, maxed and world editor modes' main copies; 3 and up: extra
+    /// copies (a team's pocket world, an open world past its cap, a preview).
+    pub copy: u32,
+    /// The key clients know it by (`PlayfieldProxyData.running_instance`).
+    pub key: u32,
+    /// Its game mode.
+    pub mode: String,
+    /// `main`, `extra` or `preview`.
+    pub kind: String,
+    /// A preview's owner (character id).
+    pub preview_owner: Option<u32>,
+    /// Characters in it (players, NPCs that joined the world: pets, escorts, ...).
+    pub characters: u32,
+    pub players: u32,
+    /// Its NPCs and smashables.
+    pub npcs: u32,
+}
+
+/// Every running copy, and how long the NPCs' AI takes (`GET /v1/instances`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Instances {
+    pub instances: Vec<Instance>,
+    /// The last AI tick (every copy with players, ms) and the longest in the last minute.
+    pub ai_tick_ms: f32,
+    pub ai_tick_max_ms: f32,
+    /// Players an open world's copy takes before arrivals get another (`--open-world-cap`).
+    pub open_world_cap: u32,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -234,6 +274,10 @@ impl Client {
 
     pub async fn players(&self) -> Result<Vec<OnlinePlayer>, Error> {
         self.send(self.http.get(format!("{}/v1/players", self.base))).await
+    }
+
+    pub async fn instances(&self) -> Result<Instances, Error> {
+        self.send(self.http.get(format!("{}/v1/instances", self.base))).await
     }
 
     pub async fn kick(&self, account: u32, kick: &Kick) -> Result<Done, Error> {

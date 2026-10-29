@@ -1868,6 +1868,45 @@ fn cast_record_with_id(caster: Id32, target: Id32, spell: u32, action: u8, serve
 /// distance, the player who hit it lately, its side among rival enemies.
 type Fighter = (Id32, Pf, [f32; 3], Option<f32>, f32, Option<Id32>, Option<u32>);
 
+/// NPCs and smashables per copy (the instance list, control.rs).
+pub fn counts() -> HashMap<Pf, usize> {
+    let mut counts = HashMap::new();
+    for n in NPCS.lock().unwrap().values() {
+        *counts.entry(n.playfield).or_default() += 1;
+    }
+    counts
+}
+
+/// The last AI tick's time (µs), and the longest since `TICK_MAX_SINCE` (unix s), for
+/// `tick_stats`.
+static TICK_US: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static TICK_MAX_US: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static TICK_MAX_SINCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// How long the last AI tick took and the longest in the last minute (ms).
+pub fn tick_stats() -> (f32, f32) {
+    use std::sync::atomic::Ordering::Relaxed;
+    (TICK_US.load(Relaxed) as f32 / 1000.0, TICK_MAX_US.load(Relaxed) as f32 / 1000.0)
+}
+
+/// Times one AI tick (until dropped).
+struct TickTimer(std::time::Instant);
+
+impl Drop for TickTimer {
+    fn drop(&mut self) {
+        use std::sync::atomic::Ordering::Relaxed;
+        let us = self.0.elapsed().as_micros() as u64;
+        TICK_US.store(us, Relaxed);
+        let now = crate::smash::now_ms() as u64 / 1000;
+        if now >= TICK_MAX_SINCE.load(Relaxed) + 60 {
+            TICK_MAX_SINCE.store(now, Relaxed);
+            TICK_MAX_US.store(us, Relaxed);
+        } else {
+            TICK_MAX_US.fetch_max(us, Relaxed);
+        }
+    }
+}
+
 /// Chase the nearest player in range and fight it; walk home when there is none or it ran too far.
 async fn ai() {
     let mut tick = tokio::time::interval(TICK);
@@ -1876,6 +1915,7 @@ async fn ai() {
     let mut awake: std::collections::HashSet<Pf> = Default::default();
     loop {
         tick.tick().await;
+        let _timing = TickTimer(std::time::Instant::now());
         // only playfields with players run (others' fights went on with nobody watching), and
         // in the world editor's nothing moves or attacks
         let mut occupied = occupied_playfields();

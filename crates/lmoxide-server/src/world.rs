@@ -118,7 +118,60 @@ impl Motion {
     }
 }
 
-static MEMBERS: LazyLock<Mutex<HashMap<Id32, Member>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+/// Everyone in the world, and who is in each copy: a message to one copy goes through its own
+/// members only (with many copies, a scan of every member per message was the cost).
+#[derive(Default)]
+struct Members {
+    all: HashMap<Id32, Member>,
+    by_pf: HashMap<Pf, Vec<Id32>>,
+}
+
+impl Members {
+    fn get(&self, id: &Id32) -> Option<&Member> {
+        self.all.get(id)
+    }
+
+    fn get_mut(&mut self, id: &Id32) -> Option<&mut Member> {
+        self.all.get_mut(id)
+    }
+
+    fn insert(&mut self, id: Id32, m: Member) {
+        let pf = m.playfield;
+        if let Some(old) = self.all.insert(id, m) {
+            self.unlist(id, old.playfield);
+        }
+        self.by_pf.entry(pf).or_default().push(id);
+    }
+
+    fn remove(&mut self, id: &Id32) -> Option<Member> {
+        let m = self.all.remove(id)?;
+        self.unlist(*id, m.playfield);
+        Some(m)
+    }
+
+    fn unlist(&mut self, id: Id32, pf: Pf) {
+        if let Some(ids) = self.by_pf.get_mut(&pf) {
+            ids.retain(|i| *i != id);
+            if ids.is_empty() {
+                self.by_pf.remove(&pf);
+            }
+        }
+    }
+
+    /// The members of copy `pf`.
+    fn in_pf(&self, pf: Pf) -> impl Iterator<Item = (&Id32, &Member)> {
+        self.by_pf.get(&pf).into_iter().flatten().filter_map(|id| self.all.get_key_value(id))
+    }
+}
+
+static MEMBERS: LazyLock<Mutex<Members>> = LazyLock::new(Default::default);
+
+/// Members per copy: (characters, players among them), for the instance list (control.rs).
+pub fn counts() -> HashMap<Pf, (usize, usize)> {
+    // (is_player takes the NPCS lock: not under MEMBERS, npc::hit takes them the other way)
+    let by_pf = MEMBERS.lock().unwrap().by_pf.clone();
+    by_pf.into_iter().map(|(pf, ids)| (pf, (ids.len(), ids.iter().filter(|id| crate::npc::is_player(**id)).count()))).collect()
+}
 
 type Spawn = Arc<dyn Fn() -> Vec<Bytes> + Send + Sync>;
 
@@ -137,7 +190,7 @@ pub fn join(
     // sends through MEMBERS (npc::hit), so calling them under MEMBERS could deadlock.
     let others: Vec<(Id32, Spawn, Outbox)> = {
         let mut members = MEMBERS.lock().unwrap();
-        let others = members.iter().filter(|(_, m)| m.playfield == playfield).map(|(i, m)| (*i, m.spawn.clone(), m.outbox.clone())).collect();
+        let others = members.in_pf(playfield).map(|(i, m)| (*i, m.spawn.clone(), m.outbox.clone())).collect();
         members.insert(id, Member { playfield, pos, motion: None, spawn: spawn.clone(), outbox: outbox.clone(), facing: [0.0, 1.0] });
         others
     };
@@ -209,13 +262,13 @@ pub fn live_position(id: Id32) -> Option<[f32; 3]> {
 pub fn live_positions(playfield: Pf) -> Vec<(Id32, [f32; 3])> {
     let now = Instant::now();
     let members = MEMBERS.lock().unwrap();
-    members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, m.live(now))).collect()
+    members.in_pf(playfield).map(|(id, m)| (*id, m.live(now))).collect()
 }
 
 /// The shared position of every player character on `playfield` (to move them, e.g. a jump).
 pub fn position_handles(playfield: Pf) -> Vec<(Id32, Position)> {
     let members = MEMBERS.lock().unwrap();
-    members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, m.pos.clone())).collect()
+    members.in_pf(playfield).map(|(id, m)| (*id, m.pos.clone())).collect()
 }
 
 /// Playfield and position of a character in play.
@@ -225,20 +278,20 @@ pub fn whereabouts(id: Id32) -> Option<(Pf, [f32; 3])> {
 
 /// Every member with its playfield.
 pub fn members() -> Vec<(Id32, Pf)> {
-    MEMBERS.lock().unwrap().iter().map(|(id, m)| (*id, m.playfield)).collect()
+    MEMBERS.lock().unwrap().all.iter().map(|(id, m)| (*id, m.playfield)).collect()
 }
 
 /// Every character on `playfield` with its position.
 pub fn positions(playfield: Pf) -> Vec<(Id32, [f32; 3])> {
     let members = MEMBERS.lock().unwrap();
-    members.iter().filter(|(_, m)| m.playfield == playfield).map(|(id, m)| (*id, *m.pos.lock().unwrap())).collect()
+    members.in_pf(playfield).map(|(id, m)| (*id, *m.pos.lock().unwrap())).collect()
 }
 
 /// The other characters on `from`'s playfield.
 pub fn neighbours(from: Id32) -> Vec<Id32> {
     let members = MEMBERS.lock().unwrap();
     let Some(playfield) = members.get(&from).map(|m| m.playfield) else { return vec![] };
-    members.iter().filter(|(id, m)| **id != from && m.playfield == playfield).map(|(id, _)| *id).collect()
+    members.in_pf(playfield).filter(|(id, _)| **id != from).map(|(id, _)| *id).collect()
 }
 
 /// Sends `out` to one member (no-op if it isn't in the world).
@@ -257,8 +310,8 @@ pub fn broadcast(from: Id32, records: Vec<Bytes>) {
 pub fn send_playfield(from: Id32, to_self: bool, out: Out) {
     let members = MEMBERS.lock().unwrap();
     let Some(playfield) = members.get(&from).map(|m| m.playfield) else { return };
-    for (id, m) in members.iter() {
-        if (to_self || *id != from) && m.playfield == playfield {
+    for (id, m) in members.in_pf(playfield) {
+        if to_self || *id != from {
             let _ = m.outbox.send(out.clone());
         }
     }
@@ -282,7 +335,7 @@ impl Drop for Presence {
         // ignores that character's spawn later (a player teleporting to someone stayed
         // invisible to them)
         let members = MEMBERS.lock().unwrap();
-        for m in members.values().filter(|m| m.playfield == me.playfield) {
+        for (_, m) in members.in_pf(me.playfield) {
             let _ = m.outbox.send(Out::Records(vec![crate::game::despawn_record(self.id)]));
         }
     }

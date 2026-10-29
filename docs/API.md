@@ -55,7 +55,8 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/auth/register` | - | `{username, password}`, only with `--open-registration` |
 | GET | `/v1/me` | session | the logged-in account |
 | POST | `/v1/me/password` | session | `{current_password, new_password}` |
-| GET | `/v1/players` | read | online players with account ids and usernames |
+| GET | `/v1/players` | read | online players with account ids, usernames, game mode, playfield and copy |
+| GET | `/v1/instances` | moderate | running copies of worlds (each game mode's main copies, team copies, previews): mode, kind, players, NPCs; the AI's tick time |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
 | any | `/v1/content/{path}` | admin | a play server's world content (docs/WORLD-CONTENT.md: approval queue, rules, summaries, features), passed to the game server as they are. Not in openapi.json |
 | any | `/v1/survey/{path}` | moderate | the world editor's routes (docs/SURVEY.md "API"), passed to the game server as they are; the caller is the author of what they change. Not in openapi.json; bodies up to 16 MB |
