@@ -45,8 +45,6 @@ const STAT_BUILD_RATE: u32 = 3_000_073;
 const STAT_455: u32 = 455;
 const CARS_BUILDABLE: u32 = 1;
 const CARS_BUILT: u32 = 5;
-/// A player's build rate (recorded: 62 per tick).
-const PLAYER_RATE: u32 = 62;
 /// Tick interval: the item stat `BuildableServerInterval` (0.1 on buildie templates, also the
 /// 0.1 in the buildie's Destructible fields).
 const TICK: Duration = Duration::from_millis(100);
@@ -321,10 +319,13 @@ fn start_records(id: Id32, rate: u32) -> Vec<Bytes> {
     vec![float_stat_record(id, STAT_BUILD_RATE, rate as f32), script_record(id, "buildableStart"), stat_record(id, STAT_BUILDING, 1)]
 }
 
-/// `player`'s build rate: PLAYER_RATE times its build speed (Wrong Element, the Builder's
-/// Elemental Affinity, Jury Rigging in combat: procs.rs).
+/// `player`'s build rate, progress per tick: its active minifigure's creativity rating
+/// (combat::creativity_rating: 62 for the recording's level-1 Roman Commander, as recorded)
+/// times its build speed (Wrong Element, the Builder's Elemental Affinity, Jury Rigging in
+/// combat: procs.rs).
 fn rate_of(player: Id32) -> u32 {
-    ((PLAYER_RATE as f32) * crate::procs::build_factor(player)).round().max(1.0) as u32
+    let (template, level) = crate::procs::active_of(player).map_or((None, crate::gamedata::get().tunables.combat.level), |(t, _, l)| (Some(t), l));
+    (crate::combat::creativity_rating(template, level) * crate::procs::build_factor(player)).round().max(1.0) as u32
 }
 
 /// What completing a build sends (recorded order).

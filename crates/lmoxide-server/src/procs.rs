@@ -617,7 +617,8 @@ pub fn enemy_damage_factor(id: Id32) -> f32 {
     1.0 - strongest
 }
 
-fn active_of(player: Id32) -> Option<(u32, u32, u32)> {
+/// `player`'s active minifigure: (template, upgrades, level).
+pub fn active_of(player: Id32) -> Option<(u32, u32, u32)> {
     PLAYERS.lock().unwrap().get(&player).map(|s| (s.template, s.upgrades, s.level))
 }
 

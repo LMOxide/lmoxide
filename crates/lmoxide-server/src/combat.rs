@@ -183,6 +183,21 @@ fn defence(m: &Minifigure, level: u32) -> f32 {
     (rating / player_default("DefenseRatingTarget", 1550.0)).min(player_default("MaxMitigation", 0.55))
 }
 
+/// A minifigure's creativity rating at player `level` (AttackUtils_c::CalculateCreativityRating,
+/// the client's CreativityCalculatedRating 3000070): (int(CreativityBaseFig × level ×
+/// MinifigureStarFactor) + CreativityRatingAll) × (CreativityEffectMin + MinifigureLevel ×
+/// CreativityEffectPerLevel) × FinalCreativityMultiplier × GlobalCreativityModifier, at least 0.
+/// The base is the minifigure's `stats.creativity` (1 without a minifigure, as the client). The
+/// player sent no CreativityEffectPerLevel (0), so the minifigure's rank doesn't count.
+pub fn creativity_rating(template: Option<u32>, level: u32) -> f32 {
+    let c = &crate::gamedata::get().tunables;
+    let base = template.and_then(minifigure).map_or(1.0, |m| m.stats.creativity as f32);
+    let rating = (base * level as f32 * c.combat.star_factor).floor() + player_default("CreativityRatingAll", 50.0);
+    let effect = player_default("CreativityEffectMin", 1.0) + 0.0 * player_default("CreativityEffectPerLevel", 0.0);
+    let global = c.minifigure_model["tweaks"]["AttackUtils_GlobalCreativityModifier"].as_f64().map_or(1.0, |v| v as f32);
+    (rating * effect).max(0.0) * player_default("FinalCreativityMultiplier", 1.0) * global
+}
+
 fn player_default(name: &str, or: f32) -> f32 {
     crate::gamedata::get().tunables.minifigure_model["player_defaults"][name].as_f64().map_or(or, |v| v as f32)
 }
@@ -195,6 +210,18 @@ pub fn random_unit() -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn creativity_rating_is_the_recorded_build_rate() {
+        // the recording's builder: the Roman Commander (CreativityBaseFig 4) at level 1 built at 62
+        let c = crate::gamedata::get();
+        let roman = c.minifigures["minifig/roman-commander"].template;
+        assert_eq!(creativity_rating(Some(roman), 1), 62.0);
+        assert_eq!(creativity_rating(None, 1), 53.0, "no minifigure: base 1");
+        let with = |stars: u32, level: u32| (stars as f32 * level as f32 * 3.0).floor() + 50.0;
+        let any = c.minifigures.values().find(|m| m.stats.creativity == 10).unwrap();
+        assert_eq!(creativity_rating(Some(any.template), 30), with(10, 30));
+    }
 
     #[test]
     fn defence_is_the_live_fit() {
