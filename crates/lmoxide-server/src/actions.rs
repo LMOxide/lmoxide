@@ -915,15 +915,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
         }
         "Projectile" => shoot(run, spell, a, who, depth),
         "Chain" => {
-            if let (Some(first), Some(nano)) = (who.id.filter(|id| *id != caster && crate::npc::is_enemy(*id)), a.u("TemplateID")) {
+            if let (Some(first), Some(nano)) = (who.id.filter(|id| *id != caster && chainable(*id)), a.u("TemplateID")) {
                 let jumps = a.u("Value").unwrap_or(1);
                 let radius = a.f("Radius").or(a.f("Distance")).unwrap_or(4.0);
                 // (DelayTime 100 read as milliseconds: a second per jump was far too slow)
                 let delay = Duration::from_millis(a.u("DelayTime").unwrap_or(0) as u64);
                 chain(run, nano, first, jumps, radius, delay, depth);
-            } else if let (Some(id), Some(nano)) = (who.id.filter(|id| crate::npc::is_smashable(*id)), a.u("TemplateID")) {
-                // a smashable takes the hit, without the arc (it isn't a character) or jumps
-                cast_nano_shown(run, nano, Target { id: Some(id), pos: who.pos }, depth + 1, false);
             }
         }
         "Blink" => {
@@ -1159,9 +1156,10 @@ fn impact(run: &Arc<Run>, spell: u32, item: u32, target: Target, depth: u32) {
 }
 
 /// A Chain: `nano` on `first`, then up to `jumps` times on the nearest enemy within `radius` of
-/// the last one that it hasn't hit yet, `delay` apart. Each jump is shown with `ChainSpellIIR_t`
-/// (the arc from the previous one, from the caster for the first). Smashables aren't jumped to:
-/// they aren't characters.
+/// the last one that it hasn't hit yet (a smashable only when no enemy is in reach), `delay`
+/// apart. Each jump after the first is shown with `ChainSpellIIR_t` (the arc from the previous
+/// one); the first bolt is the spell's own effect (Lightning Blast's 506677: an arc from the
+/// caster too showed it twice).
 fn chain(run: &Arc<Run>, nano: u32, first: Id32, jumps: u32, radius: f32, delay: Duration, depth: u32) {
     let run = run.clone();
     tokio::spawn(async move {
@@ -1170,16 +1168,19 @@ fn chain(run: &Arc<Run>, nano: u32, first: Id32, jumps: u32, radius: f32, delay:
         let mut hit = Vec::new();
         while let Some(to) = next {
             let Some(pos) = crate::npc::position(to) else { break };
-            show(&run, vec![effects::chain_jump(caster, to, last, nano)]);
+            if last != caster {
+                show(&run, vec![effects::chain_jump(caster, to, last, nano)]);
+            }
             cast_nano_shown(&run, nano, Target { id: Some(to), pos }, depth + 1, false);
             hit.push(to);
             if hit.len() > jumps as usize {
                 break;
             }
+            // the nearest enemy, else the nearest smashable
             next = crate::npc::targets_where(run.caster.playfield, |p| distance(p, pos) <= radius)
                 .into_iter()
-                .filter(|(id, _)| !hit.contains(id) && crate::npc::is_enemy(*id))
-                .min_by(|(_, x), (_, y)| distance(*x, pos).total_cmp(&distance(*y, pos)))
+                .filter(|(id, _)| !hit.contains(id) && chainable(*id))
+                .min_by(|(a, x), (b, y)| crate::npc::is_smashable(*a).cmp(&crate::npc::is_smashable(*b)).then(distance(*x, pos).total_cmp(&distance(*y, pos))))
                 .map(|(id, _)| id);
             last = to;
             if next.is_some() {
@@ -1188,6 +1189,11 @@ fn chain(run: &Arc<Run>, nano: u32, first: Id32, jumps: u32, radius: f32, delay:
         }
         debug!(?caster, nano, hits = hit.len(), "chain");
     });
+}
+
+/// What a chain jumps to: enemies and smashables.
+fn chainable(id: Id32) -> bool {
+    crate::npc::is_enemy(id) || crate::npc::is_smashable(id)
 }
 
 /// `dir` turned by `degrees` (positive: clockwise seen from above, as RotY).
