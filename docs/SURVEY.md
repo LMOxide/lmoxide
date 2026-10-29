@@ -25,7 +25,8 @@ before content records: it is taken into the working copy once (survey/migrate.r
 `migrated.json` says what was done) and otherwise left alone.
 
 `!preview` (World Editor) plays the world one stands in as the working copy has it, with gameplay
-on, in a copy of one's own; `!preview end` goes back (preview.rs). The old separate survey server
+on, in a copy of one's own; `!preview end` goes back (preview.rs). The dev UI's "Play this" button
+calls `POST /v1/survey/preview` `{end}`: the caller's own character only, so GM level 1 is enough. The old separate survey server
 (`tools/survey-server.sh`, `!server`) is retired; `lmoxide-server import-characters` copied its
 characters over.
 

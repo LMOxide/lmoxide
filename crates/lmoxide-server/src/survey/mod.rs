@@ -1109,6 +1109,7 @@ pub(crate) fn author_of(headers: &HeaderMap) -> String {
 pub fn routes() -> Router {
     Router::new()
         .route("/v1/survey/surveyors", get(surveyors))
+        .route("/v1/survey/preview", post(play_preview))
         .route("/v1/survey/catalog", get(catalog))
         .route("/v1/survey/players/{account}/state", get(player_state))
         .route("/v1/survey/players/{account}/wear", post(wear))
@@ -1141,6 +1142,28 @@ pub fn routes() -> Router {
         .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/unpublished", get(unpublished))
         .route("/v1/survey/publish", post(publish))
+}
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
+struct PreviewRequest {
+    /// Back from the preview instead.
+    end: bool,
+}
+
+/// `POST /v1/survey/preview` `{end}`: the caller's own character (by their login, in the world
+/// editor's mode) starts or ends a preview of the world it stands in (`!preview`, preview.rs).
+/// Only one's own: the API passes the caller, so world editors need no admin scope for it.
+async fn play_preview(headers: HeaderMap, Json(req): Json<PreviewRequest>) -> R<serde_json::Value> {
+    let username = author_of(&headers);
+    let player = crate::sessions::players()
+        .into_iter()
+        .find(|p| p.username.eq_ignore_ascii_case(&username) && p.mode.as_deref() == Some(crate::instance::Mode::WorldEditor.id()))
+        .ok_or_else(|| Error::NotFound(format!("{username} isn't in game in the world editor's mode")))?;
+    let command = if req.end { "!preview end" } else { "!preview" };
+    let sent = crate::sessions::command(player.account_id, command).len();
+    info!(%username, command, sent, "survey: preview");
+    Ok(Json(serde_json::json!({ "sent": sent, "character_id": player.character_id })))
 }
 
 async fn surveyors() -> R<Vec<SurveyorInfo>> {
