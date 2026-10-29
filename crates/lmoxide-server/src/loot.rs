@@ -552,24 +552,14 @@ pub fn drop_loot(killer: Id32, playfield: Pf, pos: [f32; 3], dropper: Id32, sour
     }
 }
 
-/// An opened chest (item `template`, from bag `bag` at `pos`) rolled at loot power `power`
-/// ([`chest_power`]): a new bag at the chest's loot point ([`chest_loot_pos`]).
+/// An opened chest (item `template`, from bag `bag`) rolled at loot power `power`
+/// ([`chest_power`]): a new bag at `pos`, the looter's position, as other loot (the user's
+/// decision 2026-10-29: not at the chest's Loot_Offset, docs/TUNABLES.md).
 pub fn open_chest(owner: Id32, playfield: Pf, pos: [f32; 3], bag: Id32, template: u32, member: bool, power: u32) {
     let source = if member { Source::MemberChest } else { Source::Chest };
     let items = roll(source, 0, playfield, power);
     info!(?owner, template, power, items = %describe(&items), "chest opened");
-    drop_items(owner, playfield, chest_loot_pos(template, pos), bag, items);
-}
-
-/// Where chest `template` standing at `pos` drops its loot: `pos + Loot_Offset{X,Y,Z}Pos / 100`
-/// (cm, the item's `chest.offset`) with 1 m added to Y, as the Super Chest scripts' spawnloot
-/// (`item.lootpos + offset/100`, `+1` Y). The scripts keep `pos` when that point is off the
-/// navmesh; the server has no navmesh, so it isn't checked (docs/TUNABLES.md).
-pub fn chest_loot_pos(template: u32, pos: [f32; 3]) -> [f32; 3] {
-    let c = crate::gamedata::get();
-    let offset = c.items.values().find(|i| i.template == Some(template)).and_then(|i| i.chest.as_ref()).and_then(|ch| ch.offset.as_ref());
-    let axis = |i: usize| offset.and_then(|o| o.get(i)).and_then(serde_json::Value::as_u64).map_or(0.0, |v| v as u32 as i32 as f32 / 100.0);
-    [pos[0] + axis(0), pos[1] + axis(1) + 1.0, pos[2] + axis(2)]
+    drop_items(owner, playfield, pos, bag, items);
 }
 
 fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
@@ -850,10 +840,15 @@ mod power_tests {
     }
 
     #[test]
-    fn chest_loot_drops_at_its_offset() {
-        // Member Super Chest: Loot_OffsetXPos 212; free Super Chests -212 / Z 212; +1 m up
-        let near = |a: [f32; 3], b: [f32; 3]| a.iter().zip(b).all(|(x, y)| (x - y).abs() < 1e-4);
-        assert!(near(super::chest_loot_pos(580_943, [10.0, 5.0, 20.0]), [12.12, 6.0, 20.0]));
-        assert!(near(super::chest_loot_pos(482_326, [10.0, 5.0, 20.0]), [7.88, 6.0, 22.12]));
+    fn world_conclusions_give_a_member_chest_and_their_dungeon_minifigure() {
+        use super::*;
+        // the last story dungeon's teleport-window reward minifigure, as a bag (docs/TUNABLES.md)
+        for (world, minifigure) in [("pirate", 576_081), ("medieval", 550_363), ("space", 357_945), ("mythology", 41_894), ("dino", 498_330)] {
+            let mut items = Vec::new();
+            roll_table_into(&format!("loot/story-{world}-conclusion"), 0, Pf::main(1200), 0, &mut items);
+            assert_eq!(items.len(), 2, "{world}: {items:?}");
+            assert!(items.iter().any(|&i| matches!(reward(i), Reward::Chest { member: true })), "{world}");
+            assert!(items.iter().any(|&i| matches!(reward(i), Reward::MinifigureBag(m) if m == minifigure)), "{world}: {items:?}");
+        }
     }
 }

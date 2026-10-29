@@ -522,10 +522,15 @@ fn accept(character: u32, inviter: u32) {
 /// clear. Visits and finds (location discovery) aren't shared.
 pub fn share(player: u32, playfield: Pf, event: &crate::achievements::Event) {
     for mate in teammates(player) {
-        let mate = Id32::new(CHARACTER_TYPE, mate);
-        if world::whereabouts(mate).is_some_and(|(pf, _)| pf == playfield) {
-            world::send_to(mate, world::Out::TeamProgress(event.clone()));
-        }
+        share_one(mate, playfield, event);
+    }
+}
+
+/// [`share`] with one teammate `mate` (if on `playfield`).
+pub fn share_one(mate: u32, playfield: Pf, event: &crate::achievements::Event) {
+    let mate = Id32::new(CHARACTER_TYPE, mate);
+    if world::whereabouts(mate).is_some_and(|(pf, _)| pf == playfield) {
+        world::send_to(mate, world::Out::TeamProgress(event.clone()));
     }
 }
 

@@ -13,6 +13,10 @@
   nothing; it becomes a call of the vtable's working SendTell.
 - Chat for everyone: Data/Gui/Default/Modules.xml (next to the exe, stock copy kept as .orig)
   loses the ChatGUI module's GM-only condition `stat:gmlevel!=0` (added in 1.5).
+- New-minifigure window: the same file's BagOpenEvent module ("Congratulations! You got a new
+  minifigure.") loads when the GUI starts (GMF_PRELOAD) instead of only after the login
+  screen's Login button (GMF_PRELOAD_AT_ENTER_GAME: ModuleController_c::ProcessAtLoginPreloads),
+  which a client started with -username/-password never presses.
 
 lmoxide-patch-server does the same to the binaries it serves; this script is for clients
 installed by hand. Every run starts from the stock copy, kept as <exe>.orig.
@@ -30,6 +34,9 @@ DO_TELL = bytes.fromhex("554889e55dc3" "554889e58977185dc3")
 DO_TELL_PATCHED = bytes.fromhex("488b07ff6018" "554889e58977185dc3")
 MODULES = os.path.join("Data", "Gui", "Default", "Modules.xml")
 CHAT_GUI_GM = "stat:gmlevel!=0 &amp;&amp; !fullscreen_menu"
+# modules loaded at login: GMF_PRELOAD_AT_ENTER_GAME -> GMF_PRELOAD (the flag stays first)
+PRELOADED = ["BagOpenEvent"]
+PRELOAD_AT_LOGIN = re.compile(r'(<Module name="(%s)"[^>]*?flags\s*=\s*")GMF_PRELOAD_AT_ENTER_GAME\b' % "|".join(PRELOADED))
 # lmoxide_net::login::FUNCOM_SESSION_KEY
 FUNCOM_KEY = (
     b"a738d2bc4ba9fea7a6d3e485f85f5a5c74c459940c488f8ec88ab5a326161c133bbaee9c1ee7fd0e0453b51cc8139826"
@@ -106,18 +113,25 @@ def main():
 
 
 def patch_modules(path):
-    """The chat window for everyone: drop the ChatGUI module's GM condition."""
+    """The chat window for everyone (drop the ChatGUI module's GM condition) and the
+    new-minifigure window loaded at GUI start (BagOpenEvent GMF_PRELOAD)."""
     if not os.path.exists(path):
         print(f"no {path}: chat stays GM-only", file=sys.stderr)
         return
     if not os.path.exists(path + ".orig"):
         shutil.copy2(path, path + ".orig")
     xml = open(path + ".orig", encoding="utf-8", newline="").read()
-    if xml.count(CHAT_GUI_GM) != 1:
-        print(f"{path}: GM condition not found; left as is", file=sys.stderr)
-        return
-    open(path, "w", encoding="utf-8", newline="").write(xml.replace(CHAT_GUI_GM, "!fullscreen_menu"))
-    print(f"patched {path}: chat for everyone")
+    if xml.count(CHAT_GUI_GM) == 1:
+        xml = xml.replace(CHAT_GUI_GM, "!fullscreen_menu")
+        print(f"patched {path}: chat for everyone")
+    else:
+        print(f"{path}: GM condition not found; chat left as is", file=sys.stderr)
+    xml, n = PRELOAD_AT_LOGIN.subn(r"\1GMF_PRELOAD", xml)
+    if n == len(PRELOADED):
+        print(f"patched {path}: new-minifigure window loaded at GUI start")
+    else:
+        print(f"{path}: {n} of the modules {PRELOADED} patched", file=sys.stderr)
+    open(path, "w", encoding="utf-8", newline="").write(xml)
 
 
 if __name__ == "__main__":

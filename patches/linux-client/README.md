@@ -53,6 +53,7 @@ version and server. To point a client at another server: `apply.sh <client dir> 
 | `libgconf-2.so.4` (stub, `gconf-stub.c`) | `libcef.so` (the embedded browser) links GNOME 2's config library, which distributions dropped; CEF only asks it for proxy settings. |
 | `liblmofixes.so` (`lmo-fixes.c`), preloaded by `lmo` | Client bug fix: its animation name table (`MCore::StringIDGenerator`) is filled from several threads without a lock and corrupts memory (crashes while loading worlds with many monster types). |
 | `LMO`: chat filter URL and login key (`patch-client.py`; stock copy `LMO.orig`) | Chat lines are only sent after a hard-coded Funcom filter URL approves them; it now asks the server. The password is encrypted against a public key compiled into the client; it becomes the LMOxide server's, fetched from `/lmoxide/v1/login-key`. |
+| `Data/Gui/Default/Modules.xml` (`patch-client.py`; stock copy `Modules.xml.orig`) | The chat window for everyone (1.5 showed it to GMs only). The BagOpenEvent module ("Congratulations! You got a new minifigure.") loads at GUI start (`GMF_PRELOAD`): stock it is loaded only by the login screen's Login button (`GMF_PRELOAD_AT_ENTER_GAME`), which `lmo <username>` skips, and only the module itself opens its window. |
 | `lmo` launcher, `lmo-kit.conf` | Fetches `LocalConfig.xml` (the server's addresses) like Funcom's launcher did, forces SDL's X11 driver (the 2016 renderer needs GLX; Wayland/EGL crashes) and preloads the fixes. |
 
 Nothing else in the client is modified. Bump `KIT_VERSION` when a change is added.

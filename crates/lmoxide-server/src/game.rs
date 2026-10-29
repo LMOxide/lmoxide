@@ -1906,7 +1906,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     }
                     crate::loot::Reward::Chest { member } => {
                         let power = crate::loot::chest_power(me.level(), taken.playfield, taken.template);
-                        crate::loot::open_chest(id, taken.playfield, taken.pos, bag, taken.template, member, power)
+                        // next to the player, as other loot (not at the chest's Loot_Offset: TUNABLES)
+                        let at = world::live_position(id).unwrap_or(taken.pos);
+                        crate::loot::open_chest(id, taken.playfield, at, bag, taken.template, member, power)
                     }
                     crate::loot::Reward::RewardChest => crate::lost_creations::open_chest(character, taken.playfield, taken.pos),
                     crate::loot::Reward::Nothing => {

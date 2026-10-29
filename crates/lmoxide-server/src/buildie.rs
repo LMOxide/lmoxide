@@ -5,7 +5,9 @@
 //! The client queues an `ObjectInteractionCommand` (CommandType 18, data = the buildie's ID32);
 //! the server accepts it and drives the build: `buildableStart`, the build rate (FloatStat
 //! 3000073 (BuildableTickAmount)), progress ticks (Health += rate) while the builder stays close, and at the maximum the
-//! built visual, `buildableStop` and CARS group 5. A jump pad under an unbuilt buildie doesn't
+//! built visual, `buildableStop` and CARS group 5. Several players can build one buildie
+//! together: the rate is the sum of the builders' rates, and a builder who walks away stops
+//! only their own share ([`tick_builders`]). A jump pad under an unbuilt buildie doesn't
 //! launch anyone. Placements and visuals: the recorded buildies (content: buildie spawns and their objects' `client`, world_data.rs); only
 //! the recorded worlds' buildies are known.
 
@@ -80,11 +82,18 @@ struct Def {
     built_visual: Option<u32>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 enum State {
     Idle,
-    Building(Id32),
+    /// Who builds it now (the first one started it), and the summed rate last sent.
+    Building { builders: Vec<Id32>, rate: u32 },
     Built,
+}
+
+impl State {
+    fn builds(&self, player: Id32) -> bool {
+        matches!(self, State::Building { builders, .. } if builders.contains(&player))
+    }
 }
 
 struct Buildie {
@@ -246,8 +255,22 @@ pub fn interact(player: Id32, data: &[u8]) -> Option<bool> {
         }
         return known.then_some(false);
     }
+    let rate = rate_of(player);
     let mut buildies = BUILDIES.lock().unwrap();
     let b = buildies.get_mut(&target)?;
+    if let State::Building { builders, rate: summed } = &mut b.state {
+        // co-op: another player joins the build; the rate becomes the sum of everyone's
+        if builders.contains(&player) {
+            return Some(false);
+        }
+        builders.push(player);
+        *summed += rate;
+        info!(?player, buildie = %b.def.name, builders = builders.len(), rate = *summed, "joined the build");
+        let record = float_stat_record(target, STAT_BUILD_RATE, *summed as f32);
+        drop(buildies);
+        world::send_playfield(target, false, world::Out::Records(vec![record]));
+        return Some(true);
+    }
     if b.state != State::Idle {
         return Some(false);
     }
@@ -258,51 +281,88 @@ pub fn interact(player: Id32, data: &[u8]) -> Option<bool> {
         records.push(stat_record(target, STAT_BUILDING, 0));
         records.push(stat_record(target, STAT_HEALTH, 0));
     }
-    b.state = State::Building(player);
+    b.state = State::Building { builders: vec![player], rate };
     info!(?player, buildie = %b.def.name, "build started");
-    records.extend(start_records(target, rate_of(player)));
+    records.extend(start_records(target, rate));
     drop(buildies);
     world::send_playfield(target, false, world::Out::Records(records));
-    tokio::spawn(build(target, player));
+    tokio::spawn(build(target));
     Some(true)
 }
 
-async fn build(id: Id32, player: Id32) {
+/// One build tick's builders: those still within `near` stay and their `rate`s add up; the
+/// others leave (only their share stops). Returns (staying, leaving, summed rate).
+fn tick_builders(builders: &[Id32], near: impl Fn(Id32) -> bool, rate: impl Fn(Id32) -> u32) -> (Vec<Id32>, Vec<Id32>, u32) {
+    let (stay, leave): (Vec<Id32>, Vec<Id32>) = builders.iter().partition(|&&p| near(p));
+    let sum = stay.iter().map(|&p| rate(p)).sum();
+    (stay, leave, sum)
+}
+
+/// The build of `id`, a tick at a time, for as long as anyone builds it.
+async fn build(id: Id32) {
     let mut tick = tokio::time::interval(TICK);
     tick.tick().await;
     loop {
         tick.tick().await;
-        // before taking BUILDIES: world::join holds the members lock while spawn_records takes it
-        let builder = world::whereabouts(player);
-        let rate = rate_of(player);
+        // before taking BUILDIES: world::join holds the members lock while spawn_records takes
+        // it (so where the builders are and their rates are read first)
+        let Some(builders) = BUILDIES.lock().unwrap().get(&id).and_then(|b| match &b.state {
+            State::Building { builders, .. } => Some(builders.clone()),
+            _ => None,
+        }) else {
+            return;
+        };
+        let at: HashMap<Id32, Option<(Pf, [f32; 3])>> = builders.iter().map(|&p| (p, world::whereabouts(p))).collect();
+        let rates: HashMap<Id32, u32> = builders.iter().map(|&p| (p, rate_of(p))).collect();
         let mut buildies = BUILDIES.lock().unwrap();
         let Some(b) = buildies.get_mut(&id) else { return };
-        if b.state != State::Building(player) {
-            return;
+        let (playfield, pos) = (b.def.playfield, b.def.pos);
+        let State::Building { builders: current, rate: sent } = &mut b.state else { return };
+        // (a player who joined since the snapshot counts from the next tick)
+        let near = |p: Id32| !builders.contains(&p) || at[&p].is_some_and(|(pf, q)| pf == playfield && distance(q, pos) <= BUILD_RANGE);
+        let (stay, leave, rate) = tick_builders(current, near, |p| rates.get(&p).copied().unwrap_or_else(|| rate_of(p)));
+        let mut records = Vec::new();
+        for &p in &leave {
+            info!(player = ?p, buildie = %b.def.name, progress = b.progress, "stopped building");
+            records.push(stat_record(p, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL));
         }
-        let near = builder.is_some_and(|(pf, p)| pf == b.def.playfield && distance(p, b.def.pos) <= BUILD_RANGE);
-        if !near {
+        if stay.is_empty() {
             b.state = State::Idle;
-            info!(?player, buildie = %b.def.name, progress = b.progress, "build stopped");
+            info!(buildie = %b.def.name, progress = b.progress, "build stopped");
             drop(buildies);
-            let records = vec![script_record(id, "buildableStop"), float_stat_record(id, STAT_BUILD_RATE, 0.0), stat_record(player, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL)];
+            records.splice(0..0, [script_record(id, "buildableStop"), float_stat_record(id, STAT_BUILD_RATE, 0.0)]);
             world::send_playfield(id, false, world::Out::Records(records));
             return;
         }
+        if rate != *sent {
+            // the summed rate changed (someone left, a buff came or went)
+            records.push(float_stat_record(id, STAT_BUILD_RATE, rate as f32));
+            *sent = rate;
+        }
+        *current = stay.clone();
         b.progress = (b.progress + rate).min(b.def.max);
-        let mut records = vec![stat_record(id, STAT_HEALTH, b.progress)];
+        records.push(stat_record(id, STAT_HEALTH, b.progress));
         let done = b.progress >= b.def.max;
         if done {
             b.state = State::Built;
-            info!(?player, buildie = %b.def.name, "built");
+            info!(builders = ?stay, buildie = %b.def.name, "built");
             let event = crate::achievements::Event::Built { name: b.def.name.clone() };
-            crate::community::share(player.instance, b.def.playfield, &event);
-            world::send_to(player, world::Out::Progress(event));
+            // every builder counts it; their teammates there count it once (TeamProgress)
+            let mut told: std::collections::HashSet<u32> = stay.iter().map(|p| p.instance).collect();
+            for &p in &stay {
+                world::send_to(p, world::Out::Progress(event.clone()));
+            }
+            for &p in &stay {
+                for mate in crate::community::teammates(p.instance) {
+                    if told.insert(mate) {
+                        crate::community::share_one(mate, playfield, &event);
+                    }
+                }
+            }
             records.extend(built_records(id, &b.def));
-            // the builder stops building (BCCState back to normal, as recorded)
-            records.push(stat_record(player, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL));
+            // the builders stop building (BCCState back to normal, as recorded)
+            records.extend(stay.iter().map(|&p| stat_record(p, crate::game::STAT_BCC_STATE, BCC_STATE_NORMAL)));
         }
-        let (playfield, pos) = (b.def.playfield, b.def.pos);
         drop(buildies);
         world::send_playfield(id, false, world::Out::Records(records));
         if done {
@@ -365,7 +425,7 @@ pub fn reset(id: Id32) {
     let (playfield, pos, old) = {
         let mut buildies = BUILDIES.lock().unwrap();
         let Some(b) = buildies.get_mut(&id) else { return };
-        if matches!(b.state, State::Building(_)) {
+        if matches!(b.state, State::Building { .. }) {
             return;
         }
         b.state = State::Idle;
@@ -385,7 +445,7 @@ pub fn reset(id: Id32) {
 
 /// Whether `player` is building something now.
 pub fn building(player: Id32) -> bool {
-    BUILDIES.lock().unwrap().values().any(|b| b.state == State::Building(player))
+    BUILDIES.lock().unwrap().values().any(|b| b.state.builds(player))
 }
 
 /// UpdateMessage + `DestructibleFullUpdateIIR_c` as recorded (see npc.rs `smashable_records` for
@@ -425,8 +485,8 @@ fn spawn_records(id: Id32) -> Vec<Bytes> {
     if built && crate::jumppad::pad_at_spot(d.playfield, d.pos) {
         records.push(hide_record(id));
     }
-    if let State::Building(player) = b.state {
-        records.extend(start_records(id, rate_of(player)));
+    if let State::Building { rate, .. } = b.state {
+        records.extend(start_records(id, rate));
     }
     records
 }
@@ -475,6 +535,20 @@ mod tests {
         BUILDIES.lock().unwrap().insert(id, Buildie { def, recorded: true, progress: 0, state: State::Idle, _presence: None });
         let records = spawn_records(id);
         assert!(crate::conn::hex(&records[1]).ends_with(body), "{}", crate::conn::hex(&records[1]));
+    }
+
+    #[test]
+    fn coop_builders_sum_their_rates() {
+        let (a, b, c) = (Id32::new(50000, 1), Id32::new(50000, 2), Id32::new(50000, 3));
+        let rate = |p: Id32| [0, 62, 500, 950][p.instance as usize];
+        // everyone in range: the rates add up
+        assert_eq!(tick_builders(&[a, b, c], |_| true, rate), (vec![a, b, c], vec![], 62 + 500 + 950));
+        // one walks away: only their share stops
+        assert_eq!(tick_builders(&[a, b, c], |p| p != b, rate), (vec![a, c], vec![b], 62 + 950));
+        // nobody left: the build stops
+        assert_eq!(tick_builders(&[a], |_| false, rate), (vec![], vec![a], 0));
+        let state = State::Building { builders: vec![a, c], rate: 1012 };
+        assert!(state.builds(c) && !state.builds(b));
     }
 
     #[test]

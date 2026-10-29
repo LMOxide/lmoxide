@@ -10,7 +10,8 @@
 //!   (chat filter, then IRC PRIVMSG). Linux build only (see [`patch_tells`]).
 //!
 //! [`patch_chat_gui`] patches `Data/Gui/Default/Modules.xml`: 1.5 also showed the chat window
-//! to GMs only (`stat:gmlevel!=0`), unlike live before it.
+//! to GMs only (`stat:gmlevel!=0`), unlike live before it. [`patch_bag_open_event`] makes the
+//! "You got a new minifigure" window (BagOpenEvent) load when the GUI starts.
 //!
 //! Both also recognise their own earlier patch, so an already patched binary can be patched
 //! again for another key or host.
@@ -33,6 +34,8 @@ pub enum PatchError {
     TellNotFound,
     #[error("the chat window's GM condition not found")]
     ChatGuiNotFound,
+    #[error("the BagOpenEvent module not found")]
+    BagOpenEventNotFound,
 }
 
 /// Linux `ChatServerInterface_c::DoTell(String const&, String const&, int)` (empty: `push rbp;
@@ -64,6 +67,30 @@ pub fn patch_chat_gui(xml: &str) -> Result<String, PatchError> {
         _ if xml.contains("chat_gui &amp;&amp; !fullscreen_menu") => Ok(xml.to_string()),
         _ => Err(PatchError::ChatGuiNotFound),
     }
+}
+
+/// The BagOpenEvent module's flags as shipped: loaded only by `ModuleController_c::
+/// ProcessAtLoginPreloads`, which only the login screen's Login button calls
+/// (`asc::ASAccountManagement::LoginAccount`). A client started with `-username`/`-password` (the
+/// launcher, the client kit) never loads it, and the module's own code is what opens it (its
+/// criteria `bag_open_event` is set only by BagOpenEvent.swf, on the collection's SignalItemAdded),
+/// so the "Congratulations! You got a new minifigure." window never came.
+const BAG_OPEN_EVENT_FLAGS: &str = r#"flags             = "GMF_PRELOAD_AT_ENTER_GAME""#;
+/// GMF_PRELOAD: loaded once the GUI framework is ready (`ModuleController_c::SlotInitNewModules`).
+const BAG_OPEN_EVENT_PRELOAD: &str = r#"flags             = "GMF_PRELOAD""#;
+
+/// Loads the BagOpenEvent module however the client logged in (`Data/Gui/Default/Modules.xml`).
+pub fn patch_bag_open_event(xml: &str) -> Result<String, PatchError> {
+    let start = xml.find(r#"<Module name="BagOpenEvent""#).ok_or(PatchError::BagOpenEventNotFound)?;
+    let end = start + xml[start..].find("/>").ok_or(PatchError::BagOpenEventNotFound)?;
+    let module = &xml[start..end];
+    if module.contains(BAG_OPEN_EVENT_PRELOAD) {
+        return Ok(xml.to_string());
+    }
+    if !module.contains(BAG_OPEN_EVENT_FLAGS) {
+        return Err(PatchError::BagOpenEventNotFound);
+    }
+    Ok(format!("{}{}{}", &xml[..start], module.replace(BAG_OPEN_EVENT_FLAGS, BAG_OPEN_EVENT_PRELOAD), &xml[end..]))
 }
 
 /// The chat filter format string as shipped.
@@ -270,5 +297,18 @@ mod tests {
         assert_eq!(patched, r#"criteria = "chat_gui &amp;&amp; !fullscreen_menu &amp;&amp; x""#);
         assert_eq!(patch_chat_gui(&patched).unwrap(), patched);
         assert_eq!(patch_chat_gui("other"), Err(PatchError::ChatGuiNotFound));
+    }
+
+    #[test]
+    fn bag_open_event_preloaded() {
+        let xml = concat!(
+            "<Module name=\"Minimap\"\n flags             = \"GMF_PRELOAD_AT_ENTER_GAME\"\n/>\n",
+            "<Module name=\"BagOpenEvent\"\n flags             = \"GMF_PRELOAD_AT_ENTER_GAME\"\n criteria = \"bag_open_event\"\n/>"
+        );
+        let patched = patch_bag_open_event(xml).unwrap();
+        assert_eq!(patched.matches("\"GMF_PRELOAD\"").count(), 1);
+        assert!(patched.starts_with("<Module name=\"Minimap\"\n flags             = \"GMF_PRELOAD_AT_ENTER_GAME\""));
+        assert_eq!(patch_bag_open_event(&patched).unwrap(), patched);
+        assert_eq!(patch_bag_open_event("other"), Err(PatchError::BagOpenEventNotFound));
     }
 }

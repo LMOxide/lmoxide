@@ -194,7 +194,8 @@ fn patch_executable(
     Ok(())
 }
 
-/// The chat window for everyone, not only GMs (see `patching::patch_chat_gui`).
+/// The chat window for everyone, not only GMs (see `patching::patch_chat_gui`), and the
+/// new-minifigure window loaded at GUI start (`patching::patch_bag_open_event`).
 fn patch_modules_xml(cfg: &Config, platform: Platform, tree: &mut Tree, warnings: &mut Vec<String>) -> io::Result<()> {
     const MODULES: &str = "Data/Gui/Default/Modules.xml";
     let Some((rel, src)) = tree.get_ci(MODULES).map(|(k, v)| (k.clone(), v.clone())) else {
@@ -202,14 +203,28 @@ fn patch_modules_xml(cfg: &Config, platform: Platform, tree: &mut Tree, warnings
         return Ok(());
     };
     let original = fs::read_to_string(&src.path)?;
-    match patching::patch_chat_gui(&original) {
-        Ok(xml) if xml != original => {
-            info!(%platform, "patched the chat window for everyone");
-            let blob = write_blob(cfg, xml.as_bytes(), false)?;
-            tree.files.insert(rel, blob);
+    let mut xml = original.clone();
+    match patching::patch_chat_gui(&xml) {
+        Ok(patched) => {
+            if patched != xml {
+                info!(%platform, "patched the chat window for everyone");
+            }
+            xml = patched;
         }
-        Ok(_) => {}
         Err(e) => warnings.push(format!("{platform}: chat stays GM-only: {e}")),
+    }
+    match patching::patch_bag_open_event(&xml) {
+        Ok(patched) => {
+            if patched != xml {
+                info!(%platform, "patched BagOpenEvent to load at GUI start");
+            }
+            xml = patched;
+        }
+        Err(e) => warnings.push(format!("{platform}: no new-minifigure window: {e}")),
+    }
+    if xml != original {
+        let blob = write_blob(cfg, xml.as_bytes(), false)?;
+        tree.files.insert(rel, blob);
     }
     Ok(())
 }

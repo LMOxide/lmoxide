@@ -228,7 +228,8 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
 - **Chat** (chat.rs): stock 1.5 shows the chat window to GMs only (Modules.xml ChatGUI criteria
   `stat:gmlevel!=0`) and emptied `ChatServerInterface_c::DoTell` (no "/tell"); both were late
   changes before shutdown. The patch server and patches/patch-client.py remove the condition and
-  make DoTell call the virtual `SendTell` (Linux build only).
+  make DoTell call the virtual `SendTell` (Linux build only). They also load the BagOpenEvent
+  module at GUI start (see "Congratulations! You got a new minifigure." below).
   The chat server is plain IRC (CRLF lines, zlib unless LocalConfig `ChatCompression=false`) at
   the address from `PlayerInterface::ChatServerConnectReady(String "host:port", u32 cookie,
   ID32)`, sent before LoginConnectReady. Client: `PASS :<cookie>`, `NICK <name>-<PlayerID>`,
@@ -339,6 +340,21 @@ ScryShowMessageBox). LMOxide spawns the client data's door spawns within 5 m of 
   110002, sent in FullPlayerCharacterIIR, max 200): on pickup `GameCharInterface` 0x24
   AddItem(ID32 (110002, char), i32 pos -1, entry, u8 0) starts the reveal (pos -1 isn't stored);
   then AddItem into 110001 for a new minifigure, or stars for a duplicate.
+- **"Congratulations! You got a new minifigure."** (BagOpenEvent.swf, Modules.xml module
+  BagOpenEvent, criteria `bag_open_event`): the SWF opens itself. Its controller listens to the
+  collection (110001) inventory's SignalItemAdded (`InventoryGame_c::SetItemEntry` → InventoryIF
+  +0x28 → `asc::Inventory::SlotItemAdded`) and the bag inventory's SignalItemSpawned (AddItem at
+  -1: remembers the bag's minifigure; a following token-100 change shows the duplicate text), then
+  sets `bag_open_event` itself. So an AddItem into 110001 is all the server sends (story
+  minifigures too, `grant_story_minifigure`). Two client conditions (seen in the Linux client
+  2026-10-29): (1) the module must be loaded: stock `GMF_PRELOAD_AT_ENTER_GAME` is loaded only by
+  `ModuleController_c::ProcessAtLoginPreloads`, called only from the login screen's Login
+  (`asc::ASAccountManagement::LoginAccount`), not for `-username/-password` starts, so the
+  patch server and patches/patch-client.py make it `GMF_PRELOAD`; (2) the SWF looks the
+  minifigure up with `ASMinifigureList::GetMinifigureItem(template)`, which fails ("Trying to a
+  minifigure without data associated") until something called `MinifigureList.GetList()` in that
+  session, which only the Collection window does: the window shows once the player has opened
+  the Collection since logging in (live had the same rule; it isn't the server's to change).
 - **Chests** are items in a bag with stat LootType 1 (free) / 2 (member): the client shows the
   chest model at the bag + Loot_Offset; clicking sends TryLootItem; the server drops the chest's
   contents as a new bag. The LootTable contents were server-side.

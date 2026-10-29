@@ -10,7 +10,8 @@
 #   - liblmofixes.so: client bug fixes, preloaded by the launcher (lmo-fixes.c)
 #   - LMO: the chat filter URL and the login key are the server's (patch-client.py; stock copy
 #     kept as LMO.orig); the key comes from http://<server>:8080/lmoxide/v1/login-key; private
-#     messages work again (DoTell); Data/Gui/Default/Modules.xml shows chat to everyone
+#     messages work again (DoTell); Data/Gui/Default/Modules.xml shows chat to everyone and loads
+#     the new-minifigure window (BagOpenEvent) without the login screen
 #   - lmo: the launcher; lmo-kit.conf: kit version and server
 set -euo pipefail
 KIT=$(cd "$(dirname "$0")" && pwd)
