@@ -51,6 +51,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
 | `!spawn [count] <name>` | spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes, as `!test` does (`!spawn 3 Crate`, `!spawn Captain Dreadleg`) |
 | `!despawn [all]` | remove the test spawns (`!spawn`, `!test`) within 30 m, or all of this playfield's |
+| `!buff <buff> [secs]` | put a content buff (`buff/...`, the prefix may be left out) on yourself as a trigger's `apply_buff` does, for secs or its own time (`!buff speed-pad 60`: the speed pad's speed and trail) |
 | `!fx <id> [hook] [@near\|@ground]` | play effect package `<id>` on yourself, from a code hook (`onhit`, `charge`, `execute`, ...), with the nearest enemy or smashable as its target (`@near`) or at your feet (`@ground`); `!fx next\|prev\|stop` steps through every package or ends it (data/effect_catalog.json) |
 | `!anim <attribute>` | play an animation attribute (`limbostart`, `chainattack`, `get_hit`, ...: data/animations.json picks a package that sets it) |
 | `!skin <monster data\|reset>` | look like any monster data (data/monster_data.json), or your minifigure again |

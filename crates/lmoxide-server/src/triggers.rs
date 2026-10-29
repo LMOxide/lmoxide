@@ -445,6 +445,21 @@ fn command(f: &Fired, name: &str, args: &BTreeMap<String, Value>) -> bool {
     }
 }
 
+/// Shows content buff `buff` (`buff/...`) on `player`, cast by the player, for `duration` or the
+/// buff's own (a trigger's `apply_buff`, `!buff`). Only its nano is sent (`MagicBuffIIR_c` add):
+/// the client plays the nano's EffectPackage by itself (the speed pad's trail 463557; live sent
+/// no EffectPackageIIR with buff 459025, only its add and its remove 10 s later) and its client
+/// actions do the rest. Returns how long it lasts.
+pub fn apply_buff(player: Id32, buff: &str, duration: Option<Duration>) -> Result<Option<Duration>, String> {
+    let c = crate::gamedata::get();
+    let b = c.buffs.get(buff).ok_or_else(|| format!("no such buff {buff}"))?;
+    let nano = b.nano.ok_or_else(|| format!("buff {buff} has no nano"))?;
+    let d = duration.or(b.duration.map(|d| d.to_std()));
+    let records = crate::effects::show_buff(player, nano, player, d);
+    world::send_playfield(player, true, world::Out::Records(records));
+    Ok(d)
+}
+
 /// One action for the player who set the trigger off.
 fn act(f: &Fired, a: &Action) {
     let c = crate::gamedata::get();
@@ -473,11 +488,9 @@ fn act(f: &Fired, a: &Action) {
             }
         }
         Action::ApplyBuff { buff, duration, .. } => {
-            let Some(b) = c.buffs.get(buff) else { return warn!(trigger = f.trigger, buff, "trigger: no such buff") };
-            let Some(nano) = b.nano else { return warn!(trigger = f.trigger, buff, "trigger: buff without a nano") };
-            let d = duration.or(b.duration).map(|d| d.to_std());
-            let records = crate::effects::show_buff(f.player, nano, f.player, d);
-            world::send_playfield(f.player, true, world::Out::Records(records));
+            if let Err(why) = apply_buff(f.player, buff, duration.map(|d| d.to_std())) {
+                warn!(trigger = f.trigger, buff, "trigger: {why}");
+            }
         }
         Action::RemoveBuff { buff, .. } => {
             if let Some(nano) = c.buffs.get(buff).and_then(|b| b.nano) {

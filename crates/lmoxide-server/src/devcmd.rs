@@ -138,6 +138,8 @@ pub enum Action {
     Spawn(String, u32),
     /// remove test spawns: within 30 m (false) or on the whole playfield (true)
     Despawn(bool),
+    /// Show a content buff on yourself (`buff/...`), for this long or the buff's own time.
+    Buff(String, Option<std::time::Duration>),
     /// open a teleport window by id, as a portal would (`!window`)
     Window(u32),
     /// throw the player 6 m ahead (`!bounce`)
@@ -197,6 +199,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
     ("!fx <id> [hook] [@near|@ground]", "play effect package <id> on yourself, from a code hook (onhit, charge, ...), on the nearest enemy as target (@near) or at your feet (@ground)"),
+    ("!buff <buff> [secs]", "put a content buff on yourself as a trigger's apply_buff does (`!buff speed-pad 60`: the speed pad's buff and its trail)"),
     ("!anim <attribute>", "play an animation attribute (limbostart, chainattack, get_hit, ...)"),
     ("!fx next|prev|stop", "step through every effect package, or end the current one"),
     ("!skin <monster data|reset>", "look like any monster data (others see it too); reset: your minifigure"),
@@ -751,6 +754,13 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             },
             None => reply(vec!["usage: !anim <animation attribute> (limbostart, chainattack, get_hit, ...)".into()]),
         },
+        "buff" => match (args.first(), args.get(1).map(|s| s.parse::<f32>())) {
+            (Some(b), None | Some(Ok(_))) => {
+                let id = if b.starts_with("buff/") { b.to_string() } else { format!("buff/{b}") };
+                Action::Buff(id, args.get(1).and_then(|s| s.parse::<f32>().ok()).map(|s| std::time::Duration::from_secs_f32(s.max(0.1))))
+            }
+            _ => reply(vec!["usage: !buff <buff id> [secs] (!buff speed-pad)".into()]),
+        },
         "despawn" => Action::Despawn(args.first().is_some_and(|a| a.eq_ignore_ascii_case("all"))),
         "state" => match args.first().and_then(|n| n.parse().ok()) {
             Some(n) => Action::State(n),
@@ -906,6 +916,9 @@ mod tests {
         assert!(matches!(run("!fx 966", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Me)) if h.is_empty()));
         assert!(matches!(run("!fx 966 onhit @near", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Near)) if h == "onhit"));
         assert!(matches!(run("!fx 966 @ground", Pf::main(1200), [0.0; 3]), Action::Fx(Fx::Play(966, h, FxAt::Ground)) if h.is_empty()));
+        assert!(matches!(run("!buff speed-pad", Pf::main(1200), [0.0; 3]), Action::Buff(b, None) if b == "buff/speed-pad"));
+        assert!(matches!(run("!buff buff/speed-pad 60", Pf::main(1200), [0.0; 3]), Action::Buff(_, Some(d)) if d.as_secs() == 60));
+        assert!(matches!(run("!buff speed-pad x", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
         assert!(matches!(run("!fx 966 @moon", Pf::main(1200), [0.0; 3]), Action::Reply(_)));
     }
 

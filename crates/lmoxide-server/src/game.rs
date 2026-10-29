@@ -1419,6 +1419,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 }
                             }
                         }
+                        crate::devcmd::Action::Buff(buff, duration) => {
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let said = match crate::triggers::apply_buff(id, &buff, duration) {
+                                Ok(d) => format!("{buff} on you{}", d.map_or(String::new(), |d| format!(" for {:.1} s", d.as_secs_f32()))),
+                                Err(why) => why,
+                            };
+                            crate::chat::system(character, &said);
+                        }
                         crate::devcmd::Action::Despawn(all) => {
                             let here = *pos.lock().unwrap();
                             let n = crate::npc::despawn_tests(place, (!all).then_some((here, 30.0)));
