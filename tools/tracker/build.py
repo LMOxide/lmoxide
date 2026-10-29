@@ -46,9 +46,9 @@ class Doc:
     def new_file(self, name):
         self.lines = self.files[name] = []
 
-    def box(self, key, text, depth=0):
-        """A checkbox line; returns whether it is ticked."""
-        done = self.state.get(key, (False,))[0]
+    def box(self, key, text, depth=0, tick=False):
+        """A checkbox line; returns whether it is ticked (tick=True ticks it whatever the file says)."""
+        done = tick or self.state.get(key, (False,))[0]
         self.used.add(key)
         self.lines.append(f"{'  ' * depth}- [{'x' if done else ' '}] {text} <!-- {key} -->")
         return done
@@ -66,10 +66,10 @@ class Doc:
         return done, total
 
     def boxes(self, items):
-        """items: (key, text, depth) -> (done, total)."""
+        """items: (key, text, depth[, tick]) -> (done, total)."""
         done = total = 0
-        for key, text, depth in items:
-            done += self.box(key, text, depth)
+        for item in items:
+            done += self.box(*item)
             total += 1
         return done, total
 
@@ -92,12 +92,40 @@ def section(doc, title, note, groups, render):
     doc.lines.append('')
     done = total = 0
     for name, rows in groups.items():
+        if not rows:
+            continue
         d, t = doc.details(name, lambda rows=rows: doc.boxes(i for r in rows for i in render(r)))
         done += d
         total += t
     doc.lines[head] = f'**{done}/{total}** checked'
     doc.lines.insert(head + 1, '')
     return title, fname, done, total
+
+
+def who(minifigs, label):
+    """'all minifigures', or the names."""
+    if len({m['minifig'] for m in minifigs}) >= len(lists.D.minifigs):
+        return '_all minifigures_'
+    return esc(', '.join(label(m) for m in minifigs))
+
+
+def upgrade_minifigs(minifigs):
+    """One entry per minifigure, its upgrade numbers joined: Cowboy (1, 7)."""
+    nums = {}
+    for m in minifigs:
+        nums.setdefault(m['minifig'], []).append(str(m['number']))
+    return [{'minifig': n, 'numbers': ', '.join(v)} for n, v in nums.items()]
+
+
+def upgrade_label(m):
+    return f'{m["minifig"]} ({m["numbers"]})'
+
+
+def shared_unique(rows):
+    """{'Shared …': rows with 2+ minifigures (most first), 'Unique …': the rest (by name)}."""
+    shared = sorted((r for r in rows if len(r['minifigs']) > 1), key=lambda r: (-len(r['minifigs']), r.get('name') or r['title']))
+    unique = sorted((r for r in rows if len(r['minifigs']) == 1), key=lambda r: r.get('name') or r['title'])
+    return {'Shared (2+ minifigures)': shared, 'Unique (1 minifigure)': unique}
 
 
 def ach_text(r):
@@ -112,9 +140,9 @@ def build(state):
 
     ups = lists.upgrades()
     totals.append(section(
-        doc, '1. Upgrades', 'One box per minifigure that has the upgrade: tick when it behaves exactly as on live.',
-        {f'{u["name"]} — {len(u["minifigs"])} minifigures': [u] for u in ups},
-        lambda u: [(m['key'], f'{esc(m["minifig"])} (upgrade {m["number"]})', 0) for m in u['minifigs']]))
+        doc, '1. Upgrades', 'One box per upgrade (one mechanism for every minifigure that has it): tick when it behaves '
+        'exactly as on live.', shared_unique(ups),
+        lambda u: [(u['key'], f'**{esc(u["name"])}** — {who(upgrade_minifigs(u["minifigs"]), upgrade_label)}', 0)]))
 
     chars = lists.characters()
     totals.append(section(
@@ -148,13 +176,11 @@ def build(state):
         lambda r: [(r['key'], ach_text(r), r['depth'])]))
 
     mf = lists.minifig_achievements()
-    doc_note = ('Per-minifigure achievements without upgrades, Lost Creations levels and the any/all roll-ups; '
-                '`{minifig}` stands for each minifigure listed.')
+    doc_note = ('Per-minifigure achievements without upgrades, Lost Creations levels and the any/all roll-ups, one box '
+                'per achievement (one mechanism for every minifigure that has it); `{minifig}` = each minifigure listed.')
     totals.append(section(
-        doc, '7. Minifigure achievements', doc_note,
-        {f'{g["title"]} — {len(g["minifigs"])} minifigures': [g] for g in mf},
-        lambda g: [(m['key'], f'{esc(m["minifig"])} — {esc(g["description"].replace("{minifig}", m["minifig"]))} · _{esc(g["objective"])}_', 0)
-                   for m in g['minifigs']]))
+        doc, '7. Minifigure achievements', doc_note, shared_unique(mf),
+        lambda g: [(g['key'], f'{ach_text(g)} — {who(g["minifigs"], lambda m: m["minifig"])}', 0)]))
 
     q = lists.area_quests()
     totals.append(section(
@@ -194,12 +220,11 @@ def build(state):
     story = {w: rows for w, rows in sorted(dl.items(), key=lambda kv: (kv[0] == 'Unassigned', kv[0])) if w != 'other'}
 
     def dl_items(r):
-        trig = f'**triggered** ({r["trigger"]})' if r['triggered'] else 'not triggered'
         ids = ', '.join(map(str, r['texts']))
-        return [(r['key'], f'#{ids} “{esc(r["preview"]) or "(no spoken line)"}” · {trig}', 0)]
+        return [(r['key'], f'#{ids} “{esc(r["preview"]) or "(no spoken line)"}”', 0, r['triggered'])]
     note = ('The client\'s dialogue texts (TDB 50002) as conversations, put in worlds by speaker (tools/tracker/manual.json '
-            '`dialogues`; fix one with `texts`). Triggered = the server has a dialogue record for it (content/dialogues). '
-            'Tick when it plays as on live. Summary counts: ' + ', '.join(
+            '`dialogues`; fix one with `texts`). Ticked = triggered: the server has a dialogue record for it (content/dialogues), or you ticked it. '
+            'Summary counts: ' + ', '.join(
                 f'{w} {sum(r["triggered"] for r in rows)}/{len(rows)} triggered' for w, rows in story.items()))
     totals.append(section(doc, '12. Story dialogues', note, story, dl_items))
     totals.append(section(doc, '12b. Other dialogues', 'Tests and texts with no spoken line (camera/script only).',
