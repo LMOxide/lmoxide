@@ -118,11 +118,12 @@ pub fn is_shown(target: Id32, buff: u32) -> bool {
     SHOWN.lock().unwrap().contains_key(&(target, buff))
 }
 
-/// Buffs whose look the client doesn't undo when they end, and the effect package that does:
-/// Petrifying Gaze's stun turns the enemy to stone on add (its list-37 StartEffect 637015:
-/// desaturation up to 1) and only its own package 637013 (desaturation 0, `stunned` cleared)
-/// brings the colour back.
-const END_EFFECTS: &[(u32, u32)] = &[(16_090, 637_013)];
+/// Buffs whose look only their expiry list undoes, and the effect it starts. The client runs a
+/// buff's list 37 when its own timer ends it (`MagicHolder::SlotDeactivateBuff`), not on the
+/// server's removal (`DeactivateBuff` runs list 20), and the server's removal comes first:
+/// Petrifying Gaze's stun turns the enemy to stone on add (its package 637013: desaturation 0,
+/// `stunned`) and its list 37's StartEffect 637015 brings the colour back (0.33, 0.66, 1).
+const END_EFFECTS: &[(u32, u32)] = &[(16_090, 637_015)];
 
 /// The records for `buff` running out on `target`: its removal, and the effect that undoes its
 /// look (`END_EFFECTS`).
