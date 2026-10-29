@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-# One image with every LMOxide server binary; docker-compose.yml picks the command per service.
+# One image with every LMOxide binary. docker-compose.yml runs `lmoxide` (game server, API and
+# patch server in one process, docker/lmoxide.example.toml); the separate programs are there too.
 #   docker build -t lmoxide .
 
 FROM rust:1-bookworm AS build
@@ -11,9 +12,9 @@ COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/src/target \
     cargo build --release --locked \
-      -p lmoxide-server -p lmoxide-api -p lmoxide-patch-server -p lmoxide-patcher \
+      -p lmoxide -p lmoxide-server -p lmoxide-api -p lmoxide-patch-server -p lmoxide-patcher \
  && mkdir -p /out/bin \
- && cp target/release/lmoxide-server target/release/lmoxide-api \
+ && cp target/release/lmoxide target/release/lmoxide-server target/release/lmoxide-api \
        target/release/lmoxide-patch-server target/release/lmoxide-patcher /out/bin/
 # Linux client overlay (the client kit's prebuilt libraries and launcher), served to patchers
 RUN mkdir -p /out/linux-overlay \
@@ -35,4 +36,4 @@ USER lmoxide
 WORKDIR /data
 ENV LMOXIDE_DATA_DIR=/data LMOXIDE_CONTENT_DIR=/usr/local/share/lmoxide/content RUST_LOG=info
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["lmoxide-server"]
+CMD ["lmoxide", "--config", "/etc/lmoxide/lmoxide.toml"]

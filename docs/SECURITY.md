@@ -70,7 +70,9 @@ detect tampering even over plain HTTP; HTTPS can be enabled as well. See
 ## Deployment checklist
 
 - Run the containers as provided (non-root user, read-only client mounts).
-- Publish only the game ports, the patch server and (behind TLS) the API; never 7300.
-- Generate the control token with `openssl rand -hex 32` into `secrets/control_token`.
+- Publish only the game ports and Caddy's 80/443 (HTTPS for the API and the patch server). In
+  `lmoxide` the control interface listens on a loopback port with a token made at every start;
+  running the programs apart, never publish 7300 and generate the control token with
+  `openssl rand -hex 32` into `secrets/control_token`.
 - Back up the `data` volume (the SQLite database holds accounts, characters and the login key).
 - Create an admin account (`account create <name> --gm-level 2`) instead of using `--default-gm-level`.

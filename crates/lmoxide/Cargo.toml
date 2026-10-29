@@ -1,0 +1,22 @@
+[package]
+name = "lmoxide"
+description = "LMOxide in one process: the game server, the REST API and the patch server behind one HTTP listener"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+axum.workspace = true
+clap.workspace = true
+rand = "0.9"
+serde.workspace = true
+tokio.workspace = true
+toml = "0.8"
+tower-http = { workspace = true, features = ["fs"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+lmoxide-api = { path = "../lmoxide-api" }
+lmoxide-db = { path = "../lmoxide-db" }
+lmoxide-patch-server = { path = "../lmoxide-patch-server" }
+lmoxide-server = { path = "../lmoxide-server" }

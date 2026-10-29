@@ -1,0 +1,7 @@
+# HTTPS in front of lmoxide's HTTP listener (certificates from Let's Encrypt, automatic).
+# The game ports (universe 7100/7103/7104, territory 7101, game 7102, chat 7200) are raw TCP:
+# docker-compose.yml publishes them from the lmoxide container directly.
+{$LMOXIDE_PUBLIC_HOST} {
+	encode zstd gzip
+	reverse_proxy lmoxide:8080
+}

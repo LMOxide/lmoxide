@@ -99,7 +99,7 @@ Moderators get 403 when they kick or ban staff (accounts with a GM level); only 
 ## Deployment
 
 The UI is static files or its own server; either way the API has to allow its origin:
-`LMOXIDE_API_CORS_ORIGINS=https://admin.example.org` (see `docker-compose.yml`, service `api`).
-Serving both from one domain behind a reverse proxy (UI at `/`, API at `/api/` → `api:8090`)
-avoids CORS entirely; then set `LMOXIDE_API_TRUST_FORWARDED_FOR=true`. The API must sit behind
+`cors-origins = "https://admin.example.org"` in docker/lmoxide.toml's `[api]`. Simpler: `lmoxide`
+serves the built UI itself from the same origin as the API (`[http] web_dir`, the API at
+`/v1/...`), so there is no CORS; behind Caddy keep `trust-forwarded-for = true`. The API must sit behind
 TLS in production.

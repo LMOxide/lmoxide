@@ -33,7 +33,7 @@ creates them:
 
 ```sh
 lmoxide-api key create discord-bot --scope read            # or in Docker:
-docker compose exec api lmoxide-api key create discord-bot --scope moderate
+docker compose exec lmoxide lmoxide api key create discord-bot --scope moderate
 ```
 
 The secret is printed once; the bot reads it from its environment or a secret file, never from

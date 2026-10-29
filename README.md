@@ -107,16 +107,17 @@ The game's data (worlds, NPCs, skills, loot, minifigures, achievements) is its o
 ### Docker
 
 ```sh
-cp docker/.env.example .env            # set LMOXIDE_PUBLIC_HOST and the client paths
-mkdir -p secrets && openssl rand -hex 32 > secrets/control_token
+cp docker/.env.example .env                           # the host name and the client paths
+cp docker/lmoxide.example.toml docker/lmoxide.toml    # the server's options
 docker compose up -d --build
-docker compose exec server lmoxide-server account create <you> --gm-level 2
+docker compose exec lmoxide lmoxide game account create <you> --gm-level 2
 ```
 
-This runs the game server, the API and the patch server from one image, with the database in
-the `data` volume. The API is bound to localhost; put a TLS reverse proxy in front of it. Read
-the deployment checklist in [docs/SECURITY.md](docs/SECURITY.md) before you open the server to
-the internet.
+This runs `lmoxide`: the game server (every game mode: Progression, Maxxed, World Editor), the
+API and the patch server in one process, with the database in the `data` volume, and Caddy in
+front for HTTPS (certificates for `LMOXIDE_PUBLIC_HOST`). The game ports (7100/7103/7104
+universe, 7101, 7102, 7200) are published directly. Read the deployment checklist in
+[docs/SECURITY.md](docs/SECURITY.md) before you open the server to the internet.
 
 ### LAN play from source
 
@@ -124,10 +125,9 @@ Needs Rust and `protoc`. The scripts expect the client at
 `../clients/windows/LEGO Minifigures Online`; set `LMOXIDE_CLIENT_DIR` to use another folder.
 
 ```sh
-tools/servers.sh                        # play + world editor servers in the background, opens the debugger and editor
-tools/servers.sh up play                # only the play server (progression); `up editor` only the world editor's
+tools/servers.sh                        # the server in the background (every game mode), opens the debugger and editor
 tools/servers.sh status | restart | down
-tools/lan-server.sh --release           # the play server in the foreground (game, patch server, API)
+tools/lan-server.sh --release           # the same in the foreground (game, patch server, API)
 ```
 
 Accounts are created at first login (`--auto-register`), and every account gets GM level 1 for

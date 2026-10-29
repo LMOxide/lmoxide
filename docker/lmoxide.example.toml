@@ -1,0 +1,40 @@
+# LMOxide in one process (lmoxide): copy to docker/lmoxide.toml and adjust.
+# Each part's table takes that program's options without the leading `--`
+# (lmoxide-server --help, lmoxide-api --help, lmoxide-patch-server --help).
+
+# the database (accounts, characters) and the login key
+data_dir = "/data"
+# the host name players reach (game ports and HTTP); clients may use a name, as live did
+public_host = "lmo.example.org"
+
+[http]
+# the API (/v1/...), the patch server (/patch/, /control/, /lmoxide/v1/...) and the web files;
+# Caddy in front adds HTTPS (docker/Caddyfile)
+bind = "0.0.0.0:8080"
+# a built web UI (lmoxide-webui's dist/), served for every other path
+# web_dir = "/srv/webui"
+
+[game]
+bind = "0.0.0.0"
+# each game mode's universe port: the patcher's Game Mode picks one
+modes = "progression:7100,maxed:7103,world-editor:7104"
+# the world editor's content working copy (a git clone of the content repository)
+editor-content-dir = "/data/content-work"
+content-queue = "/data/content-queue"
+# LAN conveniences; leave off on a public server
+auto-register = false
+default-gm-level = 0
+
+[api]
+open-registration = false
+# behind Caddy: the client address comes from X-Forwarded-For
+trust-forwarded-for = true
+
+[patch]
+server-name = "LMOxide"
+client-dir = "/clients/windows"
+linux-client-dir = "/clients/linux"
+linux-overlay-dir = "/usr/local/share/lmoxide/linux-overlay"
+# behind Caddy on 443
+public-http-port = 443
+upstream = "http://update.lego.funcom.com/legoupm"

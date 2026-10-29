@@ -5,6 +5,9 @@ document at `GET /v1/openapi.json` (or `lmoxide-api openapi`); generate clients 
 
 ## Running
 
+`lmoxide` (one process, docker-compose.yml) serves the API on its HTTP listener with the patch
+server; nothing to set up. Run apart:
+
 ```sh
 lmoxide-api --data-dir lmoxide-data --bind 127.0.0.1:8090 \
   --control-url http://127.0.0.1:7300 --control-token-file secrets/control_token
