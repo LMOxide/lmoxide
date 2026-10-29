@@ -106,11 +106,18 @@ def section(doc, title, note, groups, render):
     return title, fname, done, total
 
 
+def fold(names, noun):
+    """One name as it is; more in a one-line <details> ('{n} {noun}') so the box line stays one line."""
+    if len(names) == 1:
+        return esc(names[0])
+    return f'<details><summary>{len(names)} {noun}</summary>{esc(", ".join(names))}</details>'
+
+
 def who(minifigs, label):
-    """'all minifigures', or the names."""
+    """'all minifigures', or the names folded."""
     if len({m['minifig'] for m in minifigs}) >= len(lists.D.minifigs):
         return '_all minifigures_'
-    return esc(', '.join(label(m) for m in minifigs))
+    return fold([label(m) for m in minifigs], 'minifigures')
 
 
 def upgrade_minifigs(minifigs):
@@ -165,11 +172,11 @@ def build(state):
 
     ab = lists.enemy_abilities()
     totals.append(section(
-        doc, '4. Enemy abilities', 'Skill names are the client\'s internal ones.',
+        doc, '4. NPC abilities', 'The skills enemies use; names are the client\'s internal ones.',
         {'Basic attacks': [a for a in ab if a['basic_attack']], 'Skills': [a for a in ab if not a['basic_attack']]},
         lambda a: [(a['key'], f'**{esc(a["name"])}** (spell {a["spell"]})'
                     + (' ⚠ no client definition' if a['no_client_definition'] else '')
-                    + f' — {esc(", ".join(a["enemies"]))}', 0)]))
+                    + f' — {fold(a["enemies"], "NPCs")}', 0)]))
 
     totals.append(section(
         doc, '5. World achievements', None, lists.world_achievements(),
