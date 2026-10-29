@@ -214,8 +214,8 @@ def build(state):
         folded_tree))
 
     totals.append(section(
-        doc, '6. Global achievements', None, {'Global': lists.global_achievements()},
-        lambda r: [(r['key'], ach_text(r), r['depth'])]))
+        doc, '6. Global achievements', None, {'Global': [lists.global_achievements()]},
+        folded_tree))
 
     mf = lists.minifig_achievements()
     doc_note = ('Per-minifigure achievements without upgrades, Lost Creations levels and the any/all roll-ups, one box '
