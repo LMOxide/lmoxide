@@ -9,6 +9,8 @@
 //!   exit (encounter.rs).
 //! - Room gates: the Gauntlet's plate room (plates.rs), Tiki room (tiki.rs) and mirror room
 //!   (mirrors.rs).
+//! - The Underworld's front gate (`underworld_gate_a_myth_interactable`, keygate.rs): the
+//!   pedestal's crystal opens it.
 //!
 //! Other gates stay open scenery (scenery.rs). Built mirrors stay built until the server
 //! restarts, as the other buildies.
@@ -28,11 +30,14 @@ use tracing::info;
 use crate::{scenery::SIMPLE_DYNEL_TYPE, world};
 
 const GATE: &str = "module_wall_4x4_gate_lego_myth_interactable";
+/// The Underworld's front gate (keygate.rs): no collision of its own, its wall piece blocks.
+const UNDERWORLD_GATE: &str = "underworld_gate_a_myth_interactable";
 /// The gate model's collision (static visual 2260 is the same gate with a CollisionMesh2; the
 /// interactable's own mesh has none).
 const GATE_COLLISION: u32 = 2260;
-/// The open motion (blend setup 474600 `anim` = 1), as the mirrors'.
-const OPEN: u32 = 474576;
+/// The open motion (blend setup 474600 `anim` = 1), as the mirrors' (the Underworld's
+/// collapsing floor's too).
+pub const OPEN: u32 = 474576;
 /// Medusa's mirror buildie: item template and look ("mirror_medusa_b_buildie").
 const MIRROR_TEMPLATE: u32 = 489061;
 const MIRROR_LOOK: u32 = 489796;
@@ -113,7 +118,7 @@ static WALLS: LazyLock<HashMap<u32, u32>> = LazyLock::new(|| {
             .map(|a| a.iter().filter_map(|d| serde_json::from_value(d.clone()).ok()).collect())
             .unwrap_or_default();
         for wall in pieces.iter().filter(|p| p.name.starts_with("door") && p.name.ends_with("collision")) {
-            let gate = pieces.iter().find(|g| g.name == GATE && ((g.pos[0] - wall.pos[0]).powi(2) + (g.pos[2] - wall.pos[2]).powi(2)).sqrt() < 1.0);
+            let gate = pieces.iter().find(|g| (g.name == GATE || g.name == UNDERWORLD_GATE) && ((g.pos[0] - wall.pos[0]).powi(2) + (g.pos[2] - wall.pos[2]).powi(2)).sqrt() < 1.0);
             if let Some(gate) = gate {
                 m.insert(wall.guid, gate.guid);
             }
@@ -191,7 +196,7 @@ pub fn built(buildie: Id32) {
 /// Shows a gate open or shut: its motion and collision, and its wall piece's.
 fn send_state(pf: Pf, gate: u32, open: bool) {
     let id = crate::scenery::piece_id(pf, gate);
-    world::send_playfield(id, false, world::Out::Records(open_records(id, open)));
+    world::send_playfield(id, false, world::Out::Records(open_records(id, gate, open)));
     for (&wall, _) in WALLS.iter().filter(|(_, g)| **g == gate) {
         let id = crate::scenery::piece_id(pf, wall);
         world::send_playfield(id, false, world::Out::Records(vec![crate::encounter::collision_record(id, !open)]));
@@ -210,6 +215,9 @@ fn gate_open(pf: Pf, guid: u32) -> Option<bool> {
     if guid == crate::ballista::GATE {
         return Some(crate::ballista::solved(pf));
     }
+    if guid == crate::keygate::GATE && pf.model() == crate::keygate::PLAYFIELD {
+        return Some(crate::keygate::solved(pf));
+    }
     if let Some(open) = crate::mirrors::gate_open(pf, guid) {
         return Some(open);
     }
@@ -227,8 +235,10 @@ pub fn blocks(pf: Pf, guid: u32) -> bool {
     gate_open(pf, guid) == Some(false)
 }
 
-pub fn collision() -> u32 {
-    GATE_COLLISION
+/// The collision gate `guid` has while it blocks (the Underworld's gate none: its wall piece
+/// blocks).
+pub fn collision(guid: u32) -> u32 {
+    if guid == crate::keygate::GATE { 0 } else { GATE_COLLISION }
 }
 
 /// What a gate's spawn adds: its open pose, if it's open.
@@ -240,9 +250,9 @@ pub fn pose_records(pf: Pf, guid: u32) -> Vec<Bytes> {
 }
 
 /// The open motion (or the closed pose) and the collision to match.
-fn open_records(id: Id32, open: bool) -> Vec<Bytes> {
+fn open_records(id: Id32, guid: u32, open: bool) -> Vec<Bytes> {
     let motion = crate::effects::effect_package(id, if open { OPEN } else { crate::mirrors::TURN_MINUS });
-    let collision = iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(4).u32(if open { 0 } else { GATE_COLLISION }));
+    let collision = iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(4).u32(if open { 0 } else { collision(guid) }));
     vec![motion, collision]
 }
 
@@ -267,7 +277,8 @@ mod tests {
     #[test]
     fn gates_have_their_walls() {
         // Medusa's Lair's four gates and the Gauntlet's five
-        for gate in [476102, 474105, 476024, 474103, 506181, 506102, 517927, 516809, 517465] {
+        // and the Underworld's
+        for gate in [476102, 474105, 476024, 474103, 506181, 506102, 517927, 516809, 517465, crate::keygate::GATE] {
             assert!(WALLS.values().any(|g| *g == gate), "gate {gate} has no wall piece");
         }
     }

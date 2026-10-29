@@ -27,6 +27,7 @@ mod knubot;
 mod loot;
 mod lost_creations;
 mod minifigs;
+mod keygate;
 mod mirrors;
 mod npc;
 mod npc_spells;
@@ -366,6 +367,7 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     teleport::start();
     lost_creations::start();
     mirrors::start();
+    keygate::start();
     gates::start();
     plates::start();
     pistons::start();

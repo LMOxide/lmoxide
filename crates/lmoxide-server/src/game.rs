@@ -748,6 +748,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     }
                                     stop_after_success = true;
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
+                                    && let Some(action) = interaction_object(data)
+                                        .filter(|&(object, _)| object.kind == crate::scenery::SIMPLE_DYNEL_TYPE && crate::keygate::is_pedestal(place.model(), crate::instance::fixture_base(object.instance)))
+                                        .map(|(_, action)| action)
+                                {
+                                    // the Underworld gate's pedestal: the crystal opens the gate
+                                    if action != INTERACTION_STOP_USE {
+                                        crate::keygate::use_pedestal(h.identity, place);
+                                    }
+                                    stop_after_success = true;
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
                                     && let Some((portal, action)) = interaction_object(data)
                                         .filter(|&(object, _)| object.kind == crate::teleport::DOOR_TYPE)
                                         .and_then(|(object, action)| Some((crate::teleport::door_portal(crate::instance::fixture_base(object.instance))?, action)))
@@ -1406,6 +1416,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             me.stars += stars;
                             send_token(&mut conn, character, TOKEN_STARS, me.stars, 0).await?;
                             crate::chat::system(character, &format!("{} stars", me.stars));
+                        }
+                        crate::devcmd::Action::Keygate(open) => {
+                            let line = if crate::keygate::set(place, open) {
+                                format!("Underworld gate: {}", if open { "open" } else { "reset" })
+                            } else {
+                                format!("no key gate here (the Underworld, {})", crate::keygate::PLAYFIELD)
+                            };
+                            crate::chat::system(character, &line);
                         }
                         crate::devcmd::Action::Mirrors(solve) => {
                             let line = if crate::mirrors::set_solved(place, solve) {

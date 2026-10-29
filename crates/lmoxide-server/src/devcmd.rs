@@ -43,6 +43,8 @@
 //!   !story goal|beat|dialogue|seen <arg>   resolve a goal, run a beat, start a dialogue, or play
 //!                             a cinematic as its trigger would
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
+//!   !keygate <open|reset>     open the Underworld's front gate as its pedestal does, or put it
+//!                             (and the collapsing floor) back
 //!   !plates <solve|reset>     light every plate of the Gauntlet's plate room, or none
 //!   !revive                   every minifigure (team and collection) back to full health
 //!   !smashme                  smash the active minifigure (it rebuilds after the smash timer)
@@ -131,6 +133,8 @@ pub enum Action {
     Dialog(usize),
     /// turn this playfield's mirrors to the solution (true) or the start
     Mirrors(bool),
+    /// open the Underworld's front gate (true) or put it back
+    Keygate(bool),
     /// smash the active minifigure
     SmashMe,
     /// drop a loot bag of a kind (`!loot`), at this loot power (none: the chest power here)
@@ -226,6 +230,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!story advance [line]", "complete the current step of a story line (default: the first one running), as its goal resolving would"),
     ("!story goal <hash>|beat <text>|dialogue <id>|seen <cinematic>", "resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
+    ("!keygate <open|reset>", "open the Underworld's front gate as its pedestal does (crystal, light, gate), or put it and the collapsing floor back"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
     ("!fx <id> [hook] [@near|@ground]", "play effect package <id> on yourself, from a code hook (onhit, charge, ...), on the nearest enemy as target (@near) or at your feet (@ground)"),
     ("!speed [factor]", "your movement speed: 1 normal, 0.5 half, 2 double (0.1 to 10; kept with the character across logins); without a factor: the current one"),
@@ -432,6 +437,7 @@ const KINDS: &[(&str, &str)] = &[
     ("plate", "pressure plates (scenery)"),
     ("gate", "gates and portcullis (scenery)"),
     ("mirror", "Medusa mirrors (scenery)"),
+    ("pedestal", "the Underworld front gate's pedestal (use it: the crystal opens the gate; !keygate)"),
     ("collectible", "collectibles (achievements)"),
     ("boombox", "boomboxes (achievements)"),
     ("arena", "boss arena starts (encounters)"),
@@ -527,6 +533,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "plate" => crate::scenery::points("pressureplate"),
         "gate" => [crate::scenery::points("gate"), crate::scenery::points("portcullis")].concat(),
         "mirror" => crate::scenery::points("mirror"),
+        "pedestal" => crate::keygate::points(),
         "collectible" => crate::discovery::points(true),
         "boombox" => crate::discovery::points(false),
         "trigger" => crate::tutorial::points(),
@@ -930,6 +937,10 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 _ => reply(vec![format!("usage: !aim [shots|lobs] <{modes}>")]),
             }
         }
+        "keygate" => match args.first().copied() {
+            Some(how @ ("open" | "reset")) => Action::Keygate(how == "open"),
+            _ => reply(vec!["usage: !keygate <open|reset>".into()]),
+        },
         "mirrors" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => Action::Mirrors(how == "solve"),
             _ => reply(vec!["usage: !mirrors <solve|reset>".into()]),

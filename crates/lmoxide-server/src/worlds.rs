@@ -55,6 +55,7 @@ pub fn ensure(pf: Pf) {
     crate::teleport::spawn_world(pf);
     crate::gates::spawn_world(pf);
     crate::mirrors::spawn_world(pf);
+    crate::keygate::spawn_world(pf);
     crate::tiki::spawn_world(pf);
     crate::lost_creations::spawn_world(pf);
     crate::lost_creations::spawn_entry(pf);
@@ -73,6 +74,7 @@ pub fn drop_copy(pf: Pf) {
     crate::teleport::despawn_world(pf);
     crate::gates::despawn_world(pf);
     crate::mirrors::despawn_world(pf);
+    crate::keygate::despawn_world(pf);
     crate::tiki::despawn_world(pf);
     crate::lost_creations::despawn_world(pf);
     crate::lost_creations::despawn_entry(pf);

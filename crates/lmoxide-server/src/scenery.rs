@@ -218,7 +218,7 @@ fn spawn_records(p: &Piece, playfield: Pf) -> Vec<Bytes> {
         kdtree: Some(match shield {
             Some(true) => crate::encounter::SHIELD_COLLISION,
             // a gate that waits to be opened (gates.rs)
-            _ if crate::gates::blocks(playfield, p.guid) => crate::gates::collision(),
+            _ if crate::gates::blocks(playfield, p.guid) => crate::gates::collision(p.guid),
             _ => 0,
         }),
         name: Some(p.name.clone()),
@@ -268,6 +268,7 @@ mod tests {
         assert!(DOOR_LIKE.iter().all(|g| *g < 1 << 24));
     }
 
-    /// Instances the puzzles use beside the pieces (mirrors, gates, Tiki room).
-    const DOOR_LIKE: [u32; 3] = [0x00c0_0000, 0x00c1_0000, 0x00c2_0000];
+    /// Instances the puzzles use beside the pieces (mirrors, gates, Tiki room, the Underworld
+    /// gate's beam).
+    const DOOR_LIKE: [u32; 4] = [0x00c0_0000, 0x00c1_0000, 0x00c2_0000, 0x00c3_0000];
 }

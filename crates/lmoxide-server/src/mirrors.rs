@@ -253,8 +253,8 @@ pub fn beam_particle(id: Id32, length: f32) -> Bytes {
     lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(0).u32(BEAMS[n - 1]).i32(35).f32(0.0).f32(0.0).f32(0.0).f32(0.0))
 }
 
-/// State 2: stops the dynel's first particle.
-fn beam_stop_record(id: Id32) -> Bytes {
+/// State 2: stops the dynel's first particle (keygate.rs too).
+pub fn beam_stop_record(id: Id32) -> Bytes {
     lmoxide_net::iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(2).u32(0))
 }
 
