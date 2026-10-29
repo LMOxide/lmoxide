@@ -1,0 +1,587 @@
+# 12. Story dialogues
+
+[← tracker](README.md)
+
+The client's dialogue texts (TDB 50002) as conversations, put in worlds by speaker (tools/tracker/manual.json `dialogues`; fix one with `texts`). Triggered = the server has a dialogue record for it (content/dialogues). Tick when it plays as on live. Summary counts: Dino World 1/45 triggered, LEGO Center 9/38 triggered, Medieval World 0/82 triggered, Monster Trials 5/7 triggered, Mythology World 0/75 triggered, Pirate World 15/147 triggered, Space World 0/103 triggered, Winter Holidays 0/4 triggered, Unassigned 1/34 triggered
+
+**0/535** checked
+
+<details><summary>Dino World (0/45)</summary>
+
+- [ ] #622 “Explorer: Are you alright, Video Game Guy? You hit your head pretty hard.” · not triggered <!-- dialogue/622 -->
+- [ ] #626 “Explorer: He'll be alright. He just needs a break.” · not triggered <!-- dialogue/626 -->
+- [ ] #627 “Explorer: If you chase down those Compys and get my plane parts back, I'll give you the Tech puzzle piece. How does that sound?” · not triggered <!-- dialogue/627 -->
+- [ ] #628 “Explorer: I heard that you and Video Game Guy were looking for crystal artifacts.” · not triggered <!-- dialogue/628 -->
+- [ ] #635 “Dino Tracker: Listen up, adventurers! I'm Dino Tracker! I've explored every LEGO world ever made, but that portal...” · not triggered <!-- dialogue/635 -->
+- [ ] #636 “Dino Tracker: We're not sure where it goes or what it does!” · not triggered <!-- dialogue/636 -->
+- [ ] #637 “Dino Tracker: Alternate dimensions, other times! Untold treasures could be waiting just beyond the gate!” · not triggered <!-- dialogue/637 -->
+- [ ] #638, 641 “Dino Tracker: This is it, people. The final frontier. The ultimate adventure zone.” · not triggered <!-- dialogue/638 -->
+- [ ] #642 “Dino Tracker: My scientists have been looking for the key to unlock this portal. And all they know is that it requires crystal artifacts of ” · not triggered <!-- dialogue/642 -->
+- [ ] #643 “Dino Tracker: There are crystal artifacts scattered around Dinosaur Rise. Find them!” · not triggered <!-- dialogue/643 -->
+- [ ] #645 “Dino Tracker: Then you need to retrieve the final piece... Well, let's just see if you get that far.” · not triggered <!-- dialogue/645 -->
+- [ ] #647 “Dino Tracker: Wow! I'm impressed. You're a quick study.” · not triggered <!-- dialogue/647 -->
+- [ ] #648 “Dino Tracker: My scientist have almost managed to stabilize the portal to the Lost Creations. Soon, we'll know where we're going.” · not triggered <!-- dialogue/648 -->
+- [ ] #649, 650 “Dino Tracker: You'll need both strength, cunning and speed to make it inside, and I'm not letting anyone through without proof that they've ” · not triggered <!-- dialogue/649 -->
+- [ ] #653, 655, 657, 658, 659, 660 “T-Rex: Oh-ho-ho-ho. Who is this waiting at the door?” · not triggered <!-- dialogue/653 -->
+- [ ] #662 “T-Rex: Ouch! Au! You win! Video Game Guy isn't paying me enough for this.” · not triggered <!-- dialogue/662 -->
+- [ ] #663 “DinoTracker: Video Game Guy?” · not triggered <!-- dialogue/663 -->
+- [ ] #664 “T-Rex: It sounded like a good deal. Shout and stomp, keep people away. Cash in.” · not triggered <!-- dialogue/664 -->
+- [ ] #665 “T-Rex: Beats me. All this fighting is making me feel old. I think I pulled a muscle!” · not triggered <!-- dialogue/665 -->
+- [ ] #666 “T-Rex: I need to get back to Hollywood, bro. Playing a monster there was a whole 'nother world.” · not triggered <!-- dialogue/666 -->
+- [ ] #667 “T-Rex: I'm sure he does. But my rap career isn't going to take off on its own so if you'll just let me leave...” · not triggered <!-- dialogue/667 -->
+- [ ] #669 “Scuba Diver: Hey! Yeah, you. Over here!” · not triggered <!-- dialogue/669 -->
+- [ ] #670 “Scuba Diver: Does that water seem alright to you?” · not triggered <!-- dialogue/670 -->
+- [ ] #671 “Scuba Diver: The Dinosaur Rise might be the birthplace of fossile fuels, but it shouldn't have to look like a great big spill. Can you help ” · not triggered <!-- dialogue/671 -->
+- [ ] #672 “Scuba Diver: Oh, I found one of those when I was cleaning one of the pools. I'll give it to you if you help me clean the place. Deal?” · not triggered <!-- dialogue/672 -->
+- [ ] #674, 675 “Idle pose: Caveman: You strangers from strange land!” · not triggered <!-- dialogue/674 -->
+- [ ] #676 “Caveman: Me lost the fire. Now me cannot paint in the dark.” · not triggered <!-- dialogue/676 -->
+- [ ] #677 “Caveman: You give me warm, bright fire. Me give you Magic crystal. Deal?” · not triggered <!-- dialogue/677 -->
+- [ ] #679 “Zookeeper: Howdy, partner!” · not triggered <!-- dialogue/679 -->
+- [ ] #680 “Zookeeper: I was running standard tests on some pteradactyl eggs when-” · not triggered <!-- dialogue/680 -->
+- [ ] #681 “Zookeeper: Of course. Anyway, its mother returned to the nest, so I jumped out of the nest and brought some of the eggs with me.” · not triggered <!-- dialogue/681 -->
+- [ ] #682 “Zookeeper: I borrowed them, for science. Trouble is, now that the mother is on to me she won't let me anywhere near her or her young.” · not triggered <!-- dialogue/682 -->
+- [ ] #683 “Zookeeper: If you can return an egg back to its nest before it hatches, I'll give you this crystal artifact I found in the nest.” · not triggered <!-- dialogue/683 -->
+- [ ] #686 “DinoTracker: They turned on these disco lights, I was expecting more.” · not triggered <!-- dialogue/686 -->
+- [ ] #691 “Dino Tracker: My scientists have almost managed to stabilize the portal. Soon, we'll know where we're going.” · not triggered <!-- dialogue/691 -->
+- [ ] #693 “Dino Tracker: Just try to keep up.” · not triggered <!-- dialogue/693 -->
+- [ ] #694 “Dino Tracker: You have all the pieces already? Wow! I'm impressed. You're a quick study.” · not triggered <!-- dialogue/694 -->
+- [ ] #795 “Explorer: Well, not the safest landing, but since we are here we might as well get to work!” · not triggered <!-- dialogue/795 -->
+- [ ] #796 “Explorer: My friend, Dino Tracker, knows more about the ruins in this world than anyone else. She's been asking us to look for crystal artif” · not triggered <!-- dialogue/796 -->
+- [ ] #798, 799 “Dino Tracker: I've been looking for someone to join me on an expedition inside the Gauntlet to recover the last piece. It will be dangerous.” · **triggered** (video-game-guy-769) <!-- dialogue/798 -->
+- [ ] #993 “Explorer: Ummm, Video Game Guy, you might need to-” · not triggered <!-- dialogue/993 -->
+- [ ] #994 “Explorer: I think you need to rest for a while, Video Game Guy. Go and take a break in the plane.” · not triggered <!-- dialogue/994 -->
+- [ ] #995 “Explorer: Just so happens, I found an elemental piece, but I'm going to need some help getting my plane back in shape.” · not triggered <!-- dialogue/995 -->
+- [ ] #1013 “T-Rex: Sure. He hired me months ago. Told me to protect the crystal at all cost.” · not triggered <!-- dialogue/1013 -->
+- [ ] #1017 “T-Rex: I'm leaving then...good bye and good luck!” · not triggered <!-- dialogue/1017 -->
+
+</details>
+
+<details><summary>LEGO Center (0/38)</summary>
+
+- [ ] #212 “Gamer: "It looks like everything is falling apart here too."” · not triggered <!-- dialogue/212 -->
+- [ ] #213 “Gamer: "You're the only one left."” · not triggered <!-- dialogue/213 -->
+- [ ] #214 “Gamer: "If it's just us, we have a lot of work to do, but we'll be fine. We have done it already and we will do it again."” · not triggered <!-- dialogue/214 -->
+- [ ] #215 “Gamer: "Oh, wow, that's a lot of torn bags. Seems like everyone else is missing."” · not triggered <!-- dialogue/215 -->
+- [ ] #267, 268, 269 “Gamer: Hey there! Glad to see you back! Hope you had fun in the Pirate World!” · not triggered <!-- dialogue/267 -->
+- [ ] #270 “Gamer: Can you believe it? A messenger pigeon! I gotta teach him how to use email some day. Ha-ha!” · not triggered <!-- dialogue/270 -->
+- [ ] #466 “Gamer: Hey! Welcome back! Did you find more of our lost friends? Do you want to--” · not triggered <!-- dialogue/466 -->
+- [ ] #467, 468, 469 “Gamer: My friend the Wizard sent me a messenger pigeon with news about a Sorcerer performing forbidden spells and whatnot.” · not triggered <!-- dialogue/467 -->
+- [ ] #470, 471, 473, 474, 475, 476, 477, 478 “Gamer: Heya! There you are! I have been waiting for you.” · not triggered <!-- dialogue/470 -->
+- [ ] #530, 531 “Gamer: Hey! Did you have fun in Space? It looks like you had time for some thrilling heroics! Did you find more of our lost friends as well?” · not triggered <!-- dialogue/530 -->
+- [ ] #532, 533 “Gamer: Could you make sure she's okay? She's pretty tough, but if she's really missing something bad must be going down over there.” · not triggered <!-- dialogue/532 -->
+- [ ] #620 “Gamer: Whoa! That was crazy! Did you see the pterodactyl go VROOOM and then the world went RAAAAWR and we were all like BZZZZZZ!” · not triggered <!-- dialogue/620 -->
+- [ ] #623 “Reach: Sniff: VGG: I think I'm- Oh, hello there! Look everyone, a PINK DINOSAUR!” · not triggered <!-- dialogue/623 -->
+- [ ] #624 “Small Dinosaur screech: Taunt: Scared: VGG: Gaah! The Pink Dinosaur is not our friend!” · not triggered <!-- dialogue/624 -->
+- [ ] #629 “Gamer: There is a place, called Dinosaur Rise, where they have been digging up all sorts of artifacts made of crystal.” · not triggered <!-- dialogue/629 -->
+- [ ] #630 “Gamer: I mean, I wouldn't want to see a T-Rex up close, but this place sounds like the perfect spot to find out more about the compass.” · not triggered <!-- dialogue/630 -->
+- [ ] #631 “Gamer: I've got us a ride with an old friend. It's time for me to trade in my super combo controller for an actual adventure!” · not triggered <!-- dialogue/631 -->
+- [ ] #633 “DINO WORLD: Gamer: Hey, it's good to see you again. Ever since you went after Dreadleg, I've been trying to find out more about that Crystal” · not triggered <!-- dialogue/633 -->
+- [ ] #685 “Gamer: I've been waiting for you. I wanted to tell you something. But first answer me this. The keys didn't work, did they?” · not triggered <!-- dialogue/685 -->
+- [ ] #741 “Gamer: You're awake! Good! I saw Dreadleg running away from your house with something...” · **triggered** (video-game-guy-741) <!-- dialogue/741 -->
+- [ ] #742, 743 “Gamer: What!? He stole the CRYSTAL COMPASS? Purple pixels! We've got to catch him!” · **triggered** (video-game-guy-741) <!-- dialogue/742 -->
+- [ ] #744 “Gamer: The path has been blocked by debris!” · **triggered** (video-game-guy-744) <!-- dialogue/744 -->
+- [ ] #746, 748 “Gamer: Help me smash a way through!” · **triggered** (video-game-guy-744) <!-- dialogue/746 -->
+- [ ] #758 “Gamer: Jumping joysticks, an ambush! Gonna have to use my special ability!” · **triggered** (video-game-guy-758) <!-- dialogue/758 -->
+- [ ] #759, 761, 762 “Gamer: Ha! Our special abilities are great against groups of enemies, but they need a bit of time to recharge!” · **triggered** (video-game-guy-758) <!-- dialogue/759 -->
+- [ ] #763 “Gamer: Ha! Our special abilities are great against groups of enemies, but they need a bit of time to recharge!” · not triggered <!-- dialogue/763 -->
+- [ ] #764 “Gamer: Take care of the rest while I build us a way out of here! Press the X button to launch your special ability!” · not triggered <!-- dialogue/764 -->
+- [ ] #765 “Gamer: Stop Dreadleg! Surrender and return the Crystal Compass!” · **triggered** (video-game-guy-765) <!-- dialogue/765 -->
+- [ ] #771 “Gamer: Help me out! Hold the button to build. If we build together, it will go faster!” · not triggered <!-- dialogue/771 -->
+- [ ] #788, 789, 790, 791 “Video Game Guy: Epic fail! He escaped!” · **triggered** (video-game-guy-765) <!-- dialogue/788 -->
+- [ ] #792 “Gamer: Ha! Our special abilities are great against groups of enemies, but they need a bit of time to recharge!” · not triggered <!-- dialogue/792 -->
+- [ ] #793 “Gamer: Take care of the rest while I build us a way out of here! Tap the screen with two fingers to launch your special ability!” · not triggered <!-- dialogue/793 -->
+- [ ] #794 “Gamer: Help me out! Tap and hold on the object to build it. If we build together, it will go faster!” · not triggered <!-- dialogue/794 -->
+- [ ] #812, 814, 815, 816 “Gamer: Here we are, Pirate World!” · **triggered** (video-game-guy-812) <!-- dialogue/812 -->
+- [ ] #1018 “Gamer: It's because the crystals need something else. Something more powerful.” · not triggered <!-- dialogue/1018 -->
+- [ ] #1020 “Gamer: It's complicated. I figured out how to open the portal months ago. You need a crystal that has been empowered, but not by magic or te” · not triggered <!-- dialogue/1020 -->
+- [ ] #1022 “Gamer: It's the endgame! All my life, people have told me that the only reason to play was to reach the endgame. And now we're almost there!” · not triggered <!-- dialogue/1022 -->
+- [ ] #1024 “Gamer: Right! And I've organized a party! So let's party hard and then go and open that portal! From now on, I'm by your side all the way!” · not triggered <!-- dialogue/1024 -->
+
+</details>
+
+<details><summary>Medieval World (0/82)</summary>
+
+- [ ] #272 “Wizard: Welcome to The Kingdom. We've been waiting for you, Bearer of the Crystal Compass.” · not triggered <!-- dialogue/272 -->
+- [ ] #273 “Wizard: I am afraid you find us in dire times. The King's Crown has gone missing and his majesty is not taking it very well.” · not triggered <!-- dialogue/273 -->
+- [ ] #274 “King sobbing: King: I used to be King James the Just, but without my crown I guess I am just ... Just-James!” · not triggered <!-- dialogue/274 -->
+- [ ] #275 “King: Why can't you summon my Crown back to me with your arts, Wizard?” · not triggered <!-- dialogue/275 -->
+- [ ] #278, 280, 281 “Knight1: Greetings! Everything seems calm around here. We have not seen anything unusual.” · not triggered <!-- dialogue/278 -->
+- [ ] #283 “The Jester: Why, hello there! Who comes to sniff at my tail? Dogging my footsteps, following my trail.” · not triggered <!-- dialogue/283 -->
+- [ ] #284 “The Jester: My mission is urgent, to be done without fail. Deliver this Crown so my liege can prevail!” · not triggered <!-- dialogue/284 -->
+- [ ] #285 “The Jester: Alas, though we just met, away I must sail, I leave you my traps and my tricks and travails!” · not triggered <!-- dialogue/285 -->
+- [ ] #288 “Jester whimpering: Jester: I surrender, I'm beaten, please leave me alone. I'm tired and lonely, I want to go home.” · not triggered <!-- dialogue/288 -->
+- [ ] #289 “Wizard: Why would you do this, Jester? You should have known Elementius was just using you for his own terrible purpose!” · not triggered <!-- dialogue/289 -->
+- [ ] #291 “The Jester: He promised me something quite dear to my heart. In his new Kingdom, I would have a fresh start.” · not triggered <!-- dialogue/291 -->
+- [ ] #293 “Flora: Welcome to my domain, hero. I am Flora, Queen of the Faeries, and this is my Forest.” · not triggered <!-- dialogue/293 -->
+- [ ] #294 “Jester: I have never seen, such a lovely Queen. Yet beneath her bright sheen, there is sadness it seems.” · not triggered <!-- dialogue/294 -->
+- [ ] #295 “Flora: You are right, Jester. Corruption is spreading through the Forest and its lovely inhabitants are turning into monstrous creatures.” · not triggered <!-- dialogue/295 -->
+- [ ] #296 “Wizard: That sounds like Elementius' sorcery.” · not triggered <!-- dialogue/296 -->
+- [ ] #302 “Elementius: Ahh! finally! Everything is ready for the spell.” · not triggered <!-- dialogue/302 -->
+- [ ] #303, 304, 305, 306 “Elementius: When I am done with this spell, everyone will serve me and revere me as their King!” · not triggered <!-- dialogue/303 -->
+- [ ] #308 “Wizard: Surrender Elementius, you are beaten!” · not triggered <!-- dialogue/308 -->
+- [ ] #310 “Elementius: Leave me alone, old man! I'm not your apprentice anymore.” · not triggered <!-- dialogue/310 -->
+- [ ] #311 “Wizard: Perhaps, but you still have much to learn. Magic can be powerful, but all it provides are fleeting illusions.” · not triggered <!-- dialogue/311 -->
+- [ ] #312 “Elementius: That's easy for you to say. Everybody respects you. Nobody wants me as a friend!” · not triggered <!-- dialogue/312 -->
+- [ ] #313 “Wizard: That's not true, Elementius. I always considered you my friend.” · not triggered <!-- dialogue/313 -->
+- [ ] #314 “Flora: I am glad to see you back safely. Did you manage to collect enough power crystals?” · not triggered <!-- dialogue/314 -->
+- [ ] #316, 317, 318, 319, 320 “Jester: We have crystals that shine, and crystals that gleam, but none are as fair as you, Fairy Queen.” · not triggered <!-- dialogue/316 -->
+- [ ] #361 “Elementius: What a wonderful evil laboratory! It reminds me of my fortress.” · not triggered <!-- dialogue/361 -->
+- [ ] #416 “Wizard: Magic isn't art, your Majesty. It's more like being a plumber for the universe. Nevertheless, as we speak I sense your Crown within ” · not triggered <!-- dialogue/416 -->
+- [ ] #417 “Wizard: Whoever stole the Crown was using powerful magic. I suspect Pieromancer Elementius is involved.” · not triggered <!-- dialogue/417 -->
+- [ ] #418 “Wizard: My former apprentice has grown powerful and dangerous. He demands rulership over the Kingdom as his army of trolls and ogres surroun” · not triggered <!-- dialogue/418 -->
+- [ ] #419, 420, 421, 422, 423, 424, 425 “Wizard: The Crown hasn't gone far yet. I can feel it. I'll join you, and I suggest we start by asking the villagers if they have seen anythi” · not triggered <!-- dialogue/419 -->
+- [ ] #426 “Sir Loin: Halt! By order of his Majesty! Identify yourself!” · not triggered <!-- dialogue/426 -->
+- [ ] #427, 428 “Wiizard: I am the King's Wizard, as you well know.” · not triggered <!-- dialogue/427 -->
+- [ ] #429, 430, 431 “Sir Loin: But how rude of me, let me introduce myself. I am Sir Loin, the Keen Eyed, Captain of the Guard, First Knight of the Kingdom ...” · not triggered <!-- dialogue/429 -->
+- [ ] #432, 433 “Sir Loin: I am sure that we will find the Jester if he comes by. There is no way he would sneak past our watchful eyes and flee into the For” · not triggered <!-- dialogue/432 -->
+- [ ] #436, 437, 439 “The Jester: Here is the Crown as you requested, my lord. Stolen and smuggled away through your horde.” · not triggered <!-- dialogue/436 -->
+- [ ] #440, 441, 442 “The Jester: My lord, I do not think a crown makes a King. Like a marriage is not just defined by a ring--” · not triggered <!-- dialogue/440 -->
+- [ ] #443, 444, 445 “The Jester: I...I...” · not triggered <!-- dialogue/443 -->
+- [ ] #447 “The Jester: No more just a fool practising foolish arts. But alas, once again my dreams fall apart.” · not triggered <!-- dialogue/447 -->
+- [ ] #448 “The Jester: I know and it hurts me to feel so betrayed. The future he sold me will never be made.” · not triggered <!-- dialogue/448 -->
+- [ ] #449 “The Jester: But I'll think his unkindness completely repaid, because this fool knows all the plans that he laid.” · not triggered <!-- dialogue/449 -->
+- [ ] #450, 451 “Wizard: Tell us what he wants with the crown, Jester.” · not triggered <!-- dialogue/450 -->
+- [ ] #452 “Wizard: You're welcome to come with us, Jester. Let's get going!” · not triggered <!-- dialogue/452 -->
+- [ ] #453, 454, 455, 456 “Flora: It is, Wizard. I have barely managed to slow it down by creating this magical barrier.” · not triggered <!-- dialogue/453 -->
+- [ ] #457 “Wizard: We follow the Bearer of the Crystal Compass. Come with us Elementius and I will continue your lessons.” · not triggered <!-- dialogue/457 -->
+- [ ] #458 “Jester: What the wizard says is true, I wanted to be friends with you!” · not triggered <!-- dialogue/458 -->
+- [ ] #459 “Jester: But listen, can you hear it too? The King has come to get his due!” · not triggered <!-- dialogue/459 -->
+- [ ] #460 “King: I heard your wise words, Wizard. I see a lesson for myself as well. I do not really need a crown to be the King.” · not triggered <!-- dialogue/460 -->
+- [ ] #461 “King: Though it looks so good on my royal head. Ha-ha-ha!” · not triggered <!-- dialogue/461 -->
+- [ ] #462 “King: As for you Elementius, you are banished from the Kingdom until you learn the power of respect and friendship.” · not triggered <!-- dialogue/462 -->
+- [ ] #463, 464, 465 “Elementius: I don't have anywhere to go. I wanted to rule those other worlds, not visit them.” · not triggered <!-- dialogue/463 -->
+- [ ] #502 “Elementius: Ah yes, the lingering stench of ethics...” · not triggered <!-- dialogue/502 -->
+- [ ] #880 “Wizard: Drat! The spell failed again. I said "Bearer of the Crystal Compass" not "den of smelly pirates"!” · not triggered <!-- dialogue/880 -->
+- [ ] #882 “Wizard: Do you know where it is, young man? The Kingdom is in trouble and the Crystal Compass might be our only hope.” · not triggered <!-- dialogue/882 -->
+- [ ] #884 “Wizard: Hmmph! Youth these days. No respect for their elders!” · not triggered <!-- dialogue/884 -->
+- [ ] #887 “Sir Loin: Oh, my apologies. Please understand that we have to be thorough in our search for the lost Crown.” · not triggered <!-- dialogue/887 -->
+- [ ] #888 “Wizard: Oh Jester, you make people happy with your jokes and rhymes. Elementius never cared about you at all!” · not triggered <!-- dialogue/888 -->
+- [ ] #889 “The Jester: Elementius will use the Crown for great ill, from his fortress beyond the forests and hills.” · not triggered <!-- dialogue/889 -->
+- [ ] #890 “The Jester: The spell that he casts will require great skill, as it sweeps away all of the Kingdom's free will.” · not triggered <!-- dialogue/890 -->
+- [ ] #891 “Wizard: He does not get it at all! People's respect is something you must earn through your actions, not through the powers of the arcane!” · not triggered <!-- dialogue/891 -->
+- [ ] #892 “The Jester: Excuse me, dare I ask if I may, join you along your dangerous way?” · not triggered <!-- dialogue/892 -->
+- [ ] #893 “The Jester: I promise to follow, never to stray. I just want to help at the end of the day.” · not triggered <!-- dialogue/893 -->
+- [ ] #894 “Wizard: That's what we are trying to do. How do we cross this barrier of yours?” · not triggered <!-- dialogue/894 -->
+- [ ] #895 “Flora: But my power wanes with the life of the forest and the barrier will not last much longer.” · not triggered <!-- dialogue/895 -->
+- [ ] #896 “Flora: Beautiful! Now let me cast my protective spell on you. Let's not delay you on your mission.” · not triggered <!-- dialogue/896 -->
+- [ ] #897 “Wizard: Friendship, respect and love are where true power lies.” · not triggered <!-- dialogue/897 -->
+- [ ] #898 “King: *Ahem* Before you all abandon me, there is still the matter of the Dragon here in the Kingdom.” · not triggered <!-- dialogue/898 -->
+- [ ] #899 “Jester: Two roads diverged in a sorcerer's lair, and travelers must be aware,” · not triggered <!-- dialogue/899 -->
+- [ ] #900 “Jester: No matter which they choose to dare, The LEGO Center leads them there!” · not triggered <!-- dialogue/900 -->
+- [ ] #918 “Elementius: *sigh* I could have had so much fun here.” · not triggered <!-- dialogue/918 -->
+- [ ] #954 “Wizard: But-” · not triggered <!-- dialogue/954 -->
+- [ ] #955 “Wizard: But we only wanted a toga!” · not triggered <!-- dialogue/955 -->
+- [ ] #956 “Wizard: But-” · not triggered <!-- dialogue/956 -->
+- [ ] #959 “Wizard: *Sigh* I guess we need to go adventuring then.” · not triggered <!-- dialogue/959 -->
+- [ ] #960 “Wizard: How did he lure everyone into the Underworld?” · not triggered <!-- dialogue/960 -->
+- [ ] #996 “Wizard: I wouldn't swim in it. It looks poisoned.” · not triggered <!-- dialogue/996 -->
+- [ ] #997 “Jester: This water does not seem too sweet, it smells like mother's dirty feet.” · not triggered <!-- dialogue/997 -->
+- [ ] #998 “Jester: But as a child in summer heat, to bathe in such was just a treat.” · not triggered <!-- dialogue/998 -->
+- [ ] #999 “Wizard: Ewww. That explains a *lot*.” · not triggered <!-- dialogue/999 -->
+- [ ] #1000 “Wizard: We are on a mission to find crystal artifacts. We don't have time to-” · not triggered <!-- dialogue/1000 -->
+- [ ] #1002 “Elementius: Deal. Let me just cast a fireball spell-” · not triggered <!-- dialogue/1002 -->
+- [ ] #1004 “Elementius: But fire is my thing...” · not triggered <!-- dialogue/1004 -->
+- [ ] #1016 “Wizard: He must have had good reasons. He'd better have a good reason!” · not triggered <!-- dialogue/1016 -->
+- [ ] #1021 “Wizard: But why? Why is it so important to you?” · not triggered <!-- dialogue/1021 -->
+
+</details>
+
+<details><summary>Monster Trials (0/7)</summary>
+
+- [ ] #1025, 1026 “Welcome message, if it HAS ticket: Monster Scientist: Good people of the Lego Worlds, step up, step up!” · **triggered** (monster-scientist-1025) <!-- dialogue/1025 -->
+- [ ] #1028 “Monster Scientist: Who among you dares to illustrate, elevate, immolate, detonate, integrate, inundate, eliminate, simulate, investigate and” · not triggered <!-- dialogue/1028 -->
+- [ ] #1029 “Monster Scientist: You've arrived! I must indicate that by now, those who participate are almost always smashed, irate and out the gate. But” · **triggered** (monster-scientist-1029) <!-- dialogue/1029 -->
+- [ ] #1030, 1031, 1032 “Monster Scientist: And so, I must facilitate a special fate. My henchman shall participate to smash that THING of silicate. If you can mitig” · **triggered** (monster-scientist-1029) <!-- dialogue/1030 -->
+- [ ] #1034 “Intro message, if it does NOT have ticket: Monster Scientist: Good people of the Lego Worlds, step up, step up!” · not triggered <!-- dialogue/1034 -->
+- [ ] #1035 “Monster Scientist: Victory! I cannot wait! The data I will correlate!” · **triggered** (monster-scientist-1035) <!-- dialogue/1035 -->
+- [ ] #1036, 1037, 1039, 1040, 1041, 1042, 1043, 1044 “Monster Scientist: I have heart rate, growth state, liver weight and length of gait to pontificate. And with that I can reintegrate and invi” · **triggered** (monster-scientist-1035) <!-- dialogue/1036 -->
+
+</details>
+
+<details><summary>Mythology World (0/75)</summary>
+
+- [ ] #144, 145 “Battle Goddess: We don't have much time. The Machine is already showing signs of the Corruption.” · not triggered <!-- dialogue/144 -->
+- [ ] #534, 535, 536, 537, 538, 539, 540 “Stir: Stir: Stir: Deino: Welcome, stranger! We are the three Oracles, the Grey sisters. We know why you have come.” · not triggered <!-- dialogue/534 -->
+- [ ] #541, 542 “Enyo: Battle Goddess is the only one who can open the gate, but she hasn't been seen since she entered Medusa's Lair three weeks ago...” · not triggered <!-- dialogue/541 -->
+- [ ] #546 “Here is where BG should break out of stone: RunAway: BattleGoddess: Oh no! Don't let him escape!” · not triggered <!-- dialogue/546 -->
+- [ ] #547 “BattleGoddess: Zeus' beard! I'll have to catch Stormhammer later.” · not triggered <!-- dialogue/547 -->
+- [ ] #548 “BattleGoddess: I could have been stuck in Medusa's cave forever. Do you have any idea how hard it is to be made out of stone?” · not triggered <!-- dialogue/548 -->
+- [ ] #551 “BattleGoddess: I don't know... Dad locked Hades in the Underworld for a reason...” · not triggered <!-- dialogue/551 -->
+- [ ] #552 “Pemphredo: You would be wise to trust us, Battle Goddess. We see all that is, all that was, and...” · not triggered <!-- dialogue/552 -->
+- [ ] #553 “BattleGoddess: ...all that might be. I remember.” · not triggered <!-- dialogue/553 -->
+- [ ] #554 “BattleGoddess: It's just that Zeus was having a toga party and I really wanted to-” · not triggered <!-- dialogue/554 -->
+- [ ] #556 “BattleGoddess: Ooooh! This must be Thunderbolt's invention. I told him to make a lock that no god or goddess could open.” · not triggered <!-- dialogue/556 -->
+- [ ] #557 “BattleGoddess: Clever ogre... He's turned it into a puzzle. Gods don't have time for puzzles. We're usually all about smiting and wrath.” · not triggered <!-- dialogue/557 -->
+- [ ] #558 “BattleGoddess: Any ideas?” · not triggered <!-- dialogue/558 -->
+- [ ] #560 “Key appears: Thunderbolt: Well done! You managed to solve a riddle designed to puzzle both gods and men. Unfortunately, I cannot allow you t” · not triggered <!-- dialogue/560 -->
+- [ ] #561, 562 “BattleGoddess: Hey, Thunderbolt. It's me, Battle Goddess! I've just come to pick up the key. No biggie.” · not triggered <!-- dialogue/561 -->
+- [ ] #563, 564, 565, 566 “BattleGoddess: Yes, but I didn't mean from me. Just give me the key so I can unlock Hades and get to the party.” · not triggered <!-- dialogue/563 -->
+- [ ] #568 “Battle Goddess: Thunderbolt always did take things too seriously! Let's get out of here before he wakes up.” · not triggered <!-- dialogue/568 -->
+- [ ] #569, 570 “Battle Goddess: I mean, letting Hades out would be really bad. Once, he lured everyone into the Underworld and tried to shut the gates.” · not triggered <!-- dialogue/569 -->
+- [ ] #572 “Zeus: Hey! I'm Zeus! Welcome to my party!” · not triggered <!-- dialogue/572 -->
+- [ ] #573 “Zeus: Hey, where's your toga? And your invitation?” · not triggered <!-- dialogue/573 -->
+- [ ] #574 “Zeus: I'd help, but I'm busy doing godly stuff, like manning the grill.” · not triggered <!-- dialogue/574 -->
+- [ ] #577, 578, 579 “Party Guest: A toga? The Grey Sisters spin a mean toga.” · not triggered <!-- dialogue/577 -->
+- [ ] #581, 582, 583 “Deino: Poor fools. You played right into our trap. Muahahah!” · not triggered <!-- dialogue/581 -->
+- [ ] #584, 585 “Enyo: And now that you've played your part, it's time for you to say bye bye to sunshine...” · not triggered <!-- dialogue/584 -->
+- [ ] #587 “Charon: Need a ride across the Styx?” · not triggered <!-- dialogue/587 -->
+- [ ] #588 “Charon: Oh, Swashbuckler! I didn't see you there! Got that coin you owe me?” · not triggered <!-- dialogue/588 -->
+- [ ] #592 “Hades: Aha! I see you got past the Grey Sisters...” · not triggered <!-- dialogue/592 -->
+- [ ] #593 “Hades: And I see you there, Battle Goddess. Have you come for some chicken wings?” · not triggered <!-- dialogue/593 -->
+- [ ] #595 “Medusa: What mortal dares enter my cave?” · not triggered <!-- dialogue/595 -->
+- [ ] #596 “Medusa: Aaaaaaaaaah! You'll make a beautiful addition to my statue collection.” · not triggered <!-- dialogue/596 -->
+- [ ] #598 “Hades cry: Hades: Ouch! I give up! I give up, okay? You never liked me. It's because I'm too edgy, isn't it?” · not triggered <!-- dialogue/598 -->
+- [ ] #599 “BattleGoddess: You were always a bit creepy Uncle Hades. Why are you trying to take over the world?” · not triggered <!-- dialogue/599 -->
+- [ ] #600 “Hades: I'm not trying to take over the world! I just don't want Zeus taking credit for my chicken wings at his parties.” · not triggered <!-- dialogue/600 -->
+- [ ] #601 “Zeus: Did someone mention Zeus? I'm always up for a party!” · not triggered <!-- dialogue/601 -->
+- [ ] #602 “Zeus: Oh, hello Hades. And Battle Goddess!? You were grounded at Medusa's house, young lady! What is going on here?” · not triggered <!-- dialogue/602 -->
+- [ ] #603 “BattleGoddess: Dad, Uncle Hades tried to escape the Underworld again. And my friends and I were trying to stop him. Look, can't we all just ” · not triggered <!-- dialogue/603 -->
+- [ ] #604 “Zeus: Hmmm... Hades can come. Bring some chicken wings, Hades, and promise to be good.” · not triggered <!-- dialogue/604 -->
+- [ ] #605 “Hades: I'll bring them, but remember to give *me* credit this time. And I promise! No more practical jokes or evil ploys for a millenn... A ” · not triggered <!-- dialogue/605 -->
+- [ ] #606 “BattleGoddess: What about us?” · not triggered <!-- dialogue/606 -->
+- [ ] #607 “BattleGoddess: Fine. We're going to go and have our own party then. Without stupid togas!” · not triggered <!-- dialogue/607 -->
+- [ ] #609, 610 “Stormhammer: I remember you! You released me from Medusa's lair. I guess I owe you one!” · not triggered <!-- dialogue/609 -->
+- [ ] #612, 613 “Stormhammer: What is this, a raidning party?” · not triggered <!-- dialogue/612 -->
+- [ ] #615 “Medusa: Come in, sweetheart. Let me have a look at you...” · not triggered <!-- dialogue/615 -->
+- [ ] #617 “BattleGoddess: But all the other gods get to...FINE. The key to the Underworld is in the Armory.” · not triggered <!-- dialogue/617 -->
+- [ ] #618 “Battle Goddess: The entrance to the Underworld is this way. Let's go!” · not triggered <!-- dialogue/618 -->
+- [ ] #619 “Hades: Alright! Let's party!” · not triggered <!-- dialogue/619 -->
+- [ ] #951 “Zeus: Look, you can stay but at least put on a toga.” · not triggered <!-- dialogue/951 -->
+- [ ] #953 “Zeus: Ask around - someone will know where you can get one.” · not triggered <!-- dialogue/953 -->
+- [ ] #957 “Enyo: Rescue Battle Goddess and we see a toga in your future!” · not triggered <!-- dialogue/957 -->
+- [ ] #958 “Deino: Yes, yes! A glorious toga.” · not triggered <!-- dialogue/958 -->
+- [ ] #961 “BattleGoddess: Chicken wings. Seriously, Hades makes amazing wings. It's a pity he wants to rule the world as well.” · not triggered <!-- dialogue/961 -->
+- [ ] #964 “Deino: Battle Goddess, protector of this land, we have seen the future! To stop the monster invasion, you need to unlock the gate to the Und” · not triggered <!-- dialogue/964 -->
+- [ ] #965 “Deino: Do not forsake your sacred duty for a party, goddess.” · not triggered <!-- dialogue/965 -->
+- [ ] #966 “BattleGoddess: Come on mortals. let's get this over with so we can go to the party.” · not triggered <!-- dialogue/966 -->
+- [ ] #972 “BattleGoddess: Why would you do this? Why betray us?” · not triggered <!-- dialogue/972 -->
+- [ ] #973 “Pemphredo: Hades promised to give us a bucket of chicken wings every day, forever, as long as we did this for him.” · not triggered <!-- dialogue/973 -->
+- [ ] #974 “BattleGoddess: Chicken wings? How can something that tastes so good be capable of so much evil?” · not triggered <!-- dialogue/974 -->
+- [ ] #977 “Charon: No matter. I am eternally patient. Do you want to cross the river?” · not triggered <!-- dialogue/977 -->
+- [ ] #978 “BattleGoddess: Yes. We need to stop Hades from escaping the Underworld.” · not triggered <!-- dialogue/978 -->
+- [ ] #979 “Charon: Technically, you're supposed to be smashed in order to cross the river. And my boat needs some heavy repairwork.” · not triggered <!-- dialogue/979 -->
+- [ ] #980 “BattleGoddess: So we need to wait here until you fix your boat?” · not triggered <!-- dialogue/980 -->
+- [ ] #981 “Charon: Nah, I'm modernizing my image. Building a way to bounce people across the river instead. Give them value for their money.” · not triggered <!-- dialogue/981 -->
+- [ ] #982 “Charon: And Charon the Bouncer has a nice ring to it.” · not triggered <!-- dialogue/982 -->
+- [ ] #983 “BattleGoddess: So can we bounce across the river?” · not triggered <!-- dialogue/983 -->
+- [ ] #984 “Charon: Just step on that jumpie over there and you can jump across. I'll even waive the fee since you're testing it for me.” · not triggered <!-- dialogue/984 -->
+- [ ] #985 “Charon: Not for you though, Swashbuckler. Now you owe me two coins.” · not triggered <!-- dialogue/985 -->
+- [ ] #987 “BattleGoddess: Normally, yes, but today I need to stop you from leaving the Underworld!” · not triggered <!-- dialogue/987 -->
+- [ ] #988 “Hades: I am the God of the Underworld. No one can defeat me here!” · not triggered <!-- dialogue/988 -->
+- [ ] #989 “Zeus: Done.” · not triggered <!-- dialogue/989 -->
+- [ ] #990 “Zeus: I don't want you hanging around with some of the gods at my parties. Why don't you take your friend here to the Skyforge?” · not triggered <!-- dialogue/990 -->
+- [ ] #991 “Zeus: Or go and look for something to do at the LEGO Center?” · not triggered <!-- dialogue/991 -->
+- [ ] #992 “Zeus: I know you don't mean that, sweetheart. Have fun!” · not triggered <!-- dialogue/992 -->
+- [ ] #1001 “BattleGoddess: I remember that. Dad was *not* impressed when he tried to light the barbeque that day.” · not triggered <!-- dialogue/1001 -->
+- [ ] #1003 “BattleGoddess: No, if we're doing this, we're doing it right!” · not triggered <!-- dialogue/1003 -->
+- [ ] #1005 “BattleGoddess: Trust me, I know quests. And this is a quest. So we're going to do it right, okay?” · not triggered <!-- dialogue/1005 -->
+
+</details>
+
+<details><summary>Pirate World (0/147)</summary>
+
+- [ ] #79, 80, 81 “Swashbuckler: About time you woke up!” · **triggered** (swashbuckler-79) <!-- dialogue/79 -->
+- [ ] #88 “Good Pirate Captain Pete: "Ha!, we made it!"” · not triggered <!-- dialogue/88 -->
+- [ ] #89 “Good Pirate Captain Pete: "I knew you had it in you! The Pirate Spirit!"” · not triggered <!-- dialogue/89 -->
+- [ ] #90 “Good Pirate Captain Pete: "Hey, maybe you'd be interested on joining my crew? We could do with someone like you."” · not triggered <!-- dialogue/90 -->
+- [ ] #91 “Good Pirate Captain Pete: "We are a fun bunch. We party all the time! and we sail around, and explore new islands, and find treasures. And d” · not triggered <!-- dialogue/91 -->
+- [ ] #127 “Evil Pirate Captain Dreadleg: Shiver me timbers and sink me ship... errr... again! Ye landlubber don't know when to give up, aye?” · not triggered <!-- dialogue/127 -->
+- [ ] #128 “Evil Pirate Captain Dreadleg: Gonna have to deal with ye meself, aye? Gonna have to put ye in ye place, aye?” · not triggered <!-- dialogue/128 -->
+- [ ] #131, 132 “Evil Pirate Captain Dreadleg: Ye call me powers a curse... but they make me invincible! I'll take ye Crystal Compass and plunder all the LEG” · not triggered <!-- dialogue/131 -->
+- [ ] #142 “Swashbuckler: Why don't we let this one explore a bit before jumping into your End of the World scenario?” · not triggered <!-- dialogue/142 -->
+- [ ] #146, 147 “Swashbuckler: Greetings adventurer! I am the Swashbuckler.” · not triggered <!-- dialogue/146 -->
+- [ ] #148, 149 “Swashbuckler: Aight, here's the deal. There's only a handful of us left. Most of the others have been captured.” · not triggered <!-- dialogue/148 -->
+- [ ] #150 “Swashbuckler: Oh, and the World is ending.” · not triggered <!-- dialogue/150 -->
+- [ ] #151, 154 “Swashbuckler: You might have heard about me. After all, I'm the most famous and handsome pirate of all times.” · not triggered <!-- dialogue/151 -->
+- [ ] #155 “Good Pirate Captain Pete: Arrr! Look at what the tide brought in! Ye got that gold ye be owin' me, Swashbuckler?” · not triggered <!-- dialogue/155 -->
+- [ ] #157 “Swashbuckler: Look, about that. I...err-” · not triggered <!-- dialogue/157 -->
+- [ ] #159 “Swashbuckler: Find me in the Pirate World!” · not triggered <!-- dialogue/159 -->
+- [ ] #166 “Pirate yarr: Tavern Pirates: YARR! DOWN WITH DREADLEG!” · not triggered <!-- dialogue/166 -->
+- [ ] #167, 170, 171 “Good Pirate Captain Pete: Ye know the rules, Swashbuckler. Only a Captain can petition the council. And yer no captain.” · not triggered <!-- dialogue/167 -->
+- [ ] #172, 173, 174, 175, 176, 177 “Good Pirate Captain Pete: ... Ye brainstuffs ...” · not triggered <!-- dialogue/172 -->
+- [ ] #180 “Good Pirate Captain Pete: Huzzah! We made it! I knew ye had it in ye! The Pirate Spirit!” · not triggered <!-- dialogue/180 -->
+- [ ] #181, 183, 184, 185, 187, 188, 189, 191 “Good Pirate Captain Pete: Ye know what, me matey? If ye ever need a ship, ye come find me and me crew!” · not triggered <!-- dialogue/181 -->
+- [ ] #193 “Good Pirate Captain Pete: Hah! well done!” · not triggered <!-- dialogue/193 -->
+- [ ] #194, 195, 197 “Good Pirate Captain Pete: And now...we must Pirate Fight! Ye gonna have to beat me in combat! Don't get salty if ye lose!” · not triggered <!-- dialogue/194 -->
+- [ ] #200 “Evil Captain Dreadleg: Shave me beard, how'd ye make it past the Volcano, the skeletons and the hounds?” · not triggered <!-- dialogue/200 -->
+- [ ] #201, 203 “Evil Captain Dreadleg: The Crystal Compass be givin' ye powers! Ye have what it takes to bring me down!? Ye gonna have to defeat me best and” · not triggered <!-- dialogue/201 -->
+- [ ] #206, 207, 208, 209, 210 “Jacket shout: Guard Captain: What is going on here?!” · **triggered** (cinematic-start-oops-206) <!-- dialogue/206 -->
+- [ ] #220, 223 “Carefull next time please!” · **triggered** (swashbuckler-79) <!-- dialogue/220 -->
+- [ ] #224, 225 “Swashbuckler: Yarr! I knew ye could do it!” · **triggered** (swashbuckler-224) <!-- dialogue/224 -->
+- [ ] #231 “Swashbuckler Hero: "Oh, it is you again! How have you been doing? I am glad that you made it this far."” · not triggered <!-- dialogue/231 -->
+- [ ] #232 “Swashbuckler Hero: "Hope you are having fun on our beautiful island! But I am afraid it is now time for serious business."” · not triggered <!-- dialogue/232 -->
+- [ ] #233 “Swashbuckler Hero: "You have got to find and rescue all the other stranded minifigures!"” · not triggered <!-- dialogue/233 -->
+- [ ] #234 “Swashbuckler Hero: "You have met Captain Pete, haven't you? You helped him escape from the Jacket's Prison."” · not triggered <!-- dialogue/234 -->
+- [ ] #235 “Swashbuckler Hero: "Next you will want to catch Captain Dreadleg. He is a ghostly pirate with a terrible secret!"” · not triggered <!-- dialogue/235 -->
+- [ ] #236 “Swashbuckler Hero: "His lair is in the Volcano Island. You sail there in Captain Pete's ship, once you join his crew."” · not triggered <!-- dialogue/236 -->
+- [ ] #237 “Swashbuckler Hero: "Once you've dealt with Dreadleg, there are more minifigures trapped in the mystical Treasure Island."” · not triggered <!-- dialogue/237 -->
+- [ ] #238 “Swashbuckler Hero: "But be wary that the Treasure Island is rumoured to be the lair of a terrible Sea Monster!"” · not triggered <!-- dialogue/238 -->
+- [ ] #239 “Swashbuckler Hero: "Good luck sailor!"” · not triggered <!-- dialogue/239 -->
+- [ ] #241 “Swashbuckler Hero: "He used to be my First Mate! Well, you should go and see him at the Tavern."” · not triggered <!-- dialogue/241 -->
+- [ ] #242 “Swashbuckler Hero: "For starters, you are going to need a boat. Your best chance is to try to join a pirate crew!"” · not triggered <!-- dialogue/242 -->
+- [ ] #243 “Swashbuckler Hero: "Sadly I cannot help you, but I can give you some pointers."” · not triggered <!-- dialogue/243 -->
+- [ ] #244, 245 “Swashbuckler Hero: "I am sure that he will let you join his crew if you ask nicely! And say Hi to his delightful daughter!"” · not triggered <!-- dialogue/244 -->
+- [ ] #246, 247 “Swashbuckler Hero: Hello again friend! Are you looking for directions?” · not triggered <!-- dialogue/246 -->
+- [ ] #248, 249 “Swashbuckler Hero: Pete's ship is here. You can use it to sail to the Volcano Island to face Captain Dreadleg.” · not triggered <!-- dialogue/248 -->
+- [ ] #250, 251 “Swashbuckler Hero: And you can always to other Worlds and places through the LEGO Center!” · not triggered <!-- dialogue/250 -->
+- [ ] #252, 253, 254 “Swashbuckler Hero: "I will stay around in the harbour, just in case you need some directions. Just find me and talk to me."” · not triggered <!-- dialogue/252 -->
+- [ ] #259 “Swashbuckler: Stand down, Dreadleg. You're beaten! What do you have to say for yourself?” · not triggered <!-- dialogue/259 -->
+- [ ] #260 “Dreadleg: All me wanted... was respect. Captain Pete marooned me, and then I found this cave. Before me knew it, me was cursed!” · not triggered <!-- dialogue/260 -->
+- [ ] #261 “Dreadleg: The Islander Shaman told me that the only way to break the curse was the Crystal Compass.” · not triggered <!-- dialogue/261 -->
+- [ ] #263 “Good Pirate Captain Pete: Arrr! Darned be me pegleg and me hookbeard! Ye win!” · not triggered <!-- dialogue/263 -->
+- [ ] #264 “Good Pirate Captain Pete: Ye be a Captain now, sworn to uphold the articles and the covenant! May ye be a better pirate than that scallywag ” · not triggered <!-- dialogue/264 -->
+- [ ] #265 “Swashbuckler: Dreadleg was talking about revenge, Old Pete. Do you know anything about that?” · not triggered <!-- dialogue/265 -->
+- [ ] #380, 381 “Good Pirate Captain Pete: Ye must undergo...THE PIRATE TRIALS!” · not triggered <!-- dialogue/380 -->
+- [ ] #382 “Evil Pirate Captain Dreadleg: Shiver me timbers and rust me hook, ye are a persistent one!” · not triggered <!-- dialogue/382 -->
+- [ ] #383 “Evil Pirate Captain Dreadleg: Ye be a fool, landlubber, bringing the compass here. These islands be mine for the plunder!” · not triggered <!-- dialogue/383 -->
+- [ ] #384 “Evil Pirate Captain Dreadleg: Soon ye will walk the plank like all the others before! And ye compass will be mine! MUAHAHAHA!” · not triggered <!-- dialogue/384 -->
+- [ ] #386 “Swashbuckler: We made it! Welcome to Pirate Town!” · not triggered <!-- dialogue/386 -->
+- [ ] #387 “Swashbuckler: Pirate Town is a safe haven for all good pirates. A place to meet other pirates, divide treasure, plan adventures and... did I” · not triggered <!-- dialogue/387 -->
+- [ ] #395 “Good Pirate Captain Pete: Ye beat me again! Yer a Captain to be proud of!” · not triggered <!-- dialogue/395 -->
+- [ ] #396 “Captain Pete: Revenge be the flame that lights his ghostly heart. He be wantin' payback for what was done.” · not triggered <!-- dialogue/396 -->
+- [ ] #397 “Swashbuckler: What!? You know why he attacked the town?” · not triggered <!-- dialogue/397 -->
+- [ ] #398 “Captain Pete: Aye, he was me first mate, Smith. Marooned him on Volcano Island after he tried his hand at mutiny. Next time I saw him, he wa” · not triggered <!-- dialogue/398 -->
+- [ ] #399 “Captain Pete: 'Tis said his ghostly crew sail forth from Volcano Island, pillaging and plundering. But he is bound by a dark curse, and cann” · not triggered <!-- dialogue/399 -->
+- [ ] #400 “Island Warrior: My people tell dark stories about that island. Evil magic lives there.” · not triggered <!-- dialogue/400 -->
+- [ ] #401, 402 “Swashbuckler: Then we know what to do! We must sail for Volcano Island.” · not triggered <!-- dialogue/401 -->
+- [ ] #403 “Swashbuckler: Ha-ha! You're growing soft, Old Pete!? Maybe you should consider passing the leadership to the new generations!” · not triggered <!-- dialogue/403 -->
+- [ ] #404 “Evil Pirate Captain Dreadleg: Shiver me timbers and split me leg, how did you make it this far?” · not triggered <!-- dialogue/404 -->
+- [ ] #405, 406, 407 “Evil Pirate Captain Dreadleg: Ye may call yerself a Captain now, but yer still a landlubber! Ye won't find me secret hideout past the Volcan” · not triggered <!-- dialogue/405 -->
+- [ ] #499 “Pizza Guy: Would a spy bring you a double-cheese pizza?” · not triggered <!-- dialogue/499 -->
+- [ ] #550 “Swashbuckler: but delightful old women who-” · not triggered <!-- dialogue/550 -->
+- [ ] #692 “Swashbuckler: Danger is my middle name, fair lady. Well, it's actually Edgar, but that is *almost* an anagram for danger.” · not triggered <!-- dialogue/692 -->
+- [ ] #749, 750 “Dreadleg: Ye think ye can stop me!?” · **triggered** (cinematic-start-dreadleg-summons-pirate-749) <!-- dialogue/749 -->
+- [ ] #751, 752, 753 “Dreadleg: Har, har, har, see ye next time, landlubber!” · **triggered** (cinematic-start-dreadleg-summons-pirate-749) <!-- dialogue/751 -->
+- [ ] #766, 767, 768 “Dreadleg: Sink me! Ye can have yer compass back!” · **triggered** (video-game-guy-765) <!-- dialogue/766 -->
+- [ ] #769, 770 “Dreadleg: Ye can fight but let's see how ye deal with this, landlubber!” · **triggered** (video-game-guy-769) <!-- dialogue/769 -->
+- [ ] #773 “Island Warrior: Thanks! That monkey was going bananas on me!” · **triggered** (xx-cinematic-rescue-island-warrior-773) <!-- dialogue/773 -->
+- [ ] #774, 775, 776, 777 “FIX Talk: startfxpackageonactor IslandWarrior 239915: Island Warrior: Swashbuckler! I hope you're here to pay me what you owe me!” · **triggered** (xx-cinematic-rescue-island-warrior-773) <!-- dialogue/774 -->
+- [ ] #778 “startfxpackageonactor RevoSoldier 239914: Revolutionary Soldier: Ahh, well done! You showed those Jackets how a soldier does in battle!” · not triggered <!-- dialogue/778 -->
+- [ ] #780 “startfxpackageonactor RevoSoldier 239915: Revo Soldier: Swashbuckler! Got that money you owe me, old chap?” · not triggered <!-- dialogue/780 -->
+- [ ] #782 “Swashbuckler: Onwards!” · not triggered <!-- dialogue/782 -->
+- [ ] #783 “startfxpackageonactor PizzaGuy 239914: Pizza Guy: Woah! I totally thought I was a goner!” · not triggered <!-- dialogue/783 -->
+- [ ] #784 “Swashbuckler: This is the guy you think we needed, Revolutionary Soldier?” · not triggered <!-- dialogue/784 -->
+- [ ] #785 “Revolutionary Soldier: He can get through any door, anywhere. It's like magic.” · not triggered <!-- dialogue/785 -->
+- [ ] #786 “Pizza Guy: I sure can. Hey, aren't you the one who didn't tip me last time?” · not triggered <!-- dialogue/786 -->
+- [ ] #787 “Swashbuckler: Then let's get going!” · not triggered <!-- dialogue/787 -->
+- [ ] #801 “Guard: Stop right there! This area is off limits unless you have a special permit!” · not triggered <!-- dialogue/801 -->
+- [ ] #803, 804 “Island Warrior: We are going to have to find another way in!” · not triggered <!-- dialogue/803 -->
+- [ ] #805 “Guard: Turn around and leave this moment!” · not triggered <!-- dialogue/805 -->
+- [ ] #806 “Guard: Turn around and leave this moment!” · not triggered <!-- dialogue/806 -->
+- [ ] #807 “Jacket Guard: Oh, pepperoni you say? Come on in. And here's your tip.” · not triggered <!-- dialogue/807 -->
+- [ ] #808 “Pizza Guy: Pizza delivery! Special order with extra pepperoni!” · not triggered <!-- dialogue/808 -->
+- [ ] #809 “Pizza Guy: Aye aye, dude.” · not triggered <!-- dialogue/809 -->
+- [ ] #811 “Guard: Stop right there! This area is off limits unless you have a special permit!” · not triggered <!-- dialogue/811 -->
+- [ ] #817, 818, 819, 820, 821 “Pirate: Ahoy mateys! Welcome to the Pirate World! Yarr!” · **triggered** (video-game-guy-812) <!-- dialogue/817 -->
+- [ ] #822 “Swashbuckler: Ha! We made it! Look at the two of us. Living proof that you can put a pirate in prison, but you can't ruin his perfect hair!” · **triggered** (cinematic-start-escaped-from-jail-822) <!-- dialogue/822 -->
+- [ ] #823, 824, 825, 826, 827 “Swashbuckler: Those Jackets threw me in jail for asking around about Dreadleg. That scallywag is up to no good!” · **triggered** (cinematic-start-escaped-from-jail-822) <!-- dialogue/823 -->
+- [ ] #828 “Evil Pirate Captain Dreadleg: Enough! Ye a strong scallywag fer sure! But it matters not!” · not triggered <!-- dialogue/828 -->
+- [ ] #829, 830, 831 “Dreadleg: Me ghost army is almost complete, it's too late for ye to stop me now!” · not triggered <!-- dialogue/829 -->
+- [ ] #833 “Dreadleg: And after that... me will plunder all the other LEGO Worlds too! MUA-HA-HA-HA!” · not triggered <!-- dialogue/833 -->
+- [ ] #834, 836 “Swashbuckler: Oh no! He plans to attack the Pirate Town? We have to warn everyone! We must call a Pirate Council immediately!” · not triggered <!-- dialogue/834 -->
+- [ ] #840, 841 “Swashbuckler: Grrr, Dreadleg! Ye salty scallywag!” · not triggered <!-- dialogue/840 -->
+- [ ] #843 “Swashbuckler: The Pirate Council, led by Captain Pete, the oldest pirate in the Pirate World meets in the Peglegged Mermaid Tavern.” · not triggered <!-- dialogue/843 -->
+- [ ] #845 “Swashbuckler: We need to speak to the Pirate Council - but there are strict rules. It is a privilege reserved to Pirate Captains.” · not triggered <!-- dialogue/845 -->
+- [ ] #846, 847, 848 “Swashbuckler: I'll think of something. Let's just go and talk to Captain Pete! This way!” · **triggered** (xx-cinematic-rescue-island-warrior-773) <!-- dialogue/846 -->
+- [ ] #849 “Swashbuckler: We just saved you. Doesn't that count?” · not triggered <!-- dialogue/849 -->
+- [ ] #850 “Revolutionary Soldier: That's a debt of honor. The other is just a debt!” · not triggered <!-- dialogue/850 -->
+- [ ] #851 “Swashbuckler: If you join us, you can discharge your debt of honor. We're going to track down Dreadleg.” · not triggered <!-- dialogue/851 -->
+- [ ] #852 “Revolutionary Soldier: Gladly, it will give us time to discuss your other debts. And I know just the fellow to help us get inside the fort.” · not triggered <!-- dialogue/852 -->
+- [ ] #853, 854, 855 “Island Warrior: Swashbuckler probably owes him money too.” · **triggered** (video-game-guy-765) <!-- dialogue/853 -->
+- [ ] #856 “Island Warrior: We are going to have to find another way in!” · not triggered <!-- dialogue/856 -->
+- [ ] #857 “Pizza Guy: I got this, bro.” · not triggered <!-- dialogue/857 -->
+- [ ] #859 “Swashbuckler: Shhh! Concentrate on figuring out what is going on before they notice we shouldn't be here.” · not triggered <!-- dialogue/859 -->
+- [ ] #860 “Swashbuckler: No...that was someone else. Do you want to join our crew to take down Dreadleg?” · not triggered <!-- dialogue/860 -->
+- [ ] #861 “Pizza Guy: Oh totally! Ghosts don't eat much, so I figure this Dreadleg stuff is bad for business.” · not triggered <!-- dialogue/861 -->
+- [ ] #862 “Pizza Guy: The Jackets here were talking about this "advancement program". I dunno what it means, but it is happening at the Fort.” · not triggered <!-- dialogue/862 -->
+- [ ] #863 “Revo Soldier: Swashbuckler, aren't you a pirate captain?” · not triggered <!-- dialogue/863 -->
+- [ ] #864 “Swashbuckler: I was... but I forgot to pay my membership fee and...” · not triggered <!-- dialogue/864 -->
+- [ ] #865 “Island Warrior: Then how are we going to convince him about Dreadleg?” · not triggered <!-- dialogue/865 -->
+- [ ] #866 “Island Warrior: Is there anybody on this island that you don't owe money?” · not triggered <!-- dialogue/866 -->
+- [ ] #867 “Swashbuckler: Err...Dreadleg?” · not triggered <!-- dialogue/867 -->
+- [ ] #868 “Good Pirate Captain Pete: Don't ye be mentionin' that scallywag in me presence! He be banned from the Pirate Council.” · not triggered <!-- dialogue/868 -->
+- [ ] #869 “Swashbuckler: I've been putting a crew together to track him down and we need your-” · not triggered <!-- dialogue/869 -->
+- [ ] #871 “Captain Pete: Not so fast, lad. Ye've earned the right to address the Pirate Council. Ye must convince them of ye cause! Get to it!” · not triggered <!-- dialogue/871 -->
+- [ ] #872 “Swashbuckler: Your power comes from a curse, Dredleg. Give it up. Stop this craziness!” · not triggered <!-- dialogue/872 -->
+- [ ] #873 “Swashbuckler: You didn't need to steal it! You could have just asked to borrow it.” · not triggered <!-- dialogue/873 -->
+- [ ] #874 “Dreadleg: Piratin' and plunderin' be the only things me know. Me just wants to go back to being Smith.” · not triggered <!-- dialogue/874 -->
+- [ ] #875 “Swashbuckler: You've touched me, Dreadleg. We can try...” · not triggered <!-- dialogue/875 -->
+- [ ] #876 “Dreadleg: Ye did it! The curse is broken and I feel so...alive!” · not triggered <!-- dialogue/876 -->
+- [ ] #877 “Swashbuckler: Ha-ha! You did it! Dreadleg is no more and Smith is back! I knew you had it, matey, I knew it all along!” · not triggered <!-- dialogue/877 -->
+- [ ] #878 “Swashbuckler: And look at all this treasure! Every good adventure ends with a bit of treasure.” · not triggered <!-- dialogue/878 -->
+- [ ] #881 “Swashbuckler: Watch who you're calling smelly, mate! I smell like roses. Now did you say Crystal Compass?” · not triggered <!-- dialogue/881 -->
+- [ ] #883 “Swashbuckler: Maybe we know and maybe we don't. I'll pass along your message.” · not triggered <!-- dialogue/883 -->
+- [ ] #885 “Swashbuckler: It sounds like Medieval World is in trouble. On the other hand, we could also go and plunder Treasure Island.” · not triggered <!-- dialogue/885 -->
+- [ ] #886 “Swashbuckler: To get to either of them, we need to go through LEGO Center. So...to LEGO Center!” · not triggered <!-- dialogue/886 -->
+- [ ] #906 “Pizza Guy: That only works if your enemy isn't a smelly cactus, dude.” · not triggered <!-- dialogue/906 -->
+- [ ] #963 “Swashbuckler: She wasn't being literal, Space brain. Battle Goddess, we were sent by three ugly, smelly-” · not triggered <!-- dialogue/963 -->
+- [ ] #967 “Mermaid: Wait! Can I go with you? I need a new wardrobe. Seashell is soooo last year.” · not triggered <!-- dialogue/967 -->
+- [ ] #968 “Swashbuckler: Careful, mermaids can't be trusted. They lure ships onto the rocks with their beautiful songs.” · not triggered <!-- dialogue/968 -->
+- [ ] #969 “Mermaid: That's sirens! I can't sing at all! Listen... "My loooveeee saiiillleeed ooovvveerrr the oooooceeeaaannn"-” · not triggered <!-- dialogue/969 -->
+- [ ] #970 “Swashbuckler: Stop! Stop! Alright. Point taken. You can come if you promise to never sing again.” · not triggered <!-- dialogue/970 -->
+- [ ] #971 “Mermaid: Don't make me tail slap you, Swashbuckler.” · not triggered <!-- dialogue/971 -->
+- [ ] #975 “Swashbuckler: Err...Actually I don't.” · not triggered <!-- dialogue/975 -->
+- [ ] #986 “Swashbuckler: Typical.” · not triggered <!-- dialogue/986 -->
+- [ ] #1010 “Swashbuckler: Treasures?! Tell us more!” · not triggered <!-- dialogue/1010 -->
+- [ ] #1011 “Swashbuckler: Yes, fun, adventure and so on. But did you mention treasure?” · not triggered <!-- dialogue/1011 -->
+- [ ] #1012 “Swashbuckler: And then treasure, right?” · not triggered <!-- dialogue/1012 -->
+- [ ] #1015 “Swashbuckler: Video Game Guy owes us an explanation.” · not triggered <!-- dialogue/1015 -->
+- [ ] #1023 “Swashbuckler: I understand completely, Video Game Guy. It's all about treasure...err...endgame.” · not triggered <!-- dialogue/1023 -->
+
+</details>
+
+<details><summary>Space World (0/103)</summary>
+
+- [ ] #137 “Space Miner: I'm picking up a strange signal...” · not triggered <!-- dialogue/137 -->
+- [ ] #138, 139, 140 “Space Miner: It looks like we have another one.” · not triggered <!-- dialogue/138 -->
+- [ ] #327 “Sergeant Thrace: Listen up! The Shadow Centurions have smashed our outer defenses, but they have not smashed us.” · not triggered <!-- dialogue/327 -->
+- [ ] #329 “Sergeant Thrace: We are not just soldiers, we are the Space Command! Let's take back our space station!” · not triggered <!-- dialogue/329 -->
+- [ ] #330 “The Queen: Have you dealth with the thieves?” · not triggered <!-- dialogue/330 -->
+- [ ] #332 “Shadrack Circuit-burn: Space Command is stronger than we anticipated, your majesty. Have you considered asking the Space Miner to share the ” · not triggered <!-- dialogue/332 -->
+- [ ] #333 “Sergeant Thrace: Sergeant Thrace, reporting for duty! I've brought some friends, sir!” · not triggered <!-- dialogue/333 -->
+- [ ] #334 “Space Miner: Reinforcements! Good! Finally, we can take back the Spaceport. Wait...who is this?” · not triggered <!-- dialogue/334 -->
+- [ ] #337 “Space Miner: The Railhead Rangers are ready to strike.” · not triggered <!-- dialogue/337 -->
+- [ ] #343 “Space Miner: I've lost contact with Space Command... We're on our own here.” · not triggered <!-- dialogue/343 -->
+- [ ] #344, 345 “SpaceMiner: Let me see if I can figure out where we are...” · not triggered <!-- dialogue/344 -->
+- [ ] #349 “Queen: The thieves reached our ship? How dare they?!” · not triggered <!-- dialogue/349 -->
+- [ ] #350, 351 “Commander Z: If we had azzzzked them to collaborate...” · not triggered <!-- dialogue/350 -->
+- [ ] #353 “Thrace: Railheads! Assemble! Get ready to fight the Alien Queen! Move! Move! Mo-- Oh wow!” · not triggered <!-- dialogue/353 -->
+- [ ] #359 “Space Miner: This is a science facility. We do ethical tests on the local fauna here. Ethical tests!” · not triggered <!-- dialogue/359 -->
+- [ ] #362 “Sergeant Thrace: The Shadow Centurions attacked without warning, driving us out of the Crystal Mines and the Spaceport.” · not triggered <!-- dialogue/362 -->
+- [ ] #363 “Sergeant Thrace: I don't know who you are, soldier, but you sure helped us out. You have real talent for space combat.” · not triggered <!-- dialogue/363 -->
+- [ ] #369 “SpaceMiner: OK! The bad news is that I have no idea where we are. That wormhole sent us far into the black.” · not triggered <!-- dialogue/369 -->
+- [ ] #370 “SpaceMiner: The good news is that I'm calculating our chance for getting smashed at...” · not triggered <!-- dialogue/370 -->
+- [ ] #371 “SpaceMiner: Oh. Nevermind.” · not triggered <!-- dialogue/371 -->
+- [ ] #377 “Space Miner: I think we need to celebrate. Let's head to Space Command HQ. We'll have a party!” · not triggered <!-- dialogue/377 -->
+- [ ] #485, 486 “Need to go now” · not triggered <!-- dialogue/485 -->
+- [ ] #487 “Mean Soldier: Hey, rookie! Didn't I tell you that we have it covered?” · not triggered <!-- dialogue/487 -->
+- [ ] #488 “Mean Soldier: Stand back and watch the professionals work.” · not triggered <!-- dialogue/488 -->
+- [ ] #491 “Mean Soldier: What do we have here... What?! What is that thing?! An alien?!” · not triggered <!-- dialogue/491 -->
+- [ ] #492 “Queen: Share?! The survival of our race depends on this fuel source. We will not share. We will have the crystals and you will deal with the” · not triggered <!-- dialogue/492 -->
+- [ ] #493 “Standing at attention: Shadrack Circuit-burn: Of course, your alienness. When you hire the Shadow Centurions, you get the best!” · not triggered <!-- dialogue/493 -->
+- [ ] #494 “Queen: Prove it, Circuit-burn. My race is not known for patience. Remember that.” · not triggered <!-- dialogue/494 -->
+- [ ] #495 “Shadrack Circuit-burn: Come on, Shadow Centurions! Load those carts!” · not triggered <!-- dialogue/495 -->
+- [ ] #498 “Space Miner: I can see that. How can we be sure that they aren't Shadow Centurion spies?” · not triggered <!-- dialogue/498 -->
+- [ ] #500 “Space Miner: But if we sneak into enemy territory and gather crystals for their cannons, that chance increases to 86 percent.” · not triggered <!-- dialogue/500 -->
+- [ ] #501 “Space Miner: Now *that* is a risk I am willing to take, soldier.” · not triggered <!-- dialogue/501 -->
+- [ ] #503 “Shadrack Circuit-burn: Space Miner! How did you find us?” · not triggered <!-- dialogue/503 -->
+- [ ] #504 “Space Miner: I came to find the Aliens to negotiate peace, Shadrack. You can pack your troops and leave.” · not triggered <!-- dialogue/504 -->
+- [ ] #506 “Space Miner: We just took down the biggest mercenary menace the Space Command has had to deal with. This goes a long way to ensuring peace i” · not triggered <!-- dialogue/506 -->
+- [ ] #507 “Alien Trooper: Your people is so warlike, I find it hard to conceive how you evolved.” · not triggered <!-- dialogue/507 -->
+- [ ] #508 “Galaxy Trooper: Says the alien with a laser gun!” · not triggered <!-- dialogue/508 -->
+- [ ] #510 “Queen: Forget collaboration! We need all the power we can get if we want our planet to survive!” · not triggered <!-- dialogue/510 -->
+- [ ] #511 “Commander Z: Yezzzz, wouldn't half of the crystalzzzz be better than none?” · not triggered <!-- dialogue/511 -->
+- [ ] #512 “Queen: You are dismissed, Commander Z. Go and tell our people that we need more soldiers.” · not triggered <!-- dialogue/512 -->
+- [ ] #513 “Commander Z: Yezzzzz, my queen.” · not triggered <!-- dialogue/513 -->
+- [ ] #514 “Space Miner: I've calculated their chance for success at 58 percent without crystal-powered cannons. We cannot risk it!” · not triggered <!-- dialogue/514 -->
+- [ ] #516 “Thrace: Do you want to chase after him, sir? We won't start the party without you!” · not triggered <!-- dialogue/516 -->
+- [ ] #518 “Thrace: If you want to stay out here a bit, try chasing down that Commander Z.” · not triggered <!-- dialogue/518 -->
+- [ ] #519 “Thrace: Otherwise the fastest path back to HQ is through the LEGO Center.” · not triggered <!-- dialogue/519 -->
+- [ ] #520 “Space Miner: We've faced the unknown together. I'd like to come with you, and explore other worlds for a while.” · not triggered <!-- dialogue/520 -->
+- [ ] #521 “Thrace: I don't know what to say, sir.” · not triggered <!-- dialogue/521 -->
+- [ ] #522, 523 “Fly: Queen: Now that my conscience is out of the way and I have you all to myself... Let us settle this, little thief.” · not triggered <!-- dialogue/522 -->
+- [ ] #528, 529 “Mean Soldier: Aiiiiiiiiiiiiiii! Mommy!” · not triggered <!-- dialogue/528 -->
+- [ ] #901 “Mean Soldier: Protect me, rookie!” · not triggered <!-- dialogue/901 -->
+- [ ] #902 “Sergeant Thrace: Space Miner is at the mines, trying to preserve our crystal supply. I'll gather my men and meet you there!” · not triggered <!-- dialogue/902 -->
+- [ ] #903 “Shadrack Circuit-burn: The Alien Queen is paying us to bring her her crystals! Be glad you aren't out on the front-lines soldier! Now get it” · not triggered <!-- dialogue/903 -->
+- [ ] #904 “Space Miner: A clever spy would. That's my favourite pizza! Which means you're either very smart, or very lucky.” · not triggered <!-- dialogue/904 -->
+- [ ] #905 “Space Miner: I think I'll stick close to you and keep and eye on you. Keep your friends close and your enemies even closer!” · not triggered <!-- dialogue/905 -->
+- [ ] #907 “Space Miner: Enough! Everyone get ready to attack!” · not triggered <!-- dialogue/907 -->
+- [ ] #908 “Sergeant Thrace: But now that we know that aliens hired Shadow Centurions to keep us from mining crystals, can't we suggest sharing?” · not triggered <!-- dialogue/908 -->
+- [ ] #909 “Space Miner: I've tried, but communicating with the Aliens is impossible unless we can find their base. And all of my data on that is in the” · not triggered <!-- dialogue/909 -->
+- [ ] #910 “Sergeant Thrace: Good enough, sir. Prepare for the assault!” · not triggered <!-- dialogue/910 -->
+- [ ] #911 “Galaxy Trooper: Wait, what are the odds of us surviving the crystal gathering in enemy territory?” · not triggered <!-- dialogue/911 -->
+- [ ] #912 “Space Miner: Approximately 24.250876 percent.” · not triggered <!-- dialogue/912 -->
+- [ ] #913 “Galaxy Trooper: The brochure didn't say anything about being smashed.” · not triggered <!-- dialogue/913 -->
+- [ ] #914 “Space Miner: *Ahem* A part of our research has been figuring out where the aliens are from.” · not triggered <!-- dialogue/914 -->
+- [ ] #915 “Space Miner: Progress has been slow but-” · not triggered <!-- dialogue/915 -->
+- [ ] #916 “spin and point: Space Miner: Fascinating! Your compass seems to be attuned to an alien signal. It's leading us...somewhere.” · not triggered <!-- dialogue/916 -->
+- [ ] #917 “Space Miner: Perhaps to the alien base. Let's follow it and find out.” · not triggered <!-- dialogue/917 -->
+- [ ] #919 “Space Miner: These ruins are ancient. I wonder who built all of this.” · not triggered <!-- dialogue/919 -->
+- [ ] #921 “Galaxy Trooper: Could it be the Aliens?” · not triggered <!-- dialogue/921 -->
+- [ ] #922 “Space Miner: It...seems older. As old as the planet itself. Maybe even older. Look, there is something written on these stones here, but I d” · not triggered <!-- dialogue/922 -->
+- [ ] #923 “Galaxy Trooper: This place is giving me the creeps. Let's move on.” · not triggered <!-- dialogue/923 -->
+- [ ] #924 “Galaxy Trooper: We're doomed!” · not triggered <!-- dialogue/924 -->
+- [ ] #925 “Galaxy Trooper: We're REALLY doomed!” · not triggered <!-- dialogue/925 -->
+- [ ] #926 “SpaceMiner: I'm sure we'll be fine. We just need to-” · not triggered <!-- dialogue/926 -->
+- [ ] #927 “Alien Trooper: Halt! Identify!” · not triggered <!-- dialogue/927 -->
+- [ ] #928 “Galaxy Trooper: We're TOTALLY doomed!” · not triggered <!-- dialogue/928 -->
+- [ ] #929 “Alien Trooper: What is your business here, Totally Doomed?” · not triggered <!-- dialogue/929 -->
+- [ ] #930 “SpaceMiner: We're here to negotiate with the Aliens who attacked our base. We want to find a way to end this conflict.” · not triggered <!-- dialogue/930 -->
+- [ ] #931 “Alien Trooper: There is already a representative from your kind here. Shadrack Circuit-burn is his name.” · not triggered <!-- dialogue/931 -->
+- [ ] #932 “SpaceMiner: Circuit-burn is here? Can you take us to him?” · not triggered <!-- dialogue/932 -->
+- [ ] #933 “Alien Trooper: I can guide you to him, but be warned, we will be attacked on sight.” · not triggered <!-- dialogue/933 -->
+- [ ] #934 “SpaceMiner: Sometimes you have to smash a few eggs to build an omelette.” · not triggered <!-- dialogue/934 -->
+- [ ] #935 “Shadrack Circuit-burn: I don't think so. The Alien Queen pays my men very well to bring her crystals and she isn't interested in sharing.” · not triggered <!-- dialogue/935 -->
+- [ ] #936 “Space Miner: If you leave now, she will be weak. She might be willing to bargain with me.” · not triggered <!-- dialogue/936 -->
+- [ ] #937 “Shadrack Circuit-burn: You don't get it, do you? We can't leave. The Shadow Centurions are the toughest mercs in the galaxy. We never give u” · not triggered <!-- dialogue/937 -->
+- [ ] #938 “Space Miner: If you won't get out of the way, Shadrack, then we will have to go through you.” · not triggered <!-- dialogue/938 -->
+- [ ] #939 “Shadrack Circuit-burn: Let's find out if you are tougher than Shadrack Circuit-burn! My body is ready!” · not triggered <!-- dialogue/939 -->
+- [ ] #940 “Space Miner: Enough bickering. Whatever lies in that direction is the source of the signal. Anything could be waiting for us!” · not triggered <!-- dialogue/940 -->
+- [ ] #941 “Space Miner: Whatever happens, I want you to know that it has been an honor serving with you all.” · not triggered <!-- dialogue/941 -->
+- [ ] #942 “Space Miner: Yes we came here to try and reach an agreeme-” · not triggered <!-- dialogue/942 -->
+- [ ] #943 “Space Miner: We could share the crystals. We could give you half of them.” · not triggered <!-- dialogue/943 -->
+- [ ] #944 “Space Miner: If we must.” · not triggered <!-- dialogue/944 -->
+- [ ] #945 “Space Miner: *ahem*” · not triggered <!-- dialogue/945 -->
+- [ ] #946 “Thrace: Almost by yourself?” · not triggered <!-- dialogue/946 -->
+- [ ] #947 “Space Miner: Just make sure that everything holds together while I am away.” · not triggered <!-- dialogue/947 -->
+- [ ] #948 “Thrace: I will, sir.” · not triggered <!-- dialogue/948 -->
+- [ ] #949 “Space Miner: Sergeant Thrace, you are promoted to Captain.” · not triggered <!-- dialogue/949 -->
+- [ ] #950 “Thrace: Thanks to your efforts, the galaxy will be a safer place for some time to come.” · not triggered <!-- dialogue/950 -->
+- [ ] #962 “Space Miner: Orthoclase measures 6 on Mohs scale of mineral hardness so I-” · not triggered <!-- dialogue/962 -->
+- [ ] #1006 “Miner: Ethical tests?” · not triggered <!-- dialogue/1006 -->
+- [ ] #1007 “Miner: That doesn't sound very ethical. You stole her babies?” · not triggered <!-- dialogue/1007 -->
+- [ ] #1008 “Miner: Because you are a baby thief.” · not triggered <!-- dialogue/1008 -->
+- [ ] #1009 “Miner: We'll help you, but it is not about the reward. It's about ethics in pterodactyl egg scanning!” · not triggered <!-- dialogue/1009 -->
+- [ ] #1014 “Miner: Why would Video Game Guy do this?” · not triggered <!-- dialogue/1014 -->
+- [ ] #1019 “Miner: Is that why you betrayed us? Is that why you hired T-Rex to stop us?” · not triggered <!-- dialogue/1019 -->
+
+</details>
+
+<details><summary>Winter Holidays (0/4)</summary>
+
+- [ ] #696, 697 “Santa: Santa: Ho ho ho! The Winter Holidays are here! Gather up! Gather up and share the Holiday Spirit!” · not triggered <!-- dialogue/696 -->
+- [ ] #698 “Santa: You can find a portal to the Winter Pass in the Isle of Yarr! It's rumored to contain great rewards, including minifigure parts and H” · not triggered <!-- dialogue/698 -->
+- [ ] #699, 701 “Santa: Here's a gift to all of you! It will make you get extra green stars for a while! Green stars are like yellow stars, but you get more ” · not triggered <!-- dialogue/699 -->
+- [ ] #702, 704, 705 “Santa: Lo and behold! You bring the Holiday Spirit with yourself? Well done!” · not triggered <!-- dialogue/702 -->
+
+</details>
+
+<details><summary>Unassigned (0/34)</summary>
+
+- [ ] #121 “Moving dude mr evil to 2” · not triggered <!-- dialogue/121 -->
+- [ ] #122 “moving the camera to 2” · not triggered <!-- dialogue/122 -->
+- [ ] #125 “Bye Bye” · not triggered <!-- dialogue/125 -->
+- [ ] #136 “teleport mr evil to 2” · not triggered <!-- dialogue/136 -->
+- [ ] #255, 256 “Placeholder Dummy: "Please check it out in later Beta tests."” · not triggered <!-- dialogue/255 -->
+- [ ] #257 “Placeholder Dummy: "Whoops! This event is still under construction, sorry!"” · not triggered <!-- dialogue/257 -->
+- [ ] #298, 299, 300, 301 “Placeholder Dummy: "Whops! This event is still under construction, sorry!"” · not triggered <!-- dialogue/298 -->
+- [ ] #323 “Placeholder Dummy: Welcome to the Space World Beta test!” · not triggered <!-- dialogue/323 -->
+- [ ] #325 “Placeholder Dummy: The Space Colonists are under attack and they need your help!” · not triggered <!-- dialogue/325 -->
+- [ ] #338 “Railhead Rangers: We're the last line of defense! We're the Railheads!” · not triggered <!-- dialogue/338 -->
+- [ ] #339 “Placeholder Dummy: "Our latest Intel leads us to believe that Mercenaries are working with the Aliens."” · not triggered <!-- dialogue/339 -->
+- [ ] #340 “Placeholder Dummy: "The area has been secured with minimal damage to the Colony troops."” · not triggered <!-- dialogue/340 -->
+- [ ] #346 “Placeholder Dummy: "Congratulations! You've found the Alien facility!"” · not triggered <!-- dialogue/346 -->
+- [ ] #365, 366, 367 “Placeholder Dummy: "Let's board the transport ship. I will set coordinates to our Remote Research Outpost."” · not triggered <!-- dialogue/365 -->
+- [ ] #372, 373 “"Ok! The bad news is that the wormhole has sent you out of the reach of our scanners."” · not triggered <!-- dialogue/372 -->
+- [ ] #374, 375 “"Why don't you try to sneak around and find out more about the Alien's activities?"” · not triggered <!-- dialogue/374 -->
+- [ ] #376 “Soldier1: What a hero!” · not triggered <!-- dialogue/376 -->
+- [ ] #378 “Placeholder Dummy: Head on to the entrance to the Space World. I've put a marker on your map!” · not triggered <!-- dialogue/378 -->
+- [ ] #379 “Placeholder Dummy: Keep in mind everything is still in Beta phase. Expect to see some things still under construction!” · not triggered <!-- dialogue/379 -->
+- [ ] #480 “I don't talk much” · not triggered <!-- dialogue/480 -->
+- [ ] #481 “I am really shy” · not triggered <!-- dialogue/481 -->
+- [ ] #482 “Bye Bye!” · not triggered <!-- dialogue/482 -->
+- [ ] #483 “But you seem nice!” · not triggered <!-- dialogue/483 -->
+- [ ] #497 “Merc Miner: We're fighters, not laborers, Circuit-burn. Make someone else do it.” · not triggered <!-- dialogue/497 -->
+- [ ] #515 “Soldier2: Sir! I think I saw Commander Z flying along the transport lines.” · not triggered <!-- dialogue/515 -->
+- [ ] #524, 525, 526, 527 “You are too late, thief. Reinforcementzzz are on their way.” · not triggered <!-- dialogue/524 -->
+- [ ] #652 “Adventurers: Alright! Scramble now! Get those crystal pieces! Go go go!” · not triggered <!-- dialogue/652 -->
+- [ ] #757 “-- PLACEHOLDER CINEMATIC --” · not triggered <!-- dialogue/757 -->
+- [ ] #858 “Pizza Delivery Guy: See Swashbuckler - even the bad guys tip.” · not triggered <!-- dialogue/858 -->
+- [ ] #870 “RevoSoldier: How do we become captain then?” · not triggered <!-- dialogue/870 -->
+- [ ] #879 “IslandWarrior: There might even be enough here to pay back all your debts, Swashbuckler!” · not triggered <!-- dialogue/879 -->
+- [ ] #976 “IslandWarrior: Unbelieveable.” · not triggered <!-- dialogue/976 -->
+- [ ] #1027 “This runs if the player has a ticket:” · **triggered** (monster-scientist-1025) <!-- dialogue/1027 -->
+- [ ] #1033 “This runs if the player does NOT have a ticket:” · not triggered <!-- dialogue/1033 -->
+
+</details>

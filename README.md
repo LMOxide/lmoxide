@@ -181,6 +181,7 @@ See [docs/PATCHING.md](docs/PATCHING.md) and
 | [PROTOCOL.md](docs/PROTOCOL.md) | how the client talks to the server: boot, framing, RPCs, login, game systems |
 | [CONTENT.md](docs/CONTENT.md) | the game's data in one editable tree (`content/`): its format, commands, what the import did |
 | [TUNABLES.md](docs/TUNABLES.md) | values that are guessed because the client data doesn't contain them |
+| [tracker/](docs/tracker/README.md) | checklist of what is verified against live (upgrades, abilities, enemies, achievements, quests, worlds, dialogues); `tools/tracker/build.py` regenerates it, keeping ticks |
 | [SECURITY.md](docs/SECURITY.md) | what is protected, what can't be, and a deployment checklist |
 | [PATCHING.md](docs/PATCHING.md) | the patch server and the patcher protocol |
 | [API.md](docs/API.md) | the REST API ([OpenAPI](docs/openapi.json)) |

@@ -1,0 +1,51 @@
+{
+  "_comment": "Hand-kept input for tools/tracker (lists.py, build.py). Edit freely; the scripts never write this file.",
+  "worlds": {
+    "_comment": "A world counts as accessible in live when a portal chain from the LEGO Center reaches it, or it is in live_extra; exclude wins over both. Use world slugs (content/worlds/*/world.json ids without 'world/').",
+    "live_extra": [
+      "dragon-halls",
+      "spider-s-nest",
+      "forgotten-ruins",
+      "siege-command-room",
+      "bewitched-candy-forest",
+      "jail",
+      "winter-pass",
+      "forsaken-crypt",
+      "monster-laboratory",
+      "cursed-grove",
+      "funhouse-treasure-chamber"
+    ],
+    "exclude": []
+  },
+  "lost_creations": {
+    "_comment": "Variants per Lost Creations level (lc slug -> variant names, e.g. enemy themes). The client data doesn't have them; fill these in.",
+    "variants": {
+      "candy-mayhem": [],
+      "castle-mayhem": [],
+      "gatekeeper-s-realm": [],
+      "isle-of-smash": [],
+      "jungle-arena": [],
+      "lost-champions-in-space": [],
+      "lunar-brawl": [],
+      "swamp-brawl": [],
+      "valley-of-the-lost-champions": [],
+      "volcano-brawl": [],
+      "volcano-mayhem": []
+    }
+  },
+  "dialogues": {
+    "_comment": "Story dialogue grouping. A conversation's world is the most common world among its speakers; texts lists conversation start text ids whose world (or 'other') overrides that. Speakers not listed here don't vote.",
+    "speakers": {
+      "LEGO Center": ["Gamer", "VGG", "Video Game Guy"],
+      "Pirate World": ["Swashbuckler", "Swashbuckler Hero", "SWASHBUCKLER", "Good Pirate Captain Pete", "Captain Pete", "Dreadleg", "Evil Pirate Captain Dreadleg", "Evil Captain Dreadleg", "Captain Dreadleg", "Jacket Guard", "Governor Broadside", "Island Warrior", "ISLAND WARRIOR", "Pizza Guy", "Revolutionary Soldier", "Revo Soldier", "Tavern Pirate", "Tavern Pirates", "Pirate", "Guard Captain", "Guard", "Mermaid"],
+      "Medieval World": ["Wizard", "Wiizard", "Elementius", "Flora", "The Jester", "Jester", "Sir Loin", "Knight1", "Knight2", "King"],
+      "Space World": ["Space Miner", "SpaceMiner", "Miner", "Sergeant Thrace", "Thrace", "Galaxy Trooper", "Alien Trooper", "Shadrack Circuit-burn", "Commander Z", "Mean Soldier", "Queen", "The Queen"],
+      "Mythology World": ["BattleGoddess", "Battle Goddess", "Zeus", "Hades", "Charon", "Enyo", "Deino", "Pemphredo", "Medusa", "Stormhammer", "Thunderbolt", "Party Guest"],
+      "Dino World": ["Dino Tracker", "DinoTracker", "T-Rex", "Scuba Diver", "Caveman", "Zookeeper", "Explorer"],
+      "Winter Holidays": ["Santa"],
+      "Monster Trials": ["Monster Scientist"],
+      "other": ["Test", "Test NPC", "Test NPC - ignore!"]
+    },
+    "texts": {}
+  }
+}
