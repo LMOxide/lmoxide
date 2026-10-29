@@ -72,6 +72,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut community: Option<crate::community::Guard> = None;
     // the account's effective GM level and its entry in the online list (control interface)
     let mut gm_level = 0;
+    // when the player asked to reset their story (`/story reset`), for its confirmation
+    let mut story_reset_asked: Option<std::time::Instant> = None;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
     let mut tour_started = false;
     // the others' copies of this player's casts, by client command id (ended on release/abort)
@@ -1338,7 +1340,25 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let message = r.string()?;
                 let mood = r.i32()?;
                 info!(name = %me.name, %message, mood, "chat");
-                if crate::devcmd::is_command(&message) && gm_level < cfg.devcmd_gm_level {
+                if let Some(crate::devcmd::PlayerCommand::StoryReset { confirm }) = crate::devcmd::player_command(&message, gm_level >= cfg.devcmd_gm_level) {
+                    let now = std::time::Instant::now();
+                    if confirm || story_reset_asked.is_some_and(|t| now.duration_since(t) < STORY_RESET_CONFIRM) {
+                        story_reset_asked = None;
+                        let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                        let (records, rpcs) = crate::story::player_reset(&mut me, player);
+                        send_records(&mut conn, character, records).await?;
+                        for (endpoint, method, args) in rpcs {
+                            conn.send_as(Some(character), endpoint, method, args).await?;
+                        }
+                        if let Err(e) = store.save(character, &me) {
+                            warn!(character, "saving character failed: {e:#}");
+                        }
+                        crate::chat::system(character, "Your story starts over: the cinematics and conversations play again, and entering a world puts your story there. Achievements, minifigures and levels stay.");
+                    } else {
+                        story_reset_asked = Some(now);
+                        crate::chat::system(character, &format!("This forgets your story progress (story quests, cinematics and conversations seen); achievements, minifigures and levels stay. Type /story reset confirm (or /story reset again) within {} seconds to do it.", STORY_RESET_CONFIRM.as_secs()));
+                    }
+                } else if crate::devcmd::is_command(&message) && gm_level < cfg.devcmd_gm_level {
                     crate::chat::system(character, "Test commands need a GM level.");
                 } else if crate::devcmd::is_command(&message) {
                     // a test command (devcmd.rs), not relayed
@@ -3358,6 +3378,9 @@ impl CharacterExt for Character {
         }
     }
 }
+
+/// How long a player has to confirm `/story reset`.
+const STORY_RESET_CONFIRM: std::time::Duration = std::time::Duration::from_secs(30);
 
 /// Movement speed stats of players in the recorded session (m/s): MovementChargeSpeed 1400,
 /// 1402, 1401, 1397, 1398, 1399, 1396. Paths (MoveTaskIIR_c) move characters at 1397 (measured

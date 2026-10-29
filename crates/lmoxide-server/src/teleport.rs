@@ -8,7 +8,7 @@
 //! buttons, and answers `GameCharAgentProject::TeleportMessageBoxAnswer(playfield or -1, ctx)`.
 //! Hub portals send nothing: the server notices the player standing in one and opens that
 //! destination's teleport window. The windows require completed quests (story.rs `journal`,
-//! tunables `story.windows_unlocked`). Portals whose window would be empty ask with a Yes/No
+//! `--story-windows`, else tunables `story.windows_unlocked`). Portals whose window would be empty ask with a Yes/No
 //! message box instead (`PLAIN_WINDOWS`). Each portal also has a door (type 51016, invisible,
 //! usable) as live sent one (LMO_Captures.cap): clicking it or pressing E on it queues an
 //! ObjectInteraction on the door, which opens the same window wherever the player stands.

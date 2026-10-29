@@ -23,7 +23,11 @@
 //!   step. A goal of a later step jumps there (the steps between count as done: many have nothing
 //!   that resolves them yet); one of an earlier step changes nothing.
 //! - **Journal** (`journal`): the steps done, the area quests done and, while the teleport
-//!   windows are unlocked (tunables `story.windows_unlocked`), the quests the windows require.
+//!   windows are unlocked (`--story-windows`, else tunables `story.windows_unlocked`), the
+//!   quests the windows require.
+//! - **A player's reset** (`/story reset`, `player_reset`): any player can forget their own story
+//!   (steps, goals, cinematics seen, the story's lore flags); arriving in a world afterwards
+//!   (its intro and first conversation, Pirate World's arrival) puts the line at that world.
 //!
 //! Kept per character (DB `character_story`): `cinematic/<name>`, `main/<main>` (line started),
 //! `done/<quest>` (step done), `goal/<hash>` (resolved), `count/<hash>`, `wait/<hash>` (progress
@@ -77,6 +81,38 @@ pub enum Order {
     /// Test command: resolve the current step's goals of line `main` (none: the first line
     /// running).
     Advance(Option<u32>),
+}
+
+/// Whether the teleport windows are open whatever the story (`--story-windows`): `Unlocked`
+/// lists the quests they require in the login journal, `Locked` only what the character did
+/// (as live: a window opens once the story reaches it).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum Windows {
+    Locked,
+    Unlocked,
+}
+
+/// The server's `--story-windows` (0: not given, the content's tunable; 1 locked; 2 unlocked).
+static WINDOWS: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
+
+/// The server's setting (`None`: the content's `story.windows_unlocked`).
+pub fn set_windows(w: Option<Windows>) {
+    let v = match w {
+        None => 0,
+        Some(Windows::Locked) => 1,
+        Some(Windows::Unlocked) => 2,
+    };
+    WINDOWS.store(v, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Whether the teleport windows are open whatever the story: the server's `--story-windows`,
+/// else the content's tunable `story.windows_unlocked`.
+pub fn windows_unlocked() -> bool {
+    match WINDOWS.load(std::sync::atomic::Ordering::Relaxed) {
+        1 => false,
+        2 => true,
+        _ => crate::gamedata::get().tunables.story.windows_unlocked,
+    }
 }
 
 /// Tell `player`'s connection to do `order`.
@@ -219,7 +255,7 @@ fn counted(c: &Character, q: &Quest, step: usize) -> u32 {
 /// Whether the client's journal holds main quest `main` (an entry added before).
 fn in_journal(c: &Character, main: u32, q: &Quest) -> bool {
     let t = &crate::gamedata::get().tunables.story;
-    (t.windows_unlocked && t.window_quests.contains_key(&main.to_string())) || q.steps.iter().any(|s| passed(c, s.quest))
+    (windows_unlocked() && t.window_quests.contains_key(&main.to_string())) || q.steps.iter().any(|s| passed(c, s.quest))
 }
 
 /// The line in the tracker: added, at its current step.
@@ -336,9 +372,14 @@ pub fn on_event(c: &mut Character, character: u32, place: Pf, event: &crate::ach
     hashes.iter().flat_map(|h| progress(c, character, place, h, 1)).collect()
 }
 
-/// The journal at login: the steps done, the area quests done and (tunables
-/// `story.windows_unlocked`) the quests the teleport windows require.
+/// The journal at login: the steps done, the area quests done and (`windows_unlocked`) the
+/// quests the teleport windows require.
 pub fn journal(c: &Character) -> Vec<crate::teleport::JournalMain> {
+    journal_with(c, windows_unlocked())
+}
+
+/// `journal` with the windows unlocked or not.
+fn journal_with(c: &Character, unlocked: bool) -> Vec<crate::teleport::JournalMain> {
     let mut mains: BTreeMap<u32, Vec<(u32, u32, u32)>> = BTreeMap::new();
     for (main, q) in lines() {
         for (i, s) in q.steps.iter().enumerate().filter(|(_, s)| passed(c, s.quest)) {
@@ -349,7 +390,7 @@ pub fn journal(c: &Character) -> Vec<crate::teleport::JournalMain> {
         mains.entry(main).or_default().extend(quests.into_iter().map(|q| (q, 0, done.saturating_sub(1))));
     }
     let t = &crate::gamedata::get().tunables.story;
-    if t.windows_unlocked {
+    if unlocked {
         for (main, quests) in &t.window_quests {
             let Ok(main) = main.parse::<u32>() else { continue };
             let list = mains.entry(main).or_default();
@@ -370,6 +411,40 @@ pub fn reset(c: &mut Character, character: u32) -> Vec<Bytes> {
     c.story.clear();
     c.story.insert("chain".into(), unix_now());
     records
+}
+
+/// The story's lore flags: the tags dialogue texts give, the cinematics' and the talking heads'
+/// (trigger `tag` commands); not achievements, and not the tutorial done (where a character
+/// arrives).
+pub fn story_tags() -> std::collections::BTreeSet<u32> {
+    let c = crate::gamedata::get();
+    let mut tags = crate::knubot::all_text_tags();
+    tags.extend(c.tunables.story.cinematics.values().filter_map(|d| d.tag));
+    for t in c.triggers.values() {
+        for a in &t.actions {
+            if let lmoxide_content::Action::Command { name, args } = a
+                && name == "tag"
+                && let Some(tag) = args.get("tag").and_then(Value::as_u64)
+            {
+                tags.insert(tag as u32);
+            }
+        }
+    }
+    tags.retain(|&t| !crate::achievements::is_achievement(t) && t != crate::tutorial::DONE_TAG);
+    tags
+}
+
+/// A player's own reset (`/story reset`): the story forgotten as by `reset`, and its lore flags
+/// (`story_tags`) too, so the cinematics, conversations and talking heads play again; the story
+/// areas the player set off this session go off again. Achievements, the collection, levels
+/// and area quests stay. Returns the tracker records and the RemoveTag RPCs for the client.
+pub fn player_reset(c: &mut Character, player: Id32) -> (Vec<Bytes>, Vec<(lmoxide_net::Endpoint, u32, Bytes)>) {
+    let records = reset(c, player.instance);
+    let gone: Vec<u32> = story_tags().into_iter().filter(|t| c.tags.remove(t).is_some()).collect();
+    crate::triggers::forget_player(player);
+    WATCHING.lock().unwrap().remove(&player);
+    info!(character = player.instance, tags = ?gone, "story reset by the player");
+    (records, gone.into_iter().map(crate::achievements::remove_tag).collect())
 }
 
 /// Characters from before the story lines were shown: what they did (the goals resolved, the
@@ -858,6 +933,76 @@ mod tests {
         for q in wanted {
             assert!(j.iter().any(|m| m.quests.iter().any(|e| e.0 == q)), "{q}");
         }
+    }
+
+    #[test]
+    fn windows_locked() {
+        let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 4200);
+        c.tags.insert(crate::tutorial::DONE_TAG, 0);
+        c.tags.insert(308, 0);
+        migrate(&mut c);
+        let j = journal_with(&c, false);
+        // only what the character did: the Pirate World steps up to the jail, no other line
+        assert!(j.iter().all(|m| m.main == 45 || crate::quests::completed(&c).iter().any(|q| q.0 == m.main)), "{:?}", j.iter().map(|m| m.main).collect::<Vec<_>>());
+        let pirate = j.iter().find(|m| m.main == 45).unwrap();
+        assert!(pirate.quests.contains(&(279, 21, 1)) && !pirate.quests.iter().any(|e| e.0 == 82));
+        assert!(journal_with(&c, true).iter().any(|m| m.quests.iter().any(|e| e.0 == 82)));
+        // the server's setting over the content's (true)
+        assert!(windows_unlocked());
+    }
+
+    #[test]
+    fn a_players_reset() {
+        let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 5200);
+        let player = Id32::new(crate::territory::CHARACTER_TYPE, 9);
+        let at = Pf::main(5200);
+        c.tags.insert(crate::tutorial::DONE_TAG, 0);
+        // the Kingdom's story: the King's Court seen (its tag 425), "Go to the Kingdom" resolved
+        c.tags.insert(425, 0);
+        c.tags.insert(4285, 0);
+        let achievement = *crate::achievements::player_counters(&c).first().map(|(s, _)| s).unwrap_or(&1613);
+        c.tags.insert(achievement, 0);
+        handle(Order::Goal { hash: "CPIJ".into(), requires: vec![] }, &mut c, player, "t", at);
+        let medieval = find_line("medieval").unwrap();
+        assert!(step_of(&c, medieval).is_some());
+        let (records, rpcs) = player_reset(&mut c, player);
+        assert_eq!(names(&records), ["MainQuestUpdateIIR_c"]);
+        assert_eq!(rpcs.len(), 2);
+        assert!(!c.tags.contains_key(&425) && !c.tags.contains_key(&4285));
+        assert!(c.tags.contains_key(&crate::tutorial::DONE_TAG) && c.tags.contains_key(&achievement));
+        assert!(!started(&c, medieval) && c.story.keys().all(|k| k == "chain"));
+        // the talking heads' and cinematics' flags are story tags; achievements are not
+        let tags = story_tags();
+        assert!(tags.contains(&621) && tags.contains(&4285) && tags.contains(&425) && !tags.contains(&1613));
+    }
+
+    /// After a reset, arriving in a world through its window puts the line there: the arrival
+    /// point lies in the intro cinematic's area, whose first conversation resolves a goal of the
+    /// world's line (a later goal jumps the line there); Pirate World's first goal there,
+    /// "Travel to the Pirate World", is its beach area (the live marker).
+    #[test]
+    fn arriving_puts_the_line_there() {
+        let c = crate::gamedata::get();
+        for (world, line_name) in [(5200, "medieval"), (3200, "space"), (2210, "mythology"), (6200, "dino")] {
+            let main = find_line(line_name).unwrap();
+            let arrival = crate::teleport::destination(world).unwrap().pos;
+            let intro = c
+                .triggers
+                .values()
+                .filter(|t| !t.removed && t.area.as_ref().and_then(|a| c.areas.get(a)).and_then(|a| a.shape.as_ref()).is_some_and(|s| s.contains(arrival, 1.0)))
+                .find_map(|t| t.actions.iter().find_map(|a| match a {
+                    lmoxide_content::Action::Cinematic { name } => Some(name.clone()),
+                    _ => None,
+                }));
+            let intro = intro.unwrap_or_else(|| panic!("{world}: no cinematic at the arrival {arrival:?}"));
+            let next = c.tunables.story.cinematics[&intro].then_dialogue.clone().unwrap();
+            let d = crate::knubot::by_id(&next).unwrap();
+            let goals = crate::knubot::goals_resolved(&d);
+            assert!(goals.iter().any(|g| find_goal(g).is_some_and(|(m, ..)| m == main)), "{world} {intro} {next}: {goals:?}");
+        }
+        let beach = c.triggers.values().find(|t| t.id == "trigger/4600/story-story-reachbeachbackup1").unwrap();
+        assert!(beach.actions.iter().any(|a| matches!(a, lmoxide_content::Action::Command { name, args } if name == "story_goal" && args["goal"] == "OOPN")));
+        assert_eq!(find_goal("OOPN").map(|(m, ..)| m), Some(45));
     }
 
     #[test]

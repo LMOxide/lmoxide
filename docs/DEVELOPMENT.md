@@ -19,6 +19,11 @@ tools/lan-server.sh --restart            # rebuild and restart the game server a
 progress, and saves a screenshot of the game window to `logs/screen.png`. `LMO_RUNNER=wine|proton|linux`
 picks how the client runs (`linux` = the native Linux build).
 
+Story teleport windows: `--story-windows locked|unlocked` (`LMOXIDE_STORY_WINDOWS`, `story-windows`
+in the `[game]` table of `lmoxide.toml`) overrides the content's tunable `story.windows_unlocked`
+(true: unlocked, the default). `locked`: the login journal lists only what the character really
+completed, so a teleport window opens as the story reaches it (live behaviour).
+
 Scripted runs: `LMOXIDE_DEV_COMMANDS="!test crowd;!xp 10"` (server environment) types test
 commands 5 s after the first entry into the world.
 
@@ -28,6 +33,14 @@ Typed into the normal chat in game (free text needs a GM level; `tools/lan-serve
 A line starting with `!` (or `/`, if the client lets it through) goes to the server, not to other
 players, in the local chat or any channel tab (e.g. Global); answers come back as local chat lines
 from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
+
+Every player, GM or not, also has `/story reset` (a player command, not a test command): it asks
+first, and `/story reset confirm` (or `/story reset` again) within 30 s forgets the character's own
+story: story steps and goals, cinematics and conversations seen, the story's lore flags and talking
+heads. Achievements, minifigures, levels and area quests stay. Entering a world afterwards puts
+the story line there (the world's intro and first conversation resolve a goal of its line, which
+jumps the line to it; Pirate World's at its beach, `Story_ReachBeachBackup1`). Players without the
+test commands may type `!story reset` too; a GM's `!story reset` is the test command below.
 
 | Command | Does |
 |---|---|

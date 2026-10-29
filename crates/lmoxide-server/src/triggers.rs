@@ -560,6 +560,12 @@ fn named_point(model: u32, name: &str) -> Option<([f32; 3], f32)> {
 }
 
 /// Switches wall area `id` in copy `pf` (`off`: open).
+/// Forgets which once-per-player triggers `player` set off (a story reset: the story's areas
+/// go off again).
+pub fn forget_player(player: Id32) {
+    STATE.lock().unwrap().fired_player.retain(|(_, p)| *p != player);
+}
+
 pub fn set_wall(pf: Pf, id: &str, off: bool) {
     info!(playfield = ?pf, wall = id, off, "wall switched");
     STATE.lock().unwrap().switched.insert((pf, id.to_string()), off);

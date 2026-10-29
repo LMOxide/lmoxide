@@ -186,6 +186,12 @@ pub struct Config {
     /// path will be by then, `current` where it was at the throw.
     #[arg(long, env = "LMOXIDE_LOB_AIM", value_enum, default_value_t = projectile::Aim::Lead)]
     pub lob_aim: projectile::Aim,
+    /// The story's teleport windows: `unlocked` (every window open whatever the story: the login
+    /// journal lists the quests they require as done) or `locked` (the journal lists only what
+    /// the character really did, so a window opens as the story reaches it, as live). Default:
+    /// the content's tunable `story.windows_unlocked` (true: unlocked).
+    #[arg(long, env = "LMOXIDE_STORY_WINDOWS", value_enum)]
+    pub story_windows: Option<story::Windows>,
     /// Most simultaneous connections from one IP address (per listener).
     #[arg(long, env = "LMOXIDE_MAX_CONNECTIONS_PER_IP", default_value_t = 8)]
     pub max_connections_per_ip: u32,
@@ -314,6 +320,8 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         content::init(cfg.content_queue.clone());
     }
     instance::set_open_world_cap(cfg.open_world_cap);
+    story::set_windows(cfg.story_windows);
+    info!(unlocked = story::windows_unlocked(), "story teleport windows");
     info!(modes = ?cfg.mode_ports().iter().map(|(m, p)| format!("{}:{p}", m.id())).collect::<Vec<_>>(), "game modes");
     for (shots, aim) in [(projectile::Shots::Straight, cfg.shot_aim), (projectile::Shots::Lobbed, cfg.lob_aim)] {
         anyhow::ensure!(projectile::set_player_aim(shots, aim), "aim {} isn't implemented yet", aim.name());

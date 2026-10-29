@@ -74,6 +74,9 @@
 //!                             at their enemy (projectile.rs), for everyone; without a mode: the
 //!                             current ones (start values: --shot-aim, --lob-aim)
 //!
+//! Every player (GM or not) has `/story reset [confirm]` (`player_command`): forget one's own
+//! story, after a confirmation.
+//!
 //! `COMMANDS` lists them for `!help` and for the control interface's catalog (`catalog`).
 //!
 //! New features add their test targets to `targets` so they can be reached the same way.
@@ -539,6 +542,26 @@ pub fn tour_targets(kind: &str) -> Vec<(String, u32, [f32; 3])> {
     targets
 }
 
+/// A command every player may type, GM or not (the others are test commands).
+#[derive(Debug, PartialEq)]
+pub enum PlayerCommand {
+    /// `/story reset`: forget one's own story (asks first; `confirm`, or the same line again
+    /// within 30 s, does it).
+    StoryReset { confirm: bool },
+}
+
+/// The player commands: `/story reset [confirm]` for everyone; `!story reset [confirm]` too for
+/// players without the test commands (`gm`: they have them, and `!story reset` is the test one).
+pub fn player_command(message: &str, gm: bool) -> Option<PlayerCommand> {
+    let rest = message.strip_prefix('/').or_else(|| message.strip_prefix('!').filter(|_| !gm))?;
+    let words: Vec<String> = rest.split_whitespace().map(str::to_ascii_lowercase).collect();
+    match words.iter().map(String::as_str).collect::<Vec<_>>()[..] {
+        ["story", "reset"] => Some(PlayerCommand::StoryReset { confirm: false }),
+        ["story", "reset", "confirm"] => Some(PlayerCommand::StoryReset { confirm: true }),
+        _ => None,
+    }
+}
+
 /// Runs a command typed by a player standing at `pos` on `playfield`.
 pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
     let mut words = message[1..].split_whitespace();
@@ -996,6 +1019,13 @@ mod tests {
 
     #[test]
     fn commands_are_recognised() {
+        assert_eq!(player_command("/story reset", true), Some(PlayerCommand::StoryReset { confirm: false }));
+        assert_eq!(player_command("/Story Reset confirm", true), Some(PlayerCommand::StoryReset { confirm: true }));
+        assert_eq!(player_command("!story reset", false), Some(PlayerCommand::StoryReset { confirm: false }));
+        // a GM's !story reset is the test command
+        assert_eq!(player_command("!story reset", true), None);
+        assert_eq!(player_command("/story", false), None);
+        assert_eq!(player_command("story reset", false), None);
         assert!(is_command("!help") && is_command("/goto buildie") && !is_command("hello"));
         assert!(matches!(run("!list nothing", Pf::main(1200), [0.0; 3]), Action::Reply(l) if l.len() == KINDS.len()));
     }

@@ -38,6 +38,16 @@ straight shots: `current` (the default) or `lead`. A GM can change both while th
 with `!aim`.
 </details>
 
+<details>
+<summary>Story and teleport windows</summary>
+
+Every teleport window is open by default, whatever your story. `--story-windows locked`
+(`LMOXIDE_STORY_WINDOWS`) makes them open as your story reaches them, as on live. Any player can
+start their own story over by typing `/story reset` in chat (it asks for `/story reset confirm`).
+This forgets story quests, cinematics and conversations seen. Achievements, minifigures and levels
+stay. Entering a world afterwards puts your story there.
+</details>
+
 ## How it works
 
 ```

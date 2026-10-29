@@ -211,6 +211,18 @@ pub fn text_tags(id: u32) -> Vec<u32> {
         .collect()
 }
 
+/// Every tag a dialogue text gives (`addtagtoplayer`): the story's lore flags.
+pub fn all_text_tags() -> std::collections::BTreeSet<u32> {
+    DATA.texts.keys().filter_map(|k| k.parse().ok()).flat_map(text_tags).collect()
+}
+
+/// The story goals a dialogue's texts resolve (`resolvegoal`).
+#[cfg(test)]
+pub fn goals_resolved(d: &Dialogue) -> Vec<String> {
+    let words = |id: &u32| DATA.texts.get(&id.to_string()).map(|t| tags(t)).unwrap_or_default();
+    d.texts.iter().flat_map(words).filter_map(|t| t.strip_prefix("resolvegoal ").map(|h| h.trim().to_string())).collect()
+}
+
 /// Every dialogue text that resolves story goals: (the tags it gives, the goals it resolves).
 pub fn goal_texts() -> Vec<(Vec<u32>, Vec<String>)> {
     DATA.texts

@@ -625,7 +625,7 @@ pub fn add_tag(tag: u32) -> (Endpoint, u32, Bytes) {
     (Endpoint::GameCharInterface, game_char_interface::ADD_TAG, Writer::new().u32(tag).u32(0).finish())
 }
 
-fn remove_tag(tag: u32) -> (Endpoint, u32, Bytes) {
+pub fn remove_tag(tag: u32) -> (Endpoint, u32, Bytes) {
     (Endpoint::GameCharInterface, game_char_interface::REMOVE_TAG, Writer::new().u32(tag).finish())
 }
 

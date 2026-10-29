@@ -76,6 +76,11 @@ editable data like everything else), held by an `Arc` in each instance. Today's
 `progression::enabled()` / `survey::enabled()` checks become `inst.rules.progression` etc. The
 `--progression` and `--mode` flags go away.
 
+Server settings that aren't per mode stay command-line options (the `[game]` table of
+`lmoxide.toml`), e.g. `--story-windows locked|unlocked`: whether the story's teleport windows are
+all open (default, the content's `story.windows_unlocked`) or open as a character's story reaches
+them (live).
+
 ## Content versions and previews
 
 Layers, newest on top; each is a set of records overriding the one below by record id:
