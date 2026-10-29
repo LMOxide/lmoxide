@@ -58,11 +58,12 @@ const REACH: u32 = 50;
 const PEDESTAL_BOUNDS: [f32; 6] = [-0.6, 0.0, -0.6, 0.6, 1.6, 0.6];
 /// The floor's box (the RDB's is empty): 16 x 16 m.
 const FLOOR_BOUNDS: [f32; 6] = [-8.0, -1.0, -8.0, 8.0, 1.0, 8.0];
-/// Standing on the floor: within its square, not below it.
-const FLOOR_HALF: f32 = 8.0;
+/// Standing on the floor: within this far of its middle (its 16 x 16 m square's inner part, so
+/// the first steps past the gate are safe), not below it.
+const FLOOR_HALF: f32 = 5.0;
 const FLOOR_BELOW: f32 = 2.0;
 /// From the first step on the floor to the drop (the collapse plays first).
-const COLLAPSE_DELAY: Duration = Duration::from_millis(600);
+const COLLAPSE_DELAY: Duration = Duration::from_millis(1500);
 /// How high the drop arcs (m): barely, it is a fall.
 const DROP_APEX: f32 = 0.3;
 const CHECK: Duration = Duration::from_millis(250);
