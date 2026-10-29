@@ -436,6 +436,17 @@ pub struct LostCreations {
     pub button_arrow_buff: u32,
     /// The effect package played on the button when the countdown starts.
     pub button_effect: u32,
+    /// How far (m) the second and later enemies of a spawn's `count` land from its point, when
+    /// the point gives no `spread` (live Monster Laboratory: 1.0-1.6 m).
+    pub spawn_spread: f32,
+    /// Before a level's wave spawns, each point it uses shows `wave_particle` this long (live
+    /// Monster Laboratory: 2.0 s, then the enemies; the only pause between waves).
+    pub wave_telegraph: Duration,
+    /// The pads' spawn particle (live: 542337, blue).
+    pub wave_particle: u32,
+    /// The Gatekeeper defeated, the enemies its skills summoned go too (unknown on live; the
+    /// user's guess: they stay and fight on).
+    pub gatekeeper_adds_vanish: bool,
     /// For testing: every level is this one (`lc/...`), the Gatekeeper's too (unset: any).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-ref" = ["lc"]))]

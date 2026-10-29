@@ -86,6 +86,9 @@ test commands may type `!story reset` too; a GM's `!story reset` is the test com
 | `!lc time <s>` | the level's timer set to `<s>` seconds (`!lc time 3`: "Time's Up!") |
 | `!lc end` | out of the run, to the Treasure Chamber (its rewards drop in the loot area by the chests) |
 | `!lc <level>` | count Lost Creations level `<level>` as completed with the active minifigure (achievements only) |
+| `!lc variant [id]` | the next level copy runs variant `<id>` (if its level has one): `!lc variant monster-lab` then `!lc start 1 jungle` tries Jungle Arena's waves, `!lc variant red-drake` then `!lc start 5 gatekeeper` a Gatekeeper; without an id: every level's variants |
+| `!point <name>` | save a named point (marker) where you stand, facing as you do, in this world's content (areas.json, tagged review; the server sees it in `!goto point` at once, in spawns from the next start) |
+| `!goto point <name\|n>` | onto a named point by name or slug (`!goto point nw-1`), in the copy you're in; `!list point` lists them |
 | `!cinematic [n\|name\|package]` | play a narrated story cinematic (again, nothing recorded); without an argument: list the 15 the server starts |
 | `!story [reset]` | the story: cinematics seen, each story line's step (or done), goals resolved and counted; reset: forget them, the lines leave the tracker (lore flags stay) |
 | `!story quest <line> <step>` | put a story line (`pirate`, `medieval`, `space`, `mythology`, `dino` or its main quest id) at step `<step>` (1: its first; 0: not started; past the last: done) and show it in the tracker (e.g. `!story quest pirate 5` = "Talk to Swashbuckler") |

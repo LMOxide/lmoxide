@@ -83,6 +83,61 @@ pub fn start() {
     crate::story::init();
 }
 
+// ------------------------------------------------------------------ named points
+
+/// Points saved in game since the content was loaded (`!point`): label, playfield, position.
+static SAVED_POINTS: LazyLock<Mutex<Vec<(String, u32, [f32; 3])>>> = LazyLock::new(Default::default);
+
+/// The named points (markers with a point shape) for the test commands: "NAME (area id)",
+/// playfield, position.
+pub fn points() -> Vec<(String, u32, [f32; 3])> {
+    let c = crate::gamedata::get();
+    let mut v: Vec<(String, u32, [f32; 3])> = c
+        .areas
+        .iter()
+        .filter(|(_, a)| a.role == lmoxide_content::AreaRole::Marker)
+        .filter_map(|(id, a)| {
+            let lmoxide_content::Shape::Point { pos, .. } = a.shape.as_ref()? else { return None };
+            let pf: u32 = id.split('/').nth(1)?.parse().ok()?;
+            Some((format!("{} ({id})", if a.name.is_empty() { id.as_str() } else { a.name.as_str() }), pf, *pos))
+        })
+        .collect();
+    let saved = SAVED_POINTS.lock().unwrap();
+    v.retain(|p| !saved.iter().any(|s| s.0 == p.0));
+    v.extend(saved.iter().cloned());
+    v.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
+    v
+}
+
+/// `!point <name>`: a named point (marker) at `pos` facing `heading` in world `pf`'s content
+/// (its areas.json; the one of that name there is moved), tagged `review` for the world
+/// editor. What was saved.
+pub fn save_point(pf: u32, name: &str, pos: [f32; 3], heading: f32, author: &str) -> Result<String, String> {
+    let dir = crate::gamedata::loaded_from().unwrap_or_else(|| crate::gamedata::dir(None));
+    let mut work = Work::open(&dir).map_err(|e| format!("{}: {e:#}", dir.display()))?;
+    let existing = work
+        .shown_in_world(RecordKind::Area, pf)
+        .into_iter()
+        .find(|k| work.get(k).is_some_and(|e| e.value.get("name").and_then(Value::as_str).is_some_and(|n| n.eq_ignore_ascii_case(name))))
+        .map(|k| k.id.to_string());
+    let id = existing.unwrap_or_else(|| work.new_id("area", name, Some(pf)));
+    let round = |x: f32| (x * 100.0).round() / 100.0;
+    let record = json!({
+        "id": id, "name": name, "role": "marker",
+        "shape": { "point": { "pos": [round(pos[0]), round(pos[1]), round(pos[2])], "rot": (heading * 1000.0).round() / 1000.0 } },
+        "source": "surveyed", "tags": ["review"],
+        "comment": "Saved in game with !point.",
+    });
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    work.put(record, author, now).map_err(|e| format!("{e:?}"))?;
+    let label = format!("{name} ({id})");
+    let mut saved = SAVED_POINTS.lock().unwrap();
+    saved.retain(|s| s.0 != label);
+    saved.push((label, pf, pos));
+    info!(playfield = pf, point = %id, ?pos, heading, "named point saved");
+    Ok(format!("saved {id} at {:.2} {:.2} {:.2}, facing {:.0}° (0 north, 90 east); in the content from the next start", pos[0], pos[1], pos[2], heading.to_degrees()))
+}
+
 // ------------------------------------------------------------------ control routes
 
 pub fn routes() -> Router {

@@ -114,6 +114,11 @@ pub fn is_one(n: &f32) -> bool {
     *n == 1.0
 }
 
+/// 1, or 0 (a record made with `Default`: taken as 1).
+pub fn is_single(n: &u32) -> bool {
+    *n <= 1
+}
+
 pub fn weight_one() -> u32 {
     1
 }

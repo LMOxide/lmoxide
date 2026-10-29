@@ -13,6 +13,10 @@
 //!   everyone (`SignalStartEndlessWarmup`), then the gate turns green and the timer buff (the
 //!   HUD's clock) runs; no equipping from then on (CantEquipWeapons), no rebuilds all run
 //!   (CantResurrectWeapons);
+//! - Survival and the Gatekeeper's Realm run the level's script (scripts.rs) from then on: the
+//!   copy's variant's enemies come in waves on the level's points, each wave after the points
+//!   showed the spawn particle; each wave cleared counts toward the objective, the script over
+//!   completes it (kills don't count: a Gatekeeper's summoned adds never do);
 //! - the objective done, the quest's next step is "reach the end" and the end gate opens
 //!   (Mayhems: open all along); crossing `End` completes it for that player (the timer and
 //!   CantEquip go);
@@ -77,6 +81,10 @@ const CARS_INACTIVE: u32 = 5;
 const STAT_CARS_GROUP: u32 = 1050;
 /// How far above or below the end area's heights still counts as inside.
 const HEIGHT_SLACK: f32 = 3.0;
+/// Spawns this close (m) stand on the same point.
+const POINT_SAME: f32 = 0.3;
+/// The points' dynels: base instances from here on (above any client guid).
+const POINT_BASE: u32 = 0x00f0_0000;
 /// After "Ready to start?", the button doesn't ask again for this long (unless Start was pressed).
 const WARMUP_DIALOG_HOLD: Duration = Duration::from_secs(10);
 /// A minifigure smashed in a run stays smashed this long, until the run is over for the player
@@ -130,6 +138,19 @@ struct Level {
     quest: crate::quests::Scripted,
     end: Shape,
     variants: Vec<lmoxide_content::LcVariant>,
+    /// The waves' script, and the points its spawns stand on (each shows the spawn particle
+    /// before its wave).
+    script: Option<String>,
+    points: Vec<[f32; 3]>,
+    /// The variants of each of the script's spawns (empty: in every one).
+    wave_spawns: Vec<Vec<String>>,
+}
+
+impl Level {
+    /// Whether the script brings any enemy in a copy running `variant`.
+    fn has_waves(&self, variant: Option<&String>) -> bool {
+        self.wave_spawns.iter().any(|v| v.is_empty() || variant.is_some_and(|x| v.contains(x)))
+    }
 }
 
 static LEVELS: LazyLock<Vec<Level>> = LazyLock::new(|| {
@@ -159,6 +180,17 @@ fn level_of_record(c: &lmoxide_content::Content, l: &LcLevel) -> Result<Level, S
         })
     };
     let end = c.areas.get(&l.end_area).and_then(|a| a.shape.clone()).ok_or("no end area")?;
+    let mut points: Vec<[f32; 3]> = Vec::new();
+    let mut wave_spawns = Vec::new();
+    if let Some(script) = &l.script {
+        c.scripts.get(script).ok_or(format!("no script {script}"))?;
+        for s in c.in_world(&c.spawns, &l.world).filter(|s| !s.removed && s.wave.as_ref().is_some_and(|w| &w.script == script)) {
+            wave_spawns.push(s.variants.clone());
+            if !points.iter().any(|p| (p[0] - s.pos[0]).hypot(p[2] - s.pos[2]) < POINT_SAME) {
+                points.push(s.pos);
+            }
+        }
+    }
     let quest = crate::quests::scripted(&l.quest, world.playfield).ok_or("no such quest")?;
     Ok(Level {
         id: l.id.clone(),
@@ -176,6 +208,9 @@ fn level_of_record(c: &lmoxide_content::Content, l: &LcLevel) -> Result<Level, S
         quest,
         end,
         variants: l.variants.clone(),
+        script: l.script.clone(),
+        points,
+        wave_spawns,
     })
 }
 
@@ -408,10 +443,12 @@ pub enum Order {
 
 // ------------------------------------------------------------------ fixtures
 
-/// A level copy's gates, button and door, and the button's arrow carrier.
+/// A level copy's gates, button and door, the button's arrow carrier, and its points' dynels
+/// with those showing the spawn particle now.
 struct Fixtures {
     _presences: Vec<world::Presence>,
     dummy: Id32,
+    lit: std::sync::Arc<Mutex<HashSet<usize>>>,
 }
 
 static FIXTURES: LazyLock<Mutex<HashMap<Pf, Fixtures>>> = LazyLock::new(Default::default);
@@ -419,6 +456,8 @@ static FIXTURES: LazyLock<Mutex<HashMap<Pf, Fixtures>>> = LazyLock::new(Default:
 static OPEN: LazyLock<Mutex<HashSet<(Pf, u32)>>> = LazyLock::new(Default::default);
 /// The variant each run copy picked.
 static VARIANTS: LazyLock<Mutex<HashMap<Pf, String>>> = LazyLock::new(Default::default);
+/// For testing: the variant the next level copy runs, if that level has it (`!lc variant`).
+static FORCED_VARIANT: LazyLock<Mutex<Option<String>>> = LazyLock::new(Default::default);
 
 fn piece_id(pf: Pf, guid: u32) -> Id32 {
     crate::scenery::piece_id(pf, guid)
@@ -513,6 +552,20 @@ pub fn spawn_world(pf: Pf) {
     let d = l.door.clone();
     let id = Id32::new(crate::teleport::DOOR_TYPE, crate::instance::fixture(pf, d.guid));
     presences.push(join(id, pf, d.pos, move || crate::teleport::door_dynel_records(d.guid, &d.name, d.pos, d.rot, d.scale, d.visual, 0, pf)));
+    // the spawn points: invisible dynels that show the spawn particle while lit (live put it on
+    // Monster Laboratory's pads)
+    let lit: std::sync::Arc<Mutex<HashSet<usize>>> = Default::default();
+    for (i, &pos) in l.points.iter().enumerate() {
+        let id = point_id(pf, i);
+        let lit = lit.clone();
+        presences.push(join(id, pf, pos, move || {
+            let mut recs = crate::scenery::invisible_records(id, pf, pos, [0.0, 0.0, 0.0, 1.0]);
+            if lit.lock().unwrap().contains(&i) {
+                recs.push(particle_record(id, Some(tunables().wave_particle)));
+            }
+            recs
+        }));
+    }
     // the arrow over the button: an invisible NPC carrying the Button Arrow buff (live)
     let def: Result<crate::npc::SpawnDef, _> = serde_json::from_value(serde_json::json!({
         "kind": "npc", "name": "XX_InvisibleDummy", "monster_data": DUMMY_LOOK, "npc_template": DUMMY_TEMPLATE,
@@ -529,7 +582,49 @@ pub fn spawn_world(pf: Pf) {
             Id32::default()
         }
     };
-    FIXTURES.lock().unwrap().insert(pf, Fixtures { _presences: presences, dummy });
+    FIXTURES.lock().unwrap().insert(pf, Fixtures { _presences: presences, dummy, lit });
+}
+
+fn point_id(pf: Pf, i: usize) -> Id32 {
+    piece_id(pf, POINT_BASE + i as u32)
+}
+
+/// `SimpleDynelVisualChangeIIR_c`: state 0 starts a looping particle (attractor 35, as live), 2
+/// stops the first one.
+fn particle_record(id: Id32, particle: Option<u32>) -> Bytes {
+    iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| match particle {
+        Some(p) => w.u32(0).u32(p).i32(35).f32(0.0).f32(0.0).f32(0.0).f32(0.0),
+        None => w.u32(2).u32(0),
+    })
+}
+
+/// A wave of copy `pf`'s script is about to spawn on `points` (scripts.rs): if `pf` is a level's
+/// copy, the level's points there show the spawn particle, and the wave waits this long.
+pub fn telegraph(pf: Pf, points: &[[f32; 3]]) -> Option<Duration> {
+    let i = level_of_model(pf.model())?;
+    let fixtures = FIXTURES.lock().unwrap();
+    let f = fixtures.get(&pf)?;
+    let particle = tunables().wave_particle;
+    let mut lit = f.lit.lock().unwrap();
+    let mut recs = Vec::new();
+    for (n, p) in level(i).points.iter().enumerate() {
+        if points.iter().any(|q| (p[0] - q[0]).hypot(p[2] - q[2]) < POINT_SAME) && lit.insert(n) {
+            recs.push(particle_record(point_id(pf, n), Some(particle)));
+        }
+    }
+    drop(lit);
+    drop(fixtures);
+    to_copy(pf, recs);
+    Some(duration(tunables().wave_telegraph))
+}
+
+/// The telegraph is over (the wave spawns): the particles stop.
+pub fn telegraph_done(pf: Pf) {
+    let fixtures = FIXTURES.lock().unwrap();
+    let Some(f) = fixtures.get(&pf) else { return };
+    let recs: Vec<Bytes> = f.lit.lock().unwrap().drain().map(|n| particle_record(point_id(pf, n), None)).collect();
+    drop(fixtures);
+    to_copy(pf, recs);
 }
 
 /// Takes a level copy's fixtures out (worlds.rs).
@@ -792,7 +887,11 @@ fn enter_level(st: &mut State, run_id: u32, chosen: Option<usize>) {
         let old = run.element;
         run.element = 1 + (old + random_below(4)) % 5;
     }
-    if !l.variants.is_empty() {
+    let forced = FORCED_VARIANT.lock().unwrap().take_if(|v| l.variants.iter().any(|x| &x.id == v));
+    if let Some(v) = forced {
+        info!(run = run_id, variant = %v, "Lost Creations: the variant forced (test command)");
+        VARIANTS.lock().unwrap().insert(pf, v);
+    } else if !l.variants.is_empty() {
         let total: u32 = l.variants.iter().map(|v| v.weight).sum();
         let mut r = random_below(total);
         if let Some(v) = l.variants.iter().find(|v| {
@@ -940,6 +1039,18 @@ fn open_start(run_id: u32, generation: u64) {
     let l = level(run.current);
     info!(run = run_id, "Lost Creations: gate open, timer running");
     open_gate(pf, &l.start_shield, &l.start_visual);
+    let variant = variant(pf);
+    if l.script.is_some() && !l.has_waves(variant.as_ref()) {
+        warn!(run = run_id, level = %l.id, ?variant, "Lost Creations: no wave enemies for this variant: the objective stays open");
+    } else if let Some(script) = l.script.clone() {
+        // (scripts.rs locks after this module: started once `STATE` is free)
+        tokio::spawn(async move {
+            match crate::scripts::start(pf, &script, None) {
+                Ok(m) => info!(run = run_id, "Lost Creations: waves: {m}"),
+                Err(e) => warn!(run = run_id, "Lost Creations: the waves didn't start: {e}"),
+            }
+        });
+    }
     for &m in &members {
         let me = player(m);
         records(m, vec![
@@ -1000,7 +1111,8 @@ pub fn on_event(character: u32, event: &Event) {
         Event::Defeated { playfield, .. } => *playfield,
         _ => return,
     };
-    if playfield != l.model || !matches!(run.phase, Phase::Running) || run.step + 1 >= l.quest.steps() || !l.quest.counts(run.step, event) {
+    // (a level with waves counts the waves cleared instead)
+    if playfield != l.model || l.script.is_some() || !matches!(run.phase, Phase::Running) || run.step + 1 >= l.quest.steps() || !l.quest.counts(run.step, event) {
         return;
     }
     let need = l.quest.counted(run.step).map_or(1, |g| g.count.max(1));
@@ -1013,6 +1125,48 @@ pub fn on_event(character: u32, event: &Event) {
         return;
     }
     objective_done(run);
+}
+
+/// The run whose level copy `pf` runs `script` as its waves, while its objective is open.
+fn waves_run<'a>(st: &'a mut State, pf: Pf, script: &str) -> Option<&'a mut Run> {
+    let id = *st.copies.get(&pf)?;
+    let run = st.runs.get_mut(&id)?;
+    let l = level(run.current);
+    (run.pf == pf && run.phase == Phase::Running && l.script.as_deref() == Some(script) && run.step + 1 < l.quest.steps()).then_some(run)
+}
+
+/// A wave of copy `pf`'s script `script` was cleared (scripts.rs): one toward the objective
+/// (Survival: "Survive the assault" 1/3, 2/3, 3/3).
+pub fn wave_cleared(pf: Pf, script: &str) {
+    let mut st = STATE.lock().unwrap();
+    let Some(run) = waves_run(&mut st, pf, script) else { return };
+    let l = level(run.current);
+    let need = l.quest.counted(run.step).map_or(1, |g| g.count.max(1));
+    run.progress += 1;
+    info!(run = run.id, progress = run.progress, need, "Lost Creations: wave cleared");
+    if run.progress < need {
+        for &m in &run.members {
+            records(m, l.quest.progress(m, run.step, 1).into_iter().collect());
+        }
+        return;
+    }
+    objective_done(run);
+}
+
+/// Copy `pf`'s script `script` is over, every wave cleared (scripts.rs; `spawns`: its spawns):
+/// the objective is done if it isn't yet. With `gatekeeper_adds_vanish`, what those spawns
+/// summoned goes too.
+pub fn script_over(pf: Pf, script: &str, spawns: &[Id32]) {
+    let mut st = STATE.lock().unwrap();
+    if let Some(run) = waves_run(&mut st, pf, script) {
+        objective_done(run);
+    }
+    drop(st);
+    let gatekeeper = level_of_model(pf.model()).is_some_and(|i| level(i).mode == LcMode::Gatekeeper);
+    if gatekeeper && tunables().gatekeeper_adds_vanish {
+        let n = crate::npc::despawn_summons_of(spawns);
+        info!(playfield = ?pf, gone = n, "Lost Creations: the Gatekeeper's adds vanish");
+    }
 }
 
 /// The objective is done: the quest's "reach the end" step, the end gate opens.
@@ -1355,6 +1509,8 @@ pub enum Command {
     Finish,
     /// Out of the run.
     End,
+    /// The next level copy runs this variant (if its level has it); none: list them.
+    Variant(Option<String>),
 }
 
 /// Runs `!lc` for `character`; the lines to answer.
@@ -1446,6 +1602,21 @@ pub fn command(character: u32, cmd: Command) -> Vec<String> {
                 vec!["not in a run".into()]
             }
         }
+        Command::Variant(None) => LEVELS
+            .iter()
+            .filter(|l| !l.variants.is_empty())
+            .map(|l| format!("{}: {}", l.name, l.variants.iter().map(|v| format!("{} (weight {})", v.id, v.weight)).collect::<Vec<_>>().join(", ")))
+            .chain(FORCED_VARIANT.lock().unwrap().as_ref().map(|v| format!("next level copy: {v}")))
+            .collect(),
+        Command::Variant(Some(v)) => {
+            let levels: Vec<&str> = LEVELS.iter().filter(|l| l.variants.iter().any(|x| x.id == v)).map(|l| l.name.as_str()).collect();
+            if levels.is_empty() {
+                return vec![format!("no level has a variant {v} (!lc variant lists them)")];
+            }
+            let line = format!("the next copy of {} runs variant {v}", levels.join(" or "));
+            *FORCED_VARIANT.lock().unwrap() = Some(v);
+            vec![line]
+        }
     }
 }
 
@@ -1474,6 +1645,29 @@ mod tests {
         assert_eq!(gk.quest.steps(), 2);
         assert!(gk.quest.counted(0).is_some());
         assert!(entry_point().is_some_and(|(pf, _)| pf == 6200));
+    }
+
+    #[test]
+    fn waves_and_points() {
+        // Jungle Arena: the survival script on the designers' pads (only the test variant has
+        // enemies so far)
+        let ja = &LEVELS[level_of_model(7400).unwrap()];
+        assert_eq!(ja.script.as_deref(), Some("script/7400/survival"));
+        assert!(!ja.points.is_empty() && ja.points.len() <= 12, "{:?}", ja.points);
+        assert!(ja.points.contains(&[234.15, 42.0, 297.23]), "NW_1");
+        assert!(!ja.has_waves(None));
+        assert!(ja.has_waves(Some(&"monster-lab".to_string())));
+        // the Gatekeeper's Realm: a Gatekeeper per variant, all on one point
+        let gk = &LEVELS[level_of_model(7600).unwrap()];
+        assert_eq!(gk.variants.len(), 11);
+        assert_eq!(gk.points, vec![[240.0, 42.0, 277.0]]);
+        for v in &gk.variants {
+            assert!(gk.has_waves(Some(&v.id)), "{}", v.id);
+        }
+        // its spawns face west
+        let c = crate::gamedata::get();
+        let s = &c.spawns["spawn/7600/gatekeeper-red-drake"];
+        assert_eq!(s.rot.map(|r| r.heading()), Some(-1.571));
     }
 
     #[test]

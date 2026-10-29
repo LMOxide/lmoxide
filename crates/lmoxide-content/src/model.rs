@@ -267,11 +267,23 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["npc", "object"]))]
         pub template: Option<Ref>,
+        /// Where it stands; with `at`, taken from that point (leave it out).
+        #[serde(default, skip_serializing_if = "crate::record::is_default")]
         #[schemars(extend("x-lmoxide-position" = true))]
         pub pos: Vec3,
+        /// Facing; none: the point's (`at`), else 0 (north).
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-rotation" = true))]
         pub rot: Option<Rot>,
+        /// A named point (`area/...` with a `point` shape, a marker) it stands on instead of `pos`:
+        /// its position and facing (the loader fills `pos`, and `rot` when the spawn has none).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+        pub at: Option<Ref>,
+        /// How many spawn here: the first on the spot, the others within the point's `spread`
+        /// (script waves).
+        #[serde(default = "crate::record::weight_one", skip_serializing_if = "crate::record::is_single")]
+        pub count: u32,
         #[serde(default = "crate::record::one", skip_serializing_if = "crate::record::is_one")]
         pub scale: f32,
         /// Changes to the template for this spawn only (any of its fields: `level`, `ai`, `loot` ...).
@@ -567,6 +579,10 @@ record! {
         /// A wall: what it blocks.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub blocks: Option<Blocks>,
+        /// A point enemies spawn on (`at`): how far (m) the second and later ones of a spawn's
+        /// `count` land from it; none: tunables `lost_creations.spawn_spread`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub spread: Option<f32>,
         /// A territory's roaming paths (RDB 1000050): wander points.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub paths: Vec<Vec<Vec3>>,
@@ -2167,15 +2183,13 @@ record! {
         /// Crossing it completes the level (the world's `End` area).
         #[schemars(extend("x-lmoxide-ref" = ["area"]))]
         pub end_area: Ref,
+        /// One is picked for each copy of the level; spawns naming none of them are in all.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub variants: Vec<LcVariant>,
-        /// Where the Gatekeeper stands (Gatekeeper's Realm).
+        /// The waves (Survival, Gatekeeper): started when the start gate opens. Each wave cleared
+        /// counts one toward the objective; the script over completes it.
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        #[schemars(extend("x-lmoxide-position" = true))]
-        pub gatekeeper: Option<Point>,
-        /// The Gatekeepers one is picked from (`npc/...`).
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
-        pub gatekeepers: Vec<Ref>,
+        #[schemars(extend("x-lmoxide-ref" = ["script"]))]
+        pub script: Option<Ref>,
     }
 }

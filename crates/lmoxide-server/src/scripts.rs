@@ -13,7 +13,10 @@
 //! - none / `other`: never by itself (a wall or `!script start` naming the wave starts it).
 //!
 //! Wave spawns are ordinary NPCs and enemies (they fight, drop loot and count for achievements)
-//! that don't respawn. A script runs once at a time per playfield; it is over when every spawn is
+//! that don't respawn. A spawn with a `count` brings that many: the first on its spot, the others
+//! within its point's `spread`. In a Lost Creations level's copy only the spawns of the copy's
+//! variant come, each wave after its points showed the spawn particle (lost_creations.rs
+//! `telegraph`), and the level hears of each wave cleared and of the script's end. A script runs once at a time per playfield; it is over when every spawn is
 //! defeated and no waiting wave can still start, and can then be started again. When the
 //! playfield empties and its NPCs reset (npc.rs), its running scripts end and their spawns go.
 //! The rules chosen here are in docs/TUNABLES.md "Script waves".
@@ -73,6 +76,10 @@ struct Run {
     started: Instant,
     waves: Vec<WaveState>,
     spawns: Vec<Spawned>,
+    /// Waves started whose spawns are still to come (after the telegraph).
+    coming: HashSet<usize>,
+    /// Waves started and cleared.
+    cleared: HashSet<usize>,
     /// why a wave doesn't start, logged once per run
     logged: HashSet<String>,
 }
@@ -153,6 +160,8 @@ pub fn start(pf: Pf, script: &str, wave: Option<&str>) -> Result<String, String>
         started: now,
         waves: (0..s.waves.len()).map(|j| if j < i { WaveState::Skipped } else { WaveState::Pending }).collect(),
         spawns: Vec::new(),
+        coming: HashSet::new(),
+        cleared: HashSet::new(),
         logged: HashSet::new(),
     };
     info!(playfield = ?pf, script = %s.name, id = %s.id, wave = %wave_name(s, i), "script starts");
@@ -340,6 +349,8 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
     // waves whose trigger fired, then the scripts that are over
     let now = Instant::now();
     let mut over = Vec::new();
+    // (copy, script, a wave cleared / none: the script over with its spawns) for lost_creations.rs
+    let mut events: Vec<(Pf, String, Option<usize>, Vec<Id32>)> = Vec::new();
     for ((pf, id), run) in runs.iter_mut() {
         let Some(p) = def(*pf) else { continue };
         let Some(s) = p.scripts.iter().find(|s| &s.id == id) else { continue };
@@ -350,7 +361,7 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
             let fire = match &s.waves[i].trigger {
                 Some(Trigger::After { seconds }) => after_ready(&run.waves, i, run.started, *seconds, now),
                 Some(Trigger::WaveCleared { wave }) => match wave_index(s, wave) {
-                    Some(j) => matches!(run.waves[j], WaveState::Started(_)) && run.spawns.iter().filter(|x| x.wave == j).all(|x| npc::health_of(x.id).is_none()),
+                    Some(j) => wave_down(run, j),
                     None => {
                         log_once(run, *pf, s, i, &format!("it waits for wave \"{wave}\", which this script doesn't have"));
                         false
@@ -386,7 +397,14 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
                 spawn_wave(run, *pf, s, i, &p.spawns);
             }
         }
-        let all_down = run.spawns.iter().all(|x| npc::health_of(x.id).is_none());
+        for i in 0..s.waves.len() {
+            if !run.cleared.contains(&i) && wave_down(run, i) {
+                run.cleared.insert(i);
+                info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), "script: wave cleared");
+                events.push((*pf, id.clone(), Some(i), Vec::new()));
+            }
+        }
+        let all_down = run.coming.is_empty() && run.spawns.iter().all(|x| npc::health_of(x.id).is_none());
         if all_down && !(0..s.waves.len()).any(|i| can_still_start(run, p, s, i, s.waves.len())) {
             over.push((*pf, id.clone()));
         }
@@ -396,10 +414,18 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
             info!(playfield = ?key.0, script = %script_name(def(key.0), &key.1)
 , spawns = run.spawns.len(), "script over: every spawn defeated, no wave left to start");
             despawn(&run);
+            let ids: Vec<Id32> = run.spawns.iter().map(|x| x.id).collect();
+            events.push((key.0, key.1, None, ids));
         }
     }
     *inside = now_inside;
     drop(st);
+    for (pf, id, wave, spawns) in events {
+        match wave {
+            Some(_) => crate::lost_creations::wave_cleared(pf, &id),
+            None => crate::lost_creations::script_over(pf, &id, &spawns),
+        }
+    }
     for (pf, id) in starts {
         info!(playfield = ?pf, script = %id, "script: a player entered its first wave's area");
         if let Err(e) = start(pf, &id, None) {
@@ -437,23 +463,90 @@ fn after_ready(waves: &[WaveState], i: usize, started: Instant, seconds: f32, no
     now.duration_since(from).as_secs_f32() >= seconds.max(0.0)
 }
 
-/// Spawns wave `i`'s placements; how many.
-fn spawn_wave(run: &mut Run, pf: Pf, s: &Script, i: usize, spawns: &[(Placement, SpawnDef)]) -> usize {
-    run.waves[i] = WaveState::Started(Instant::now());
+/// Whether started wave `i` is down: its spawns all came and are all defeated.
+fn wave_down(run: &Run, i: usize) -> bool {
+    matches!(run.waves[i], WaveState::Started(_)) && !run.coming.contains(&i) && run.spawns.iter().filter(|x| x.wave == i).all(|x| npc::health_of(x.id).is_none())
+}
+
+/// Wave `i`'s placements in copy `pf` (a Lost Creations level's: its variant's).
+fn wave_placements<'a>(pf: Pf, s: &Script, i: usize, spawns: &'a [(Placement, SpawnDef)]) -> Vec<&'a (Placement, SpawnDef)> {
     let w = &s.waves[i];
-    let mut n = 0;
-    for (p, def) in spawns.iter().filter(|(p, _)| p.wave.as_ref().is_some_and(|r| r.script == s.id && r.wave == w.id)) {
-        let id = npc::new_id(def);
-        npc::spawn_once(id, def.clone(), pf);
-        run.spawns.push(Spawned { placement: p.id.clone(), wave: i, id, max: def.health });
-        n += 1;
-    }
+    let variant = crate::lost_creations::variant(pf);
+    spawns
+        .iter()
+        .filter(|(p, def)| {
+            p.wave.as_ref().is_some_and(|r| r.script == s.id && r.wave == w.id) && (def.variants.is_empty() || variant.as_ref().is_some_and(|v| def.variants.contains(v)))
+        })
+        .collect()
+}
+
+/// Starts wave `i`: its placements spawn, at once or after the level's telegraph (the points
+/// show the spawn particle first). How many spawn.
+fn spawn_wave(run: &mut Run, pf: Pf, s: &Script, i: usize, spawns: &[(Placement, SpawnDef)]) -> usize {
+    let started = Instant::now();
+    run.waves[i] = WaveState::Started(started);
+    let mine = wave_placements(pf, s, i, spawns);
+    let n: usize = mine.iter().map(|(_, d)| d.count.max(1) as usize).sum();
     if n == 0 {
-        info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), "script: the wave has no approved, active placements; nothing spawns");
-    } else {
-        info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), spawned = n, "script: wave spawns");
+        info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), "script: the wave has no placements here; nothing spawns");
+        return 0;
+    }
+    let points: Vec<[f32; 3]> = mine.iter().map(|(p, _)| p.pos).collect();
+    match crate::lost_creations::telegraph(pf, &points) {
+        Some(delay) => {
+            info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), spawns = n, ?delay, "script: the wave's points light up");
+            run.coming.insert(i);
+            let (id, wave) = (s.id.clone(), i);
+            tokio::spawn(async move {
+                tokio::time::sleep(delay).await;
+                arrive(pf, &id, wave, started);
+            });
+        }
+        None => spawn_now(run, pf, s, i, spawns),
     }
     n
+}
+
+/// The telegraph of wave `wave` (started at `started`) is over: its spawns come, if the run
+/// still goes.
+fn arrive(pf: Pf, script: &str, wave: usize, started: Instant) {
+    let preview = crate::preview::of(pf);
+    let mut st = STATE.lock().unwrap();
+    let State { playfields, runs, .. } = &mut *st;
+    let Some(run) = runs.get_mut(&(pf, script.to_string())) else { return };
+    if run.waves.get(wave) != Some(&WaveState::Started(started)) || !run.coming.remove(&wave) {
+        return;
+    }
+    let Some(p) = scripts_in(playfields, &preview, pf) else { return };
+    let Some(s) = p.scripts.iter().find(|s| s.id == script) else { return };
+    crate::lost_creations::telegraph_done(pf);
+    spawn_now(run, pf, s, wave, &p.spawns);
+}
+
+fn spawn_now(run: &mut Run, pf: Pf, s: &Script, i: usize, spawns: &[(Placement, SpawnDef)]) {
+    let mut n = 0;
+    for (p, def) in wave_placements(pf, s, i, spawns) {
+        for k in 0..def.count.max(1) {
+            let mut def = def.clone();
+            if k > 0 {
+                def.pos = around(def.pos, def.spread.unwrap_or(crate::gamedata::get().tunables.lost_creations.spawn_spread));
+            }
+            let id = npc::new_id(&def);
+            let max = def.health;
+            npc::spawn_once(id, def, pf);
+            run.spawns.push(Spawned { placement: p.id.clone(), wave: i, id, max });
+            n += 1;
+        }
+    }
+    info!(playfield = ?pf, script = %s.name, wave = %wave_name(s, i), spawned = n, "script: wave spawns");
+}
+
+/// A random spot `within` m of `pos` (at least half that far, so they don't stand on each
+/// other), at its height.
+fn around(pos: [f32; 3], within: f32) -> [f32; 3] {
+    let angle = crate::loot::random_below(3600) as f32 / 3600.0 * std::f32::consts::TAU;
+    let d = within * (0.5 + crate::loot::random_below(1000) as f32 / 2000.0);
+    [pos[0] + d * angle.sin(), pos[1], pos[2] + d * angle.cos()]
 }
 
 fn despawn(run: &Run) {
@@ -577,6 +670,16 @@ mod tests {
         let square = Area::Polygon { points: vec![[0.0, 0.0, 0.0], [10.0, 0.0, 0.0], [10.0, 0.0, 10.0], [0.0, 0.0, 10.0]] };
         assert!(contains(&square, [5.0, 0.0, 5.0]));
         assert!(!contains(&square, [15.0, 0.0, 5.0]));
+    }
+
+    #[test]
+    fn extra_spawns_land_near_their_point() {
+        for _ in 0..200 {
+            let p = around([10.0, 5.0, 20.0], 1.5);
+            let d = (p[0] - 10.0).hypot(p[2] - 20.0);
+            assert!((0.75..=1.5).contains(&d), "{d}");
+            assert_eq!(p[1], 5.0);
+        }
     }
 
     #[test]

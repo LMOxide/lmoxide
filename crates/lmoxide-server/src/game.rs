@@ -1616,6 +1616,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             info!(character, minifigures = n, "dev revive");
                             crate::chat::system(character, &format!("{n} minifigures revived"));
                         }
+                        crate::devcmd::Action::Point(name) => {
+                            let line = match crate::content::save_point(place.model(), &name, *pos.lock().unwrap(), heading[0].atan2(heading[1]), &me.name) {
+                                Ok(l) | Err(l) => l,
+                            };
+                            crate::chat::system(character, &line);
+                        }
                         crate::devcmd::Action::Lc(cmd) => {
                             for line in crate::lost_creations::command(character, cmd) {
                                 crate::chat::system(character, &line);

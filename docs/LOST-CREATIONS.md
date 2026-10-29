@@ -74,7 +74,7 @@ monsterdata 465832, scale 3). Guids (shield / visual):
 - **Start positions** (no resurrection points in these maps; `content/worlds/71xx..76xx` arrival is a
   wrong navmesh guess inside the arena): Candy Mayhem **136.4 40.0 137.2**, Gatekeeper's Realm
   **204.5 42.9 279.3** (user). Others: ask the user, or west of the start gate by the button.
-- Gatekeeper spawn (user): 239.9 42.2 277.1 (no anchor in the client data). Gatekeeper variants
+- Gatekeeper spawn (user, 2026-10-29): 240.0 42.0 277.0 facing west (`area/7600/gatekeeper`; no anchor in the client data). Gatekeeper variants
   (user): Forest Treeman, Green Drake, Ghost Pirate Grenadier, Red Drake, Crooked Tooth Hurler, Alien
   Mindslicer, Skeleton Mage, Troll Warlord (= "Troll Heavy Hitter War" look). TDB 51000 has 14
   "Gatekeeper" names (2382 .. 2433), a "Lost X" roster (2088-2356) and 2444 "Lost Corrupted Chicken
@@ -179,7 +179,7 @@ likely the portal glow). Live sent it on every dungeon door (all 14 seen match t
 - New record `lc_level` (`worlds/<world>/lost_creations.json`): `mode` (mayhem | brawl | champions |
   survival | smash | gatekeeper), `start` {pos, rot}, gate guids (start/exit shield + visual),
   `button`, `exit_door`, quests (objective, exit), goal (defeat n, smash n, survive waves, champions 3),
-  `variants` [{id, name, weight, when}], gatekeeper spawn.
+  `variants` [{id, name, weight, when}], `script` (the waves; replaced the gatekeeper spawn fields).
 - New record for the run (`content/lost_creations.json` or under content/rules): entry door 544337,
   requirement quest hash, times (level 300 s, warmup 5 s, invitation and continue answer seconds:
   unknown, pick and log), gatekeeper every 5, element block 5, Treasure Chamber + its position,
@@ -263,9 +263,31 @@ Built 2026-10-28 (lost_creations.rs; content `lc` records in content/lost-creati
    CantEquip buff), hearts-only enemy loot, element blocks, Gatekeeper every 5th (off while
    `force_level` is set). Equip refusal not tried in the client.
 6. Rewards in 7001 done; achievements: Event::LostCreations per completed level. Not done: the
-   other levels' enemies (their worlds have no spawns: a run there is a walk to the end), the
-   Gatekeeper's spawn (lc `gatekeepers` empty: no NPC records known), level variants (the model
-   and npc.rs filter exist, no level has any), achievements 4701/4703/4702 and 3649.
+   other levels' enemies (their worlds have no spawns: a run there is a walk to the end; Jungle
+   Arena and the Gatekeeper: step 7), achievements 4701/4703/4702 and 3649.
+
+7. Waves, named points, Gatekeepers (2026-10-29; plan: research/lmoxide-notes/lc-spawn-points-plan.md):
+   - Named points: the client's `invisible_monsterdata` dynels of RDB 1000057 are area markers
+     (`tools/content/import_points.py`, the Lost Creations worlds and 7401). Jungle Arena's pads
+     are the designers' NW_1-4, NE_1-4, SE_1-4 (numbered clockwise; the west side holds the start
+     gate), each facing `area/7400/center` (a guess). Only the pads were used on live (user); the
+     other three unnamed points aren't.
+   - A spawn stands on a point with `at` (its position and facing) and brings `count` enemies (the
+     others within the point's `spread`, else `spawn_spread`).
+   - Survival and Gatekeeper levels name a `script` (worlds/<w>/scripts/): it starts when the
+     start gate opens; the copy's variant picks its spawns (scripts.rs filters like npc.rs). Before
+     each wave the points it uses show the blue spawn particle for 2 s (live), then it spawns; the
+     next wave comes when it is cleared (`wave_cleared`). Each wave cleared counts one toward the
+     objective (Survival: 3), the script over completes it. Kills count nowhere in these levels.
+   - Gatekeeper's Realm: 11 variants, one Gatekeeper each (npc/gatekeeper-*, shown as "Gatekeeper"),
+     on `area/7600/gatekeeper` in the one-wave `script/7600/gatekeeper`. Its adds aren't wave spawns,
+     so they never count; `gatekeeper_adds_vanish` (false) removes them with it.
+   - Jungle Arena has only a test variant (`monster-lab`, weight 0: live 8030's waves): a normal
+     copy has no wave enemies and its objective stays open until the real list is in.
+   - Test: `!lc variant <id>` then `!lc start 1 jungle` (or `gatekeeper`); `!list point`,
+     `!goto point nw-1`; `!point <name>` saves a marker where you stand (tagged review).
+   - Not done: the Gatekeepers' summon/buff skills (adds), the real Jungle Arena variants (the
+     user's CSV: map,variant,wave,point,enemy,count,facing).
 
 Open beyond the list above: mouse clicks on the start button didn't register when injected (E
 works; the user should try clicking); the HUD portrait after the wipe showed the first slot's

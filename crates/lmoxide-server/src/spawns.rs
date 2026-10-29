@@ -30,7 +30,9 @@ pub fn source_name(s: Option<Source>) -> Option<String> {
 /// A spawn as the NPC code's definition, its template and overrides applied.
 fn def_of(c: &Content, s: &Spawn) -> Option<SpawnDef> {
     let t: Value = c.spawn_template(s)?;
-    def_from(s, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))
+    let mut def = def_from(s, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))?;
+    def.spread = s.at.as_ref().and_then(|a| c.areas.get(a)).and_then(|a| a.spread);
+    Some(def)
 }
 
 /// A spawn as the NPC code's definition from its template (resolved, overrides applied): the
@@ -74,6 +76,8 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         rot: s.rot.map(Rot::heading),
         variants: s.variants.clone(),
         requires: s.requires.clone(),
+        count: s.count.max(1),
+        spread: None,
     })
 }
 

@@ -314,6 +314,12 @@ pub struct SpawnDef {
     /// A Lost Creations level's variants it is in (none: every one; lost_creations.rs).
     #[serde(default)]
     pub variants: Vec<String>,
+    /// Script waves: how many spawn (0 counts as 1), the first on `pos`, the others within
+    /// `spread` m of it (the spawn's `count`, its point's `spread`; scripts.rs).
+    #[serde(default)]
+    pub count: u32,
+    #[serde(default)]
+    pub spread: Option<f32>,
     /// Shown only to players with all of these tags (the spawn's `requires`: a story NPC of a
     /// scene after a story event; `gated`).
     #[serde(default)]
@@ -962,6 +968,16 @@ pub fn despawn(id: Id32) {
     drop(npc); // drops the presence: despawns it
 }
 
+/// Removes the NPCs that any of `owners` summoned; how many.
+pub fn despawn_summons_of(owners: &[Id32]) -> usize {
+    let gone: Vec<Npc> = {
+        let mut npcs = NPCS.lock().unwrap();
+        let ids: Vec<Id32> = npcs.iter().filter(|(_, n)| n.owner.is_some_and(|(o, _)| owners.contains(&o))).map(|(id, _)| *id).collect();
+        ids.iter().filter_map(|id| npcs.remove(id)).collect()
+    };
+    gone.len()
+}
+
 /// How far from the player test enemies appear.
 const TEST_SPAWN_RING: f32 = 7.0;
 
@@ -978,6 +994,8 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
     let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let spawn = SpawnDef {
                 variants: Vec::new(),
+            count: 1,
+            spread: None,
         kind: Kind::Pet,
         template: 0,
         name: def.name,
@@ -2295,6 +2313,8 @@ mod tests {
     fn test_spawn_def() -> SpawnDef {
         SpawnDef {
             variants: Vec::new(),
+            count: 1,
+            spread: None,
             requires: Vec::new(),
             kind: Kind::Enemy,
             template: 0,

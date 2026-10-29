@@ -60,7 +60,13 @@ pub fn object_of(work: &Work, key: &Key) -> Option<Object> {
         vec![key.feature.clone()]
     };
     let (value, _) = work.resolve(&key.id.to_string(), &features)?;
-    let s: Spawn = serde_json::from_value(value).ok()?;
+    let mut s: Spawn = serde_json::from_value(value).ok()?;
+    // on a named point: its position, facing and spread
+    let point = s.at.as_deref().and_then(|a| work.resolve(a, &features)).and_then(|(v, _)| serde_json::from_value::<lmoxide_content::Area>(v).ok());
+    if let Some(lmoxide_content::Shape::Point { pos, rot }) = point.as_ref().and_then(|a| a.shape.clone()) {
+        s.pos = pos;
+        s.rot = s.rot.or(rot);
+    }
     let mut t = work.resolve(s.template.as_deref()?, &features)?.0;
     if let Some(o) = &s.overrides {
         lmoxide_content::load::merge(&mut t, o);
@@ -75,6 +81,7 @@ pub fn object_of(work: &Work, key: &Key) -> Option<Object> {
         crate::spawns::own_loot(c, kind, loot)
     })?;
     def.rot = Some(def.rot.unwrap_or(0.0));
+    def.spread = point.and_then(|a| a.spread);
     Some(Object {
         id: key.id.to_string(),
         key: key.clone(),

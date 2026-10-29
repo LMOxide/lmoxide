@@ -21,6 +21,11 @@
 //!   !lc objective|finish      the level's objective done / across the end at once
 //!   !lc time <s>              the timer set to <s> seconds
 //!   !lc end                   out of the run (to the Treasure Chamber)
+//!   !lc variant [id]          the next level copy runs that variant (if its level has it);
+//!                             without an id: every level's variants
+//!   !point <name>             save a named point (marker) here, facing as you do, in this
+//!                             world's content (areas.json; tagged `review`)
+//!   !goto point <name|n>      go onto a named point (`!goto point nw-1`), in your copy
 //!   !lc <level>               complete Lost Creations level <level> with the active minifigure
 //!                             (the achievements only)
 //!   !cleared                  count this playfield as cleared (pocket adventure achievements)
@@ -160,6 +165,8 @@ pub enum Action {
     Bounce(crate::jumppad::Tumble),
     /// the Lost Creations (`!lc`)
     Lc(crate::lost_creations::Command),
+    /// save a named point here, facing as the player does (`!point`)
+    Point(String),
     /// the story: show it (`None`; true: clear it first), or do an order (`!cinematic`, `!story`)
     Story(Option<crate::story::Order>, bool),
     /// the character's movement speed factor (`!speed`; `None`: show it)
@@ -207,6 +214,9 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!lc objective|finish", "the level's objective done, or across the end at once"),
     ("!lc time <s>", "the level's timer set to <s> seconds"),
     ("!lc end", "out of the Lost Creations run (to the Treasure Chamber)"),
+    ("!lc variant [id]", "the next Lost Creations level copy runs variant <id> (if its level has one by that id); without an id: every level's variants"),
+    ("!point <name>", "save a named point (a marker) where you stand, facing as you do, in this world's content (areas.json, tagged review); spawns stand on it with `at`"),
+    ("!goto point <name|n>", "go onto a named point (marker) by name or slug (`!goto point nw-1`; the one in your world first), in the copy you're in"),
     ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (the achievements only)"),
     ("!cleared", "count this playfield as cleared, as when its last enemy falls (pocket adventure achievements)"),
     ("!dialog [n|text]", "play NPC dialogue n or the one starting with dialogue text `text` (e.g. 283 the Jester; rebuilt story conversations too; without n: list them)"),
@@ -440,6 +450,7 @@ const KINDS: &[(&str, &str)] = &[
     ("patrol", "NPCs that walk a patrol route (the live capture's: Musketeers, Jungle Tricksters, Vespids, ...); arrives 14 m off, out of their notice"),
     ("smashable", "smashables"),
     ("script", "the world editor's approved, active scripts (at their area, else their first placement)"),
+    ("point", "named points (markers): enemy spawn points (Jungle Arena's NW_1 ...), the Gatekeeper's spot, `!point` ones"),
     ("quest", "area quests' areas (walking in starts the quest; quests.rs)"),
     ("story", "story trigger areas: cinematics, story beats, talking heads (tags), story goals (story.rs)"),
     ("area", "server trigger, story and territory areas (RDB 1000053 / 1000050; triggers.rs), with role and category"),
@@ -525,6 +536,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "arena" | "ambush" | "explore" => crate::encounter::points(kind),
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
         "script" => crate::scripts::points(),
+        "point" => crate::content::points(),
         "quest" => crate::quests::points(),
         "story" => crate::story::points(),
         "lc" => crate::lost_creations::points(),
@@ -643,6 +655,23 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 (Some(p), None) => reply(vec![format!("{} is online but not in a world yet", p.character_name)]),
                 (None, _) if name.is_empty() => reply(vec!["usage: !goto player <name>".into()]),
                 (None, _) => reply(vec![format!("nobody named {name} is online")]),
+            }
+        }
+        "point" if !args.is_empty() => Action::Point(args.join(" ")),
+        "point" => reply(vec!["usage: !point <name>".into()]),
+        "goto" if args.first().is_some_and(|k| k.eq_ignore_ascii_case("point")) && args.get(1).is_some_and(|n| n.parse::<usize>().is_err()) => {
+            let name = args[1..].join(" ").to_ascii_lowercase();
+            let all = crate::content::points();
+            // the label is "NAME (area/<pf>/<slug>)": by name or slug, this world's first
+            let fits = |l: &str| {
+                let l = l.to_ascii_lowercase();
+                l.split(' ').next() == Some(name.as_str()) || l.trim_end_matches(')').rsplit('/').next() == Some(name.as_str())
+            };
+            let found = all.iter().filter(|t| fits(&t.0)).min_by_key(|t| t.1 != playfield.model());
+            match found {
+                Some((label, pf, p)) if *pf == playfield.model() => Action::Enter(playfield, *p, f32::NAN, format!("going to point {label}")),
+                Some((label, pf, p)) => Action::Teleport(*pf, *p, f32::NAN, format!("going to point {label} in {}", playfield_name(*pf))),
+                None => reply(vec![format!("no point named {name} (!list point)")]),
             }
         }
         "goto" => {
@@ -907,7 +936,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         },
         "lc" => {
             use crate::lost_creations::Command;
-            let usage = || reply(vec!["usage: !lc [start [level] [map] | objective | finish | time <s> | end | <level>]".into()]);
+            let usage = || reply(vec!["usage: !lc [start [level] [map] | objective | finish | time <s> | end | variant [id] | <level>]".into()]);
             match args.first().copied() {
                 None => Action::Lc(Command::Status),
                 Some("start") => {
@@ -918,6 +947,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 Some("objective") => Action::Lc(Command::Objective),
                 Some("finish") => Action::Lc(Command::Finish),
                 Some("end") => Action::Lc(Command::End),
+                Some("variant") => Action::Lc(Command::Variant(args.get(1).map(|v| v.to_string()))),
                 Some("time") => match args.get(1).and_then(|n| n.parse::<u32>().ok()) {
                     Some(s) => Action::Lc(Command::Time(s)),
                     None => usage(),

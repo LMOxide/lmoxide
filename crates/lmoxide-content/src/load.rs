@@ -460,6 +460,19 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             }
         }
     }
+    // spawns on a named point: its position and facing
+    let points: Vec<(String, String)> = content.spawns.iter().filter_map(|(id, s)| Some((id.clone(), s.at.clone()?))).collect();
+    for (id, at) in points {
+        match content.areas.get(&at).and_then(|a| a.shape.as_ref()) {
+            Some(crate::Shape::Point { pos, rot }) => {
+                let (pos, rot) = (*pos, *rot);
+                let s = content.spawns.get_mut(&id).unwrap();
+                s.pos = pos;
+                s.rot = s.rot.or(rot);
+            }
+            _ => err(Severity::Error, Some(&merged[&id].1), Some(&id), format!("at: {at} isn't a point")),
+        }
+    }
     for (id, r) in &resolved {
         if let Some(e) = r.get("extends").and_then(Value::as_str)
             && kind_of(e) != kind_of(id)
@@ -687,6 +700,7 @@ fn find_numbers(value: &Value, key: &str, f: &mut dyn FnMut(u64)) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Rot;
     use serde_json::json;
 
     #[test]
@@ -751,7 +765,16 @@ mod tests {
         write(
             &dir,
             "worlds/4200-isle/spawns.json",
-            json!({ "spawns": [{ "id": "spawn/4200/a", "kind": "enemy", "template": "npc/specter", "pos": [1, 2, 3], "overrides": { "level": 7 } }] }),
+            json!({ "spawns": [
+                { "id": "spawn/4200/a", "kind": "enemy", "template": "npc/specter", "pos": [1, 2, 3], "overrides": { "level": 7 } },
+                { "id": "spawn/4200/on-pad", "kind": "enemy", "template": "npc/specter", "at": "area/4200/pad", "count": 3 },
+                { "id": "spawn/4200/turned", "kind": "enemy", "template": "npc/specter", "at": "area/4200/pad", "rot": 1.0 },
+            ] }),
+        );
+        write(
+            &dir,
+            "worlds/4200-isle/areas.json",
+            json!({ "areas": [{ "id": "area/4200/pad", "name": "NW_1", "role": "marker", "shape": { "point": { "pos": [5, 6, 7], "rot": -1.5 } }, "spread": 2.0 }] }),
         );
         write(
             &dir,
@@ -780,6 +803,11 @@ mod tests {
             c.spawn_npc(&c.spawns["spawn/4200/a"]).unwrap().level,
             Some(7)
         );
+        // on a named point: its position and facing, unless the spawn has its own
+        let p = &c.spawns["spawn/4200/on-pad"];
+        assert_eq!((p.pos, p.rot, p.count), ([5.0, 6.0, 7.0], Some(Rot::Heading(-1.5)), 3));
+        assert_eq!(c.spawns["spawn/4200/turned"].rot, Some(Rot::Heading(1.0)));
+        assert_eq!(c.spawns["spawn/4200/a"].count, 1);
 
         let opts = Options {
             features: vec!["live".into(), "feature/christmas".into()],
