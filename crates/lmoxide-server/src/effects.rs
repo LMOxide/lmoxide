@@ -81,7 +81,7 @@ pub fn show_buff(target: Id32, buff: u32, caster: Id32, duration: Option<std::ti
             if shown.get(&(target, buff)) == Some(&generation) {
                 shown.remove(&(target, buff));
                 drop(shown);
-                crate::world::send_playfield(target, true, crate::world::Out::Records(vec![buff_remove(target, buff, caster)]));
+                crate::world::send_playfield(target, true, crate::world::Out::Records(ended(target, buff, caster)));
             }
         });
     }
@@ -106,7 +106,7 @@ pub fn refresh_buff(target: Id32, buff: u32, caster: Id32, duration: std::time::
             if shown.get(&(target, buff)) == Some(&generation) {
                 shown.remove(&(target, buff));
                 drop(shown);
-                crate::world::send_playfield(target, true, crate::world::Out::Records(vec![buff_remove(target, buff, caster)]));
+                crate::world::send_playfield(target, true, crate::world::Out::Records(ended(target, buff, caster)));
             }
         });
     }
@@ -116,6 +116,20 @@ pub fn refresh_buff(target: Id32, buff: u32, caster: Id32, duration: std::time::
 /// Whether `buff` is shown on `target` (`show_buff`, not yet removed).
 pub fn is_shown(target: Id32, buff: u32) -> bool {
     SHOWN.lock().unwrap().contains_key(&(target, buff))
+}
+
+/// Buffs whose look the client doesn't undo when they end, and the effect package that does:
+/// Petrifying Gaze's stun turns the enemy to stone on add (its list-37 StartEffect 637015:
+/// desaturation up to 1) and only its own package 637013 (desaturation 0, `stunned` cleared)
+/// brings the colour back.
+const END_EFFECTS: &[(u32, u32)] = &[(16_090, 637_013)];
+
+/// The records for `buff` running out on `target`: its removal, and the effect that undoes its
+/// look (`END_EFFECTS`).
+fn ended(target: Id32, buff: u32, caster: Id32) -> Vec<Bytes> {
+    let mut records = vec![buff_remove(target, buff, caster)];
+    records.extend(END_EFFECTS.iter().filter(|(b, _)| *b == buff).map(|&(_, package)| effect_package(target, package)));
+    records
 }
 
 /// `buff` is no longer shown on `target` (removed by other means).
