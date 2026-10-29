@@ -13,7 +13,14 @@
 //!   !ach                      achievements earned, kill and smash counters
 //!   !count <kills|smashes|builds> [n] [name]   count n (default 1) defeats/builds for achievements
 //!   !defeat <boss name>       count a boss defeat (boss achievements, the active minifigure's)
-//!   !lc <level>               complete Lost Creations level <level> with the active minifigure (stub)
+//!   !lc                       the Lost Creations run you're in (level, map, phase, time left)
+//!   !lc start [level] [map]   a run alone from level [level] (default 1) on [map] (a level id or
+//!                             part of its name; default: as a run picks)
+//!   !lc objective|finish      the level's objective done / across the end at once
+//!   !lc time <s>              the timer set to <s> seconds
+//!   !lc end                   out of the run (to the Treasure Chamber)
+//!   !lc <level>               complete Lost Creations level <level> with the active minifigure
+//!                             (the achievements only)
 //!   !cleared                  count this playfield as cleared (pocket adventure achievements)
 //!   !xp [n]                   gain n XP (with --progression), show level and XP
 //!   !stars <n>                gain n stars (minifigure XP for ranking up)
@@ -117,6 +124,8 @@ pub enum Action {
     Window(u32),
     /// throw the player 6 m ahead (`!bounce`)
     Bounce(crate::jumppad::Tumble),
+    /// the Lost Creations (`!lc`)
+    Lc(crate::lost_creations::Command),
 }
 
 /// Every command with its usage and what it does (`!help`, and tools through `catalog`).
@@ -149,7 +158,12 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!unach <id ...>|all", "take achievements away (and the \"all of\" ones above them; all: also the journal and counters), to earn them again; story and tutorial progress stays"),
     ("!count <kills|smashes|builds> [n] [name]", "count n (default 1) defeats or builds for achievements"),
     ("!defeat <boss name>", "count a boss defeat (boss achievements, the active minifigure's)"),
-    ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (achievements only; the Lost Creations don't run yet)"),
+    ("!lc", "the Lost Creations run you're in: level, map, phase, time left"),
+    ("!lc start [level] [map]", "a Lost Creations run alone, from level [level] (default 1) on [map] (a level id or part of its name; default: as a run picks)"),
+    ("!lc objective|finish", "the level's objective done, or across the end at once"),
+    ("!lc time <s>", "the level's timer set to <s> seconds"),
+    ("!lc end", "out of the Lost Creations run (to the Treasure Chamber)"),
+    ("!lc <level>", "complete Lost Creations level <level> with the active minifigure (the achievements only)"),
     ("!cleared", "count this playfield as cleared, as when its last enemy falls (pocket adventure achievements)"),
     ("!dialog [n]", "play recorded NPC dialogue n (without n: list them)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
@@ -363,6 +377,7 @@ const KINDS: &[(&str, &str)] = &[
     ("ambush", "ambush areas (encounters)"),
     ("explore", "exploration achievement areas"),
     ("portal", "portals (walk 8 m away after arriving, then step in)"),
+    ("lc", "the Lost Creations door (Dinosaur Rise) and each level's start"),
     ("trigger", "tutorial triggers (1300; listed 6 m off, so !goto and the tour land inside)"),
     ("dialogue", "the live capture's dialogue speakers (arriving in the jail, or on Isle of Yarr after it, starts its dialogue; !dialog plays any)"),
     ("boss", "dungeon bosses"),
@@ -428,6 +443,7 @@ fn targets(kind: &str) -> Option<Vec<(String, u32, [f32; 3])>> {
         "boss" | "champion" | "enemy" | "npc" | "fighter" | "patrol" | "smashable" => crate::npc::points(kind),
         "script" => crate::scripts::points(),
         "quest" => crate::quests::points(),
+        "lc" => crate::lost_creations::points(),
         _ => return None,
     })
 }
@@ -693,10 +709,29 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             Some(how @ ("solve" | "reset")) => Action::Mirrors(how == "solve"),
             _ => reply(vec!["usage: !mirrors <solve|reset>".into()]),
         },
-        "lc" => match args.first().and_then(|n| n.parse::<u32>().ok()) {
-            Some(level) => Action::Progress(crate::achievements::Event::LostCreations { level }, 1),
-            None => reply(vec!["usage: !lc <level>".into()]),
-        },
+        "lc" => {
+            use crate::lost_creations::Command;
+            let usage = || reply(vec!["usage: !lc [start [level] [map] | objective | finish | time <s> | end | <level>]".into()]);
+            match args.first().copied() {
+                None => Action::Lc(Command::Status),
+                Some("start") => {
+                    let level = args.get(1).and_then(|n| n.parse::<u32>().ok());
+                    let map = args.get(if level.is_some() { 2 } else { 1 }..).map(|m| m.join(" ")).filter(|m| !m.is_empty());
+                    Action::Lc(Command::Start { level: level.unwrap_or(1), map })
+                }
+                Some("objective") => Action::Lc(Command::Objective),
+                Some("finish") => Action::Lc(Command::Finish),
+                Some("end") => Action::Lc(Command::End),
+                Some("time") => match args.get(1).and_then(|n| n.parse::<u32>().ok()) {
+                    Some(s) => Action::Lc(Command::Time(s)),
+                    None => usage(),
+                },
+                Some(n) => match n.parse::<u32>() {
+                    Ok(level) => Action::Progress(crate::achievements::Event::LostCreations { level }, 1),
+                    Err(_) => usage(),
+                },
+            }
+        }
         "cleared" => Action::Progress(crate::achievements::Event::Cleared { playfield: playfield.model() }, 1),
         "defeat" if !args.is_empty() => {
             Action::Progress(crate::achievements::Event::Defeated { id: Id32::new(0, 0), name: args.join(" "), smashable: false, boss: true, champion: false, level: 1, playfield: playfield.model() }, 1)

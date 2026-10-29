@@ -17,8 +17,8 @@ use lmoxide_net::{
         gameserver_to_client_rpc as client,
     },
     proto::{
-        PlayfieldProxyData, ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir, ProtoInventoryGameEntry,
-        ProtoGameCodeDynelIir, ProtoId32, ProtoQuat,
+        ProtoAcgItem, ProtoCoreCharacterIir, ProtoFullCharacterIir, ProtoInventoryGameEntry,
+        ProtoGameCodeDynelIir, ProtoQuat,
         ProtoVec3, proto_core_character_iir,
     },
     types::Id32,
@@ -113,6 +113,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     let playfield = place;
                     let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
                     send_records(&mut conn, character, records).await?;
+                    crate::lost_creations::moved(character, place, here);
                 }
                 continue;
             }
@@ -192,6 +193,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
                             let records = crate::quests::on_event(&mut quest_tracker, &mut me, character, &event, 1);
                             send_records(&mut conn, character, records).await?;
+                            if !shared {
+                                // (a teammate's defeat counts once: as theirs)
+                                crate::lost_creations::on_event(character, &event);
+                            }
                         }
                         world::Out::Kick(reason) => {
                             info!(character, ?reason, "kicked");
@@ -239,12 +244,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     world::Out::Smashed(template) => {
                         // locked for the rebuild time; the client switches to the next minifigure
                         if let std::collections::btree_map::Entry::Vacant(e) = me.smashed.entry(template) {
-                            let until = crate::smash::now_ms() + crate::smash::REBUILD.as_millis() as i64;
+                            // in a Lost Creations run: until the run is over for the player
+                            let in_run = crate::lost_creations::in_run(character);
+                            let rebuild = if in_run { crate::lost_creations::NO_REBUILD } else { crate::smash::REBUILD };
+                            let until = crate::smash::now_ms() + rebuild.as_millis() as i64;
                             e.insert(until);
-                            info!(character, template, "minifigure smashed");
+                            info!(character, template, in_run, "minifigure smashed");
                             let args = crate::smash::lock_args(template, until);
                             conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::LOCK_TEMPLATE, args).await?;
-                            schedule_rebuild(&outbox, template, until);
+                            if !in_run {
+                                schedule_rebuild(&outbox, template, until);
+                            }
                             // the client switches to the next team member itself (health 0): the first
                             // of slots 6, 8, 20 that isn't smashed (ItemHolder::
                             // TrySwitchMinifigureFromFatigued); the server follows. With the whole
@@ -268,8 +278,24 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                                 in_limbo = true;
                                 world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_LIMBO)]));
+                                // a Lost Creations run is over for them ("You were smashed!")
+                                crate::lost_creations::wiped(character);
                             }
                         }
+                    }
+                    world::Out::Lc(crate::lost_creations::Order::Enter(to, at, rot)) => {
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, &mut place, None, Some((at, rot))).await?;
+                    }
+                    world::Out::Lc(crate::lost_creations::Order::Out { levels }) => {
+                        // to the Treasure Chamber, every minifigure rebuilt at once, the rewards there
+                        let Some((chamber, at, rot)) = crate::lost_creations::treasure_chamber() else { continue };
+                        revive_all(&mut conn, character, &mut me, &collection, &mut in_limbo).await?;
+                        let to = crate::instance::arrival(mode, chamber, character);
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, to, &mut place, None, Some((at, rot))).await?;
+                        crate::lost_creations::rewards_wait(character, levels);
+                    }
+                    world::Out::Rebuilt(_) if crate::lost_creations::in_run(character) => {
+                        // nothing is rebuilt inside a Lost Creations run
                     }
                     world::Out::Rebuilt(template) => {
                         if me.smashed.get(&template).is_some_and(|&until| until <= crate::smash::now_ms()) {
@@ -389,6 +415,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                             records.extend(health_records(h.identity, template, me.upgrade(template), me.level()));
                         }
+                        // the zone's element (the minimap ring), as live sent it on every entry
+                        let element = crate::worlds::element(place);
+                        records.push(stat_record(h.identity, STAT_ELEMENTAL_TYPE, element));
+                        records.push(stat_update_record(h.identity, &[(STAT_ELEMENTAL_TYPE, element)]));
                         let echo = iir::pass_blob(&records);
                         // The HUD shows the active minifigure's left/right-click spells, but they
                         // can't be cast until learned: LearnSpell(int spell) for the whole team.
@@ -484,6 +514,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             // the dialogue the live server started on arrival here (the jail's)
                             crate::knubot::arrived(id, &me.name, place, &|t| me.tags.contains_key(&t));
+                            // a Lost Creations level: the run's buffs, quest, the button's arrow
+                            let records = crate::lost_creations::arrived(character, place);
+                            send_records(&mut conn, character, records).await?;
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(here)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }
@@ -532,6 +565,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_records(&mut conn, character, records).await?;
                             crate::encounter::moved(h.identity, place, p);
                             crate::plates::moved(place, from, p);
+                            crate::lost_creations::moved(character, place, p);
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(p)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
                             }
@@ -643,6 +677,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     // the player stands, as live did
                                     if action != INTERACTION_STOP_USE {
                                         portals.use_door(&mut conn, character, portal).await?;
+                                    }
+                                    stop_after_success = true;
+                                } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
+                                    && let Some((object, action)) = interaction_object(data)
+                                        .filter(|&(object, _)| crate::lost_creations::is_fixture(place.model(), object.kind, crate::instance::fixture_base(object.instance)))
+                                {
+                                    // the Lost Creations: the entry door, a level's start button and exit door
+                                    let base = crate::instance::fixture_base(object.instance);
+                                    if action != INTERACTION_STOP_USE {
+                                        if object.kind == crate::teleport::DOOR_TYPE && crate::lost_creations::is_entry_door(place.model(), base) {
+                                            crate::lost_creations::use_entry(character);
+                                        } else if object.kind == crate::teleport::DOOR_TYPE {
+                                            crate::lost_creations::use_door(character, place, base);
+                                        } else {
+                                            crate::lost_creations::press(character, place, base);
+                                        }
                                     }
                                     stop_after_success = true;
                                 } else if command_type == crate::buildie::COMMAND_OBJECT_INTERACTION
@@ -820,6 +870,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             None => info!(command_type, rest = %crate::conn::hex(rest), "command (unparsed)"),
                         }
+                        if command_type == COMMAND_EQUIP_ITEM && crate::lost_creations::cant_equip(character) {
+                            // no equipping during a Lost Creations round
+                            refused = true;
+                        }
                         let action_at = blob.len() - rest.len();
                         let mut reply = blob.to_vec();
                         reply[action_at] = if refused { BCC_COMMAND_FAILED } else { BCC_COMMAND_SUCCEEDED };
@@ -879,6 +933,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                         }
                         if command_type == COMMAND_EQUIP_ITEM
+                            && !refused
                             && let Some((_, data)) = parse_command(rest)
                             && let Some((slot, template)) = equip(&mut me, &mut collection, data)
                         {
@@ -1015,6 +1070,20 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         .await?;
                 }
             }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::ENDLESS_PLAYFIELDS_TELEPORT_MESSAGE_BOX_ANSWER) => {
+                // EndlessPlayfieldsTeleportMessageBoxAnswer(int answer, int ctx): the Lost Creations
+                // windows (lost_creations.rs)
+                let answer = r.i32()?;
+                let ctx = r.i32()?;
+                crate::lost_creations::window_answer(character, answer, ctx);
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::ENDLESS_PLAYFIELDS_INVITATION_ANSWER) => {
+                // EndlessPlayfieldsInvitationAnswer(int answer)
+                let answer = r.i32()?;
+                crate::lost_creations::invitation_answer(character, answer);
+            }
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::START_ENDLESS_WARMUP) => crate::lost_creations::start_warmup(character),
+            (Some(Endpoint::GameCharAgentProject), game_char_agent_project::LEAVE_ENDLESS_PLAYFIELDS) => crate::lost_creations::quit(character),
             (Some(Endpoint::GameCharAgent), game_char_agent::SCRY_MESSAGE_BOX_ANSWER) => {
                 // ScryMessageBoxAnswer(int answer, int ctx, uint64 cookie): 1 Yes, 2 No or closed
                 let answer = r.i32()?;
@@ -1367,39 +1436,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             crate::chat::system(character, &answer);
                         }
                         crate::devcmd::Action::Revive => {
-                            // the server's health of each minifigure, then the client's: the
-                            // MinifigureHealth item stat it switches to (a smashed one has 0) and
-                            // the active one's Life and Health
-                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                            crate::npc::revive_player(id);
-                            for template in std::mem::take(&mut me.smashed).into_keys() {
-                                let args = crate::smash::unlock_args(template);
-                                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UNLOCK_TEMPLATE, args).await?;
-                            }
-                            if std::mem::take(&mut in_limbo) {
-                                world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_NORMAL)]));
-                            }
-                            let items = me.team.iter().map(|&(p, t)| (crate::collection::TEAM_INVENTORY, p, t)).chain(
-                                collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (crate::collection::COLLECTION_INVENTORY, p as u32, t))),
-                            );
-                            let mut n = 0;
-                            for (inventory, p, t) in items.collect::<Vec<_>>() {
-                                let (_, full) = crate::combat::item_life(t, me.upgrade(t), me.level());
-                                let args = Id32::new(inventory, character)
-                                    .write(Writer::new())
-                                    .i32(p as i32)
-                                    .i32(crate::collection::STAT_MINIFIGURE_HEALTH as i32)
-                                    .i32(full as i32)
-                                    .finish();
-                                conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
-                                n += 1;
-                            }
-                            if let Some(&(_, t)) = me.team.first() {
-                                let records = health_records(id, t, me.upgrade(t), me.level());
-                                conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
-                            }
+                            let n = revive_all(&mut conn, character, &mut me, &collection, &mut in_limbo).await?;
                             info!(character, minifigures = n, "dev revive");
                             crate::chat::system(character, &format!("{n} minifigures revived"));
+                        }
+                        crate::devcmd::Action::Lc(cmd) => {
+                            for line in crate::lost_creations::command(character, cmd) {
+                                crate::chat::system(character, &line);
+                            }
                         }
                         crate::devcmd::Action::RemoveAchievements(which) => {
                             let _ = outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(None))));
@@ -1753,6 +1797,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // collection (which ends it too)
                 let spawn = r.u32()?;
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                if crate::lost_creations::in_run(character) {
+                    // out to the Treasure Chamber shortly (lost_creations::wiped)
+                    continue;
+                }
                 let ready = me.team.iter().enumerate().filter(|(_, (_, t))| !me.smashed.contains_key(t)).min_by_key(|(_, (slot, _))| *slot).map(|(i, _)| i);
                 info!(character, spawn, ready = ready.is_some(), "RespawnMe");
                 if let Some(i) = ready {
@@ -1791,6 +1839,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
             _ => warn!(args = %crate::conn::hex(&rpc.args), "unhandled"),
         }
     }
+    if character != 0 {
+        crate::lost_creations::disconnected(character);
+    }
     drop(community);
     if character != 0 {
         crate::npc::player_left(Id32::new(crate::territory::CHARACTER_TYPE, character));
@@ -1806,6 +1857,36 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
         }
     }
     Ok(())
+}
+
+/// Every minifigure of the player (team and collection) rebuilt at full health: the server's
+/// health of each, then the client's: the MinifigureHealth item stat it switches to (a smashed
+/// one has 0) and the active one's Life and Health. How many.
+async fn revive_all(conn: &mut Conn, character: u32, me: &mut Character, collection: &Collection, in_limbo: &mut bool) -> anyhow::Result<u32> {
+    let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+    crate::npc::revive_player(id);
+    for template in std::mem::take(&mut me.smashed).into_keys() {
+        let args = crate::smash::unlock_args(template);
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::UNLOCK_TEMPLATE, args).await?;
+    }
+    if std::mem::take(in_limbo) {
+        world::send_playfield(id, true, world::Out::Records(vec![stat_record(id, STAT_BCC_STATE, BCC_STATE_NORMAL)]));
+    }
+    let items = me.team.iter().map(|&(p, t)| (crate::collection::TEAM_INVENTORY, p, t)).chain(
+        collection.slots.iter().enumerate().filter_map(|(p, t)| t.map(|t| (crate::collection::COLLECTION_INVENTORY, p as u32, t))),
+    );
+    let mut n = 0;
+    for (inventory, p, t) in items.collect::<Vec<_>>() {
+        let (_, full) = crate::combat::item_life(t, me.upgrade(t), me.level());
+        let args = Id32::new(inventory, character).write(Writer::new()).i32(p as i32).i32(crate::collection::STAT_MINIFIGURE_HEALTH as i32).i32(full as i32).finish();
+        conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SET_ITEM_STAT, args).await?;
+        n += 1;
+    }
+    if let Some(&(_, t)) = me.team.first() {
+        let records = health_records(id, t, me.upgrade(t), me.level());
+        conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+    }
+    Ok(n)
 }
 
 /// Collectibles, boomboxes and exploration areas where the player is that it hasn't found yet.
@@ -2748,14 +2829,9 @@ pub const PLAYFIELD_TYPE: u32 = 51100;
 /// empty stream yields garbage, which made the client allocate until it ran out of memory.
 fn playfield_full_update(playfield: Pf) -> bytes::Bytes {
     let id = Id32::new(PLAYFIELD_TYPE, playfield.model());
-    let proxy = PlayfieldProxyData {
-        dimension_id: Some(1),
-        model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield.model()) }),
-        // key of the client's playfield map ("Inserting playfield N in map"); dynels refer to it
-        // via ProtoGameCodeDynelIIR.playfield_instance
-        running_instance: Some(playfield.key()),
-        ..Default::default()
-    };
+    // its running_instance is the key of the client's playfield map ("Inserting playfield N in
+    // map"); dynels refer to it via ProtoGameCodeDynelIIR.playfield_instance
+    let proxy = crate::teleport::proxy(playfield);
     iir::record("PlayfieldFIIR_t", id, false, |w| {
         let empty_list = 0u32.to_be_bytes();
         let w = w.u32(0).u32(0).u32(0).proto(&proxy).u32(0).blob(&empty_list).blob(&empty_list);
@@ -2995,6 +3071,14 @@ pub fn stat_record(id: Id32, stat: u32, value: u32) -> bytes::Bytes {
     iir::record("StatIIR_t", id, false, |w| w.u32(stat).u32(value))
 }
 
+/// `StatUpdateIIR_c`: u32 n, n x (u32 stat, u32 value), u32 0, u32 0 (as live sent them).
+pub fn stat_update_record(id: Id32, stats: &[(u32, u32)]) -> bytes::Bytes {
+    iir::record("StatUpdateIIR_c", id, false, |w| stats.iter().fold(w.u32(stats.len() as u32), |w, &(s, v)| w.u32(s).u32(v)).u32(0).u32(0))
+}
+
+/// The player's element stat (the zone's: the minimap ring, MinimapElementalFrame).
+pub const STAT_ELEMENTAL_TYPE: u32 = 3_000_109;
+
 /// What the character IIRs need to know about a character, player or NPC.
 pub struct CharSpec<'a> {
     pub name: &'a str,
@@ -3228,6 +3312,13 @@ mod tests {
         // the active one leaves: the first newcomer takes its slot and is active
         set_team(&mut me, &mut collection, &[a, d, c]);
         assert_eq!(me.team, vec![(8, a), (6, d), (20, c)]);
+    }
+
+    #[test]
+    fn stat_updates_as_live() {
+        // LMO_Captures.cap 724.59: two stats (1439 = 1, ElementalType = 0)
+        let r = stat_update_record(Id32::new(50000, 0x0100_0cb8), &[(0x59f, 1), (STAT_ELEMENTAL_TYPE, 0)]);
+        assert!(crate::conn::hex(&r).ends_with("0000c35001000cb800000000020000059f00000001002dc72d000000000000000000000000"));
     }
 
     #[test]

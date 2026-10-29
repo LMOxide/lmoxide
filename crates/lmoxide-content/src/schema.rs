@@ -165,6 +165,13 @@ pub const KIND_INFO: &[KindInfo] = &[
         per_world: false,
         list: &["kind", "world", "area"],
     },
+    KindInfo {
+        kind: "lc",
+        title: "Lost Creations level",
+        plural: "Lost Creations levels",
+        per_world: false,
+        list: &["world", "mode"],
+    },
 ];
 
 /// The files that aren't records, with their schema.

@@ -29,10 +29,11 @@ pub enum RecordKind {
     Dialogue,
     Achievement,
     Quest,
+    Lc,
 }
 
 impl RecordKind {
-    pub const ALL: [RecordKind; 20] = [
+    pub const ALL: [RecordKind; 21] = [
         RecordKind::World,
         RecordKind::Spawn,
         RecordKind::Portal,
@@ -53,6 +54,7 @@ impl RecordKind {
         RecordKind::Dialogue,
         RecordKind::Achievement,
         RecordKind::Quest,
+        RecordKind::Lc,
     ];
 
     pub fn as_str(self) -> &'static str {
@@ -77,6 +79,7 @@ impl RecordKind {
             RecordKind::Dialogue => "dialogue",
             RecordKind::Achievement => "achievement",
             RecordKind::Quest => "quest",
+            RecordKind::Lc => "lc",
         }
     }
 

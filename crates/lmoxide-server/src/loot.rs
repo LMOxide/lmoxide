@@ -289,6 +289,17 @@ fn pick(items: &[u32]) -> Option<u32> {
     (!items.is_empty()).then(|| items[(random() % items.len() as u64) as usize])
 }
 
+/// A random number below `n` (> 0).
+pub fn random_below(n: u32) -> u32 {
+    (random() % u64::from(n.max(1))) as u32
+}
+
+/// One of minifigure `template`'s parts (item template), by where it is (rarity
+/// `part_locations`).
+pub fn part_item(template: u32) -> Option<u32> {
+    TABLES.part_items.get(&template).and_then(|p| pick_weighted(p))
+}
+
 /// One of `items` (weight, value), by weight.
 fn pick_weighted(items: &[(u32, u32)]) -> Option<u32> {
     let total: u64 = items.iter().map(|&(w, _)| u64::from(w)).sum();
@@ -415,6 +426,9 @@ pub fn drop_loot(killer: Id32, playfield: Pf, pos: [f32; 3], dropper: Id32, sour
             owners.push(id);
         }
     }
+    // inside a Lost Creations run enemies drop hearts only
+    let lc_table = (source != Source::Smashable && crate::lost_creations::element(playfield).is_some()).then(|| crate::gamedata::get().tunables.lost_creations.enemy_loot.clone());
+    let table = lc_table.as_deref().or(table);
     for owner in owners {
         let bonus = crate::procs::orb_bonus(owner);
         let items = match table {

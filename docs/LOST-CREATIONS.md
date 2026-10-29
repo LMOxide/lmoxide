@@ -1,7 +1,7 @@
 # Lost Creations (plan and hand-off)
 
-Status (2026-10-28): researched and planned, nothing built. This file is the hand-off for the session
-that builds it. Keep it current while building (a "Progress" list at the end).
+Status (2026-10-28): built (steps 1-3, 5 and parts of 4 and 6; see "Progress" at the end), solo runs
+verified in the Linux client; teams not tried with two clients yet.
 
 Sources, in order of authority:
 1. **The user's memory of live** (2026-10-28, below as "User rules"). Where the client data or the live
@@ -229,3 +229,39 @@ Test commands to add (devcmd.rs, README table): `!goto lc-entry`, `!lc start [le
 - Start positions of the levels other than 7104 / 7600; enemy rosters and counts per level/variant.
 - What `LockTemplate(t, 0 s, flags 0x10)` for ~50 templates at 1323 s in the capture meant.
 - The Treasure Chamber flow on live (chest spawn, buff 530365, how rewards were handed out).
+
+## Progress
+
+Built 2026-10-28 (lost_creations.rs; content `lc` records in content/lost-creations, tunables
+`lost_creations`; numbers in docs/TUNABLES.md "Lost Creations"):
+
+1. Elements: world `element` (tools/re/extract_elements.py: 33 worlds), PlayfieldProxyData
+   `elemental_type`, stat ElementalType after every CharInPlay (StatIIR_t + StatUpdateIIR_c), the
+   door tail. Verified: Natives' Hollow's minimap ring is Magic; the portal to it in Isle of Yarr
+   glows purple (not compared with the old build).
+2. Content: tools/re/extract_lost_creations.py writes the 11 levels' gates, buttons, exit doors,
+   Start/End areas and `lc` records (kind `instance`), the Treasure Chamber's door and areas;
+   the Smash and Gatekeeper quests' steps are in the client's order now (objective first).
+3. Solo run, verified in the Linux client: entry door -> window (client texts, requirement quest
+   81HI "Test your mettle inside the Gauntlet") -> new copy of Candy Mayhem (red gate, button
+   arrow, quest, quit button, no-rebuild icons, element ring) -> E on the button -> "Ready to
+   start?" -> countdown -> green gate, clock with the level badge -> End: "QUEST COMPLETED", clock
+   gone, achievement event -> exit door -> "You completed level 1!" Continue -> level 2 in a new
+   copy; time up ("Time's Up!"), all minifigures smashed ("You were smashed!"), the HUD quit and
+   `!lc end` -> Treasure Chamber, every minifigure rebuilt; rewards drop when walking into
+   BA_TriggerDropLoot ("Grandma Body"). A reconnect into a level outside a run -> Treasure Chamber.
+4. Teams: built, NOT tried with two clients: invitations (type 2 + 0x24), Cancel / no answer ->
+   SignalEndlessAborted to everyone, exit door: 0x1f until everyone is across, type 1 / type 3,
+   End Run only that player, server-side team removal, team invites into or out of a run refused
+   (0xc2). The invitation/continue windows' `time_left` is sent as seconds (a guess).
+5. Rules: no rebuild inside, no equipping while the timer runs (refused EquipItemCommand; the
+   CantEquip buff), hearts-only enemy loot, element blocks, Gatekeeper every 5th (off while
+   `force_level` is set). Equip refusal not tried in the client.
+6. Rewards in 7001 done; achievements: Event::LostCreations per completed level. Not done: the
+   other levels' enemies (their worlds have no spawns: a run there is a walk to the end), the
+   Gatekeeper's spawn (lc `gatekeepers` empty: no NPC records known), level variants (the model
+   and npc.rs filter exist, no level has any), achievements 4701/4703/4702 and 3649.
+
+Open beyond the list above: mouse clicks on the start button didn't register when injected (E
+works; the user should try clicking); the HUD portrait after the wipe showed the first slot's
+minifigure while the character wore the third's (the old teleport portrait desync?).

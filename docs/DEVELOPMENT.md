@@ -34,7 +34,7 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!where` | current playfield and position |
 | `!instance [copy]` | which running copy of this world you are in (instance.rs); `!instance 1` goes to copy 1 at the same spot (other copies have no residents yet), `!instance 0` back to the main one |
 | `!tp <playfield or name>` | go to a playfield's arrival point (`!tp 5200`, `!tp kingdom`) |
-| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas) |
+| `!list <kind>` | numbered test targets of a kind: `buildie`, `pad`, `lever`, `plate`, `gate`, `mirror`, `collectible`, `boombox`, `portal`, `trigger`, `arena`, `ambush`, `explore`, `boss`, `champion`, `enemy`, `npc`, `fighter`, `patrol`, `dialogue`, `smashable`, `script`, `quest` (area quests' areas), `lc` (the Lost Creations door, each level's start) |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
 | `!dialog [n]` | play recorded NPC dialogue n (without n: list them) |
 | `!script [list]` | this playfield's approved, active scripts (world editor) with their waves, triggers, placements and what is running (`!goto script n` goes to one) |
@@ -58,6 +58,12 @@ from "Server" (`crates/lmoxide-server/src/devcmd.rs`).
 | `!smash` | smash the nearest smashable (or defeat the nearest enemy) within 15 m |
 | `!sleep <secs>` | in `LMOXIDE_DEV_COMMANDS` only: wait before the next command |
 | `!ach` | achievements earned, kill and smash counters, most defeated enemies, playfields visited, finds |
+| `!lc` | the Lost Creations run you're in: level, map, copy, element, phase, quest step, who is across, time left |
+| `!lc start [level] [map]` | a Lost Creations run alone from level [level] (default 1) on [map] (`candy-mayhem`, or part of a level's name; default: as a run picks); `!goto lc` is the entry door in Dinosaur Rise, `!goto lc n` a level's start |
+| `!lc objective` / `!lc finish` | the level's objective done (the end gate opens) / across the end at once |
+| `!lc time <s>` | the level's timer set to `<s>` seconds (`!lc time 3`: "Time's Up!") |
+| `!lc end` | out of the run, to the Treasure Chamber (its rewards drop in the loot area by the chests) |
+| `!lc <level>` | count Lost Creations level `<level>` as completed with the active minifigure (achievements only) |
 | `!quests [reset]` | area quests started, their progress and cooldowns; reset: clear them so they start again |
 | `!unach <id ...>` / `!unach all` | take achievements away to earn them again (the "all of" ones above go too; `all` also clears the journal and counters); story and tutorial progress stays |
 | `!count <kills\|smashes\|builds> [n] [name]` | count n defeats, smashes or builds for achievements (e.g. `!count kills 1000`, `!count kills 50 Witch`) |

@@ -102,6 +102,12 @@ fn group_element(st: &State, instance: u32, slot: Option<usize>) -> GroupElement
     }
 }
 
+/// `GroupVec_t`: vector<GroupElement_c> of `members` (SignalEndlessAborted's names).
+pub fn group_vec(w: Writer, members: &[u32]) -> Writer {
+    let st = STATE.lock().unwrap();
+    members.iter().fold(w.container_len(members.len()), |w, &m| w.proto(&group_element(&st, m, None)))
+}
+
 fn ge_args(st: &State, instance: u32) -> Writer {
     let slot = st.team_of.get(&instance).and_then(|t| st.teams[t].members.iter().position(|&m| m == instance));
     Writer::new().proto(&group_element(st, instance, slot))
@@ -452,6 +458,12 @@ fn invite(character: u32, target: u32) {
     if st.team_of.contains_key(&target) {
         let args = ge_args(&st, target).finish();
         send_cs(&st, character, cs::TARGET_IS_ALREADY_IN_TEAM, args);
+        return;
+    }
+    if crate::lost_creations::in_run(target) || crate::lost_creations::in_run(character) {
+        // nobody joins a team inside the Lost Creations
+        let args = ge_args(&st, target).finish();
+        send_cs(&st, character, cs::TEAM_INVITE_TARGET_IN_ENDLESS_PLAYFIELD, args);
         return;
     }
     st.invites.insert(target, character);

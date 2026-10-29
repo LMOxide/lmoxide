@@ -1502,6 +1502,8 @@ pub fn loot_and_tunables(
                 )
             })
             .collect(),
+        // (written by hand, not imported)
+        lost_creations: std::mem::take(&mut tree.tunables.lost_creations),
         more: std::mem::take(&mut tree.tunables.more),
     };
     Ok(())

@@ -297,3 +297,28 @@ for them, not live values.
 | Over | `scripts.rs` `can_still_start` | every spawn defeated and no waiting wave can start by itself (`after`, `enter_area`, `wave_cleared` of a wave that can, `health_below` of a placement still to spawn) | Chosen; a wave without a trigger doesn't keep a script running. |
 | Reset | `npc.rs` `ai` → `scripts::playfield_emptied` | when the empty playfield's NPCs reset, running scripts end and their spawns go | Chosen. |
 | Trigger check | `scripts.rs` `TICK` | 0.5 s | Assumed. |
+
+## Lost Creations (`lost_creations.rs`, content/lost-creations, tunables.json `lost_creations`)
+
+docs/LOST-CREATIONS.md has the rules and the client protocol; these are the values chosen where
+neither the user, the client nor the live capture (a solo Funhouse run) says.
+
+| Value | Where | Now | Source / reasoning |
+|---|---|---|---|
+| Which level | `force_level` | always Candy Mayhem (TEMPORARY, the user's) | Without it: the Gatekeeper's level on every `gatekeeper_every` (5)th, else a random other finished level (the user). |
+| Level time, warm-up | `level_time`, `warmup` | 300 s, 5 s; the timer buff added at 200 s then updated to 300 s | Live (capture 736.33). |
+| Invitation answer time | `invitation_time` | 30 s, then as Cancel (aborts for everyone) | Guess; the user: no answer aborts. |
+| Continue answer time | `continue_time` | 60 s, then End Run for whoever didn't answer | Guess. |
+| Closing the continue window (X) | `cancel_continue` | nobody goes yet, every window closes; the exit door asks again | Chosen (the client sends -1 / 0, not an answer). |
+| Out after a wipe or time up | `smashed_delay` | 4 s (the splash shows; the client's EndlessSplashTimer is 6 s) | Guess. |
+| Time up | `time_up` | the server removes the timer buff at the deadline (the client shows "Time's Up!" when it is removed with < 1 s left; left alone the clock counts on past 0) | Seen in the Linux client. |
+| A disconnect | `disconnected` | out of the run (its rewards wait for the next login, which puts them in the Treasure Chamber) | Chosen: a run can't wait for a player. |
+| Logging in in a level outside a run | `arrived` | to the Treasure Chamber, minifigures rebuilt (a reconnect after the run, a server restart) | Chosen. |
+| Element | `element_block` | random at the start, another random one after each block of 5 levels | The user: it changes every 5 levels (which one: unknown). |
+| Rebuild inside | game.rs `Smashed` | a smashed minifigure is locked for 20000 s (as CantResurrectWeapons) and rebuilt only on leaving | The user: no rebuilds inside. |
+| Enemy loot | `enemy_loot` (loot/lost-creations-enemy) | a heart at 31% (the enemy bag's heart chance) | The user: hearts only; how often is a guess. |
+| Rewards | `reward_pools`, `levels_per_pool`, `parts_per_pool` | levels completed in the run (not the level reached) ÷ 3 rounded up pools; 0-2 parts per pool, uniform, either minifigure, any part (by part rarity) | The user's pools and "a pool every 3 levels"; the counts a guess (user unsure). |
+| Where the rewards drop | `REWARD_SPOT`, `BA_TriggerDropLoot` | a bag at the chest anchor (549087) when the player walks into the client's BA_TriggerDropLoot area | The area's name; the chests 531717/531718 and buff 530365 aren't used (unknown). |
+| Start positions | lc `start` | Candy Mayhem and Gatekeeper's Realm the user's; the other nine 2 m from the button away from the gate (tagged todo) | The client has none. |
+| Button | lost_creations.rs | the client's StartButton dynel, usable as live's: template 482763 ("XX_Interactable"), interaction radius 50, an invisible dummy NPC with Button Arrow over it | Live (the Funhouse's button was its own dynel). |
+| Stat 864 | `STAT_EQUIP_FLAGS` | 0x10000 with CantEquipWeapons, 0 at the end | Live sent it; meaning unknown. |

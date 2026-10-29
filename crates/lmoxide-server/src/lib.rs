@@ -25,6 +25,7 @@ mod instance;
 mod jumppad;
 mod knubot;
 mod loot;
+mod lost_creations;
 mod minifigs;
 mod mirrors;
 mod npc;
@@ -352,6 +353,7 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     jumppad::start();
     scenery::start();
     teleport::start();
+    lost_creations::start();
     mirrors::start();
     gates::start();
     plates::start();

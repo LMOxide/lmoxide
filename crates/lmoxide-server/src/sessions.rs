@@ -133,6 +133,17 @@ impl Drop for OnlineGuard {
     }
 }
 
+/// Sends `out` to `character`'s connection, wherever it is (between playfields too); false if it
+/// isn't online.
+pub fn send(character: u32, out: world::Out) -> bool {
+    ONLINE.lock().unwrap().get(&character).is_some_and(|o| o.outbox.send(out).is_ok())
+}
+
+/// The game mode of a character that is online.
+pub fn mode_of(character: u32) -> Option<crate::instance::Mode> {
+    ONLINE.lock().unwrap().get(&character).map(|o| o.mode)
+}
+
 /// Whether a character is in play.
 pub fn is_online(character: u32) -> bool {
     ONLINE.lock().unwrap().contains_key(&character)

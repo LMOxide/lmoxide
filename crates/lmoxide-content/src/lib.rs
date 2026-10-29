@@ -67,6 +67,7 @@ pub const KINDS: &[(&str, &str)] = &[
     ("dialogue", "dialogues/"),
     ("achievement", "achievements/"),
     ("quest", "quests/"),
+    ("lc", "lost-creations/"),
 ];
 
 /// The kind of an id (`npc/pirate-specter` -> `npc`), if it's one.
@@ -124,6 +125,7 @@ pub fn schemas() -> Vec<(&'static str, serde_json::Value)> {
         ("dialogue", schema!(Dialogue)),
         ("achievement", schema!(Achievement)),
         ("quest", schema!(Quest)),
+        ("lc", schema!(LcLevel)),
         ("content", schema!(Manifest)),
         ("tunables", schema!(Tunables)),
         ("texts", schema!(Texts)),

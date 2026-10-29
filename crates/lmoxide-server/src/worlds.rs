@@ -56,6 +56,8 @@ pub fn ensure(pf: Pf) {
     crate::gates::spawn_world(pf);
     crate::mirrors::spawn_world(pf);
     crate::tiki::spawn_world(pf);
+    crate::lost_creations::spawn_world(pf);
+    crate::lost_creations::spawn_entry(pf);
     info!(playfield = ?pf, mode = crate::instance::mode_of(pf).id(), ms = started.elapsed().as_millis() as u64, "world copy spawned");
 }
 
@@ -72,6 +74,8 @@ pub fn drop_copy(pf: Pf) {
     crate::gates::despawn_world(pf);
     crate::mirrors::despawn_world(pf);
     crate::tiki::despawn_world(pf);
+    crate::lost_creations::despawn_world(pf);
+    crate::lost_creations::despawn_entry(pf);
     crate::encounter::forget(pf);
     crate::scripts::playfield_emptied(pf);
     crate::preview::end(pf);
@@ -96,4 +100,16 @@ pub fn copies_of(model: u32) -> Vec<Pf> {
     let mut v: Vec<Pf> = SPAWNED.lock().unwrap().iter().copied().filter(|pf| pf.model() == model).collect();
     v.sort();
     v
+}
+
+/// The element of copy `pf` (stat ElementalType 3000109 and PlayfieldProxyData `elemental_type`:
+/// the minimap's ring): a Lost Creations level's run element, else its world's (content
+/// `element`; 0 none).
+pub fn element(pf: Pf) -> u32 {
+    crate::lost_creations::element(pf).unwrap_or_else(|| element_of(pf.model()))
+}
+
+/// The element of playfield `model` (content `element`; 0 none).
+pub fn element_of(model: u32) -> u32 {
+    crate::gamedata::get().world_by_playfield(model).and_then(|w| w.element).map_or(0, |e| e.id())
 }

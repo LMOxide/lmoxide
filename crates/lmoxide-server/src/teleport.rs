@@ -172,8 +172,18 @@ pub fn despawn_world(pf: Pf) {
 
 /// UpdateMessage + `DoorFullUpdateIIR_c` as live sent a portal's door: ProtoGameCodeDynelIIR,
 /// ProtoSimpleDynelIIR (no collision, its name, the TDB 55000 name, CARS group 1, field 7 =
-/// 51016, closed), visual, u32 0, an empty box (all f32 max), scale, 13 zero bytes.
+/// 51016, closed), visual, u32 0, an empty box (all f32 max), scale, u32 0, u8 0, u32 stat 169
+/// (0), u32 the destination's element (DoorFullUpdateIIR_c::ReadSubClass: the door's stat
+/// ElementalType, its map marker's element).
 fn door_records(d: &Door, playfield: Pf) -> Vec<Bytes> {
+    let element = door_portal(d.guid).map_or(0, |(to, _)| crate::worlds::element_of(to));
+    door_dynel_records(d.guid, &d.name, d.pos, d.rot, d.scale, d.visual, element, playfield)
+}
+
+/// A door's spawn records (`door_records`): any usable door, `element` its destination's.
+#[allow(clippy::too_many_arguments)]
+pub fn door_dynel_records(guid: u32, name: &str, pos: [f32; 3], rot: [f32; 4], scale: f32, visual: [u32; 2], element: u32, playfield: Pf) -> Vec<Bytes> {
+    let d = Door { guid, name: name.to_string(), pos, rot, scale, visual };
     let id = Id32::new(DOOR_TYPE, crate::instance::fixture(playfield, d.guid));
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(d.pos[0]), y: Some(d.pos[1]), z: Some(d.pos[2]) }),
@@ -192,7 +202,7 @@ fn door_records(d: &Door, playfield: Pf) -> Vec<Bytes> {
     };
     let record = iir::record("DoorFullUpdateIIR_c", id, false, |w| {
         let w = w.proto(&dynel).proto(&simple).u32(d.visual[1]).u32(d.visual[0]).u32(0);
-        (0..6).fold(w, |w, _| w.f32(f32::MAX)).f32(d.scale).u32(0).u32(0).u32(0).u8(0)
+        (0..6).fold(w, |w, _| w.f32(f32::MAX)).f32(d.scale).u32(0).u8(0).u32(0).u32(element)
     });
     vec![create_game_object(id, playfield, d.pos), record]
 }
@@ -284,14 +294,18 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
     ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
 }
 
-/// PlayfieldProxy as embedded in a BinaryStream (u32 length + PlayfieldProxyData).
+/// PlayfieldProxy as embedded in a BinaryStream (u32 length + PlayfieldProxyData): the copy, its
+/// element (live sent it for every zone: the minimap ring) and, in a Lost Creations level, the
+/// run's fields (lost_creations.rs).
 pub(crate) fn proxy(playfield: Pf) -> PlayfieldProxyData {
-    PlayfieldProxyData {
+    let proxy = PlayfieldProxyData {
         dimension_id: Some(1),
         model_id: Some(ProtoId32 { r#type: Some(PLAYFIELD_TYPE), instance: Some(playfield.model()) }),
         running_instance: Some(playfield.key()),
+        elemental_type: Some(crate::worlds::element(playfield)),
         ..Default::default()
-    }
+    };
+    crate::lost_creations::proxy(playfield, proxy)
 }
 
 /// `IntendedTeleportIIR_c`: PlayfieldProxy, u8 local (0: a different playfield), u8.
@@ -430,6 +444,11 @@ mod tests {
         // (live's name ended in a space)
         assert!(crate::conn::hex(record).contains("08001217656d7074795f6d6f6e73746572646174615f3178317831"));
         assert!(crate::conn::hex(record).contains("280138c88e036001"));
+        // a dungeon's door ends with its element, as live's did (Isle of Yarr's to Natives'
+        // Hollow: Magic)
+        let (guid, _) = DATA.portals["4200"].iter().find(|p| p.to == 1640).and_then(|p| p.door.as_ref()).map(|d| (d.guid, ())).expect("door to 1640");
+        let d = DOORS_OF[&4200].iter().find(|d| d.guid == guid).unwrap();
+        assert!(crate::conn::hex(&door_records(d, Pf::main(4200))[1]).ends_with("00000004"));
     }
 
     #[test]

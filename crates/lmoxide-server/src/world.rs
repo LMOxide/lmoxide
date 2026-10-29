@@ -51,6 +51,8 @@ pub enum Out {
     Smashed(u32),
     /// The player's smashed minifigure may be rebuilt now (smash.rs).
     Rebuilt(u32),
+    /// What the player's Lost Creations run needs of their connection (lost_creations.rs).
+    Lc(crate::lost_creations::Order),
 }
 
 pub type Outbox = mpsc::UnboundedSender<Out>;

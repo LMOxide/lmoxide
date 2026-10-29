@@ -31,6 +31,30 @@ pub enum WorldKind {
     Other,
 }
 
+/// The five elements (minifigures have one too); the client's ids are 1-5 in this order.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Element {
+    Light,
+    Shadow,
+    Tech,
+    Magic,
+    Nature,
+}
+
+impl Element {
+    pub const ALL: [Element; 5] = [Element::Light, Element::Shadow, Element::Tech, Element::Magic, Element::Nature];
+
+    /// The client's id (stat ElementalType 3000109, PlayfieldProxyData `elemental_type`).
+    pub fn id(self) -> u32 {
+        self as u32 + 1
+    }
+
+    pub fn from_id(id: u32) -> Option<Element> {
+        Element::ALL.get((id as usize).checked_sub(1)?).copied()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct RespawnPoint {
@@ -95,6 +119,10 @@ record! {
         pub display_name: Option<String>,
         #[serde(default)]
         pub kind: WorldKind,
+        /// Its element (the Linux client's teleport windows, RDB 1000644): the minimap ring and
+        /// the portal glow; side dungeons and a few adventures have one, open worlds none.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub element: Option<Element>,
         /// The region it belongs to (`region/...`): which minifigures drop here.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["region"]))]
@@ -257,6 +285,10 @@ record! {
         /// Deleted in this feature (the spawn it replaces is gone too).
         #[serde(default, skip_serializing_if = "crate::record::is_false")]
         pub removed: bool,
+        /// A Lost Creations level's variants it appears in (`lc` `variants` ids); none: in every
+        /// one (and in every other world).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub variants: Vec<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub client: Option<SpawnClient>,
     }
@@ -1837,5 +1869,93 @@ record! {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub rewards: Vec<[u32; 2]>,
         pub steps: Vec<QuestStep>,
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Lost Creations
+
+/// What a Lost Creations level asks of the team before its end gate opens (its quest's goal).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum LcMode {
+    /// Reach the end before the time is up: the end gate is open from the start.
+    #[default]
+    Mayhem,
+    /// Defeat enough enemies.
+    Brawl,
+    /// Defeat 3 champions.
+    Champions,
+    /// Survive the assault (waves).
+    Survival,
+    /// Smash enough smashables.
+    Smash,
+    /// Defeat the Gatekeeper (every 5th level).
+    Gatekeeper,
+}
+
+/// A gate of a level: its collision shield and the visual that shows red (closed) or green (open)
+/// (client simple dynel guids).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct LcGate {
+    /// The invisible wall (`Gate*Shield`); none: nothing blocks (the Mayhems' exit shield is
+    /// parked off the map).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shield: Option<u32>,
+    /// `Gate*Visual`.
+    pub visual: u32,
+    /// Open from the start (the Mayhems' exit).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub open: bool,
+}
+
+/// One version of a level's enemies (spawns name the variants they appear in; spawns naming none
+/// are in every one).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct LcVariant {
+    pub id: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub name: String,
+    /// How likely it is picked (relative to the others).
+    #[serde(default = "crate::record::weight_one")]
+    pub weight: u32,
+}
+
+record! {
+    /// A Lost Creations level (docs/LOST-CREATIONS.md): `lost-creations/<slug>.json`. Its world
+    /// holds the gates, button, exit door and `Start`/`End` areas the ids name.
+    #[derive(Default)]
+    pub struct LcLevel: "lc" {
+        #[schemars(extend("x-lmoxide-ref" = ["world"]))]
+        pub world: Ref,
+        #[serde(default)]
+        pub mode: LcMode,
+        /// Where the team arrives (the levels have no resurrection points).
+        #[schemars(extend("x-lmoxide-position" = true))]
+        pub start: Point,
+        pub start_gate: LcGate,
+        pub exit_gate: LcGate,
+        /// The start button (`StartButton` simple dynel guid).
+        pub button: u32,
+        /// The exit door (door guid).
+        pub exit_door: u32,
+        /// The level's quest: its steps are the objective (none in a Mayhem) and reaching the end.
+        #[schemars(extend("x-lmoxide-ref" = ["quest"]))]
+        pub quest: Ref,
+        /// Crossing it completes the level (the world's `End` area).
+        #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+        pub end_area: Ref,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub variants: Vec<LcVariant>,
+        /// Where the Gatekeeper stands (Gatekeeper's Realm).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[schemars(extend("x-lmoxide-position" = true))]
+        pub gatekeeper: Option<Point>,
+        /// The Gatekeepers one is picked from (`npc/...`).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
+        pub gatekeepers: Vec<Ref>,
     }
 }

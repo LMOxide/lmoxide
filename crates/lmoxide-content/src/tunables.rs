@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::record::{Point, Ref};
 use crate::units::{Duration, Ratio};
 
 /// `content.json`.
@@ -38,6 +39,9 @@ pub struct Tunables {
     /// Main quest giver -> its quests, marked completed for everyone (the client's teleport
     /// windows and map markers need them).
     pub story_quests: BTreeMap<String, Vec<u32>>,
+    /// The Lost Creations runs (docs/LOST-CREATIONS.md; the levels are `lc` records).
+    #[serde(default)]
+    pub lost_creations: LostCreations,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
@@ -115,6 +119,62 @@ pub struct Rarity {
     pub default: String,
     /// Part location -> weight.
     pub part_locations: BTreeMap<String, u32>,
+}
+
+/// The Lost Creations: how a run goes (docs/LOST-CREATIONS.md).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct LostCreations {
+    /// The door that opens the "Lost Creations" window (door guid, in `entry_world`).
+    pub entry_door: u32,
+    #[schemars(extend("x-lmoxide-ref" = ["world"]))]
+    pub entry_world: Ref,
+    /// The quest (hash) the entry window requires, "Proved your strength at the Gauntlet" (the
+    /// client checks the journal; every story quest is in it).
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub requirement_quest: String,
+    /// How long a level runs (the timer).
+    pub level_time: Duration,
+    /// The countdown after Start, before the start gate opens.
+    pub warmup: Duration,
+    /// How long teammates have to answer the invitation (no answer: as Cancel).
+    pub invitation_time: Duration,
+    /// How long a player at the exit door has to answer Continue / End Run (no answer: End Run).
+    pub continue_time: Duration,
+    /// After the whole team of a player is smashed, before they go to the Treasure Chamber (the
+    /// "You were smashed!" splash).
+    pub smashed_delay: Duration,
+    /// Every this many levels the Gatekeeper's level comes (5, 10, ...), and only then.
+    pub gatekeeper_every: u32,
+    /// The run's element changes every this many levels.
+    pub element_block: u32,
+    /// Where players go when their run ends.
+    #[schemars(extend("x-lmoxide-ref" = ["world"]))]
+    pub treasure_chamber: Ref,
+    pub treasure_arrival: Point,
+    /// What enemies drop inside a run (hearts only; smashables drop as anywhere).
+    #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
+    pub enemy_loot: Ref,
+    /// The reward pools, lowest first (`minifig/...`): one more is unlocked every
+    /// `levels_per_pool` levels completed.
+    #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
+    pub reward_pools: Vec<Vec<Ref>>,
+    pub levels_per_pool: u32,
+    /// Parts per unlocked pool: from, to (each a part of either minifigure of the pool).
+    pub parts_per_pool: [u32; 2],
+    /// The client's buffs: the level timer (the HUD's clock), no equipping, no rebuilds; the
+    /// start button's arrow.
+    pub timer_buff: u32,
+    pub cant_equip_buff: u32,
+    pub cant_resurrect_buff: u32,
+    pub button_arrow_buff: u32,
+    /// The effect package played on the button when the countdown starts.
+    pub button_effect: u32,
+    /// TEMPORARY: every level is this one (`lc/...`), the Gatekeeper's too, until the other
+    /// levels' details are known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["lc"]))]
+    pub force_level: Option<Ref>,
 }
 
 /// `texts.json`: the client's dialogue texts and answers.

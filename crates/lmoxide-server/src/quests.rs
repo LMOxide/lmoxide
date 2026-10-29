@@ -64,6 +64,66 @@ struct AreaQuest {
     area: Shape,
 }
 
+/// A quest the server starts and advances itself (a Lost Creations level's, lost_creations.rs):
+/// no area, no cooldown, its progress kept by the caller.
+pub struct Scripted(AreaQuest);
+
+/// Quest `id` (`quest/...`) run in `playfield` by the server.
+pub fn scripted(id: &str, playfield: u32) -> Option<Scripted> {
+    let quest = crate::gamedata::get().quests.get(id)?.clone();
+    let main = quest.main?;
+    (!quest.steps.is_empty()).then(|| Scripted(AreaQuest { quest, main, playfield, area: Shape::Polygon { points: Vec::new(), heights: [0.0, 0.0] } }))
+}
+
+impl Scripted {
+    pub fn steps(&self) -> usize {
+        self.0.quest.steps.len()
+    }
+
+    /// The goal of `step` that counts something (kills, smashes, ...), if any.
+    pub fn counted(&self, step: usize) -> Option<&lmoxide_content::QuestGoal> {
+        self.0.quest.steps.get(step)?.goals.iter().find(|g| g.counts.is_some())
+    }
+
+    /// Whether `event` counts toward `step`'s goal.
+    pub fn counts(&self, step: usize, event: &Event) -> bool {
+        self.counted(step).is_some_and(|g| counts(g, event))
+    }
+
+    /// Shows the quest at `step` with `progress` (the tracker, the "new quest" popup on a fresh
+    /// start).
+    pub fn show(&self, character: u32, step: usize, progress: u32) -> Vec<Bytes> {
+        let state = QuestState { step: step as u32, progress, ..Default::default() };
+        vec![main_quest_added(character, &self.0, step as u32), full_update(character, &self.0, &state, step == 0 && progress == 0)]
+    }
+
+    /// `n` more toward `step`'s goal.
+    pub fn progress(&self, character: u32, step: usize, n: u32) -> Option<Bytes> {
+        let s = self.0.quest.steps.get(step)?;
+        let g = self.counted(step)?;
+        Some(goal_record(character, s.quest, g.goal, 2, g.step() * n))
+    }
+
+    /// `step` is done: the next one shown, or (the last) the quest removed.
+    pub fn step_done(&self, character: u32, step: usize) -> Vec<Bytes> {
+        let Some(s) = self.0.quest.steps.get(step) else { return Vec::new() };
+        let goal = s.goals.first().map_or(0, |g| g.goal);
+        let mut records = vec![
+            goal_record(character, s.quest, goal, 1, 0),
+            quest_record(character, 2, s.quest),
+            journal_record(character, &self.0, s.quest, 0),
+            quest_record(character, 4, s.quest),
+        ];
+        if step + 1 < self.steps() {
+            let state = QuestState { step: step as u32 + 1, ..Default::default() };
+            records.push(full_update(character, &self.0, &state, false));
+        } else {
+            records.push(main_quest_removed(character, self.0.main));
+        }
+        records
+    }
+}
+
 #[derive(Default)]
 struct Index {
     by_playfield: HashMap<u32, Vec<usize>>,

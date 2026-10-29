@@ -81,7 +81,7 @@ pub struct GameAction {
 }
 
 /// A point with a facing.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Point {
     pub pos: Vec3,
@@ -112,6 +112,10 @@ pub fn is_false(b: &bool) -> bool {
 
 pub fn is_one(n: &f32) -> bool {
     *n == 1.0
+}
+
+pub fn weight_one() -> u32 {
+    1
 }
 
 pub fn one() -> f32 {

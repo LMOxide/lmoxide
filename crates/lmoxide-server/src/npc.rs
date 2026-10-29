@@ -287,6 +287,9 @@ pub struct SpawnDef {
     /// survey mode.
     #[serde(default)]
     pub rot: Option<f32>,
+    /// A Lost Creations level's variants it is in (none: every one; lost_creations.rs).
+    #[serde(default)]
+    pub variants: Vec<String>,
 }
 
 impl SpawnDef {
@@ -587,8 +590,12 @@ pub fn spawn_world(pf: Pf) {
         }
         return;
     }
+    // a Lost Creations level's copy: the variant its run picked
+    let variant = crate::lost_creations::variant(pf);
     for def in RESIDENTS.get().and_then(|r| r.get(&pf.model())).into_iter().flatten() {
-        spawn_as(new_id(def), def.clone(), pf);
+        if def.variants.is_empty() || variant.as_ref().is_some_and(|v| def.variants.contains(v)) {
+            spawn_as(new_id(def), def.clone(), pf);
+        }
     }
 }
 
@@ -892,6 +899,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
     };
     let id = Id32::new(crate::territory::CHARACTER_TYPE, NEXT_INSTANCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed));
     let spawn = SpawnDef {
+                variants: Vec::new(),
         kind: Kind::Pet,
         template: 0,
         name: def.name,
@@ -2120,6 +2128,7 @@ mod tests {
 
     fn test_spawn_def() -> SpawnDef {
         SpawnDef {
+            variants: Vec::new(),
             kind: Kind::Enemy,
             template: 0,
             name: "Enemy".into(),
