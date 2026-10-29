@@ -24,7 +24,7 @@ use crate::instance::Pf;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     sync::{
-        LazyLock, Mutex,
+        Arc, LazyLock, Mutex,
         atomic::{AtomicBool, Ordering},
     },
     time::{Duration, Instant},
@@ -100,7 +100,12 @@ pub fn set(playfields: BTreeMap<u32, Playfield>) {
         let placements = p.spawns.iter().filter(|(x, _)| x.wave.as_ref().is_some_and(|w| w.script == id)).map(|(x, _)| x.clone()).collect();
         (p.scripts.iter().find(|s| s.id == id).cloned(), placements)
     };
-    let changed: Vec<(Pf, String)> = runs.keys().filter(|(pf, id)| of(old.get(&pf.model()), id) != of(playfields.get(&pf.model()), id)).cloned().collect();
+    // (a preview's scripts stay as they were when it was made)
+    let changed: Vec<(Pf, String)> = runs
+        .keys()
+        .filter(|(pf, id)| crate::preview::of(*pf).is_none() && of(old.get(&pf.model()), id) != of(playfields.get(&pf.model()), id))
+        .cloned()
+        .collect();
     for key in changed {
         if let Some(run) = runs.remove(&key) {
             info!(playfield = ?key.0, script = %key.1, "script: changed in the approved content; it ends, its spawns go");
@@ -125,7 +130,8 @@ pub fn set(playfields: BTreeMap<u32, Playfield>) {
 pub fn start(pf: Pf, script: &str, wave: Option<&str>) -> Result<String, String> {
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, .. } = &mut *st;
-    let p = playfields.get(&pf.model()).filter(|p| !p.scripts.is_empty()).ok_or_else(|| format!("playfield {pf:?} has no approved, active scripts"))?;
+    let preview = crate::preview::of(pf);
+    let p = scripts_in(playfields, &preview, pf).filter(|p| !p.scripts.is_empty()).ok_or_else(|| format!("playfield {pf:?} has no approved, active scripts"))?;
     let s = find(&p.scripts, script).ok_or_else(|| format!("no script \"{script}\" on playfield {pf:?} (!script list)"))?;
     let i = match wave {
         Some(w) => wave_index(s, w).ok_or_else(|| format!("script {} has no wave \"{w}\"", s.name))?,
@@ -167,10 +173,11 @@ pub fn start(pf: Pf, script: &str, wave: Option<&str>) -> Result<String, String>
 
 /// Ends the running scripts of `pf` (only `script`, if given); their spawns go. What ended.
 pub fn stop(pf: Pf, script: Option<&str>) -> Vec<String> {
+    let preview = crate::preview::of(pf);
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, .. } = &mut *st;
     let only = match script {
-        Some(q) => match playfields.get(&pf.model()).and_then(|p| find(&p.scripts, q)) {
+        Some(q) => match scripts_in(playfields, &preview, pf).and_then(|p| find(&p.scripts, q)) {
             Some(s) => Some(s.id.clone()),
             None => return vec![format!("no script \"{q}\" on playfield {pf:?}")],
         },
@@ -183,7 +190,7 @@ pub fn stop(pf: Pf, script: Option<&str>) -> Vec<String> {
     keys.into_iter()
         .filter_map(|key| {
             let run = runs.remove(&key)?;
-            let name = script_name(playfields.get(&pf.model()), &key.1);
+            let name = script_name(scripts_in(playfields, &preview, pf), &key.1);
             info!(playfield = ?pf, script = %name, "script stopped; its spawns go");
             despawn(&run);
             Some(format!("{name} stopped ({} spawns removed)", run.spawns.len()))
@@ -193,13 +200,14 @@ pub fn stop(pf: Pf, script: Option<&str>) -> Vec<String> {
 
 /// Playfield `pf` emptied and its NPCs were reset: its running scripts end, their spawns go.
 pub fn playfield_emptied(pf: Pf) {
+    let preview = crate::preview::of(pf);
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, inside } = &mut *st;
     inside.retain(|(_, p, _)| *p != pf);
     let keys: Vec<(Pf, String)> = runs.keys().filter(|(p, _)| *p == pf).cloned().collect();
     for key in keys {
         if let Some(run) = runs.remove(&key) {
-            info!(playfield = ?pf, script = %script_name(playfields.get(&pf.model()), &key.1), "playfield empty: script reset, its spawns go");
+            info!(playfield = ?pf, script = %script_name(scripts_in(playfields, &preview, pf), &key.1), "playfield empty: script reset, its spawns go");
             despawn(&run);
         }
     }
@@ -208,7 +216,8 @@ pub fn playfield_emptied(pf: Pf) {
 /// `!script list`: the scripts of `pf` with their waves and what each is doing.
 pub fn list(pf: Pf) -> Vec<String> {
     let st = STATE.lock().unwrap();
-    let Some(p) = st.playfields.get(&pf.model()).filter(|p| !p.scripts.is_empty()) else {
+    let preview = crate::preview::of(pf);
+    let Some(p) = scripts_in(&st.playfields, &preview, pf).filter(|p| !p.scripts.is_empty()) else {
         let others: Vec<String> = st.playfields.iter().filter(|(_, p)| !p.scripts.is_empty()).map(|(pf, p)| format!("{pf:?} ({})", p.scripts.len())).collect();
         return vec![if others.is_empty() { "no approved, active scripts anywhere".into() } else { format!("no scripts here; scripts in playfields {}", others.join(", ")) }];
     };
@@ -269,14 +278,28 @@ async fn watch() {
     }
 }
 
+/// The scripts of copy `pf`: a preview's own (preview.rs, `preview` its `preview::of`), else its
+/// world's.
+fn scripts_in<'a>(playfields: &'a BTreeMap<u32, Playfield>, preview: &'a Option<Arc<crate::preview::Preview>>, pf: Pf) -> Option<&'a Playfield> {
+    match preview {
+        Some(p) => p.scripts.as_ref(),
+        None => playfields.get(&pf.model()),
+    }
+}
+
 /// One check: areas entered, waves whose trigger fired, scripts that are over.
 fn check(players: &[(Id32, Pf, [f32; 3])]) {
     let mut st = STATE.lock().unwrap();
     let State { playfields, runs, inside } = &mut *st;
+    // the copies players are in or scripts run in, with their previews
+    let copies: std::collections::BTreeSet<Pf> = players.iter().map(|x| x.1).chain(runs.keys().map(|k| k.0)).collect();
+    let previews: HashMap<Pf, Option<Arc<crate::preview::Preview>>> = copies.iter().map(|pf| (*pf, crate::preview::of(*pf))).collect();
+    let def = |pf: Pf| scripts_in(playfields, &previews[&pf], pf);
     // who is in the areas the scripts watch
     let mut now_inside = HashSet::new();
-    for (pf, p) in playfields.iter() {
-        let here: Vec<&(Id32, Pf, [f32; 3])> = players.iter().filter(|x| x.1.model() == *pf).collect();
+    for &pf in &copies {
+        let Some(p) = def(pf) else { continue };
+        let here: Vec<&(Id32, Pf, [f32; 3])> = players.iter().filter(|x| x.1 == pf).collect();
         if here.is_empty() {
             continue;
         }
@@ -297,9 +320,9 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
 
     // scripts started by entering their first wave's area (in the copy the player is in)
     let mut starts = Vec::new();
-    for (model, p) in playfields.iter() {
-        let copies: std::collections::BTreeSet<Pf> = players.iter().map(|x| x.1).filter(|c| c.model() == *model).collect();
-        for pf in copies {
+    for &pf in &copies {
+        let Some(p) = def(pf) else { continue };
+        {
             for s in &p.scripts {
                 if runs.contains_key(&(pf, s.id.clone())) {
                     continue;
@@ -318,7 +341,7 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
     let now = Instant::now();
     let mut over = Vec::new();
     for ((pf, id), run) in runs.iter_mut() {
-        let Some(p) = playfields.get(&pf.model()) else { continue };
+        let Some(p) = def(*pf) else { continue };
         let Some(s) = p.scripts.iter().find(|s| &s.id == id) else { continue };
         for i in 0..s.waves.len() {
             if run.waves[i] != WaveState::Pending {
@@ -370,7 +393,7 @@ fn check(players: &[(Id32, Pf, [f32; 3])]) {
     }
     for key in over {
         if let Some(run) = runs.remove(&key) {
-            info!(playfield = ?key.0, script = %script_name(playfields.get(&key.0.model()), &key.1)
+            info!(playfield = ?key.0, script = %script_name(def(key.0), &key.1)
 , spawns = run.spawns.len(), "script over: every spawn defeated, no wave left to start");
             despawn(&run);
         }

@@ -85,7 +85,11 @@ pub fn own_loot(c: &Content, kind: Kind, loot: Option<&str>) -> Option<String> {
 /// order of spawns.json, then the NPC fights' own (enemies, fighters), with the fights' rules:
 /// proposed enemies at `replace_anchors` go, armed NPCs fight, rival looks take sides.
 pub fn table() -> HashMap<String, Vec<SpawnDef>> {
-    let c = crate::gamedata::get();
+    table_of(crate::gamedata::get())
+}
+
+/// [`table`] of content `c` (a preview's: the world editor's working copy, preview.rs).
+pub fn table_of(c: &Content) -> HashMap<String, Vec<SpawnDef>> {
     let mut table: HashMap<String, Vec<SpawnDef>> = HashMap::new();
     for (world_id, w) in &c.worlds {
         let spawns: Vec<&Spawn> = c

@@ -40,6 +40,9 @@ pub enum Out {
     /// Teleport the player (a server script, e.g. an NPC dialogue): playfield (`None`: the
     /// current one), position, facing.
     Teleport(Option<u32>, [f32; 3], f32),
+    /// Move the player into a running copy of a world (a preview, preview.rs): the copy,
+    /// position (`None`: where they stand), and a line for them.
+    Enter(Pf, Option<[f32; 3]>, String),
     /// Take achievements away (`None`: all; achievements::remove), answering what was removed.
     RemoveAchievements(Option<Vec<u32>>, Reply<Vec<u32>>),
     /// Open teleport window `n` for the player, as a portal would (a trigger wall, walls.rs).

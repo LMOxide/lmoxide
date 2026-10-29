@@ -77,7 +77,13 @@ async fn watch() {
                 if last_pf != *pf || was == *pos || dist(was, *pos) > JUMP {
                     continue;
                 }
-                for w in walls.get(&pf.model()).into_iter().flatten() {
+                // a preview's walls are the working copy's (preview.rs)
+                let preview = crate::preview::of(*pf);
+                let list = match &preview {
+                    Some(p) => p.walls.as_slice(),
+                    None => walls.get(&pf.model()).map_or(&[][..], Vec::as_slice),
+                };
+                for w in list {
                     if w.crossed(was, *pos) && !(w.once && fired.contains(&(w.id.clone(), *player))) {
                         if w.once {
                             fired.insert((w.id.clone(), *player));

@@ -196,9 +196,9 @@ const PLACED_GUIDS: u32 = 0x00c0_0000;
 /// its copies use these, the others `PADS`.
 static EDITOR_PADS: LazyLock<RwLock<HashMap<u32, Vec<Arc<Live>>>>> = LazyLock::new(Default::default);
 
-/// The pads of copy `pf` (the world editor's own, or the content's).
+/// The pads of copy `pf` (the world editor's own, also in its previews; or the content's).
 fn pads_of(pf: Pf) -> Vec<Arc<Live>> {
-    if crate::instance::rules(pf).editor
+    if (crate::instance::rules(pf).editor || crate::preview::of(pf).is_some())
         && let Some(pads) = EDITOR_PADS.read().unwrap().get(&pf.model())
     {
         return pads.clone();

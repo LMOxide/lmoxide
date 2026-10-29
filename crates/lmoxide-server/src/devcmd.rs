@@ -65,6 +65,9 @@ pub enum Action {
     Teleport(u32, [f32; 3], f32, String),
     /// as `Teleport`, into one running copy of a world (`!instance`)
     Enter(Pf, [f32; 3], f32, String),
+    /// play this world as the world editor's working copy has it, in a copy of one's own
+    /// (`!preview`; preview.rs); `false`: back from the preview
+    Preview(bool),
 
     /// show the achievement summary
     Achievements,
@@ -121,6 +124,7 @@ pub enum Action {
 pub const COMMANDS: &[(&str, &str)] = &[
     ("!help", "the commands"),
     ("!where", "current playfield and position"),
+    ("!preview [end]", "play this world as the world editor's working copy has it (unpublished changes too), enemies fighting, in a copy of your own; `!preview end` goes back"),
     ("!instance [copy]", "which running copy of this world you are in; go to another copy (0 = the main one; other copies are empty for now)"),
     ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
     ("!moveto <x> <y> <z>", "go to a position in this playfield"),
@@ -561,6 +565,11 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         "revive" => Action::Revive,
         "team" if !args.is_empty() => Action::Team(args.join(" ")),
         "team" => reply(vec!["usage: !team <character name> (online)".into()]),
+        "preview" => match args.first().copied() {
+            None => Action::Preview(true),
+            Some("end" | "off" | "back") => Action::Preview(false),
+            Some(_) => reply(vec!["usage: !preview [end]".into()]),
+        },
         // go to another running copy of this world (instance.rs), at the same spot
         "instance" => match args.first().map(|a| a.parse::<u32>()) {
             None => reply(vec![format!(
@@ -652,7 +661,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         "script" | "scripts" => reply(script(&args, playfield)),
         "plates" => match args.first().copied() {
             Some(how @ ("solve" | "reset")) => {
-                crate::plates::set_all(crate::instance::towards(playfield, crate::plates::PLAYFIELD), how == "solve");
+                crate::plates::set_all(crate::instance::towards(crate::instance::mode_of(playfield), playfield, crate::plates::PLAYFIELD), how == "solve");
                 reply(vec![format!("plates: {how}")])
             }
             _ => reply(vec!["usage: !plates <solve|reset>".into()]),

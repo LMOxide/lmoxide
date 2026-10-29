@@ -174,6 +174,21 @@ struct Extra {
 
 static EXTRAS: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<Pf, Extra>>> = std::sync::LazyLock::new(Default::default);
 
+/// Makes an extra copy of playfield `model` for players of `mode`: the lowest copy number not in
+/// use. `None` when every copy is (`MAX_COPY`).
+pub fn new_copy(model: u32, mode: Mode) -> Option<Pf> {
+    let mut extras = EXTRAS.lock().unwrap();
+    let copy = (FIRST_EXTRA_COPY..=MAX_COPY).find(|c| !extras.contains_key(&Pf::copy_of(model, *c)) && !crate::worlds::is_spawned(Pf::copy_of(model, *c)))?;
+    let pf = Pf::copy_of(model, copy);
+    extras.insert(pf, Extra { mode });
+    Some(pf)
+}
+
+/// Forgets extra copy `pf` (dropped, worlds.rs): its number is free again.
+pub fn forget_copy(pf: Pf) {
+    EXTRAS.lock().unwrap().remove(&pf);
+}
+
 /// The copy of playfield `model` a player of `mode` arriving there (logging in, teleporting)
 /// joins: the mode's main copy. Later the open-world player cap and team copies (pocket
 /// adventures, Lost Creations) are chosen here.
@@ -181,11 +196,10 @@ pub fn arrival(mode: Mode, model: u32) -> Pf {
     mode.main(model)
 }
 
-/// The copy a player in `from` going to playfield `to` ends up in: the same copy within its own
-/// world (a teleport spot, a script moving them), else the one [`arrival`] picks for the mode
-/// of `from`.
-pub fn towards(from: Pf, to: u32) -> Pf {
-    if from.model() == to { from } else { arrival(mode_of(from), to) }
+/// The copy a player of `mode` in `from` going to playfield `to` ends up in: the same copy within
+/// its own world (a teleport spot, a script moving them), else the one [`arrival`] picks.
+pub fn towards(mode: Mode, from: Pf, to: u32) -> Pf {
+    if from.model() == to { from } else { arrival(mode, to) }
 }
 
 

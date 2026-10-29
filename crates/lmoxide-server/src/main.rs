@@ -32,6 +32,7 @@ mod npc_spells;
 mod pistons;
 mod plates;
 mod procs;
+mod preview;
 mod progression;
 mod quests;
 mod projectile;
@@ -347,6 +348,7 @@ async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     ballista::start();
     // arenas close doors and spawn adds (not in the world editor's copies)
     encounter::start();
+    worlds::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(crate::instance::Pf::main(cfg.start_playfield))

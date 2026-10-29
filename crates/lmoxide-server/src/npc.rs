@@ -580,9 +580,35 @@ pub fn spawn_world(pf: Pf) {
     if crate::instance::rules(pf).editor {
         return;
     }
+    // a preview: the world editor's working copy's residents (preview.rs)
+    if let Some(p) = crate::preview::of(pf) {
+        for def in &p.residents {
+            spawn_as(new_id(def), def.clone(), pf);
+        }
+        return;
+    }
     for def in RESIDENTS.get().and_then(|r| r.get(&pf.model())).into_iter().flatten() {
         spawn_as(new_id(def), def.clone(), pf);
     }
+}
+
+/// A spawns table's residents (spawns.rs `table`, `table_of`): the cannon's wall made strong, the
+/// tutorial's scripted NPCs left out (they appear per player, tutorial.rs).
+pub fn resident_list(table: HashMap<String, Vec<SpawnDef>>) -> Vec<(u32, SpawnDef)> {
+    let mut all = Vec::new();
+    for (playfield, defs) in table {
+        let Ok(playfield) = playfield.parse::<u32>() else { continue };
+        for mut def in defs {
+            if let Some(health) = crate::cannon::health_override(playfield, &def.name) {
+                def.health = health;
+            }
+            if crate::tutorial::scripted(playfield, &def.name) {
+                continue;
+            }
+            all.push((playfield, def));
+        }
+    }
+    all
 }
 
 /// Removes every NPC of copy `pf` (worlds.rs, a copy dropped).
@@ -600,20 +626,7 @@ pub fn despawn_world(pf: Pf) {
 /// editor's survey set or the play content, and the NPCs' AI. Copies of worlds spawn their
 /// residents when someone first comes (worlds.rs).
 pub fn start() {
-    let mut all = Vec::new();
-    for (playfield, defs) in crate::spawns::table() {
-        let Ok(playfield) = playfield.parse::<u32>() else { continue };
-        for mut def in defs {
-            if let Some(health) = crate::cannon::health_override(playfield, &def.name) {
-                def.health = health;
-            }
-            // the tutorial's scripted NPCs appear per player (tutorial.rs)
-            if crate::tutorial::scripted(playfield, &def.name) {
-                continue;
-            }
-            all.push((playfield, def));
-        }
-    }
+    let all = resident_list(crate::spawns::table());
     let mut by_playfield: std::collections::BTreeMap<u32, Vec<SpawnDef>> = Default::default();
     for (pf, def) in &all {
         by_playfield.entry(*pf).or_default().push(def.clone());

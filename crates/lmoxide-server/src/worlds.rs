@@ -4,9 +4,9 @@
 //! npc.rs); an extra copy is dropped once it has been empty for a while (`drop_copy`).
 
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     sync::{LazyLock, Mutex},
-    time::Instant,
+    time::{Duration, Instant},
 };
 
 use tracing::info;
@@ -14,6 +14,33 @@ use tracing::info;
 use crate::instance::Pf;
 
 static SPAWNED: LazyLock<Mutex<HashSet<Pf>>> = LazyLock::new(Default::default);
+
+/// An extra copy is dropped once nobody has been in it this long (a player who lost their
+/// connection has this long to come back; docs/TUNABLES.md).
+const EMPTY_DROP: Duration = Duration::from_secs(180);
+const DROP_CHECK: Duration = Duration::from_secs(30);
+
+/// Drops extra copies nobody has been in for `EMPTY_DROP` (main copies stay, asleep).
+pub fn start() {
+    tokio::spawn(async {
+        let mut tick = tokio::time::interval(DROP_CHECK);
+        let mut empty_since: HashMap<Pf, Instant> = HashMap::new();
+        loop {
+            tick.tick().await;
+            let extras: Vec<Pf> = spawned().into_iter().filter(|pf| pf.copy() >= crate::instance::FIRST_EXTRA_COPY).collect();
+            empty_since.retain(|pf, _| extras.contains(pf));
+            for pf in extras {
+                let occupied = crate::world::positions(pf).iter().any(|(id, _)| crate::npc::is_player(*id));
+                if occupied {
+                    empty_since.remove(&pf);
+                } else if empty_since.entry(pf).or_insert_with(Instant::now).elapsed() >= EMPTY_DROP {
+                    empty_since.remove(&pf);
+                    drop_copy(pf);
+                }
+            }
+        }
+    });
+}
 
 /// Spawns copy `pf` unless it is already there.
 pub fn ensure(pf: Pf) {
@@ -47,6 +74,8 @@ pub fn drop_copy(pf: Pf) {
     crate::tiki::despawn_world(pf);
     crate::encounter::forget(pf);
     crate::scripts::playfield_emptied(pf);
+    crate::preview::end(pf);
+    crate::instance::forget_copy(pf);
     info!(playfield = ?pf, "world copy dropped");
 }
 

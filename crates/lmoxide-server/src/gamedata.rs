@@ -37,6 +37,15 @@ pub fn init(dir: Option<PathBuf>) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Loads another version of the content (a preview's: the world editor's working copy, which
+/// may be half edited): what loads, and its errors (records that refer to missing ones, ...).
+pub fn load_version(dir: &Path) -> (Content, Vec<String>) {
+    let options = Options { check_client_ids: false, ..Default::default() };
+    let (content, problems) = lmoxide_content::load(dir, &options);
+    let errors = problems.iter().filter(|p| p.severity == Severity::Error).map(|p| p.to_string()).collect();
+    (content, errors)
+}
+
 fn load(dir: &Path) -> anyhow::Result<Content> {
     // client ids are the editors' and CI's check (`lmoxide-content check`)
     let options = Options {
