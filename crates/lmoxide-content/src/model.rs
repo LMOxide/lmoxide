@@ -2146,6 +2146,17 @@ pub struct LcGate {
     pub open: bool,
 }
 
+/// When a Lost Creations level's script starts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum LcScriptStart {
+    /// When the start gate opens.
+    #[default]
+    Gate,
+    /// When the team arrives in the level's copy.
+    Arrival,
+}
+
 /// One version of a level's enemies (spawns name the variants they appear in; spawns naming none
 /// are in every one).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
@@ -2191,5 +2202,13 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["script"]))]
         pub script: Option<Ref>,
+        /// When the script starts: at the start gate opening, or as soon as the team arrives
+        /// (the Gatekeeper stands there from the start).
+        #[serde(default, skip_serializing_if = "crate::record::is_default")]
+        pub script_start: LcScriptStart,
+        /// Before each wave its points show the spawn particle (tunables `wave_telegraph`,
+        /// `wave_particle`); else the wave spawns at once.
+        #[serde(default, skip_serializing_if = "crate::record::is_false")]
+        pub telegraph: bool,
     }
 }

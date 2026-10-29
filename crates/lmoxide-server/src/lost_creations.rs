@@ -141,6 +141,8 @@ struct Level {
     /// The waves' script, and the points its spawns stand on (each shows the spawn particle
     /// before its wave).
     script: Option<String>,
+    script_start: lmoxide_content::LcScriptStart,
+    telegraph: bool,
     points: Vec<[f32; 3]>,
     /// The variants of each of the script's spawns (empty: in every one).
     wave_spawns: Vec<Vec<String>>,
@@ -209,6 +211,8 @@ fn level_of_record(c: &lmoxide_content::Content, l: &LcLevel) -> Result<Level, S
         end,
         variants: l.variants.clone(),
         script: l.script.clone(),
+        script_start: l.script_start,
+        telegraph: l.telegraph,
         points,
         wave_spawns,
     })
@@ -296,6 +300,8 @@ struct Run {
     continues: HashSet<u32>,
     started: Instant,
     deadline: Option<Instant>,
+    /// The level's script was started in this copy.
+    waves_started: bool,
     /// Raised by every change that ends a timer's business (a new level, the timer stopped).
     generation: u64,
 }
@@ -598,10 +604,11 @@ fn particle_record(id: Id32, particle: Option<u32>) -> Bytes {
     })
 }
 
-/// A wave of copy `pf`'s script is about to spawn on `points` (scripts.rs): if `pf` is a level's
-/// copy, the level's points there show the spawn particle, and the wave waits this long.
+/// A wave of copy `pf`'s script is about to spawn on `points` (scripts.rs): if `pf` is the copy
+/// of a level with `telegraph`, the level's points there show the spawn particle, and the wave
+/// waits this long.
 pub fn telegraph(pf: Pf, points: &[[f32; 3]]) -> Option<Duration> {
-    let i = level_of_model(pf.model())?;
+    let i = level_of_model(pf.model()).filter(|&i| level(i).telegraph)?;
     let fixtures = FIXTURES.lock().unwrap();
     let f = fixtures.get(&pf)?;
     let particle = tunables().wave_particle;
@@ -846,6 +853,7 @@ fn start_run(st: &mut State, members: Vec<u32>, first: Option<(u32, Option<usize
         continues: HashSet::new(),
         started: Instant::now(),
         deadline: None,
+        waves_started: false,
         generation: 0,
     };
     for &m in &members {
@@ -913,6 +921,7 @@ fn enter_level(st: &mut State, run_id: u32, chosen: Option<usize>) {
     run.asked = false;
     run.continues.clear();
     run.deadline = None;
+    run.waves_started = false;
     run.generation = generation;
     let members = run.members.clone();
     let (level_n, element) = (run.level, run.element);
@@ -966,6 +975,9 @@ pub fn arrived(character: u32, pf: Pf) -> Vec<Bytes> {
     let mut recs = vec![crate::effects::buff_add(me, t.cant_resurrect_buff, me, left.max(1))];
     if !run.finished.contains(&character) {
         recs.extend(l.quest.show(character, run.step, run.progress));
+    }
+    if l.script_start == lmoxide_content::LcScriptStart::Arrival {
+        start_waves(run);
     }
     match run.phase {
         Phase::Waiting => {
@@ -1038,6 +1050,29 @@ pub fn start_warmup(character: u32) {
     });
 }
 
+/// Starts `run`'s level script in its copy, once (none for the copy's variant: the objective
+/// stays open).
+fn start_waves(run: &mut Run) {
+    let l = level(run.current);
+    let Some(script) = l.script.clone() else { return };
+    if std::mem::replace(&mut run.waves_started, true) {
+        return;
+    }
+    let (run_id, pf) = (run.id, run.pf);
+    let variant = variant(pf);
+    if !l.has_waves(variant.as_ref()) {
+        warn!(run = run_id, level = %l.id, ?variant, "Lost Creations: no wave enemies for this variant: the objective stays open");
+        return;
+    }
+    // (scripts.rs locks after this module: started once `STATE` is free)
+    tokio::spawn(async move {
+        match crate::scripts::start(pf, &script, None) {
+            Ok(m) => info!(run = run_id, "Lost Creations: waves: {m}"),
+            Err(e) => warn!(run = run_id, "Lost Creations: the waves didn't start: {e}"),
+        }
+    });
+}
+
 /// The countdown is over: the start gate opens, the timer runs, no more equipping.
 fn open_start(run_id: u32, generation: u64) {
     let mut st = STATE.lock().unwrap();
@@ -1050,17 +1085,8 @@ fn open_start(run_id: u32, generation: u64) {
     let l = level(run.current);
     info!(run = run_id, "Lost Creations: gate open, timer running");
     open_gate(pf, &l.start_shield, &l.start_visual);
-    let variant = variant(pf);
-    if l.script.is_some() && !l.has_waves(variant.as_ref()) {
-        warn!(run = run_id, level = %l.id, ?variant, "Lost Creations: no wave enemies for this variant: the objective stays open");
-    } else if let Some(script) = l.script.clone() {
-        // (scripts.rs locks after this module: started once `STATE` is free)
-        tokio::spawn(async move {
-            match crate::scripts::start(pf, &script, None) {
-                Ok(m) => info!(run = run_id, "Lost Creations: waves: {m}"),
-                Err(e) => warn!(run = run_id, "Lost Creations: the waves didn't start: {e}"),
-            }
-        });
+    if l.script_start == lmoxide_content::LcScriptStart::Gate {
+        start_waves(run);
     }
     for &m in &members {
         let me = player(m);
@@ -1143,7 +1169,8 @@ fn waves_run<'a>(st: &'a mut State, pf: Pf, script: &str) -> Option<&'a mut Run>
     let id = *st.copies.get(&pf)?;
     let run = st.runs.get_mut(&id)?;
     let l = level(run.current);
-    (run.pf == pf && run.phase == Phase::Running && l.script.as_deref() == Some(script) && run.step + 1 < l.quest.steps()).then_some(run)
+    // (a script started at arrival may be done before the gate opens)
+    (run.pf == pf && run.phase != Phase::Done && l.script.as_deref() == Some(script) && run.step + 1 < l.quest.steps()).then_some(run)
 }
 
 /// A wave of copy `pf`'s script `script` was cleared (scripts.rs): one toward the objective

@@ -279,6 +279,9 @@ Built 2026-10-28 (lost_creations.rs; content `lc` records in content/lost-creati
      each wave the points it uses show the blue spawn particle for 2 s (live), then it spawns; the
      next wave comes when it is cleared (`wave_cleared`). Each wave cleared counts one toward the
      objective (Survival: 3), the script over completes it. Kills count nowhere in these levels.
+   - lc `script_start` (gate | arrival) and `telegraph` (the pad particle): Jungle Arena gate +
+     telegraph; the Gatekeeper's Realm arrival, no telegraph (the Gatekeeper stands there from the
+     start; its defeat counts even before the gate opens).
    - Gatekeeper's Realm: 11 variants, one Gatekeeper each (npc/gatekeeper-*, shown as "Gatekeeper"),
      on `area/7600/gatekeeper` in the one-wave `script/7600/gatekeeper`. Its adds aren't wave spawns,
      so they never count; `gatekeeper_adds_vanish` (false) removes them with it.
