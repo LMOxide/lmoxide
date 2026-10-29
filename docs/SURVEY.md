@@ -7,33 +7,27 @@ comments) for someone to review later. Everything they do is content records (do
 in the world editor's copy of the content repository, `var/content-work`; publishing queues it for
 an admin to approve (docs/WORLD-CONTENT.md).
 
-Status: steps 1–4 work (tested with the Linux client and the world editor). Run one next to the
-LAN server with `tools/survey-server.sh` (ports below); the web page is the world editor of
-lmoxide-dev-ui (`/editor/`).
+Status: steps 1–4 work (tested with the Linux client and the world editor). The world editor is
+the **World Editor game mode** of the one server (docs/SERVER-ARCHITECTURE.md); the web page is
+the world editor of lmoxide-dev-ui (`/editor/`).
 
 ## Running
 
-`lmoxide-server --mode survey --content-dir <a git checkout of lmoxide-content>`: its own data dir,
-so survey characters are separate from play characters; every account is GM; nothing moves or
-attacks. `--share-accounts <play server's database>` gives it the play server's login key and logins, so
-the same patched clients log in with the same usernames and passwords (in the world editor too);
-characters stay separate.
+`lmoxide-server --modes ...,world-editor:7104 --editor-content-dir <a git checkout of
+lmoxide-content>`: the World Editor mode's characters are its own (an account logs in to it
+through its universe port, the patcher's Game Mode, with GM level 1 and up:
+`--world-editor-gm-level`); nothing moves or attacks in its copies of the worlds (copy 2); its
+GM level is at least 1. The play modes run beside it in the same process with the published
+content; what the editor saves lives in its working copy until published.
+`tools/lan-server.sh` runs it all (World Editor on 7104; the content: `var/content-work`, cloned
+from `content/` the first time). `--survey-set` (`var/survey-set`) names the survey set of
+before content records: it is taken into the working copy once (survey/migrate.rs; its
+`migrated.json` says what was done) and otherwise left alone.
 
-`tools/survey-server.sh` does all of it next to `tools/lan-server.sh`: game server 7110–7112,
-chat 7210, control 127.0.0.1:7310, patch server 8081 (`lmo <name> <lan-ip>:8081`), API 8091
-(every account gets the admin scope there: keep it to the LAN), the page on 5175
-(`http://<lan-ip>:5175/editor/`; the LAN server's dev UI on 5174 reaches it too). Data: `var/survey-data`, the content: `var/content-work`
-(cloned from `content/` the first time). `tools/survey-server.sh --restart` rebuilds and restarts the game server and API; the working copy is
-read again. `--survey-set` (`var/survey-set`) names the survey set of before content records: it is taken into the working copy once
-(survey/migrate.rs; its `migrated.json` says what was done) and otherwise left alone.
-
-Switching servers in game: `!server editor` on the play server and `!server play` here (also
-the dev UI's "→ …" buttons) move the player without logging out: same login, each server's own
-character (`switch.rs`; the servers name each other with `--peer-name`, `--peer-data-dir`,
-`--peer-game-addr`, `--peer-chat-addr`, which the two scripts pass). The leaving server teleports the
-client to where the character is saved on the other one and sends `RedirectToServer`; the other
-checks the login cookie in the first one's database, matching accounts by username. Chat stays
-with the chat server the client logged in through, which passes it on to the other server's.
+`!preview` (World Editor) plays the world one stands in as the working copy has it, with gameplay
+on, in a copy of one's own; `!preview end` goes back (preview.rs). The old separate survey server
+(`tools/survey-server.sh`, `!server`) is retired; `lmoxide-server import-characters` copied its
+characters over.
 
 ## Content categories
 
@@ -192,7 +186,7 @@ changes, so changes made in game (a selection by attacking, someone else's edit)
 ## Content editing API
 
 Survey servers also edit the content tree itself (docs/WORLD-EDITOR-CONTENT.md): a git checkout
-of lmoxide-content, `var/content-work` (`--content-dir`; `tools/survey-server.sh` clones it from
+of lmoxide-content, `var/content-work` (`--editor-content-dir`; `tools/lan-server.sh` clones it from
 `content/` the first time, its `origin` the content repository). Saves write the record's file
 at once (canonical form); nothing is committed here. Routes under `/v1/editor` on the control
 interface, passed on by lmoxide-api like `/v1/survey` (admin; the caller is the author).
@@ -229,7 +223,7 @@ Done:
 5. **Notes, scripts and waves** stored and shown per wave; "Preview" spawns a wave again.
 6. **Import / export** with the merge preview (gone with content records: git and the content
    repository's pull requests do it).
-7. **Hosting**: `tools/survey-server.sh` next to the LAN server; `lmo <name> <ip>:<port>`.
+7. **Hosting**: the World Editor game mode of the one server (tools/lan-server.sh).
 8. **Trigger walls**: placed, sized, coloured, moved, deleted and hidden like the rest; crossing
    one shows its action.
 

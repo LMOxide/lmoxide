@@ -1,6 +1,6 @@
 # One server, several game modes (plan)
 
-Status: proposal (2026-10-28), nothing built. Decisions still open are marked **Open**.
+Status: built (2026-10-28), steps below. Decisions still open are marked **Open**.
 
 ## Goal
 
@@ -221,11 +221,29 @@ Each step ends with a runnable server and the client verified.
    scenery, jump pads, buildies, gates, mirror/plate/piston/ballista/tiki/cannon puzzles) and so
    the arena doors' looks. The world editor works on main copies.
 
-2. **Rules per instance:** replace the mode switches; both rulesets in one process.
-3. **One DB, characters per mode:** merge the survey DB's characters into the play DB with
-   `mode = world-editor`; retire `--share-accounts`, `switch.rs` redirect, chat proxy.
-4. **Content versions in memory:** published + shared work + overlays; world-editor instances
-   use shared work; previews.
-5. **More instances:** team instances for pocket adventures and Lost Creations; open-world cap.
-6. **Per-instance state and locks** (the performance step; can start during 1–5 world by world).
-7. **One binary/config/HTTP listener, Caddy, compose**; then patcher, dev UI, web UI.
+2. **Rules per mode: done (c01a3f0).** `instance::Mode` (progression, maxed, world-editor) and
+   `Rules` (progression, editor, min GM level); characters carry their mode (`characters.mode`,
+   migration 0009); each mode has a main copy of every world (copy 0/1/2), extras from 3. Copies
+   spawn when their first player arrives (worlds.rs): residents and fixtures, puzzles and arena
+   doors with state per copy; fixture ids carry the copy in their top byte (`instance::fixture`).
+3. **One server, characters per mode: done (c3911ea).** `--modes progression:7100,maxed:7103,
+   world-editor:7104`: the universe port sets the login's mode (`game_sessions.mode`, 0010);
+   territory lists that mode's characters; the world editor needs GM 1. The survey code runs
+   beside the play content (`--editor-content-dir`, its own pad table). switch.rs, the chat proxy,
+   `--share-accounts` and the peer flags are gone; `import-characters` brought the old editor
+   server's characters over. The patch server's `--modes`, the per-mode `LocalConfig.xml`
+   (decided above) and lmoxide-patch's `for_mode` / `Options::mode` / `.lmoxide/mode` too.
+4. **Previews: done (a59b1f2).** `!preview` loads the editor's working copy (leniently: records
+   with errors are left out and counted) into a private extra copy with the maxed rules: its
+   residents, trigger walls, scripts and pads; definitions stay published. Not done: a personal
+   draft layer per editor (the working copy is shared, autosaved), definitions in previews.
+5. **More copies: done (3e9bf13).** `instance::arrival`: back to the copy left in the last 3 min,
+   a teammate's copy, a new copy per pocket world (team), open worlds up to `--open-world-cap`
+   (40). Empty extra copies are dropped after 3 min (worlds.rs).
+6. **Performance: done as far as measured (747d8fd).** Members indexed per copy (broadcasts no
+   longer scan every member); `GET /v1/instances` (players, NPCs per copy, AI tick time). NPCS is
+   still one map scanned per tick (fine at LAN scale: split it per copy if the tick time grows).
+7. **One binary: done (858d3d4).** `lmoxide` runs the game server, API and patch server from one
+   TOML file (docker/lmoxide.example.toml) with one HTTP listener; docker-compose = lmoxide +
+   Caddy. Then the patcher's Game Mode dropdown (lmoxide-patcher 1e3b466), the web UI (modes,
+   Instances page; lmoxide-webui 3cbd1f3) and the dev UI (one API, previews).

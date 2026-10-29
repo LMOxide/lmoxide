@@ -119,7 +119,7 @@ makes the client leave its game server ("Client redirecting to …") and send th
 `Authenticate2` with the same character id and cookie; it doesn't reconnect chat or the territory.
 The client takes the new world only while teleporting (a full update while InPlay logs
 "SlotPlayerCharacterFullUpdateReceived() called in invalid state 'InPlay'" and leaves the old
-playfield drawn), so a teleport to the new playfield goes first. Used by `!server` (switch.rs).
+playfield drawn), so a teleport to the new playfield goes first. (Used by the retired `!server`.)
 
 Reconnect: after a lost connection the client asks "relocate to a new server?"; Yes calls
 `GameClientConnectivity::LoginFromCrash`, which connects once to the remembered territory
@@ -600,10 +600,11 @@ Set it with `lmoxide-server --data-dir <data> account gm <user> <level>` on the 
 The engine has Funcom's dimensions: `SetDimensionList` (`DimensionData_t`: id, name, language,
 load, ruleset), `RequestDimensionList`, `ChangeDimensionCommand`, a dimension id in
 `PlayfieldProxyData`. LMO's GUI never shows a dimension picker (`CharacterSelection.swf` and
-`MainMenu.swf` don't use `m_Dimensions`), and `LocalConfig.xml` names one `UniverseAddr`. So a
-client joins exactly one game server; several game servers share a host by ports (LAN: universe
-7100 + patch 8080, survey: 7110 + 8081), each with its own patch server, which announces its
-`kind` and the `other_servers` on the host (PATCHING.md) for patchers to offer.
+`MainMenu.swf` don't use `m_Dimensions`), and `LocalConfig.xml` names one `UniverseAddr`. So
+the game mode is picked by the universe port: one server listens on one per mode (7100
+Progression, 7103 Maxxed, 7104 World Editor) and the patch server signs a `LocalConfig.xml` per
+mode (PATCHING.md, docs/SERVER-ARCHITECTURE.md). Copies of a world: `PlayfieldProxyData`'s
+`model_id` names the map, `running_instance` the copy (live sent keys apart from the map id).
 
 ## Client Lua hooks
 
