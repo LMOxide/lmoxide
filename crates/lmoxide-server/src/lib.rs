@@ -169,16 +169,16 @@ pub struct Config {
     /// isn't sent.
     #[arg(long, env = "LMOXIDE_CLIENT_GM_LEVEL", default_value_t = 2)]
     pub client_gm_level: u32,
-    /// The game mode when `--modes` isn't given: `play` (maxed: every character at the level cap
-    /// with every minifigure fully ranked), `progression` (characters level up from level 1, see
-    /// --progression) or `survey` (the world editor's: nothing moves or attacks; editors place and
-    /// mark content from the dev UI, docs/SURVEY.md).
-    #[arg(long, env = "LMOXIDE_MODE", value_enum, default_value_t = Mode::Play)]
+    /// The game mode when `--modes` isn't given: `progression` (the default, as live: characters
+    /// level up from level 1), `play` (maxed: every character at the level cap with every
+    /// minifigure fully ranked) or `survey` (the world editor's: nothing moves or attacks; editors
+    /// place and mark content from the dev UI, docs/SURVEY.md).
+    #[arg(long, env = "LMOXIDE_MODE", value_enum, default_value_t = Mode::Progression)]
     pub mode: Mode,
-    /// Character progression (the same as `--mode progression`): characters start at level 1
-    /// and level up from defeated enemies (capped per world), minifigures start at rank 0 and are
-    /// ranked up with stars. Off: every character is at the level cap with every minifigure
-    /// fully ranked.
+    /// Character progression (the same as `--mode progression`, the default): characters start
+    /// at level 1 and level up from defeated enemies (capped per world), minifigures start at rank
+    /// 0 and are ranked up with stars. `--mode play` instead: every character is at the level cap
+    /// with every minifigure fully ranked.
     #[arg(long, env = "LMOXIDE_PROGRESSION")]
     pub progression: bool,
     /// World editor: the survey set's folder (default <data-dir>/survey) of the world editor

@@ -157,7 +157,7 @@ playfield resources) aren't listed; neither are protocol constants.
 
 | Value | Where | Now | Source / reasoning |
 |---|---|---|---|
-| Default | `main.rs` `--progression` | off: level 30, every minifigure at rank 8 | The unlocked collection was chosen (requested); progression is opt-in. |
+| Default | `--mode` | progression (as live); `--mode play` or the Maxxed mode: level 30, every minifigure at rank 8 | The user made progression the default (2026-10-29); the Maxxed mode keeps the unlocked collection. |
 | XP curve | `progression.rs` `next_xp` | NextXP = 50 × L × (L + 3): 200 for level 2 (recorded), each level 100 × (L + 1) more | Only level 1's NextXP (200) is recorded; the curve is assumed. |
 | XP per defeat | `progression.rs` `kill_xp` | 7 × level, champions 14 × (level + 1), bosses 15 × level; smashables none | Recorded: level-2 Musketeer 14, level-3 boss Captain Dreadleg 45, tutorial level-1 Scallywags 28 (the tutorial isn't reproduced); no XP for smashables in the recording. |
 | Level caps | `progression.rs` `level_cap`, `game.rs` `gain_xp`; a world's `level.cap`, else `content/tunables.json` `progression.level_caps` by the world's `super_region` (RDB 1000052) | Pirate World (super-region 4000, with the hub and its micro-dungeons) 11, Medieval (5000) 15, Space (3000) 19, Mythology (2000) 21, Dino (6000) 30, the tutorial and elsewhere none | Pirate World's 11 and the tutorial's none are recorded (PlayfieldFIIR_t); the others assume two levels above where the next world's proposed enemies start. At or above an area's cap a character gains no XP; its level never goes down there (the user's account of live, 2026-10-28). |

@@ -18,35 +18,9 @@ combat, the minifigure collection and team, loot, achievements, friends, teams, 
 multiplayer. Values that the client data doesn't contain are guessed and listed in
 [docs/TUNABLES.md](docs/TUNABLES.md).
 
-<details>
-<summary>Progression is off by default</summary>
-
-Without progression, every character is level 30 and every minifigure is fully ranked.
-`--progression` (or `LMOXIDE_PROGRESSION=1`) turns on the live behaviour: characters start at
-level 1, earn XP from defeated enemies and rank minifigures up with stars. `tools/lan-server.sh`
-turns it on.
-</details>
-
-<details>
-<summary>Aiming at moving enemies</summary>
-
-When a player attacks an enemy, the server aims the shot. `--lob-aim` (`LMOXIDE_LOB_AIM`) sets
-this for thrown attacks that land where they were aimed (bombs, eggs). `lead` (the default) aims
-where the enemy will be when the shot lands. `current` aims where the enemy was at the throw,
-which misses an enemy running at you. `--shot-aim` (`LMOXIDE_SHOT_AIM`) does the same for
-straight shots: `current` (the default) or `lead`. A GM can change both while the server runs
-with `!aim`.
-</details>
-
-<details>
-<summary>Story and teleport windows</summary>
-
-Every teleport window is open by default, whatever your story. `--story-windows locked`
-(`LMOXIDE_STORY_WINDOWS`) makes them open as your story reaches them, as on live. Any player can
-start their own story over by typing `/story reset` in chat (it asks for `/story reset confirm`).
-This forgets story quests, cinematics and conversations seen. Achievements, minifigures and levels
-stay. Entering a world afterwards puts your story there.
-</details>
+Characters level up from level 1 as on live (progression); the Maxxed mode has everything
+unlocked. [docs/GAME-OPTIONS.md](docs/GAME-OPTIONS.md) has the game modes and the options for
+aiming and story windows.
 
 ## How it works
 
@@ -114,9 +88,52 @@ The game's data (worlds, NPCs, skills, loot, minifigures, achievements) is its o
 `content/` as a git submodule ([docs/CONTENT.md](docs/CONTENT.md)). Clone with
 `git clone --recurse-submodules`, or run `git submodule update --init` in an existing clone.
 
-### Install without Rust
+### Deploy with Docker
 
-Every version tag publishes builds on the [Releases](https://github.com/LMOxide/lmoxide/releases)
+One Docker Compose file runs everything from the published images, without Rust or Node:
+
+| Service | Image | Where |
+|---|---|---|
+| game server, REST API and patch server (one process, every game mode) | `ghcr.io/lmoxide/lmoxide` | game ports 7100-7104 and 7200; HTTP under `/api/` and the patch paths |
+| web UI (accounts, characters, moderation, players' own accounts) | `ghcr.io/lmoxide/lmoxide-webui` | `https://<host>/` |
+| dev UI (debugger and world editor) | `ghcr.io/lmoxide/lmoxide-dev-ui` | `https://<host>/dev/` |
+| Discord bot (optional) | `ghcr.io/lmoxide/lmoxide-discord-bot` | no ports |
+| Caddy (HTTPS, certificates from Let's Encrypt) | `caddy:2` | 80, 443 |
+
+You need Docker, a host name pointing at the machine, and your own extracted copies of the
+Windows and Linux game clients (LMOxide doesn't ship them). Open TCP 80, 443, 7100-7104 and 7200.
+
+```sh
+git clone https://github.com/LMOxide/lmoxide.git && cd lmoxide   # only the compose files are used
+cp docker/.env.example .env                           # host name, client folders, image versions
+cp docker/lmoxide.example.toml docker/lmoxide.toml    # public_host, server name, registration
+docker compose up -d
+docker compose exec lmoxide lmoxide game account create <you> --gm-level 4   # your admin account
+```
+
+Then sign in at `https://<host>/`; players point the
+[LMOxide patcher](https://github.com/LMOxide/lmoxide-patcher/releases) at `https://<host>`.
+
+The Discord bot (registration through Discord, roles to GM levels, moderation commands):
+
+```sh
+docker compose exec lmoxide lmoxide api key create discord-bot --scope discord   # printed once
+mkdir -p secrets && printf '%s' '<bot token>' > secrets/discord_token && printf '%s' 'lmox_...' > secrets/discord_bot_key
+sudo chown 10002 secrets/* && sudo chmod 400 secrets/*                   # readable by the bot's user
+cp docker/discord-bot.example.toml docker/discord-bot.toml   # your Discord server, roles, admins
+echo COMPOSE_PROFILES=discord >> .env && docker compose up -d
+```
+
+Updating is `docker compose pull && docker compose up -d`; the database and login key are in the
+`data` volume (back it up). [docs/HOSTING.md](docs/HOSTING.md) goes through every step in detail
+(file ownership for the secrets, registration modes, patcher self-updates, backups), and
+[docs/SECURITY.md](docs/SECURITY.md) has the access levels and a checklist to read before you
+open the server to the internet. To build the images from source instead:
+`docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`.
+
+### Release files
+
+For other setups, every version tag publishes builds on the [Releases](https://github.com/LMOxide/lmoxide/releases)
 page and images on GitHub's container registry:
 
 | | |
@@ -127,26 +144,6 @@ page and images on GitHub's container registry:
 
 The web UI, the dev UI, the Discord bot and the GUI patcher publish theirs in their own
 repositories.
-
-### Docker
-
-```sh
-cp docker/.env.example .env                           # the host name and the client paths
-cp docker/lmoxide.example.toml docker/lmoxide.toml    # the server's options
-docker compose up -d
-docker compose exec lmoxide lmoxide game account create <you> --gm-level 4
-```
-
-This runs the published images: `lmoxide` (the game server with every game mode, the API and
-the patch server in one process, the database in the `data` volume), Caddy in front for HTTPS
-(certificates for `LMOXIDE_PUBLIC_HOST`), the web UI at `/`, the dev UI at `/dev/` and,
-optionally, the Discord bot. The game ports (7100/7103/7104 universe, 7101, 7102, 7200) are
-published directly. [docs/HOSTING.md](docs/HOSTING.md) goes through it step by step: ports,
-the Discord bot, patcher self-updates, updating and backups. Read the deployment checklist in
-[docs/SECURITY.md](docs/SECURITY.md) before you open the server to the internet.
-
-To build the images from source instead: `docker compose -f docker-compose.yml -f
-docker-compose.build.yml up -d --build`.
 
 ### LAN play from source
 
@@ -206,6 +203,7 @@ See [docs/PATCHING.md](docs/PATCHING.md) and
 
 | | |
 |---|---|
+| [GAME-OPTIONS.md](docs/GAME-OPTIONS.md) | the game modes (progression by default) and options for aiming and story windows |
 | [HOSTING.md](docs/HOSTING.md) | running a public server from the published images: Docker Compose, Caddy, the web UI, dev UI and Discord bot, updates, backups |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | test runs, in-game test commands, scripts, reverse-engineering tools |
 | [PROTOCOL.md](docs/PROTOCOL.md) | how the client talks to the server: boot, framing, RPCs, login, game systems |

@@ -98,7 +98,7 @@ achievements, regions, factions).
 Each mode is its own server process on its own ports and data dir (`tools/lan-server.sh` will
 start several at once):
 
-- `--mode play` (today's default), `--mode progression` (today's `--progression`),
+- `--mode play` (maxed), `--mode progression` (the default; also `--progression`),
   `--mode survey`.
 - Survey characters live in the survey server's own data dir, so they are separate from play
   characters. They start at the level cap with every minifigure, and every account is GM.
