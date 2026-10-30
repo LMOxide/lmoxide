@@ -383,6 +383,10 @@ mod tests {
     /// 374158 (no client definition) is no longer cast; his shot is his basic attack.
     const ATTACKS_CHANGED: [(&str, u32, u32); 1] = [("Space Merc Engineer", 374_158, 374_159)];
 
+    /// The Landing Beach's navy, friendly fighters before, are the ghosts' rival enemies since
+    /// (2026-10-30: players couldn't attack them): (playfield, name).
+    const NOW_ENEMIES: [(&str, &str); 3] = [("4200", "Commodore Moksey"), ("4200", "Dragoon"), ("4200", "Musketeer")];
+
     /// Spawns deleted since: (playfield, name).
     const REMOVED: [(&str, &str); 1] = [("6300", "Dino Raptor")];
 
@@ -405,6 +409,12 @@ mod tests {
             }
         }
         let mut old = old_table();
+        for (pf, defs) in old.iter_mut() {
+            for d in defs.iter_mut().filter(|d| d.kind == Kind::Fighter && NOW_ENEMIES.contains(&(pf.as_str(), d.name.as_str()))) {
+                d.kind = Kind::Enemy;
+                d.faction = Some(1);
+            }
+        }
         for (pf, defs) in new.iter_mut().chain(old.iter_mut()) {
             defs.retain(|d| !STORY_BOSSES.contains(&(pf.as_str(), d.name.as_str())) && !REMOVED.contains(&(pf.as_str(), d.name.as_str())));
         }

@@ -2842,7 +2842,11 @@ mod tests {
         let yarr = &table["4200"];
         assert!(yarr.iter().all(|d| d.kind != Kind::Enemy || d.anchor.as_deref() != Some("Quest_Beach")));
         assert!(yarr.iter().any(|d| d.kind == Kind::Enemy && d.name == "Pirate Specter"));
-        assert!(yarr.iter().any(|d| d.kind == Kind::Fighter));
+        // the Jackets there are enemies players can attack, on the ghosts' rival side
+        let moksey = yarr.iter().find(|d| d.name == "Commodore Moksey").unwrap();
+        assert_eq!(moksey.kind, Kind::Enemy);
+        assert!(yarr.iter().any(|d| d.name == "Pirate Specter" && d.faction.is_some_and(|f| Some(f) != moksey.faction)));
+        assert!(moksey.faction.is_some());
     }
 
     #[test]
@@ -2857,7 +2861,7 @@ mod tests {
                 assert!(near >= 2, "{playfield} {}: {near} enemies near", f.name);
             }
         }
-        assert!(fighters >= 8, "{fighters}");
+        assert!(fighters >= 4, "{fighters}");
         // rival enemies meet somewhere on the Isle of Yarr
         let yarr = &table["4200"];
         let meet = yarr.iter().filter_map(|a| Some((a, a.faction?))).any(|(a, fa)| {

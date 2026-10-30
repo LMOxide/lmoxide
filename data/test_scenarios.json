@@ -298,7 +298,7 @@
     },
     {
       "label": "beachfight",
-      "about": "Isle of Yarr's Landing Beach: Commodore Moksey's navy fights the ghost pirates (Pirate Specters); both respawn (npc_fights.json, inferred)",
+      "about": "Isle of Yarr's Landing Beach: Commodore Moksey's navy fights the ghost pirates (Pirate Specters), and both sides attack players; both respawn (npc_fights rivals, inferred)",
       "goto": {
         "playfield": 4200,
         "pos": [107.0, 70.4, 84.0]
