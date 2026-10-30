@@ -38,6 +38,7 @@ mod preview;
 mod progression;
 mod quests;
 mod projectile;
+mod proxy;
 mod scenery;
 mod scripts;
 mod security;
@@ -210,6 +211,12 @@ pub struct Config {
     /// Most simultaneous connections from one IP address (per listener).
     #[arg(long, env = "LMOXIDE_MAX_CONNECTIONS_PER_IP", default_value_t = 8)]
     pub max_connections_per_ip: u32,
+    /// TCP proxies in front of the game ports (universe, territory, game, chat) that send the
+    /// PROXY protocol header (version 1 or 2): addresses or networks, comma-separated
+    /// (`172.18.0.0/16`). Connections from them must start with one, and its client address is
+    /// the player's (login lockout, connection cap, last login address). Others connect directly.
+    #[arg(long, env = "LMOXIDE_PROXY_PROTOCOL_FROM", value_delimiter = ',', value_parser = proxy::parse_trusted)]
+    pub proxy_protocol_from: Vec<ipnet::IpNet>,
     /// Where the internal control interface for lmoxide-api listens. Keep it private.
     #[arg(long, env = "LMOXIDE_CONTROL_BIND", default_value = "127.0.0.1:7300")]
     pub control_bind: SocketAddr,
@@ -310,6 +317,9 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     }
     std::fs::write(&key_file, format!("{}\n", key.public_hex()))?;
     info!(file = %key_file.display(), "login public key written (patched into clients by lmoxide-patch-server)");
+    if !cfg.proxy_protocol_from.is_empty() {
+        info!(proxies = ?cfg.proxy_protocol_from, "game ports: PROXY protocol from these addresses");
+    }
     if cfg.auto_register {
         warn!("--auto-register: anyone who can reach the server can create an account by logging in");
     }
@@ -374,7 +384,7 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     });
     let territory = tokio::spawn(conn::listen("territory", cfg.addr(cfg.territory_port), cfg.clone(), territory::handle));
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
-    let chat = tokio::spawn(chat::listen(cfg.addr(cfg.chat_port), cfg.max_connections_per_ip));
+    let chat = tokio::spawn(chat::listen(cfg.addr(cfg.chat_port), cfg.max_connections_per_ip, cfg.proxy_protocol_from.clone()));
     npc::start();
     buildie::start();
     jumppad::start();

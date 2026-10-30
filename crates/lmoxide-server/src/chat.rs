@@ -63,11 +63,12 @@ const DEFAULT_CHANNELS: &[&str] = &["#ChatGroup_General_D1_1"];
 /// Team channels: this prefix and the team number. Clients can't JOIN them themselves.
 const TEAM_CHANNEL_PREFIX: &str = "#ChatGroup_Team_D1_";
 
-pub async fn listen(addr: SocketAddr, max_per_ip: u32) -> anyhow::Result<()> {
+pub async fn listen(addr: SocketAddr, max_per_ip: u32, proxies: Vec<ipnet::IpNet>) -> anyhow::Result<()> {
+    let proxies = std::sync::Arc::new(proxies);
     let listener = crate::conn::bind(addr).await?;
     info!("chat listening on {addr}");
     loop {
-        let (sock, peer) = match listener.accept().await {
+        let (mut sock, proxy) = match listener.accept().await {
             Ok(a) => a,
             Err(e) => {
                 warn!("chat: accept failed: {e}");
@@ -75,11 +76,20 @@ pub async fn listen(addr: SocketAddr, max_per_ip: u32) -> anyhow::Result<()> {
                 continue;
             }
         };
-        let Some(guard) = crate::security::connection(peer.ip(), max_per_ip) else {
-            warn!(%peer, "chat: too many connections from this address, refused");
-            continue;
-        };
-        tokio::spawn(
+        let proxies = proxies.clone();
+        tokio::spawn(async move {
+            // the player's address: from a trusted TCP proxy's PROXY header (proxy.rs)
+            let peer = match crate::proxy::client_addr(&mut sock, proxy, &proxies).await {
+                Ok(peer) => peer,
+                Err(e) => {
+                    warn!(%proxy, "chat: {e:#}; closed");
+                    return;
+                }
+            };
+            let Some(guard) = crate::security::connection(peer.ip(), max_per_ip) else {
+                warn!(%peer, "chat: too many connections from this address, refused");
+                return;
+            };
             async move {
                 let _guard = guard;
                 match handle(sock).await {
@@ -87,8 +97,9 @@ pub async fn listen(addr: SocketAddr, max_per_ip: u32) -> anyhow::Result<()> {
                     Err(e) => warn!("chat connection error: {e:#}"),
                 }
             }
-            .instrument(info_span!("chat", %peer)),
-        );
+            .instrument(info_span!("chat", %peer))
+            .await
+        });
     }
 }
 

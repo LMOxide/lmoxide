@@ -30,6 +30,9 @@ content-queue = "/data/content-queue"
 # 1 alpha tester, 2 contributor (world editor, every test command, god camera), 3 moderator,
 # 4 admin; docs/SECURITY.md "Access levels")
 play-gm-level = 0
+# a TCP proxy in front of the game ports (Traefik, HAProxy) sending the PROXY protocol: its
+# address or network, so players keep their own addresses (docs/HOSTING.md "Behind a TCP proxy")
+# proxy-protocol-from = "172.18.0.0/16"
 # LAN conveniences; leave off on a public server
 auto-register = false
 default-gm-level = 0

@@ -27,7 +27,9 @@ no transport encryption and we can't add any without rewriting the client, so:
 - **Throttling.** 10 failed logins (or forged cookies) per address or username within 15 minutes
   lock it out for the rest of that window; at most `--max-connections-per-ip` connections per
   address and listener; frames over 1 MiB and chat lines over 8 KiB close the connection; a
-  connection must authenticate within 30 s.
+  connection must authenticate within 30 s. Behind a TCP proxy every player would share the
+  proxy's address: `--proxy-protocol-from` takes the player's address from the proxy's PROXY
+  protocol header (only from those addresses; docs/HOSTING.md "Behind a TCP proxy").
 - **Bans and maintenance** are checked at login and again by the game server; a ban through the
   API also kicks the player and ends their sessions.
 - **GM levels are per account** (`account gm`) and ordered: see "Access levels" below.
@@ -104,6 +106,8 @@ detect tampering even over plain HTTP; HTTPS can be enabled as well. See
   `lmoxide` the control interface listens on a loopback port with a token made at every start;
   running the programs apart, never publish 7300 and generate the control token with
   `openssl rand -hex 32` into `secrets/control_token`.
+- Behind a TCP proxy for the game ports, set `proxy-protocol-from` to the proxy's address and
+  have it send the PROXY protocol, or every player shares one login lockout.
 - Back up the `data` volume (the SQLite database holds accounts, characters and the login key).
 - Create an admin account (`account create <name> --gm-level 4`) instead of using `--default-gm-level`.
 - During an alpha, `play-gm-level = 1` keeps the game to alpha testers and staff.

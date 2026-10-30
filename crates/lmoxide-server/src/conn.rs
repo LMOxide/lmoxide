@@ -122,7 +122,7 @@ where
     let listener = bind(addr).await?;
     info!("{name} listening on {addr}");
     loop {
-        let (sock, peer) = match listener.accept().await {
+        let (mut sock, proxy) = match listener.accept().await {
             Ok(a) => a,
             Err(e) => {
                 // e.g. out of file descriptors: keep listening
@@ -131,13 +131,21 @@ where
                 continue;
             }
         };
-        let Some(guard) = crate::security::connection(peer.ip(), cfg.max_connections_per_ip) else {
-            warn!(%peer, "{name}: too many connections from this address, refused");
-            continue;
-        };
         let cfg = cfg.clone();
-        let span = info_span!("conn", %name, %peer);
-        tokio::spawn(
+        tokio::spawn(async move {
+            // the player's address: from a trusted TCP proxy's PROXY header (proxy.rs)
+            let peer = match crate::proxy::client_addr(&mut sock, proxy, &cfg.proxy_protocol_from).await {
+                Ok(peer) => peer,
+                Err(e) => {
+                    warn!(%proxy, "{name}: {e:#}; closed");
+                    return;
+                }
+            };
+            let Some(guard) = crate::security::connection(peer.ip(), cfg.max_connections_per_ip) else {
+                warn!(%peer, "{name}: too many connections from this address, refused");
+                return;
+            };
+            let span = info_span!("conn", %name, %peer);
             async move {
                 let _guard = guard;
                 info!("connected");
@@ -154,7 +162,8 @@ where
                     Err(e) => warn!("connection error: {e:#}"),
                 }
             }
-            .instrument(span),
-        );
+            .instrument(span)
+            .await
+        });
     }
 }

@@ -36,6 +36,11 @@ Open these in the firewall. Nothing else needs to be reachable: the API and the 
 listen on port 8080 inside the compose network only. To leave a game mode out, remove it from
 `modes` in `docker/lmoxide.toml` and its port from `docker-compose.yml`.
 
+The game ports are published straight from the `lmoxide` container, so the server sees each
+player's address. If they have to go through a TCP proxy instead (Traefik, HAProxy, nginx
+`stream`), turn on the PROXY protocol on both sides: see "Behind a TCP proxy" below. Without it
+every player has the proxy's address, and one person guessing passwords locks everyone out.
+
 ## Addresses
 
 Everything on the HTTP side shares the one host name (`docker/Caddyfile`):
@@ -240,6 +245,54 @@ dev.lmo.example.org {
 	}
 }
 ```
+
+</details>
+
+<details>
+<summary>Behind a TCP proxy (Traefik, HAProxy)</summary>
+
+The game ports speak their own TCP protocol, so a proxy can only pass them through as TCP, and
+the server would see the proxy's address for every player. The login lockout (10 failed logins
+per address in 15 minutes) and the connection cap (`max-connections-per-ip`) would then hit all
+players at once. The proxy has to send the PROXY protocol header (version 1 or 2), and the server
+has to be told which addresses are proxies, in the `[game]` table of `docker/lmoxide.toml`:
+
+```toml
+# the proxy's address or network (here: the compose network Traefik runs in)
+proxy-protocol-from = "172.18.0.0/16"
+```
+
+Connections from those addresses must start with a PROXY header (others are refused); the
+address in it is the player's. Connections from anywhere else are taken as they are, so ports
+published directly keep working. Set it to the proxy's own address or network only: whoever can
+connect from there can claim any address.
+
+Traefik (file provider), one TCP router and service per port (7100, 7101, 7102, 7103, 7104,
+7200), each port an entry point:
+
+```yaml
+tcp:
+  routers:
+    lmo-7100:
+      entryPoints: [lmo-7100]
+      rule: HostSNI(`*`)
+      service: lmo-7100
+  services:
+    lmo-7100:
+      loadBalancer:
+        proxyProtocol:
+          version: 2
+        servers:
+          - address: lmoxide:7100
+```
+
+HAProxy: `server lmoxide lmoxide:7100 send-proxy-v2` in a `mode tcp` backend per port.
+
+The game client reaches territory, game and chat at `public_host` and the ports the server was
+given, so the proxy must listen on the same port numbers. Remove the game ports from
+`docker-compose.yml`'s `lmoxide` service when only the proxy should reach them. The HTTP side
+(Caddy or Traefik's HTTP routers) needs nothing new: the API reads `X-Forwarded-For`
+(`trust-forwarded-for`).
 
 </details>
 
