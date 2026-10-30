@@ -2226,11 +2226,12 @@ pub fn set_cast_command(id: Id32, spell: u32, target: Id32, command: u32) {
 }
 
 /// Enemy `id` charges `distance` m along `dir` at `speed` m/s (an enemy ColumnDash: the
-/// Minotaur's Bull Charge): the clients run it there at that speed (its run speed stat 1397
-/// raised for the dash, then back), and it stands still meanwhile. Returns the time it takes.
+/// Minotaur's Bull Charge): the clients run it there along a dash path (dash.rs, as players'
+/// dashes: at its charge speed stat 1400), ending with a stop at the end. Returns the time it
+/// takes.
 pub fn charge(id: Id32, dir: [f32; 2], distance: f32, speed: f32) -> Option<Duration> {
     let now = std::time::Instant::now();
-    let (here, to, run) = {
+    let (here, to) = {
         let mut npcs = NPCS.lock().unwrap();
         let npc = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0 && !n.def.stationary)?;
         let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(now).0);
@@ -2238,20 +2239,15 @@ pub fn charge(id: Id32, dir: [f32; 2], distance: f32, speed: f32) -> Option<Dura
         *npc.pos.lock().unwrap() = to;
         let until = now + Duration::from_secs_f32(distance / speed.max(1.0));
         npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
-        (here, to, run_speed(&npc.def))
+        (here, to)
     };
     let took = Duration::from_secs_f32(distance / speed.max(1.0));
-    world::send_playfield(id, false, world::Out::Records(vec![float_stat(id, RUN_SPEED, speed), crate::game::move_task_record(id, here, to)]));
+    world::send_playfield(id, false, world::Out::Records(vec![crate::dash::path_record(id, here, to, distance)]));
     tokio::spawn(async move {
-        tokio::time::sleep(took).await;
-        world::send_playfield(id, false, world::Out::Records(vec![float_stat(id, RUN_SPEED, run)]));
+        tokio::time::sleep(took + Duration::from_millis(100)).await;
+        world::send_playfield(id, false, world::Out::Records(vec![crate::dash::stop_record(id, to, dir)]));
     });
     Some(took)
-}
-
-/// `FloatStatIIR`: u32 stat, f32 value (a speed stat of a character the clients move).
-fn float_stat(id: Id32, stat: u32, value: f32) -> bytes::Bytes {
-    lmoxide_net::iir::record("FloatStatIIR", id, false, |w| w.u32(stat).f32(value))
 }
 
 /// A player's ability knocks enemy `id` `distance` m away from `from` (`towards`: pulls it
@@ -2377,7 +2373,6 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
                 world::send_playfield(id, false, world::Out::Records(vec![record]));
             }
         }
-        let npc = npcs.get(&id).expect("looked up above");
         // (not a spawn spell whose spawns are all at their cap; while an action is under way,
         // only the parallel ones)
         spells.retain(|s| !crate::npc_spells::spawns_full(*s, |counter| alive_spawns(&npcs, id, counter)));

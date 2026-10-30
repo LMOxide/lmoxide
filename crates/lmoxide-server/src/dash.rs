@@ -195,7 +195,7 @@ fn show_hit(caster: Id32, target: Id32, visuals: &[(u32, u32, Option<u32>)]) {
 /// PathMoveTask (1): u8 1, u16 path flags 4 (speed-up mode 2: MovementChargeSpeed), u32 2,
 /// start, end, spline block (u8 0, f32 0, u8 0, f32 0, f32 len/35, fitted to the recorded
 /// casts); WaitMoveTask (0): u8 0, f32 0.1, f32 0.1.
-fn path_record(id: Id32, start: [f32; 3], end: [f32; 3], len: f32) -> Bytes {
+pub(crate) fn path_record(id: Id32, start: [f32; 3], end: [f32; 3], len: f32) -> Bytes {
     iir::record("MoveTaskIIR_c", id, false, |w| {
         let w = w.u8(0).f32(start[0]).f32(start[1]).f32(start[2]).u8(4).u8(1).u8(0).u8(2);
         let w = w.u8(1).u8(1).u16(4).u32(2);
