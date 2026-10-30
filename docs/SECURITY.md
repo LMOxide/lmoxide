@@ -75,7 +75,7 @@ token it doesn't start.
   their SHA-256 is stored. Keys have a scope (`read` < `moderate` < `discord` < `admin`); a login
   session's scope follows the account's GM level (`--moderator-gm-level`, `--admin-gm-level`), and
   so does an account key's (the keys the Discord bot holds for linked accounts; they stop working
-  while the account is banned or once it is unlinked). Moderators can't kick or ban staff. A
+  while the account is banned or once it is unlinked). Moderators can't kick or ban staff (moderators and admins). A
   password change ends the account's sessions.
 - **Discord codes**: the one-time codes the bot sends in DMs (link an account, sign in to reset
   a password) are 8 characters from a 31-letter alphabet, last 10 minutes, work once, and only
