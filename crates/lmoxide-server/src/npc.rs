@@ -70,14 +70,11 @@ const PATROL_SPEED: f32 = 0.7;
 const WALK_SPEED: u32 = 1396;
 /// An NPC this close to its goal stays where it is.
 const ARRIVED: f32 = 0.3;
-/// Movement speed stats (as game::PLAYER_SPEEDS) the original server gave the recorded
-/// session's Pirates, Musketeers and Captain Dreadleg; NPC templates were server-side, so every
-/// enemy without recorded values gets these.
-const ENEMY_SPEEDS: &[(u32, f32)] =
-    &[(1396, 2.1), (1397, 4.2), (1398, 8.4), (1399, 2.1), (1400, 8.4), (1401, 50.0), (1402, 50.0)];
-/// The recorded Scallywags' and Tavern Pirates'.
-const SLOW_ENEMY_SPEEDS: &[(u32, f32)] =
-    &[(1396, 1.4), (1397, 1.4), (1398, 2.8), (1399, 1.4), (1400, 2.8), (1401, 50.0), (1402, 50.0)];
+/// Movement speed stats (as game::PLAYER_SPEEDS) of an NPC: its template's movement set (content
+/// npc `movement`, tunables `npc.movement_sets`: the client's sets, chosen per template from the
+/// live capture), with the turn speeds every live NPC had.
+const SPEED_STATS: [u32; 5] = [1396, 1397, 1398, 1399, 1400];
+const TURN_SPEEDS: [(u32, f32); 2] = [(1401, 50.0), (1402, 50.0)];
 /// The stat the clients move characters along paths with: the recorded NPCs walked their paths
 /// at it (one with 1396 = 2.1 and 1397 = 6.0 measured 4.8–6.1 m/s, Scallywags 1.3–1.4 m/s).
 const RUN_SPEED: u32 = 1397;
@@ -354,6 +351,13 @@ pub struct SpawnDef {
     /// speaker (knubot.rs), nothing players click.
     #[serde(default)]
     pub cinematic: bool,
+    /// Its movement speed stats (its template's `movement`); none: its kind's default.
+    #[serde(default)]
+    pub speeds: Option<Vec<(u32, f32)>>,
+    /// Story goals during which players can't hit it (its template's `refused` hits: the
+    /// client's quest-goal CARS rules).
+    #[serde(default)]
+    pub refused_hits: Vec<String>,
 }
 
 impl SpawnDef {
@@ -471,14 +475,35 @@ impl Walk {
     }
 }
 
-/// The movement speed stats of an NPC (see `ENEMY_SPEEDS`); pets and story NPCs get the
-/// players' so pets keep up with their owner.
-fn speeds(def: &SpawnDef) -> &'static [(u32, f32)] {
-    match def.kind {
-        Kind::Enemy if matches!(def.name.as_str(), "Scallywag" | "Tavern Pirate") => SLOW_ENEMY_SPEEDS,
-        Kind::Enemy | Kind::Fighter => ENEMY_SPEEDS,
-        _ => crate::game::PLAYER_SPEEDS,
+/// The speed stats of `movement` (content npc `movement`), or `None` for an unknown set.
+pub fn movement_speeds(movement: &lmoxide_content::model::Movement) -> Option<Vec<(u32, f32)>> {
+    let set = crate::gamedata::get().tunables.npc.movement_sets.get(&movement.set)?;
+    let m = movement;
+    let values = [m.walk.unwrap_or(set.walk), m.run.unwrap_or(set.run), m.sprint.unwrap_or(set.sprint), m.walk_backwards.unwrap_or(set.walk_backwards), m.charge.unwrap_or(set.charge)];
+    Some(SPEED_STATS.into_iter().zip(values).chain(TURN_SPEEDS).collect())
+}
+
+/// The speeds of NPCs whose template names no movement set (tunables `npc.movement_default`):
+/// enemies and friendly fighters, the others (story NPCs, pets: they keep up with their owner).
+static DEFAULT_SPEEDS: LazyLock<[Vec<(u32, f32)>; 2]> = LazyLock::new(|| {
+    let d = &crate::gamedata::get().tunables.npc.movement_default;
+    let of = |set: &str| movement_speeds(&lmoxide_content::model::Movement { set: set.to_string(), ..Default::default() }).unwrap_or_else(|| crate::game::PLAYER_SPEEDS.to_vec());
+    [of(&d.enemy), of(&d.other)]
+});
+
+/// The movement speed stats of an NPC: its own (`SpawnDef::speeds`), else its kind's default.
+pub(crate) fn speeds(def: &SpawnDef) -> &[(u32, f32)] {
+    match (&def.speeds, def.kind) {
+        (Some(s), _) => s,
+        (None, Kind::Enemy | Kind::Fighter) => &DEFAULT_SPEEDS[0],
+        (None, _) => &DEFAULT_SPEEDS[1],
     }
+}
+
+/// An NPC's dash speed (MovementChargeSpeed 1400), `None` for players.
+pub fn charge_speed(id: Id32) -> Option<f32> {
+    let npcs = NPCS.lock().unwrap();
+    speeds(&npcs.get(&id)?.def).iter().find(|(stat, _)| *stat == 1400).map(|&(_, v)| v)
 }
 
 fn run_speed(def: &SpawnDef) -> f32 {
@@ -824,7 +849,7 @@ fn spec(def: &SpawnDef, playfield: Pf, pos: [f32; 3], health: u32) -> CharSpec<'
         max_health: def.health,
         cars_group: def.cars_group.unwrap_or(CARS_ENEMIES),
         npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), icon: def.icon, ..Default::default() }),
-        speeds: speeds(def).into(),
+        speeds: speeds(def).to_vec().into(),
     }
 }
 
@@ -1141,6 +1166,8 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         rot: None,
         requires: Vec::new(),
         cinematic: false,
+        speeds: None,
+        refused_hits: Vec::new(),
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -1177,6 +1204,12 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     let by_player = attacker.kind == crate::territory::CHARACTER_TYPE && !by_npc;
     let npc = npcs.get_mut(&target)?;
     if npc.presence.is_none() || npc.health == 0 || npc.def.kind == Kind::Pet || (npc.def.kind == Kind::Npc && !npc.def.fights()) {
+        return None;
+    }
+    // not while the player has a story goal its CARS rule names (the jail's cracked wall before
+    // talking to Swashbuckler); the client doesn't let them target it then, area hits included
+    if by_player && crate::story::holds_any(attacker.instance, &npc.def.refused_hits) {
+        info!(?attacker, ?target, goals = ?npc.def.refused_hits, "hit refused during a story goal");
         return None;
     }
     // friendly fighters are hurt only by enemies
@@ -2541,6 +2574,8 @@ mod tests {
             spread: None,
             requires: Vec::new(),
             cinematic: false,
+            speeds: None,
+            refused_hits: Vec::new(),
             kind: Kind::Enemy,
             template: 0,
             name: "Enemy".into(),

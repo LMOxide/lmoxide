@@ -493,6 +493,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
                         crate::story::migrate(&mut me);
+                        crate::story::sync_goals(&me, character);
                         records.push(crate::teleport::journal_record(h.identity, &crate::story::journal(&me)));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.item_state(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
@@ -1962,6 +1963,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 let line = if n == 0 { format!("no enemy named {name}") } else { format!("{n} x {name} for 15 minutes") };
                                 crate::chat::system(character, &line);
                             }
+                            if setup.levels > 0 {
+                                // just enough XP for that many level-ups (the level scripts run)
+                                let line = if me.rules().progression {
+                                    let target = crate::progression::next_xp(me.level() + setup.levels - 1);
+                                    let xp = target.saturating_sub(me.xp);
+                                    let records = gain_xp(&mut me, character, xp);
+                                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&records)).await?;
+                                    format!("level {}, XP {} (cap here {})", me.level(), me.xp, crate::progression::effective_cap(me.playfield))
+                                } else {
+                                    "levels need --progression (the progression mode)".to_string()
+                                };
+                                crate::chat::system(character, &line);
+                            }
                         }
                     }
                 } else if let Some(p) = &presence {
@@ -2673,6 +2687,22 @@ fn gain_xp(me: &mut Character, character: u32, xp: u64) -> Vec<Bytes> {
             health.push(int32_stat(id, STAT_HEALTH, full));
             records.extend(health);
             crate::procs::knock_around(id, &crate::gamedata::get().tunables.health.level_up_knockaway);
+        }
+        // the level scripts' toast (for everyone around) and tags (tutorial talking heads)
+        let (effect, tags) = crate::progression::level_up(before, level);
+        if let Some(package) = effect {
+            let toast = crate::effects::effect_package(id, package);
+            world::broadcast(id, vec![toast.clone()]);
+            records.push(toast);
+        }
+        info!(character, level, ?effect, ?tags, "level scripts");
+        for tag in tags {
+            if me.tags.contains_key(&tag) {
+                continue;
+            }
+            me.tags.insert(tag, crate::smash::now_ms() / 1000);
+            let (endpoint, method, args) = crate::achievements::add_tag(tag);
+            world::send_to(id, world::Out::Rpc(endpoint, method, args));
         }
     }
     records.push(stat_record(id, STAT_XP, me.xp.min(i32::MAX as u64) as u32));

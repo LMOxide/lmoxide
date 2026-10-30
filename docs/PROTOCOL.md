@@ -221,7 +221,10 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
   along navmesh waypoints, sent when the NPC's plan changes (a path in progress was re-sent
   with its current start); `StopIIR_c` (pos, rotation, u8 jump, u8 wait) when it stops;
   TrackMoveTask (8) to face the player it fights. NPCs' speed stats 1396–1402 came with their
-  SimpleCharFullUpdate (float stats).
+  SimpleCharFullUpdate (float stats): the values of one client movement set (RDB 1010205:
+  basewalkspeed, baserunspeed, basesprintspeed, basereversewalkspeed, chargespeed; turn speeds
+  1401/1402 always 50) per NPC template, the same on every record of a template in the live
+  capture (content npcs `movement`).
 - **Keyboard movement** needs stat CharRadius (421): the collision capsule radius is
   CharRadius × MonsterScale / 10000, and with 0 `Vehicle_t::CollideAndSlide` blocks every step.
   CommandQueueSize (1360) defaults to 1, which makes the queue "full".
@@ -324,7 +327,14 @@ ScryShowMessageBox). LMOxide spawns the client data's door spawns within 5 m of 
   gamepad only) end in the same `ActionModeDefault_c::UseTarget(target,
   SimpleChar_t::GetDefaultCharacterAction(target))`: E takes the auto-aim target, a left click
   the object under the cursor (`MouseSelection_c::TraceObjects`: loot first, then characters,
-  simple dynels and destructibles; `CanSelect` refuses CarsGroup 5 unless GM). Action 6 (use:
+  simple dynels and destructibles; `CanSelect` refuses CarsGroup 5 unless GM). Quest-goal CARS
+  rules (RDB 1010505, merged copy; group type 3/13/33 HasQuestWithHash: value = goal hash, value2
+  = goal id) refuse actions on one template while the journal has the goal: the jail's cracked
+  wall 198247 everything during 228 "Talk to Swashbuckler" (9AQ4, rule 446247), the tutorial's
+  Crystal Compass 611816 everything during 330 "Follow the Video Game Guy" (YMQL, 611819), the
+  Grotto Throne 238278 use and friendly actions during 125 (PM25, 238282); 440470 (the wall
+  during 220) isn't in the merged copy, so the client never loads it. The client applies them
+  itself; the server refuses hits as well (content objects `refused`, npc.rs `hit`). Action 6 (use:
   simple dynels and destructibles passing the CARS USE rule, CarsGroup 1/2/4) enters
   ActionModeClickToUse (walk up, `DoUse`); 0xc (talk); 0x12/0x15 attack. A loot item
   (ClientLootBag 51340) gives 0x13 only when its parent bag (51322) **can be opened**:
@@ -393,6 +403,12 @@ Classic King and Battle Mech use it too. The overriding spells must be learned.
   (XP − LastXP) / (NextXP − LastXP), "+N XP" from the XP stat's change). Recorded level 1: XP 0,
   LastXP 0, NextXP 200; per kill `StatIIR_t` XP. The client computes Life = Level ×
   HealthPerLevel + the minifigure's health.
+- Level-up (the server's level scripts 556-585 and 1015, one per level; not recorded): Level, the
+  health stats and full Health; `EffectPackageIIR` 162167 on the player (the level toast:
+  particle_generic_levelup, sound_fxpackage_GUI_levelup, a camera shake; sent to everyone on the
+  playfield); `AddTag` of the level's tutorial tag (level 2: 393 LevelUp, whose talking head says
+  "You made it to Level 2"; 6: 642 Level6Pusher; 3, 8, 10, 13, 15: 720, 721, 445, 798, 796, not
+  in the lore tree). Spell 423600 (script 990) is done on the server: the heal, knockaway 423601.
 - Area level cap: the 5th of the 6 u32 after `PlayfieldFIIR_t`'s blobs (stored at +0xe8;
   `SimpleChar_t::GetMaxLevelCap` = min(it, TWK_MaxPlayerLevel), 0 = none). Recorded 11 in
   Pirate World, 0 in the tutorial. At the cap the XP bar shows "You have reached the maximum

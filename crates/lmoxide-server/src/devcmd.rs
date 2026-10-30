@@ -401,6 +401,8 @@ pub struct TestSetup {
     pub team: Vec<u32>,
     /// enemies to spawn around the player: (name, count, the only spells they cast: none = all)
     pub spawn: Vec<(String, u32, Vec<u32>)>,
+    /// level-ups to gain (XP up to the level that many above; with progression)
+    pub levels: u32,
 }
 
 #[derive(serde::Deserialize)]
@@ -418,6 +420,8 @@ struct Scenario {
     team: Vec<String>,
     #[serde(default)]
     spawn: Vec<Spawn>,
+    #[serde(default)]
+    levels: u32,
 }
 
 #[derive(serde::Deserialize)]
@@ -491,7 +495,7 @@ fn test(arg: Option<&str>) -> Action {
         }
     }
     let spawn = s.spawn.iter().map(|sp| (sp.name.clone(), sp.count.min(30), sp.spells.clone())).collect();
-    Action::Test(TestSetup { label: s.label.clone(), destination, team, spawn })
+    Action::Test(TestSetup { label: s.label.clone(), destination, team, spawn, levels: s.levels.min(crate::progression::MAX_PLAYER_LEVEL) })
 }
 
 /// A command's target kinds (for `!list` / `!goto`) and what they are.

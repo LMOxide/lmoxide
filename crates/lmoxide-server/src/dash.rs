@@ -41,8 +41,13 @@ static DASHES: LazyLock<HashMap<u32, Dash>> =
     LazyLock::new(|| crate::skills::dashes().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("dash"))).collect());
 
 /// Dash speed: the player's MovementChargeSpeed stat (1400), 37.5 in the recorded session (see
-/// game::PLAYER_SPEEDS); the path's speed-up mode 2 makes the client use it.
+/// game::PLAYER_SPEEDS); the path's speed-up mode 2 makes the client use it. NPCs dash at their
+/// own (their movement set's `charge`: MonsterFast 8.4, Minotaur 14, ...).
 const SPEED: f32 = 37.5;
+
+fn speed_of(caster: Id32) -> f32 {
+    crate::npc::charge_speed(caster).filter(|s| *s > 0.0).unwrap_or(SPEED)
+}
 /// "Charging" behaviour substate, held for the dash.
 const SUBSTATE_CHARGING: u32 = 200;
 const BCC_ENTER_SUBSTATE: u8 = 11;
@@ -115,7 +120,7 @@ pub fn start_then(
     };
     let dir = if dash.backwards { [-dir[0], -dir[1]] } else { dir };
     let end = [start[0] + dir[0] * len, start[1], start[2] + dir[1] * len];
-    let t = len / SPEED;
+    let t = len / speed_of(caster);
     let instance = effects::new_instance();
     info!(?caster, spell, len, ?end, "dash");
 
@@ -161,7 +166,7 @@ pub fn leap(caster: Id32, pos: world::Position, point: Option<[f32; 3]>, facing:
         None => (facing, max),
     };
     let end = [start[0] + dir[0] * len, point.map_or(start[1], |p| p[1]), start[2] + dir[1] * len];
-    let t = len / SPEED;
+    let t = len / speed_of(caster);
     info!(?caster, len, ?end, "leap");
     world::send_playfield(caster, true, world::Out::Records(vec![path_record(caster, start, end, len), substate_record(caster, BCC_ENTER_SUBSTATE)]));
     tokio::spawn(async move {

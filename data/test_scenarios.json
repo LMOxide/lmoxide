@@ -1,5 +1,5 @@
 {
-  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn, casting only `spells` when given; optional).",
+  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn, casting only `spells` when given; optional), levels (gain just enough XP for that many level-ups, with progression; optional).",
   "scenarios": [
     {
       "label": "smash",
@@ -556,6 +556,28 @@
           "count": 6
         }
       ]
+    },
+    {
+      "label": "levelup",
+      "about": "one level-up where you stand (progression; below the area's cap): full heal, knockaway, the level toast (effect 162167: particles, sound, camera shake) and the level script's tag (level 2: 393 LevelUp talking head \"You made it to Level 2\"; 6: 642 Level6Pusher); the server log says \"level scripts\"",
+      "levels": 1
+    },
+    {
+      "label": "speeds",
+      "about": "enemies with different live movement sets around you (content npcs movement, tunables npc.movement_sets): Musketeer MonsterFast (run 4.2, dash 8.4), Skeleton Axeman MonsterSlow (1.4), Forest Treeman treant (2.2, dash 12), Medieval Ogre Defender Melee War ogre (4.2, from its look), Harpy Raider harpy (4.2, dash 12), Corrupted Chicken Suit Guy satyr (4.2, dash 13.4); pull them and watch who keeps up",
+      "spawn": [
+        { "name": "Musketeer", "count": 1 },
+        { "name": "Skeleton Axeman", "count": 1 },
+        { "name": "Forest Treeman", "count": 1 },
+        { "name": "Medieval Ogre Defender Melee War", "count": 1 },
+        { "name": "Harpy Raider", "count": 1 },
+        { "name": "Corrupted Chicken Suit Guy", "count": 1 }
+      ]
+    },
+    {
+      "label": "jailwall",
+      "about": "next to the jail's cracked wall (4610): with the story at Talk to Swashbuckler (!story quest pirate 5) every hit on it is refused, area hits too (the client's quest-goal rule 446247; log \"hit refused during a story goal\"); after !story goal 9AQ4 (or talking to him) it smashes",
+      "goto": { "kind": "smashable", "name": "XX_Cracked wall" }
     }
   ]
 }
