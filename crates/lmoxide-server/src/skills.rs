@@ -280,7 +280,7 @@ mod tests {
         // the Bot Battle Merc's stomp and missile instead of the generic Shot, the Grenadier's
         // grenade instead of an XX_Slash his look can't animate, the Space Merc Defender's
         // reflect (the user, 2026-10-30)
-        const REPLACED: [(u32, &[u32]); 15] = [
+        const REPLACED: [(u32, &[u32]); 14] = [
             (201_479, &[194_198]),
             (201_477, &[194_199, 194_198]),
             (192_821, &[190_796, 190_612]),
@@ -291,16 +291,15 @@ mod tests {
             (98_178, &[100_144, 188_671]),
             (192_828, &[188_671]),
             (337_606, &[331_516, 16_101]),
-            (331_167, &[191_516]),
+            (331_167, &[191_516, 319_342]),
             (331_170, &[319_299]),
             (521_311, &[521_897, 521_607]),
             // the Minotaur's quick smash and Bull Charge (the user: he charges, has melee attacks)
             (636_593, &[319_298, 319_891, 3_202]),
-            // the troll heavy hitter's own ground smash instead of a Rampage its look can't animate;
-            // the melee trolls' Bull Charge (the user: certain trolls charge)
+            // the troll heavy hitter's own ground smash instead of a Rampage its look can't
+            // animate; the Crooked Tooth Brute's charge, ground smash and swings (the user)
             (327_846, &[319_338, 319_946]),
-            (327_844, &[238_037, 196_247, 3_202]),
-            (327_845, &[238_037, 196_247, 3_202]),
+            (157_082, &[100_331, 101_016, 100_799]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();

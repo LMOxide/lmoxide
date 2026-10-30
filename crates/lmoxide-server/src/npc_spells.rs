@@ -323,6 +323,17 @@ fn animation_length(package: Option<u32>) -> Duration {
     package.and_then(|p| LENGTHS.get(&p)).map_or(Duration::ZERO, |s| Duration::from_secs_f32(*s))
 }
 
+/// How long a cast of the spell lasts, a channel's whole length even when the caster moves in
+/// it: no other cast starts meanwhile (npc.rs `engage`).
+pub fn cast_time(id: u32) -> Duration {
+    let Some(s) = spell(id) else { return Duration::ZERO };
+    let strike = cs(s.stats.item_delay.unwrap_or(0.0));
+    match channel(s) {
+        Some((interval, ticks)) => strike + interval * ticks,
+        None => busy(id),
+    }
+}
+
 /// When the spell strikes after its cast starts (its ItemDelay).
 pub fn strike_delay(id: u32) -> Duration {
     spell(id).map_or(Duration::ZERO, |s| cs(s.stats.item_delay.unwrap_or(0.0)))
@@ -579,8 +590,7 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             let width = a.f("Radius").unwrap_or(1.0) + 0.5;
             let (from, dir) = (me.pos, run.facing);
             let speed = crate::npc::charge_speed(caster).unwrap_or(DASH_SPEED);
-            let behind = [from[0] - dir[0], from[1], from[2] - dir[1]];
-            if crate::npc::knock(caster, behind, length, false, speed) {
+            if crate::npc::charge(caster, dir, length, speed).is_some() {
                 if let Some(fx) = a.u("Value1") {
                     show(run, vec![effects::effect_package(caster, fx)]);
                 }

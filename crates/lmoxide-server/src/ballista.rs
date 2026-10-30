@@ -34,6 +34,11 @@ const DUMMY_TEMPLATE: u32 = 320512;
 const DUMMY_LOOK: u32 = 320511;
 /// The arrow: projectile item and speed; the hit lands when it arrives.
 const ARROW: u32 = 506676;
+/// The red X on the ground under a dummy while it is up: the bot artillery's and the boss
+/// mech's shell marker (413361, particle_bot_battle_merc_marker; the user, 2026-10-30: the
+/// Gauntlet's ballistas showed it), as spell 599301 plays it.
+const MARKER: u32 = 413_361;
+const MARKER_SPELL: u32 = 599_301;
 const ARROW_SPEED: f32 = 25.0;
 /// The room (x, z): from the west gate to the east gate.
 const ROOM: ([f32; 2], [f32; 2]) = ([288.0, 320.0], [160.0, 195.0]);
@@ -213,8 +218,12 @@ pub fn start() {
                     source: None,
                     rot: None,
                 };
+                let at = def.pos;
                 let id = crate::npc::spawn_temporary(def, pf, TARGET_LIFE);
                 info!(playfield = ?pf, ballista = i + 1, high, "dummy up");
+                // (the ballista owns it: the dummy may be gone when it stops)
+                let owner = crate::scenery::piece_id(pf, BALLISTAS[i].low);
+                world::send_playfield(owner, false, world::Out::Records(vec![crate::effects::ground_effect(owner, MARKER, at, MARKER_SPELL, id.instance)]));
                 with(pf, |s| s.dummy = Some((i, high, id)));
                 tokio::spawn(async move {
                     tokio::time::sleep(TARGET_LIFE).await;
@@ -223,6 +232,7 @@ pub fn start() {
                             s.dummy = None;
                         }
                     });
+                    world::send_playfield(owner, false, world::Out::Records(vec![marker_off(owner, id)]));
                 });
             }
         }
@@ -240,6 +250,11 @@ pub fn start() {
             }
         }
     });
+}
+
+/// Stops dummy `id`'s marker (played by ballista piece `owner`).
+fn marker_off(owner: Id32, id: Id32) -> bytes::Bytes {
+    crate::effects::stop_effect_package(owner, MARKER, MARKER_SPELL, id.instance)
 }
 
 /// `player` pulled lever `guid`: the lever and the ballista move, its arrow flies at the point
@@ -270,6 +285,8 @@ pub fn pull(player: Id32, guid: u32) {
         crate::projectile::enemy_impact(ballista, shot, None, None);
         if let Some((id, hits)) = target {
             info!(hits, "ballista hit a dummy");
+            let owner = crate::scenery::piece_id(pf, b.low);
+            world::send_playfield(owner, false, world::Out::Records(vec![marker_off(owner, id)]));
             crate::npc::hit(player, id, 0, 100);
             if hits == HITS_NEEDED {
                 info!(playfield = ?pf, "shooting room solved");

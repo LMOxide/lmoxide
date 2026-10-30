@@ -966,6 +966,15 @@ fn remove_buff(run: &Run, id: Id32, buff: u32) {
 /// Heals player `id` (a minifigure not smashed) by `share` of its maximum health, as the Lua's
 /// `setstat` (the client's whole-number Health: rounded down).
 fn heal(id: Id32, share: f32, spell: u32) {
+    // a friendly NPC (a fighter, a pet): `share` of its own maximum (the user, 2026-10-30)
+    if let Some(max) = crate::npc::healable_max(id) {
+        let amount = (max as f32 * share) as u32;
+        if amount > 0 {
+            let health = crate::npc::heal_npc(id, amount);
+            info!(?id, spell, amount, ?health, max, "ability heal (NPC)");
+        }
+        return;
+    }
     if !crate::npc::is_player(id) || crate::npc::player_health(id).is_none_or(|h| h == 0) {
         return;
     }
@@ -1475,7 +1484,10 @@ fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], around_cas
     let melee = if allies { None } else { melee_target(run, shape, around_caster) };
     let reach = shape.radius + if melee.is_some() { MELEE_TARGET_RADIUS + MELEE_LAG_SLACK } else { 0.0 };
     let candidates = if allies {
-        world::live_positions(run.caster.playfield).into_iter().filter(|(id, p)| distance(*p, center) <= reach && crate::npc::is_player(*id)).collect()
+        // the players, and the friendly NPCs that fight (the user: heal NPCs as the Faun)
+        let mut c: Vec<(Id32, [f32; 3])> = world::live_positions(run.caster.playfield).into_iter().filter(|(id, p)| distance(*p, center) <= reach && crate::npc::is_player(*id)).collect();
+        c.extend(crate::npc::healable_where(run.caster.playfield, |p| distance(p, center) <= reach));
+        c
     } else {
         crate::npc::targets_where(run.caster.playfield, |p| distance(p, center) <= reach)
     };

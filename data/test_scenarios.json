@@ -720,17 +720,33 @@
     },
     {
       "label": "minotaur",
-      "about": "the Minotaur: a quick smash up close, Rampage (a spin), and Bull Charge from up to 8 m (he runs 8 m at you; ×2 and a knockback); he waits out each attack's animation instead of freezing",
+      "about": "the Minotaur: a quick smash up close, Rampage (a spin; nothing else is cast until it ends), and Bull Charge from up to 8 m (he runs 8 m at you at his charge speed; ×2 and a knockback)",
       "spawn": [{ "name": "Minotaur", "count": 1 }]
     },
     {
       "label": "trolls",
-      "about": "Troll Melee War and Swamp (smash, swing, Bull Charge from up to 8 m) and a Troll Heavy Hitter War (its own ground smash: no more Rampage it couldn't animate)",
+      "about": "Troll Melee War and Swamp (smash, swing) and a Troll Heavy Hitter War (its own ground smash: no more Rampage it couldn't animate)",
       "spawn": [
         { "name": "Troll Melee War", "count": 1 },
         { "name": "Troll Melee Swamp", "count": 1 },
         { "name": "Troll Heavy Hitter War", "count": 1 }
       ]
+    },
+    {
+      "label": "hornblower",
+      "about": "a Troll Hornblower War: he blows his horn (Call to Arms) and Crooked Tooth Ruffians come beside him, up to 5",
+      "spawn": [{ "name": "Troll Hornblower War", "count": 1 }]
+    },
+    {
+      "label": "healnpcs",
+      "about": "Faun, Carpenter and Trendsetter at friendly NPCs fighting enemies: Healing Song, Carpenter's Craft and Circle of Hearts heal them too (their share of the NPC's own maximum; log \"ability heal (NPC)\")",
+      "goto": { "kind": "fighter" },
+      "team": ["Faun", "Carpenter", "Trendsetter"]
+    },
+    {
+      "label": "brute",
+      "about": "a Crooked Tooth Brute: Trample (a 12 m charge from up to 8 m), a ground smash up close, and Rampage (swings around itself for 2 s)",
+      "spawn": [{ "name": "Crooked Tooth Brute", "count": 1 }]
     }
   ]
 }

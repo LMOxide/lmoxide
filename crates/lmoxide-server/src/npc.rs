@@ -431,6 +431,9 @@ struct Npc {
     snares: Vec<(f32, std::time::Instant)>,
     /// The speed multiplier its current path was made with.
     speed_factor: f32,
+    /// A channel it is in until then (a spin it moves in): no other cast meanwhile, which
+    /// would cut its animation (the Minotaur's Rampage, frozen).
+    casting_until: Option<std::time::Instant>,
     /// Diminishing returns: when each crowd control of a kind (802 snare, 804 stun) it got
     /// stops counting, and how much each counted one shortens the next.
     diminishing: HashMap<u32, (Vec<std::time::Instant>, f32)>,
@@ -469,6 +472,7 @@ impl Npc {
             threat: None,
             snares: Vec::new(),
             speed_factor: 1.0,
+            casting_until: None,
             diminishing: HashMap::new(),
             patrol: None,
             shield: None,
@@ -1650,6 +1654,24 @@ pub fn targets_where(playfield: Pf, inside: impl Fn([f32; 3]) -> bool) -> Vec<(I
         .collect()
 }
 
+/// The live friendly NPCs a player's heal reaches on `playfield` where `inside` holds: friendly
+/// fighters, NPCs that fight and pets (not scenery or story NPCs, which take no damage).
+pub fn healable_where(playfield: Pf, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f32; 3])> {
+    let now = std::time::Instant::now();
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.presence.is_some() && n.health > 0 && (n.def.fights() || n.def.kind == Kind::Pet))
+        .map(|(id, n)| (*id, n.now_at(now)))
+        .filter(|(_, p)| inside(*p))
+        .collect()
+}
+
+/// A healable friendly NPC's maximum health (`healable_where`).
+pub fn healable_max(id: Id32) -> Option<u32> {
+    NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some() && n.health > 0 && (n.def.fights() || n.def.kind == Kind::Pet)).map(|n| n.def.health)
+}
+
 /// Health regeneration of players' minifigures (live capture, 62 runs): every second while
 /// below maximum, the share of the minifigure's own maximum health in the character record (`HealthRegenIC` 0.5% in combat, `HealthRegenOOC` 5% out of it; tunables.json
 /// `npc`), rounded down as the client's (int)(Life × rate); out of combat = `regen_delay` since
@@ -2167,6 +2189,35 @@ pub fn stun(id: Id32, duration: Duration) -> Option<Duration> {
     Some(duration)
 }
 
+/// Enemy `id` charges `distance` m along `dir` at `speed` m/s (an enemy ColumnDash: the
+/// Minotaur's Bull Charge): the clients run it there at that speed (its run speed stat 1397
+/// raised for the dash, then back), and it stands still meanwhile. Returns the time it takes.
+pub fn charge(id: Id32, dir: [f32; 2], distance: f32, speed: f32) -> Option<Duration> {
+    let now = std::time::Instant::now();
+    let (here, to, run) = {
+        let mut npcs = NPCS.lock().unwrap();
+        let npc = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0 && !n.def.stationary)?;
+        let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(now).0);
+        let to = [here[0] + dir[0] * distance, here[1], here[2] + dir[1] * distance];
+        *npc.pos.lock().unwrap() = to;
+        let until = now + Duration::from_secs_f32(distance / speed.max(1.0));
+        npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
+        (here, to, run_speed(&npc.def))
+    };
+    let took = Duration::from_secs_f32(distance / speed.max(1.0));
+    world::send_playfield(id, false, world::Out::Records(vec![float_stat(id, RUN_SPEED, speed), crate::game::move_task_record(id, here, to)]));
+    tokio::spawn(async move {
+        tokio::time::sleep(took).await;
+        world::send_playfield(id, false, world::Out::Records(vec![float_stat(id, RUN_SPEED, run)]));
+    });
+    Some(took)
+}
+
+/// `FloatStatIIR`: u32 stat, f32 value (a speed stat of a character the clients move).
+fn float_stat(id: Id32, stat: u32, value: f32) -> bytes::Bytes {
+    lmoxide_net::iir::record("FloatStatIIR", id, false, |w| w.u32(stat).f32(value))
+}
+
 /// A player's ability knocks enemy `id` `distance` m away from `from` (`towards`: pulls it
 /// that far towards `from`, stopping short of it) at `speed` m/s; it stands still meanwhile.
 /// Enemies that never leave their spot (`stationary`: cannons, pods, eggs, the Kraken) don't move.
@@ -2237,7 +2288,7 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     let (spell, playfield, power, against_npc, aura) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return false };
-        if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
+        if npc.busy_until.is_some_and(|t| t > now) || npc.casting_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
             return false;
         }
         // a heal, shield or totem first (enemy_abilities.rs), when there is one to cast
@@ -2303,6 +2354,7 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         if !busy.is_zero() {
             npc.busy_until = Some(now + busy);
         }
+        npc.casting_until = Some(now + crate::npc_spells::cast_time(spell));
         let against_npc = npcs.contains_key(&target);
         let npc = npcs.get_mut(&id).expect("looked up above");
         // a champion entering combat (or whose aura ran out) casts its element aura
