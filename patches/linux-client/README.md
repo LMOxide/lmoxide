@@ -10,7 +10,7 @@ to that, so every install is the same and can be re-done at any time.
 On a PC with the repo:
 
 ```sh
-patches/linux-client/install.sh --server 192.168.5.69      # the server PC's LAN address
+patches/linux-client/install.sh --server 192.168.1.10      # the server PC's LAN address
 ~/Games/LMO/lmo <username>
 ```
 
@@ -18,7 +18,7 @@ On another PC, from a running server (`tools/lan-server.sh` builds the kit and t
 it at `/client-kit.tar.gz`; the same command updates an install later):
 
 ```sh
-d=$(mktemp -d) && curl -fsSL http://192.168.5.69:8080/client-kit.tar.gz | tar xz -C $d && $d/*/install.sh --server 192.168.5.69
+d=$(mktemp -d) && curl -fsSL http://192.168.1.10:8080/client-kit.tar.gz | tar xz -C $d && $d/*/install.sh --server 192.168.1.10
 ~/Games/LMO/lmo <username>
 ```
 
@@ -27,7 +27,7 @@ Or with the kit tarball (`patches/linux-client/make-kit.sh` builds
 
 ```sh
 tar xzf lmo-client-kit-v1.tar.gz
-lmo-client-kit-v1/install.sh --server 192.168.5.69
+lmo-client-kit-v1/install.sh --server 192.168.1.10
 ~/Games/LMO/lmo <username>
 ```
 

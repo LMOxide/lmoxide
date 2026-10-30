@@ -10,7 +10,7 @@ use crate::{
     manifest::{parse_public_key, public_key_hex},
 };
 
-/// A patch server, e.g. `http://192.168.5.69:8080`.
+/// A patch server, e.g. `http://192.168.1.10:8080`.
 #[derive(Debug, Clone)]
 pub struct Client {
     http: reqwest::Client,

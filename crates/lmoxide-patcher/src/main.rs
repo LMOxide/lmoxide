@@ -2,10 +2,10 @@
 //! (the command-line face of `lmoxide_patch`; see `docs/PATCHING.md`).
 //!
 //! ```text
-//! lmoxide-patcher install --server http://192.168.5.69:8080 --dir ~/Games/LMO
-//! lmoxide-patcher verify  --server http://192.168.5.69:8080 --dir ~/Games/LMO
-//! lmoxide-patcher info    --server http://192.168.5.69:8080
-//! lmoxide-patcher self-update --server http://192.168.5.69:8080
+//! lmoxide-patcher install --server http://192.168.1.10:8080 --dir ~/Games/LMO
+//! lmoxide-patcher verify  --server http://192.168.1.10:8080 --dir ~/Games/LMO
+//! lmoxide-patcher info    --server http://192.168.1.10:8080
+//! lmoxide-patcher self-update --server http://192.168.1.10:8080
 //! ```
 //!
 //! The first install trusts the key that signed the manifest and remembers it in
@@ -54,7 +54,7 @@ enum Cmd {
     /// Replace this program with the newest build the server offers, if it is newer. The build
     /// must be signed with the key the install in --dir trusts (or --trust).
     SelfUpdate {
-        /// Patch server URL, e.g. http://192.168.5.69:8080.
+        /// Patch server URL, e.g. http://192.168.1.10:8080.
         #[arg(long, env = "LMOXIDE_SERVER")]
         server: String,
         /// Install whose trusted key the build must be signed with (default ~/Games/LMO).
@@ -66,7 +66,7 @@ enum Cmd {
     },
     /// Show what the server offers.
     Info {
-        /// Patch server URL, e.g. http://192.168.5.69:8080.
+        /// Patch server URL, e.g. http://192.168.1.10:8080.
         #[arg(long, env = "LMOXIDE_SERVER")]
         server: String,
     },
@@ -74,7 +74,7 @@ enum Cmd {
 
 #[derive(Args)]
 struct SyncArgs {
-    /// Patch server URL, e.g. http://192.168.5.69:8080.
+    /// Patch server URL, e.g. http://192.168.1.10:8080.
     #[arg(long, env = "LMOXIDE_SERVER")]
     server: String,
     /// Client build (default: this OS's).

@@ -113,7 +113,7 @@ pub struct Config {
     #[arg(long, env = "LMOXIDE_MODES", value_delimiter = ',', value_parser = parse_mode_port)]
     pub modes: Vec<(String, u16)>,
     /// Patch server URL of another game server on this host (repeatable), announced in
-    /// /lmoxide/v1/info so patchers can offer to switch (e.g. http://192.168.5.69:8081).
+    /// /lmoxide/v1/info so patchers can offer to switch (e.g. http://192.168.1.10:8081).
     #[arg(long = "other-server", env = "LMOXIDE_OTHER_SERVERS", value_delimiter = ',')]
     pub other_servers: Vec<String>,
     /// Windows client ("LEGO Minifigures Online" folder, with RDB/): served to the stock
