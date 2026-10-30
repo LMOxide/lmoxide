@@ -114,7 +114,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 if presence.is_some() {
                     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                     let here = world::live_position(id).unwrap_or_else(|| *pos.lock().unwrap());
-                    portals.check(&mut conn, character, place, here).await?;
+                    portals.check(&mut conn, character, place, here, crate::tutorial::compass_open(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG))).await?;
                     // quest areas also after teleports and throws (no movement report)
                     let playfield = place;
                     let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
@@ -590,6 +590,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             } else if tutorial.is_none() {
                                 tutorial = Some(crate::tutorial::Run::start(id, &me.name, here));
                             }
+                            // the tutorial's compass, if the player has it
+                            let records = crate::tutorial::compass_records(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG));
+                            send_records(&mut conn, character, records).await?;
                             // the dialogue the live server started on arrival here (the jail's)
                             crate::knubot::arrived(id, &me.name, place, &|t| me.tags.contains_key(&t));
                             // a Lost Creations level: the run's buffs, quest, the button's arrow
@@ -649,7 +652,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             // portals: where the player is now (a click-to-move report gives the path's end)
                             let here = world::live_position(h.identity).unwrap_or(p);
-                            portals.check(&mut conn, character, place, here).await?;
+                            portals.check(&mut conn, character, place, here, crate::tutorial::compass_open(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG))).await?;
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
                                 me.pos = p;
@@ -752,8 +755,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         .and_then(|(object, action)| Some((crate::teleport::door_portal(crate::instance::fixture_base(object.instance))?, action)))
                                 {
                                     // using a portal's door (click or E) opens its window wherever
-                                    // the player stands, as live did
-                                    if action != INTERACTION_STOP_USE {
+                                    // the player stands, as live did (the tutorial's once the player
+                                    // has the compass)
+                                    if action != INTERACTION_STOP_USE
+                                        && crate::tutorial::compass_open(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG))
+                                    {
                                         portals.use_door(&mut conn, character, portal).await?;
                                     }
                                     stop_after_success = true;
@@ -2259,8 +2265,9 @@ impl Portals {
         Ok(())
     }
 
-    /// The player is at `p` on `playfield`.
-    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: Pf, p: [f32; 3]) -> anyhow::Result<()> {
+    /// The player is at `p` on `playfield`; `open`: whether its portals are (the tutorial's once
+    /// the player has the compass).
+    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: Pf, p: [f32; 3], open: bool) -> anyhow::Result<()> {
         let arrived = crate::teleport::take_arrival(character);
         if playfield != self.playfield || arrived {
             self.armed = false;
@@ -2271,7 +2278,7 @@ impl Portals {
             self.armed = true;
             info!(?p, "portals open again");
         }
-        match crate::teleport::portal_at(playfield, p).filter(|_| self.armed) {
+        match crate::teleport::portal_at(playfield, p).filter(|_| self.armed && open) {
             Some((to, window)) if self.shown != Some(to) => {
                 info!(to, window, "portal");
                 self.used = false;
