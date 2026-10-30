@@ -8,7 +8,7 @@
 #      DATA (default ../var/web-dev, outside the repo).
 #
 # Demo accounts (password = "<name>-password"):
-#   admin (GM 2, admin scope), moderator (GM 1, moderate scope), player (no scope),
+#   admin (GM 4, admin scope), moderator (GM 3, moderate scope), player (no scope),
 #   banned (banned for 7 days)
 # API keys for bots, created once and printed: demo-bot (read), demo-mod-bot (moderate),
 # demo-discord-bot (discord: registers and links Discord accounts).
@@ -34,7 +34,7 @@ API=$ROOT/target/debug/lmoxide-api
 
 if [[ ! -f $DATA/lmoxide.db ]]; then
   echo "creating demo accounts"
-  for a in admin:2 moderator:1 player:0 banned:0; do
+  for a in admin:4 moderator:3 player:0 banned:0; do
     name=${a%:*}
     echo "$name-password" | "$SERVER" --data-dir "$DATA" account create "$name" --gm-level "${a#*:}" 2>/dev/null
   done

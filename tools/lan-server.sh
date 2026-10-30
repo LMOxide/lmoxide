@@ -9,9 +9,9 @@
 # the dev UI and bots; LMOXIDE_API_PORT=, empty, leaves it off).
 # LAN conveniences: --auto-register (the first login creates the account or sets the password of
 # an account without one). Everyone can chat (the patched client shows the chat window without a
-# GM level); test commands need one: LMOXIDE_DEFAULT_GM_LEVEL=1 gives it to every account.
+# GM level); test commands need one: LMOXIDE_DEFAULT_GM_LEVEL=1 gives every account the alpha testers' commands, 2 all of them (docs/SECURITY.md "Access levels").
 # One server runs every game mode (LMOXIDE_MODES): Progression (XP, levels and minifigure ranks,
-# as live), Maxxed (everything unlocked) and World Editor (for GM level 1 and up; nothing moves
+# as live), Maxxed (everything unlocked) and World Editor (for GM level 2 and up; nothing moves
 # or attacks, the dev UI's world editor places content). Each has its own characters.
 # World content: the world editor edits ../var/content-work (a git clone of content/, made here
 # the first time); what it publishes waits in ../var/content-queue for an admin

@@ -17,8 +17,8 @@ It opens the game server's SQLite database (same `--data-dir`) for accounts and 
 running game server through its control interface for live data (players online, kicks,
 broadcasts, maintenance). Without a control token those routes answer 503. Flags (each also an
 environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
-`--registration open|discord|closed` (default `closed`; `--open-registration` = `open`), `--session-ttl-hours`, `--remember-days` (30), `--moderator-gm-level` (1), `--admin-gm-level`
-(2), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
+`--registration open|discord|closed` (default `closed`; `--open-registration` = `open`), `--session-ttl-hours`, `--remember-days` (30), `--moderator-gm-level` (3), `--admin-gm-level`
+(4), `--editor-gm-level` (2; docs/SECURITY.md "Access levels"), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
 `/v1/catalog/sounds/{id}` serves the sounds of effect packages from its RDB; 503 without it).
 
 ## Authentication
@@ -71,6 +71,8 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/auth/code` | - | `{code, remember?}`: a `login` code from the Discord bot → a `Session` with `password_reset: true`; 401 `bad_code` (counts as a failed login) |
 | GET | `/v1/me` | session | the logged-in account (`discord_id` when linked) |
 | POST | `/v1/me/password` | session | `{current_password, new_password}`; `current_password` may be left out in a `password_reset` session |
+| GET | `/v1/me/players` | session | the account's characters online (`Player`, with `position` and `heading`) |
+| POST | `/v1/me/command` | session | `{command}`: a test command run as one's own character, as if typed in chat; the game server decides by GM level (alpha testers have some, contributors all) → `{affected, replies}` |
 | POST | `/v1/me/discord` | session | `{code}`: a `link` code from the Discord bot links the account to that Discord account → `Account`; 401 `bad_code`, 409 when either is linked already |
 | GET | `/v1/discord/links` | discord | linked accounts: `[{discord_id, account_id, username, gm_level, banned}]` |
 | GET | `/v1/discord/links/{discord_id}` | discord | one of them, or 404 |
@@ -83,15 +85,15 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/instances` | moderate | running copies of worlds (each game mode's main copies, team copies, previews): mode, kind, players, NPCs; the AI's tick time |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
 | any | `/v1/content/{path}` | admin | a play server's world content (docs/WORLD-CONTENT.md: approval queue, rules, summaries, features), passed to the game server as they are. Not in openapi.json |
-| any | `/v1/survey/{path}` | moderate | the world editor's routes (docs/SURVEY.md "API"), passed to the game server as they are; the caller is the author of what they change. Not in openapi.json; bodies up to 16 MB |
-| any | `/v1/editor/{path}` | moderate | the world editor's content editing routes (docs/WORLD-EDITOR-CONTENT.md: records, schemas, catalogs, changes, history), passed on like `/v1/survey`; the caller is the author |
+| any | `/v1/survey/{path}` | contributor (GM ≥ `--editor-gm-level`) or moderate | the world editor's routes (docs/SURVEY.md "API"), passed to the game server as they are; the caller is the author of what they change. Not in openapi.json; bodies up to 16 MB |
+| any | `/v1/editor/{path}` | contributor or moderate | the world editor's content editing routes (docs/WORLD-EDITOR-CONTENT.md: records, schemas, catalogs, changes, history), passed on like `/v1/survey`; the caller is the author |
 | POST | `/v1/players/{account_id}/command` | admin | `{command}`: a test command (`!fx 163540`, `!skin 2212`, `!state 29`) run as the player, as if typed in chat (its GM level still applies) → `{affected, replies}`: the chat answers it produced |
 | GET | `/v1/catalog/effects` | read | every effect package / particle system: timelines (with the code hook that starts each, `until_stopped`), particles and sounds (with RDB ids), animation attributes, code hooks, items and spells using it |
 | GET | `/v1/catalog/sounds/{id}` | read | a sound of an effect package (`sounds[].id`) as Ogg Vorbis; needs `--client-dir` |
 | GET | `/v1/catalog/monsters` | read | every monster data (look, `!skin`): designers' name, motion set, anim graph, death effect, what uses it |
 | GET | `/v1/catalog/animations` | read | animation attributes (`!anim`), motion sets with their motions, anim graphs |
 | GET | `/v1/catalog/bcc-states` | read | character states (`!state`, stat 20) and substates by name |
-| GET | `/v1/catalog/test-commands` | read | what the test commands accept: commands with usage, `!goto` target kinds with numbered targets, `!test` scenarios, `!dialog` dialogues, `!loot` kinds, `!spawn` names, `!skin` looks |
+| GET | `/v1/catalog/test-commands` | session or read | what the test commands accept: commands with usage and the GM level each needs, `!goto` target kinds with numbered targets, `!test` scenarios, `!dialog` dialogues, `!loot` kinds, `!spawn` names, `!skin` looks |
 | POST | `/v1/broadcast` | moderate | `{message}`: a chat line from "Server" to everyone |
 | POST | `/v1/maintenance` | admin | `{enabled, message?}`: only GMs may log in |
 | GET | `/v1/accounts?search=&offset=&limit=` | read | by username; header `X-Total-Count`: matches in all |

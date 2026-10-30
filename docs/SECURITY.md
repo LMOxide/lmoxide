@@ -30,11 +30,34 @@ no transport encryption and we can't add any without rewriting the client, so:
   connection must authenticate within 30 s.
 - **Bans and maintenance** are checked at login and again by the game server; a ban through the
   API also kicks the player and ends their sessions.
-- **GM levels are per account** (`account gm`). The test commands (`!tp`, `!goto`, ...) need
-  `--devcmd-gm-level` (default 1). `--default-gm-level` gives everyone a level: only for LAN play.
+- **GM levels are per account** (`account gm`) and ordered: see "Access levels" below.
+  `--default-gm-level` gives everyone a level: only for LAN play.
 - **`--auto-register`** lets anyone create an account by logging in. Leave it off on a public
   server and create accounts with `lmoxide-server account create` or the API (optionally with
   `--registration open`, or `discord` so only the Discord bot registers members of its server).
+
+## Access levels
+
+An account's GM level decides what it may do, in game and through the API. The defaults:
+
+| Level | Who | What |
+|---|---|---|
+| 0 | player | plays (unless `--play-gm-level` is 1), its own account in the web UI |
+| 1 | alpha tester | the Progression and Maxxed modes even with `--play-gm-level 1`; the testers' test commands, in chat or from the dev UI's debugger on their own character: teleporting (`!tp`, `!goto`, `!move`, ...), test scenarios, `!own` any minifigure, `!dialog`, achievements (`!ach`, `!count`, `!defeat`), `!anim`, `!skin`, `!state` and the Quick section (`!revive`, `!smash`, `!xp`, `!stars`, puzzles) |
+| 2 | contributor | the World Editor mode and its API routes; every test command; the client's full GM stat (god camera, flying and the other GM hotkeys) |
+| 3 | moderator | the API's `moderate` scope: kick, ban, broadcast, instances |
+| 4 | admin | the `admin` scope: accounts, keys, the audit log, commands on other players |
+
+The thresholds are options: game server `--tester-gm-level` (1), `--world-editor-gm-level` (2),
+`--devcmd-gm-level` (2), `--client-gm-level` (2), `--play-gm-level` (0); API
+`--editor-gm-level` (2, `lmoxide` takes the game's), `--moderator-gm-level` (3),
+`--admin-gm-level` (4). The testers' commands are devcmd.rs `TESTER_COMMANDS`;
+`GET /v1/catalog/test-commands` gives each command's level. The Discord bot sets levels from
+Discord roles (its `gm_roles`: Alpha Tester 1, Contributor 2, Admin 4).
+
+The client's GmLevel stat is a bitmask, not this ladder (docs/PROTOCOL.md "Client hotkey GM
+gates"): accounts from `--client-gm-level` get every bit, others none. Migration 0015 moved
+older databases' levels onto this ladder (1 → 3, 2 and up → 4).
 
 ## The control interface (port 7300)
 
@@ -82,4 +105,5 @@ detect tampering even over plain HTTP; HTTPS can be enabled as well. See
   running the programs apart, never publish 7300 and generate the control token with
   `openssl rand -hex 32` into `secrets/control_token`.
 - Back up the `data` volume (the SQLite database holds accounts, characters and the login key).
-- Create an admin account (`account create <name> --gm-level 2`) instead of using `--default-gm-level`.
+- Create an admin account (`account create <name> --gm-level 4`) instead of using `--default-gm-level`.
+- During an alpha, `play-gm-level = 1` keeps the game to alpha testers and staff.

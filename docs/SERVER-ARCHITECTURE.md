@@ -233,7 +233,7 @@ Each step ends with a runnable server and the client verified.
    doors with state per copy; fixture ids carry the copy in their top byte (`instance::fixture`).
 3. **One server, characters per mode: done (c3911ea).** `--modes progression:7100,maxed:7103,
    world-editor:7104`: the universe port sets the login's mode (`game_sessions.mode`, 0010);
-   territory lists that mode's characters; the world editor needs GM 1. The survey code runs
+   territory lists that mode's characters; the world editor needs GM 2 (contributors; `--world-editor-gm-level`). The survey code runs
    beside the play content (`--editor-content-dir`, its own pad table). switch.rs, the chat proxy,
    `--share-accounts` and the peer flags are gone; `import-characters` brought the old editor
    server's characters over. The patch server's `--modes`, the per-mode `LocalConfig.xml`

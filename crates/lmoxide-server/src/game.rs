@@ -406,7 +406,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 crate::speed::set(character, me.speed);
                 // world editors teleport and use the test commands
                 mode = crate::instance::Mode::of_character(&me);
-                gm_level = gm_level.max(mode.rules().min_gm_level);
+                if mode.rules().editor {
+                    gm_level = gm_level.max(cfg.world_editor_gm_level).max(cfg.devcmd_gm_level);
+                }
                 // older saves had potions per session: they start with the new character's
                 me.tokens.entry(TOKEN_HEALTH_POTIONS).or_insert((START_POTIONS, 0));
                 // smashed minifigures stay smashed until their rebuild time, across logins
@@ -1400,8 +1402,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         story_reset_asked = Some(now);
                         crate::chat::system(character, &format!("This forgets your story progress (story quests, cinematics and conversations seen); achievements, minifigures and levels stay. Type /story reset confirm (or /story reset again) within {} seconds to do it.", STORY_RESET_CONFIRM.as_secs()));
                     }
-                } else if crate::devcmd::is_command(&message) && gm_level < cfg.devcmd_gm_level {
-                    crate::chat::system(character, "Test commands need a GM level.");
+                } else if crate::devcmd::is_command(&message) && gm_level < crate::devcmd::gm_level_for(&message) {
+                    crate::chat::system(character, if gm_level < cfg.tester_gm_level { "Test commands need a GM level." } else { "This test command needs a higher GM level." });
                 } else if crate::devcmd::is_command(&message) {
                     // a test command (devcmd.rs), not relayed
                     let here = *pos.lock().unwrap();
@@ -2436,9 +2438,10 @@ async fn send_world(
     let mut records = vec![playfield_full_update(place)];
     records.extend(spawn_records(id, &me.spec(place)));
     records.insert(3, full_player_character(id, me, collection));
-    let gm_level = crate::sessions::gm_level(character);
-    if gm_level != 0 {
-        records.push(int32_stat(id, STAT_GM_LEVEL, gm_level));
+    // the client's GmLevel is a bitmask (god camera, flying, ...): every bit for contributors
+    // and up, none below
+    if crate::sessions::gm_level(character) >= crate::state::levels().client {
+        records.push(int32_stat(id, STAT_GM_LEVEL, CLIENT_GM_ALL));
     }
     records.extend(xp_records(id, me));
     // the player's achievement counters (kills, smashes): the character is new to the client
@@ -3277,6 +3280,8 @@ const STAT_XP: u32 = 52;
 const STAT_LAST_XP: u32 = 57;
 const STAT_NEXT_XP: u32 = 350;
 const STAT_GM_LEVEL: u32 = 215;
+/// Every GmLevel bit that keeps the stat a positive int32.
+const CLIENT_GM_ALL: u32 = 0x7fff_ffff;
 const STAT_CHAR_RADIUS: u32 = 421;
 const STAT_MONSTER_DATA: u32 = 359;
 /// Active minifigure team slot (inventory 101 position), client name e_ActiveWeapon.

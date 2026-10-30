@@ -24,6 +24,10 @@ content-queue = "/data/content-queue"
 # the story's teleport windows: "unlocked" (every window open, the default) or "locked" (a
 # window opens as the character's story reaches it, as live)
 # story-windows = "locked"
+# who may play the Progression and Maxxed modes: 0 everyone, 1 alpha testers and staff (GM levels:
+# 1 alpha tester, 2 contributor (world editor, every test command, god camera), 3 moderator,
+# 4 admin; docs/SECURITY.md "Access levels")
+play-gm-level = 0
 # LAN conveniences; leave off on a public server
 auto-register = false
 default-gm-level = 0

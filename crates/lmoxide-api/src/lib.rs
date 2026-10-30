@@ -120,11 +120,16 @@ pub struct Config {
     #[arg(long, env = "LMOXIDE_API_REMEMBER_DAYS", default_value_t = 30)]
     pub remember_days: u32,
     /// GM level from which an account's login session has the moderate scope.
-    #[arg(long, env = "LMOXIDE_API_MODERATOR_GM_LEVEL", default_value_t = 1)]
+    #[arg(long, env = "LMOXIDE_API_MODERATOR_GM_LEVEL", default_value_t = 3)]
     pub moderator_gm_level: u32,
     /// GM level from which an account's login session has the admin scope.
-    #[arg(long, env = "LMOXIDE_API_ADMIN_GM_LEVEL", default_value_t = 2)]
+    #[arg(long, env = "LMOXIDE_API_ADMIN_GM_LEVEL", default_value_t = 4)]
     pub admin_gm_level: u32,
+    /// GM level from which an account may use the world editor's routes (`/v1/survey`,
+    /// `/v1/editor`): the contributors. Keep it at the game server's `--world-editor-gm-level`
+    /// (`lmoxide` passes that on).
+    #[arg(long, env = "LMOXIDE_API_EDITOR_GM_LEVEL", default_value_t = 2)]
+    pub editor_gm_level: u32,
     /// Origins allowed to call the API from a browser (CORS), e.g. https://admin.example.org.
     /// Comma-separated; none by default.
     #[arg(long, env = "LMOXIDE_API_CORS_ORIGINS", value_delimiter = ',')]

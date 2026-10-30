@@ -25,8 +25,8 @@ accounts and CORS open to `localhost:5173`, `:3000` and `:4321` (`WEB_ORIGINS=..
 
 | Login | Password | Scope |
 |---|---|---|
-| `admin` | `admin-password` | `admin` (GM level 2) |
-| `moderator` | `moderator-password` | `moderate` (GM level 1) |
+| `admin` | `admin-password` | `admin` (GM level 4) |
+| `moderator` | `moderator-password` | `moderate` (GM level 3) |
 | `player` | `player-password` | none: only `/v1/me` |
 | `banned` | `banned-password` | can't log in |
 
