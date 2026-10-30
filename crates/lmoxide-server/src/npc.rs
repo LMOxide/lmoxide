@@ -2255,7 +2255,7 @@ async fn ai() {
         for (_, playfield, _, _, _, _, _) in &live {
             players
                 .entry(*playfield)
-                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other) && !calm(*other)).collect());
+                .or_insert_with(|| world::positions(*playfield).into_iter().filter(|(other, _)| is_player(*other) && !calm(*other) && !listening(*playfield, *other)).collect());
             fighters.entry(*playfield).or_insert_with(|| fighters_on(*playfield));
         }
         for (id, playfield, home, reach, keep, threat, faction) in live {
@@ -2336,6 +2336,12 @@ async fn ai() {
 
 /// Players enemies leave alone for now (`clear_hate`), until when.
 static CALM: LazyLock<Mutex<HashMap<Id32, std::time::Instant>>> = LazyLock::new(Default::default);
+
+/// Whether enemies leave `player` alone in `playfield` while a dialogue is open: in the tutorial
+/// (the Scallywag Dreadleg summons waits for his lines to end; the HUD is hidden meanwhile).
+fn listening(playfield: Pf, player: Id32) -> bool {
+    playfield.model() == crate::tutorial::PLAYFIELD && crate::knubot::talking(player)
+}
 
 fn calm(player: Id32) -> bool {
     CALM.lock().unwrap().get(&player).is_some_and(|t| *t > std::time::Instant::now())
