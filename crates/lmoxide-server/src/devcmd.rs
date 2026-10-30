@@ -697,6 +697,10 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
             if query.is_empty() {
                 return reply(vec!["usage: !tp <playfield number or name>".into()]);
             }
+            // in a Lost Creations level: the next Gatekeeper's level, in the same run
+            if query.eq_ignore_ascii_case("gatekeeper") && crate::lost_creations::is_level(playfield.model()) {
+                return Action::Lc(crate::lost_creations::Command::NextGatekeeper);
+            }
             let found = query.parse::<u32>().ok().filter(|pf| teleport::destination(*pf).is_some()).or_else(|| {
                 let q = query.to_ascii_lowercase();
                 // an exact name first, else the lowest playfield whose name contains it

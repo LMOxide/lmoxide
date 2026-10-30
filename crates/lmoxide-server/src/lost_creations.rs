@@ -1549,6 +1549,8 @@ pub enum Command {
     End,
     /// The next level copy runs this variant (if its level has it); none: list them.
     Variant(Option<String>),
+    /// On to the next Gatekeeper's level in the same run (`!tp gatekeeper` in a level).
+    NextGatekeeper,
 }
 
 /// Runs `!lc` for `character`; the lines to answer.
@@ -1639,6 +1641,21 @@ pub fn command(character: u32, cmd: Command) -> Vec<String> {
             } else {
                 vec!["not in a run".into()]
             }
+        }
+        Command::NextGatekeeper => {
+            let Some(r) = st.run_of(character) else { return vec!["not in a run".into()] };
+            // the next level number that is the Gatekeeper's (every `gatekeeper_every`-th)
+            let every = tunables().gatekeeper_every.max(1);
+            r.level = (r.level / every + 1) * every;
+            let (run_id, n) = (r.id, r.level);
+            let pool: Vec<usize> = (0..LEVELS.len()).filter(|&i| level(i).mode == LcMode::Gatekeeper).collect();
+            if pool.is_empty() {
+                return vec!["no Gatekeeper level".into()];
+            }
+            let chosen = pool[random_below(pool.len() as u32) as usize];
+            info!(character, run = run_id, level = n, "Lost Creations: on to the Gatekeeper (test command)");
+            enter_level(&mut st, run_id, Some(chosen));
+            vec![format!("Lost Creations: level {n}, the Gatekeeper's Realm")]
         }
         Command::Variant(None) => LEVELS
             .iter()
