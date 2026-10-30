@@ -113,6 +113,21 @@ pub fn rank_player_level(rank: u32) -> u32 {
     DATA.rank_player_level.get(rank as usize).copied().unwrap_or(u32::MAX)
 }
 
+/// What the level scripts do on a level-up from `before` to `after` besides spell 423600 (the heal
+/// and knockaway, game.rs `gain_xp`): the effect package to play (the level toast) and the tags
+/// to add, of every level reached. One script per level, run by the server; nothing in the client
+/// names them. Their mapping (TUNABLES): level 2 → 556 (tag 393 "LevelUp", whose talking head
+/// says "You made it to Level 2"), level n ≥ 3 → 555 + n (558's comment "level 3", 561 adds
+/// Level6Pusher, 565 "tag for level 10"; 557 is a Shield script, 1015 is the spare copy).
+pub fn level_up(before: u32, after: u32) -> (Option<u32>, Vec<u32>) {
+    let p = &crate::gamedata::get().tunables.progression;
+    if after <= before {
+        return (None, Vec::new());
+    }
+    let tags = p.level_up_tags.iter().filter(|t| t.level > before && t.level <= after).map(|t| t.tag).collect();
+    (p.level_up_effect, tags)
+}
+
 /// Upgrade bits a minifigure of `rank` may have: tier t (bits [0], [1,2], [3], [4,5], [6],
 /// [7,8], [9], [10,11]) needs rank t + 1.
 pub fn unlocked_upgrades(rank: u32) -> u32 {
@@ -145,6 +160,20 @@ mod tests {
         assert_eq!(unlocked_upgrades(0), 0);
         assert_eq!(unlocked_upgrades(2), 0b111);
         assert_eq!(unlocked_upgrades(MAX_RANK), 0xfff);
+    }
+
+    #[test]
+    fn level_scripts() {
+        // the toast on every level-up; the tags of the levels reached (641 and 466 are commented
+        // out in the scripts)
+        assert_eq!(level_up(1, 2), (Some(162167), vec![393]));
+        assert_eq!(level_up(2, 3), (Some(162167), vec![720]));
+        assert_eq!(level_up(4, 5), (Some(162167), vec![]));
+        assert_eq!(level_up(5, 6), (Some(162167), vec![642]));
+        assert_eq!(level_up(1, 30), (Some(162167), vec![393, 720, 642, 721, 445, 798, 796]));
+        assert_eq!(level_up(3, 3), (None, vec![]));
+        let all = level_up(1, MAX_PLAYER_LEVEL).1;
+        assert!(!all.contains(&641) && !all.contains(&466));
     }
 }
 

@@ -393,6 +393,12 @@ Classic King and Battle Mech use it too. The overriding spells must be learned.
   (XP − LastXP) / (NextXP − LastXP), "+N XP" from the XP stat's change). Recorded level 1: XP 0,
   LastXP 0, NextXP 200; per kill `StatIIR_t` XP. The client computes Life = Level ×
   HealthPerLevel + the minifigure's health.
+- Level-up (the server's level scripts 556-585 and 1015, one per level; not recorded): Level, the
+  health stats and full Health; `EffectPackageIIR` 162167 on the player (the level toast:
+  particle_generic_levelup, sound_fxpackage_GUI_levelup, a camera shake; sent to everyone on the
+  playfield); `AddTag` of the level's tutorial tag (level 2: 393 LevelUp, whose talking head says
+  "You made it to Level 2"; 6: 642 Level6Pusher; 3, 8, 10, 13, 15: 720, 721, 445, 798, 796, not
+  in the lore tree). Spell 423600 (script 990) is done on the server: the heal, knockaway 423601.
 - Area level cap: the 5th of the 6 u32 after `PlayfieldFIIR_t`'s blobs (stored at +0xe8;
   `SimpleChar_t::GetMaxLevelCap` = min(it, TWK_MaxPlayerLevel), 0 = none). Recorded 11 in
   Pirate World, 0 in the tutorial. At the cap the XP bar shows "You have reached the maximum

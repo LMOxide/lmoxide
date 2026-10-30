@@ -230,6 +230,26 @@ pub struct Progression {
     /// Super-region (world `super_region`) -> the level cap there; none: no cap.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub level_caps: BTreeMap<String, u32>,
+    /// A level-up plays this effect package on the player: the level toast (the level scripts
+    /// 556-585 and 1015, "Level toast hack": `addeffect{effectid=162167}`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-client" = "effect_package"))]
+    pub level_up_effect: Option<u32>,
+    /// Tags the level scripts add when the player reaches a level.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub level_up_tags: Vec<LevelUpTag>,
+}
+
+/// A tag the level script of `level` adds (`player:addtag`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct LevelUpTag {
+    pub level: u32,
+    #[schemars(extend("x-lmoxide-client" = "lore"))]
+    pub tag: u32,
+    /// The client Lua script it comes from (shown).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub script: Option<u32>,
 }
 
 /// A push away from a point (the client's AreaKnockaway: Radius, Distance, Speed).

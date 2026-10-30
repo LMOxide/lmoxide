@@ -1,5 +1,5 @@
 {
-  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn, casting only `spells` when given; optional).",
+  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn, casting only `spells` when given; optional), levels (gain just enough XP for that many level-ups, with progression; optional).",
   "scenarios": [
     {
       "label": "smash",
@@ -512,6 +512,11 @@
           "count": 2
         }
       ]
+    },
+    {
+      "label": "levelup",
+      "about": "one level-up where you stand (progression; below the area's cap): full heal, knockaway, the level toast (effect 162167: particles, sound, camera shake) and the level script's tag (level 2: 393 LevelUp talking head \"You made it to Level 2\"; 6: 642 Level6Pusher); the server log says \"level scripts\"",
+      "levels": 1
     }
   ]
 }
