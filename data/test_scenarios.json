@@ -700,6 +700,18 @@
       "label": "defender",
       "about": "two Space Merc Defenders: their laser shot; their reflect (the shield look) is up while they fight: hit one and it charges and fires an orb back at you, and its reflect comes back 3 s later",
       "spawn": [{ "name": "Space Merc Defender", "count": 2 }]
+    },
+    {
+      "label": "animations",
+      "about": "enemies whose skills asked for animations their looks lack (they stood stiff), now with ones they can play: Gorgon (slash), Pirate Swashbuckler (slash), Treant Brown (smash), Troll Hornblower War (bash), Troll Ranged War (boulder throw), Lizard Man (slash); Medusa is in her lair (!tp 2300) with her boss look",
+      "spawn": [
+        { "name": "Gorgon", "count": 1 },
+        { "name": "Pirate Swashbuckler", "count": 1 },
+        { "name": "Treant Brown", "count": 1 },
+        { "name": "Troll Hornblower War", "count": 1 },
+        { "name": "Troll Ranged War", "count": 1 },
+        { "name": "Lizard Man", "count": 1 }
+      ]
     }
   ]
 }

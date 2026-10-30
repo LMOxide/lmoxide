@@ -280,12 +280,20 @@ mod tests {
         // the Bot Battle Merc's stomp and missile instead of the generic Shot, the Grenadier's
         // grenade instead of an XX_Slash his look can't animate, the Space Merc Defender's
         // reflect (the user, 2026-10-30)
-        const REPLACED: [(u32, &[u32]); 5] = [
+        const REPLACED: [(u32, &[u32]); 11] = [
             (201_479, &[194_198]),
             (201_477, &[194_199, 194_198]),
             (192_821, &[190_796, 190_612]),
             (359_212, &[361_429, 361_424]),
             (379_392, &[373_106, 373_290]),
+            // spells the looks can animate (tools/content/anim_audit.py, 2026-10-30): Gorgon,
+            // Swashbuckler, Treant Brown, Troll Hornblower, Troll Ranged, Lizard Man
+            (98_178, &[100_144, 188_671]),
+            (192_828, &[188_671]),
+            (337_606, &[238_037, 16_101]),
+            (331_167, &[191_516]),
+            (331_170, &[101_246]),
+            (521_311, &[18_241]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
@@ -293,7 +301,12 @@ mod tests {
                 want = spells.to_vec();
             }
             want.extend(ADDED.iter().filter(|(md, _)| k == &md.to_string()).map(|(_, s)| *s));
-            assert_eq!(monsters.get(&k.parse::<u32>().unwrap()), Some(&want), "monster {k}");
+            // Medusa's kit on her medusa_npc look since (spawns.rs LOOKS_CHANGED)
+            let md = match k.parse::<u32>().unwrap() {
+                23_373 => 487_260,
+                md => md,
+            };
+            assert_eq!(monsters.get(&md), Some(&want), "monster {k}");
         }
     }
 }

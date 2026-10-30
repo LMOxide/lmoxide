@@ -69,6 +69,15 @@ generic slugs (`spawn`, `throw`, `grenade-190612`) to say whose they are, and fi
 Where the client gives no AI stats (the artillery shells, the missile), add them to the skill's
 `client.stats` and say so in its `comment` (they're guesses).
 
+## 4b. Check the look can animate them
+
+A cast's effect package sets the `ability` attribute N; the look's motion set must have
+`ability_N`, else the client holds the model stiff (the grenadier's XX_Slash wanted 5).
+`tools/re/py $PWD/tools/content/anim_audit.py` lists every enemy skill that doesn't fit;
+`tools/re/py $PWD/tools/content/anim_fit.py <monster data> '<name regex>'` lists client spells and
+marks those the look can play (OK). Bosses whose motion sets list only idles (Hades, Charon) are
+false positives.
+
 ## 5. Give them to the monster
 
 In `content/npcs/<monster>.json`: `skills` (the AI casts the strongest ready one in range), and

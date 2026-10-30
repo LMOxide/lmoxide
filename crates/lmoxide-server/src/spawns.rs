@@ -406,6 +406,10 @@ mod tests {
     /// (2026-10-30: players couldn't attack them): (playfield, name).
     const NOW_ENEMIES: [(&str, &str); 3] = [("4200", "Commodore Moksey"), ("4200", "Dragoon"), ("4200", "Musketeer")];
 
+    /// Looks changed since: (name, old monster data, new). Medusa wears medusa_npc, whose
+    /// animations her spells ask for, not the Medusa minifigure's look (2026-10-30).
+    const LOOKS_CHANGED: [(&str, u32, u32); 1] = [("Medusa", 23_373, 487_260)];
+
     /// Spawns deleted since: (playfield, name).
     const REMOVED: [(&str, &str); 1] = [("6300", "Dino Raptor")];
 
@@ -424,6 +428,9 @@ mod tests {
                 d.faction = d.faction.filter(|&f| f < GLOBAL_FACTIONS);
                 if let Some((_, old, _)) = ATTACKS_CHANGED.iter().find(|(name, _, new)| d.name == *name && d.spell == *new) {
                     d.spell = *old;
+                }
+                if let Some((_, old, _)) = LOOKS_CHANGED.iter().find(|(name, _, new)| d.name == *name && d.monster_data == *new) {
+                    d.monster_data = *old;
                 }
             }
         }
