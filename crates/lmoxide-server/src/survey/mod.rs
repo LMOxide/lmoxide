@@ -1145,6 +1145,7 @@ pub fn routes() -> Router {
         .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/unpublished", get(unpublished))
         .route("/v1/survey/publish", post(publish))
+        .route("/v1/survey/export", get(export))
 }
 
 #[derive(Deserialize, Default)]
@@ -2185,14 +2186,40 @@ async fn publish(headers: HeaderMap, Json(r): Json<PublishRequest>) -> R<Publish
             .collect();
         let records = chosen.len();
         if records > 0 {
-            let worlds: std::collections::BTreeSet<String> = chosen.iter().map(|c| playfield_name(c.key.id.world.unwrap_or(0))).collect();
-            let features: std::collections::BTreeSet<&str> = chosen.iter().map(|c| c.key.feature.as_str()).collect();
-            let summary = format!("{}: {records} records (feature {})", worlds.into_iter().collect::<Vec<_>>().join(", "), features.into_iter().collect::<Vec<_>>().join(", "));
+            let summary = summary_of(&chosen);
             let entry = lmoxide_content::queue::Entry { seq: 0, created: ids::now(), by: me.clone(), summary, status: "queued".into(), reason: None, records: chosen.into_iter().map(Into::into).collect() };
             let e = lmoxide_content::queue::Queue::new(&crate::editor::queue_dir(work)).add(entry).map_err(|e| Error::Invalid(format!("not queued: {e}")))?;
             info!(by = %me, author = %author, records, seq = e.seq, "survey: published (queued)");
         }
         Ok(Json(Published { records, unpublished: unpublished_of(st, work, &me)? }))
+    })
+}
+
+/// "Isle of Yarr, Definitions: 3 records (feature live)".
+fn summary_of(changes: &[git::Change]) -> String {
+    let worlds: std::collections::BTreeSet<String> = changes.iter().map(|c| playfield_name(c.key.id.world.unwrap_or(0))).collect();
+    let features: std::collections::BTreeSet<&str> = changes.iter().map(|c| c.key.feature.as_str()).collect();
+    format!("{}: {} records (feature {})", worlds.into_iter().collect::<Vec<_>>().join(", "), changes.len(), features.into_iter().collect::<Vec<_>>().join(", "))
+}
+
+#[derive(Deserialize)]
+struct ExportQuery {
+    /// Whose changes: default the caller's; `*`: everyone's.
+    author: Option<String>,
+}
+
+/// Everything an editor changed in the working copy since its last commit, published (queued)
+/// or not, to download: a publish queue entry (`status: exported`, `seq` 0) with every record
+/// before and after, the format approval reads (lmoxide_content::queue). A record is the
+/// author's when they saved it last; a removed one is whoever's last had it (as unpublished).
+async fn export(headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<ExportQuery>) -> R<lmoxide_content::queue::Entry> {
+    let author = q.author.filter(|a| !a.is_empty()).unwrap_or_else(|| author_of(&headers));
+    with_work(|work, _| {
+        let all = git::changes(work).map_err(|e| Error::Invalid(format!("{e:#}")))?;
+        let chosen: Vec<git::Change> = all.into_iter().filter(|c| author == "*" || c.author == author).collect();
+        let summary = if chosen.is_empty() { "nothing changed".into() } else { summary_of(&chosen) };
+        info!(author = %author, records = chosen.len(), "survey: exported");
+        Ok(Json(lmoxide_content::queue::Entry { seq: 0, created: ids::now(), by: author.clone(), summary, status: "exported".into(), reason: None, records: chosen.into_iter().map(Into::into).collect() }))
     })
 }
 
