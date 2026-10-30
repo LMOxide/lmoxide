@@ -341,9 +341,12 @@ fn criteria_met(a: &Action) -> bool {
 
 fn run_list(run: &Arc<Run>, id: u32, event: &str, target: Target, depth: u32) {
     let Some(list) = spell(id).and_then(|s| s.lists.get(event)) else { return };
-    for a in list.iter().filter(|a| criteria_met(a)) {
-        act(run, id, a, target, depth);
-    }
+    // (one blast: its formulas hit each player once with a nano, actions::blast)
+    crate::actions::blast(|| {
+        for a in list.iter().filter(|a| criteria_met(a)) {
+            act(run, id, a, target, depth);
+        }
+    })
 }
 
 fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
@@ -389,6 +392,9 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 d <= radius && d >= min && (angle >= 360.0 || in_sector(center, run.facing, p, from, angle))
             });
             hits.sort_by(|(_, x), (_, y)| distance(*x, center).total_cmp(&distance(*y, center)));
+            if let Some(nano) = a.u("NanoTemplate") {
+                crate::actions::first_hits(&mut hits, nano);
+            }
             if let Some(max) = a.u("Max1").filter(|m| *m > 0) {
                 hits.truncate(max as usize);
             }
@@ -407,8 +413,9 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             let dir = rotate(run.facing, 90.0 * a.u("Value1").unwrap_or(0) as f32);
             let length = a.f("Distance").unwrap_or(5.0);
             let width = a.f("FloatValue1").unwrap_or(1.0);
-            let hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
+            let mut hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
             if let Some(nano) = a.u("NanoTemplate") {
+                crate::actions::first_hits(&mut hits, nano);
                 let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
                 let mid = [from[0] + dir[0] * length / 2.0, from[1], from[2] + dir[1] * length / 2.0];
                 show(run, vec![crate::actions::area_formula_record(caster, &ids, nano, mid)]);

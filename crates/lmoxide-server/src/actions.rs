@@ -30,7 +30,8 @@
 
 use crate::instance::Pf;
 use std::{
-    collections::HashMap,
+    cell::RefCell,
+    collections::{HashMap, HashSet},
     sync::{
         Arc, LazyLock, Mutex,
         atomic::{AtomicBool, AtomicU64, Ordering},
@@ -720,15 +721,42 @@ pub fn forget_counters(id: Id32) {
 fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32) {
     let Some(s) = SPELLS.get(&spell) else { return };
     let Some(list) = s.lists.get(event) else { return };
-    for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str())) {
-        if criteria_met(run, a, target) {
-            if a.on_server() {
-                act(run, spell, a, target, depth);
-            } else {
-                crowd_control(run, spell, a, target);
+    blast(|| {
+        for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str())) {
+            if criteria_met(run, a, target) {
+                if a.on_server() {
+                    act(run, spell, a, target, depth);
+                } else {
+                    crowd_control(run, spell, a, target);
+                }
             }
         }
-    }
+    })
+}
+
+thread_local! {
+    /// Who the area and column formulas of each action list running now have hit with which
+    /// nano (innermost list last; a list runs at once, its delayed parts in their own lists).
+    static BLASTS: RefCell<Vec<HashSet<(Id32, u32)>>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Runs an action list (`f`) as one blast: its formulas hit each target once with a nano (the
+/// user's rule 2026-10-29: the Cross Bomb's and Captain Dreadleg's bomb's centre and four arms
+/// overlap where it lands; a pulsing ground zone's every pulse is a list of its own).
+pub(crate) fn blast<R>(f: impl FnOnce() -> R) -> R {
+    BLASTS.with(|b| b.borrow_mut().push(HashSet::new()));
+    let result = f();
+    BLASTS.with(|b| b.borrow_mut().pop());
+    result
+}
+
+/// Drops the `hits` the running list's formulas already hit with `nano`, and counts the rest.
+pub(crate) fn first_hits<T>(hits: &mut Vec<(Id32, T)>, nano: u32) {
+    BLASTS.with(|b| {
+        if let Some(seen) = b.borrow_mut().last_mut() {
+            hits.retain(|(id, _)| seen.insert((*id, nano)));
+        }
+    });
 }
 
 /// Client actions that move or hold a character: the client does them to players itself, the
@@ -864,13 +892,14 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             let dir = rotate(*run.caster.facing.lock().unwrap(), 90.0 * a.u("Value1").unwrap_or(0) as f32);
             let length = a.f("Distance").unwrap_or(5.0);
             let width = a.f("FloatValue1").unwrap_or(1.0);
-            let hits = crate::npc::targets_where(run.caster.playfield, |p| {
+            let mut hits = crate::npc::targets_where(run.caster.playfield, |p| {
                 let (dx, dz) = (p[0] - from[0], p[2] - from[2]);
                 let along = dx * dir[0] + dz * dir[1];
                 let across = (dx * dir[1] - dz * dir[0]).abs();
                 (0.0..=length).contains(&along) && across <= width
             });
             if let Some(nano) = a.u("NanoTemplate") {
+                first_hits(&mut hits, nano);
                 let ids: Vec<Id32> = hits.iter().map(|(id, _)| *id).collect();
                 let mid = [from[0] + dir[0] * length / 2.0, from[1], from[2] + dir[1] * length / 2.0];
                 show(run, vec![area_formula_record(caster, &ids, nano, mid)]);
@@ -1047,11 +1076,19 @@ fn cast_nano_on(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effec
 }
 
 /// A ground zone at `at`: after `delay`, re-applies `nano` there every `pulse` for `lifetime`.
+/// Only a zone that goes off once plays the nano's own effect there (the Cross Bomb's
+/// explosion); pulsing ones and traps don't repeat it every pulse (not known from live).
 fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: Duration, lifetime: Duration, depth: u32) {
     let run = run.clone();
+    let once = lifetime <= pulse;
     tokio::spawn(async move {
         tokio::time::sleep(delay).await;
         let until = Instant::now() + lifetime;
+        if once && let Some(package) = SPELLS.get(&nano).and_then(|n| n.stats.effect_package) {
+            // (the Pirate Captain's Cross Bomb aoe 576066: the explosion 579335; npc_spells
+            // plays enemies' the same way)
+            show(&run, vec![effects::effect_package_at(run.caster.id, package, at)]);
+        }
         while Instant::now() < until {
             cast_nano(&run, nano, Target { id: None, pos: at }, depth + 1);
             tokio::time::sleep(pulse).await;
@@ -1142,6 +1179,9 @@ fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], around_cas
             hits = hits.len(),
             "melee check"
         );
+    }
+    if let Some(nano) = a.u("NanoTemplate") {
+        first_hits(&mut hits, nano);
     }
     if let Some(max) = a.u("Max1").filter(|m| *m > 0) {
         hits.truncate(max as usize);
@@ -1546,6 +1586,34 @@ mod tests {
     }
 
     /// Gladius Slash's sector (Radius 2, Angle 60, AngleStart -30) with the server's facing stale.
+    #[test]
+    fn a_blast_hits_each_target_once_per_nano() {
+        // the Cross Bomb: centre and four arms overlap where it lands
+        let (a, b) = (Id32::new(50000, 1), Id32::new(50000, 2));
+        blast(|| {
+            let mut centre = vec![(a, ()), (b, ())];
+            first_hits(&mut centre, 576065);
+            assert_eq!(centre.len(), 2);
+            let mut arm = vec![(a, ())];
+            first_hits(&mut arm, 576065);
+            assert!(arm.is_empty());
+            // another nano of the same list (a slow besides the damage) still lands
+            let mut slow = vec![(a, ())];
+            first_hits(&mut slow, 1);
+            assert_eq!(slow.len(), 1);
+            // a list run inside it (a hit nano's own list) has its own blast
+            blast(|| {
+                let mut inner = vec![(a, ())];
+                first_hits(&mut inner, 576065);
+                assert_eq!(inner.len(), 1);
+            });
+        });
+        // outside any list nothing is filtered
+        let mut free = vec![(a, ()), (a, ())];
+        first_hits(&mut free, 576065);
+        assert_eq!(free.len(), 2);
+    }
+
     #[test]
     fn melee_turns_to_the_clicked_enemy() {
         let slash = Shape { radius: 2.0, min: 0.0, angle: 60.0, from: -30.0 };
