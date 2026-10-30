@@ -144,7 +144,7 @@ const GROUND_DEFAULT_PULSE_CS: f32 = 100.0;
 const GROUND_MIN_VISUAL: Duration = Duration::from_secs(1);
 /// Range of a projectile without AttackRange.
 const DEFAULT_PROJECTILE_RANGE: f32 = 15.0;
-const MAX_DEPTH: u32 = 5;
+const MAX_DEPTH: u32 = 10;
 /// Crowd control actions (what NanoResistance strain 800 resists).
 const CROWD_CONTROL: &[&str] = &["AddSnare", "Stun", "Knockaway", "AreaKnockaway", "Root", "Fear"];
 /// Traps (PlaceTrap) spring when a player comes this close (the islander scout's trap area

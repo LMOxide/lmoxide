@@ -145,8 +145,9 @@ const ENDS_WHEN_HIT: &[u32] = &[597_608];
 const GROUND_DEFAULT_PULSE_CS: u32 = 100;
 /// The shortest a ground effect's visual is kept.
 const GROUND_MIN_VISUAL: Duration = Duration::from_secs(1);
-/// Nested nanos deeper than this aren't followed (the data has at most 3 levels).
-const MAX_DEPTH: u32 = 5;
+/// Nested nanos deeper than this aren't followed (a guard against loops: the Sad Clown's cloud
+/// damage is 6 deep: spawn, 245949, 245964, the orb, its burst, the blast's hit nano).
+const MAX_DEPTH: u32 = 10;
 /// How long a combo buff without TimeExist stays (the original server removed them ~1 s after
 /// the press: recorded Gladius Slash).
 const COMBO_WINDOW: Duration = Duration::from_millis(1000);
