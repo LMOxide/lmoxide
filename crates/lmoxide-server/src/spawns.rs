@@ -78,6 +78,7 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         rot: s.rot.map(Rot::heading),
         variants: s.variants.clone(),
         requires: s.requires.clone(),
+        cinematic: false,
         count: s.count.max(1),
         spread: None,
     })
@@ -140,6 +141,40 @@ pub fn table_of(c: &Content) -> HashMap<String, Vec<SpawnDef>> {
                 d.faction = f.rivals.iter().position(|side| side.contains(&d.monster_data)).map(|i| i as u32);
             }
         }
+        if !defs.is_empty() {
+            table.insert(w.playfield.to_string(), defs);
+        }
+    }
+    table
+}
+
+/// The invisible `invisible_monsterdata` look the cinematics' owners have.
+const INVISIBLE_LOOK: u32 = 51057;
+
+/// The NPCs that own cinematics, by playfield: a world's invisible trigger spawns with an NPC
+/// template that a dialogue of that world names as its speaker ("Cinematic Start Oops" in Pirate
+/// World). Live spawned them as characters (LMO_Captures.cap: monster data 51057, CARS group 5,
+/// their NPC template) and opened those dialogues' windows with them as the speaker (knubot.rs);
+/// they stay invisible and players don't click them (`SpawnDef::cinematic`). Left out where an
+/// NPC of the name stands in the world (the jail's Swashbuckler: live's speaker was the one
+/// players see).
+pub fn cinematic_owners() -> HashMap<String, Vec<SpawnDef>> {
+    cinematic_owners_of(crate::gamedata::get())
+}
+
+fn cinematic_owners_of(c: &Content) -> HashMap<String, Vec<SpawnDef>> {
+    let mut table: HashMap<String, Vec<SpawnDef>> = HashMap::new();
+    for (world_id, w) in &c.worlds {
+        let spawns: Vec<&Spawn> = c.in_world(&c.spawns, world_id).filter(|s| !s.removed && s.wave.is_none() && s.appeared_at.is_none()).collect();
+        let speaks = |name: &str| c.dialogues.values().any(|d| d.world.as_deref() == Some(world_id.as_str()) && d.npc.as_deref() == Some(name));
+        let stands = |name: &str| spawns.iter().any(|s| s.kind != SpawnKind::Trigger && s.name == name && def_of(c, s).is_some());
+        let defs: Vec<SpawnDef> = spawns
+            .iter()
+            .filter(|s| s.kind == SpawnKind::Trigger && speaks(&s.name) && !stands(&s.name))
+            .filter_map(|s| def_of(c, &Spawn { kind: SpawnKind::Npc, ..(*s).clone() }))
+            .filter(|d| d.monster_data == INVISIBLE_LOOK && d.npc_template.is_some())
+            .map(|d| SpawnDef { cinematic: true, ..d })
+            .collect();
         if !defs.is_empty() {
             table.insert(w.playfield.to_string(), defs);
         }
@@ -221,6 +256,21 @@ mod tests {
             source,
             d.rot.map(r),
         )
+    }
+
+    #[test]
+    fn cinematic_owners_spawn() {
+        let owners = cinematic_owners();
+        let of = |pf: &str| owners.get(pf).into_iter().flatten().map(|d| (d.name.as_str(), d.npc_template)).collect::<Vec<_>>();
+        // live's owners of 206 (Pirate World) and 822 (Isle of Yarr), with their NPC templates
+        assert!(of("4600").contains(&("Cinematic Start Oops", Some(1014))));
+        assert!(of("4200").contains(&("Cinematic Start Escaped From Jail", Some(2725))));
+        // the jail's Swashbuckler speaks as the NPC players see; the invisible dummies own nothing
+        assert!(of("4610").is_empty());
+        assert!(owners.values().flatten().all(|d| !d.name.contains("Dummy")));
+        assert!(owners.values().flatten().all(|d| d.cinematic && d.kind == Kind::Npc && d.monster_data == INVISIBLE_LOOK && d.cars_group == Some(5)));
+        // (not in the table the world editor and the tutorial read)
+        assert!(table().values().flatten().all(|d| !d.cinematic && d.name != "Cinematic Start Oops"));
     }
 
     #[test]

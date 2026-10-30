@@ -331,6 +331,10 @@ pub struct SpawnDef {
     /// scene after a story event; `gated`).
     #[serde(default)]
     pub requires: Vec<u32>,
+    /// An invisible NPC that owns cinematics (spawns.rs `cinematic_owners`): the dialogues'
+    /// speaker (knubot.rs), nothing players click.
+    #[serde(default)]
+    pub cinematic: bool,
 }
 
 impl SpawnDef {
@@ -484,7 +488,7 @@ pub fn points(rank: &str) -> Vec<(String, u32, [f32; 3])> {
 
 /// A friendly (story or usable) NPC's name and playfield.
 pub fn friendly(id: Id32) -> Option<(String, Pf)> {
-    NPCS.lock().unwrap().get(&id).filter(|n| n.def.kind == Kind::Npc).map(|n| (n.def.name.clone(), n.playfield))
+    NPCS.lock().unwrap().get(&id).filter(|n| n.def.kind == Kind::Npc && !n.def.cinematic).map(|n| (n.def.name.clone(), n.playfield))
 }
 
 /// An NPC's name.
@@ -726,8 +730,9 @@ pub fn despawn_world(pf: Pf) {
 pub fn start() {
     let all = resident_list(crate::spawns::table());
     let mut by_playfield: std::collections::BTreeMap<u32, Vec<SpawnDef>> = Default::default();
-    for (pf, def) in &all {
-        by_playfield.entry(*pf).or_default().push(def.clone());
+    // (the cinematics' owners aren't the world editor's: it shows their trigger points)
+    for (pf, def) in all.iter().cloned().chain(resident_list(crate::spawns::cinematic_owners())) {
+        by_playfield.entry(pf).or_default().push(def);
     }
     let _ = RESIDENTS.set(by_playfield);
     if crate::survey::enabled() {
@@ -1083,6 +1088,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         source: None,
         rot: None,
         requires: Vec::new(),
+        cinematic: false,
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -2415,6 +2421,7 @@ mod tests {
             count: 1,
             spread: None,
             requires: Vec::new(),
+            cinematic: false,
             kind: Kind::Enemy,
             template: 0,
             name: "Enemy".into(),
