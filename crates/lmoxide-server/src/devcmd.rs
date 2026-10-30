@@ -451,7 +451,7 @@ const KINDS: &[(&str, &str)] = &[
     ("smashable", "smashables"),
     ("script", "the world editor's approved, active scripts (at their area, else their first placement)"),
     ("point", "named points (markers): enemy spawn points (Jungle Arena's NW_1 ...), the Gatekeeper's spot, `!point` ones"),
-    ("quest", "area quests' areas (walking in starts the quest; quests.rs)"),
+    ("quest", "area quests' areas (walking in starts the quest; quests.rs), and the areas that complete a goal (\"(completes: ...)\": the Tar Pit nest, the Gauntlet room exits)"),
     ("story", "story trigger areas: cinematics, story beats, talking heads (tags), story goals (story.rs)"),
     ("area", "server trigger, story and territory areas (RDB 1000053 / 1000050; triggers.rs), with role and category"),
     ("wall", "invisible walls (client RDB 1040010 and server 1000053 collision; enemies' paths stop at them, server ones push players back)"),

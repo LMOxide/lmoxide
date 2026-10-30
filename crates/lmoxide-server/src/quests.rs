@@ -2,8 +2,8 @@
 //! area (the client's `Quest_*` bounded areas, role `quest`) starts it, or resumes it where the
 //! player left off; leaving pauses it (the tracker hides it); progress is kept. What counts
 //! toward a goal is the goal's `counts` (as achievements count kills, smashes and builds) and
-//! `enemies`; completing the last step starts the quest's cooldown, after which entering the
-//! area starts it again. Story lines run in story.rs, with these records.
+//! `enemies`, or entering its `area` (the client's `Quest_*Complete` areas); completing the
+//! last step starts the quest's cooldown, after which entering the area starts it again. Story lines run in story.rs, with these records.
 //!
 //! Records, as LMO_Captures.cap showed them and the client's writers lay them out:
 //! - start: `MainQuestUpdateIIR_c` (add) then `QuestFullUpdateIIR` (the quest with its goal:
@@ -71,6 +71,8 @@ struct AreaQuest {
     main: u32,
     playfield: u32,
     area: Shape,
+    /// The shapes of the areas its goals name (goal `area`: entering one completes the goal).
+    goal_areas: HashMap<String, Shape>,
 }
 
 impl AreaQuest {
@@ -98,7 +100,7 @@ pub struct Scripted(AreaQuest);
 pub fn scripted(id: &str, playfield: u32) -> Option<Scripted> {
     let quest = crate::gamedata::get().quests.get(id)?.clone();
     let main = quest.main?;
-    (!quest.steps.is_empty()).then(|| Scripted(AreaQuest { quest, main, playfield, area: Shape::Polygon { points: Vec::new(), heights: [0.0, 0.0] } }))
+    (!quest.steps.is_empty()).then(|| Scripted(AreaQuest { quest, main, playfield, area: Shape::Polygon { points: Vec::new(), heights: [0.0, 0.0] }, goal_areas: HashMap::new() }))
 }
 
 impl Scripted {
@@ -173,8 +175,9 @@ fn build(quests: impl Iterator<Item = Quest>, area: &dyn Fn(&str) -> Option<Shap
             continue;
         }
         let (Some(playfield), Some(shape)) = (area_playfield(&area_id), area(&area_id)) else { continue };
+        let goal_areas = q.steps.iter().flat_map(|s| &s.goals).filter_map(|g| g.area.as_ref()).filter_map(|id| Some((id.clone(), area(id)?))).collect();
         index.by_playfield.entry(playfield).or_default().push(index.quests.len());
-        index.quests.push(AreaQuest { quest: q, main, playfield, area: shape });
+        index.quests.push(AreaQuest { quest: q, main, playfield, area: shape, goal_areas });
     }
     index
 }
@@ -282,6 +285,12 @@ pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: Pf, 
             _ => {}
         }
     }
+    drop(index);
+    // a goal completed by entering its area (also while the quest is paused: the area may lie
+    // outside the quest's)
+    records.extend(advance_where(t, c, character, 1, &|q, goal, _| {
+        goal.area.as_ref().and_then(|a| q.goal_areas.get(a)).is_some_and(|a| a.contains(pos, HEIGHT_SLACK))
+    }));
     records
 }
 
@@ -307,13 +316,13 @@ pub(crate) fn counts(goal: &lmoxide_content::QuestGoal, event: &Event) -> bool {
 
 /// Counts `event` (`times` times) for the quests in the tracker.
 pub fn on_event(t: &mut Tracker, c: &mut Character, character: u32, event: &Event, times: u64) -> Vec<Bytes> {
-    advance_where(t, c, character, times, &|goal, paused| (!paused || goal.anywhere) && counts(goal, event))
+    advance_where(t, c, character, times, &|_, goal, paused| (!paused || goal.anywhere) && counts(goal, event))
 }
 
 /// The player picked up item `template`: the quests whose goal counts it as a quest pickup (the
 /// pickup's Lua: QuestTriggerProgress, also outside the area while the quest is in the tracker).
 pub fn picked_up(t: &mut Tracker, c: &mut Character, character: u32, template: u32) -> Vec<Bytes> {
-    advance_where(t, c, character, 1, &|goal, _| goal.counts.as_deref() == Some("pickups") && goal.pickups.contains(&template))
+    advance_where(t, c, character, 1, &|_, goal, _| goal.counts.as_deref() == Some("pickups") && goal.pickups.contains(&template))
 }
 
 /// The quest pickups `event` (a defeat) drops for the player: one of the current goal's pickups
@@ -343,8 +352,8 @@ pub fn pickup_drops(t: &Tracker, c: &Character, event: &Event) -> Vec<u32> {
     out
 }
 
-/// Advances (by `times`) the shown quests whose current goal `ok(goal, paused)` accepts.
-fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64, ok: &dyn Fn(&lmoxide_content::QuestGoal, bool) -> bool) -> Vec<Bytes> {
+/// Advances (by `times`) the shown quests whose current goal `ok(quest, goal, paused)` accepts.
+fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64, ok: &dyn Fn(&AreaQuest, &lmoxide_content::QuestGoal, bool) -> bool) -> Vec<Bytes> {
     let index = INDEX.read().unwrap();
     let Some(list) = index.by_playfield.get(&t.playfield.model()) else { return Vec::new() };
 
@@ -355,8 +364,8 @@ fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64,
         let Some(&paused) = t.shown.get(&q.main) else { continue };
         let Some(state) = c.quests.get_mut(&q.main) else { continue };
         let Some(step) = q.quest.steps.get(state.step as usize) else { continue };
-        let Some(goal) = step.goals.iter().find(|g| g.counts.is_some()) else { continue };
-        if !ok(goal, paused) {
+        let Some(goal) = step.goals.iter().find(|g| g.counts.is_some() || g.area.is_some()) else { continue };
+        if !ok(q, goal, paused) {
             continue;
         }
         let n = (times.min(u32::MAX as u64) as u32).min(goal.count.saturating_sub(state.progress));
@@ -486,10 +495,12 @@ pub fn summary(c: &Character) -> Vec<String> {
     lines
 }
 
-/// Test targets: each area quest's area (label, playfield, its middle).
+/// Test targets: each area quest's area, and the areas that complete its goals (label,
+/// playfield, its middle).
 pub fn points() -> Vec<(String, u32, [f32; 3])> {
     let index = INDEX.read().unwrap();
     let mut out: Vec<_> = index.quests.iter().map(|q| (q.quest.name.clone(), q.playfield, q.area.centre())).collect();
+    out.extend(index.quests.iter().flat_map(|q| q.goal_areas.iter().map(|(id, a)| (format!("{} (completes: {id})", q.quest.name), q.playfield, a.centre()))));
     out.sort_by(|a, b| a.1.cmp(&b.1).then(a.0.cmp(&b.0)));
     out
 }
@@ -745,6 +756,28 @@ mod tests {
         assert_eq!(names(&picked_up(&mut t, &mut c, 7, 516223)).last().map(String::as_str), Some("MainQuestUpdateIIR_c"));
         // done: no more drops
         assert!(pickup_drops(&t, &c, &smash("Cage")).is_empty());
+
+        // a goal completed by entering its area (the egg back in the Tar Pit's nest:
+        // Quest_TarpitComplete), here outside the quest's own area
+        let nest: QuestGoal = serde_json::from_value(serde_json::json!({
+            "goal": 261, "kind": "trigger", "area": "area/4200/nest",
+        }))
+        .unwrap();
+        let nest_area = Shape::Polygon { points: vec![[20.0, 0.0], [24.0, 0.0], [24.0, 4.0], [20.0, 4.0]], heights: [0.0, 10.0] };
+        *INDEX.write().unwrap() = build(std::iter::once(quest(nest)), &|id| Some(if id == "area/4200/nest" { nest_area.clone() } else { square.clone() }));
+        let (mut t, mut c) = (Tracker::default(), crate::game::new_character("t".into(), crate::instance::Mode::Progression, 4200));
+        // not started yet: the nest does nothing
+        assert!(moved(&mut t, &mut c, 7, Pf::main(4200), [22.0, 5.0, 2.0]).is_empty());
+        assert_eq!(names(&moved(&mut t, &mut c, 7, Pf::main(4200), [5.0, 5.0, 5.0])), ["MainQuestUpdateIIR_c", "QuestFullUpdateIIR"]);
+        assert!(on_event(&mut t, &mut c, 7, &smash("Cage"), 1).is_empty());
+        // leaving pauses it; the nest completes it all the same
+        assert_eq!(names(&moved(&mut t, &mut c, 7, Pf::main(4200), [15.0, 5.0, 2.0])), ["QuestUpdateIIR"]);
+        assert_eq!(
+            names(&moved(&mut t, &mut c, 7, Pf::main(4200), [22.0, 5.0, 2.0])),
+            ["QuestGoalIIR", "QuestIIR_c", "JournalUpdateIIR", "QuestIIR_c", "QuestCooldownIIR", "MainQuestUpdateIIR_c"]
+        );
+        assert_eq!(c.quests[&41].completions, 1);
+        assert!(moved(&mut t, &mut c, 7, Pf::main(4200), [22.0, 5.0, 2.0]).is_empty());
     }
 
     #[test]

@@ -1984,6 +1984,12 @@ pub struct QuestGoal {
     /// Counts anywhere in the world; otherwise only inside the quest's area.
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub anywhere: bool,
+    /// Entering this area while the quest runs completes the goal (the client's
+    /// `Quest_*Complete` areas: the Tar Pit's nest, the Gauntlet's room exits), also when the
+    /// quest is paused (the area may lie outside the quest's).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+    pub area: Option<Ref>,
     /// How many are needed.
     #[serde(default = "one", skip_serializing_if = "is_one_u32")]
     pub count: u32,

@@ -690,6 +690,9 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   QuestCooldownIIR (u32 2, container_len(1), cooldown id, seconds), MainQuestUpdateIIR_c remove.
   The client polls QuestCooldownIIR (u32 4, empty) every ~15 s; live answered one u32 4 record
   per quest cooling down. A teleport (even within a playfield) makes the client forget quests.
+  A goal with an `area` (LMOxide: the client's `Quest_*Complete` bounded areas) is done this
+  way when the player enters that area while the quest runs, paused or not (no progress record
+  first; not seen live).
 - **Cinematics** (story.rs; LMO_Captures.cap): the 16 narrated story cinematics are client
   effect packages (CinematicState timeline, camera paths, narrator, TDB 50000 subtitles). The
   server starts one with `EffectPackageIIR` to the player: identity = the player, named target
