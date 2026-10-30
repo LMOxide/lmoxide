@@ -523,6 +523,17 @@
           "count": 6
         }
       ]
+    },
+    {
+      "label": "heals",
+      "about": "Faun, Carpenter and Trendsetter with 4 Pirate Corsairs; !hurt 30 first (or let a friend stand by you): Healing Song heals everyone within 3 m of the Faun 1.25% every 0.25 s for 5 s, Carpenter's Craft 2% x 5 pulses within 3 m of where it was cast, each Circle of Hearts heart that hits heals the Trendsetter 10% (server Lua 4582/3242/802; log \"ability heal\")",
+      "team": ["Faun", "Carpenter", "Trendsetter"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
     }
   ]
 }

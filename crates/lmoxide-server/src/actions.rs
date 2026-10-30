@@ -29,7 +29,9 @@
 //! data doesn't give are in docs/TUNABLES.md.
 //!
 //! What a spell's server Lua (LuaScriptID, RDB 1010223) did is in its content skill's `effects`
-//! (the script named in its `comment`): the pets whose owner casts their damage (`pet_attack`).
+//! (the script named in its `comment`), run with its OnUse (`lua`): heals (Healing Song,
+//! Carpenter's Craft, Circle of Hearts; their area formulas pick allies: `friendly`), and the
+//! pets whose owner casts their damage (`pet_attack`).
 
 use crate::instance::Pf;
 use std::{
@@ -134,6 +136,12 @@ const CRITERIA_ON_TARGET: u32 = 18;
 const CRITERIA_ON_CASTER: u32 = 19;
 /// TargetingMode of spells cast on oneself (their "target" is the caster).
 const TARGETING_SELF: u32 = 8;
+/// TargetingMode of nanos for allies (`friendly`).
+const TARGETING_FRIENDLY: u32 = 1;
+/// TargetingMode of the Faun's Healing Song buff 667243 (the ring that heals around it): taken
+/// as cast on the caster when its target is an enemy, as TARGETING_SELF (a guess: the song's
+/// AttackRange is 0.5 m; docs/TUNABLES.md).
+const TARGETING_SELF_OR_ALLY: u32 = 4;
 /// Event lists (GameData::GameActionList_e).
 const ON_USE: &str = "0";
 const ON_RECHARGE_DELAY: &str = "1";
@@ -197,15 +205,18 @@ static ITEMS: LazyLock<HashMap<u32, Item>> =
 /// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
 /// plain press (`cast`): it has server-side PreUse or OnUse actions.
 /// Only those whose actions reach a WeaponHit (the others' damage came from actions the server
-/// doesn't run, so they keep the plain hit in game.rs) or a shortcut override (mode switches
-/// like Mount Up!, which don't hit).
+/// doesn't run, so they keep the plain hit in game.rs), a shortcut override (mode switches
+/// like Mount Up!, which don't hit) or a nano with Lua `effects` (heals).
 pub fn is_ability(spell: u32) -> bool {
     SPELLS.get(&spell).is_some_and(|s| {
         s.minifigure.is_some()
             && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(Action::on_server)))
-            && reaches(spell, &["WeaponHit", "OverrideShortcut"], &mut Vec::new())
+            && reaches(spell, &["WeaponHit", "OverrideShortcut", LUA], &mut Vec::new())
     })
 }
+
+/// For `reaches`: a spell with Lua `effects` (the heals of Healing Song and Carpenter's Craft).
+const LUA: &str = "lua";
 
 /// Whether `spell`'s server actions (and the nanos they cast) include one of `kinds`.
 fn reaches(spell: u32, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
@@ -214,7 +225,7 @@ fn reaches(spell: u32, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
     }
     seen.push(spell);
     let Some(s) = SPELLS.get(&spell) else { return false };
-    s.lists.values().flatten().filter(|a| a.on_server()).any(|a| action_reaches(a, kinds, seen))
+    (kinds.contains(&LUA) && !s.effects.is_empty()) || s.lists.values().flatten().filter(|a| a.on_server()).any(|a| action_reaches(a, kinds, seen))
 }
 
 /// Whether action `a` is one of `kinds` or reaches one (its nanos, its projectile's item).
@@ -767,6 +778,10 @@ pub fn forget_counters(id: Id32) {
 /// the crowd control its client actions do to an enemy.
 fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32) {
     let Some(s) = SPELLS.get(&spell) else { return };
+    if event == ON_USE && !s.effects.is_empty() {
+        // what its server Lua did (OnUse)
+        lua(run, spell, &s.effects, target, depth);
+    }
     let Some(list) = s.lists.get(event) else { return };
     blast(|| {
         for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str()) || (run.server_cast && a.kind == "StartEffect")) {
@@ -779,6 +794,45 @@ fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32)
             }
         }
     })
+}
+
+/// Spell `spell`'s Lua `effects` (content skills `effects`) on `target`.
+fn lua(run: &Arc<Run>, spell: u32, effects: &[lmoxide_content::Action], target: Target, depth: u32) {
+    use lmoxide_content::{Action as Do, Target as Whom};
+    for e in effects {
+        match e {
+            Do::Heal { amount, target: whom } => {
+                // `setstat(27, health + life × share)` (scripts 4582, 3242, 802): on whom the
+                // nano is cast (each ally an area formula picked; the caster for Circle of Hearts)
+                let id = match whom {
+                    Whom::Owner => Some(run.caster.id),
+                    _ => target.id,
+                };
+                if let Some(id) = id {
+                    heal(id, amount.fraction() as f32, spell);
+                }
+            }
+            // (`pet.owner_casts` is the pet's attack: `pet_attack`)
+            Do::Command { name, .. } if name == "pet.owner_casts" => {}
+            other => debug!(spell, ?other, depth, "lua effect not run"),
+        }
+    }
+}
+
+/// Heals player `id` (a minifigure not smashed) by `share` of its maximum health, as the Lua's
+/// `setstat` (the client's whole-number Health: rounded down).
+fn heal(id: Id32, share: f32, spell: u32) {
+    if !crate::npc::is_player(id) || crate::npc::player_health(id).is_none_or(|h| h == 0) {
+        return;
+    }
+    let max = crate::npc::player_max_health(id);
+    let amount = (max as f32 * share) as u32;
+    if amount == 0 {
+        return;
+    }
+    let health = crate::npc::heal_player(id, amount);
+    info!(?id, spell, amount, health, max, "ability heal");
+    world::send_to(id, world::Out::Records(vec![crate::game::int32_stat(id, crate::game::STAT_HEALTH, health)]));
 }
 
 thread_local! {
@@ -1071,7 +1125,12 @@ fn cast_nano_on(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effec
     let Some(n) = SPELLS.get(&nano) else { return };
     let caster = run.caster.id;
     // a self-cast nano (TargetingMode 8: the Lifeguard's whirlpool buff) goes on the caster
-    let target = if !at_hit && n.stats.targeting_mode == Some(TARGETING_SELF) && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
+    let self_cast = match n.stats.targeting_mode {
+        Some(TARGETING_SELF) => true,
+        Some(TARGETING_SELF_OR_ALLY) => target.id.is_some_and(|t| t != caster && !crate::npc::is_player(t)),
+        _ => false,
+    };
+    let target = if !at_hit && self_cast && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
     let on_caster = target.id == Some(caster);
     // (a shortcut override is what a buff does, not a hit)
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.on_server() && a.kind != "OverrideShortcut"));
@@ -1195,6 +1254,13 @@ fn direction(a: [f32; 3], b: [f32; 3]) -> Option<[f32; 2]> {
     (d > 0.01).then(|| [dx / d, dz / d])
 }
 
+/// Whether `nano` goes on allies (TargetingMode 1: the heals of Healing Song 667242 and
+/// Carpenter's Craft 563178, whose formulas' NPCSelectMode 3 is the same as the attacks'; a
+/// guess from the data, docs/TUNABLES.md): an area formula casting it picks players.
+fn friendly(nano: u32) -> bool {
+    SPELLS.get(&nano).is_some_and(|n| n.stats.targeting_mode == Some(TARGETING_FRIENDLY))
+}
+
 /// The enemy clicked for a melee sector of `shape` (a minifigure ability's formula around the
 /// caster, under 360°), and where it is, if it is still there.
 fn melee_target(run: &Run, shape: Shape, around_caster: bool) -> Option<(Id32, [f32; 3])> {
@@ -1206,14 +1272,20 @@ fn melee_target(run: &Run, shape: Shape, around_caster: bool) -> Option<(Id32, [
 }
 
 /// One pulse of a CoreFilteredAreaFormula around `center` (the caster's position when
-/// `around_caster`): the enemies in the shape (nearest first, at most Max1) get its nano.
+/// `around_caster`): the enemies in the shape (nearest first, at most Max1) get its nano; the
+/// players instead, the caster too, when the nano is a friendly one (`friendly`).
 fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], around_caster: bool, depth: u32) {
     let caster = run.caster.id;
     let shape = Shape::of(a);
     let stale = *run.caster.facing.lock().unwrap();
-    let melee = melee_target(run, shape, around_caster);
+    let allies = a.u("NanoTemplate").is_some_and(friendly);
+    let melee = if allies { None } else { melee_target(run, shape, around_caster) };
     let reach = shape.radius + if melee.is_some() { MELEE_TARGET_RADIUS + MELEE_LAG_SLACK } else { 0.0 };
-    let candidates = crate::npc::targets_where(run.caster.playfield, |p| distance(p, center) <= reach);
+    let candidates = if allies {
+        world::live_positions(run.caster.playfield).into_iter().filter(|(id, p)| distance(*p, center) <= reach && crate::npc::is_player(*id)).collect()
+    } else {
+        crate::npc::targets_where(run.caster.playfield, |p| distance(p, center) <= reach)
+    };
     let (facing, mut hits) = shape_hits(shape, center, stale, candidates, melee);
     if let Some((target, at)) = melee {
         // the caster turned to the clicked enemy (its client did so without saying)
@@ -1556,6 +1628,34 @@ mod tests {
         }
         assert_eq!(owner_casts(crate::npc::DEFAULT_SPELL), None);
         assert!(!pet_attack(Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_778), crate::npc::DEFAULT_SPELL, Id32::new(50_000, 1)));
+    }
+
+    /// The Lua heals (scripts 4582, 3242, 802): Healing Song 1.25% and Carpenter's Craft 2% of
+    /// the ally's maximum per pulse, Circle of Hearts 10% of the caster's; never a smashed one.
+    #[test]
+    fn ability_heals() {
+        assert!(is_ability(663_945) && is_ability(563_103), "Healing Song and Carpenter's Craft run here");
+        assert!(friendly(667_242) && friendly(563_178) && !friendly(667_226) && !friendly(642_556));
+        let caster = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_779);
+        let ally = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_780);
+        let run = test_run(caster);
+        for id in [caster, ally] {
+            crate::npc::set_active_minifigure(id, 1, 1000, 0.0);
+            crate::npc::set_player_health(id, 500);
+        }
+        cast_nano(&run, 667_242, Target { id: Some(ally), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(ally), Some(512));
+        cast_nano(&run, 563_178, Target { id: Some(ally), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(ally), Some(532));
+        // the hearts' nano is cast on the Trendsetter herself
+        cast_nano(&run, 300_712, Target { id: Some(caster), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(caster), Some(600));
+        crate::npc::set_player_health(ally, 0);
+        cast_nano(&run, 667_242, Target { id: Some(ally), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(ally), Some(0));
+        for id in [caster, ally] {
+            crate::npc::player_left(id);
+        }
     }
 
     fn test_run(caster: Id32) -> Arc<Run> {
