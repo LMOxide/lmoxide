@@ -512,6 +512,50 @@
           "count": 2
         }
       ]
+    },
+    {
+      "label": "pets",
+      "about": "Zombie Cheerleader, Monster Scientist and Queen with 6 Pirate Corsairs: the specials' pets (Team Zombie, Gigantuan, Queen's Guard) hit by their owner casting the pet damage spell (server Lua 4355/4463/4581: ×0.25 / ×0.5 / ×0.5 of your power; log \"pet attack: the owner casts\")",
+      "team": ["Zombie Cheerleader", "Monster Scientist", "Queen"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "heals",
+      "about": "Faun, Carpenter and Trendsetter with 4 Pirate Corsairs; !hurt 30 first (or let a friend stand by you): Healing Song heals everyone within 3 m of the Faun 1.25% every 0.25 s for 5 s, Carpenter's Craft 2% x 5 pulses within 3 m of where it was cast, each Circle of Hearts heart that hits heals the Trendsetter 10% (server Lua 4582/3242/802; log \"ability heal\")",
+      "team": ["Faun", "Carpenter", "Trendsetter"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "label": "luaattacks",
+      "about": "Fairy, Faun, Evil Dwarf and Skater Girl with 6 Pirate Corsairs (Wrestling Champion: !test luaattacks2): the attacks done in server Lua: Shooting Stars (a star at the target), Mythic Song (two shots that alternate), Skyward Smash and Air Time (dash the whole metres to the clicked enemy, up to 10, and hit around where they land; 7.5 s / 6.5 s recast, Air Time 1 s less per enemy hit; logs \"lua: ground cast\", \"lua: alternate\", \"lua: dash by distance\")",
+      "team": ["Fairy", "Faun", "Evil Dwarf", "Skater Girl"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "luaattacks2",
+      "about": "Wrestling Champion with 6 Pirate Corsairs: Elbow Press Drop dashes the whole metres to the clicked enemy (up to 10) and lands with a 3 m hit that knocks enemies up; 7.5 s recast (log \"lua: dash by distance\")",
+      "team": ["Wrestling Champion"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
     }
   ]
 }

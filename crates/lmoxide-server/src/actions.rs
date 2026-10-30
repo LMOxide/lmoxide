@@ -27,6 +27,14 @@
 //! client only shows, are done to them here (npc.rs `snare`, `stun`, `knock`), for the nano's
 //! TimeExist and shortened by diminishing returns (AddDiminishingReturn). Timings the client
 //! data doesn't give are in docs/TUNABLES.md.
+//!
+//! What a spell's server Lua (LuaScriptID, RDB 1010223) did is in its content skill's `effects`
+//! (the script named in its `comment`), run with its OnUse (`lua`): heals (Healing Song,
+//! Carpenter's Craft, Circle of Hearts; their area formulas pick allies: `friendly`), attacks
+//! whose script casts other spells (Shooting Stars, Mythic Song, the distance dashes of the Evil
+//! Dwarf, Skater Girl and Wrestling Champion, with the recast times they set: `RECHARGE`), and
+//! the pets whose owner casts their damage (`pet_attack`). A ColumnDash's TemplateID2 nano is
+//! cast where it ends (the dashes' landing areas).
 
 use crate::instance::Pf;
 use std::{
@@ -56,6 +64,9 @@ struct Spell {
     stats: Stats,
     #[serde(default)]
     lists: HashMap<String, Vec<Action>>,
+    /// What the spell's server Lua did (content skills `effects`, run with list 0: `lua`).
+    #[serde(default)]
+    effects: Vec<lmoxide_content::Action>,
 }
 
 /// Spell stats; times in centiseconds.
@@ -128,6 +139,12 @@ const CRITERIA_ON_TARGET: u32 = 18;
 const CRITERIA_ON_CASTER: u32 = 19;
 /// TargetingMode of spells cast on oneself (their "target" is the caster).
 const TARGETING_SELF: u32 = 8;
+/// TargetingMode of nanos for allies (`friendly`).
+const TARGETING_FRIENDLY: u32 = 1;
+/// TargetingMode of the Faun's Healing Song buff 667243 (the ring that heals around it): taken
+/// as cast on the caster when its target is an enemy, as TARGETING_SELF (a guess: the song's
+/// AttackRange is 0.5 m; docs/TUNABLES.md).
+const TARGETING_SELF_OR_ALLY: u32 = 4;
 /// Event lists (GameData::GameActionList_e).
 const ON_USE: &str = "0";
 const ON_RECHARGE_DELAY: &str = "1";
@@ -189,17 +206,22 @@ static ITEMS: LazyLock<HashMap<u32, Item>> =
     LazyLock::new(|| crate::skills::projectile_items().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("projectile item"))).collect());
 
 /// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
-/// plain press (`cast`): it has server-side PreUse or OnUse actions.
+/// plain press (`cast`): it has server-side PreUse or OnUse actions, or Lua `effects` (the
+/// attacks done in Lua: Shooting Stars, Mythic Song, the distance dashes).
 /// Only those whose actions reach a WeaponHit (the others' damage came from actions the server
-/// doesn't run, so they keep the plain hit in game.rs) or a shortcut override (mode switches
-/// like Mount Up!, which don't hit).
+/// doesn't run, so they keep the plain hit in game.rs), a shortcut override (mode switches
+/// like Mount Up!, which don't hit) or a nano with Lua `effects` (heals).
 pub fn is_ability(spell: u32) -> bool {
     SPELLS.get(&spell).is_some_and(|s| {
         s.minifigure.is_some()
-            && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(Action::on_server)))
-            && reaches(spell, &["WeaponHit", "OverrideShortcut"], &mut Vec::new())
+            && (!s.effects.is_empty()
+                || ([PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(Action::on_server)))
+                    && reaches(spell, &["WeaponHit", "OverrideShortcut", LUA], &mut Vec::new())))
     })
 }
+
+/// For `reaches`: a spell with Lua `effects` (the heals of Healing Song and Carpenter's Craft).
+const LUA: &str = "lua";
 
 /// Whether `spell`'s server actions (and the nanos they cast) include one of `kinds`.
 fn reaches(spell: u32, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
@@ -208,7 +230,7 @@ fn reaches(spell: u32, kinds: &[&str], seen: &mut Vec<u32>) -> bool {
     }
     seen.push(spell);
     let Some(s) = SPELLS.get(&spell) else { return false };
-    s.lists.values().flatten().filter(|a| a.on_server()).any(|a| action_reaches(a, kinds, seen))
+    (kinds.contains(&LUA) && !s.effects.is_empty()) || s.lists.values().flatten().filter(|a| a.on_server()).any(|a| action_reaches(a, kinds, seen))
 }
 
 /// Whether action `a` is one of `kinds` or reaches one (its nanos, its projectile's item).
@@ -228,6 +250,11 @@ pub fn hit_delay(spell: u32) -> Option<Duration> {
 /// combo step) right away, OnUse (list 0: the area formulas and hits) after the spell's
 /// ItemDelay, when the attack animation strikes.
 pub fn cast(caster: Caster, spell: u32) {
+    cast_as(caster, spell, false)
+}
+
+/// `cast`; `server_cast`: the server casts it for the caster (see `Run::server_cast`).
+fn cast_as(caster: Caster, spell: u32, server_cast: bool) {
     let Some(s) = SPELLS.get(&spell) else { return };
     let delay = hit_delay(spell).unwrap_or(Duration::ZERO);
     let run = Arc::new(Run {
@@ -245,6 +272,7 @@ pub fn cast(caster: Caster, spell: u32) {
         shot_from: Mutex::new(None),
         target: Mutex::new(None),
         locked: Mutex::new(None),
+        server_cast,
     });
     debug!(caster = ?run.caster.id, spell, name = %s.name, ?delay, "ability");
     lock_direction(&run);
@@ -254,6 +282,37 @@ pub fn cast(caster: Caster, spell: u32) {
         run_list(&run, spell, ON_USE, root_target(&run), 0);
         end_counters(&run);
     });
+}
+
+/// A pet's attack `pet_spell` on `target`, when its server Lua has the pet's owner cast the
+/// damage (content skills `effects` `pet.owner_casts`: Team Zombie, Gigantuan and Queen's Guard,
+/// scripts 4355 / 4463 / 4581: `PetOwner:castspell(<damage spell>, spellObject.target)`). The
+/// owner casts that spell on `target` with their active minifigure's power. Returns whether it
+/// was such an attack (the others keep npc.rs's flat pet damage).
+pub fn pet_attack(owner: Id32, pet_spell: u32, target: Id32) -> bool {
+    let Some(spell) = owner_casts(pet_spell) else { return false };
+    let Some(caster) = server_caster(owner, Some(target)) else { return true };
+    info!(?owner, pet_spell, spell, ?target, "pet attack: the owner casts");
+    cast_as(caster, spell, true);
+    true
+}
+
+/// The spell `pet_spell`'s Lua has the pet's owner cast (`pet.owner_casts`).
+fn owner_casts(pet_spell: u32) -> Option<u32> {
+    SPELLS.get(&pet_spell)?.effects.iter().find_map(|e| match e {
+        lmoxide_content::Action::Command { name, args } if name == "pet.owner_casts" => args.get("spell")?.as_u64().map(|v| v as u32),
+        _ => None,
+    })
+}
+
+/// `player` as the caster of a spell the server casts for them (where they are, their active
+/// minifigure), aimed at `target`.
+fn server_caster(player: Id32, target: Option<Id32>) -> Option<Caster> {
+    let (template, upgrades, level) = crate::procs::active_of(player)?;
+    let (playfield, _) = world::whereabouts(player)?;
+    let pos = world::position_handles(playfield).into_iter().find(|(id, _)| *id == player)?.1;
+    let facing = Arc::new(Mutex::new(world::facing_of(player).unwrap_or([0.0, 1.0])));
+    Some(Caster { id: player, playfield, pos, facing, template, upgrades, level, target, ground: None })
 }
 
 /// Spells that OverrideShortcut actions of `spells` (and the nanos they reach) put on the
@@ -370,6 +429,7 @@ pub fn is_channel(spell: u32) -> bool {
 }
 
 /// Who casts, and at what.
+#[derive(Clone)]
 pub struct Caster {
     pub id: Id32,
     pub playfield: Pf,
@@ -411,6 +471,9 @@ struct Run {
     target: Mutex<Option<Id32>>,
     /// The direction a spell that blocks turning was cast in (its shots keep it).
     locked: Mutex<Option<[f32; 2]>>,
+    /// Cast by the server for the caster (a pet's owner: `pet_attack`): its client knows nothing
+    /// of it, so the server shows the spell's client StartEffect actions too.
+    server_cast: bool,
 }
 
 static ACTIVE: LazyLock<Mutex<HashMap<Id32, Arc<Run>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -445,6 +508,7 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         shot_from: Mutex::new(None),
         target: Mutex::new(None),
         locked: Mutex::new(None),
+        server_cast: false,
     });
     info!(caster = ?run.caster.id, spell, name = %s.name, ticks, ?interval, "channel");
     lock_direction(&run);
@@ -548,6 +612,32 @@ pub fn minifigure_changed(player: Id32) {
 /// Forgets `player`'s ability buffs (it left).
 pub fn forget_caster_buffs(player: Id32) {
     CASTER_BUFFS.lock().unwrap().remove(&player);
+    RECHARGE.lock().unwrap().retain(|(p, _), _| *p != player);
+}
+
+/// The recast times the abilities' Lua set (the distance dashes' cooldown spells, Air Time's
+/// `ModifyTemplateCooldown`), by (player, ability): until then the server refuses the ability
+/// (game.rs). The client isn't told (no known record sets a recast time; its own spell has none).
+static RECHARGE: LazyLock<Mutex<HashMap<(Id32, u32), Instant>>> = LazyLock::new(Default::default);
+
+/// Whether `player`'s ability `spell` is still recharging (`RECHARGE`).
+pub fn recharging(player: Id32, spell: u32) -> bool {
+    RECHARGE.lock().unwrap().get(&(player, spell)).is_some_and(|t| *t > Instant::now())
+}
+
+/// Sets `player`'s recast time of `spell` to `d` from now.
+fn set_recharge(player: Id32, spell: u32, d: Duration) {
+    debug!(?player, spell, ?d, "recharge");
+    RECHARGE.lock().unwrap().insert((player, spell), Instant::now() + d);
+}
+
+/// Changes the time left of `player`'s recharging `spell` by `secs` (negative: shorter).
+fn add_recharge(player: Id32, spell: u32, secs: f32) {
+    if let Some(t) = RECHARGE.lock().unwrap().get_mut(&(player, spell)) {
+        let d = Duration::from_secs_f32(secs.abs());
+        *t = if secs < 0.0 { t.checked_sub(d).unwrap_or(*t) } else { *t + d };
+        debug!(?player, spell, secs, left = ?t.saturating_duration_since(Instant::now()), "recharge changed");
+    }
 }
 
 /// Whether `caster` is channelling an ability.
@@ -720,11 +810,15 @@ pub fn forget_counters(id: Id32) {
 /// the crowd control its client actions do to an enemy.
 fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32) {
     let Some(s) = SPELLS.get(&spell) else { return };
+    if event == ON_USE && !s.effects.is_empty() {
+        // what its server Lua did (OnUse)
+        lua(run, spell, &s.effects, target, depth);
+    }
     let Some(list) = s.lists.get(event) else { return };
     blast(|| {
-        for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str())) {
+        for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str()) || (run.server_cast && a.kind == "StartEffect")) {
             if criteria_met(run, a, target) {
-                if a.on_server() {
+                if a.on_server() || a.kind == "StartEffect" {
                     act(run, spell, a, target, depth);
                 } else {
                     crowd_control(run, spell, a, target);
@@ -732,6 +826,154 @@ fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32)
             }
         }
     })
+}
+
+/// Spell `spell`'s Lua `effects` (content skills `effects`) on `target`. The spells a script
+/// casts are cast by the server (`server_run`).
+fn lua(run: &Arc<Run>, spell: u32, effects: &[lmoxide_content::Action], target: Target, depth: u32) {
+    use lmoxide_content::{Action as Do, Target as Whom};
+    let caster = run.caster.id;
+    let me = Target { id: Some(caster), pos: here(run) };
+    let u = |args: &std::collections::BTreeMap<String, serde_json::Value>, k: &str| args.get(k).and_then(|v| v.as_u64()).map(|v| v as u32);
+    let list = |args: &std::collections::BTreeMap<String, serde_json::Value>, k: &str| -> Vec<u32> {
+        args.get(k).and_then(|v| v.as_array()).into_iter().flatten().filter_map(|v| v.as_u64()).map(|v| v as u32).collect()
+    };
+    for e in effects {
+        match e {
+            Do::Command { name, args } if name == "ability.ground_cast" => {
+                // Shooting Stars (462): `CastSpellOnGround` at the ground target, else where the
+                // target stands; the empowered spell while a buff of its line is on the caster
+                let empowered = list(args, "buffs").into_iter().any(|b| effects::is_shown(caster, b));
+                let Some(cast) = u(args, if empowered { "spell_with_buff" } else { "spell" }) else { continue };
+                let at = Target { id: None, pos: run.caster.ground.unwrap_or(target.pos) };
+                info!(?caster, spell, cast, empowered, ?at, "lua: ground cast");
+                cast_nano_shown(&server_run(run), cast, at, depth + 1, false);
+            }
+            Do::Command { name, args } if name == "ability.remove_last_buff" => {
+                // the empowered Shooting Stars (202): the newest of the caster's pixies goes
+                if let Some(buff) = list(args, "buffs").into_iter().rev().find(|b| effects::is_shown(caster, *b)) {
+                    remove_buff(run, caster, buff);
+                }
+            }
+            Do::Command { name, args } if name == "ability.alternate" => {
+                // Mythic Song (4621): without the marker buff the first shot and the marker,
+                // with it the second. The shots are cast on the caster: they fly the way she
+                // faces, at her target (`target`)
+                let (Some(marker), Some(first), Some(second)) = (u(args, "marker"), u(args, "first"), u(args, "second")) else { continue };
+                let child = server_run(run);
+                let marked = effects::is_shown(caster, marker);
+                info!(?caster, spell, shot = if marked { second } else { first }, "lua: alternate");
+                if marked {
+                    cast_nano_shown(&child, second, target, depth + 1, false);
+                } else {
+                    cast_nano_shown(&child, first, target, depth + 1, false);
+                    cast_nano(&child, marker, me, depth + 1);
+                }
+            }
+            Do::Command { name, args } if name == "ability.dash_by_distance" => {
+                // Skyward Smash, Air Time, Elbow Press Drop (3821, 3822, 4622): the cooldown, then
+                // the dash for the whole metres to the ground target or the target (≤ 1 ... ≥ 10)
+                let to = run.caster.ground.unwrap_or(target.pos);
+                let metres = (to[0] - me.pos[0]).hypot(to[2] - me.pos[2]);
+                let Some(dash) = dash_for(&list(args, "dashes"), metres) else { continue };
+                if let Some((ability, d)) = u(args, "cooldown_spell").and_then(recast_time) {
+                    set_recharge(caster, ability, d);
+                }
+                if let Some(d) = args.get("cooldown").and_then(|v| serde_json::from_value::<lmoxide_content::units::Duration>(v.clone()).ok()) {
+                    set_recharge(caster, run.spell, d.to_std());
+                }
+                // the dash spells are cast on the caster and go the way she faces: at the target
+                if let Some(dir) = direction(me.pos, to) {
+                    *run.caster.facing.lock().unwrap() = dir;
+                    world::set_facing(caster, dir);
+                }
+                info!(?caster, spell, metres, dash, "lua: dash by distance");
+                cast_nano(&server_run(run), dash, me, depth + 1);
+            }
+            Do::Command { name, args } if name == "ability.cooldown" => {
+                // Air Time's landing hits (3823: `ModifyTemplateCooldown(595462, false, -1, 0, 2)`)
+                if let (Some(ability), Some(secs)) = (u(args, "spell"), args.get("add").and_then(|v| v.as_f64())) {
+                    add_recharge(caster, ability, secs as f32);
+                }
+            }
+            Do::Heal { amount, target: whom } => {
+                // `setstat(27, health + life × share)` (scripts 4582, 3242, 802): on whom the
+                // nano is cast (each ally an area formula picked; the caster for Circle of Hearts)
+                let id = match whom {
+                    Whom::Owner => Some(run.caster.id),
+                    _ => target.id,
+                };
+                if let Some(id) = id {
+                    heal(id, amount.fraction() as f32, spell);
+                }
+            }
+            // (`pet.owner_casts` is the pet's attack: `pet_attack`)
+            Do::Command { name, .. } if name == "pet.owner_casts" => {}
+            other => debug!(spell, ?other, depth, "lua effect not run"),
+        }
+    }
+}
+
+/// A run for the spells a script casts for `run`'s caster (`Run::server_cast`): the same caster
+/// and ability (damage), its client not knowing them.
+fn server_run(run: &Arc<Run>) -> Arc<Run> {
+    Arc::new(Run {
+        caster: run.caster.clone(),
+        spell: run.spell,
+        started: Instant::now(),
+        length: Duration::ZERO,
+        released: AtomicBool::new(true),
+        aborted: AtomicBool::new(false),
+        counted: Mutex::new(Vec::new()),
+        mitigation_buffs: Mutex::new(Vec::new()),
+        ends_when_hit: false,
+        aim: Mutex::new(None),
+        end_record: Bytes::new(),
+        shot_from: Mutex::new(None),
+        target: Mutex::new(*run.target.lock().unwrap()),
+        locked: Mutex::new(*run.locked.lock().unwrap()),
+        server_cast: true,
+    })
+}
+
+/// The distance dash for `metres` to the target: the Lua's whole metres (`math.modf`), the
+/// first dash up to 1 m, the last from 10 m (the dashes' Distance 1 ... 10).
+fn dash_for(dashes: &[u32], metres: f32) -> Option<u32> {
+    let whole = metres.max(0.0).trunc() as usize;
+    dashes.get(whole.clamp(1, dashes.len().max(1)) - 1).copied()
+}
+
+/// A cooldown spell's recast time (its SetSpellRecastTime: the ability it names and for how long).
+fn recast_time(cooldown: u32) -> Option<(u32, Duration)> {
+    SPELLS.get(&cooldown)?.lists.values().flatten().filter(|a| a.kind == "SetSpellRecastTime").find_map(|a| Some((a.u("NanoTemplate")?, Duration::from_millis(10 * u64::from(a.u("Value")?)))))
+}
+
+/// Removes buff `buff` from `id`.
+fn remove_buff(run: &Run, id: Id32, buff: u32) {
+    let caster = run.caster.id;
+    clear_counter(id, buff);
+    effects::forget_buff(id, buff);
+    if id == caster {
+        crate::npc::set_buff_mitigation(caster, buff, None);
+    }
+    shortcuts::clear(id, buff);
+    show(run, vec![effects::buff_remove(id, buff, caster)]);
+}
+
+/// Heals player `id` (a minifigure not smashed) by `share` of its maximum health, as the Lua's
+/// `setstat` (the client's whole-number Health: rounded down).
+fn heal(id: Id32, share: f32, spell: u32) {
+    if !crate::npc::is_player(id) || crate::npc::player_health(id).is_none_or(|h| h == 0) {
+        return;
+    }
+    let max = crate::npc::player_max_health(id);
+    let amount = (max as f32 * share) as u32;
+    if amount == 0 {
+        return;
+    }
+    let health = crate::npc::heal_player(id, amount);
+    info!(?id, spell, amount, health, max, "ability heal");
+    world::send_to(id, world::Out::Records(vec![crate::game::int32_stat(id, crate::game::STAT_HEALTH, health)]));
 }
 
 thread_local! {
@@ -833,13 +1075,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
         "RemoveBuff" => {
             // (a smashable takes no buffs: see cast_nano_shown)
             if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id.filter(|id| !crate::npc::is_smashable(*id))) {
-                clear_counter(id, buff);
-                effects::forget_buff(id, buff);
-                if id == caster {
-                    crate::npc::set_buff_mitigation(caster, buff, None);
-                }
-                shortcuts::clear(id, buff);
-                show(run, vec![effects::buff_remove(id, buff, caster)]);
+                remove_buff(run, id, buff);
             }
         }
         "AddDiminishingReturn" => {
@@ -946,9 +1182,16 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             }
         }
         "ColumnDash" => {
+            // along the facing; where it ends, its TemplateID2 nano (the distance dashes' landing
+            // area: Skyward Smash 595418, Air Time 595494, Elbow Press Drop 667141)
             let dash = crate::dash::Dash::column(a.f("Distance").unwrap_or(5.0), a.u("Value1").unwrap_or(0));
             let facing = *run.caster.facing.lock().unwrap();
-            crate::dash::start(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0);
+            let (landing, run) = (a.u("TemplateID2"), run.clone());
+            crate::dash::start_then(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0, move |at| {
+                if let Some(nano) = landing {
+                    cast_nano(&run, nano, Target { id: Some(run.caster.id), pos: at }, depth + 1);
+                }
+            });
         }
         "Projectile" => shoot(run, spell, a, who, depth),
         "SpawnMonster" => {
@@ -985,6 +1228,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
                 }
             });
         }
+        "StartEffect" => {
+            // (only for a server cast: `run_list`) the effect package on whom it applies to
+            if let (Some(id), Some(package)) = (who.id, a.u("TemplateID")) {
+                show(run, vec![effects::effect_package(id, package)]);
+            }
+        }
         "OverrideShortcut" => {
             // buff `spell` puts TemplateID2 on the shortcut showing TemplateID while it is on
             // (combo steps, mode switches)
@@ -1018,7 +1267,12 @@ fn cast_nano_on(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effec
     let Some(n) = SPELLS.get(&nano) else { return };
     let caster = run.caster.id;
     // a self-cast nano (TargetingMode 8: the Lifeguard's whirlpool buff) goes on the caster
-    let target = if !at_hit && n.stats.targeting_mode == Some(TARGETING_SELF) && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
+    let self_cast = match n.stats.targeting_mode {
+        Some(TARGETING_SELF) => true,
+        Some(TARGETING_SELF_OR_ALLY) => target.id.is_some_and(|t| t != caster && !crate::npc::is_player(t)),
+        _ => false,
+    };
+    let target = if !at_hit && self_cast && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
     let on_caster = target.id == Some(caster);
     // (a shortcut override is what a buff does, not a hit)
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.on_server() && a.kind != "OverrideShortcut"));
@@ -1142,6 +1396,13 @@ fn direction(a: [f32; 3], b: [f32; 3]) -> Option<[f32; 2]> {
     (d > 0.01).then(|| [dx / d, dz / d])
 }
 
+/// Whether `nano` goes on allies (TargetingMode 1: the heals of Healing Song 667242 and
+/// Carpenter's Craft 563178, whose formulas' NPCSelectMode 3 is the same as the attacks'; a
+/// guess from the data, docs/TUNABLES.md): an area formula casting it picks players.
+fn friendly(nano: u32) -> bool {
+    SPELLS.get(&nano).is_some_and(|n| n.stats.targeting_mode == Some(TARGETING_FRIENDLY))
+}
+
 /// The enemy clicked for a melee sector of `shape` (a minifigure ability's formula around the
 /// caster, under 360°), and where it is, if it is still there.
 fn melee_target(run: &Run, shape: Shape, around_caster: bool) -> Option<(Id32, [f32; 3])> {
@@ -1153,14 +1414,20 @@ fn melee_target(run: &Run, shape: Shape, around_caster: bool) -> Option<(Id32, [
 }
 
 /// One pulse of a CoreFilteredAreaFormula around `center` (the caster's position when
-/// `around_caster`): the enemies in the shape (nearest first, at most Max1) get its nano.
+/// `around_caster`): the enemies in the shape (nearest first, at most Max1) get its nano; the
+/// players instead, the caster too, when the nano is a friendly one (`friendly`).
 fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], around_caster: bool, depth: u32) {
     let caster = run.caster.id;
     let shape = Shape::of(a);
     let stale = *run.caster.facing.lock().unwrap();
-    let melee = melee_target(run, shape, around_caster);
+    let allies = a.u("NanoTemplate").is_some_and(friendly);
+    let melee = if allies { None } else { melee_target(run, shape, around_caster) };
     let reach = shape.radius + if melee.is_some() { MELEE_TARGET_RADIUS + MELEE_LAG_SLACK } else { 0.0 };
-    let candidates = crate::npc::targets_where(run.caster.playfield, |p| distance(p, center) <= reach);
+    let candidates = if allies {
+        world::live_positions(run.caster.playfield).into_iter().filter(|(id, p)| distance(*p, center) <= reach && crate::npc::is_player(*id)).collect()
+    } else {
+        crate::npc::targets_where(run.caster.playfield, |p| distance(p, center) <= reach)
+    };
     let (facing, mut hits) = shape_hits(shape, center, stale, candidates, melee);
     if let Some((target, at)) = melee {
         // the caster turned to the clicked enemy (its client did so without saying)
@@ -1488,6 +1755,108 @@ mod tests {
         assert!(!blocks(550_766));
     }
 
+    /// Team Zombie's, Gigantuan's and Queen's Guard's pets attack with their Lua pet spell, which
+    /// has the owner cast the damage (server Lua 4355 / 4463 / 4581); other pets don't.
+    #[test]
+    fn lua_pets_have_their_owner_cast_the_damage() {
+        let summons = crate::skills::summons();
+        for (summon, pet, damage, ability_mod) in [(641_633, 642_562, 642_556, 0.25), (641_620, 654_694, 654_693, 0.5), (663_959, 667_155, 667_153, 0.5)] {
+            assert_eq!(summons[&summon]["spell"], serde_json::json!(pet), "summon {summon}");
+            assert_eq!(owner_casts(pet), Some(damage));
+            let hit = SPELLS[&damage].lists[ON_USE].iter().find(|a| a.kind == "WeaponHit").unwrap();
+            assert_eq!(hit.f("AbilityMod"), Some(ability_mod));
+            // its hit effect is a client action: shown by the server for these casts
+            assert!(SPELLS[&damage].lists[ON_USE].iter().any(|a| a.kind == "StartEffect" && a.client));
+        }
+        assert_eq!(owner_casts(crate::npc::DEFAULT_SPELL), None);
+        assert!(!pet_attack(Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_778), crate::npc::DEFAULT_SPELL, Id32::new(50_000, 1)));
+    }
+
+    /// The Lua heals (scripts 4582, 3242, 802): Healing Song 1.25% and Carpenter's Craft 2% of
+    /// the ally's maximum per pulse, Circle of Hearts 10% of the caster's; never a smashed one.
+    #[test]
+    fn ability_heals() {
+        assert!(is_ability(663_945) && is_ability(563_103), "Healing Song and Carpenter's Craft run here");
+        assert!(friendly(667_242) && friendly(563_178) && !friendly(667_226) && !friendly(642_556));
+        let caster = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_779);
+        let ally = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_780);
+        let run = test_run(caster);
+        for id in [caster, ally] {
+            crate::npc::set_active_minifigure(id, 1, 1000, 0.0);
+            crate::npc::set_player_health(id, 500);
+        }
+        cast_nano(&run, 667_242, Target { id: Some(ally), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(ally), Some(512));
+        cast_nano(&run, 563_178, Target { id: Some(ally), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(ally), Some(532));
+        // the hearts' nano is cast on the Trendsetter herself
+        cast_nano(&run, 300_712, Target { id: Some(caster), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(caster), Some(600));
+        crate::npc::set_player_health(ally, 0);
+        cast_nano(&run, 667_242, Target { id: Some(ally), pos: [0.0; 3] }, 0);
+        assert_eq!(crate::npc::player_health(ally), Some(0));
+        for id in [caster, ally] {
+            crate::npc::player_left(id);
+        }
+    }
+
+    /// The attacks done in Lua run here: Shooting Stars (462), Mythic Song (4621) and the
+    /// distance dashes (3821, 3822 + 3823, 4622) with their cooldowns and landing areas.
+    #[test]
+    fn lua_attacks() {
+        for spell in [16_195, 663_944, 595_406, 595_462, 663_965] {
+            assert!(is_ability(spell), "{spell}");
+        }
+        // the dash for the whole metres to the target
+        let skater = [595_489, 595_490, 595_491, 595_492, 595_493, 595_487, 595_486, 595_484, 595_483, 595_488];
+        for (metres, want) in [(0.0, 595_489), (1.9, 595_489), (2.0, 595_490), (5.5, 595_493), (9.99, 595_483), (10.0, 595_488), (25.0, 595_488)] {
+            assert_eq!(dash_for(&skater, metres), Some(want), "{metres} m");
+        }
+        // every dash goes its whole metres and lands with its area (Skyward Smash from 4 m on
+        // the Wrestling Champion's, as its script names them)
+        let effects = |spell: u32| SPELLS[&spell].effects.iter().find_map(|e| match e {
+            lmoxide_content::Action::Command { args, .. } => args.get("dashes").cloned(),
+            _ => None,
+        });
+        for (ability, landing) in [(595_406, [595_418, 667_141]), (595_462, [595_494, 595_494]), (663_965, [667_141, 667_141])] {
+            let dashes: Vec<u32> = serde_json::from_value(effects(ability).unwrap()).unwrap();
+            for (i, dash) in dashes.iter().enumerate() {
+                let a = SPELLS[dash].lists[ON_USE].iter().find(|a| a.kind == "ColumnDash").unwrap();
+                assert_eq!(a.f("Distance"), Some(i as f32 + 1.0), "{dash}");
+                assert_eq!(a.u("TemplateID2"), Some(landing[usize::from(i >= 3)]), "{dash}");
+                assert!(SPELLS.contains_key(&a.u("TemplateID2").unwrap()));
+            }
+        }
+        // the cooldown spells: 7.5 s on Skyward Smash and Elbow Press Drop
+        assert_eq!(recast_time(595_442), Some((595_406, Duration::from_millis(7500))));
+        assert_eq!(recast_time(668_775), Some((663_965, Duration::from_millis(7500))));
+        // Air Time: 6.5 s, 1 s less for each enemy its landing hits (595567, script 3823)
+        let p = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_781);
+        set_recharge(p, 595_462, Duration::from_secs_f32(6.5));
+        add_recharge(p, 595_462, -1.0);
+        let left = RECHARGE.lock().unwrap()[&(p, 595_462)].saturating_duration_since(Instant::now());
+        assert!(recharging(p, 595_462) && left > Duration::from_secs(5) && left <= Duration::from_millis(5500), "{left:?}");
+        forget_caster_buffs(p);
+        assert!(!recharging(p, 595_462));
+        // the shots' items hit with the minifigures' damage nanos
+        for (item, nano) in [(50_717, 16_210), (50_728, 16_211), (667_240, 667_226), (668_570, 667_226)] {
+            assert!(ITEMS[&item].actions.iter().any(|a| a.kind == "CastNano" && a.u("Value") == Some(nano)), "{item}");
+            assert!(SPELLS[&nano].lists[ON_USE].iter().any(|a| a.kind == "WeaponHit"), "{nano}");
+        }
+    }
+
+    /// Mythic Song's shots alternate: the first shot leaves the 0.6 s marker, the next sees it.
+    #[tokio::test]
+    async fn mythic_song_alternates() {
+        let caster = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_782);
+        let run = test_run(caster);
+        assert!(!effects::is_shown(caster, 668_568));
+        run_list(&run, 663_944, ON_USE, Target { id: None, pos: [0.0, 0.0, 10.0] }, 0);
+        assert!(effects::is_shown(caster, 668_568), "the first shot puts the marker on");
+        tokio::time::sleep(Duration::from_millis(700)).await;
+        assert!(!effects::is_shown(caster, 668_568), "the marker lasts 0.6 s");
+    }
+
     fn test_run(caster: Id32) -> Arc<Run> {
         Arc::new(Run {
             caster: Caster {
@@ -1514,6 +1883,7 @@ mod tests {
             shot_from: Mutex::new(None),
             target: Mutex::new(None),
             locked: Mutex::new(None),
+            server_cast: false,
         })
     }
 
