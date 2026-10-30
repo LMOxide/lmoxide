@@ -232,6 +232,7 @@ pub enum Action {
     Command {
         name: String,
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[schemars(schema_with = "command_args")]
         args: BTreeMap<String, serde_json::Value>,
     },
     /// Not known yet: what it should do goes in `comment`.
@@ -239,6 +240,19 @@ pub enum Action {
         #[serde(default, skip_serializing_if = "String::is_empty")]
         comment: String,
     },
+}
+
+/// A command's arguments: any, but those that name records say which kinds (story.rs:
+/// `story_cross` crosses `to` an area, `story_script` runs a `script`).
+fn command_args(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schemars::json_schema!({
+        "type": "object",
+        "properties": {
+            "to": { "type": "string", "x-lmoxide-ref": ["area"] },
+            "script": { "type": "string", "x-lmoxide-ref": ["script"] }
+        },
+        "additionalProperties": true
+    })
 }
 
 fn one_u32() -> u32 {
