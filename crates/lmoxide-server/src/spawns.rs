@@ -376,7 +376,7 @@ mod tests {
     ];
 
     /// Basic attacks changed since: (name, old spell, new spell). The Space Merc Engineer's
-    /// 374158 (no client definition) is his bomb ring now, his shot his basic attack.
+    /// 374158 (no client definition) is no longer cast; his shot is his basic attack.
     const ATTACKS_CHANGED: [(&str, u32, u32); 1] = [("Space Merc Engineer", 374_158, 374_159)];
 
     /// Spawns deleted since: (playfield, name).

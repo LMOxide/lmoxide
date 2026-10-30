@@ -29,7 +29,7 @@
 //! - SpawnMonster: the content template with that `spawn_hash` (npc.rs `spawn_monster`) where the
 //!   action applies, then the action's NanoTemplate cast on it: adds that fight the player and
 //!   drop nothing, or invisible anchors that orbiting shots circle (ProjectileType 3,
-//!   projectile.rs `launch_orbit`: the Space Merc Engineer's bombs). Templates nobody matched
+//!   projectile.rs `launch_orbit`: the Space Merc Engineer's drones). Templates nobody matched
 //!   to a hash yet spawn nothing.
 //!
 //! Not run: server scripts, damage redirects, buff counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
@@ -473,7 +473,7 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             // the original server's monster (StringHash: content npcs `spawn_hash`) where the
             // spell aims, then its NanoTemplate cast on it: an add that joins the fight against
             // the player (dropping nothing), or an anchor shots circle (the Space Merc
-            // Engineer's bombs, which stay where he cast them)
+            // Engineer's drones, which stay where he cast them)
             let Some(hash) = a.args.get("StringHash").and_then(|v| v.as_str()) else { return };
             match crate::npc::spawn_monster(caster, run.playfield, hash, who.pos, Some(run.player)) {
                 Some(spawned) => {
@@ -610,15 +610,9 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
     let range = a.f("AttackRange").or(spell(id).and_then(|s| s.stats.attack_range)).map_or(DEFAULT_PROJECTILE_RANGE, |r| r / 100.0);
     let turn = a.f("RotY").unwrap_or(0.0);
     let aimed_at = target.id.filter(|t| *t != caster && crate::npc::is_player(*t));
-    // HitNano (server-made spells only): cast instead of the item's own actions where it hits
-    // (the Space Merc Engineer's bombs borrow the grenade's look but hit harder)
-    let hit_nano = a.u("HitNano");
     let on_hit = || -> crate::projectile::OnHit {
         let run = run.clone();
-        Arc::new(move |hit, pos| match hit_nano {
-            Some(nano) => cast_nano(&run, nano, Target { id: hit, pos }, depth + 1, true),
-            None => impact(&run, item, Target { id: hit, pos }, depth),
-        })
+        Arc::new(move |hit, pos| impact(&run, item, Target { id: hit, pos }, depth))
     };
     if move_type == crate::projectile::ORBITING {
         // it circles the caster or whom it is cast on (a spawned anchor), and bursts on the

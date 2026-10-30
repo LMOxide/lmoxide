@@ -31,7 +31,7 @@ first, then `docs/TUNABLES.md` ("Spawned monsters", "Orbiting shots", "Encounter
 | Hash | Spawns | Evidence |
 |---|---|---|
 | `FXCX` | `npc/main-pierrot2` (TDB 51000 #1058, invisible look 51057), 6 s | Live capture, Dinosaur Rise 6200: a Sad Clown's casts. See "How FXCX was matched". |
-| `lmoxide-merc-engineer-bombs` | `npc/merc-engineer-bomb-anchor` | Made up. **Replace with P9TE, below.** |
+| `P9TE` | `npc/merc-engineer-drones-holder` (TDB 51000 #1464, invisible look 51057), 11 s | Name match; the client's drone spells and item (see "The Space Merc Engineer's drones"). |
 
 ## Found 2026-10-29 (second session), not yet in content
 
@@ -82,35 +82,23 @@ Name matches (TDB 51000) to use as `source: guess`:
 The hashes appear nowhere in the client but the spell records (1000621); no hash→template table
 exists client-side, so matching stays evidence-based.
 
-## First finding: the Space Merc Engineer's real "bombs" (do this first)
+## The Space Merc Engineer's drones (done 2026-10-30)
 
-The made-up bomb ring (`skill/merc-engineer-bomb-ring` 374158, `skill/merc-engineer-bombs`
-2000374158, `skill/merc-engineer-bomb-blast` 2000374159, `npc/merc-engineer-bomb-anchor`) can be
-replaced by client data. None of it is in the content tree: the importer only took spells and
-items that some NPC references.
+The made-up bomb ring (374158, server-made 2000374158/2000374159, a grenade-look anchor) is
+replaced by the client's data:
 
-- **374162** "XX_merc engineer drones castable":
-  - SpawnMonster `P9TE`, ApplyOn 3 (on his target, the player, as the user saw in footage);
-  - SetSpellRecastTime 750 (7.5 s; the user remembered ~9 s).
-- **P9TE** = TDB 51000 **#1464 "XX_merc engineer drones holder"** (the name matches; the client has
-  no template data, so its look should be the invisible 51057 as other anchors).
-- **374164** (no name found yet): four Projectile actions, ApplyOn 3, ProjectileType 3, item
-  **374203**, Speed 110 (110°/s), DisplaceMentY 50, DisplaceMentZ 300 (3 m out), RotY 0/180/270/90.
-  This is the ring itself, cast on the holder.
-- **Item 374203** "XX_merc engineer drones projectile": MonsterData 51057, EffectPackage 376220
-  (the visible drone/bomb, not the grenade's potion), on hit CastNano **374204** = WeaponHit
-  AbilityMod **2.5** (the user: "way more damage").
-- Unknown:
-  - Who casts 374164 on the holder: likely the holder itself (server script) right after it spawns.
-    So the holder template should "cast on spawn" 374164, or the castable's SpawnMonster should get
-    NanoTemplate 374164 as a documented guess.
-  - How long it lasts: the user says ~10 s.
-  - The castable's range and when the engineer uses it (no AttackRange on 374162).
-  - Whether a drone bursts on its first hit (the user: bombs explode on touch).
-- To do: import 374162, 374164, 374204 and item 374203 into content (`tools/re/py gameactions.py
-  <id>`, `tools/re/py item_template.py <id>` print them). Add `npc/merc-engineer-drones-holder`
-  with `spawn_hash: P9TE`, point the engineer's `skills` at 374162 and drop the made-up records.
-  Then `!test engineer`.
+- **374162** "XX_merc engineer drones castable": SpawnMonster `P9TE` on his target, recast 7.5 s,
+  AttackRange 15 m.
+- **P9TE** = TDB 51000 **#1464 "XX_merc engineer drones holder"** (name match; invisible look
+  51057 as other anchors): `npc/merc-engineer-drones-holder`, 11 s.
+- **374164** "XX_merc engineer drones buff": four orbiting (ProjectileType 3) item **374203**, 110°/s,
+  3 m out, RotY 0/180/270/90.
+- **Item 374203** "XX_merc engineer drones projectile": EffectPackage 376220 (the drone particle and
+  its boom), on hit 374204 = WeaponHit AbilityMod 2.5.
+- Guesses: the castable's SpawnMonster has NanoTemplate 374164 added (the client names none, so who
+  casts the buff on the holder is unknown); 374164 has TimeExist 1000 added (10 s, the drone
+  particle's length and the user's memory; the server's orbit default is 5 s); whether a drone
+  bursts on its first hit.
 
 ## The hashes still to match
 
