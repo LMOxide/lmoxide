@@ -12,7 +12,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use lmoxide_control::{Broadcast, Command, CommandDone, Done, Kick, Maintenance, OnlinePlayer, Status, TestCatalog};
+use lmoxide_control::{Broadcast, Command, CommandDone, Done, FriendsChanged, Kick, Maintenance, OnlinePlayer, Status, TestCatalog};
 use tracing::info;
 
 use crate::{sessions, state};
@@ -36,6 +36,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .route("/v1/characters/{character}/name", post(rename_character))
         .route("/v1/broadcast", post(broadcast))
         .route("/v1/maintenance", post(maintenance))
+        .route("/v1/friends/changed", post(friends_changed))
         .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
         // survey imports carry whole sets
         .merge(crate::survey::routes().layer(axum::extract::DefaultBodyLimit::max(SURVEY_BODY_LIMIT)))
@@ -65,11 +66,17 @@ fn current_status() -> Status {
     let m = state::maintenance();
     Status {
         version: env!("CARGO_PKG_VERSION").into(),
+        build: Some(lmoxide_control::Build::this()),
         started_at: state::started_at(),
         players_online: sessions::players_online(),
         maintenance: m.is_some(),
         maintenance_message: m.flatten(),
     }
+}
+
+/// Friendships the API changed (account friends): online characters' friend lists follow.
+async fn friends_changed(Json(f): Json<FriendsChanged>) -> Json<Done> {
+    Json(Done { affected: crate::community::friendships_changed(&f.added, &f.removed) })
 }
 
 async fn status() -> Json<Status> {

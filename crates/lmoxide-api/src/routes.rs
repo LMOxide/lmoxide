@@ -23,6 +23,7 @@ use crate::{
 pub fn router() -> OpenApiRouter<Arc<AppState>> {
     OpenApiRouter::new()
         .routes(routes!(status))
+        .routes(routes!(version))
         .routes(routes!(online_players))
         .routes(routes!(config))
         .routes(routes!(playfields))
@@ -37,6 +38,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(change_own_username))
         .routes(routes!(my_players))
         .routes(routes!(my_command))
+        .merge(crate::friends::router())
         .merge(crate::discord::router())
         .routes(routes!(instances))
         .routes(routes!(players))
@@ -836,6 +838,55 @@ async fn status(State(state): State<Arc<AppState>>, MaybeAuth(auth): MaybeAuth) 
         players_online: s.as_ref().map(|s| s.players_online),
         maintenance: s.as_ref().map(|s| s.maintenance),
         maintenance_message: s.and_then(|s| s.maintenance_message),
+    }))
+}
+
+/// What a program was built from.
+#[derive(Serialize, ToSchema)]
+pub struct BuildInfo {
+    /// The workspace version (`0.1.0`).
+    pub version: String,
+    /// The full git commit hash; `null` when built without git (and no `LMOXIDE_GIT_COMMIT`).
+    pub commit: Option<String>,
+    /// Unix time of that commit.
+    pub commit_time: Option<i64>,
+    /// Unix time it was built.
+    pub built: Option<i64>,
+}
+
+impl From<lmoxide_control::Build> for BuildInfo {
+    fn from(b: lmoxide_control::Build) -> Self {
+        BuildInfo { version: b.version, commit: b.commit, commit_time: b.commit_time, built: b.built }
+    }
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct Versions {
+    /// This API.
+    pub api: BuildInfo,
+    /// The game server; `null` while it doesn't answer (or is older than this route).
+    pub game_server: Option<BuildInfo>,
+    /// Unix time the game server started.
+    pub game_server_started_at: Option<i64>,
+}
+
+/// What the API and the game server were built from: version, git commit and when.
+///
+/// Public unless the API runs with `--private-status`.
+#[utoipa::path(get, path = "/v1/version", tag = "public",
+    responses((status = OK, body = Versions)), security((), ("bearer" = [])))]
+async fn version(State(state): State<Arc<AppState>>, MaybeAuth(auth): MaybeAuth) -> ApiResult<Json<Versions>> {
+    if state.cfg.private_status {
+        auth.ok_or_else(ApiError::unauthorized)?.require(Scope::Read)?;
+    }
+    let s = match &state.control {
+        Some(c) => c.status().await.ok(),
+        None => None,
+    };
+    Ok(Json(Versions {
+        api: lmoxide_control::Build::this().into(),
+        game_server_started_at: s.as_ref().map(|s| s.started_at),
+        game_server: s.and_then(|s| s.build).map(Into::into),
     }))
 }
 

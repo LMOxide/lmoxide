@@ -93,6 +93,8 @@ the key (printable text, at most 100 characters; it is the bot's claim, not auth
 | `/ban <username> [days] [reason]` | `POST /v1/accounts/{id}/ban` `{days, reason}` (also kicks; no days = permanent) | moderate |
 | `/unban <username>` | `POST /v1/accounts/{id}/unban` | moderate |
 | `/announce <text>` | `POST /v1/broadcast` `{message}` (1-500 characters, shown in game chat from "Server") | moderate |
+| `/version` | `GET /v1/version` (`api`, `game_server`: `version`, `commit`, `commit_time`, `built`) | public* |
+| `/friend <username>` | `POST /v1/me/friends` `{username}` with the member's account key | account |
 
 \* no key needed unless the server runs the API with `--private-status`; send the key anyway.
 
@@ -105,6 +107,10 @@ The API has no events or webhooks. For "server is up/down" or "X joined/left" me
 
 - `GET /v1/status` every 30-60 s: `game_server_online` flipping is up/down; `maintenance` too.
 - `GET /v1/online` (or `/v1/players`) at the same rate: diff the lists for joins and leaves.
+- `GET /v1/discord/friend-requests` (scope discord) every few seconds: account friend requests
+  to members linked to Discord not sent yet. DM each target with Accept / Reject buttons, then
+  `POST /v1/discord/friend-requests/{requester_id}/{target_id}/notified`; a button answers with
+  the target's account key (`POST /v1/me/friends/{requester_id}/accept` or `.../reject`).
 
 Stay well under the rate limit (per client address: 10 requests/s, bursts of 60; over it the API
 answers 429 `rate_limited`). If push events become necessary, add them to the API here rather

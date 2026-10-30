@@ -9,6 +9,9 @@ mod discord;
 #[cfg(test)]
 mod discord_tests;
 mod error;
+mod friends;
+#[cfg(test)]
+mod friends_tests;
 #[cfg(test)]
 mod name_tests;
 mod routes;
@@ -185,6 +188,7 @@ pub async fn blocking<T: Send + 'static>(
         (name = "players", description = "The running game server"),
         (name = "accounts", description = "Accounts and characters"),
         (name = "admin", description = "API keys and the audit log"),
+        (name = "friends", description = "Account friends: every character of each account friends with every character of the other"),
         (name = "discord", description = "For the Discord bot (scope discord): Discord accounts linked to game accounts, their account keys, one-time codes"),
         (name = "catalog", description = "Game data from the client: effects, looks, animations, character states, test commands"),
     )
