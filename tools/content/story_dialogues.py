@@ -297,9 +297,10 @@ CONV = [
      "speaks as the owner); 993-995 and 795/796 are the Explorer's; 909 XX_D01, 6BRI, spawns 29ZU (the plane parts)"),
     ("dino-d02-dino-tracker", "Paleontologist", 2833, "Paleontologist", 6200,
      [635, 636, 637, 1010, 638, 1011, 641, 642, 643, 1012, 645, 652, 646],
-     ("area", ["cine-d02-cutscene1", "cine-d02-cutscene2"]), {}, L,
+     ("area", ["cine-d02-cutscene1", "cine-d02-cutscene2"]), {"goals": ["YPFX"]}, L,
      "was the silent beat 646 on Cine_D02_Cutscene1/2 (2-6 m from its 9 markers); Swashbuckler's 'Treasures?!' "
-     "(1010-1012, Cine_CampSwashbuckler1) and the adventurers' 652 use its actors; 910 XX_D02, I8D5"),
+     "(1010-1012, Cine_CampSwashbuckler1) and the adventurers' 652 use its actors; 910 XX_D02, I8D5. Only once the "
+     "plane parts are found (YPFX, the airplane-parts quest's reward; user 2026-10-29)"),
     ("dino-d03-expedition", "Paleontologist", 2833, "Paleontologist", 6200,
      [694, 691, 798, 692, 693, 695], ("area", ["cine-d02-cutscene1", "cine-d02-cutscene2"]),
      {"requires": [910], "goals": ["GBWD"]}, G,
