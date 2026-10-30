@@ -779,6 +779,20 @@ mod tests {
         assert!(spell(238_198).is_some_and(|s| s.lists[ON_USE].iter().any(|a| a.kind == "WeaponHit")));
     }
 
+    /// The Pirate Grenadier's XX_Bomb lobs the pirate_grenadier_bomb (item 190832), whose landing
+    /// leaves its fuse (190829) that explodes in a cross (191106) of damage 191107.
+    #[test]
+    fn grenadier_bomb_explodes() {
+        assert!(spells_of(192_821).is_some_and(|s| s.contains(&190_796) && !s.contains(&238_116)));
+        assert_eq!(projectile_of(190_796).map(|(item, _)| item), Some(190_832));
+        let lands = DATA.items[&190_832].actions.iter().find(|a| a.kind == "CastNano").and_then(|a| a.u("Value"));
+        assert_eq!(lands, Some(190_829));
+        let pge = spell(190_829).unwrap().lists[ON_USE].iter().find(|a| a.kind == "CorePersistentGroundEffect").unwrap();
+        assert_eq!(pge.u("NanoTemplate"), Some(191_106));
+        assert!(spell(191_106).unwrap().lists[ON_USE].iter().all(|a| a.u("NanoTemplate") == Some(191_107)));
+        assert!(spell(191_107).is_some_and(|s| s.lists[ON_USE].iter().any(|a| a.kind == "WeaponHit")));
+    }
+
     #[test]
     fn lines_and_sectors() {
         let o = [0.0, 0.0, 0.0];

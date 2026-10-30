@@ -241,8 +241,10 @@ mod tests {
         // spells added since: the Space Merc Engineer's bomb ring (made up: skill/merc-engineer-bomb-ring)
         const ADDED: [(u32, u32); 1] = [(388_444, 374_158)];
         // the Witch Doctor's knife (XX_Stab) instead of the guessed Magic Potion (the user); the
-        // Hunter's XX_Bolas instead of the guessed XX_Dart (the live capture)
-        const REPLACED: [(u32, &[u32]); 2] = [(201_479, &[194_198]), (201_477, &[194_199, 194_198])];
+        // Hunter's XX_Bolas instead of the guessed XX_Dart (the live capture); the Grenadier's
+        // XX_Bomb (the pirate_grenadier_bomb) instead of XX_Grenade Throw's bottle (the user)
+        const REPLACED: [(u32, &[u32]); 3] =
+            [(201_479, &[194_198]), (201_477, &[194_199, 194_198]), (192_821, &[190_796, 238_115])];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
             if let Some((_, spells)) = REPLACED.iter().find(|(md, _)| k == &md.to_string()) {

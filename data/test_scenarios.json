@@ -401,7 +401,7 @@
     },
     {
       "label": "monsters",
-      "about": "one each of 8 enemies with generic spells (npc_spells.json `generic`): Skeleton Archer arrows, Pirate Grenadier grenades, Harpy feathers, Hound bite, Troll Heavy Hitter area smash, Spider venom, Islander Witch Doctor potions, Treant smash",
+      "about": "one each of 8 enemies with generic spells (npc_spells.json `generic`): Skeleton Archer arrows, Pirate Grenadier bombs, Harpy feathers, Hound bite, Troll Heavy Hitter area smash, Spider venom, Islander Witch Doctor potions, Treant smash",
       "spawn": [
         {
           "name": "Skeleton Archer",
@@ -578,6 +578,21 @@
       "label": "jailwall",
       "about": "next to the jail's cracked wall (4610): with the story at Talk to Swashbuckler (!story quest pirate 5) every hit on it is refused, area hits too (the client's quest-goal rule 446247; log \"hit refused during a story goal\"); after !story goal 9AQ4 (or talking to him) it smashes",
       "goto": { "kind": "smashable", "name": "XX_Cracked wall" }
+    },
+    {
+      "label": "jailwarden",
+      "about": "in the jail (4610) in front of the Jail Warden (live: level 2, 337 life, a boss bag) and his two Musketeers; the gate behind him can't be walked through until he falls, then it plays its open motion and its wall goes (log \"gate opens: its boss fell\"); the To Freedom portal is past it",
+      "goto": { "playfield": 4610, "pos": [240.0, 14.03, 290.0] }
+    },
+    {
+      "label": "grenadiers",
+      "about": "two Pirate Grenadiers: they lob the pirate_grenadier_bomb (XX_Bomb 190796, item 190832), whose fuse burns 2 s on the ground before it blows up in a cross (191106), and slash up close",
+      "spawn": [
+        {
+          "name": "Pirate Grenadier",
+          "count": 2
+        }
+      ]
     }
   ]
 }
