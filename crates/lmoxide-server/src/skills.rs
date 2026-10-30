@@ -287,13 +287,13 @@ mod tests {
             (359_212, &[361_429, 361_424]),
             (379_392, &[373_106, 373_290]),
             // spells the looks can animate (tools/content/anim_audit.py, 2026-10-30): Gorgon,
-            // Swashbuckler, Treant Brown, Troll Hornblower, Troll Ranged, Lizard Man
+            // Swashbuckler, Treant Brown, Troll Hornblower, Troll Ranged; the Lizard Man the T-Rex's hit and rawr
             (98_178, &[100_144, 188_671]),
             (192_828, &[188_671]),
             (337_606, &[238_037, 16_101]),
             (331_167, &[191_516]),
             (331_170, &[101_246]),
-            (521_311, &[18_241]),
+            (521_311, &[521_897, 521_607]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
@@ -301,9 +301,10 @@ mod tests {
                 want = spells.to_vec();
             }
             want.extend(ADDED.iter().filter(|(md, _)| k == &md.to_string()).map(|(_, s)| *s));
-            // Medusa's kit on her medusa_npc look since (spawns.rs LOOKS_CHANGED)
+            // Medusa's and the Lizard Man's kits on their NPC looks since (spawns.rs LOOKS_CHANGED)
             let md = match k.parse::<u32>().unwrap() {
                 23_373 => 487_260,
+                521_311 => 522_158,
                 md => md,
             };
             assert_eq!(monsters.get(&md), Some(&want), "monster {k}");
