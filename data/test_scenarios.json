@@ -717,6 +717,20 @@
       "label": "trex",
       "about": "the Gauntlet's T-Rex (lizard_man_npc look): melee hit, rawr (four roars down a line), stomp (feet come down on everyone within 30 m) and the bone smash (a 9 m line, knockaway)",
       "spawn": [{ "name": "T-Rex", "count": 1 }]
+    },
+    {
+      "label": "minotaur",
+      "about": "the Minotaur: a quick smash up close, Rampage (a spin), and Bull Charge from up to 8 m (he runs 8 m at you; ×2 and a knockback); he waits out each attack's animation instead of freezing",
+      "spawn": [{ "name": "Minotaur", "count": 1 }]
+    },
+    {
+      "label": "trolls",
+      "about": "Troll Melee War and Swamp (smash, swing, Bull Charge from up to 8 m) and a Troll Heavy Hitter War (its own ground smash: no more Rampage it couldn't animate)",
+      "spawn": [
+        { "name": "Troll Melee War", "count": 1 },
+        { "name": "Troll Melee Swamp", "count": 1 },
+        { "name": "Troll Heavy Hitter War", "count": 1 }
+      ]
     }
   ]
 }

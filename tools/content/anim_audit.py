@@ -19,11 +19,12 @@ for f in os.listdir(os.path.join(ROOT, "content/skills")):
 cache = {}
 
 
-def abilities(pkg):
+def wanted(pkg):
+    """The motions a package asks for: ability_N for `ability` N, channel_N for `channel` N."""
     if pkg not in cache:
         try:
             b = rdb.body(1000622, pkg, idx).decode("latin1", "replace")
-            cache[pkg] = {int(v) for v in re.findall(r"<attributename>ability</attributename>\s*<attributetype>[^<]*</attributetype>\s*<integervalue>(\d+)<", b)}
+            cache[pkg] = {f"{k}_{v}" for k, v in re.findall(r"<attributename>(ability|channel)</attributename>\s*<attributetype>[^<]*</attributetype>\s*<integervalue>(\d+)<", b) if int(v) > 0}
         except (KeyError, FileNotFoundError):
             cache[pkg] = set()
     return cache[pkg]
@@ -34,10 +35,10 @@ for f in sorted(os.listdir(os.path.join(ROOT, "content/npcs"))):
     look = md.get((n.get("render") or {}).get("monster_data"))
     if not look or n.get("kind") not in ("enemy", "boss", "champion"):
         continue
-    have = {int(m.split("_")[1]) for m in sets.get(look["motion_set"], set()) if re.fullmatch(r"ability_\d+", m)}
+    have = sets.get(look["motion_set"], set())
     for u in n.get("skills", []):
         c = skills.get(u["skill"])
         pkg = c and c.get("stats", {}).get("EffectPackage")
-        want = abilities(pkg) if pkg else set()
+        want = wanted(pkg) if pkg else set()
         if want - have:
-            print(f"{n['id']}\t{look['name']}\t{u['skill']}\t{c['spell']}\twants {sorted(want)} has {sorted(have)}")
+            print(f"{n['id']}\t{look['name']}\t{u['skill']}\t{c['spell']}\tmissing {sorted(want - have)}")

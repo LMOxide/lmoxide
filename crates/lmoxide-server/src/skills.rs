@@ -280,7 +280,7 @@ mod tests {
         // the Bot Battle Merc's stomp and missile instead of the generic Shot, the Grenadier's
         // grenade instead of an XX_Slash his look can't animate, the Space Merc Defender's
         // reflect (the user, 2026-10-30)
-        const REPLACED: [(u32, &[u32]); 11] = [
+        const REPLACED: [(u32, &[u32]); 15] = [
             (201_479, &[194_198]),
             (201_477, &[194_199, 194_198]),
             (192_821, &[190_796, 190_612]),
@@ -294,6 +294,13 @@ mod tests {
             (331_167, &[191_516]),
             (331_170, &[319_299]),
             (521_311, &[521_897, 521_607]),
+            // the Minotaur's quick smash and Bull Charge (the user: he charges, has melee attacks)
+            (636_593, &[319_298, 319_891, 3_202]),
+            // the troll heavy hitter's own ground smash instead of a Rampage its look can't animate;
+            // the melee trolls' Bull Charge (the user: certain trolls charge)
+            (327_846, &[319_338, 319_946]),
+            (327_844, &[238_037, 196_247, 3_202]),
+            (327_845, &[238_037, 196_247, 3_202]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();

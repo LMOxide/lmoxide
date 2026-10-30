@@ -1,6 +1,6 @@
 """Client enemy spells whose cast animation a look can play (anim_audit.py's counterpart): spells
 named by a regex, with each one's animation attributes (ability N needs motion ability_N,
-chainattack N chain_1_<a+N-1>) and whether the look has them.
+channel N channel_N, chainattack N chain motions) and whether the look has them.
   python3 tools/content/anim_fit.py <monster data id> '<spell name regex>'"""
 import json, os, re, sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
@@ -27,6 +27,8 @@ def fits(have, a):
         if name == "ability" and v.isdigit() and f"ability_{v}" not in have:
             return False
         if name in ("chainattack", "chainattack2") and v.isdigit() and int(v) > 0 and not any(m.startswith("chain_") for m in have):
+            return False
+        if name == "channel" and v.isdigit() and int(v) > 0 and f"channel_{v}" not in have:
             return False
     return True
 

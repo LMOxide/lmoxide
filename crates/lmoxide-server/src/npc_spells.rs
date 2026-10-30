@@ -169,6 +169,9 @@ pub const REFLECT_DOWN: Duration = Duration::from_secs(3);
 const EFFECT_GAP: Duration = Duration::from_millis(150);
 static LAST_EFFECT: LazyLock<std::sync::Mutex<HashMap<Id32, std::time::Instant>>> = LazyLock::new(Default::default);
 
+/// How fast an enemy charges (ColumnDash) without a charge speed in its movement set (m/s).
+const DASH_SPEED: f32 = 14.0;
+
 /// A monster spawned at its caster stands this far from it (live capture, 8030: a Summoned Wolf
 /// appeared 4.6 m from the Alpha Wolf that called it, which had just arrived itself).
 const SPAWN_BESIDE: f32 = 4.5;
@@ -302,8 +305,22 @@ pub fn busy(id: u32) -> Duration {
     let strike = cs(s.stats.item_delay.unwrap_or(0.0));
     match channel(s) {
         Some((interval, ticks)) if !self_centred(s) => strike + interval * ticks,
-        _ => strike,
+        // (a self-centred channel moves on: the recorded Dreadleg spun after players)
+        Some(_) => strike,
+        // until its cast animation is over: casting again sooner restarts it (the Minotaur's
+        // 3.17 s Smash every 2 s looked frozen)
+        None => strike.max(animation_length(s.stats.effect_package)),
     }
+}
+
+/// How long effect package `package` holds its caster in an animation
+/// (data/effect_animation_lengths.json, tools/re/extract_animation_lengths.py).
+fn animation_length(package: Option<u32>) -> Duration {
+    static LENGTHS: LazyLock<HashMap<u32, f32>> = LazyLock::new(|| {
+        let raw: HashMap<String, f32> = serde_json::from_str(include_str!("../../../data/effect_animation_lengths.json")).expect("effect_animation_lengths.json");
+        raw.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, v))).collect()
+    });
+    package.and_then(|p| LENGTHS.get(&p)).map_or(Duration::ZERO, |s| Duration::from_secs_f32(*s))
 }
 
 /// When the spell strikes after its cast starts (its ItemDelay).
@@ -551,6 +568,35 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 show(run, vec![crate::actions::area_formula_record(caster, &ids, nano, center)]);
                 for (p, pos) in hits {
                     cast_nano(run, nano, Target { id: Some(p), pos }, depth + 1, false);
+                }
+            }
+        }
+        "ColumnDash" => {
+            // the caster charges Distance m along its facing (the Minotaur's Bull Charge, at its
+            // movement set's charge speed), hitting the players within Radius of its path with
+            // TemplateID as it passes; Value1 is the effect it charges with
+            let length = a.f("Distance").unwrap_or(5.0);
+            let width = a.f("Radius").unwrap_or(1.0) + 0.5;
+            let (from, dir) = (me.pos, run.facing);
+            let speed = crate::npc::charge_speed(caster).unwrap_or(DASH_SPEED);
+            let behind = [from[0] - dir[0], from[1], from[2] - dir[1]];
+            if crate::npc::knock(caster, behind, length, false, speed) {
+                if let Some(fx) = a.u("Value1") {
+                    show(run, vec![effects::effect_package(caster, fx)]);
+                }
+                let hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
+                if let Some(nano) = a.u("TemplateID") {
+                    for (p, pos) in hits {
+                        // (each when the charge reaches them)
+                        let along = (pos[0] - from[0]) * dir[0] + (pos[2] - from[2]) * dir[1];
+                        let (run, wait) = (run.clone(), Duration::from_secs_f32(along.max(0.0) / speed));
+                        tokio::spawn(async move {
+                            tokio::time::sleep(wait).await;
+                            if alive(&run) {
+                                cast_nano(&run, nano, Target { id: Some(p), pos }, depth + 1, true);
+                            }
+                        });
+                    }
                 }
             }
         }
