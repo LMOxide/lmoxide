@@ -2019,6 +2019,12 @@ pub struct QuestGoal {
     /// Not in the client (docs/TUNABLES.md).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dropped_by: Option<String>,
+    /// `dropped_by` a story goal's: only defeats inside this area drop them (the Medieval
+    /// story's quarry crystals, from the Quarry's enemies). None: anywhere. (An area quest's
+    /// drop inside its own area.)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+    pub drops_in: Option<Ref>,
     /// Counts anywhere in the world; otherwise only inside the quest's area.
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub anywhere: bool,

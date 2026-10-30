@@ -224,10 +224,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_records(&mut conn, character, records).await?;
                             // quest pickups dropped where the defeated one was (a bag of the player's)
                             if let crate::achievements::Event::Defeated { id, .. } = &event {
-                                let pickups = crate::quests::pickup_drops(&quest_tracker, &me, &event);
+                                let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                                let at = world::whereabouts(*id).map(|(_, p)| p).or_else(|| world::live_position(player)).unwrap_or(me.pos);
+                                let mut pickups = crate::quests::pickup_drops(&quest_tracker, &me, &event);
+                                pickups.extend(crate::story::pickup_drops(&me, &event, at));
                                 if !pickups.is_empty() {
-                                    let player = Id32::new(crate::territory::CHARACTER_TYPE, character);
-                                    let at = world::whereabouts(*id).map(|(_, p)| p).or_else(|| world::live_position(player)).unwrap_or(me.pos);
                                     info!(character, ?pickups, "quest pickups dropped");
                                     crate::loot::drop_items(player, place, at, *id, pickups);
                                 }

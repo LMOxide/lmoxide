@@ -133,9 +133,11 @@ Story leftovers without an area of their own:
 - dialogue 266 (`BecomeAPirate`, resolves "Complete the Pirate Trials", tag 312): nothing starts
   it (its NPC and trigger are unknown); the `becoming-a-pirate` cinematic (tunables) waits on it;
 - texts 21000 (area hints such as "You need to join a pirate crew ...") and 50018 (scry FIFO test
-  messages): not sent; the hints belong to portals whose conditions aren't known;
-- the quarry crystals (quest/medieval-story goal 3UX1, items 464315-464318): nothing drops them
-  (the quest's `comment` says so; it is tagged `todo`).
+  messages): not sent; the hints belong to portals whose conditions aren't known.
+
+The quarry crystals (quest/medieval-story goal 3UX1, items 464315-464318) drop from enemies and
+smashables defeated in the Quarry (`drops_in: area/5210/quest-quarry`) while the player is on that
+step (2026-10-30: nothing dropped them before).
 
 ## Approval (not built yet)
 

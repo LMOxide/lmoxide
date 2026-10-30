@@ -35,7 +35,7 @@ use crate::achievements::Event;
 use crate::store::{Character, QuestState};
 
 /// How far above or below an area's heights still counts as inside (m).
-const HEIGHT_SLACK: f32 = 5.0;
+pub(crate) const HEIGHT_SLACK: f32 = 5.0;
 /// The client's MainQuestType: a story line, an area quest.
 const MAIN_TYPE_STORY: u32 = 5;
 const MAIN_TYPE_AREA: u32 = 1;
@@ -163,7 +163,7 @@ static INDEX: LazyLock<RwLock<Index>> = LazyLock::new(|| {
 });
 
 /// The playfield in an area id (`area/4200/quest-native`).
-fn area_playfield(id: &str) -> Option<u32> {
+pub(crate) fn area_playfield(id: &str) -> Option<u32> {
     id.split('/').nth(1)?.parse().ok()
 }
 

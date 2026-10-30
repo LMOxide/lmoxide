@@ -390,6 +390,32 @@ pub fn on_event(c: &mut Character, character: u32, place: Pf, event: &crate::ach
     hashes.iter().flat_map(|h| progress(c, character, place, h, 1)).collect()
 }
 
+/// The quest pickups a defeat (`event`, at `at`) drops for the player: one of the pickups of each
+/// story goal the player is on whose `dropped_by` it is, inside the goal's `drops_in` area (with
+/// tunables `story.pickup_drop_chance`), as `quests::pickup_drops` for area quests.
+pub fn pickup_drops(c: &Character, event: &crate::achievements::Event, at: [f32; 3]) -> Vec<u32> {
+    use rand::Rng;
+    let crate::achievements::Event::Defeated { playfield, .. } = event else { return Vec::new() };
+    let content = crate::gamedata::get();
+    let chance = content.tunables.story.pickup_drop_chance.fraction().clamp(0.0, 1.0);
+    let inside = |area: &str| {
+        crate::quests::area_playfield(area) == Some(*playfield)
+            && content.areas.get(area).and_then(|a| a.shape.as_ref()).is_some_and(|s| s.contains(at, crate::quests::HEIGHT_SLACK))
+    };
+    let mut rng = rand::rng();
+    lines()
+        .filter_map(|(main, q)| current(c, main, q).map(|i| &q.steps[i]))
+        .flat_map(|s| &s.goals)
+        .filter(|g| g.counts.as_deref() == Some("pickups") && !g.pickups.is_empty())
+        .filter_map(|g| {
+            let by = g.dropped_by.as_deref()?;
+            let dropper = QuestGoal { counts: Some(by.to_string()), ..g.clone() };
+            let here = g.drops_in.as_deref().is_none_or(inside);
+            (here && crate::quests::counts(&dropper, event) && rng.random_bool(chance)).then(|| g.pickups[rng.random_range(0..g.pickups.len())])
+        })
+        .collect()
+}
+
 /// The journal at login: the steps done, the area quests done and (`windows_unlocked`) the
 /// quests the teleport windows require.
 pub fn journal(c: &Character) -> Vec<crate::teleport::JournalMain> {
@@ -788,6 +814,20 @@ pub fn points() -> Vec<(String, u32, [f32; 3])> {
 mod tests {
     use super::*;
     use std::time::Duration;
+
+    #[test]
+    fn quarry_crystals_drop_in_the_quarry() {
+        // the Medieval story's "Collect magic crystals at the Quarry" (3UX1): the Quarry's
+        // enemies drop them (the user could not collect any), others don't
+        let goal = lines().flat_map(|(_, q)| &q.steps).flat_map(|s| &s.goals).find(|g| g.hash.as_deref() == Some("3UX1")).unwrap();
+        assert_eq!(goal.dropped_by.as_deref(), Some("kills_or_smashes"));
+        let area = goal.drops_in.as_deref().unwrap();
+        assert_eq!(crate::quests::area_playfield(area), Some(5210));
+        let shape = crate::gamedata::get().areas[area].shape.as_ref().unwrap();
+        // a Quarry troll (spawn/5210/troll-melee-swamp), the forest's arrival point
+        assert!(shape.contains([277.2, 50.45, 54.7], crate::quests::HEIGHT_SLACK));
+        assert!(!shape.contains([32.56, 80.33, 139.64], crate::quests::HEIGHT_SLACK));
+    }
 
     #[test]
     fn cinematics_in_the_content() {
