@@ -169,7 +169,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             };
                             if completed
                                 && !pocket_rewarded
-                                && let Some(bag) = crate::loot::pocket_reward(me.playfield)
+                                && let Some(bag) = crate::loot::pocket_reward(me.playfield, |t| me.tags.contains_key(&t))
                             {
                                 pocket_rewarded = true;
                                 let player = Id32::new(crate::territory::CHARACTER_TYPE, character);

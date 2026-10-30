@@ -161,10 +161,12 @@ pub fn talking(player: Id32) -> bool {
 }
 
 /// The rebuilt dialogues a defeat of `name` (`boss`: a boss) on `playfield` starts.
-pub fn after_defeat(name: &str, boss: bool, playfield: u32) -> Vec<String> {
+pub fn after_defeat(name: &str, boss: bool, champion: bool, playfield: u32) -> Vec<String> {
     DATA.dialogues
         .iter()
-        .filter(|d| d.playfield == playfield && d.defeated.as_deref().is_some_and(|n| n == name || (boss && n == "boss")))
+        .filter(|d| {
+            d.playfield == playfield && d.defeated.as_deref().is_some_and(|n| n == name || (boss && n == "boss") || (champion && n == "champion"))
+        })
         .map(|d| d.id.clone())
         .collect()
 }
@@ -230,6 +232,18 @@ pub fn spawns_on(playfield: u32) -> Vec<String> {
         .filter(|d| d.playfield == playfield)
         .flat_map(|d| d.texts.iter().flat_map(words))
         .filter_map(|t| t.strip_prefix("spawn ").and_then(|rest| rest.split_whitespace().next()).map(str::to_string))
+        .collect()
+}
+
+/// The tags each dialogue on `playfield` that spawns `hash` (`spawn <hash>`) gives (it plays
+/// once: when the player has them all, it is over).
+pub fn spawners(playfield: u32, hash: &str) -> Vec<Vec<u32>> {
+    let words = |id: &u32| DATA.texts.get(&id.to_string()).map(|t| tags(t)).unwrap_or_default();
+    DATA.dialogues
+        .iter()
+        .filter(|d| d.playfield == playfield)
+        .filter(|d| d.texts.iter().flat_map(words).any(|t| t.strip_prefix("spawn ").and_then(|r| r.split_whitespace().next()) == Some(hash)))
+        .map(tags_given)
         .collect()
 }
 
@@ -781,11 +795,11 @@ mod tests {
             assert!(!of(&d.npc, d.playfield).iter().any(|o| o.id == d.id));
         }
         // after a defeat: by name, or any boss of that playfield
-        assert_eq!(after_defeat("Hades", true, 2320), ["dialogue/myth-g12-party-598"]);
-        assert_eq!(after_defeat("The Jester", true, 5300), ["dialogue/my-kingdom-for-a-crown-288"]);
-        assert!(after_defeat("Troll Warlord", true, 5300).is_empty());
-        assert_eq!(after_defeat("Pieromancer Elementius", true, 5310), ["dialogue/defeated-elementius-308"]);
-        assert_eq!(after_defeat("T-Rex", true, 6300), ["dialogue/dino-d05-t-rex-defeated-662"]);
+        assert_eq!(after_defeat("Hades", true, false, 2320), ["dialogue/myth-g12-party-598"]);
+        assert_eq!(after_defeat("The Jester", true, false, 5300), ["dialogue/my-kingdom-for-a-crown-288"]);
+        assert!(after_defeat("Troll Warlord", true, false, 5300).is_empty());
+        assert_eq!(after_defeat("Pieromancer Elementius", true, false, 5310), ["dialogue/defeated-elementius-308"]);
+        assert_eq!(after_defeat("T-Rex", true, false, 6300), ["dialogue/dino-d05-t-rex-defeated-662"]);
         assert!(rebuilt_points().iter().any(|(_, pf, _)| *pf == 5300));
     }
 
@@ -800,8 +814,12 @@ mod tests {
     #[test]
     fn monkey_kong_starts_the_island_warrior_rescue() {
         // the user's rule: smashing Monkey Kong starts it; its last text gives the Island Warrior
-        assert_eq!(after_defeat("Monkey Kong", true, 1643), ["dialogue/xx-cinematic-rescue-island-warrior-773"]);
-        assert!(after_defeat("Jungle Trickster", false, 1643).is_empty());
+        assert_eq!(after_defeat("Monkey Kong", true, false, 1643), ["dialogue/xx-cinematic-rescue-island-warrior-773"]);
+        assert!(after_defeat("Jungle Trickster", false, false, 1643).is_empty());
+        // the side dungeons' champions are picked per visit: any champion there starts the rescue
+        assert_eq!(after_defeat("Ironclad", false, true, 1632), ["dialogue/rescue-revolutionary-soldier-778"]);
+        assert_eq!(after_defeat("Ironclad", false, true, 1670), ["dialogue/rescue-pizza-guy-783"]);
+        assert!(after_defeat("Ironclad", false, false, 1670).is_empty());
         assert!(spawns_on(1643).iter().any(|h| h == "SIKZ"));
     }
 

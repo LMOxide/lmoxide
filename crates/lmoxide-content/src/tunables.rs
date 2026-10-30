@@ -306,6 +306,11 @@ pub struct Story {
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     #[schemars(extend("x-lmoxide-ref" = ["minifig"]))]
     pub spawn_minifigures: BTreeMap<String, String>,
+    /// A pocket adventure whose minifigure a conversation gives (the Monkey Cave's Island
+    /// Warrior rescue) gives it again on later clears, as a bag, once that conversation has
+    /// played (it plays once). False (the user's choice, 2026-10-29): only the conversation does.
+    #[serde(default)]
+    pub repeat_conversation_minifigures: bool,
 }
 
 fn full() -> Ratio {
@@ -318,7 +323,7 @@ fn yes() -> bool {
 
 impl Default for Story {
     fn default() -> Self {
-        Story { cinematics: BTreeMap::new(), pickup_drop_chance: full(), windows_unlocked: true, window_quests: BTreeMap::new(), spawn_minifigures: BTreeMap::new() }
+        Story { cinematics: BTreeMap::new(), pickup_drop_chance: full(), windows_unlocked: true, window_quests: BTreeMap::new(), spawn_minifigures: BTreeMap::new(), repeat_conversation_minifigures: false }
     }
 }
 

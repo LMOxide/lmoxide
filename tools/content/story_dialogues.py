@@ -56,13 +56,14 @@ L, G = "likely", "guess"
 CONV = [
     # ------------------------------------------------------------------ Pirate World
     ("rescue-revolutionary-soldier", "Cinematic Rescue Revolutionary Soldier", 2683, "", 1632,
-     [778, 780, 849, 850, 851, 852, 853, 782, 779], ("area", ["cine-rescue-revolutionary-soulder1"]), {}, L,
-     "as the live Island Warrior rescue (773, area Cine_Rescue_Island_Warrior1): area Cine_Rescue_Revolutionary_Soulder1 "
-     "13.8 m from its 10 markers (1632); epilogue 779 gives 4142 Rescue Revolutionary Soldier, resolves 0JSC (the "
+     [778, 780, 849, 850, 851, 852, 853, 782, 779], ("boss", "champion"), {}, L,
+     "as the live Island Warrior rescue (773, on Monkey Kong's defeat): the dungeon's champion's defeat (user, "
+     "2026-10-29; the champion is picked per visit, encounter.rs); epilogue 779 gives 4142 Rescue Revolutionary Soldier, resolves 0JSC (the "
      "Pirate line's step after FBRB, capture order); 849-853 use its actors (RevoSoldier, Swashbuckler, IslandWarrior)"),
     ("rescue-pizza-guy", "Cinematic Rescue Pizza Guy", 2684, "", 1670,
-     [783, 784, 785, 786, 860, 861, 862, 787, 788], ("area", ["cine-rescue-pizza-guy1"]), {}, L,
-     "area Cine_Rescue_Pizza_Guy1 14.3 m from its 11 markers (1670); epilogue 788 gives 4143, resolves CFBT (next "
+     [783, 784, 785, 786, 860, 861, 862, 787, 788], ("boss", "champion"), {}, L,
+     "as the live Island Warrior rescue (773, on Monkey Kong's defeat): the dungeon's champion's defeat (user, "
+     "2026-10-29); epilogue 788 gives 4143, resolves CFBT (next "
      "Pirate step); 860 answers 786 (\"didn't tip me last time?\" - \"No...that was someone else\")"),
     ("pizza-delivery-to-fort", "Cinematic Start Pizza Delivery To Fort", 2721, "", 4200,
      [811, 857, 808, 807, 858, 859, 809, 810], ("area", ["cine-pizzadeliverytrigger1"]), {"requires": [4143]}, L,

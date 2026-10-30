@@ -424,22 +424,29 @@ fn pick_bag(playfield: Pf) -> Option<u32> {
 
 /// The bag of pocket adventure `playfield`'s minifigure (world `minifigure`): its reward for
 /// clearing it. None where a story conversation there gives it (its `{spawn <hash>}`, tunables
-/// `story.spawn_minifigures`: the Monkey Cave's Island Warrior, ...): only the conversation does.
-pub fn pocket_reward(playfield: u32) -> Option<u32> {
+/// `story.spawn_minifigures`: the Monkey Cave's Island Warrior, ...): only the conversation does,
+/// once. With tunables `story.repeat_conversation_minifigures` a later clear gives the bag again
+/// once the player (`has_tag`) has had that conversation.
+pub fn pocket_reward(playfield: u32, has_tag: impl Fn(u32) -> bool) -> Option<u32> {
     let c = crate::gamedata::get();
     let world = c.worlds.values().find(|w| w.playfield == playfield)?;
     let id = world.minifigure.as_deref()?;
-    if story_gives(playfield, id) {
+    if let Some(played) = story_gives(playfield, id, &has_tag)
+        && !(played && c.tunables.story.repeat_conversation_minifigures)
+    {
         return None;
     }
     let minifigure = c.minifigures.get(id)?;
     TABLES.minifigure_bag.get(&minifigure.template).copied()
 }
 
-/// Whether a dialogue on `playfield` gives minifigure `id` (`spawn <hash>` of a story minifigure).
-fn story_gives(playfield: u32, id: &str) -> bool {
+/// Whether a dialogue on `playfield` gives minifigure `id` (`spawn <hash>` of a story
+/// minifigure): Some(whether the player has had it, all its tags), None if none does.
+fn story_gives(playfield: u32, id: &str, has_tag: &impl Fn(u32) -> bool) -> Option<bool> {
     let story = &crate::gamedata::get().tunables.story.spawn_minifigures;
-    crate::knubot::spawns_on(playfield).iter().any(|h| story.get(h).is_some_and(|m| m == id))
+    let hashes: Vec<&String> = story.iter().filter(|(_, m)| *m == id).map(|(h, _)| h).collect();
+    let spawners: Vec<Vec<u32>> = hashes.iter().flat_map(|h| crate::knubot::spawners(playfield, h)).collect();
+    (!spawners.is_empty()).then(|| spawners.iter().any(|tags| !tags.is_empty() && tags.iter().all(|t| has_tag(*t))))
 }
 
 /// The bag item that holds minifigure `template`.
@@ -764,10 +771,10 @@ mod tests {
         parts.sort();
         assert_eq!(beach, parts);
         let lifeguard = c.minifigures["minifig/lifeguard-guy"].template;
-        assert!(matches!(reward(pocket_reward(1642).unwrap()), Reward::MinifigureBag(m) if m == lifeguard));
+        assert!(matches!(reward(pocket_reward(1642, |_| false).unwrap()), Reward::MinifigureBag(m) if m == lifeguard));
         // and only so: its parts and bag drop nowhere
         assert!(TABLES.world_minifigures.values().flatten().all(|&(_, m)| m != lifeguard));
-        assert!(pocket_reward(4200).is_none());
+        assert!(pocket_reward(4200, |_| false).is_none());
     }
 
     #[test]
@@ -794,9 +801,15 @@ mod tests {
         // Soldier, 779 `spawn RG5K`), Jacket Cellar (Pizza Delivery Man, 788 `spawn 5WM9`): no
         // reward bag besides; Beach Cave's Lifeguard Guy still comes as one
         for pf in [1643, 1632, 1670] {
-            assert!(pocket_reward(pf).is_none(), "{pf}");
+            assert!(pocket_reward(pf, |_| false).is_none(), "{pf}");
+            // later clears neither (tunables `story.repeat_conversation_minifigures` off)
+            assert!(pocket_reward(pf, |_| true).is_none(), "{pf}");
         }
-        assert!(pocket_reward(1642).is_some());
+        assert!(pocket_reward(1642, |_| false).is_some());
+        // whether the conversation has played: the Island Warrior rescue gives tag 4141
+        assert_eq!(story_gives(1643, "minifig/island-warrior", &|_| false), Some(false));
+        assert_eq!(story_gives(1643, "minifig/island-warrior", &|t| t == 4141), Some(true));
+        assert_eq!(story_gives(1642, "minifig/lifeguard-guy", &|_| true), None);
     }
 
     #[test]

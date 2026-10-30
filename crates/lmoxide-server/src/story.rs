@@ -375,8 +375,8 @@ fn progress(c: &mut Character, character: u32, place: Pf, hash: &str, amount: u3
 /// Counts `event` (a defeat) for the story goals the player is on that count it.
 pub fn on_event(c: &mut Character, character: u32, place: Pf, event: &crate::achievements::Event) -> Vec<Bytes> {
     // the rebuilt conversations after a boss (story_dialogues.py `start: boss`)
-    if let crate::achievements::Event::Defeated { name, boss, smashable: false, playfield, .. } = event {
-        for id in crate::knubot::after_defeat(name, *boss, *playfield) {
+    if let crate::achievements::Event::Defeated { name, boss, champion, smashable: false, playfield, .. } = event {
+        for id in crate::knubot::after_defeat(name, *boss, *champion, *playfield) {
             info!(character, dialogue = id, defeated = %name, "story: dialogue after a defeat");
             send(Id32::new(crate::territory::CHARACTER_TYPE, character), Order::Dialogue(id));
         }
