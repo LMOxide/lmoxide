@@ -3652,13 +3652,12 @@ pub trait CharacterExt {
     /// What the minifigure's item carries (upgrades, rank, life, achievement counters).
     fn item_state(&self, template: u32) -> crate::collection::ItemState;
     fn spec(&self, place: Pf) -> CharSpec<'_>;
-    /// The character as other players' clients see it: the name above it is only the nick.
+    /// The character as other players' clients see it.
     fn remote_spec(&self, place: Pf) -> CharSpec<'_>;
 }
 
-/// The name other players see above a character: the nick, the middle of a created character's
-/// "first nick last" (the player's own client gets the full name, as live sent it, and the nick
-/// by `SetNameIIR_t`); other names whole.
+/// A character's nick: the middle of a created character's "first nick last" (the core record's
+/// name, as live sent it, and `SetNameIIR_t`'s); other names whole.
 pub fn overhead_name(name: &str) -> &str {
     match name.split(' ').collect::<Vec<_>>()[..] {
         [_, nick, _] if !nick.is_empty() => nick,
@@ -3724,7 +3723,8 @@ impl CharacterExt for Character {
     }
 
     fn remote_spec(&self, place: Pf) -> CharSpec<'_> {
-        CharSpec { name: overhead_name(&self.name), ..self.spec(place) }
+        // (the name splits into nick, first and last name in the record, simple_char_full_update)
+        self.spec(place)
     }
 }
 
@@ -3747,8 +3747,17 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
         playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };
+    // a created player's "first nick last" goes as live sent it: the nick as the name (the
+    // client's chat nick and the name above it), the other two apart; a name with spaces as
+    // the name broke the client's chat (IRC nicks end at a space)
+    let (name, firstname, lastname) = match name.split(' ').collect::<Vec<_>>()[..] {
+        [first, nick, last] if c.npc.is_none() && !nick.is_empty() => (nick, Some(first.to_string()), Some(last.to_string())),
+        _ => (name, None, None),
+    };
     let core = ProtoCoreCharacterIir {
         name: Some(name.to_string()),
+        firstname,
+        lastname,
         stats: Some(proto_core_character_iir::CharacterStats {
             life: Some(c.max_health),
             health: Some(c.health),
@@ -3852,7 +3861,8 @@ mod tests {
     #[test]
     fn others_see_the_nick() {
         let me = Character { name: "Fantastic Sparky Burrito".into(), ..new_character("t".into(), crate::instance::Mode::Maxed, 1200) };
-        assert_eq!((me.spec(Pf::main(1200)).name, me.remote_spec(Pf::main(1200)).name), ("Fantastic Sparky Burrito", "Sparky"));
+        assert_eq!(me.remote_spec(Pf::main(1200)).name, "Fantastic Sparky Burrito");
+        assert_eq!(overhead_name(&me.name), "Sparky");
         assert_eq!([overhead_name("alice"), overhead_name("Two Words"), overhead_name("A B C D")], ["alice", "Two Words", "A B C D"]);
     }
 

@@ -140,7 +140,10 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
                         };
                         CLIENTS.lock().unwrap().insert(a, tx.clone());
                     }
-                    "NICK" => nick = rest.trim().to_string(),
+                    "NICK" => {
+                        nick = rest.trim().to_string();
+                        info!(%nick, "chat nick");
+                    }
                     "USER" => {
                         send(&mut wr, &format!(":lmo 001 {nick} :Welcome to LEGO Minifigures Online")).await?;
                         if let Some(a) = account {

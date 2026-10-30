@@ -629,15 +629,22 @@ fn forced_element(def: &SpawnDef) -> Option<&'static str> {
     crate::gamedata::get().tunables.champions.forced.get(&template.to_string()).map(String::as_str)
 }
 
-/// A champion: a forced-aura one, or an enemy ranked as one by its health.
+/// A champion: a forced-aura one, or an enemy ranked as one by its health (not a boss by its loot).
 fn is_champion(def: &SpawnDef) -> bool {
-    def.kind == Kind::Enemy && (forced_element(def).is_some() || (CHAMPION_RANK..BOSS_RANK).contains(&rank_of(def)))
+    def.kind == Kind::Enemy && (forced_element(def).is_some() || (CHAMPION_RANK..BOSS_RANK).contains(&rank_of(def)) && !boss_by_loot(def))
 }
 
-/// A boss wearing the bosses' ring: ranked as one by its health and not a forced-aura champion
-/// (Crazy Kotaki has a boss's health, but live gave him the champions' nature aura).
+/// An enemy that drops the boss bag (`loot/boss`): a boss whatever its health, as the Jail Warden
+/// (337 life) who wore the bosses' ring on live.
+fn boss_by_loot(def: &SpawnDef) -> bool {
+    def.loot.as_deref() == Some("loot/boss")
+}
+
+/// A boss wearing the bosses' ring: ranked as one by its health or dropping the boss bag, and not
+/// a forced-aura champion (Crazy Kotaki has a boss's health, but live gave him the champions'
+/// nature aura).
 fn wears_boss_ring(def: &SpawnDef) -> bool {
-    def.kind == Kind::Enemy && forced_element(def).is_none() && rank_of(def) >= BOSS_RANK
+    def.kind == Kind::Enemy && forced_element(def).is_none() && (rank_of(def) >= BOSS_RANK || boss_by_loot(def))
 }
 
 /// TimeExist of the champions' ring buffs (581634, 586164 ... 586168): 99999 cs, as live sent
@@ -990,7 +997,8 @@ fn appear(id: Id32) {
             // after the full update (which sets Flags from its stats)
             records.insert(2, int32_stat(id, STAT_FLAGS, FLAG_CUSTOM_NAME));
         }
-        if let (Some(rot), true) = (def.rot, editor) {
+        // facing its spawn's heading, as live's NPCs stood (proposed spawns have none)
+        if let Some(rot) = def.rot {
             records.push(stop_record(id, pos, [rot.sin(), rot.cos()]));
         }
         // a champion's ring from its spawn (live: in its full update), a fighting boss's

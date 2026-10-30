@@ -612,7 +612,13 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
 }
 
 static BAGS: LazyLock<Mutex<HashMap<Id32, Bag>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-static NEXT_BAG: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
+/// Bag ids start from the clock (16 per second), not 1: a client that stays connected through a
+/// server restart still holds the old server's bags, whose removal died with it, and a new bag
+/// with one of their ids vanished at once (apples that couldn't be picked up).
+static NEXT_BAG: LazyLock<std::sync::atomic::AtomicU32> = LazyLock::new(|| {
+    let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    std::sync::atomic::AtomicU32::new((secs as u32).wrapping_mul(16).max(1))
+});
 
 /// Drops `items` (templates) for `owner` at `pos`, sent to the owner only. `_dropper`: what
 /// dropped them (live's bags named none).
