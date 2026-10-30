@@ -511,13 +511,15 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.extend(health_records(h.identity, template, me.upgrade(template), me.level()));
                             // a world load builds the HUD with the first team position as the
                             // active portrait, after these: once it stands, the active slot again
-                            // (by way of another slot, so the stat changes); the team keeps its
-                            // order (it used to be swapped into the first position)
-                            if let Some(&(first, _)) = me.team.iter().min_by_key(|&&(s, _)| s).filter(|&&(s, _)| s != slot) {
+                            // (by way of 0, so the stat changes); the team keeps its order (it used
+                            // to be swapped into the first position). Not by way of another team
+                            // slot: the minifigure wheel (CharacterRotator.swf) starts a 300 ms
+                            // tween for each change, and the two in one frame left it on that slot.
+                            if me.team.iter().min_by_key(|&&(s, _)| s).is_some_and(|&(first, _)| first != slot) {
                                 let (outbox, id) = (outbox.clone(), h.identity);
                                 tokio::spawn(async move {
                                     tokio::time::sleep(HUD_ACTIVE_RESEND).await;
-                                    let _ = outbox.send(world::Out::Records(vec![int32_stat(id, STAT_ACTIVE_WEAPON, first), int32_stat(id, STAT_ACTIVE_WEAPON, slot)]));
+                                    let _ = outbox.send(world::Out::Records(vec![int32_stat(id, STAT_ACTIVE_WEAPON, 0), int32_stat(id, STAT_ACTIVE_WEAPON, slot)]));
                                 });
                             }
                         }
