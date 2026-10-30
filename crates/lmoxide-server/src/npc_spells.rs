@@ -458,7 +458,7 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             match crate::npc::spawn_monster(caster, run.playfield, hash, who.pos, Some(run.player)) {
                 Some(spawned) => {
                     if let Some(nano) = a.u("NanoTemplate") {
-                        cast_nano(run, nano, Target { id: Some(spawned), pos: who.pos }, depth + 1, true);
+                        cast_nano(run, nano, Target { id: Some(spawned), pos: who.pos }, depth + 1, false);
                     }
                 }
                 None => debug!(spell = id, hash, "enemy spawn monster: no template with this spawn_hash"),
@@ -572,9 +572,15 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
     let range = a.f("AttackRange").or(spell(id).and_then(|s| s.stats.attack_range)).map_or(DEFAULT_PROJECTILE_RANGE, |r| r / 100.0);
     let turn = a.f("RotY").unwrap_or(0.0);
     let aimed_at = target.id.filter(|t| *t != caster && crate::npc::is_player(*t));
+    // HitNano (server-made spells only): cast instead of the item's own actions where it hits
+    // (the Space Merc Engineer's bombs borrow the grenade's look but hit harder)
+    let hit_nano = a.u("HitNano");
     let on_hit = || -> crate::projectile::OnHit {
         let run = run.clone();
-        Arc::new(move |hit, pos| impact(&run, item, Target { id: hit, pos }, depth))
+        Arc::new(move |hit, pos| match hit_nano {
+            Some(nano) => cast_nano(&run, nano, Target { id: hit, pos }, depth + 1, true),
+            None => impact(&run, item, Target { id: hit, pos }, depth),
+        })
     };
     if move_type == crate::projectile::ORBITING {
         // it circles the caster or whom it is cast on (a spawned anchor), and bursts on the

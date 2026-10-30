@@ -921,8 +921,9 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             let Some(hash) = a.args.get("StringHash").and_then(|v| v.as_str()) else { return };
             match crate::npc::spawn_monster(caster, run.caster.playfield, hash, who.pos, None) {
                 Some(id) => {
+                    // (without the nano's own effect: live showed nothing where the anchor appeared)
                     if let Some(nano) = a.u("NanoTemplate") {
-                        cast_nano(run, nano, Target { id: Some(id), pos: who.pos }, depth + 1);
+                        cast_nano_shown(run, nano, Target { id: Some(id), pos: who.pos }, depth + 1, false);
                     }
                 }
                 None => debug!(spell, hash, "spawn monster: no template with this spawn_hash"),

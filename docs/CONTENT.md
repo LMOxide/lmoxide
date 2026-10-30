@@ -183,7 +183,9 @@ uses new ids.
 
 A skill the client has no spell for (a server-made nano a made-up skill casts) takes the id
 2000000000 + a related client spell (`skill/merc-engineer-bombs`: 2000374158). Clients never
-see these ids in a cast or a buff, only in the shots they send.
+see these ids in a cast or a buff, only in the shots they send. A server-made spell's Projectile
+action may name a `HitNano` (enemies' spells): cast where the shot hits instead of the item's own
+actions, so a shot can borrow an item's look and hit differently.
 
 Full field lists with descriptions: `content/schemas/<kind>.schema.json`, or the types in
 `crates/lmoxide-content/src/model.rs`.
