@@ -117,7 +117,11 @@ pub static DESTINATIONS: LazyLock<Value> = LazyLock::new(|| {
             .in_world(&c.portals, id)
             .filter_map(|p| {
                 let to = c.worlds.get(p.to.world.as_ref()?)?.playfield;
-                let mut v = json!({ "to": to, "pos": p.pos, "window": p.window? });
+                // (a portal with neither a window nor an exact spot leads nowhere)
+                if p.window.is_none() && p.to.pos.is_none() {
+                    return None;
+                }
+                let mut v = json!({ "to": to, "pos": p.pos, "window": p.window.unwrap_or(0), "at": p.to.pos, "opens_after": p.opens_after });
                 if let Some(d) = portal_door(&doors, p.pos) {
                     v["door"] = d;
                 }
@@ -317,7 +321,9 @@ mod tests {
         for (pf, v) in d["destinations"].as_object().unwrap() {
             check(format!("destination {pf}"), v, DESTINATIONS["destinations"].get(pf));
         }
-        for (pf, list) in d["portals"].as_object().unwrap() {
+        // the worlds whose portals were surveyed since (Monkey Cave's exit after the boss)
+        const SURVEYED_PORTALS: [&str; 1] = ["1643"];
+        for (pf, list) in d["portals"].as_object().unwrap().iter().filter(|(pf, _)| !SURVEYED_PORTALS.contains(&pf.as_str())) {
             // (the old list had exact duplicates)
             let mut old: Vec<Value> = list.as_array().unwrap().clone();
             old.dedup();

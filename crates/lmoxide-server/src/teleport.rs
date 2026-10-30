@@ -50,10 +50,52 @@ pub struct Destination {
 struct Portal {
     to: u32,
     pos: [f32; 3],
-    /// Teleport window the portal opens (tools/re/extract_portal_windows.py).
+    /// Teleport window the portal opens (tools/re/extract_portal_windows.py; 0: none, `at`).
     window: u32,
+    /// The exact arrival spot (content `to.pos`): Yes/No, then there, instead of a window.
+    #[serde(default)]
+    at: Option<[f32; 3]>,
+    /// Shut until the enemy of this name is defeated in the copy (content `opens_after`).
+    #[serde(default)]
+    opens_after: Option<String>,
     /// The door players click (world_data.rs `portal_door`).
     door: Option<Door>,
+}
+
+/// Where a portal leads: the playfield, its teleport window (0: none) and the exact spot, if
+/// it has one.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PortalUse {
+    pub to: u32,
+    pub window: u32,
+    pub at: Option<[f32; 3]>,
+}
+
+impl Portal {
+    fn use_from(&self, playfield: u32) -> PortalUse {
+        PortalUse { to: if self.to == playfield { HUB } else { self.to }, window: self.window, at: self.at }
+    }
+
+    fn open_in(&self, pf: Pf) -> bool {
+        self.opens_after.as_ref().is_none_or(|name| OPENED.lock().unwrap().contains(&(pf, name.clone())))
+    }
+}
+
+/// The enemies defeated in each copy that open portals (`opens_after`).
+static OPENED: LazyLock<Mutex<HashSet<(Pf, String)>>> = LazyLock::new(Default::default);
+
+/// An enemy named `name` was defeated in copy `pf`: the portals it opens open, their doors
+/// appear.
+pub fn defeated(pf: Pf, name: &str) {
+    let Some(portals) = DATA.portals.get(&pf.model().to_string()) else { return };
+    let opens: Vec<&Portal> = portals.iter().filter(|p| p.opens_after.as_deref() == Some(name)).collect();
+    if opens.is_empty() || !OPENED.lock().unwrap().insert((pf, name.to_string())) {
+        return;
+    }
+    tracing::info!(playfield = ?pf, defeated = name, "portal opened");
+    let doors: Vec<Door> = opens.iter().filter_map(|p| p.door.clone()).collect();
+    let presences: Vec<world::Presence> = doors.into_iter().map(|d| join_door(d, pf)).collect();
+    DOORS.lock().unwrap().entry(pf).or_default().extend(presences);
 }
 
 /// A portal's door: an invisible `empty_monsterdata_1x1x1` (the client data's door spawns).
@@ -109,9 +151,9 @@ const HUB: u32 = 1200;
 
 /// The portal the player is standing in, if any: (destination playfield, teleport window).
 /// The client has no portal trigger of its own; live, server scripts opened the window.
-pub fn portal_at(playfield: Pf, pos: [f32; 3]) -> Option<(u32, u32)> {
-    let portal = DATA.portals.get(&playfield.model().to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS)?;
-    Some((if portal.to == playfield.model() { HUB } else { portal.to }, portal.window))
+pub fn portal_at(playfield: Pf, pos: [f32; 3]) -> Option<PortalUse> {
+    let portal = DATA.portals.get(&playfield.model().to_string())?.iter().find(|p| distance(p.pos, pos) <= PORTAL_RADIUS && p.open_in(playfield))?;
+    Some(portal.use_from(playfield.model()))
 }
 
 /// Dynel type of doors.
@@ -121,13 +163,18 @@ const CARS_USABLE: u32 = 1;
 /// The text category of the doors' names (TDB 55000, as live named them).
 const NAME_CATEGORY: u32 = 55000;
 
-/// The portal whose door is `guid`: (destination playfield, teleport window).
-pub fn door_portal(guid: u32) -> Option<(u32, u32)> {
+/// The portal whose door is `guid`.
+pub fn door_portal(guid: u32) -> Option<PortalUse> {
     DATA.portals.iter().find_map(|(k, ps)| {
         let playfield: u32 = k.parse().ok()?;
         let p = ps.iter().find(|p| p.door.as_ref().is_some_and(|d| d.guid == guid))?;
-        Some((if p.to == playfield { HUB } else { p.to }, p.window))
+        Some(p.use_from(playfield))
     })
+}
+
+/// Whether door `guid` stays out of copy `pf` (its portal is shut there).
+fn door_shut(pf: Pf, guid: u32) -> bool {
+    DATA.portals.get(&pf.model().to_string()).into_iter().flatten().any(|p| p.door.as_ref().is_some_and(|d| d.guid == guid) && !p.open_in(pf))
 }
 
 /// The portals' doors by playfield, each once (two portals can share one: the tutorial's
@@ -156,20 +203,31 @@ pub fn spawn_world(pf: Pf) {
     let mut presences = Vec::new();
     // (the tutorial shows its compass per player, tutorial.rs; the world editor all of them)
     let editor = crate::instance::mode_of(pf).rules().editor;
-    for d in DOORS_OF.get(&pf.model()).into_iter().flatten().filter(|d| editor || d.guid != crate::tutorial::COMPASS_DOOR).cloned() {
-        let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
-        tokio::spawn(async move { while inbox.recv().await.is_some() {} });
-        let id = Id32::new(DOOR_TYPE, crate::instance::fixture(pf, d.guid));
-        let pos = std::sync::Arc::new(Mutex::new(d.pos));
-        presences.push(world::join(id, pf, pos, move || door_records(&d, pf), outbox));
+    for d in DOORS_OF
+        .get(&pf.model())
+        .into_iter()
+        .flatten()
+        .filter(|d| editor || (d.guid != crate::tutorial::COMPASS_DOOR && !door_shut(pf, d.guid)))
+        .cloned()
+    {
+        presences.push(join_door(d, pf));
     }
     DOORS.lock().unwrap().insert(pf, presences);
 }
 
-/// Takes the doors of copy `pf` out.
+fn join_door(d: Door, pf: Pf) -> world::Presence {
+    let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
+    tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+    let id = Id32::new(DOOR_TYPE, crate::instance::fixture(pf, d.guid));
+    let pos = std::sync::Arc::new(Mutex::new(d.pos));
+    world::join(id, pf, pos, move || door_records(&d, pf), outbox)
+}
+
+/// Takes the doors of copy `pf` out (and forgets which of its portals were opened).
 pub fn despawn_world(pf: Pf) {
     let gone = DOORS.lock().unwrap().remove(&pf);
     drop(gone);
+    OPENED.lock().unwrap().retain(|(p, _)| *p != pf);
 }
 
 /// The spawn records of portal door `guid` in copy `pf` (for one player: the tutorial's
@@ -184,7 +242,7 @@ pub fn door_records_of(pf: Pf, guid: u32) -> Vec<Bytes> {
 /// (0), u32 the destination's element (DoorFullUpdateIIR_c::ReadSubClass: the door's stat
 /// ElementalType, its map marker's element).
 fn door_records(d: &Door, playfield: Pf) -> Vec<Bytes> {
-    let element = door_portal(d.guid).map_or(0, |(to, _)| crate::worlds::element_of(to));
+    let element = door_portal(d.guid).map_or(0, |p| crate::worlds::element_of(p.to));
     door_dynel_records(d.guid, &d.name, d.pos, d.rot, d.scale, d.visual, element, playfield)
 }
 
@@ -439,7 +497,7 @@ mod tests {
         // the hub's Mythology Mountains portal: live's door 525862 (scale 3)
         let door = DATA.portals["1200"].iter().find_map(|p| p.door.as_ref().filter(|d| d.guid == 525862)).expect("door");
         assert_eq!((door.scale, door.visual), (3.0, [1010201, 465832]));
-        assert_eq!(door_portal(525862).map(|(_, w)| w), Some(67));
+        assert_eq!(door_portal(525862).map(|p| p.window), Some(67));
         // Monster Laboratory's door stands 4.4 m off its portal point
         assert!(door_portal(656807).is_some());
         // the record ends as live's did (LMO_Captures.cap, the hub's door 7951): visual, u32 0,

@@ -1214,12 +1214,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let _ctx = r.i32()?;
                 let cookie = r.u64()?;
                 info!(answer, cookie, "message box answer");
-                if let Some((asked, to)) = portals.prompt
+                if let Some((asked, to, spot)) = portals.prompt
                     && asked == cookie
                 {
                     portals.prompt = None;
                     if answer == 1 {
-                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, to, character), &mut place, None, None).await?;
+                        // a portal to a spot: there, facing as the world's arrival point
+                        let at = spot.map(|p| (p, crate::teleport::destination(to).map_or(0.0, |d| d.rot)));
+                        teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, to, character), &mut place, None, at).await?;
                     }
                 }
             }
@@ -2276,8 +2278,9 @@ struct Portals {
     shown: Option<u32>,
     /// whether it was opened by using the portal's door
     used: bool,
-    /// the open message box (plain windows): its cookie and where it leads
-    prompt: Option<(u64, u32)>,
+    /// the open message box (plain windows, portals to a spot): its cookie, where it leads and
+    /// the spot
+    prompt: Option<(u64, u32, Option<[f32; 3]>)>,
     cookies: u64,
     armed: bool,
     playfield: Pf,
@@ -2293,7 +2296,7 @@ impl Portals {
     async fn open_window(&mut self, conn: &mut Conn, character: u32, window: u32) -> anyhow::Result<()> {
         if let Some(to) = crate::teleport::plain_window_destination(window) {
             let cookie = self.next_cookie();
-            self.prompt = Some((cookie, to));
+            self.prompt = Some((cookie, to, None));
             let args = message_box_args(&crate::teleport::travel_question(to), cookie);
             conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
             return Ok(());
@@ -2319,10 +2322,10 @@ impl Portals {
             info!(?p, "portals open again");
         }
         match crate::teleport::portal_at(playfield, p).filter(|_| self.armed && open) {
-            Some((to, window)) if self.shown != Some(to) => {
-                info!(to, window, "portal");
+            Some(portal) if self.shown != Some(portal.to) => {
+                info!(?portal, "portal");
                 self.used = false;
-                self.show(conn, character, to, window).await?;
+                self.show(conn, character, portal).await?;
             }
             Some(_) => {}
             None if self.shown.is_some() && (!self.used || crate::teleport::clear_of_portals(playfield, p)) => {
@@ -2334,21 +2337,22 @@ impl Portals {
         Ok(())
     }
 
-    /// The player used the door of the portal to `to` with `window` (click or E).
-    async fn use_door(&mut self, conn: &mut Conn, character: u32, (to, window): (u32, u32)) -> anyhow::Result<()> {
-        info!(to, window, "portal door used");
+    /// The player used the door of `portal` (click or E).
+    async fn use_door(&mut self, conn: &mut Conn, character: u32, portal: crate::teleport::PortalUse) -> anyhow::Result<()> {
+        info!(?portal, "portal door used");
         self.used = true;
         self.close(conn, character).await?;
-        self.show(conn, character, to, window).await
+        self.show(conn, character, portal).await
     }
 
-    /// Opens the window of the portal to `to`: `window`, or Yes/No for a window that would be
-    /// empty.
-    async fn show(&mut self, conn: &mut Conn, character: u32, to: u32, window: u32) -> anyhow::Result<()> {
+    /// Opens `portal`'s window, or Yes/No for a window that would be empty or a portal to a
+    /// spot.
+    async fn show(&mut self, conn: &mut Conn, character: u32, portal: crate::teleport::PortalUse) -> anyhow::Result<()> {
+        let crate::teleport::PortalUse { to, window, at } = portal;
         self.shown = Some(to);
-        if crate::teleport::plain_window(window) {
+        if at.is_some() || crate::teleport::plain_window(window) {
             let cookie = self.next_cookie();
-            self.prompt = Some((cookie, to));
+            self.prompt = Some((cookie, to, at));
             let args = message_box_args(&crate::teleport::travel_question(to), cookie);
             conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_SHOW_MESSAGE_BOX, args).await?;
         } else {
@@ -2360,7 +2364,7 @@ impl Portals {
 
     /// Closes the open portal window or Yes/No box.
     async fn close(&mut self, conn: &mut Conn, character: u32) -> anyhow::Result<()> {
-        if let Some((cookie, _)) = self.prompt.take() {
+        if let Some((cookie, _, _)) = self.prompt.take() {
             let args = Writer::new().u64(cookie).finish();
             conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::SCRY_CLOSE_MESSAGE_BOX, args).await?;
         } else {

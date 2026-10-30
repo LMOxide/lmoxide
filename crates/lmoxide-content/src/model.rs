@@ -340,6 +340,10 @@ record! {
         #[schemars(extend("x-lmoxide-client" = "window"))]
         pub window: Option<u32>,
         pub to: Destination,
+        /// Shut (its door not there, stepping in does nothing) until the enemy of this name is
+        /// defeated in that copy of the world: a dungeon's exit after its boss.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub opens_after: Option<String>,
     }
 }
 

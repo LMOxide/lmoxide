@@ -1223,6 +1223,14 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             }
             world::send_to(attacker, world::Out::Progress(event));
         }
+        // a dungeon's exit opens after its boss (teleport.rs `opens_after`; not under NPCS: the
+        // door joins the world)
+        if kind == Kind::Enemy
+            && let Ok(rt) = tokio::runtime::Handle::try_current()
+        {
+            let (pf, name) = (npc.playfield, npc.def.name.clone());
+            rt.spawn(async move { crate::teleport::defeated(pf, &name) });
+        }
         remove_dead(npcs, target);
     }
     Some(health == 0)

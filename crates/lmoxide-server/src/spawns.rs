@@ -314,6 +314,9 @@ mod tests {
     /// 374158 (no client definition) is his bomb ring now, his shot his basic attack.
     const ATTACKS_CHANGED: [(&str, u32, u32); 1] = [("Space Merc Engineer", 374_158, 374_159)];
 
+    /// Spawns deleted since: (playfield, name).
+    const REMOVED: [(&str, &str); 1] = [("6300", "Dino Raptor")];
+
     /// (the world editor's spawns weren't in the old files)
     #[test]
     fn same_as_the_old_files() {
@@ -328,7 +331,7 @@ mod tests {
         }
         let mut old = old_table();
         for (pf, defs) in new.iter_mut().chain(old.iter_mut()) {
-            defs.retain(|d| !STORY_BOSSES.contains(&(pf.as_str(), d.name.as_str())));
+            defs.retain(|d| !STORY_BOSSES.contains(&(pf.as_str(), d.name.as_str())) && !REMOVED.contains(&(pf.as_str(), d.name.as_str())));
         }
         let mut problems = Vec::new();
         for pf in old.keys().chain(new.keys()).collect::<std::collections::BTreeSet<_>>() {
