@@ -686,6 +686,12 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                         if let Some(fx) = fx.filter(|f| has_hook(*f, "execute")) {
                             records.push(effects::effect_package_hook(run.caster, fx, "execute", "charge", 0.0, 1, instance));
                         }
+                        // then the effect stops, its animation attributes reverting (the Bull
+                        // Charge's 85355 forces a channel pose for 4 s from "charge": the
+                        // Minotaur stood locked after his 0.6 s charge)
+                        if let Some(fx) = fx {
+                            records.push(effects::stop_effect_package(run.caster, fx, 0, instance));
+                        }
                         show(&run, records);
                     });
                 }

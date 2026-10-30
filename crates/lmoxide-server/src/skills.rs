@@ -299,7 +299,7 @@ mod tests {
             // the troll heavy hitter's own ground smash instead of a Rampage its look can't
             // animate; the Crooked Tooth Brute's charge, ground smash and swings (the user)
             (327_846, &[319_338, 319_946]),
-            (157_082, &[100_331, 101_016, 100_799]),
+            (157_082, &[100_331, 100_312, 100_799]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
