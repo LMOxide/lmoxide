@@ -153,6 +153,9 @@ const STAT_LAST_RND: u32 = 522;
 /// A monster spawned at its caster stands this far from it (live capture, 8030: a Summoned Wolf
 /// appeared 4.6 m from the Alpha Wolf that called it, which had just arrived itself).
 const SPAWN_BESIDE: f32 = 4.5;
+/// The same for a caster that never turns, an object (a hive, a mound): its spawns come out of
+/// it (the user, 2026-10-30: the Vespid Colony's spread too far).
+const SPAWN_BESIDE_OBJECT: f32 = 1.0;
 /// How long a spawn nano without TimeExist shows on what it spawned (live capture: the Alpha
 /// Wolf's 438236 on its wolf, 5900 cs).
 const SPAWN_BUFF: Duration = Duration::from_secs(59);
@@ -205,6 +208,19 @@ pub fn range(id: u32) -> f32 {
     }
 }
 
+/// Whether spawn spell `id` can't bring anything now: each of its spawns' counters is at its cap
+/// (MaxBuffCounters; `alive`: how many of the caster's spawns count in a counter), so the AI
+/// uses its other spells (the Overlord's bolt once his pods are out).
+pub fn spawns_full(id: u32, alive: impl Fn(u32) -> u32) -> bool {
+    let Some(s) = spell(id) else { return false };
+    let spawns: Vec<&Action> = s.lists.get(ON_USE).into_iter().flatten().filter(|a| a.kind == "SpawnMonster").collect();
+    !spawns.is_empty()
+        && spawns.iter().all(|a| {
+            let counter = a.u("NanoTemplate").and_then(spell).and_then(|n| n.lists.get(ON_USE)?.iter().find(|c| c.kind == "AddBuffCounter" && c.on_caster())?.u("TemplateID"));
+            counter.and_then(|c| Some((c, spell(c)?.stats.max_buff_counters?))).is_some_and(|(c, max)| alive(c) >= max)
+        })
+}
+
 /// The spell's AI power rating (the AI prefers higher ones when they're ready).
 pub fn power(id: u32) -> f32 {
     spell(id).and_then(|s| s.stats.power).unwrap_or(0.0)
@@ -218,7 +234,8 @@ pub fn cooldown(id: u32) -> Duration {
         .lists
         .values()
         .flatten()
-        .filter(|a| a.kind == "SetSpellRecastTime" && a.u("NanoTemplate").is_none_or(|n| n == id))
+        // (or its spell line's, on the caster: the Overlord's pods 10 s apart)
+        .filter(|a| (a.kind == "SetSpellRecastTime" && a.u("NanoTemplate").is_none_or(|n| n == id)) || (a.kind == "SetSpellLineRecastTime" && a.on_caster()))
         .filter_map(|a| a.f("Value"))
         .fold(0.0f32, f32::max);
     cs(s.stats.recharge_delay.unwrap_or(0.0).max(recast))
@@ -541,7 +558,8 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                     rel
                 } else {
                     let angle = random_unit() * std::f32::consts::TAU;
-                    [SPAWN_BESIDE * angle.cos(), SPAWN_BESIDE * angle.sin()]
+                    let r = if crate::npc::fixed_facing(caster) { SPAWN_BESIDE_OBJECT } else { SPAWN_BESIDE };
+                    [r * angle.cos(), r * angle.sin()]
                 };
                 [base[0] + off[0], base[1], base[2] + off[1]]
             };
@@ -602,7 +620,11 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
                 // on another NPC (what it spawned: the Alien Reaper Overlord's pod visuals 440781,
                 // whose effect beams from him to the pod) as live sent NPC-cast buffs
                 let level = crate::npc::level_of(caster).unwrap_or(1);
-                show(run, vec![effects::npc_cast_buff_add(on, nano, caster, (duration.as_millis() / 10) as i32, level)]);
+                let mut records = vec![effects::npc_cast_buff_add(on, nano, caster, (duration.as_millis() / 10) as i32, level)];
+                // its StartEffects the server plays, from the caster at it (the client doesn't
+                // for a server's NPC buff: the Overlord's beam and glow on each pod, 464434)
+                records.extend(n.lists.get(ON_USE).into_iter().flatten().filter(|a| a.kind == "StartEffect" && !a.on_caster()).filter_map(|a| a.u("TemplateID")).map(|fx| effects::effect_package_on(caster, on, fx, "", effects::new_instance())));
+                show(run, records);
             } else {
                 show(run, effects::show_buff(on, nano, caster, Some(duration)));
             }

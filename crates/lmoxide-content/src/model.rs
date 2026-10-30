@@ -967,6 +967,10 @@ pub struct Ai {
     /// or spawn); stationary enemies turn to players otherwise (cannons).
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub fixed_facing: bool,
+    /// What a spawn spell brings: it hatches (casts its first skill, whatever the range) this
+    /// long after it appears (the Alien Reaper Overlord's eggs).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hatch_after: Option<Duration>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

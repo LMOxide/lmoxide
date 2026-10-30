@@ -673,7 +673,7 @@
     },
     {
       "label": "overlord",
-      "about": "the Alien Reaper Overlord (Gatekeeper): every 16.4 s within 15 m he spawns four Alien Pods 2 m north, east, south and west of himself (up to 5 alive), which hatch Mantis Nymphs when you come close",
+      "about": "the Alien Reaper Overlord (Gatekeeper): within 15 m he spawns four Alien Pods 2 m north, east, south and west of himself (10 s apart, up to 5 alive), beaming each, which hatch Mantis Nymphs by themselves about 7 s later; with his pods out he shoots his bolt",
       "spawn": [{ "name": "Gatekeeper (Alien Reaper Overlord)", "count": 1 }]
     },
     {

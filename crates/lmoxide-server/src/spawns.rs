@@ -70,6 +70,7 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         stationary: t["ai"]["stationary"].as_bool().unwrap_or(false),
         unarmed: t["ai"]["unarmed"].as_bool().unwrap_or(false),
         fixed_facing: t["ai"]["fixed_facing"].as_bool().unwrap_or(false),
+        hatch_after: None,
         anchor: s.anchor.clone(),
         fights: false,
         faction: None,
@@ -113,7 +114,8 @@ pub fn spawned_templates() -> HashMap<String, (SpawnDef, Option<std::time::Durat
             };
             let spawn = Spawn { kind, name: n.name.trim().to_string(), source: n.source, ..Default::default() };
             let t = serde_json::to_value(n).ok()?;
-            let def = def_from(&spawn, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))?;
+            let mut def = def_from(&spawn, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))?;
+            def.hatch_after = n.ai.hatch_after.map(|d| d.to_std());
             Some((hash, (def, n.lifetime.map(|d| d.to_std()))))
         })
         .collect()

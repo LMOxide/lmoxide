@@ -307,6 +307,10 @@ pub struct SpawnDef {
     /// Never turns, not even to cast (its template's `ai.fixed_facing`: egg sacks, mounds, pods).
     #[serde(default)]
     pub fixed_facing: bool,
+    /// Brought by a spawn spell: hatches this long after it appears (its template's
+    /// `ai.hatch_after`, `spawn_monster`).
+    #[serde(default)]
+    pub hatch_after: Option<Duration>,
     /// Proposed content: the bounded area the camp was placed in (the spawn's `anchor`).
     #[serde(default)]
     pub anchor: Option<String>,
@@ -1253,9 +1257,16 @@ pub fn spawn_monster(caster: Id32, playfield: Pf, hash: &str, at: [f32; 3], how:
     let now = std::time::Instant::now();
     info!(?caster, hash, name = %def.name, ?at, ?lifetime, "spawned monster");
     let threat = foe.filter(|f| def.kind == Kind::Enemy && is_player(*f)).map(|f| (f, now));
+    let hatch = def.hatch_after.zip(foe.filter(|f| is_player(*f)));
     let npc = Npc { spawned_by: Some(caster), spawn_counter: how.counter, threat, ..Npc::new(def, playfield, None, Some(now + lifetime)) };
     NPCS.lock().unwrap().insert(id, npc);
     appear(id);
+    if let Some((after, foe)) = hatch {
+        tokio::spawn(async move {
+            tokio::time::sleep(after).await;
+            hatch_now(id, foe);
+        });
+    }
     tokio::spawn(async move {
         tokio::time::sleep(lifetime).await;
         despawn(id);
@@ -1263,10 +1274,28 @@ pub fn spawn_monster(caster: Id32, playfield: Pf, hash: &str, at: [f32; 3], how:
     Some(id)
 }
 
+/// Spawned monster `id` (`SpawnDef::hatch_after` up) casts its first spell at `foe`, whatever the
+/// range: an Alien Reaper Overlord's egg hatches.
+fn hatch_now(id: Id32, foe: Id32) {
+    let (spell, playfield, power, here) = {
+        let npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get(&id).filter(|n| n.presence.is_some() && n.health > 0) else { return };
+        let Some(spell) = spells_for(&npc.def).first().copied() else { return };
+        (spell, npc.playfield, enemy_damage(npc.def.level, npc.def.health), *npc.pos.lock().unwrap())
+    };
+    info!(npc = ?id, spell, "hatches");
+    crate::npc_spells::cast(id, playfield, power, spell, foe, world::position_of(foe).unwrap_or(here));
+}
+
 /// How many of what `caster`'s SpawnMonster actions brought are alive and count in its spawn
 /// counter `counter` (`SpawnHow::counter`).
 pub fn spawned_count(caster: Id32, counter: u32) -> u32 {
-    NPCS.lock().unwrap().values().filter(|n| n.spawned_by == Some(caster) && n.spawn_counter == Some(counter) && n.presence.is_some() && n.health > 0).count() as u32
+    alive_spawns(&NPCS.lock().unwrap(), caster, counter)
+}
+
+/// `spawned_count` in an NPC table already locked.
+fn alive_spawns(npcs: &HashMap<Id32, Npc>, caster: Id32, counter: u32) -> u32 {
+    npcs.values().filter(|n| n.spawned_by == Some(caster) && n.spawn_counter == Some(counter) && n.presence.is_some() && n.health > 0).count() as u32
 }
 
 /// A live NPC's level.
@@ -1322,6 +1351,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         stationary: false,
         unarmed: false,
         fixed_facing: false,
+        hatch_after: None,
         anchor: None,
         fights: false,
         faction: None,
@@ -2227,8 +2257,11 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
                 return true;
             }
         }
+        let npc = npcs.get(&id).expect("looked up above");
+        let mut spells = if npc.only_spells.is_empty() { spells_for(&npc.def) } else { npc.only_spells.clone() };
+        // (not a spawn spell whose spawns are all at their cap)
+        spells.retain(|s| !crate::npc_spells::spawns_full(*s, |counter| alive_spawns(&npcs, id, counter)));
         let npc = npcs.get_mut(&id).expect("looked up above");
-        let spells = if npc.only_spells.is_empty() { spells_for(&npc.def) } else { npc.only_spells.clone() };
         let pick = spells
             .into_iter()
             .filter(|s| npc.cooldowns.get(s).is_none_or(|t| *t <= now) && d <= reach_of(*s))
@@ -2803,6 +2836,7 @@ mod tests {
         stationary: false,
         unarmed: false,
         fixed_facing: false,
+        hatch_after: None,
             anchor: None,
             fights: false,
             faction: None,
