@@ -2456,8 +2456,8 @@ async fn send_world(
     let mut records = vec![playfield_full_update(place)];
     records.extend(spawn_records(id, &me.spec(place)));
     records.insert(3, full_player_character(id, me, collection));
-    // the client's GmLevel is a bitmask (god camera, flying, ...): every bit for contributors
-    // and up, none below
+    // the client's GmLevel is a bitmask (god camera, flying, ...): the bits for contributors
+    // and up (CLIENT_GM_ALL), none below
     if crate::sessions::gm_level(character) >= crate::state::levels().client {
         records.push(int32_stat(id, STAT_GM_LEVEL, CLIENT_GM_ALL));
     }
@@ -3296,8 +3296,14 @@ const STAT_XP: u32 = 52;
 const STAT_LAST_XP: u32 = 57;
 const STAT_NEXT_XP: u32 = 350;
 const STAT_GM_LEVEL: u32 = 215;
-/// Every GmLevel bit that keeps the stat a positive int32.
-const CLIENT_GM_ALL: u32 = 0x7fff_ffff;
+/// GmLevel bit 0x200: the client's own invulnerability. SimpleChar_t::SetStat keeps Health
+/// (27) from going down while it is set (0x17ad513), so the HUD's health bar, damage and smashes
+/// stopped showing for contributors and up although the server's damage applied; the client
+/// also checks it in CastMagicSpell/IsCastMagicSpellPossible.
+const GM_INVULNERABLE: u32 = 0x200;
+/// The GmLevel bits contributors and up get (god camera, flying, ...): every one that keeps the
+/// stat a positive int32 but the invulnerability (the server decides damage).
+const CLIENT_GM_ALL: u32 = 0x7fff_ffff & !GM_INVULNERABLE;
 const STAT_CHAR_RADIUS: u32 = 421;
 const STAT_MONSTER_DATA: u32 = 359;
 /// How long after arrival the active slot is sent again for the HUD (see CharInPlay).
@@ -3681,6 +3687,13 @@ pub fn create_game_object(id: Id32, playfield: Pf, pos: [f32; 3]) -> bytes::Byte
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn gm_bits_leave_damage_to_the_server() {
+        // with 0x200 the client ignores its own health going down (no health bar, no smash)
+        assert_eq!(CLIENT_GM_ALL & GM_INVULNERABLE, 0);
+        assert_eq!(CLIENT_GM_ALL, 0x7fff_fdff);
+    }
 
     #[test]
     fn others_see_the_nick() {
