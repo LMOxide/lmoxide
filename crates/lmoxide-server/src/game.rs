@@ -400,7 +400,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     name: crate::sessions::name(character).unwrap_or_else(|| account.username.clone()),
                     ..me.clone()
                 });
-                active_at_first_position(&mut me.team);
                 // the movement speed factor (`!speed`): the character's speed stats show it
                 me.speed = crate::speed::sane(me.speed);
                 crate::speed::set(character, me.speed);
@@ -485,6 +484,17 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                             records.extend(health_records(h.identity, template, me.upgrade(template), me.level()));
+                            // a world load builds the HUD with the first team position as the
+                            // active portrait, after these: once it stands, the active slot again
+                            // (by way of another slot, so the stat changes); the team keeps its
+                            // order (it used to be swapped into the first position)
+                            if let Some(&(first, _)) = me.team.iter().min_by_key(|&&(s, _)| s).filter(|&&(s, _)| s != slot) {
+                                let (outbox, id) = (outbox.clone(), h.identity);
+                                tokio::spawn(async move {
+                                    tokio::time::sleep(HUD_ACTIVE_RESEND).await;
+                                    let _ = outbox.send(world::Out::Records(vec![int32_stat(id, STAT_ACTIVE_WEAPON, first), int32_stat(id, STAT_ACTIVE_WEAPON, slot)]));
+                                });
+                            }
                         }
                         // the movement speed factor (`!speed`): the client set its own speed
                         // stats by now (the full update's don't stay)
@@ -2516,8 +2526,6 @@ async fn teleport(
     me.pos = arrive_pos;
     *pos.lock().unwrap() = arrive_pos;
     crate::teleport::arrived(character);
-    // the new world's HUD shows the first team position as the active portrait, as at login
-    active_at_first_position(&mut me.team);
     if let Err(e) = store.save(character, me) {
         warn!(character, "saving character failed: {e:#}");
     }
@@ -3288,6 +3296,8 @@ const STAT_GM_LEVEL: u32 = 215;
 const CLIENT_GM_ALL: u32 = 0x7fff_ffff;
 const STAT_CHAR_RADIUS: u32 = 421;
 const STAT_MONSTER_DATA: u32 = 359;
+/// How long after arrival the active slot is sent again for the HUD (see CharInPlay).
+const HUD_ACTIVE_RESEND: std::time::Duration = std::time::Duration::from_millis(1500);
 /// Active minifigure team slot (inventory 101 position), client name e_ActiveWeapon.
 const STAT_ACTIVE_WEAPON: u32 = 2000405;
 pub const TOKEN_HEALTH_POTIONS: u32 = 150;
