@@ -70,6 +70,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0015_access_levels.sql"),
     include_str!("../migrations/0016_character_names.sql"),
     include_str!("../migrations/0017_account_friends.sql"),
+    include_str!("../migrations/0018_account_friend_pairs.sql"),
 ];
 
 pub struct Db {

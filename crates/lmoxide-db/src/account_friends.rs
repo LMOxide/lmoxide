@@ -2,7 +2,8 @@
 //! each is friends with every character of the other (`friendships` rows, so the game's friend
 //! list and its removal work as for any friend). Characters made later become friends with the
 //! other account's characters when first saved ([`Db::save_character`]). Removing the account
-//! friendship removes the friendships between their characters. The Discord bot sends requests
+//! friendship removes the friendships between their characters that it made (`account_friend`;
+//! not those they had before or made in game). The Discord bot sends requests
 //! to linked targets by DM ([`Db::unnotified_friend_requests`]).
 
 use rusqlite::{Connection, OptionalExtension, params};
@@ -70,8 +71,8 @@ fn character_pairs(conn: &Connection, a: u32, b: u32) -> rusqlite::Result<Vec<(u
 /// friends (inside [`Db::save_character`]'s transaction).
 pub(crate) fn befriend_new_character(conn: &Connection, id: u32, account: u32, at: i64) -> rusqlite::Result<()> {
     conn.execute(
-        "INSERT OR IGNORE INTO friendships (low, high, created_at)
-         SELECT min(?1, c.id), max(?1, c.id), ?3 FROM characters c JOIN account_friends f
+        "INSERT OR IGNORE INTO friendships (low, high, created_at, account_friend)
+         SELECT min(?1, c.id), max(?1, c.id), ?3, 1 FROM characters c JOIN account_friends f
            ON (f.requester = ?2 AND c.account_id = f.target) OR (f.target = ?2 AND c.account_id = f.requester)
          WHERE f.accepted = 1 AND c.id <> ?1",
         params![id, account, at],
@@ -147,7 +148,7 @@ impl Db {
         }
         let mut added = Vec::new();
         {
-            let mut insert = tx.prepare("INSERT OR IGNORE INTO friendships (low, high, created_at) VALUES (?1, ?2, ?3)")?;
+            let mut insert = tx.prepare("INSERT OR IGNORE INTO friendships (low, high, created_at, account_friend) VALUES (?1, ?2, ?3, 1)")?;
             for (low, high) in character_pairs(&tx, requester, target)? {
                 if insert.execute(params![low, high, t])? > 0 {
                     added.push((low, high));
@@ -185,7 +186,7 @@ impl Db {
         };
         let mut removed = Vec::new();
         if accepted {
-            let mut delete = tx.prepare("DELETE FROM friendships WHERE low = ?1 AND high = ?2")?;
+            let mut delete = tx.prepare("DELETE FROM friendships WHERE low = ?1 AND high = ?2 AND account_friend = 1")?;
             for (low, high) in character_pairs(&tx, account, other)? {
                 if delete.execute(params![low, high])? > 0 {
                     removed.push((low, high));
@@ -292,10 +293,11 @@ mod tests {
         assert!(db.mark_friend_request_notified(a.id, b.id).unwrap());
         assert!(db.unnotified_friend_requests().unwrap().is_empty());
 
-        // accepting befriends every pair of characters
+        // accepting befriends every pair of characters (alice and bob were friends already)
+        assert!(db.add_friendship(a.id, b.id).unwrap());
         assert!(matches!(db.accept_account_friend(a.id, b.id), Err(Error::NotFound(_))), "only the target accepts");
         let added = db.accept_account_friend(b.id, a.id).unwrap();
-        assert_eq!(added.len(), 2);
+        assert_eq!(added, vec![(a2.min(b.id), a2.max(b.id))]);
         assert_eq!(sorted(db.friends_of(b.id).unwrap()), sorted(vec![a.id, a2]));
         assert_eq!(db.account_friend(a.id, b.id).unwrap().unwrap().state, FriendState::Friends);
         assert!(matches!(db.request_account_friend(b.id, a.id), Err(Error::Conflict(_))));
@@ -306,6 +308,8 @@ mod tests {
         db.save_character(b2, b.id, &character("bob2")).unwrap();
         assert_eq!(sorted(db.friends_of(b2).unwrap()), sorted(vec![a.id, a2]));
         assert!(db.friends_of(c.id).unwrap().is_empty());
+        // befriended in game as well: theirs from now on
+        assert!(!db.add_friendship(b2, a2).unwrap());
 
         // asking someone who asked you accepts
         db.save_character(c.id, c.id, &character("carol")).unwrap();
@@ -314,9 +318,11 @@ mod tests {
         assert_eq!(pairs.len(), 2);
         assert_eq!(sorted(db.friends_of(c.id).unwrap()), sorted(vec![a.id, a2]));
 
-        // removing takes the characters' friendships along; a rejected request is gone
-        assert_eq!(db.remove_account_friend(a.id, b.id).unwrap().len(), 4);
-        assert!(db.friends_of(b.id).unwrap().is_empty());
+        // removing takes the characters' friendships it made along, not one they had before or
+        // made in game; a rejected request is gone
+        assert_eq!(db.remove_account_friend(a.id, b.id).unwrap().len(), 2);
+        assert_eq!(sorted(db.friends_of(b.id).unwrap()), vec![a.id]);
+        assert_eq!(db.friends_of(b2).unwrap(), vec![a2]);
         assert!(db.account_friend(a.id, b.id).unwrap().is_none());
         assert!(matches!(db.remove_account_friend(a.id, b.id), Err(Error::NotFound(_))));
         db.request_account_friend(b.id, c.id).unwrap();

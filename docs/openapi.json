@@ -1708,7 +1708,7 @@
         "tags": [
           "friends"
         ],
-        "summary": "Stop being friends with another account (their characters and yours stop being friends), or\nwithdraw a request either way. Any account.",
+        "summary": "Stop being friends with another account (the friendships it made between their characters\nand yours go; ones from before or made in game stay), or withdraw a request either way. Any\naccount.",
         "operationId": "remove_friend",
         "parameters": [
           {

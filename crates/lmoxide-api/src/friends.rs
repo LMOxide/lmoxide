@@ -179,8 +179,9 @@ async fn reject_friend(State(state): State<Arc<AppState>>, auth: Auth, Path(acco
     .await
 }
 
-/// Stop being friends with another account (their characters and yours stop being friends), or
-/// withdraw a request either way. Any account.
+/// Stop being friends with another account (the friendships it made between their characters
+/// and yours go; ones from before or made in game stay), or withdraw a request either way. Any
+/// account.
 #[utoipa::path(delete, path = "/v1/me/friends/{account_id}", tag = "friends", params(("account_id" = u32, Path)),
     responses((status = NO_CONTENT), (status = NOT_FOUND, body = ErrorBody)))]
 async fn remove_friend(State(state): State<Arc<AppState>>, auth: Auth, Path(account_id): Path<u32>) -> ApiResult<StatusCode> {

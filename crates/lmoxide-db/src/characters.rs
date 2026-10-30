@@ -495,7 +495,11 @@ impl Db {
         if a == b {
             return Err(Error::Invalid("a character can't befriend itself".into()));
         }
-        let n = self.conn().execute(
+        let conn = self.conn();
+        // befriended in game: theirs, even if an account friendship made it (it stays when that
+        // ends)
+        conn.execute("UPDATE friendships SET account_friend = 0 WHERE low = ?1 AND high = ?2", params![a.min(b), a.max(b)])?;
+        let n = conn.execute(
             "INSERT OR IGNORE INTO friendships (low, high, created_at) VALUES (?1, ?2, ?3)",
             params![a.min(b), a.max(b), now()],
         )?;

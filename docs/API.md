@@ -80,7 +80,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/me/friends` | session | `{username}`: ask that account → 201 `AccountFriend` (`outgoing`; `friends` at once if they had asked you); 404, 409 already friends or asked, 422 yourself |
 | POST | `/v1/me/friends/{account_id}/accept` | session | accept their request → `AccountFriend`; 404 when they didn't ask |
 | POST | `/v1/me/friends/{account_id}/reject` | session | turn it down (deleted; they may ask again) |
-| DELETE | `/v1/me/friends/{account_id}` | session | stop being friends (the characters' friendships between the two go too) or withdraw a request |
+| DELETE | `/v1/me/friends/{account_id}` | session | stop being friends (the characters' friendships it made go too; ones they had before or made in game stay) or withdraw a request |
 | GET | `/v1/discord/friend-requests` | discord | requests waiting for a target linked to Discord that the bot hasn't sent: `[{requester_id, requester_username, target_id, target_username, discord_id, requested_at}]`, oldest first |
 | POST | `/v1/discord/friend-requests/{requester_id}/{target_id}/notified` | discord | the bot sent it (not listed again); 404 when no such request waits |
 | GET | `/v1/discord/links` | discord | linked accounts: `[{discord_id, account_id, username, gm_level, banned}]` |
@@ -127,7 +127,8 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 character of each is friends with every character of the other (rows in `friendships`, so the
 game's friend list shows them and a character can still remove one in game), and characters
 made later become friends with the other account's characters when first saved. Removing the
-account friendship removes the friendships between their characters. The API tells the game
+account friendship removes the friendships it made between their characters (not ones they had
+before, or made in game themselves). The API tells the game
 server (control `POST /v1/friends/changed`), so characters online see friends come and go at
 once. The Discord bot DMs targets linked to Discord with Accept / Reject buttons: it polls
 `/v1/discord/friend-requests`, marks each sent, and answers with the target's account key.
