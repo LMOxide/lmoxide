@@ -115,6 +115,8 @@ struct PlayerCombat {
     /// Mitigation from buffs active on the player (e.g. a stance's MitigationOverrideFlat), by buff.
     buff_mitigation: HashMap<u32, f32>,
     health: HashMap<u32, u32>,
+    /// Each minifigure's maximum health when it was last active (inactive ones regenerate up to it).
+    maxes: HashMap<u32, u32>,
 }
 
 /// When each player was last in combat: hit by an enemy, attacked by one (a dodged shot too) or
@@ -136,6 +138,7 @@ pub fn set_active_minifigure(player: Id32, template: u32, max: u32, mitigation: 
     p.active = template;
     p.max = max;
     p.mitigation = mitigation;
+    p.maxes.insert(template, max);
     let h = p.health.entry(template).or_insert(max);
     *h = (*h).min(max);
     *h
@@ -160,6 +163,17 @@ pub fn set_player_health(player: Id32, health: u32) -> u32 {
     let h = health.min(p.max);
     p.health.insert(p.active, h);
     h
+}
+
+/// Sets an inactive minifigure's health (with its maximum, `!hurt all`); the active one's is
+/// `set_player_health`.
+pub fn set_inactive_health(player: Id32, template: u32, max: u32, health: u32) {
+    let mut players = PLAYERS.lock().unwrap();
+    let p = players.entry(player).or_default();
+    if template != p.active {
+        p.maxes.insert(template, max);
+        p.health.insert(template, health.min(max));
+    }
 }
 
 /// The player's active minifigure's health now.
@@ -1354,12 +1368,13 @@ pub fn targets_where(playfield: Pf, inside: impl Fn([f32; 3]) -> bool) -> Vec<(I
         .collect()
 }
 
-/// Health regeneration of players' active minifigures (live capture, 62 runs): every second
-/// while below maximum, the share of the active minifigure's own maximum health in the
-/// character record (`HealthRegenIC` 0.5% in combat, `HealthRegenOOC` 5% out of it; tunables.json
+/// Health regeneration of players' minifigures (live capture, 62 runs): every second while
+/// below maximum, the share of the minifigure's own maximum health in the character record (`HealthRegenIC` 0.5% in combat, `HealthRegenOOC` 5% out of it; tunables.json
 /// `npc`), rounded down as the client's (int)(Life × rate); out of combat = `regen_delay` since
-/// the last hit taken, enemy attack or damage dealt to an enemy. A defeated, 0-health minifigure
-/// stays down until healed otherwise.
+/// the last hit taken, enemy attack or damage dealt to an enemy. The inactive minifigures
+/// regenerate as the active one does (the user, 2026-10-30), up to their maximum when last
+/// active; only the active one's health is sent (the client shows no other: live's RegenIIR sets
+/// the character's Health). A defeated, 0-health minifigure stays down until rebuilt.
 async fn regenerate() {
     let t = &crate::gamedata::get().tunables.npc;
     let mut tick = tokio::time::interval(t.regen_tick.to_std());
@@ -1371,25 +1386,36 @@ async fn regenerate() {
             combat.retain(|_, t| t.elapsed() < delay);
             combat.keys().copied().collect()
         };
-        let healed: Vec<(Id32, u32)> = PLAYERS
-            .lock()
-            .unwrap()
-            .iter_mut()
-            .filter_map(|(id, p)| {
-                let max = p.max;
-                let share = if fighting.contains(id) { in_combat } else { out_of_combat };
-                let gain = (max as f32 * share) as u32;
-                let h = p.health.entry(p.active).or_insert(max);
-                (*h > 0 && *h < max && gain > 0).then(|| {
-                    *h = (*h + gain).min(max);
-                    (*id, *h)
-                })
-            })
-            .collect();
-        for (id, health) in healed {
+        for (id, health) in regen_tick(&fighting, out_of_combat, in_combat) {
             world::send_to(id, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, health)]));
         }
     }
+}
+
+/// One regeneration tick for every player's minifigures; returns the active ones' new health.
+fn regen_tick(fighting: &std::collections::HashSet<Id32>, out_of_combat: f32, in_combat: f32) -> Vec<(Id32, u32)> {
+    PLAYERS
+        .lock()
+        .unwrap()
+        .iter_mut()
+        .filter_map(|(id, p)| {
+            let share = if fighting.contains(id) { in_combat } else { out_of_combat };
+            let (active, active_max) = (p.active, p.max);
+            p.health.entry(active).or_insert(active_max);
+            let mut shown = None;
+            for (&template, h) in p.health.iter_mut() {
+                let max = if template == active { active_max } else { p.maxes.get(&template).copied().unwrap_or(0) };
+                let gain = (max as f32 * share) as u32;
+                if *h > 0 && *h < max && gain > 0 {
+                    *h = (*h + gain).min(max);
+                    if template == active {
+                        shown = Some((*id, *h));
+                    }
+                }
+            }
+            shown
+        })
+        .collect()
 }
 
 /// Pets: vanish when their time is up, otherwise attack an enemy near them or follow the owner.
@@ -2644,6 +2670,28 @@ mod tests {
         // pulled up to melee range, not through the caster
         assert!((at(id)[0] - MELEE_RANGE).abs() < 1e-4, "{:?}", at(id));
         NPCS.lock().unwrap().remove(&id);
+    }
+
+    #[test]
+    fn inactive_minifigures_regenerate() {
+        let player = Id32::new(crate::territory::CHARACTER_TYPE, 1_900_000_001);
+        let (a, b) = (41_757, 41_840);
+        set_active_minifigure(player, a, 1000, 0.0);
+        set_player_health(player, 100);
+        set_active_minifigure(player, b, 2000, 0.0);
+        set_player_health(player, 50);
+        set_smashed(player, 99);
+        assert_eq!(set_active_minifigure(player, a, 1000, 0.0), 100);
+        assert_eq!(player_health(player), Some(100));
+        PLAYERS.lock().unwrap().get_mut(&player).unwrap().health.insert(b, 50);
+        for _ in 0..3 {
+            regen_tick(&Default::default(), 0.05, 0.005);
+        }
+        let p = PLAYERS.lock().unwrap().remove(&player).unwrap();
+        // 5% of each one's own maximum a tick, out of combat
+        assert_eq!(p.health[&a], 100 + 3 * 50);
+        assert_eq!(p.health[&b], 50 + 3 * 100);
+        assert_eq!(p.health[&99], 0, "smashed stays down");
     }
 
     #[test]

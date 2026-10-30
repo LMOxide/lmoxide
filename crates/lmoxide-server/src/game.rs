@@ -1611,8 +1611,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 crate::chat::system(character, &line);
                             }
                         }
-                        crate::devcmd::Action::Hurt(percent) => {
+                        crate::devcmd::Action::Hurt(percent, all) => {
                             let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            if all {
+                                for &(_, t) in me.team.iter().skip(1) {
+                                    let max = crate::combat::max_life(t, me.upgrade(t), me.level());
+                                    crate::npc::set_inactive_health(id, t, max, (max as u64 * u64::from(percent) / 100).max(1) as u32);
+                                }
+                            }
                             let max = crate::npc::player_max_health(id);
                             let health = crate::npc::set_player_health(id, (max as u64 * u64::from(percent) / 100).max(1) as u32);
                             let blob = iir::pass_blob(&[int32_stat(id, STAT_HEALTH, health)]);

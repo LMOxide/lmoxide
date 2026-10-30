@@ -146,7 +146,8 @@ pub enum Action {
     /// the active minifigure's stats, procs and zone buffs (`!stats`)
     Stats,
     /// the active minifigure's health to this percent of its maximum (`!hurt`)
-    Hurt(u32),
+    /// Percent of the maximum; `true`: every equipped minifigure, not just the active one.
+    Hurt(u32, bool),
     /// the zone's element for the player (`!element`)
     Element(u32),
     /// obtain a minifigure (`None`: tell how many are owned)
@@ -203,7 +204,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!smash", "smash the nearest smashable (or defeat the nearest enemy) within 15 m"),
     ("!smashme", "smash the active minifigure (it rebuilds after the smash timer)"),
     ("!stats", "the active minifigure's upgrade procs, zone element buffs (Wrong Element, Elemental Affinity), damage/defence/build factors, smash timer, level cap and loot power"),
-    ("!hurt <percent>", "set the active minifigure's health to that share of its maximum (Second Wind, True Grit, Escape Artist below 21%; a potion at 5% or less: Close Call!)"),
+    ("!hurt <percent> [all]", "set the active minifigure's (all: every equipped one's) health to that share of its maximum (Second Wind, True Grit, Escape Artist below 21%; a potion at 5% or less: Close Call!)"),
     ("!element <0-5|name>", "play as if this zone had that element: 0 none, 1 light, 2 shadow, 3 tech, 4 magic, 5 nature (Wrong Element / Elemental Affinity)"),
     ("!revive", "every minifigure (team and collection) back to full health"),
     ("!own [name]", "obtain a minifigure (as from a bag); without a name: how many you own"),
@@ -883,8 +884,8 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         },
         "stats" => Action::Stats,
         "hurt" => match args.first().and_then(|n| n.trim_end_matches('%').parse::<u32>().ok()).filter(|n| (1..=100).contains(n)) {
-            Some(n) => Action::Hurt(n),
-            None => reply(vec!["usage: !hurt <1-100> (percent of the maximum health)".into()]),
+            Some(n) => Action::Hurt(n, args.get(1).is_some_and(|a| a.eq_ignore_ascii_case("all"))),
+            None => reply(vec!["usage: !hurt <1-100> [all] (percent of the maximum health)".into()]),
         },
         "element" => {
             let names = ["none", "light", "shadow", "tech", "magic", "nature"];
