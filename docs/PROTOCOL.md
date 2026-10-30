@@ -680,6 +680,12 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   icon), so LMOxide holds it (and the tags after it) until 300 ms after the spawn (knubot.rs
   `ACTIVE_ACTOR_WAIT`). It must go once: the conversation window clears its text on every
   `setactiveactor` (Conversation.swf `ConversationWindow.SlotActiveCinematicActorSet`).
+- **Portrait**: the conversation window shows the active actor's Icon stat (an NPC's
+  npc_stats `icon`, a Flash file id; a player: its active minifigure's icon); 0 gives the default
+  25278, the "DJ". Live sent icons for its story NPCs only (Video Game Guy 443659, Swashbuckler
+  443660, the jail cinematic's owner 509131, Zeus, Pilot, Monster Scientist); the client's NPC
+  templates (RDB 1000620, dynel type 30035) carry them as stat 79. Content: `render.icon`
+  (tools/content/npc_icons.py).
 - **remoteformat** `key` attributes: the client shows texts without them.
 - A dialogue sent while the client still loads a playfield is lost.
 - **Area quests** (quests.rs; LMO_Captures.cap, the client's writers `quests::operator<<`,

@@ -860,6 +860,11 @@ pub struct Render {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-client" = "npc_template"))]
     pub npc_template: Option<u32>,
+    /// Portrait in the conversation window (npc_stats.icon, a client Flash file, RDB 1000007):
+    /// the client NPC template's Icon stat (RDB 1000620 dynel type 30035); without one the
+    /// window shows the default portrait (25278, the DJ).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon: Option<u32>,
     /// Client item template (smashables, buildies, chests, ...).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-client" = "item"))]

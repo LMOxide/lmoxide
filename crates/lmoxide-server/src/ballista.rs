@@ -196,6 +196,7 @@ pub fn start() {
                     spell: 0,
                     cars_group: Some(5),
                     npc_template: None,
+                    icon: None,
                     reach: None,
                     stationary: false,
                     unarmed: false,

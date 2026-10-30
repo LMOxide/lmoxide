@@ -277,6 +277,9 @@ pub struct SpawnDef {
     /// NPC template id (npc_stats.template_id); defaults to the monsterdata.
     #[serde(default)]
     pub npc_template: Option<u32>,
+    /// Conversation portrait (npc_stats.icon); none: the client's default, the DJ.
+    #[serde(default)]
+    pub icon: Option<u32>,
     /// Enemies that never leave their spot (Crikey the Kraken in its water): they attack players
     /// this close instead of chasing them.
     #[serde(default)]
@@ -782,7 +785,7 @@ fn spec(def: &SpawnDef, playfield: Pf, pos: [f32; 3], health: u32) -> CharSpec<'
         health,
         max_health: def.health,
         cars_group: def.cars_group.unwrap_or(CARS_ENEMIES),
-        npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), ..Default::default() }),
+        npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), icon: def.icon, ..Default::default() }),
         speeds: speeds(def).into(),
     }
 }
@@ -1086,6 +1089,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         spell: def.spell,
         cars_group: Some(0),
         npc_template: None,
+        icon: None,
         reach: None,
         stationary: false,
         unarmed: false,
@@ -2443,6 +2447,7 @@ mod tests {
             spell: default_spell(),
             cars_group: None,
             npc_template: None,
+            icon: None,
             reach: None,
         stationary: false,
         unarmed: false,

@@ -65,6 +65,7 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         spell: spell.unwrap_or(crate::npc::DEFAULT_SPELL),
         cars_group: u(&render["cars_group"]),
         npc_template: u(&render["npc_template"]),
+        icon: u(&render["icon"]),
         reach: t["ai"]["reach"].as_f64().map(|r| r as f32),
         stationary: t["ai"]["stationary"].as_bool().unwrap_or(false),
         unarmed: t["ai"]["unarmed"].as_bool().unwrap_or(false),
@@ -271,6 +272,17 @@ mod tests {
         assert!(owners.values().flatten().all(|d| d.cinematic && d.kind == Kind::Npc && d.monster_data == INVISIBLE_LOOK && d.cars_group == Some(5)));
         // (not in the table the world editor and the tutorial read)
         assert!(table().values().flatten().all(|d| !d.cinematic && d.name != "Cinematic Start Oops"));
+    }
+
+    #[test]
+    fn conversation_portraits() {
+        // the speaker's portrait is its icon (else the client's default, the DJ): live's Video
+        // Game Guy and Swashbuckler had theirs, its Tavern Pirates none
+        let t = table();
+        let icon = |pf: &str, name: &str| t[pf].iter().find(|d| d.name == name).map(|d| d.icon);
+        assert_eq!(icon("1300", "Video Game Guy"), Some(Some(443_659)));
+        assert_eq!(icon("4200", "Swashbuckler"), Some(Some(443_660)));
+        assert!(t.values().flatten().filter(|d| d.name == "Tavern Pirate").all(|d| d.icon.is_none()));
     }
 
     #[test]
