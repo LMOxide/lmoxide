@@ -247,6 +247,37 @@ fn has_goal(c: &Character, hash: &str) -> bool {
     find_goal(hash).is_some_and(|(main, q, i, _)| current(c, main, q) == Some(i))
 }
 
+/// The story goals the content's objects refuse actions during (`refused`), that each online
+/// character has now: the NPC code checks hits against it (it has no Character).
+static GOALS_HELD: LazyLock<Mutex<HashMap<u32, Vec<String>>>> = LazyLock::new(Default::default);
+
+static REFUSAL_GOALS: LazyLock<Vec<String>> = LazyLock::new(|| {
+    let mut goals: Vec<String> = crate::gamedata::get().objects.values().flat_map(|o| o.refused.iter().map(|r| r.goal.clone())).collect();
+    goals.sort();
+    goals.dedup();
+    goals
+});
+
+/// Notes which of the refusals' goals the character has (after anything that changes its story,
+/// and at login).
+pub fn sync_goals(c: &Character, character: u32) {
+    let held: Vec<String> = REFUSAL_GOALS.iter().filter(|g| has_goal(c, g)).cloned().collect();
+    let mut all = GOALS_HELD.lock().unwrap();
+    if held.is_empty() {
+        all.remove(&character);
+    } else {
+        if all.get(&character) != Some(&held) {
+            info!(character, ?held, "story goals that refuse actions");
+        }
+        all.insert(character, held);
+    }
+}
+
+/// Whether the character has one of `goals` (a refusal's goals: the action is refused).
+pub fn holds_any(character: u32, goals: &[String]) -> bool {
+    !goals.is_empty() && GOALS_HELD.lock().unwrap().get(&character).is_some_and(|held| goals.iter().any(|g| held.contains(g)))
+}
+
 /// The step's place in the tracker's list (a countdown: the first step the highest).
 fn countdown(q: &Quest, step: usize) -> u32 {
     (q.steps.len() - 1 - step) as u32
@@ -374,6 +405,12 @@ fn progress(c: &mut Character, character: u32, place: Pf, hash: &str, amount: u3
 
 /// Counts `event` (a defeat) for the story goals the player is on that count it.
 pub fn on_event(c: &mut Character, character: u32, place: Pf, event: &crate::achievements::Event) -> Vec<Bytes> {
+    let records = on_event_inner(c, character, place, event);
+    sync_goals(c, character);
+    records
+}
+
+fn on_event_inner(c: &mut Character, character: u32, place: Pf, event: &crate::achievements::Event) -> Vec<Bytes> {
     // the rebuilt conversations after a boss (story_dialogues.py `start: boss`)
     if let crate::achievements::Event::Defeated { name, boss, champion, smashable: false, playfield, .. } = event {
         for id in crate::knubot::after_defeat(name, *boss, *champion, *playfield) {
@@ -451,6 +488,12 @@ fn journal_with(c: &Character, unlocked: bool) -> Vec<crate::teleport::JournalMa
 /// Test command: forgets the character's story (not migrated again: the lore flags stay); the
 /// lines leave the tracker.
 pub fn reset(c: &mut Character, character: u32) -> Vec<Bytes> {
+    let records = reset_inner(c, character);
+    sync_goals(c, character);
+    records
+}
+
+fn reset_inner(c: &mut Character, character: u32) -> Vec<Bytes> {
     let records = lines().filter(|(main, q)| current(c, *main, q).is_some()).map(|(main, _)| crate::quests::main_quest_removed(character, main)).collect();
     c.story.clear();
     c.story.insert("chain".into(), unix_now());
@@ -528,6 +571,12 @@ pub fn migrate(c: &mut Character) {
 /// Does `order` for the player (game.rs, with the character): the records for its client (the
 /// quest tracker).
 pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: Pf) -> Vec<Bytes> {
+    let records = handle_inner(order, c, player, name, place);
+    sync_goals(c, player.instance);
+    records
+}
+
+fn handle_inner(order: Order, c: &mut Character, player: Id32, name: &str, place: Pf) -> Vec<Bytes> {
     let character = player.instance;
     match order {
         Order::Cinematic(n) => cinematic(c, player, place, &n, false),
@@ -960,6 +1009,31 @@ mod tests {
         assert_eq!(names(&r).last().map(String::as_str), Some("MainQuestUpdateIIR_c"));
         assert_eq!(step_of(&c, 45), None);
         assert!(show(&c, player.instance, Pf::main(1200)).is_empty());
+    }
+
+    #[test]
+    fn goals_that_refuse_hits() {
+        // the client's quest-goal CARS rules (content objects `refused`): the tutorial's Crystal
+        // Compass while following Video Game Guy, the jail's cracked wall until Swashbuckler
+        let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 1300);
+        let player = Id32::new(50000, 0x0100_0f0f);
+        let (wall, compass) = (vec!["9AQ4".to_string()], vec!["YMQL".to_string()]);
+        sync_goals(&c, player.instance);
+        assert!(!holds_any(player.instance, &compass));
+        handle(Order::Spawn("S1M7".into()), &mut c, player, "t", Pf::main(1300));
+        assert!(holds_any(player.instance, &compass) && !holds_any(player.instance, &wall));
+        for hash in ["OOPN", "X7OF", "0JSA"] {
+            handle(Order::Goal { hash: hash.into(), requires: vec![] }, &mut c, player, "t", Pf::main(4600));
+        }
+        assert!(holds_any(player.instance, &wall) && !holds_any(player.instance, &compass));
+        // talking to him (text 126 `resolvegoal 9AQ4`): the wall can be smashed
+        handle(Order::Goal { hash: "9AQ4".into(), requires: vec![] }, &mut c, player, "t", Pf::main(4610));
+        assert!(!holds_any(player.instance, &wall));
+        assert!(!holds_any(player.instance, &[]));
+        // the wall's spawns carry the rule
+        let t = crate::spawns::table();
+        let walls: Vec<_> = t["4610"].iter().filter(|d| d.name == "XX_Cracked wall").collect();
+        assert!(!walls.is_empty() && walls.iter().all(|d| d.refused_hits == wall));
     }
 
     #[test]

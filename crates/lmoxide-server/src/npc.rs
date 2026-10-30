@@ -352,6 +352,10 @@ pub struct SpawnDef {
     /// Its movement speed stats (its template's `movement`); none: its kind's default.
     #[serde(default)]
     pub speeds: Option<Vec<(u32, f32)>>,
+    /// Story goals during which players can't hit it (its template's `refused` hits: the
+    /// client's quest-goal CARS rules).
+    #[serde(default)]
+    pub refused_hits: Vec<String>,
 }
 
 impl SpawnDef {
@@ -1161,6 +1165,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         requires: Vec::new(),
         cinematic: false,
         speeds: None,
+        refused_hits: Vec::new(),
     };
     let until = std::time::Instant::now() + Duration::from_secs(def.lifetime);
     info!(?owner, spell, pet = %spawn.name, "summon");
@@ -1197,6 +1202,12 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     let by_player = attacker.kind == crate::territory::CHARACTER_TYPE && !by_npc;
     let npc = npcs.get_mut(&target)?;
     if npc.presence.is_none() || npc.health == 0 || npc.def.kind == Kind::Pet || (npc.def.kind == Kind::Npc && !npc.def.fights()) {
+        return None;
+    }
+    // not while the player has a story goal its CARS rule names (the jail's cracked wall before
+    // talking to Swashbuckler); the client doesn't let them target it then, area hits included
+    if by_player && crate::story::holds_any(attacker.instance, &npc.def.refused_hits) {
+        info!(?attacker, ?target, goals = ?npc.def.refused_hits, "hit refused during a story goal");
         return None;
     }
     // friendly fighters are hurt only by enemies
@@ -2559,6 +2570,7 @@ mod tests {
             requires: Vec::new(),
             cinematic: false,
             speeds: None,
+            refused_hits: Vec::new(),
             kind: Kind::Enemy,
             template: 0,
             name: "Enemy".into(),

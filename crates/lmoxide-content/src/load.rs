@@ -441,6 +441,15 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             err(Severity::Error, Some(&merged[id].1), Some(id), format!("movement set {set:?} isn't in tunables npc.movement_sets"));
         }
     }
+    // objects' refusals name story goals
+    let goals: std::collections::HashSet<&str> = resolved.iter().filter(|(id, _)| id.starts_with("quest/")).flat_map(|(_, q)| q["steps"].as_array().into_iter().flatten()).flat_map(|s| s["goals"].as_array().into_iter().flatten()).filter_map(|g| g["hash"].as_str()).collect();
+    for (id, value) in resolved.iter().filter(|(id, _)| id.starts_with("object/")) {
+        for goal in value["refused"].as_array().into_iter().flatten().filter_map(|r| r["goal"].as_str()) {
+            if !goals.contains(goal) {
+                err(Severity::Error, Some(&merged[id].1), Some(id), format!("refused: goal {goal:?} isn't a quest goal's hash"));
+            }
+        }
+    }
     // the kinds each reference may name (the schemas' x-lmoxide-ref); spawn overrides by
     // their template's schema
     let walker = crate::schema::Walker::new();

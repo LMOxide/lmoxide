@@ -490,6 +490,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         // the world it is too early and has no effect.
                         let mut records = vec![iir::record("CharInPlayIIR_t", h.identity, false, |w| w)];
                         crate::story::migrate(&mut me);
+                        crate::story::sync_goals(&me, character);
                         records.push(crate::teleport::journal_record(h.identity, &crate::story::journal(&me)));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.item_state(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));

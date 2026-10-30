@@ -83,6 +83,13 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         count: s.count.max(1),
         spread: None,
         speeds: serde_json::from_value(t["movement"].clone()).ok().and_then(|m| crate::npc::movement_speeds(&m)),
+        refused_hits: t["refused"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter(|r| r["actions"].as_array().is_some_and(|a| a.iter().any(|a| a == "hit")))
+            .filter_map(|r| r["goal"].as_str().map(String::from))
+            .collect(),
     })
 }
 

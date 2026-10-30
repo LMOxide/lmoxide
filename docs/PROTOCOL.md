@@ -327,7 +327,14 @@ ScryShowMessageBox). LMOxide spawns the client data's door spawns within 5 m of 
   gamepad only) end in the same `ActionModeDefault_c::UseTarget(target,
   SimpleChar_t::GetDefaultCharacterAction(target))`: E takes the auto-aim target, a left click
   the object under the cursor (`MouseSelection_c::TraceObjects`: loot first, then characters,
-  simple dynels and destructibles; `CanSelect` refuses CarsGroup 5 unless GM). Action 6 (use:
+  simple dynels and destructibles; `CanSelect` refuses CarsGroup 5 unless GM). Quest-goal CARS
+  rules (RDB 1010505, merged copy; group type 3/13/33 HasQuestWithHash: value = goal hash, value2
+  = goal id) refuse actions on one template while the journal has the goal: the jail's cracked
+  wall 198247 everything during 228 "Talk to Swashbuckler" (9AQ4, rule 446247), the tutorial's
+  Crystal Compass 611816 everything during 330 "Follow the Video Game Guy" (YMQL, 611819), the
+  Grotto Throne 238278 use and friendly actions during 125 (PM25, 238282); 440470 (the wall
+  during 220) isn't in the merged copy, so the client never loads it. The client applies them
+  itself; the server refuses hits as well (content objects `refused`, npc.rs `hit`). Action 6 (use:
   simple dynels and destructibles passing the CARS USE rule, CarsGroup 1/2/4) enters
   ActionModeClickToUse (walk up, `DoUse`); 0xc (talk); 0x12/0x15 attack. A loot item
   (ClientLootBag 51340) gives 0x13 only when its parent bag (51322) **can be opened**:

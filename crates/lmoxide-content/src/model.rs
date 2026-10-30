@@ -1144,7 +1144,32 @@ record! {
         pub on_smashed: Vec<Action>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub client: Option<ObjectClient>,
+        /// What players can't do to it while they have a story goal (the client's quest-goal
+        /// CARS rules, RDB 1010505: the jail's cracked wall before talking to Swashbuckler).
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub refused: Vec<Refusal>,
     }
+}
+
+/// A quest-goal CARS rule: while a player has story goal `goal` (a quest goal's `hash`), these
+/// actions on the object are refused.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Refusal {
+    pub goal: String,
+    pub actions: Vec<RefusedAction>,
+    /// The client's rule group id (RDB 1010505; shown).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum RefusedAction {
+    /// Hostile actions: hitting or smashing it.
+    Hit,
+    /// Using it (friendly actions).
+    Use,
 }
 
 // ---------------------------------------------------------------------------------------------
