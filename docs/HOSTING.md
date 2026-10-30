@@ -261,9 +261,10 @@ The web UI's Discord invite button is set when it is built:
 <summary>Without Docker</summary>
 
 Each release has `lmoxide-<version>-x86_64-linux.tar.gz`: the binaries (`bin/`), `content/`,
-the Linux client overlay (`linux-overlay/`) and `lmoxide.example.toml`. It runs on Linux with
+the Linux client overlay (`linux-overlay/`), `reference/` and `lmoxide.example.toml`. It runs on Linux with
 glibc 2.36 or newer (Debian 12, Ubuntu 24.04). Set `LMOXIDE_CONTENT_DIR` to the `content/`
-folder, change the paths in the config (`data_dir`, the client folders, `linux-overlay-dir`) and
+folder and `LMOXIDE_REFERENCE_DIR` to `reference/` (the world editor's catalogs), change the paths in
+the config (`data_dir`, the client folders, `linux-overlay-dir`) and
 run `bin/lmoxide --config lmoxide.toml`. Put a reverse proxy in front as `docker/Caddyfile`
 does, and serve the web UI and dev UI from their release files.
 

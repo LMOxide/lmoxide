@@ -1,5 +1,5 @@
 # On a version tag (v1.2.3, the same as Cargo.toml's workspace version):
-# - lmoxide-1.2.3-x86_64-linux.tar.gz: every server binary, content/, the Linux client overlay and
+# - lmoxide-1.2.3-x86_64-linux.tar.gz: every server binary, content/, reference/, the Linux client overlay and
 #   docker/lmoxide.example.toml (built on Debian 12: glibc 2.36 or newer)
 # - the command-line patcher: lmoxide-patcher-1.2.3-linux, lmoxide-patcher-1.2.3-windows.exe
 #   (named as a patch server's --patcher-dir expects them, for `lmoxide-patcher self-update`) and

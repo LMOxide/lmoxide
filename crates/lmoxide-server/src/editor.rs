@@ -57,7 +57,11 @@ pub fn init(dir: &Path) {
                 warn!("content work copy {} isn't a git checkout: no unpublished changes or history", dir.display());
             }
             info!(dir = %dir.display(), records = work.records().count(), "content editing");
-            let reference = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data"));
+            // the client reference data for its catalogs (looks, effects, stats): data/ of this
+            // checkout, or LMOXIDE_REFERENCE_DIR where the binaries run without it (images, releases)
+            let reference = std::env::var_os("LMOXIDE_REFERENCE_DIR")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data")));
             *EDITOR.lock().unwrap() = Some(Editor { work, reference, problems: None });
         }
         Err(e) => warn!("content work copy {}: {e:#}; the world editor can't edit content", dir.display()),

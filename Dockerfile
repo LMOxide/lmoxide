@@ -28,6 +28,7 @@ FROM scratch AS dist
 COPY --from=build /out/bin/ /bin/
 COPY --from=build /out/linux-overlay/ /linux-overlay/
 COPY --from=build /src/content/ /content/
+COPY --from=build /src/data/monster_data.json /src/data/effect_catalog.json /src/data/stats.json /reference/
 COPY --from=build /src/docker/lmoxide.example.toml /src/README.md /
 
 # git: the world editor's content working copy is a git clone (docs/HOSTING.md)
@@ -41,8 +42,11 @@ RUN apt-get update \
 COPY --from=build /out/bin/ /usr/local/bin/
 COPY --from=build /out/linux-overlay/ /usr/local/share/lmoxide/linux-overlay/
 COPY --from=build /src/content/ /usr/local/share/lmoxide/content/
+# the world editor's catalogs (looks, effect packages, stats)
+COPY --from=build /src/data/monster_data.json /src/data/effect_catalog.json /src/data/stats.json /usr/local/share/lmoxide/reference/
 USER lmoxide
 WORKDIR /data
-ENV LMOXIDE_DATA_DIR=/data LMOXIDE_CONTENT_DIR=/usr/local/share/lmoxide/content RUST_LOG=info
+ENV LMOXIDE_DATA_DIR=/data LMOXIDE_CONTENT_DIR=/usr/local/share/lmoxide/content \
+    LMOXIDE_REFERENCE_DIR=/usr/local/share/lmoxide/reference RUST_LOG=info
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["lmoxide", "--config", "/etc/lmoxide/lmoxide.toml"]
