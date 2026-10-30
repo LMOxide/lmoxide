@@ -229,8 +229,13 @@ mod tests {
         let monsters = monster_spells();
         // spells added since: the Space Merc Engineer's bomb ring (made up: skill/merc-engineer-bomb-ring)
         const ADDED: [(u32, u32); 1] = [(388_444, 374_158)];
+        // the Witch Doctor's knife (XX_Stab) instead of the guessed Magic Potion (the user)
+        const REPLACED: [(u32, &[u32]); 1] = [(201_479, &[194_198])];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
+            if let Some((_, spells)) = REPLACED.iter().find(|(md, _)| k == &md.to_string()) {
+                want = spells.to_vec();
+            }
             want.extend(ADDED.iter().filter(|(md, _)| k == &md.to_string()).map(|(_, s)| *s));
             assert_eq!(monsters.get(&k.parse::<u32>().unwrap()), Some(&want), "monster {k}");
         }
