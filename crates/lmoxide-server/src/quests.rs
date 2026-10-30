@@ -559,7 +559,7 @@ pub(crate) fn full_update(character: u32, l: &Line, step: usize, progress: u32, 
         let w = w.u32(0);
         // its goals
         let w = s.goals.iter().fold(w.u32(s.goals.len() as u32), |w, g| {
-            let counted = g.counts.is_some() && s.goals.iter().find(|x| x.counts.is_some()).is_some_and(|x| x.goal == g.goal);
+            let counted = g.is_counted() && s.goals.iter().find(|x| x.is_counted()).is_some_and(|x| x.goal == g.goal);
             let solved = if counted { (progress * g.step()).min(g.bar_max()) } else { 0 };
             let w = w.u32(1).u32(g.kind.client_type()).u32(character).u32(s.quest).u32(g.goal).u32(1).u32(0).u32(g.bar_max()).u32(solved);
             let w = (0..3).fold(w, |w, _| w.u32(0).u32(0));

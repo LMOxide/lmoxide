@@ -42,6 +42,7 @@
 //!   !story advance [line]     complete the current step of a story line (default: the first)
 //!   !story goal|beat|dialogue|seen <arg>   resolve a goal, run a beat, start a dialogue, or play
 //!                             a cinematic as its trigger would
+//!   !story progress <hash> [n]  count n toward a counted story goal (the Dino pieces: GBWD)
 //!   !mirrors <solve|reset>    turn this playfield's Medusa mirrors to the solution or the start
 //!   !keygate <open|reset>     open the Underworld's front gate as its pedestal does, or put it
 //!                             (and the collapsing floor) back
@@ -232,6 +233,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!story [reset]", "the story: cinematics seen, story lines started, goals resolved; reset: forget them (the lore flags stay)"),
     ("!story quest <line> <step>", "put a story line (pirate, medieval, space, mythology, dino or its main quest id) at step <step> (1: its first; 0: not started; past the last: done) and show it in the tracker"),
     ("!story advance [line]", "complete the current step of a story line (default: the first one running), as its goal resolving would"),
+    ("!story progress <hash> [n]", "count n (default 1) toward a counted story goal the player is on, as a reward script does (the Dino pieces: !story progress GBWD)"),
     ("!story goal <hash>|beat <text>|dialogue <id>|seen <cinematic>", "resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once)"),
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!keygate <open|reset>", "open the Underworld's front gate as its pedestal does (crystal, light, gate), or put it and the collapsing floor back"),
@@ -816,6 +818,10 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                     found => Action::Story(Some(Order::Advance(found.flatten())), false),
                 },
                 (Some("spawn"), Some(h)) => Action::Story(Some(Order::Spawn(h.to_ascii_uppercase())), false),
+                (Some("progress"), Some(h)) => {
+                    let amount = args.get(2).and_then(|n| n.parse::<u32>().ok()).unwrap_or(1).min(1000);
+                    Action::Story(Some(Order::Progress { hash: h.to_ascii_uppercase(), amount, wait: false }), false)
+                }
                 (Some("beat"), Some(t)) if t.parse::<u32>().is_ok() => Action::Story(Some(Order::Beat { text: t.parse().unwrap_or(0), requires: Vec::new() }), false),
                 (Some("dialogue"), Some(d)) => {
                     let id = if d.starts_with("dialogue/") { d.to_string() } else { format!("dialogue/{d}") };
@@ -825,7 +831,7 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                     Some(name) => Action::Story(Some(Order::Cinematic(name)), false),
                     None => reply(vec![format!("no cinematic \"{c}\"")]),
                 },
-                _ => reply(vec!["usage: !story [reset] | quest <line> <step> | advance [line] | goal <hash> | spawn <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
+                _ => reply(vec!["usage: !story [reset] | quest <line> <step> | advance [line] | goal <hash> | progress <hash> [n] | spawn <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
             }
         }
         "ach" | "achievements" => Action::Achievements,

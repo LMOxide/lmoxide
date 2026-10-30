@@ -2094,6 +2094,13 @@ pub struct QuestGoal {
 }
 
 impl QuestGoal {
+    /// Whether the goal has a progress bar the tracker fills: it counts something the server
+    /// sees (`counts`), or it needs more than one of something other code adds (the Dino
+    /// story's elemental pieces, counted by the area quests' reward scripts).
+    pub fn is_counted(&self) -> bool {
+        self.counts.is_some() || self.count > 1
+    }
+
     /// The progress bar's maximum.
     pub fn bar_max(&self) -> u32 {
         self.max.unwrap_or(self.count).max(1)

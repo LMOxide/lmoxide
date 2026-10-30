@@ -291,9 +291,11 @@ fn view(q: &'static Quest, main: u32, place: Pf) -> crate::quests::Line<'static>
     crate::quests::Line { quest: q, main, playfield: home, region: [place.model(), super_region] }
 }
 
-/// Counted toward the step's counted goal.
+/// Counted toward the step's counted goal (one the server counts, or one other code counts:
+/// the Dino story's elemental pieces, from the area quests' reward scripts), so the tracker
+/// shows it again after a login or an arrival.
 fn counted(c: &Character, q: &Quest, step: usize) -> u32 {
-    q.steps[step].goals.iter().find(|g| g.counts.is_some()).and_then(|g| g.hash.as_ref()).and_then(|h| c.story.get(&format!("count/{h}"))).map_or(0, |&n| n as u32)
+    q.steps[step].goals.iter().find(|g| g.is_counted()).and_then(|g| g.hash.as_ref()).and_then(|h| c.story.get(&format!("count/{h}"))).map_or(0, |&n| n as u32)
 }
 
 /// Whether the client's journal holds main quest `main` (an entry added before).
@@ -946,6 +948,12 @@ mod tests {
             handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: false }, &mut c, player, "t", at);
         }
         assert!(!resolved(&c, "GBWD"));
+        // a login or arrival shows the pieces found so far (the bar has no `counts`: the area
+        // quests' reward scripts count it; user: the pieces reset on logging out)
+        let (q, on) = (line(122).unwrap(), step_of(&c, 122).unwrap());
+        assert_eq!(counted(&c, q, on), 3);
+        let l = view(q, 122, at);
+        assert_ne!(crate::quests::full_update(7, &l, on, 3, false), crate::quests::full_update(7, &l, on, 0, false));
         let r = handle(Order::Progress { hash: "GBWD".into(), amount: 1, wait: false }, &mut c, player, "t", at);
         assert!(resolved(&c, "GBWD"));
         assert_eq!(names(&r), ["QuestGoalIIR", "QuestIIR_c", "JournalUpdateIIR", "QuestIIR_c", "QuestFullUpdateIIR"]);

@@ -578,6 +578,11 @@
       "label": "jailwall",
       "about": "next to the jail's cracked wall (4610): with the story at Talk to Swashbuckler (!story quest pirate 5) every hit on it is refused, area hits too (the client's quest-goal rule 446247; log \"hit refused during a story goal\"); after !story goal 9AQ4 (or talking to him) it smashes",
       "goto": { "kind": "smashable", "name": "XX_Cracked wall" }
+    },
+    {
+      "label": "dinocamp",
+      "about": "Dino Tracker's camp in Dinosaur Rise (6200). Pieces: !story quest dino 5 (Gather elemental puzzle pieces), !story progress GBWD 2, then relog or !goto away and back: the tracker still shows 2 of 4 (it showed 0). Talk: !story progress GBWD 2 resolves it; step out and back into the camp: \"You have all the pieces already?\" plays with one Dino Tracker (the Dinosaur Wrangler on Cine_DinoTrackerSpawn1 hides while his actor is on stage)",
+      "goto": { "playfield": 6200, "pos": [198.33, 70.12, 180.03] }
     }
   ]
 }

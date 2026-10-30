@@ -562,21 +562,29 @@ pub fn nearest(name: &str, playfield: Pf, at: [f32; 3], radius: f32) -> Option<I
         .map(|(id, _)| id)
 }
 
-/// An NPC the content placed on cinematic marker `anchor` (its spawn's `anchor`) whose name fits
-/// `alias` (a dialogue's actor: `Wizard`, `Jester` for the Court Jester or The Jester, `Knight2`),
-/// on `playfield`: friendly NPCs and the bosses placed where a conversation shows them before
-/// their fight (5300's Jester, 5310's Elementius, 4210's Dreadleg, 6300's T-Rex).
+/// An NPC the content placed on cinematic marker `anchor` (its spawn's `anchor`) that plays
+/// `alias` (fits_actor), on `playfield`: friendly NPCs and the bosses placed where a
+/// conversation shows them before their fight (5300's Jester, 5310's Elementius, 4210's
+/// Dreadleg, 6300's T-Rex).
 pub fn on_anchor(playfield: Pf, anchor: &str, alias: &str) -> Option<Id32> {
-    let squash = |s: &str| s.chars().filter(|c| c.is_ascii_alphabetic()).collect::<String>().to_ascii_lowercase();
-    let alias = squash(alias);
     let npcs = NPCS.lock().unwrap();
     npcs.iter()
         .find(|(_, n)| {
-            let name = squash(&n.def.name);
             n.playfield == playfield && n.def.kind != Kind::Smashable && n.presence.is_some() && n.def.anchor.as_deref() == Some(anchor)
-                && !alias.is_empty() && (name.contains(&alias) || alias.contains(&name))
+                && fits_actor(&n.def.name, anchor, alias)
         })
         .map(|(id, _)| *id)
+}
+
+/// Whether an NPC named `name` on marker `anchor` is a dialogue's actor `alias`: its name fits
+/// (`Wizard`, `Jester` for the Court Jester or The Jester, `Knight2`), or its marker is named
+/// for the actor (the client's actor markers, whose NPCs have other names: the Dinosaur
+/// Wrangler on `Cine_DinoTrackerSpawn1` is `DinoTracker`, the Paleontologist on
+/// `Cine_Adventurer1` is `Adventurer1`; user: two Dino Trackers in the camp's talk).
+fn fits_actor(name: &str, anchor: &str, alias: &str) -> bool {
+    let squash = |s: &str| s.chars().filter(|c| c.is_ascii_alphabetic()).collect::<String>().to_ascii_lowercase();
+    let (name, alias) = (squash(name), squash(alias));
+    !alias.is_empty() && (name.contains(&alias) || alias.contains(&name) || squash(anchor).contains(&alias))
 }
 
 /// The NPCs of copy `playfield` a player without some of their spawn's `requires` tags doesn't
@@ -2557,6 +2565,16 @@ pub fn remove_test_enemy(id: Id32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn actors_on_their_markers() {
+        assert!(fits_actor("Dinosaur Wrangler", "Cine_DinoTrackerSpawn1", "DinoTracker"));
+        assert!(fits_actor("Paleontologist", "Cine_Adventurer1", "Adventurer1"));
+        assert!(fits_actor("Court Jester", "Cine_Jester1", "Jester"));
+        assert!(fits_actor("Swashbuckler", "Cine_CampSwashbuckler1", "Swashbuckler"));
+        assert!(!fits_actor("Dinosaur Wrangler", "Cine_DinoTrackerSpawn1", "Swashbuckler"));
+        assert!(!fits_actor("Paleontologist", "Cine_Adventurer1", "DinoTracker"));
+    }
 
     #[test]
     fn smash_attack_result_matches_recording() {
