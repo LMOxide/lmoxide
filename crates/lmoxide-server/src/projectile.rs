@@ -69,9 +69,10 @@ const HIT_GRACE: Duration = Duration::from_millis(300);
 const END_GRACE: Duration = Duration::from_millis(300);
 /// A HitPosition this close to the last bounce point (m) is the bounce's own.
 const BOUNCE_SAME_POINT: f32 = 1.0;
-/// A bounced shot's client-reported hit counts when the target is this close to where the
-/// client saw it (m).
-const BOUNCED_HIT_SLACK: f32 = 3.0;
+/// A straight shot's client-reported hit counts when the target is this close to where the
+/// client saw it (m): the client draws moving enemies a little off from where the server has
+/// them, and its shot hits what it draws.
+const CLIENT_HIT_SLACK: f32 = 3.0;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Params {
@@ -878,8 +879,9 @@ fn full_update_turned(
 }
 
 /// A `CoreProjectileIIR` from the caster's client (`blob` is the whole record, `rest` its body).
-/// Relayed to the others, except a straight shot's hits (the server decides those, `fly`); the
-/// end of a straight shot's flight (it hit a wall) stops it there, a lobbed one lands.
+/// Relayed to the others, except a straight shot's hits (the server's flight decides those, `fly`,
+/// and takes the client's word for one its flight missed); the end of a straight shot's flight
+/// (it hit a wall) stops it there, a lobbed one lands.
 pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
     let u = |i: usize| rest.get(i..i + 4).map(|b| u32::from_be_bytes(b.try_into().unwrap()));
     let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
@@ -918,16 +920,21 @@ pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
                 debug!(?id, ?at, ?dir, "projectile ricochet");
             }
         }
-        // HitTarget of a shot that bounced: the client's word, if the server's flight missed it
-        // (the bounce point and direction are the client's, the server's only approximate)
+        // HitTarget of a straight shot: the client's word, if the server's flight missed it (the
+        // client hit the enemy where it drew it, a little off from the server's: the user saw
+        // Revolutionary Soldier shots hit and do nothing; a bounce point and direction are the
+        // client's, the server's only approximate), when the enemy is near where the client hit
+        // it and that is within the shot's range
         (1, Some(true)) => {
             let (Some(tk), Some(ti)) = (u(12), u(16)) else { return };
             let target = Id32::new(tk, ti);
             let at = [20, 24, 28].map(|i| f(i).unwrap_or(0.0));
-            let bounced = LIVE.lock().unwrap().get(&id).is_some_and(|l| l.bounced_at.is_some() && !l.hit.contains(&target));
-            let near = crate::npc::position(target).is_some_and(|p| horizontal(p, at) < BOUNCED_HIT_SLACK);
-            if bounced && near && crate::npc::is_enemy(target) {
-                let p = crate::npc::position(target).unwrap_or(at);
+            let in_range = LIVE.lock().unwrap().get(&id).is_some_and(|l| {
+                !l.hit.contains(&target) && l.flight.is_some_and(|f| horizontal(f.start, at) <= f.range + f.reach + CLIENT_HIT_SLACK)
+            });
+            let Some(p) = crate::npc::position(target) else { return };
+            if in_range && horizontal(p, at) < CLIENT_HIT_SLACK && crate::npc::is_enemy(target) {
+                debug!(?id, ?target, off = horizontal(p, at), "projectile hit reported by the client");
                 strike(id, target, p);
             }
         }
