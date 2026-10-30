@@ -659,7 +659,7 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   50002 dialogue texts, 50001 answers, 50300–50304 quest name/task/description/solved/goal,
   51000 NPC names (`tools/re/tdc.py`). A 50002 text is the server's script: `{tag}`s
   (changeguivisibility, movecameratoactor, movecameratopos, setactiveactor, moveactortopos,
-  startfxpackageonactor, addcinematicactor, clearcinematic, delay, spawn <quest>, resolvegoal
+  startfxpackageonactor, stopfxpackageonactor, addcinematicactor, clearcinematic, delay, spawn <quest>, resolvegoal
   <goal>, addtagtoplayer, teleportplayer[nosplash] `x z y <height> [r <deg>] [playfield]`,
   gameactiononnpc …) and `[Speaker]` lines.
 - **Records** (header = the player; Knubot base = u16 1, ID32 npc): OpenChatWindow (u8 flags);
@@ -667,7 +667,11 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   n × remoteformat); C>S Answer (u32 index); CloseChatWindow (u32 1, remoteformat 100/0);
   KnubotActorIIR / SpawnClientNPCIIR (record flag 1; u32 length + protobuf, proto/).
 - **Running a text**: words before the first tag → AppendText antitag 0; then per tag: do it,
-  AppendText antitag = tags done. `delay` is a real wait. Before Open: KnubotActor type 6 for
+  AppendText antitag = tags done (the client cuts the text at its tags; antitag N shows segment
+  N alone: Conversation.swf clears the window first, so each AppendText replaces the text).
+  `startfxpackageonactor` / `stopfxpackageonactor <alias> <pkg>` are KnubotActor type 3 / 11
+  (StartEffectPackage / StopEffectPackage: version 1, alias, effect_package; type 11 recorded 3×
+  in LMO_Captures.cap). `delay` is a real wait. Before Open: KnubotActor type 6 for
   `playerActor` and `knubotOwnerActor`. After a text: AnswerList [next text's line (the 50001
   answer with the same wording), Goodbye (50001/0)]; an answerless next text is the epilogue
   on goodbye; ClearCinematicState before Close.

@@ -51,7 +51,7 @@ test commands may type `!story reset` too; a GM's `!story reset` is the test com
 | `!areas [radius]` | the content areas within radius m (default 20): role, category, the triggers on them, whether you stand inside; walls and whether they block now |
 | `!wall <open\|close> <name>` | switch this playfield's walls whose name or id contains `<name>` off (open) or on, in this copy until it empties (NPC paths, server-wall push-back) |
 | `!goto <kind> [n]` | go next to target n (default 1), e.g. `!goto buildie 2` |
-| `!dialog [n\|text]` | play NPC dialogue n, or the one whose first text is `text` (`!dialog 283`: the Jester; the rebuilt story conversations too); without n: list them |
+| `!dialog [n\|text]` | play NPC dialogue n, or the one whose first text is `text` (`!dialog 283`: the Jester; the rebuilt story conversations too); without n: list them. `!dialog 749` (in the tutorial, 1300; answer Dreadleg's first line): his talk emote stops at "Har, har, har" (text 752, `stopfxpackageonactor`, as live) |
 | `!script [list]` | this playfield's approved, active scripts (world editor) with their waves, triggers, placements and what is running (`!goto script n` goes to one) |
 | `!script start <script> [wave]` | start a script (name, part of it, id or number from the list) at a wave (name, id or number; default its first), as a trigger wall does; while it runs, naming a waiting wave starts that wave (`!script start ufo 2`) |
 | `!script stop [script]` | end this playfield's running scripts (or that one); their spawns go |

@@ -2,8 +2,10 @@
 //! ReadSubClass layouts). The texts are the client's TDB category 50002 (content texts.json,
 //! tools/re/extract_dialogues.py); their `{tags}` are the server's script: for each tag in
 //! order the server does it (a cinematic actor record, a spawn, a real delay) and then sends
-//! the text again with `antitag` = the number of tags done, so the client shows the words up
-//! to there. Text before the first tag goes out first with antitag 0. After a text the player
+//! the text again with `antitag` = the number of tags done. The client cuts a text at its tags
+//! into segments, and `antitag="N"` shows segment N alone: Conversation.swf clears the window
+//! and puts that segment in (each record replaces the window's text, it does not add to it).
+//! Text before the first tag goes out first with antitag 0. After a text the player
 //! gets the answers: the next text's line (50001, the answer whose wording is that line) and
 //! "Goodbye"; a following text without a line of its own is the epilogue run on goodbye.
 //!
@@ -541,6 +543,8 @@ async fn run_text(s: &Speaker, id: u32, send: &(dyn Fn(Vec<Bytes>) + Sync)) -> b
             ["startfxpackageonactor", a, package, ..] => {
                 records.push(actor(s.player, KnubotActorMessage { effect_package: package.parse().ok(), ..msg(Kind::StartEffectPackage, a) }));
             }
+            // (the looping emotes and talk animations an earlier tag started)
+            ["stopfxpackageonactor", a, package, ..] => records.push(stop_fx(s.player, a, package)),
             ["clearcinematic", ..] => {
                 records.push(actor(s.player, msg(Kind::ClearCinematicState, "")));
                 cleared = true;
@@ -632,6 +636,12 @@ fn zero() -> ProtoVec3 {
 
 fn id_proto(id: Id32) -> lmoxide_net::proto::ProtoId32 {
     lmoxide_net::proto::ProtoId32 { r#type: Some(id.kind), instance: Some(id.instance) }
+}
+
+/// `stopfxpackageonactor <alias> <package>`: StopEffectPackage with the package and the alias,
+/// as the live server sent it (3 times in the capture).
+fn stop_fx(player: Id32, alias: &str, package: &str) -> Bytes {
+    actor(player, KnubotActorMessage { effect_package: package.parse().ok(), ..msg(Kind::StopEffectPackage, alias) })
 }
 
 /// `KnubotActorIIR` (record flag 1): u32 length + KnubotActorMessage.
@@ -838,6 +848,17 @@ mod tests {
         assert_eq!(active_actor_times(598, "Hades").await, [ACTIVE_ACTOR_WAIT]);
         // 812: the owner, not spawned by the text: at once
         assert_eq!(active_actor_times(812, "knubotOwnerActor").await, [ms(0)]);
+    }
+
+    #[test]
+    fn stop_fx_matches_live_capture() {
+        // LMO_Captures.cap at 303.79 s, text 223: {stopfxpackageonactor knubotOwnerActor 239915}
+        // (the PassBlob's record after its u32 length 0x2b)
+        let live = "e856cd720000c350010ab3af010000001a0801100b1a106b6e75626f744f776e65724163746f7220abd20e";
+        let player = Id32::new(50000, 0x010a_b3af);
+        let hex: String = stop_fx(player, "knubotOwnerActor", "239915").iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex, live);
+        assert!(tags(&DATA.texts["223"]).iter().any(|t| t == "stopfxpackageonactor knubotOwnerActor 239915"));
     }
 
     #[test]
