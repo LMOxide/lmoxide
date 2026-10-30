@@ -339,8 +339,9 @@ mod tests {
         for (pf, v) in d["destinations"].as_object().unwrap() {
             check(format!("destination {pf}"), v, DESTINATIONS["destinations"].get(pf));
         }
-        // the worlds whose portals were surveyed since (Monkey Cave's exit after the boss)
-        const SURVEYED_PORTALS: [&str; 1] = ["1643"];
+        // the worlds whose portals were surveyed since (Monkey Cave's exit after the boss) or added
+        // (the Kingdom's pocket adventure entrances: the user found them doing nothing)
+        const SURVEYED_PORTALS: [&str; 2] = ["1643", "5200"];
         for (pf, list) in d["portals"].as_object().unwrap().iter().filter(|(pf, _)| !SURVEYED_PORTALS.contains(&pf.as_str())) {
             // (the old list had exact duplicates)
             let mut old: Vec<Value> = list.as_array().unwrap().clone();
