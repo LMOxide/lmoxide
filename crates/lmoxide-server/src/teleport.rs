@@ -60,6 +60,22 @@ struct Portal {
     opens_after: Option<String>,
     /// The door players click (world_data.rs `portal_door`).
     door: Option<Door>,
+    /// Its glow once open (content `glow`).
+    #[serde(default)]
+    glow: Option<Glow>,
+}
+
+/// A portal's glow: `particle` looping on an invisible dynel at each marker.
+#[derive(Debug, Clone, Deserialize)]
+struct Glow {
+    particle: u32,
+    at: Vec<GlowSpot>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct GlowSpot {
+    pos: [f32; 3],
+    rot: [f32; 4],
 }
 
 /// Where a portal leads: the playfield, its teleport window (0: none) and the exact spot, if
@@ -83,19 +99,77 @@ impl Portal {
 
 /// The enemies defeated in each copy that open portals (`opens_after`).
 static OPENED: LazyLock<Mutex<HashSet<(Pf, String)>>> = LazyLock::new(Default::default);
+/// Those defeated whose portals are about to open (`OPEN_DELAY`).
+static OPENING: LazyLock<Mutex<HashSet<(Pf, String)>>> = LazyLock::new(Default::default);
 
-/// An enemy named `name` was defeated in copy `pf`: the portals it opens open, their doors
-/// appear.
+/// How long after the enemy falls its portals open. Live Monkey Cave (LMO_Captures.cap): Monkey
+/// Kong fell at frame 65558 (his loot bag 65563); the exit's glow started (frames 65674, 65693)
+/// and its door became usable (65675) 7.3 s later, as his body faded (65666).
+const OPEN_DELAY: std::time::Duration = std::time::Duration::from_millis(7300);
+
+/// An enemy named `name` was defeated in copy `pf`: after `OPEN_DELAY` the portals it opens
+/// open, their doors appear and their glows start.
 pub fn defeated(pf: Pf, name: &str) {
     let Some(portals) = DATA.portals.get(&pf.model().to_string()) else { return };
-    let opens: Vec<&Portal> = portals.iter().filter(|p| p.opens_after.as_deref() == Some(name)).collect();
-    if opens.is_empty() || !OPENED.lock().unwrap().insert((pf, name.to_string())) {
+    if !portals.iter().any(|p| p.opens_after.as_deref() == Some(name)) {
+        return;
+    }
+    let key = (pf, name.to_string());
+    if OPENED.lock().unwrap().contains(&key) || !OPENING.lock().unwrap().insert(key.clone()) {
+        return;
+    }
+    tokio::spawn(async move {
+        tokio::time::sleep(OPEN_DELAY).await;
+        // (the copy may have closed meanwhile)
+        if OPENING.lock().unwrap().remove(&key) {
+            open(pf, &key.1);
+        }
+    });
+}
+
+fn open(pf: Pf, name: &str) {
+    let Some(portals) = DATA.portals.get(&pf.model().to_string()) else { return };
+    if !OPENED.lock().unwrap().insert((pf, name.to_string())) {
         return;
     }
     tracing::info!(playfield = ?pf, defeated = name, "portal opened");
-    let doors: Vec<Door> = opens.iter().filter_map(|p| p.door.clone()).collect();
-    let presences: Vec<world::Presence> = doors.into_iter().map(|d| join_door(d, pf)).collect();
+    let mut presences = Vec::new();
+    for (i, p) in portals.iter().enumerate().filter(|(_, p)| p.opens_after.as_deref() == Some(name)) {
+        presences.extend(p.door.clone().map(|d| join_door(d, pf)));
+        presences.extend(join_glow(p, i, pf));
+    }
     DOORS.lock().unwrap().entry(pf).or_default().extend(presences);
+}
+
+/// Instances of the portals' glow dynels: `GLOW_INSTANCES` + 16 x the portal's index in its
+/// world + the marker's (clear of scenery.rs's puzzle ranges).
+const GLOW_INSTANCES: u32 = 0x00c4_0000;
+
+fn glow_id(pf: Pf, portal: usize, spot: usize) -> Id32 {
+    Id32::new(crate::scenery::SIMPLE_DYNEL_TYPE, crate::instance::fixture(pf, GLOW_INSTANCES + 16 * portal as u32 + spot as u32))
+}
+
+/// A portal's glow: an invisible dynel at each marker with the particle looping, as live started
+/// it on its XX_Invisible markers (`SimpleDynelVisualChangeIIR_c` state 0, attractor 35).
+fn join_glow(p: &Portal, portal: usize, pf: Pf) -> Vec<world::Presence> {
+    let Some(glow) = &p.glow else { return Vec::new() };
+    glow.at
+        .iter()
+        .enumerate()
+        .map(|(i, spot)| {
+            let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
+            tokio::spawn(async move { while inbox.recv().await.is_some() {} });
+            let id = glow_id(pf, portal, i);
+            let (pos, rot, particle) = (spot.pos, spot.rot, glow.particle);
+            world::join(id, pf, std::sync::Arc::new(Mutex::new(pos)), move || glow_records(id, pf, pos, rot, particle), outbox)
+        })
+        .collect()
+}
+
+fn glow_records(id: Id32, pf: Pf, pos: [f32; 3], rot: [f32; 4], particle: u32) -> Vec<Bytes> {
+    let mut records = crate::scenery::invisible_records(id, pf, pos, rot);
+    records.push(iir::record("SimpleDynelVisualChangeIIR_c", id, false, |w| w.u32(0).u32(particle).i32(35).f32(0.0).f32(0.0).f32(0.0).f32(0.0)));
+    records
 }
 
 /// A portal's door: an invisible `empty_monsterdata_1x1x1` (the client data's door spawns).
@@ -201,6 +275,12 @@ pub fn start() {
 /// Puts the portals' doors of copy `pf` in (worlds.rs).
 pub fn spawn_world(pf: Pf) {
     let mut presences = Vec::new();
+    // portals open from the start glow from the start
+    for (i, p) in DATA.portals.get(&pf.model().to_string()).into_iter().flatten().enumerate() {
+        if p.opens_after.is_none() {
+            presences.extend(join_glow(p, i, pf));
+        }
+    }
     // (the tutorial shows its compass per player, tutorial.rs; the world editor all of them)
     let editor = crate::instance::mode_of(pf).rules().editor;
     for d in DOORS_OF
@@ -228,6 +308,7 @@ pub fn despawn_world(pf: Pf) {
     let gone = DOORS.lock().unwrap().remove(&pf);
     drop(gone);
     OPENED.lock().unwrap().retain(|(p, _)| *p != pf);
+    OPENING.lock().unwrap().retain(|(p, _)| *p != pf);
 }
 
 /// The spawn records of portal door `guid` in copy `pf` (for one player: the tutorial's
@@ -515,6 +596,25 @@ mod tests {
         let (guid, _) = DATA.portals["4200"].iter().find(|p| p.to == 1640).and_then(|p| p.door.as_ref()).map(|d| (d.guid, ())).expect("door to 1640");
         let d = DOORS_OF[&4200].iter().find(|d| d.guid == guid).unwrap();
         assert!(crate::conn::hex(&door_records(d, Pf::main(4200))[1]).ends_with("00000004"));
+    }
+
+    #[test]
+    fn monkey_cave_exit_glows() {
+        // live: particle 462841 on the two exit particle markers (LMO_Captures.cap)
+        let (i, portal) = DATA.portals["1643"].iter().enumerate().find(|(_, p)| p.opens_after.as_deref() == Some("Monkey Kong")).expect("exit");
+        let glow = portal.glow.as_ref().expect("glow");
+        assert_eq!(glow.particle, 462841);
+        assert_eq!(glow.at.len(), 2);
+        assert!((glow.at[0].pos[0] - 344.63).abs() < 0.01 && (glow.at[1].pos[2] - 283.92).abs() < 0.01);
+        // the particle record as live's (frame 65674): state 0, the particle, attractor 35, zeros
+        let pf = Pf::main(1643);
+        let id = glow_id(pf, i, 0);
+        let records = glow_records(id, pf, glow.at[0].pos, glow.at[0].rot, glow.particle);
+        let hex = crate::conn::hex(records.last().unwrap());
+        assert!(hex.ends_with(&("00000000".to_string() + "00070ff9" + "00000023" + &"00".repeat(16))), "{hex}");
+        assert_eq!(iir::type_id("SimpleDynelVisualChangeIIR_c"), 0xe7f4_f8f8);
+        // glow dynels leave the copy byte free
+        assert!(crate::instance::fixture_base(glow_id(pf, 15, 15).instance) == GLOW_INSTANCES + 255);
     }
 
     #[test]

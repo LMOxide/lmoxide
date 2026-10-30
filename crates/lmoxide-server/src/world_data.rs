@@ -86,13 +86,28 @@ fn portal_door(doors: &[&Spawn], pos: [f32; 3]) -> Option<Value> {
     let d = |s: &&&Spawn| s.pos.iter().zip(pos).map(|(a, b)| (a - b).powi(2)).sum::<f32>().sqrt();
     let s = doors.iter().filter(|s| d(s) <= PORTAL_DOOR_RANGE).min_by(|a, b| d(a).total_cmp(&d(b)))?;
     let c = s.client.as_ref()?;
-    let rot = match s.rot.unwrap_or_default() {
-        lmoxide_content::Rot::Quat(q) => q,
-        lmoxide_content::Rot::Heading(h) => [0.0, (h / 2.0).sin(), 0.0, (h / 2.0).cos()],
-    };
+    let rot = quat(s.rot.unwrap_or_default());
     Some(json!({
         "guid": c.guid?, "name": s.name, "pos": s.pos, "rot": rot, "scale": s.scale, "visual": c.visual?,
     }))
+}
+
+/// A portal's glow (`particle`, and `at`: the pos and rot of each marker spawn).
+fn portal_glow(c: &Content, g: &lmoxide_content::PortalGlow) -> Value {
+    let at: Vec<Value> = g
+        .at
+        .iter()
+        .filter_map(|r| c.spawns.get(r))
+        .map(|s| json!({ "pos": s.pos, "rot": quat(s.rot.unwrap_or_default()) }))
+        .collect();
+    json!({ "particle": g.particle, "at": at })
+}
+
+fn quat(rot: lmoxide_content::Rot) -> [f32; 4] {
+    match rot {
+        lmoxide_content::Rot::Quat(q) => q,
+        lmoxide_content::Rot::Heading(h) => [0.0, (h / 2.0).sin(), 0.0, (h / 2.0).cos()],
+    }
 }
 
 /// Teleport destinations (`destinations`: name, guid, pos, rot, window) and portals (`portals`:
@@ -124,6 +139,9 @@ pub static DESTINATIONS: LazyLock<Value> = LazyLock::new(|| {
                 let mut v = json!({ "to": to, "pos": p.pos, "window": p.window.unwrap_or(0), "at": p.to.pos, "opens_after": p.opens_after });
                 if let Some(d) = portal_door(&doors, p.pos) {
                     v["door"] = d;
+                }
+                if let Some(g) = &p.glow {
+                    v["glow"] = portal_glow(c, g);
                 }
                 Some(v)
             })

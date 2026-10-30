@@ -344,7 +344,23 @@ record! {
         /// defeated in that copy of the world: a dungeon's exit after its boss.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub opens_after: Option<String>,
+        /// Its glow once it opens (with `opens_after`; else always).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub glow: Option<PortalGlow>,
     }
+}
+
+/// A portal's glow: a looping particle on each of its marker spawns, as live started it on the
+/// dungeon exits' invisible markers when the boss fell (Monkey Cave: 462841
+/// `particle_entrance_trials_tavern` on "exit particle 1" and "2").
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct PortalGlow {
+    /// The particle (client particle resource id, RDB 1010207).
+    pub particle: u32,
+    /// The spawns it shows on (markers in the same world).
+    #[schemars(extend("x-lmoxide-ref" = ["spawn"]))]
+    pub at: Vec<Ref>,
 }
 
 record! {
