@@ -5,6 +5,27 @@ use serde::Serialize;
 
 use crate::{Db, Error, Result, now};
 
+/// A character name: 1 to 3 words of at most 32 characters each, without control characters.
+/// Returns it with its words separated by single spaces.
+pub fn validate_character_name(name: &str) -> Result<String> {
+    let words: Vec<&str> = name.split_whitespace().collect();
+    let ok = (1..=3).contains(&words.len())
+        && words.iter().all(|w| w.chars().count() <= 32 && !w.chars().any(char::is_control));
+    if ok {
+        Ok(words.join(" "))
+    } else {
+        Err(Error::Invalid("character names are 1-3 words of up to 32 characters".into()))
+    }
+}
+
+/// The name triggers of migration 0016 refuse a name another account's character has.
+fn name_taken(e: rusqlite::Error) -> Error {
+    match &e {
+        rusqlite::Error::SqliteFailure(_, Some(msg)) if msg.contains("character name taken") => Error::NameTaken,
+        _ => e.into(),
+    }
+}
+
 /// A saved character, as the game server keeps it.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Character {
@@ -250,7 +271,8 @@ impl Db {
                 c.mode,
                 f64::from(c.speed)
             ],
-        )?;
+        )
+        .map_err(name_taken)?;
         tx.execute("DELETE FROM character_team WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_upgrades WHERE character_id = ?1", [id])?;
         tx.execute("DELETE FROM character_tokens WHERE character_id = ?1", [id])?;
@@ -376,6 +398,25 @@ impl Db {
     /// database: all its characters are world editors). Returns how many changed.
     pub fn set_all_character_modes(&self, mode: &str) -> Result<usize> {
         Ok(self.conn().execute("UPDATE characters SET mode = ?1 WHERE mode <> ?1", [mode])?)
+    }
+
+    /// Renames a character (checked with [`validate_character_name`]); [`Error::NameTaken`] if
+    /// another account's character has the name. Returns the name as stored.
+    pub fn rename_character(&self, id: u32, name: &str) -> Result<String> {
+        let name = validate_character_name(name)?;
+        let n = self.conn().execute("UPDATE characters SET name = ?2 WHERE id = ?1", params![id, name]).map_err(name_taken)?;
+        if n == 0 { Err(Error::NotFound("character")) } else { Ok(name) }
+    }
+
+    /// Whether `account_id` may give one of its characters this name (no other account's
+    /// character has it).
+    pub fn character_name_free(&self, account_id: u32, name: &str) -> Result<bool> {
+        let used: i64 = self.conn().query_row(
+            "SELECT count(*) FROM characters WHERE name = ?1 COLLATE NOCASE AND account_id <> ?2",
+            params![name, account_id],
+            |r| r.get(0),
+        )?;
+        Ok(used == 0)
     }
 
     pub fn character_name(&self, id: u32) -> Result<Option<String>> {
@@ -519,5 +560,62 @@ mod tests {
 
         db.delete_account(a.id).unwrap();
         assert!(db.load_character(a.id).unwrap().is_none());
+    }
+
+    /// Names belong to one account (case-insensitive); its own characters may share one.
+    #[test]
+    fn character_names_unique_per_account() {
+        let db = Db::open_in_memory().unwrap();
+        let a = db.create_account("alice", None, 0).unwrap();
+        let b = db.create_account("bob", None, 0).unwrap();
+        let c = Character { name: "Fantastic Sparky Burrito".into(), ..crate::characters::tests::blank() };
+        db.save_character(a.id, a.id, &c).unwrap();
+        // the same account's character in another mode
+        let a2 = db.new_character_id().unwrap();
+        db.save_character(a2, a.id, &Character { mode: "world-editor".into(), ..c.clone() }).unwrap();
+        // another account: refused when made, renamed or saved
+        assert!(matches!(db.save_character(b.id, b.id, &Character { name: "fantastic SPARKY burrito".into(), ..c.clone() }), Err(Error::NameTaken)));
+        db.save_character(b.id, b.id, &Character { name: "Bob".into(), ..c.clone() }).unwrap();
+        assert!(matches!(db.rename_character(b.id, "Fantastic  Sparky Burrito"), Err(Error::NameTaken)));
+        assert!(!db.character_name_free(b.id, "FANTASTIC Sparky Burrito").unwrap());
+        assert!(db.character_name_free(a.id, "Fantastic Sparky Burrito").unwrap());
+        assert_eq!(db.rename_character(b.id, "  Grumpy   Axe ").unwrap(), "Grumpy Axe");
+        assert_eq!(db.character_name(b.id).unwrap().as_deref(), Some("Grumpy Axe"));
+        // saving with the name unchanged keeps working
+        db.save_character(a.id, a.id, &c).unwrap();
+        // characters on the creation screen have no name yet, and any number may have none
+        db.save_character(db.new_character_id().unwrap(), b.id, &Character { name: String::new(), ..c.clone() }).unwrap();
+        db.save_character(db.new_character_id().unwrap(), a.id, &Character { name: String::new(), ..c.clone() }).unwrap();
+        assert!(matches!(db.rename_character(b.id, ""), Err(Error::Invalid(_))));
+        assert!(matches!(db.rename_character(b.id, "One Two Three Four"), Err(Error::Invalid(_))));
+        assert!(matches!(db.rename_character(b.id, &"x".repeat(33)), Err(Error::Invalid(_))));
+        assert!(matches!(db.rename_character(12345, "Nobody"), Err(Error::NotFound(_))));
+    }
+
+    pub(crate) fn blank() -> Character {
+        Character {
+            name: String::new(),
+            mode: "maxed".into(),
+            playfield: 1200,
+            pos: [0.0; 3],
+            team: Vec::new(),
+            stars: 0,
+            upgrades: Default::default(),
+            tokens: Default::default(),
+            xp: 0,
+            level: 1,
+            minifigure_levels: Default::default(),
+            purchased_upgrades: Default::default(),
+            tags: Default::default(),
+            counters: Default::default(),
+            defeats: Default::default(),
+            visits: Default::default(),
+            finds: Default::default(),
+            smashed: Default::default(),
+            collection: None,
+            quests: Default::default(),
+            story: Default::default(),
+            speed: 1.0,
+        }
     }
 }

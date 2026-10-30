@@ -23,6 +23,8 @@ pub struct Account {
     pub ban: Option<Ban>,
     /// The linked Discord user id (a snowflake as decimal text).
     pub discord_id: Option<String>,
+    /// Unix time the account last changed its own username (`None`: never).
+    pub username_changed_at: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -40,7 +42,7 @@ impl Account {
 }
 
 pub(crate) const COLUMNS: &str =
-    "id, username, password_hash IS NOT NULL, gm_level, created_at, last_login_at, last_login_ip, banned, ban_until, ban_reason, discord_id";
+    "id, username, password_hash IS NOT NULL, gm_level, created_at, last_login_at, last_login_ip, banned, ban_until, ban_reason, discord_id, username_changed_at";
 
 pub(crate) fn account(r: &Row) -> rusqlite::Result<Account> {
     let banned: bool = r.get(7)?;
@@ -54,6 +56,7 @@ pub(crate) fn account(r: &Row) -> rusqlite::Result<Account> {
         last_login_ip: r.get(6)?,
         ban: banned.then(|| Ok::<_, rusqlite::Error>(Ban { until: r.get(8)?, reason: r.get(9)? })).transpose()?,
         discord_id: r.get(10)?,
+        username_changed_at: r.get(11)?,
     })
 }
 
@@ -220,6 +223,12 @@ impl Db {
             }
             r => r,
         }
+    }
+
+    /// The account renames itself: [`Db::rename_account`], and the time for the cooldown.
+    pub fn rename_own_account(&self, id: u32, username: &str) -> Result<()> {
+        self.rename_account(id, username)?;
+        self.update_account("username_changed_at = ?2", params![id, now()])
     }
 
     pub fn record_login(&self, id: u32, ip: &str) -> Result<()> {

@@ -22,7 +22,7 @@ use serde::Serialize;
 pub use accounts::{Account, Ban};
 pub use api::{ApiKey, Scope, SessionInfo};
 pub use discord::{CodePurpose, DiscordLink, validate_discord_id};
-pub use characters::{Character, CharacterSummary, Defeat, QuestState, Visit};
+pub use characters::{Character, CharacterSummary, Defeat, QuestState, Visit, validate_character_name};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -37,6 +37,9 @@ pub enum Error {
     Conflict(String),
     #[error("username already taken")]
     UsernameTaken,
+    /// Another account has a character with this name.
+    #[error("character name already taken")]
+    NameTaken,
     #[error("password hashing failed")]
     Hash,
     #[error("io: {0}")]
@@ -63,6 +66,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0013_character_name_order.sql"),
     include_str!("../migrations/0014_discord.sql"),
     include_str!("../migrations/0015_access_levels.sql"),
+    include_str!("../migrations/0016_character_names.sql"),
 ];
 
 pub struct Db {
@@ -285,5 +289,35 @@ mod tests {
         let db = Db::init(conn).unwrap();
         let got: Vec<String> = (0..names.len()).map(|i| db.character_name(1_000_000_100 + i as u32).unwrap().unwrap()).collect();
         assert_eq!(got, ["Fantastic Sparky Burrito", "Maximum Grumpy Axe", "alice", "Two Words", "One Two Three Four", "Trailing Space "]);
+    }
+
+    /// Migration 0016: characters on the creation screen lose their placeholder name; names two
+    /// accounts share stop it.
+    #[test]
+    fn character_names_migration() {
+        let setup = |names: &[(u32, &str, u32)]| {
+            let mut conn = Connection::open_in_memory().unwrap();
+            for (i, sql) in MIGRATIONS[..15].iter().enumerate() {
+                conn.execute_batch(sql).unwrap();
+                conn.pragma_update(None, "user_version", (i + 1) as i64).unwrap();
+            }
+            let tx = conn.transaction().unwrap();
+            for a in [1_000_000_001u32, 1_000_000_002] {
+                tx.execute("INSERT INTO accounts (id, username, created_at) VALUES (?1, ?1, 0)", [a]).unwrap();
+            }
+            for (i, &(account, name, playfield)) in names.iter().enumerate() {
+                tx.execute(
+                    "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, created_at, saved_at) VALUES (?1, ?2, ?3, ?4, 0, 0, 0, 0, 0)",
+                    params![1_000_000_100 + i as u32, account, name, playfield],
+                )
+                .unwrap();
+            }
+            tx.commit().unwrap();
+            conn
+        };
+        let db = Db::init(setup(&[(1_000_000_001, "tester", 1200), (1_000_000_001, "tester", 4400), (1_000_000_002, "tester", 4000)])).unwrap();
+        let got: Vec<String> = (0..3).map(|i| db.character_name(1_000_000_100 + i).unwrap().unwrap()).collect();
+        assert_eq!(got, ["tester", "tester", ""]);
+        assert!(Db::init(setup(&[(1_000_000_001, "tester", 1200), (1_000_000_002, "Tester", 1200)])).is_err());
     }
 }
