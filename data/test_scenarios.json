@@ -578,6 +578,21 @@
       "label": "jailwall",
       "about": "next to the jail's cracked wall (4610): with the story at Talk to Swashbuckler (!story quest pirate 5) every hit on it is refused, area hits too (the client's quest-goal rule 446247; log \"hit refused during a story goal\"); after !story goal 9AQ4 (or talking to him) it smashes",
       "goto": { "kind": "smashable", "name": "XX_Cracked wall" }
+    },
+    {
+      "label": "rings",
+      "about": "a boss and champions around you: Bull the Armsmaster (forced tech champion: the tech ground circle 586166) and Gargantuan (champion by health: the generic champion ring 581634) wear theirs from the spawn; Totemus Maximus (boss) puts on the bosses' ring 161771 when he engages and takes it off 5 s after he has nobody to fight (log \"boss ring on\"); every ring comes off when its wearer is defeated",
+      "spawn": [
+        { "name": "Totemus Maximus", "count": 1 },
+        { "name": "Bull the Armsmaster ", "count": 1 },
+        { "name": "Gargantuan", "count": 1 }
+      ]
+    },
+    {
+      "label": "bees",
+      "about": "Bumblebee Girl with 4 Pirate Corsairs: Plan Bee's swarm (221524) keeps stinging x0.25 every 0.5 s for its 2 s (4 hits of spell 221524 in the log after each shot that lands); Honey Pot renews the swarm on enemies already swarmed",
+      "team": ["Bumblebee Girl"],
+      "spawn": [{ "name": "Pirate Corsair", "count": 4 }]
     }
   ]
 }

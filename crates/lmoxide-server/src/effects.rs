@@ -23,6 +23,19 @@ pub fn buff_add_counter(target: Id32, buff: u32, caster: Id32, counter: u32, dur
     })
 }
 
+/// `MagicBuffIIR_c` add of a buff an NPC wears by itself (the champions' and bosses' rings), as
+/// live sent the bosses' 161771: no caster, the second u8 0, GameActionExecutorData (1, 0, buff,
+/// 0, 0, 0, 0) and the NPC's level as the casting level (byte-checked against the live capture
+/// but for the end time, which is 0 here as in `buff_add`). Removed with `buff_remove` and a
+/// zero caster.
+pub fn npc_buff_add(target: Id32, buff: u32, duration_cs: i32, level: u32) -> Bytes {
+    iir::record("MagicBuffIIR_c", target, false, |w| {
+        let w = Id32::default().write(w.u32(buff).u8(0)).u32(0).u32(0).i32(duration_cs).u8(0).u8(0);
+        let w = [1, 0, buff, 0, 0, 0, 0].iter().fold(w, |w, v| w.u32(*v));
+        w.u32(level).u64(0)
+    })
+}
+
 /// `MagicBuffIIR_c` mode 2 (update, ReadSubClass 0x139fdcc -> CoreMagicHolder::UpdateBuff): u32
 /// buff, u8 2, ID32 caster, u32 counter, u32 counter type, u32 time left (centiseconds), u32
 /// casting level, u32 (passed on to UpdateBuff). Used for buff counters (AddBuffCounter).
@@ -138,6 +151,11 @@ pub fn forget_buff(target: Id32, buff: u32) {
     SHOWN.lock().unwrap().remove(&(target, buff));
 }
 
+/// Whether `buff` is shown on `target` (`show_buff`, until it ends or is forgotten).
+pub fn has_buff(target: Id32, buff: u32) -> bool {
+    SHOWN.lock().unwrap().contains_key(&(target, buff))
+}
+
 /// Forgets every buff shown on `target` (it left).
 pub fn forget_buffs(target: Id32) {
     SHOWN.lock().unwrap().retain(|(t, _), _| *t != target);
@@ -197,4 +215,22 @@ pub fn stop_effect_package(owner: Id32, package: u32, spell: u32, instance: u32)
 pub fn new_instance() -> u32 {
     static NEXT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
     NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Totemus Maximus (0xd69fc, level 4) getting the bosses' ring 161771 in the live capture
+    /// (S->C :7106, record 25457); only the end time (the last 8 bytes) isn't reproduced.
+    #[test]
+    fn npc_ring_as_live() {
+        let live = "6b87e3160000c350000d69fc00000277eb00000000000000000000000000000000000000170c00000000000100000000000277eb000000000000000000000000000000000000000400000000de37c108";
+        let ours = npc_buff_add(Id32::new(50_000, 0xd69fc), 161_771, 5900, 4);
+        let hex: String = ours.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(hex.len(), live.len());
+        assert_eq!(hex[..hex.len() - 16], live[..live.len() - 16]);
+        let removed: String = buff_remove(Id32::new(50_000, 0xd69fc), 161_771, Id32::default()).iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(removed, "6b87e3160000c350000d69fc00000277eb01000000000000000000");
+    }
 }
