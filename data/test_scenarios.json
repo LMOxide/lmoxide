@@ -401,7 +401,7 @@
     },
     {
       "label": "monsters",
-      "about": "one each of 8 enemies with generic spells (npc_spells.json `generic`): Skeleton Archer arrows, Pirate Grenadier grenades, Harpy feathers, Hound bite, Troll Heavy Hitter area smash, Spider venom, Islander Witch Doctor potions, Treant smash",
+      "about": "one each of 8 enemies with generic spells (npc_spells.json `generic`): Skeleton Archer arrows, Pirate Grenadier bombs, Harpy feathers, Hound bite, Troll Heavy Hitter area smash, Spider venom, Islander Witch Doctor potions, Treant smash",
       "spawn": [
         {
           "name": "Skeleton Archer",
@@ -583,6 +583,21 @@
       "label": "dinocamp",
       "about": "Dino Tracker's camp in Dinosaur Rise (6200). Pieces: !story quest dino 5 (Gather elemental puzzle pieces), !story progress GBWD 2, then relog or !goto away and back: the tracker still shows 2 of 4 (it showed 0). Talk: !story progress GBWD 2 resolves it; step out and back into the camp: \"You have all the pieces already?\" plays with one Dino Tracker (the Dinosaur Wrangler on Cine_DinoTrackerSpawn1 hides while his actor is on stage)",
       "goto": { "playfield": 6200, "pos": [198.33, 70.12, 180.03] }
+    },
+    {
+      "label": "jailwarden",
+      "about": "in the jail (4610) in front of the Jail Warden (live: level 2, 337 life, a boss bag) and his two Musketeers; the gate behind him can't be walked through until he falls, then it plays its open motion and its wall goes (log \"gate opens: its boss fell\"); the To Freedom portal is past it",
+      "goto": { "playfield": 4610, "pos": [240.0, 14.03, 290.0] }
+    },
+    {
+      "label": "grenadiers",
+      "about": "two Pirate Grenadiers: they lob the pirate_grenadier_bomb (XX_Bomb 190796, item 190832), whose fuse burns 2 s on the ground before it blows up in a cross (191106), and slash up close",
+      "spawn": [
+        {
+          "name": "Pirate Grenadier",
+          "count": 2
+        }
+      ]
     }
   ]
 }

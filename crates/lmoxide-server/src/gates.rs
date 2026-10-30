@@ -11,13 +11,14 @@
 //!   (mirrors.rs).
 //! - The Underworld's front gate (`underworld_gate_a_myth_interactable`, keygate.rs): the
 //!   pedestal's crystal opens it.
+//! - Boss gates (`BOSS_GATES`): the jail's gate behind the Jail Warden opens when he falls.
 //!
 //! Other gates stay open scenery (scenery.rs). Built mirrors stay built until the server
 //! restarts, as the other buildies.
 
 use crate::instance::Pf;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     sync::{Arc, LazyLock, Mutex},
 };
 
@@ -45,6 +46,12 @@ const MIRROR_LOOK: u32 = 489796;
 const EXIT_DISTANCE: f32 = 3.0;
 /// Instances of the beam dynels (clear of mirrors.rs's).
 const BEAM_INSTANCES: u32 = 0x00c1_0000;
+/// Gates an enemy holds shut: (playfield, gate guid, the enemy whose defeat opens it). The live
+/// capture's jail (4610): when the Jail Warden fell, the server played the gate's (576082) open
+/// motion (`OPEN`) and cleared the collision of its "door 1 collision" piece (576750); live put
+/// fx_generic_shield_5x3_a (351981) there, this server the gate walls' `SHIELD_COLLISION` (as
+/// every gate's wall piece here).
+const BOSS_GATES: [(u32, u32, &str); 1] = [(4610, 576_082, "Jail Warden")];
 
 #[derive(Deserialize)]
 struct Spot {
@@ -138,6 +145,24 @@ pub fn wall_blocks(pf: Pf, guid: u32) -> Option<bool> {
     gate_open(pf, gate).map(|open| !open)
 }
 
+/// The boss gates opened in each copy (copy, gate), until the copy is dropped.
+static OPENED: LazyLock<Mutex<HashSet<(Pf, u32)>>> = LazyLock::new(Default::default);
+
+/// Whether the enemy named `name` holds a gate shut on `playfield` (ambushes don't copy him).
+pub fn holds_gate(playfield: Pf, name: &str) -> bool {
+    BOSS_GATES.iter().any(|g| g.0 == playfield.model() && g.2 == name)
+}
+
+/// An enemy named `name` was defeated in copy `pf` (npc.rs): the gates it held open.
+pub fn defeated(pf: Pf, name: &str) {
+    for &(_, gate, _) in BOSS_GATES.iter().filter(|g| g.0 == pf.model() && g.2 == name) {
+        if OPENED.lock().unwrap().insert((pf, gate)) {
+            info!(playfield = ?pf, gate, boss = name, "gate opens: its boss fell");
+            send_state(pf, gate, true);
+        }
+    }
+}
+
 /// Mirror buildie -> (copy, gate, spot, beam dynel).
 static MIRRORS: LazyLock<Mutex<HashMap<Id32, (Pf, u32, &'static Spot, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static PRESENCES: LazyLock<Mutex<HashMap<Pf, Vec<world::Presence>>>> = LazyLock::new(Default::default);
@@ -175,8 +200,10 @@ pub fn spawn_world(pf: Pf) {
     }
 }
 
-/// Takes copy `pf`'s beams out (its buildies go with the copy's, buildie.rs).
+/// Takes copy `pf`'s beams out (its buildies go with the copy's, buildie.rs) and shuts its boss
+/// gates again.
 pub fn despawn_world(pf: Pf) {
+    OPENED.lock().unwrap().retain(|(p, _)| *p != pf);
     MIRRORS.lock().unwrap().retain(|_, m| m.0 != pf);
     let gone = PRESENCES.lock().unwrap().remove(&pf);
     drop(gone);
@@ -220,6 +247,9 @@ fn gate_open(pf: Pf, guid: u32) -> Option<bool> {
     }
     if let Some(open) = crate::mirrors::gate_open(pf, guid) {
         return Some(open);
+    }
+    if BOSS_GATES.iter().any(|g| g.0 == pf.model() && g.1 == guid) {
+        return Some(OPENED.lock().unwrap().contains(&(pf, guid)));
     }
     if let Some(&exit) = EXIT_GATES.get(&guid) {
         return Some(crate::encounter::door_hidden(pf, exit) == Some(true));
@@ -278,8 +308,24 @@ mod tests {
     fn gates_have_their_walls() {
         // Medusa's Lair's four gates and the Gauntlet's five
         // and the Underworld's
-        for gate in [476102, 474105, 476024, 474103, 506181, 506102, 517927, 516809, 517465, crate::keygate::GATE] {
+        // and the jail's (behind the Jail Warden)
+        for gate in [476102, 474105, 476024, 474103, 506181, 506102, 517927, 516809, 517465, crate::keygate::GATE, 576_082] {
             assert!(WALLS.values().any(|g| *g == gate), "gate {gate} has no wall piece");
         }
+    }
+
+    #[test]
+    fn jail_gate_opens_when_the_warden_falls() {
+        let pf = Pf::main(4610);
+        let wall = WALLS.iter().find(|(_, g)| **g == 576_082).map(|(w, _)| *w).expect("jail gate wall");
+        assert_eq!(wall, 576_750);
+        assert!(blocks(pf, 576_082));
+        assert_eq!(wall_blocks(pf, wall), Some(true));
+        OPENED.lock().unwrap().insert((pf, 576_082));
+        assert!(!blocks(pf, 576_082));
+        assert_eq!(wall_blocks(pf, wall), Some(false));
+        assert_eq!(pose_records(pf, 576_082).len(), 1);
+        despawn_world(pf);
+        assert!(blocks(pf, 576_082));
     }
 }

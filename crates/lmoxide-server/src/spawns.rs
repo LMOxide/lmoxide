@@ -358,17 +358,21 @@ mod tests {
         assert_eq!(own_loot(c, Kind::Smashable, Some("loot/smashable")), None);
         assert_eq!(own_loot(c, Kind::Enemy, Some("loot/boss")).as_deref(), Some("loot/boss"));
         // so far every template has its kind's usual table but the smashable chests and cages
-        // (live: always an orb and 4-5 stars)
-        assert!(table().values().flatten().all(|d| d.loot.is_none() || d.loot.as_deref() == Some("loot/smashable-chest")));
+        // (live: always an orb and 4-5 stars) and the Jail Warden (live: a boss bag, at a regular
+        // enemy's rank)
+        assert!(table().values().flatten().all(|d| d.loot.is_none()
+            || d.loot.as_deref() == Some("loot/smashable-chest")
+            || (d.name == "Jail Warden" && d.loot.as_deref() == Some("loot/boss"))));
         assert!(table().values().flatten().any(|d| d.loot.as_deref() == Some("loot/smashable-chest")));
     }
 
     /// The story bosses placed since (docs/TUNABLES.md "Story bosses"): (playfield, old or new name).
-    const STORY_BOSSES: [(&str, &str); 8] = [
+    const STORY_BOSSES: [(&str, &str); 9] = [
         ("2320", "Hades"),
         ("4300", "Captain Pete"),
         ("4310", "Captain Blackheart"),
         ("4310", "Captain Dreadleg"),
+        ("4610", "Jail Warden"),
         ("5300", "The Jester"),
         ("5310", "Evil Sorcerer"),
         ("5310", "Pieromancer Elementius"),

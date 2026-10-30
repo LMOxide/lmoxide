@@ -695,7 +695,8 @@ pub fn regulars_near(playfield: Pf, at: [f32; 2], radius: f32, n: usize) -> Vec<
         .values()
         .filter(|x| x.playfield == playfield && x.def.kind == Kind::Enemy && x.temporary.is_none() && !x.once && x.owner.is_none())
         .map(|x| &x.def)
-        .filter(|d| rank_of(d) < CHAMPION_RANK && (d.pos[0] - at[0]).hypot(d.pos[2] - at[1]) <= radius)
+        // (not one who holds a gate shut, gates.rs: the Jail Warden is a boss of regular life)
+        .filter(|d| rank_of(d) < CHAMPION_RANK && !crate::gates::holds_gate(playfield, &d.name) && (d.pos[0] - at[0]).hypot(d.pos[2] - at[1]) <= radius)
         .collect();
     v.sort_by(|a, b| (a.pos[0] - at[0]).hypot(a.pos[2] - at[1]).total_cmp(&(b.pos[0] - at[0]).hypot(b.pos[2] - at[1])));
     let mut out: Vec<SpawnDef> = Vec::new();
@@ -1305,12 +1306,19 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             world::send_to(attacker, world::Out::Progress(event));
         }
         // a dungeon's exit opens after its boss (teleport.rs `opens_after`; not under NPCS: the
-        // door joins the world)
+        // door joins the world), and a gate a boss holds (gates.rs: the jail's Warden)
         if kind == Kind::Enemy
             && let Ok(rt) = tokio::runtime::Handle::try_current()
         {
             let (pf, name) = (npc.playfield, npc.def.name.clone());
-            rt.spawn(async move { crate::teleport::defeated(pf, &name) });
+            // (only the world's own: not an ambush's or a test's copy of him)
+            let resident = npc.temporary.is_none() && !npc.once && npc.owner.is_none();
+            rt.spawn(async move {
+                crate::teleport::defeated(pf, &name);
+                if resident {
+                    crate::gates::defeated(pf, &name);
+                }
+            });
         }
         remove_dead(npcs, target);
     }

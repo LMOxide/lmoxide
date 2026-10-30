@@ -100,7 +100,9 @@ GENERIC = [
     (r"skeleton_axe", [196247, 319341]),  # XX_Wild Swing, XX_Smash
     (r"skeleton_ancient_attacker", [319786]),  # XX_Strike
     (r"pirate_swashbuckler", [194140]),  # XX_Slash
-    (r"pirate_grenadier", [238116, 238115]),  # XX_Grenade Throw, XX_Slash
+    # XX_Bomb throws the pirate_grenadier_bomb (item 190832, effect 202159); XX_Grenade Throw 238116
+    # guessed before lobs item 238118, which looks like the Pirate Medic's heal bottle (the user)
+    (r"pirate_grenadier", [190796, 238115]),  # XX_Bomb, XX_Slash
     # the live capture's Hunters (201477) cast only XX_Bolas and XX_Stab; XX_Dart was the Scouts'
     (r"pirate_islander_hunter", [194199, 194198]),  # XX_Bolas, XX_Stab
     # his tiki totem is tunables enemy_abilities.totems; the lobbed XX_Magic Potion 95237 guessed
