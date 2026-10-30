@@ -3,7 +3,11 @@ RDB index, and the loose files in the client's Data/ folder.
 
   tools/re/py rdb_sqlite.py [--client DIR] [--out FILE] [--no-names]
 
+  tools/re/py rdb_sqlite.py --text [--out FILE]    text-only copy of an existing full database
+
 Default output: dist/lmo-client.sqlite (Dropbox- and git-ignored: the data is copyrighted).
+--text writes dist/lmo-client-text.sqlite from it: the same tables and rows without rdb_body,
+BLOB columns (file and field bytes, undecoded/trailing bytes) and checksums.
 Nothing is dropped: every resource's body is in `rdb_body`, whether or not we know its format.
 Decoded tables are extra views of the same bytes, in the client's own layout and field order.
 
@@ -687,12 +691,73 @@ def names(db, log):
         log(f"names of {rid}: {len(rows)}")
 
 
+SLIM_DROP_COLUMNS = {"md5", "index_md5", "md5_ok"}
+
+
+def slim(full, out):
+    """Copy `full` without bodies, BLOB columns and checksums, keeping keys, foreign keys, indexes, views."""
+    if os.path.exists(out):
+        os.unlink(out)
+    db = sqlite3.connect(out)
+    db.executescript("PRAGMA journal_mode = OFF; PRAGMA synchronous = OFF;")
+    db.execute("ATTACH DATABASE ? AS f", (full,))
+    q = lambda n: '"' + n + '"'
+    tables = [r[0] for r in db.execute("SELECT name FROM f.sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY rowid")]
+    kept = {}
+    for t in tables:
+        if t == "rdb_body":
+            continue
+        info = db.execute(f"PRAGMA f.table_info({q(t)})").fetchall()  # cid, name, type, notnull, default, pk
+        cols = [c for c in info if c[2].upper() != "BLOB" and c[1] not in SLIM_DROP_COLUMNS]
+        names = {c[1] for c in cols}
+        kept[t] = names
+        defs = [f"{q(c[1])} {c[2]}".rstrip() for c in cols]
+        pk = [c[1] for c in sorted(info, key=lambda c: c[5]) if c[5]]
+        if pk and set(pk) <= names:
+            defs.append(f"PRIMARY KEY ({', '.join(map(q, pk))})")
+        fks = {}
+        for _id, _seq, table, frm, to, *_ in db.execute(f"PRAGMA f.foreign_key_list({q(t)})"):
+            fks.setdefault(_id, []).append((table, frm, to))
+        for parts in fks.values():
+            table = parts[0][0]
+            if table == "rdb_body" or not all(frm in names for _, frm, _ in parts):
+                continue
+            defs.append(f"FOREIGN KEY ({', '.join(q(f) for _, f, _ in parts)}) REFERENCES {q(table)}"
+                        f"({', '.join(q(x) for _, _, x in parts)})")
+        db.execute(f"CREATE TABLE {q(t)} ({', '.join(defs)})")
+        sel = ", ".join(q(c[1]) for c in cols)
+        db.execute(f"INSERT INTO {q(t)} SELECT {sel} FROM f.{q(t)}")
+    db.execute("UPDATE table_doc SET description = description || ' (Text-only copy: bytes, BLOB columns and checksums left out; the full database has them.)' "
+               "WHERE name IN ('rdb_resource', 'protobuf_field', 'template', 'client_file')")
+    db.execute("DELETE FROM table_doc WHERE name = 'rdb_body'")
+    db.execute("INSERT INTO meta VALUES ('variant', 'text-only')")
+    for kind, name, tbl, sql in db.execute("SELECT type, name, tbl_name, sql FROM f.sqlite_master WHERE type IN ('index', 'view') AND sql IS NOT NULL").fetchall():
+        if kind == "index":
+            cols = re.search(r"\((.*)\)\s*$", sql).group(1)
+            if tbl not in kept or not all(c.strip().strip('"') in kept[tbl] for c in cols.split(",")):
+                continue
+        db.execute(sql)
+    db.commit()
+    db.execute("DETACH DATABASE f")
+    db.execute("ANALYZE")
+    db.commit()
+    db.execute("VACUUM")
+    db.close()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--client", default=os.path.join(TOP, "clients/linux/LEGO Minifigures Online"))
     ap.add_argument("--out", default=os.path.join(ROOT, "dist/lmo-client.sqlite"))
     ap.add_argument("--no-names", action="store_true", help="skip the (slow) name index reconstruction")
+    ap.add_argument("--text", action="store_true", help="write the text-only copy of the full database (--out: its path)")
     a = ap.parse_args()
+    if a.text:
+        full = os.path.join(ROOT, "dist/lmo-client.sqlite")
+        out = a.out if a.out != ap.get_default("out") else os.path.join(ROOT, "dist/lmo-client-text.sqlite")
+        slim(full, os.path.abspath(out))
+        print(out)
+        return
     os.environ.setdefault("LMO_CLIENT", a.client)
     build(os.path.abspath(a.client), os.path.abspath(a.out), not a.no_names)
 
