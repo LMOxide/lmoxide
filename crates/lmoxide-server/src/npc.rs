@@ -405,6 +405,11 @@ struct Npc {
     stunned_until: Option<std::time::Instant>,
     /// A champion's element aura is on until then.
     aura_until: Option<std::time::Instant>,
+    /// A boss's ring (tunables `champions.boss_ring`) is shown until then: it wears it while it
+    /// fights.
+    ring_until: Option<std::time::Instant>,
+    /// When it last had someone to fight (the AI's target): in combat for `champions.out_of_combat` after.
+    engaged: Option<std::time::Instant>,
     /// The player who last hit it, and when (enemies keep fighting them).
     threat: Option<(Id32, std::time::Instant)>,
     /// Walking its patrol route: the route point it is heading for, and when the route was
@@ -445,6 +450,8 @@ impl Npc {
             busy_until: None,
             stunned_until: None,
             aura_until: None,
+            ring_until: None,
+            engaged: None,
             threat: None,
             snares: Vec::new(),
             speed_factor: 1.0,
@@ -613,6 +620,97 @@ pub fn resident_enemies(playfield: Pf) -> std::collections::HashSet<Id32> {
 /// `BOSS_RANK`).
 fn rank_of(def: &SpawnDef) -> u32 {
     def.health / regular_life(def.level)
+}
+
+/// The element of a champion the live server gave a forced element aura, by its NPC template
+/// (tunables `champions.forced`: Crazy Kotaki, Bull the Armsmaster).
+fn forced_element(def: &SpawnDef) -> Option<&'static str> {
+    let template = def.npc_template?;
+    crate::gamedata::get().tunables.champions.forced.get(&template.to_string()).map(String::as_str)
+}
+
+/// A champion: a forced-aura one, or an enemy ranked as one by its health.
+fn is_champion(def: &SpawnDef) -> bool {
+    def.kind == Kind::Enemy && (forced_element(def).is_some() || (CHAMPION_RANK..BOSS_RANK).contains(&rank_of(def)))
+}
+
+/// A boss wearing the bosses' ring: ranked as one by its health and not a forced-aura champion
+/// (Crazy Kotaki has a boss's health, but live gave him the champions' nature aura).
+fn wears_boss_ring(def: &SpawnDef) -> bool {
+    def.kind == Kind::Enemy && forced_element(def).is_none() && rank_of(def) >= BOSS_RANK
+}
+
+/// TimeExist of the champions' ring buffs (581634, 586164 ... 586168): 99999 cs, as live sent
+/// them in the champions' full update.
+const CHAMPION_RING_CS: i32 = 99_999;
+/// TimeExist of the bosses' ring 161771 (5900 cs, as live sent it): a fight that lasts longer
+/// gets it again.
+const BOSS_RING_CS: i32 = 5_900;
+
+/// The ring buff champion `def` wears from its spawn until it is defeated: its forced element's,
+/// else the random selector's (tunables `champions.ring` / `forced_rings`).
+fn champion_ring(def: &SpawnDef) -> Option<u32> {
+    if !is_champion(def) {
+        return None;
+    }
+    let c = &crate::gamedata::get().tunables.champions;
+    match forced_element(def) {
+        Some(element) => c.forced_rings.get(element).copied(),
+        None => Some(c.ring),
+    }
+    .filter(|r| *r != 0)
+}
+
+/// The records that take NPC `npc`'s rings off (it was defeated): the champion's, and the
+/// boss's if it wears it.
+fn rings_off(id: Id32, npc: &mut Npc) -> Vec<bytes::Bytes> {
+    let mut records: Vec<bytes::Bytes> = champion_ring(&npc.def).map(|r| crate::effects::buff_remove(id, r, Id32::default())).into_iter().collect();
+    let boss_ring = crate::gamedata::get().tunables.champions.boss_ring;
+    if npc.ring_until.take().is_some() && boss_ring != 0 {
+        records.push(crate::effects::buff_remove(id, boss_ring, Id32::default()));
+    }
+    records
+}
+
+/// Bosses wear their ring while they fight: from when they first have someone to fight (live:
+/// right after engaging, before the first attack) until `champions.out_of_combat` after the
+/// last time they had, renewed when its TimeExist runs out; taken off when they are defeated
+/// (`rings_off`). Run every AI tick.
+fn boss_rings_tick(awake: &std::collections::HashSet<Pf>) {
+    let c = &crate::gamedata::get().tunables.champions;
+    if c.boss_ring == 0 {
+        return;
+    }
+    let (ooc, now) = (c.out_of_combat.to_std(), std::time::Instant::now());
+    let lasts = Duration::from_millis(10 * BOSS_RING_CS as u64);
+    let mut out: Vec<(Id32, Vec<bytes::Bytes>)> = Vec::new();
+    for (id, npc) in NPCS.lock().unwrap().iter_mut() {
+        if !awake.contains(&npc.playfield) || npc.presence.is_none() || npc.health == 0 || !wears_boss_ring(&npc.def) {
+            continue;
+        }
+        let fighting = npc.engaged.is_some_and(|t| now.duration_since(t) < ooc);
+        match (fighting, npc.ring_until) {
+            (true, Some(until)) if until > now => {}
+            (true, shown) => {
+                let mut records = Vec::new();
+                if shown.is_some() {
+                    records.push(crate::effects::buff_remove(*id, c.boss_ring, Id32::default()));
+                }
+                records.push(crate::effects::npc_buff_add(*id, c.boss_ring, BOSS_RING_CS, npc.def.level));
+                npc.ring_until = Some(now + lasts);
+                info!(npc = %npc.def.name, "boss ring on");
+                out.push((*id, records));
+            }
+            (false, Some(_)) => {
+                npc.ring_until = None;
+                out.push((*id, vec![crate::effects::buff_remove(*id, c.boss_ring, Id32::default())]));
+            }
+            (false, None) => {}
+        }
+    }
+    for (id, records) in out {
+        world::send_playfield(id, true, world::Out::Records(records));
+    }
 }
 
 /// The life of a regular (1x) NPC per level, as the live server gave it (tunables.json
@@ -869,11 +967,13 @@ fn appear(id: Id32) {
     npc.health = npc.def.health;
     npc.walk = None;
     npc.patrol = None;
+    npc.ring_until = None;
+    npc.engaged = None;
     *npc.pos.lock().unwrap() = npc.def.pos;
     let (def, playfield, pos) = (npc.def.clone(), npc.playfield, npc.pos.clone());
     let spawn_pos = pos.clone();
     let spawn = move || {
-        let health = NPCS.lock().unwrap().get(&id).map_or(def.health, |n| n.health);
+        let (health, ring_until) = NPCS.lock().unwrap().get(&id).map_or((def.health, None), |n| (n.health, n.ring_until));
         let pos = *spawn_pos.lock().unwrap();
         let mut records = match def.kind {
             Kind::Enemy => remote_spawn_records(id, &spec(&def, playfield, pos, health)),
@@ -892,6 +992,18 @@ fn appear(id: Id32) {
         }
         if let (Some(rot), true) = (def.rot, editor) {
             records.push(stop_record(id, pos, [rot.sin(), rot.cos()]));
+        }
+        // a champion's ring from its spawn (live: in its full update), a fighting boss's
+        // (`boss_rings_tick`) for whoever comes in meanwhile
+        if health > 0 {
+            if let Some(ring) = champion_ring(&def) {
+                records.push(crate::effects::npc_buff_add(id, ring, CHAMPION_RING_CS, def.level));
+            }
+            let boss_ring = crate::gamedata::get().tunables.champions.boss_ring;
+            let left = ring_until.map(|t| t.saturating_duration_since(std::time::Instant::now())).filter(|d| !d.is_zero());
+            if let (Some(left), true) = (left, boss_ring != 0) {
+                records.push(crate::effects::npc_buff_add(id, boss_ring, (left.as_millis() / 10) as i32, def.level));
+            }
         }
         records
     };
@@ -1265,6 +1377,8 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     if (kind == Kind::Enemy || npc.def.fights()) && health == 0 {
         // Limbo: the client plays the death and stops targeting it
         records.push(int32_stat(target, STAT_BCC_STATE, BCC_STATE_LIMBO));
+        // a champion's or boss's ring comes off (live: right after the killing blow)
+        records.extend(rings_off(target, npc));
     }
     if kind == Kind::Smashable && health == 0 {
         // as the original server did: Health 0 plays the smash, the visual change leaves the
@@ -1332,7 +1446,9 @@ pub fn self_destruct(id: Id32) {
     let Some(npc) = npcs.get_mut(&id).filter(|n| n.presence.is_some() && n.health > 0) else { return };
     npc.health = 0;
     info!(npc = %npc.def.name, "self-destructed");
-    world::send_playfield(id, true, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, 0), int32_stat(id, STAT_BCC_STATE, BCC_STATE_LIMBO)]));
+    let mut records = vec![int32_stat(id, STAT_HEALTH, 0), int32_stat(id, STAT_BCC_STATE, BCC_STATE_LIMBO)];
+    records.extend(rings_off(id, npc));
+    world::send_playfield(id, true, world::Out::Records(records));
     remove_dead(npcs, id);
 }
 
@@ -2101,13 +2217,12 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     true
 }
 
-/// The aura champion `npc` casts now (`aura_until` set), if it is due: a champion (by health) of
-/// PowerLevel (level x `power_per_level`) at least `aura_min_power_level` whose aura isn't on; the
-/// zone's element's (a random one in a zone without), tunables `champions`.
+/// The aura champion `npc` casts now (`aura_until` set), if it is due: a champion (`is_champion`) of
+/// PowerLevel (level x `power_per_level`) at least `aura_min_power_level` whose aura isn't on; its
+/// forced element's, else the zone's element's (a random one in a zone without), tunables `champions`.
 fn champion_aura(npc: &mut Npc, now: std::time::Instant) -> Option<u32> {
     let c = &crate::gamedata::get().tunables.champions;
-    let rank = rank_of(&npc.def);
-    if npc.def.kind != Kind::Enemy || !(CHAMPION_RANK..BOSS_RANK).contains(&rank) || npc.def.level * c.power_per_level < c.aura_min_power_level {
+    if !is_champion(&npc.def) || npc.def.level * c.power_per_level < c.aura_min_power_level {
         return None;
     }
     if npc.aura_until.is_some_and(|t| t > now) {
@@ -2117,7 +2232,11 @@ fn champion_aura(npc: &mut Npc, now: std::time::Instant) -> Option<u32> {
         0 => 1 + (crate::npc_spells::jitter() * 5.0) as u32 % 5,
         e => e,
     };
-    let name = lmoxide_content::model::Element::from_id(element).map(|e| format!("{e:?}").to_lowercase())?;
+    // (a forced-aura champion's own element: live's Crazy Kotaki cast Brambles)
+    let name = match forced_element(&npc.def) {
+        Some(e) => e.to_string(),
+        None => lmoxide_content::model::Element::from_id(element).map(|e| format!("{e:?}").to_lowercase())?,
+    };
     let skill = crate::gamedata::get().skills.get(c.auras.get(&name)?)?;
     let spell = skill.client.as_ref()?.spell;
     let lasts = skill.client.as_ref()?.stats.get("TimeExist").and_then(|v| v.as_u64()).map_or(Duration::from_secs(59), |cs| Duration::from_millis(cs * 10));
@@ -2338,6 +2457,13 @@ impl Drop for TickTimer {
     }
 }
 
+/// NPC `id` has someone to fight (`boss_rings_tick`).
+fn set_engaged(id: Id32, now: std::time::Instant) {
+    if let Some(npc) = NPCS.lock().unwrap().get_mut(&id) {
+        npc.engaged = Some(now);
+    }
+}
+
 /// Chase the nearest player in range and fight it; walk home when there is none or it ran too far.
 async fn ai() {
     let mut tick = tokio::time::interval(TICK);
@@ -2387,6 +2513,7 @@ async fn ai() {
             .collect();
         pets_tick();
         fighters_tick(awake);
+        boss_rings_tick(awake);
         // players and friendly fighters per playfield, collected once per tick (most
         // playfields have none)
         let mut players: HashMap<Pf, Vec<(Id32, [f32; 3])>> = HashMap::new();
@@ -2406,6 +2533,7 @@ async fn ai() {
                     .filter(|(_, p)| distance(*p, here) < reach)
                     .min_by(|(_, a), (_, b)| distance(*a, here).total_cmp(&distance(*b, here)));
                 if let Some((player, p)) = target {
+                    set_engaged(id, now);
                     if engage(id, player, p, here) {
                         face(id, here, p);
                     }
@@ -2440,6 +2568,7 @@ async fn ai() {
             match target {
                 Some((player, p)) => {
                     end_patrol(id);
+                    set_engaged(id, now);
                     let cast = engage(id, player, p, here);
                     if is_busy(id) {
                         // casting: it stops (facing the player) until the strike
@@ -2782,6 +2911,25 @@ mod tests {
         assert_eq!(champion_aura(&mut Npc::new(def(base * 10), Pf::main(pf), None, None), now), None);
         let low = SpawnDef { level: 2, health: regular_life(2) as u32 * 5, ..test_spawn_def() };
         assert_eq!(champion_aura(&mut Npc::new(low, Pf::main(pf), None, None), now), None);
+    }
+
+    /// The rings live showed: Bull the Armsmaster (template 1049) the tech circle, Crazy Kotaki
+    /// (1044, a boss's health) the nature one and no boss ring; a champion by health the random
+    /// selector's ring; a boss none from its spawn but the bosses' ring when it fights.
+    #[test]
+    fn champions_and_bosses_wear_their_rings() {
+        let level = 4;
+        let base = regular_life(level);
+        let def = |health: u32, npc_template: Option<u32>| SpawnDef { level, health, npc_template, ..test_spawn_def() };
+        assert_eq!(champion_ring(&def(base * 5, Some(1049))), Some(586_166));
+        let kotaki = def(990, Some(1044));
+        assert_eq!(rank_of(&kotaki), BOSS_RANK);
+        assert_eq!((champion_ring(&kotaki), wears_boss_ring(&kotaki)), (Some(586_164), false));
+        assert_eq!(champion_ring(&def(base * 5, None)), Some(581_634));
+        let totemus = def(990, Some(1641));
+        assert_eq!((champion_ring(&totemus), wears_boss_ring(&totemus)), (None, true));
+        assert_eq!((champion_ring(&def(base, None)), wears_boss_ring(&def(base, None))), (None, false));
+        assert_eq!(crate::gamedata::get().tunables.champions.boss_ring, 161_771);
     }
 
     #[test]

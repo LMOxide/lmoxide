@@ -379,6 +379,29 @@ pub struct Champions {
     /// Element (`light` ... `nature`) -> the aura (`skill/...`).
     #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
     pub auras: BTreeMap<String, Ref>,
+    /// The buff a champion wears from its spawn until it is defeated, whose EffectPackage is the
+    /// ring at its feet: 581634 "XX_champion aura random selector" (162435,
+    /// particle_generic_champion_aura). Live sent the champions' (forced ones, below) in their
+    /// full update. 0: none.
+    #[serde(default)]
+    #[schemars(extend("x-lmoxide-client" = "nano"))]
+    pub ring: u32,
+    /// NPC template (`render.npc_template`) -> element (`light` ... `nature`): champions the live
+    /// server gave a forced element aura (Crazy Kotaki 1044 nature, Bull the Armsmaster 1049
+    /// tech). They count as champions whatever their health, wear `forced_rings`' buff and cast
+    /// that element's aura.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub forced: BTreeMap<String, String>,
+    /// Element -> the forced aura buff (586164 ... 586168 "XX_champion forced <element> aura",
+    /// their EffectPackages the element's ground circle).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub forced_rings: BTreeMap<String, u32>,
+    /// The buff a boss wears while it fights (from engaging until it leaves combat or is
+    /// defeated): 161771 "XX_champion feet aura castable" (162435, the same ring), sent by live
+    /// with no caster, its TimeExist and the boss's level as the casting level. 0: none.
+    #[serde(default)]
+    #[schemars(extend("x-lmoxide-client" = "nano"))]
+    pub boss_ring: u32,
 }
 
 /// The story (story.rs; research/lmoxide-notes/client-survey/story.md).

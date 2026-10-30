@@ -14,7 +14,7 @@
 //! Actions: CastNano (a nano with TimeExist, or one cast on the caster with no server actions,
 //! is a buff shown with `MagicBuffIIR_c`; the nano's own list 0 then runs on whom it was cast),
 //! area/column formulas (each enemy in the shape gets the formula's nano), WeaponHit (damage:
-//! the caster's power × AbilityMod, combat.rs), AddBuffCounter/RemoveBuff, CorePersistentGroundEffect
+//! the caster's power × AbilityMod, combat.rs; with an Interval, over the nano's time: `ticking`), AddBuffCounter/RemoveBuff, CorePersistentGroundEffect
 //! and PlaceTrap (a ground zone re-applying its nano), CoreRandomPointAreaFormula, ColumnDash,
 //! Blink (a leap to the target, then its nano where it lands), Chain (a nano jumping from enemy
 //! to enemy, shown with `ChainSpellIIR_t`) and Projectile: a client action the server carries
@@ -716,7 +716,10 @@ fn criteria_met(run: &Run, a: &Action, target: Target) -> bool {
             holder = run.caster.id;
             true
         }
-        CRITERIA_HAS_ABILITY => crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
+        // the caster's upgrade ability, or (on the target) a buff it holds: Honey Pot renews the
+        // swarm 221524 only on enemies Plan Bee already swarmed, the Tomahawk's mark 302200
+        CRITERIA_HAS_ABILITY if holder == run.caster.id => crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
+        CRITERIA_HAS_ABILITY => effects::has_buff(holder, y),
         CRITERIA_LACKS_ABILITY => !crate::combat::has_ability(run.caster.template, run.caster.upgrades, y),
         CRITERIA_BUFF_COUNTER => counter(holder, x) == y,
         CRITERIA_COUNTER_ABOVE => counter(holder, x) > y,
@@ -1069,7 +1072,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
         "WeaponHit" => {
             if let Some(id) = who.id.filter(|id| *id != caster) {
                 let damage = crate::combat::damage_with_mod(run.caster.template, run.caster.upgrades, run.spell, a.f("AbilityMod").unwrap_or(1.0), run.caster.level);
-                crate::npc::hit(caster, id, spell, damage);
+                match ticking(spell, a) {
+                    Some((every, ticks)) => damage_over_time(caster, id, spell, damage, every, ticks),
+                    None => {
+                        crate::npc::hit(caster, id, spell, damage);
+                    }
+                }
             }
         }
         "RemoveBuff" => {
@@ -1245,6 +1253,49 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
         }
         other => debug!(spell, action = other, "spell action not run"),
     }
+}
+
+/// A WeaponHit with an Interval and a Duration (-1: the TimeExist of the nano holding it) hits
+/// every Interval for that long: (the interval, how many hits). Plan Bee's swarm 221524: x0.25
+/// every 0.5 s for 2 s (4 stings). `None`: one hit (no Interval, or nothing says how long).
+fn ticking(spell: u32, a: &Action) -> Option<(Duration, u32)> {
+    let interval = a.f("Interval").filter(|i| *i > 0.0)?;
+    let lasts = match a.f("Duration") {
+        Some(d) if d < 0.0 => SPELLS.get(&spell).and_then(|s| s.stats.time_exist).map(|cs| cs as f32),
+        d => d.filter(|d| *d > 0.0),
+    }?;
+    let ticks = (lasts / interval).floor() as u32;
+    (ticks > 0).then(|| (Duration::from_millis((10.0 * interval) as u64), ticks))
+}
+
+/// The damage over time running per (target, nano, caster), by the generation of its latest
+/// cast: casting it again (Plan Bee hitting a swarmed enemy, Honey Pot) starts it over.
+static DOTS: LazyLock<Mutex<HashMap<(Id32, u32, Id32), u64>>> = LazyLock::new(Default::default);
+static DOT_GENERATION: AtomicU64 = AtomicU64::new(0);
+
+/// `caster` hits `target` for `damage` every `every`, `ticks` times (the first one `every` after
+/// the cast), until it is defeated or the nano is cast on it again.
+fn damage_over_time(caster: Id32, target: Id32, spell: u32, damage: u32, every: Duration, ticks: u32) {
+    let key = (target, spell, caster);
+    let generation = DOT_GENERATION.fetch_add(1, Ordering::Relaxed);
+    DOTS.lock().unwrap().insert(key, generation);
+    let Ok(rt) = tokio::runtime::Handle::try_current() else { return };
+    rt.spawn(async move {
+        for _ in 0..ticks {
+            tokio::time::sleep(every).await;
+            if DOTS.lock().unwrap().get(&key) != Some(&generation) {
+                return;
+            }
+            // (None: it is gone or can't be hurt; Some(true): this sting defeated it)
+            if crate::npc::hit(caster, target, spell, damage) != Some(false) {
+                break;
+            }
+        }
+        let mut dots = DOTS.lock().unwrap();
+        if dots.get(&key) == Some(&generation) {
+            dots.remove(&key);
+        }
+    });
 }
 
 /// Casts nano `nano` on `target`: shows it as a buff when it is one, then runs its list 0 there.
@@ -1744,6 +1795,21 @@ mod tests {
         assert!(ITEMS.contains_key(&94_115) && ITEMS.contains_key(&234_947));
         // real charges stay charges
         assert!(crate::projectile::params(31_414).is_some_and(|p| p.charge_items.len() == 4));
+    }
+
+    /// Plan Bee's swarm (221524, also renewed by Honey Pot) stings every 0.5 s for its 2 s
+    /// TimeExist; the Sailor's anchor 210630 for 5 s; a ticking hit with nothing saying how long
+    /// (the Tarot towers) hits once.
+    #[test]
+    fn ticking_hits_sting_for_their_buff() {
+        let tick = |spell: u32| ticking(spell, SPELLS[&spell].lists[ON_USE].iter().find(|a| a.kind == "WeaponHit").unwrap());
+        assert_eq!(tick(221_524), Some((Duration::from_millis(500), 4)));
+        assert_eq!(tick(210_630), Some((Duration::from_millis(500), 10)));
+        let plain = SPELLS[&212_834].lists[ON_USE].iter().find(|a| a.kind == "WeaponHit").unwrap();
+        assert_eq!(ticking(212_834, plain), None);
+        // Honey Pot casts the swarm on enemies that already have it (criterion 91 on the target)
+        let renew = SPELLS[&238_239].lists[ON_USE].iter().find(|a| a.u("Value") == Some(221_524)).unwrap();
+        assert_eq!(renew.criteria, vec![[0, 0, CRITERIA_ON_TARGET], [0, 221_524, CRITERIA_HAS_ABILITY]]);
     }
 
     #[test]
