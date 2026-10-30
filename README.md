@@ -142,8 +142,14 @@ page and images on GitHub's container registry:
 | `lmoxide-<version>-x86_64-linux.tar.gz` | the server binaries, `content/` and an example config, for Linux without Docker |
 | `lmoxide-patcher-<version>-linux`, `-windows.exe`, `-macos.tar.gz` | the command-line patcher |
 
-The web UI, the dev UI, the Discord bot and the GUI patcher publish theirs in their own
-repositories.
+The other repositories publish theirs the same way:
+
+| | |
+|---|---|
+| [GUI patcher releases](https://github.com/LMOxide/lmoxide-patcher/releases/latest) | `lmoxide-patcher-gui-<version>-windows.exe`, `-linux`, `-macos.tar.gz`: the desktop patcher for players |
+| [web UI releases](https://github.com/LMOxide/lmoxide-webui/releases/latest) | the built files; image `ghcr.io/lmoxide/lmoxide-webui` |
+| [dev UI releases](https://github.com/LMOxide/lmoxide-dev-ui/releases/latest) | the built files; image `ghcr.io/lmoxide/lmoxide-dev-ui` |
+| [Discord bot releases](https://github.com/LMOxide/lmoxide-discord-bot/releases/latest) | a Linux binary; image `ghcr.io/lmoxide/lmoxide-discord-bot` |
 
 ### LAN play from source
 
@@ -183,7 +189,10 @@ Every port can be changed; see `--help`.
 
 ### Players
 
-Players install a client from the server's patch server:
+Players install a client from the server's patch server with the desktop patcher
+([download it for Windows, Linux or macOS](https://github.com/LMOxide/lmoxide-patcher/releases/latest)):
+enter the server's address, and it installs, updates and starts the game. Or with the
+command-line patcher:
 
 ```sh
 lmoxide-patcher install --server http://<host>:8080 --dir ~/Games/LMO
