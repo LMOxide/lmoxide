@@ -545,7 +545,90 @@ fn run_speed(def: &SpawnDef) -> f32 {
     speeds(def).iter().find(|(stat, _)| *stat == RUN_SPEED).map_or(4.0, |&(_, v)| v)
 }
 
-static NPCS: LazyLock<Mutex<HashMap<Id32, Npc>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+static NPCS: LazyLock<Traced<HashMap<Id32, Npc>>> = LazyLock::new(|| Traced::new(HashMap::new()));
+
+/// A mutex that remembers where it was taken and where others wait for it: a watchdog thread
+/// logs both when it is held for `HELD_TOO_LONG` (the NPC table: a deadlock hung the server on
+/// 2026-10-30 with every thread waiting, and no debugger can attach).
+struct Traced<T> {
+    inner: Mutex<T>,
+    holder: Mutex<Option<(&'static std::panic::Location<'static>, std::time::Instant, String)>>,
+    waiting: Mutex<Vec<(&'static std::panic::Location<'static>, String)>>,
+}
+
+const HELD_TOO_LONG: Duration = Duration::from_secs(3);
+
+impl<T> Traced<T> {
+    fn new(value: T) -> Self {
+        Traced { inner: Mutex::new(value), holder: Mutex::new(None), waiting: Mutex::new(Vec::new()) }
+    }
+
+    #[track_caller]
+    fn lock(&self) -> Result<TracedGuard<'_, T>, ()> {
+        static WATCHDOG: std::sync::Once = std::sync::Once::new();
+        WATCHDOG.call_once(|| {
+            std::thread::spawn(|| watch(&NPCS));
+        });
+        let at = std::panic::Location::caller();
+        let thread = || std::thread::current().name().unwrap_or("?").to_string() + &format!(" {:?}", std::thread::current().id());
+        let guard = match self.inner.try_lock() {
+            Ok(g) => g,
+            Err(std::sync::TryLockError::Poisoned(p)) => p.into_inner(),
+            Err(std::sync::TryLockError::WouldBlock) => {
+                self.waiting.lock().unwrap().push((at, thread()));
+                let g = self.inner.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+                let mut w = self.waiting.lock().unwrap();
+                if let Some(i) = w.iter().position(|(l, _)| std::ptr::eq(*l, at)) {
+                    w.swap_remove(i);
+                }
+                g
+            }
+        };
+        *self.holder.lock().unwrap() = Some((at, std::time::Instant::now(), thread()));
+        Ok(TracedGuard { guard: Some(guard), owner: self })
+    }
+}
+
+struct TracedGuard<'a, T> {
+    guard: Option<std::sync::MutexGuard<'a, T>>,
+    owner: &'a Traced<T>,
+}
+
+impl<T> std::ops::Deref for TracedGuard<'_, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        self.guard.as_ref().expect("held")
+    }
+}
+
+impl<T> std::ops::DerefMut for TracedGuard<'_, T> {
+    fn deref_mut(&mut self) -> &mut T {
+        self.guard.as_mut().expect("held")
+    }
+}
+
+impl<T> Drop for TracedGuard<'_, T> {
+    fn drop(&mut self) {
+        *self.owner.holder.lock().unwrap() = None;
+        self.guard.take();
+    }
+}
+
+/// Logs (once per hold) a lock held for `HELD_TOO_LONG`: where, by which thread, and who waits.
+fn watch<T>(lock: &Traced<T>) {
+    let mut reported = None;
+    loop {
+        std::thread::sleep(Duration::from_secs(1));
+        let holder = lock.holder.lock().unwrap().clone();
+        let Some((at, since, thread)) = holder else { continue };
+        if since.elapsed() < HELD_TOO_LONG || reported == Some(since) {
+            continue;
+        }
+        reported = Some(since);
+        let waiting: Vec<String> = lock.waiting.lock().unwrap().iter().map(|(l, t)| format!("{l} ({t})")).collect();
+        tracing::error!(held_at = %at, by = %thread, secs = since.elapsed().as_secs(), ?waiting, "NPC table lock held too long (deadlock?)");
+    }
+}
 
 /// NPCs for test commands: enemies of a rank, "boss" (`BOSS_RANK`), "champion"
 /// (`CHAMPION_RANK`) or "enemy" (all), or "npc" (friendly NPCs), "fighter" (friendly
@@ -1558,7 +1641,7 @@ pub fn self_destruct(id: Id32) {
 }
 
 /// Dead NPC `target` is despawned (after its death plays) and respawns later.
-fn remove_dead(mut npcs: std::sync::MutexGuard<'_, HashMap<Id32, Npc>>, target: Id32) {
+fn remove_dead(mut npcs: TracedGuard<'_, HashMap<Id32, Npc>>, target: Id32) {
     let Some(npc) = npcs.get_mut(&target) else { return };
     let kind = npc.def.kind;
     {
