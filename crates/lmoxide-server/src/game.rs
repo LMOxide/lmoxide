@@ -442,6 +442,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // smashed minifigures stay smashed until their rebuild time, across logins
                 let now = crate::smash::now_ms();
                 me.smashed.retain(|_, until| *until > now);
+                // the client starts every world with the first team position active
+                first_position_active(&mut me.team, &me.smashed);
                 for (&template, &until) in &me.smashed {
                     crate::npc::set_smashed(Id32::new(crate::territory::CHARACTER_TYPE, character), template);
                     schedule_rebuild(&outbox, template, until);
@@ -488,9 +490,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         records.push(crate::teleport::journal_record(h.identity, &crate::story::journal(&me)));
                         let refresh = crate::collection::collection_refresh(character, &collection, &|t| me.item_state(t));
                         records.push(iir::record("UpdateInventoryIIR_t", h.identity, false, |w| w.proto(&refresh)));
-                        // a test setup changed the team, or a teleport moved the active minifigure
-                        // to the first position (active_at_first_position): the HUD shows the
-                        // team as the client has it until this
+                        // a test setup changed the team (active_at_first_position): the HUD
+                        // shows the team as the client has it until this
                         if !was_in_play {
                             // after "relocate? Yes" the chat connection may have survived (it
                             // reconnects by itself), but the client dropped its channels
@@ -509,19 +510,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, 0));
                             records.push(int32_stat(h.identity, STAT_ACTIVE_WEAPON, slot));
                             records.extend(health_records(h.identity, template, me.upgrade(template), me.level()));
-                            // a world load builds the HUD with the first team position as the
-                            // active portrait, after these: once it stands, the active slot again
-                            // (by way of 0, so the stat changes); the team keeps its order (it used
-                            // to be swapped into the first position). Not by way of another team
-                            // slot: the minifigure wheel (CharacterRotator.swf) starts a 300 ms
-                            // tween for each change, and the two in one frame left it on that slot.
-                            if me.team.iter().min_by_key(|&&(s, _)| s).is_some_and(|&(first, _)| first != slot) {
-                                let (outbox, id) = (outbox.clone(), h.identity);
-                                tokio::spawn(async move {
-                                    tokio::time::sleep(HUD_ACTIVE_RESEND).await;
-                                    let _ = outbox.send(world::Out::Records(vec![int32_stat(id, STAT_ACTIVE_WEAPON, 0), int32_stat(id, STAT_ACTIVE_WEAPON, slot)]));
-                                });
-                            }
                         }
                         // the movement speed factor (`!speed`): the client set its own speed
                         // stats by now (the full update's don't stay)
@@ -2596,6 +2584,8 @@ async fn teleport(
     me.pos = arrive_pos;
     *pos.lock().unwrap() = arrive_pos;
     crate::teleport::arrived(character);
+    // the new world starts with the first team position active, as at login
+    first_position_active(&mut me.team, &me.smashed);
     if let Err(e) = store.save(character, me) {
         warn!(character, "saving character failed: {e:#}");
     }
@@ -3060,6 +3050,18 @@ fn set_team(me: &mut Character, collection: &mut Collection, templates: &[u32]) 
     me.team = team;
 }
 
+/// Makes the minifigure at the team's first inventory position the active one (`team[0]`),
+/// positions unchanged. Live never sent ActiveWeapon (not once in the capture): the client takes
+/// the first position as active after every world load, and its team portrait (TeamGui) keeps
+/// showing it whatever ActiveWeapon says later. A smashed minifigure there is passed over for
+/// the next position's.
+fn first_position_active(team: &mut [(u32, u32)], smashed: &std::collections::BTreeMap<u32, i64>) {
+    let up = team.iter().enumerate().filter(|(_, (_, t))| !smashed.contains_key(t)).min_by_key(|&(_, &(p, _))| p);
+    if let Some(j) = up.map(|(j, _)| j) {
+        team[..=j].rotate_right(1);
+    }
+}
+
 /// Moves the active minifigure (`team[0]`) to the team's first inventory position, swapping
 /// with the one there. Live logged in with ActiveWeapon 6 every time; with the active one
 /// elsewhere the client used its spells but its HUD showed the minifigure at position 6 as
@@ -3372,8 +3374,6 @@ const GM_INVULNERABLE: u32 = 0x200;
 const CLIENT_GM_ALL: u32 = 0x7fff_ffff & !GM_INVULNERABLE;
 const STAT_CHAR_RADIUS: u32 = 421;
 const STAT_MONSTER_DATA: u32 = 359;
-/// How long after arrival the active slot is sent again for the HUD (see CharInPlay).
-const HUD_ACTIVE_RESEND: std::time::Duration = std::time::Duration::from_millis(1500);
 /// Active minifigure team slot (inventory 101 position), client name e_ActiveWeapon.
 const STAT_ACTIVE_WEAPON: u32 = 2000405;
 pub const TOKEN_HEALTH_POTIONS: u32 = 150;
@@ -3766,6 +3766,22 @@ mod tests {
         let me = Character { name: "Fantastic Sparky Burrito".into(), ..new_character("t".into(), crate::instance::Mode::Maxed, 1200) };
         assert_eq!((me.spec(Pf::main(1200)).name, me.remote_spec(Pf::main(1200)).name), ("Fantastic Sparky Burrito", "Sparky"));
         assert_eq!([overhead_name("alice"), overhead_name("Two Words"), overhead_name("A B C D")], ["alice", "Two Words", "A B C D"]);
+    }
+
+    #[test]
+    fn first_position_becomes_active() {
+        let none = Default::default();
+        let mut team = vec![(20, 3), (6, 1), (8, 2)];
+        first_position_active(&mut team, &none);
+        assert_eq!(team, vec![(6, 1), (20, 3), (8, 2)]);
+        // a smashed one there: the next position's
+        let mut team = vec![(20, 3), (6, 1), (8, 2)];
+        first_position_active(&mut team, &[(1, 99)].into());
+        assert_eq!(team[0], (8, 2));
+        let mut team = vec![(8, 2), (20, 3), (6, 1)];
+        first_position_active(&mut team, &none);
+        assert_eq!(team[0], (6, 1));
+        assert_eq!(team.iter().map(|&(p, t)| (p, t)).collect::<std::collections::BTreeMap<_, _>>(), [(6, 1), (8, 2), (20, 3)].into());
     }
 
     #[test]
