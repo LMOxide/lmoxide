@@ -41,11 +41,19 @@ pub struct Auth {
     pub token: Option<String>,
     /// A session from a one-time sign-in code (may set a password without the old one).
     pub password_reset: bool,
+    /// The account's GM level (login sessions and account keys).
+    pub gm_level: Option<u32>,
 }
 
 impl Auth {
     pub fn require(&self, scope: Scope) -> Result<(), ApiError> {
         if self.scope.is_some_and(|s| s >= scope) { Ok(()) } else { Err(ApiError::forbidden()) }
+    }
+
+    /// The world editor's routes: accounts from `--editor-gm-level` (the contributors), and
+    /// moderate-scope keys.
+    pub fn require_editor(&self, state: &AppState) -> Result<(), ApiError> {
+        if self.gm_level.is_some_and(|l| l >= state.cfg.editor_gm_level) { Ok(()) } else { self.require(Scope::Moderate) }
     }
 }
 
@@ -91,13 +99,14 @@ impl FromRequestParts<Arc<AppState>> for Auth {
                         account: Some(account.id),
                         token: None,
                         password_reset: false,
+                        gm_level: Some(account.gm_level),
                     });
                 }
                 let actor = match behalf {
                     Some(who) => format!("api-key:{} for {who}", key.name),
                     None => format!("api-key:{}", key.name),
                 };
-                return Ok(Auth { actor, scope: Some(key.scope), account: None, token: None, password_reset: false });
+                return Ok(Auth { actor, scope: Some(key.scope), account: None, token: None, password_reset: false, gm_level: None });
             }
             let Some(session) = db.session_account(&token)? else {
                 return Err(ApiError::unauthorized());
@@ -112,6 +121,7 @@ impl FromRequestParts<Arc<AppState>> for Auth {
                 account: Some(account.id),
                 token: Some(token),
                 password_reset: session.password_reset,
+                gm_level: Some(account.gm_level),
             })
         })
         .await

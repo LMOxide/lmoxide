@@ -86,10 +86,10 @@ point their patcher at `https://lmo.example.org` (or `http://`).
 
    The first start hashes both clients for the patch server, which takes a minute or two.
 
-4. Create your admin account (GM level 2). The password is asked for:
+4. Create your admin account (GM level 4). The password is asked for:
 
    ```sh
-   docker compose exec lmoxide lmoxide game account create <you> --gm-level 2
+   docker compose exec lmoxide lmoxide game account create <you> --gm-level 4
    ```
 
 5. Open `https://lmo.example.org` and sign in. The admin console is there. The dev UI is at
@@ -112,7 +112,7 @@ pointed at `https://lmo.example.org`.
 
 ```sh
 docker compose exec lmoxide lmoxide game account --help      # create, passwd, gm, ban, unban, list, delete
-docker compose exec lmoxide lmoxide game account gm <user> 1  # GM level 1 (moderator)
+docker compose exec lmoxide lmoxide game account gm <user> 2  # 1 alpha tester, 2 contributor, 3 moderator, 4 admin (docs/SECURITY.md)
 docker compose exec lmoxide lmoxide api key create <name> --scope read   # an API key for a script
 ```
 

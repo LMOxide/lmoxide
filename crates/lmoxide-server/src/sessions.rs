@@ -208,8 +208,8 @@ pub fn players() -> Vec<lmoxide_control::OnlinePlayer> {
                 playfield: world::whereabouts(id).map(|(pf, _)| pf.model()),
                 copy: world::whereabouts(id).map(|(pf, _)| pf.copy()),
                 mode: Some(o.mode.id().into()),
-
                 position: world::live_position(id),
+                heading: world::live_position(id).and(world::facing_of(id)).map(|f| f[0].atan2(f[1]).to_degrees().rem_euclid(360.0)),
                 gm_level: o.gm_level,
                 logged_in_at: o.logged_in_at,
             }

@@ -47,6 +47,10 @@ pub struct OnlinePlayer {
     /// Where the character is now (x, y up, z); `None` until it is in play.
     #[serde(default)]
     pub position: Option<[f32; 3]>,
+    /// The way the character faces, in degrees: 0 along +z, 90 along +x (as its client last
+    /// reported); `None` until it is in play.
+    #[serde(default)]
+    pub heading: Option<f32>,
     pub gm_level: u32,
     /// Unix time of the login.
     pub logged_in_at: i64,
@@ -167,6 +171,9 @@ pub struct TestCommand {
     /// e.g. `!goto <kind> [n]`
     pub usage: String,
     pub about: String,
+    /// The GM level the command needs (the alpha testers' commands need less).
+    #[serde(default)]
+    pub gm_level: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

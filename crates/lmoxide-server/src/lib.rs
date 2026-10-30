@@ -127,9 +127,14 @@ pub struct Config {
     /// it (pocket worlds have a copy per team anyway; docs/SERVER-ARCHITECTURE.md "Instances").
     #[arg(long, env = "LMOXIDE_OPEN_WORLD_CAP", default_value_t = 40)]
     pub open_world_cap: u32,
-    /// The lowest GM level an account needs to log in to the world editor's mode.
-    #[arg(long, env = "LMOXIDE_WORLD_EDITOR_GM_LEVEL", default_value_t = 1)]
+    /// The lowest GM level an account needs to log in to the world editor's mode (the
+    /// contributors'; docs/SECURITY.md "Access levels").
+    #[arg(long, env = "LMOXIDE_WORLD_EDITOR_GM_LEVEL", default_value_t = 2)]
     pub world_editor_gm_level: u32,
+    /// The lowest GM level an account needs to log in to the play modes (progression, maxed):
+    /// 1 lets only alpha testers and staff play.
+    #[arg(long, env = "LMOXIDE_PLAY_GM_LEVEL", default_value_t = 0)]
+    pub play_gm_level: u32,
     /// Territory manager / player agent port.
     #[arg(long, env = "LMOXIDE_TERRITORY_PORT", default_value_t = 7101)]
     pub territory_port: u16,
@@ -147,14 +152,23 @@ pub struct Config {
     /// logging in. Convenient on a LAN; leave off on public servers.
     #[arg(long, env = "LMOXIDE_AUTO_REGISTER")]
     pub auto_register: bool,
-    /// GM level every account has at least (stat GmLevel). Free-text chat and the client's GM
-    /// chat commands need a non-zero level; ordinary LMO players only had macro chat. Per-account
-    /// levels: `lmoxide-server account gm`.
+    /// GM level every account has at least (docs/SECURITY.md "Access levels": 1 alpha tester,
+    /// 2 contributor, 3 moderator, 4 admin). Per-account levels: `lmoxide-server account gm`.
     #[arg(long, env = "LMOXIDE_DEFAULT_GM_LEVEL", default_value_t = 0)]
     pub default_gm_level: u32,
-    /// GM level needed for the test commands typed into chat (`!tp`, `!goto`, ...).
-    #[arg(long, env = "LMOXIDE_DEVCMD_GM_LEVEL", default_value_t = 1)]
+    /// GM level needed for every test command typed into chat or sent from the dev UI (`!tp`,
+    /// `!spawn`, `!fx`, ...): the contributors'.
+    #[arg(long, env = "LMOXIDE_DEVCMD_GM_LEVEL", default_value_t = 2)]
     pub devcmd_gm_level: u32,
+    /// GM level needed for the alpha testers' test commands (devcmd.rs `TESTER_COMMANDS`:
+    /// teleporting, test scenarios, minifigures, dialogues, achievements, animations, looks).
+    #[arg(long, env = "LMOXIDE_TESTER_GM_LEVEL", default_value_t = 1)]
+    pub tester_gm_level: u32,
+    /// GM level from which the client gets every GM bit in its GmLevel stat (god camera, flying
+    /// and the other GM hotkeys; docs/PROTOCOL.md "Client hotkey GM gates"). Below it the stat
+    /// isn't sent.
+    #[arg(long, env = "LMOXIDE_CLIENT_GM_LEVEL", default_value_t = 2)]
+    pub client_gm_level: u32,
     /// The game mode when `--modes` isn't given: `play` (maxed: every character at the level cap
     /// with every minifigure fully ranked), `progression` (characters level up from level 1, see
     /// --progression) or `survey` (the world editor's: nothing moves or attacks; editors place and
@@ -308,6 +322,7 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     }
     state::init(db, key);
     state::set_data_dir(storage.data_dir.clone());
+    state::set_levels(state::Levels { tester: cfg.tester_gm_level, devcmd: cfg.devcmd_gm_level, client: cfg.client_gm_level });
     let mut cfg = cfg;
     if cfg.mode == Mode::Progression {
         cfg.progression = true;

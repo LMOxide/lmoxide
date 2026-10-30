@@ -34,6 +34,8 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(register))
         .routes(routes!(me))
         .routes(routes!(change_own_password))
+        .routes(routes!(my_players))
+        .routes(routes!(my_command))
         .merge(crate::discord::router())
         .routes(routes!(instances))
         .routes(routes!(players))
@@ -123,9 +125,30 @@ pub struct Player {
     pub mode: Option<String>,
     /// Where the character is now (x, y up, z); `null` until it is in play.
     pub position: Option<[f32; 3]>,
+    /// The way the character faces, in degrees: 0 along +z, 90 along +x; `null` until it is in
+    /// play.
+    pub heading: Option<f32>,
     pub gm_level: u32,
     /// Unix time.
     pub logged_in_at: i64,
+}
+
+impl From<lmoxide_control::OnlinePlayer> for Player {
+    fn from(p: lmoxide_control::OnlinePlayer) -> Self {
+        Player {
+            account_id: p.account_id,
+            username: p.username,
+            character_id: p.character_id,
+            character_name: p.character_name,
+            playfield: p.playfield,
+            copy: p.copy,
+            mode: p.mode,
+            position: p.position,
+            heading: p.heading,
+            gm_level: p.gm_level,
+            logged_in_at: p.logged_in_at,
+        }
+    }
 }
 
 /// A running copy of a world.
@@ -446,6 +469,8 @@ pub struct TestCommand {
     /// e.g. `!goto <kind> [n]`
     pub usage: String,
     pub about: String,
+    /// The GM level the command needs (alpha testers have some of them).
+    pub gm_level: u32,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -511,7 +536,7 @@ pub struct Look {
 impl From<lmoxide_control::TestCatalog> for TestCatalog {
     fn from(c: lmoxide_control::TestCatalog) -> Self {
         Self {
-            commands: c.commands.into_iter().map(|c| TestCommand { usage: c.usage, about: c.about }).collect(),
+            commands: c.commands.into_iter().map(|c| TestCommand { usage: c.usage, about: c.about, gm_level: c.gm_level }).collect(),
             kinds: c
                 .kinds
                 .into_iter()
@@ -635,9 +660,9 @@ pub const SURVEY_BODY_LIMIT: usize = 16 * 1024 * 1024;
 
 /// `/v1/survey/{*path}`: the world editor's routes (docs/SURVEY.md "API": placing, selecting,
 /// hiding, notes, scripts, import and export), passed on to the game server as they are, with
-/// the caller as the author of what they change. Scope: moderate (the world editors: GM level 1
-/// and up, as the game's world editor mode). Not in the OpenAPI document (a pass-through; the
-/// shapes are lmoxide-survey's).
+/// the caller as the author of what they change. Accounts from `--editor-gm-level` (the
+/// contributors, as the game's world editor mode) and moderate-scope keys. Not in the OpenAPI
+/// document (a pass-through; the shapes are lmoxide-survey's).
 pub async fn survey(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
@@ -646,7 +671,7 @@ pub async fn survey(
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
-    auth.require(Scope::Moderate)?;
+    auth.require_editor(&state)?;
     // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
     let path = uri.path().strip_prefix("/v1/survey/").unwrap_or_default();
     let target = match uri.query() {
@@ -664,7 +689,7 @@ pub async fn survey(
 
 /// `/v1/editor/{*path}`: a survey server's content editing routes (docs/WORLD-EDITOR-CONTENT.md:
 /// records, schemas, catalogs, changes, history), passed on like [`survey`] with the caller as
-/// the author. Scope: moderate, as [`survey`].
+/// the author. As [`survey`]: contributors and up.
 pub async fn editor(
     axum::extract::State(state): axum::extract::State<Arc<AppState>>,
     auth: Auth,
@@ -673,7 +698,7 @@ pub async fn editor(
     body: axum::body::Bytes,
 ) -> ApiResult<axum::response::Response> {
     use axum::response::IntoResponse;
-    auth.require(Scope::Moderate)?;
+    auth.require_editor(&state)?;
     // the path as sent: ids with slashes in them come percent-encoded (`spawn%2F4200%2F...`)
     let path = uri.path().strip_prefix("/v1/editor/").unwrap_or_default();
     let target = match uri.query() {
@@ -809,6 +834,8 @@ pub struct ServerConfig {
     pub moderator_gm_level: u32,
     /// GM level from which an account's login session has the admin scope.
     pub admin_gm_level: u32,
+    /// GM level from which an account may use the world editor (`/v1/survey`, `/v1/editor`).
+    pub editor_gm_level: u32,
 }
 
 /// How this API is set up: registration, GM level thresholds.
@@ -822,6 +849,7 @@ async fn config(State(state): State<Arc<AppState>>) -> Json<ServerConfig> {
         private_status: cfg.private_status,
         moderator_gm_level: cfg.moderator_gm_level,
         admin_gm_level: cfg.admin_gm_level,
+        editor_gm_level: cfg.editor_gm_level,
     })
 }
 
@@ -1176,23 +1204,33 @@ async fn change_own_password(State(state): State<Arc<AppState>>, auth: Auth, Jso
 async fn players(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Json<Vec<Player>>> {
     auth.require(Scope::Read)?;
     let players = control(&state)?.players().await.map_err(ApiError::game_server)?;
-    Ok(Json(
-        players
-            .into_iter()
-            .map(|p| Player {
-                account_id: p.account_id,
-                username: p.username,
-                character_id: p.character_id,
-                character_name: p.character_name,
-                playfield: p.playfield,
-                copy: p.copy,
-                mode: p.mode,
-                position: p.position,
-                gm_level: p.gm_level,
-                logged_in_at: p.logged_in_at,
-            })
-            .collect(),
-    ))
+    Ok(Json(players.into_iter().map(Player::from).collect()))
+}
+
+/// The logged-in account's characters online (the dev UI's debugger for players without the
+/// read scope). Any account.
+#[utoipa::path(get, path = "/v1/me/players", tag = "auth",
+    responses((status = OK, body = [Player]), (status = BAD_GATEWAY, body = ErrorBody)))]
+async fn my_players(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Json<Vec<Player>>> {
+    let id = auth.account.ok_or_else(|| ApiError::not_found("account (API keys have none)"))?;
+    let players = control(&state)?.players().await.map_err(ApiError::game_server)?;
+    Ok(Json(players.into_iter().filter(|p| p.account_id == id).map(Player::from).collect()))
+}
+
+/// Run a test command as one's own character online, as if typed in chat: the game server
+/// decides by the account's GM level which commands run (`GET /v1/catalog/test-commands`
+/// `gm_level`; alpha testers have teleporting, scenarios, minifigures, dialogues, achievements,
+/// animations and looks). Any account.
+#[utoipa::path(post, path = "/v1/me/command", tag = "auth", request_body = CommandRequest,
+    responses((status = OK, body = CommandResult), (status = FORBIDDEN, body = ErrorBody)))]
+async fn my_command(State(state): State<Arc<AppState>>, auth: Auth, Json(c): Json<CommandRequest>) -> ApiResult<Json<CommandResult>> {
+    let id = auth.account.ok_or_else(|| ApiError::not_found("account (API keys have none)"))?;
+    if !(c.command.starts_with('!') || c.command.starts_with('/')) || c.command.len() > 500 {
+        return Err(ApiError::invalid("command must start with ! or / (at most 500 characters)"));
+    }
+    let done = control(&state)?.command(id, &c.command).await.map_err(ApiError::game_server)?;
+    audit_account(&state, &auth, "command", id, Some(c.command)).await;
+    Ok(Json(CommandResult { affected: done.affected, replies: done.replies }))
 }
 
 /// The running copies of worlds (game modes' main copies, team copies, previews) with their
@@ -1287,10 +1325,13 @@ async fn remove_achievements(
 
 /// What the test commands accept: commands with usage, target kinds with their numbered targets,
 /// test scenarios, dialogues, loot kinds, spawnable enemies and smashables, and monster data
-/// looks (the game server's devcmd.rs). For tools that offer them as choices. Scope: read.
+/// looks (the game server's devcmd.rs). For tools that offer them as choices. Any account (and
+/// read-scope keys).
 #[utoipa::path(get, path = "/v1/catalog/test-commands", tag = "catalog", responses((status = OK, body = TestCatalog)))]
 async fn test_commands(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Json<TestCatalog>> {
-    auth.require(Scope::Read)?;
+    if auth.account.is_none() {
+        auth.require(Scope::Read)?;
+    }
     let catalog = control(&state)?.test_catalog().await.map_err(ApiError::game_server)?;
     Ok(Json(catalog.into()))
 }

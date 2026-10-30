@@ -87,14 +87,12 @@ pub struct Rules {
     /// The world editor's: nothing moves or attacks, interactions select things for the editor,
     /// names and headings show as placed.
     pub editor: bool,
-    /// The lowest GM level a player has here (world editors teleport and use test commands).
-    pub min_gm_level: u32,
 }
 
 const RULES: [Rules; 3] = [
-    Rules { progression: true, editor: false, min_gm_level: 0 },
-    Rules { progression: false, editor: false, min_gm_level: 0 },
-    Rules { progression: false, editor: true, min_gm_level: 1 },
+    Rules { progression: true, editor: false },
+    Rules { progression: false, editor: false },
+    Rules { progression: false, editor: true },
 ];
 
 impl Mode {

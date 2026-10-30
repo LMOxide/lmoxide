@@ -836,7 +836,7 @@
         "tags": [
           "catalog"
         ],
-        "summary": "What the test commands accept: commands with usage, target kinds with their numbered targets,\ntest scenarios, dialogues, loot kinds, spawnable enemies and smashables, and monster data\nlooks (the game server's devcmd.rs). For tools that offer them as choices. Scope: read.",
+        "summary": "What the test commands accept: commands with usage, target kinds with their numbered targets,\ntest scenarios, dialogues, loot kinds, spawnable enemies and smashables, and monster data\nlooks (the game server's devcmd.rs). For tools that offer them as choices. Any account (and\nread-scope keys).",
         "operationId": "test_commands",
         "responses": {
           "200": {
@@ -1327,6 +1327,45 @@
         }
       }
     },
+    "/v1/me/command": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Run a test command as one's own character online, as if typed in chat: the game server\ndecides by the account's GM level which commands run (`GET /v1/catalog/test-commands`\n`gm_level`; alpha testers have teleporting, scenarios, minifigures, dialogues, achievements,\nanimations and looks). Any account.",
+        "operationId": "my_command",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me/discord": {
       "post": {
         "tags": [
@@ -1404,6 +1443,38 @@
         "responses": {
           "204": {},
           "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/players": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "The logged-in account's characters online (the dev UI's debugger for players without the\nread scope). Any account.",
+        "operationId": "my_players",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Player"
+                  }
+                }
+              }
+            }
+          },
+          "502": {
             "content": {
               "application/json": {
                 "schema": {
@@ -3366,6 +3437,14 @@
             "format": "int32",
             "minimum": 0
           },
+          "heading": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "float",
+            "description": "The way the character faces, in degrees: 0 along +z, 90 along +x; `null` until it is in\nplay."
+          },
           "logged_in_at": {
             "type": "integer",
             "format": "int64",
@@ -3524,13 +3603,20 @@
           "registration",
           "private_status",
           "moderator_gm_level",
-          "admin_gm_level"
+          "admin_gm_level",
+          "editor_gm_level"
         ],
         "properties": {
           "admin_gm_level": {
             "type": "integer",
             "format": "int32",
             "description": "GM level from which an account's login session has the admin scope.",
+            "minimum": 0
+          },
+          "editor_gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "description": "GM level from which an account may use the world editor (`/v1/survey`, `/v1/editor`).",
             "minimum": 0
           },
           "moderator_gm_level": {
@@ -3842,11 +3928,18 @@
         "type": "object",
         "required": [
           "usage",
-          "about"
+          "about",
+          "gm_level"
         ],
         "properties": {
           "about": {
             "type": "string"
+          },
+          "gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The GM level the command needs (alpha testers have some of them).",
+            "minimum": 0
           },
           "usage": {
             "type": "string",

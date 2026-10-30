@@ -48,8 +48,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>, mode: crate::instance::Mod
                 }
                 let result = authenticate(&cfg, &conn, &username, &challenge, &answer).and_then(|(account, gm_level)| {
                     // the world editor's mode is for editors only
-                    if mode.rules().editor && gm_level.max(cfg.default_gm_level) < cfg.world_editor_gm_level {
-                        warn!(%username, "login refused: the world editor needs GM level {}", cfg.world_editor_gm_level);
+                    let needed = if mode.rules().editor { cfg.world_editor_gm_level } else { cfg.play_gm_level };
+                    if gm_level.max(cfg.default_gm_level) < needed {
+                        warn!(%username, mode = mode.id(), "login refused: this game mode needs GM level {needed}");
                         return Err(LoginStatus::AuthFailure);
                     }
                     Ok((account, gm_level))

@@ -81,30 +81,34 @@ async fn registration_modes() {
 #[tokio::test]
 async fn account_keys_act_as_the_account() {
     let api = Api::new(&["--registration", "discord"]);
-    let (s, r) = api.register("165540221100752897", "alice", 0).await;
+    let (s, r) = api.register("100000000000000001", "alice", 0).await;
     assert_eq!(s, StatusCode::CREATED);
-    assert_eq!(r["link"]["discord_id"], json!("165540221100752897"));
+    assert_eq!(r["link"]["discord_id"], json!("100000000000000001"));
     assert_eq!(r["key"]["key"]["account_id"], r["link"]["account_id"]);
     let key = r["key"]["secret"].as_str().unwrap().to_string();
 
     // the same Discord account or username again
-    assert_eq!(api.register("165540221100752897", "alice2", 0).await.0, StatusCode::CONFLICT);
+    assert_eq!(api.register("100000000000000001", "alice2", 0).await.0, StatusCode::CONFLICT);
     assert_eq!(api.register("2", "ALICE", 0).await.0, StatusCode::CONFLICT);
     assert!(api.db.account_by_name("alice2").unwrap().is_none());
     assert_eq!(api.register("12a", "carol", 0).await.0, StatusCode::UNPROCESSABLE_ENTITY);
 
     // a player's key: only /v1/me
     let (s, me) = api.call("GET", "/v1/me", Some(&key), None).await;
-    assert_eq!((s, &me["username"], &me["discord_id"]), (StatusCode::OK, &json!("alice"), &json!("165540221100752897")));
+    assert_eq!((s, &me["username"], &me["discord_id"]), (StatusCode::OK, &json!("alice"), &json!("100000000000000001")));
     assert_eq!(api.call("GET", "/v1/accounts", Some(&key), None).await.0, StatusCode::FORBIDDEN);
     assert_eq!(api.call("GET", "/v1/discord/links", Some(&key), None).await.0, StatusCode::FORBIDDEN);
 
     // the GM level decides its scope
-    let (s, l) = api.call("PATCH", "/v1/discord/links/165540221100752897", Some(&api.bot), Some(json!({"gm_level": 1}))).await;
-    assert_eq!((s, &l["gm_level"]), (StatusCode::OK, &json!(1)));
+    let (s, l) = api.call("PATCH", "/v1/discord/links/100000000000000001", Some(&api.bot), Some(json!({"gm_level": 2}))).await;
+    assert_eq!((s, &l["gm_level"]), (StatusCode::OK, &json!(2)));
+    // a contributor: the world editor's routes, no moderation
+    assert_eq!(api.call("GET", "/v1/accounts", Some(&key), None).await.0, StatusCode::FORBIDDEN);
+    assert_ne!(api.call("GET", "/v1/survey/state", Some(&key), None).await.0, StatusCode::FORBIDDEN);
+    api.call("PATCH", "/v1/discord/links/100000000000000001", Some(&api.bot), Some(json!({"gm_level": 3}))).await;
     assert_eq!(api.call("GET", "/v1/accounts", Some(&key), None).await.0, StatusCode::OK);
     assert_eq!(api.call("GET", "/v1/api-keys", Some(&key), None).await.0, StatusCode::FORBIDDEN);
-    api.call("PATCH", "/v1/discord/links/165540221100752897", Some(&api.bot), Some(json!({"gm_level": 2}))).await;
+    api.call("PATCH", "/v1/discord/links/100000000000000001", Some(&api.bot), Some(json!({"gm_level": 4}))).await;
     assert_eq!(api.call("GET", "/v1/api-keys", Some(&key), None).await.0, StatusCode::OK);
     let (_, audit) = api.call("GET", "/v1/audit", Some(&key), None).await;
     assert!(audit.as_array().unwrap().iter().any(|e| e["actor"] == json!("api-key:discord-bot") && e["action"] == json!("account-gm")));
@@ -119,21 +123,21 @@ async fn account_keys_act_as_the_account() {
     let id = api.db.account_by_name("alice").unwrap().unwrap().id;
     api.db.ban(id, &lmoxide_db::Ban { until: None, reason: None }).unwrap();
     assert_eq!(api.call("GET", "/v1/me", Some(&key), None).await.0, StatusCode::UNAUTHORIZED);
-    let (_, l) = api.call("GET", "/v1/discord/links/165540221100752897", Some(&api.bot), None).await;
+    let (_, l) = api.call("GET", "/v1/discord/links/100000000000000001", Some(&api.bot), None).await;
     assert_eq!(l["banned"], json!(true));
     api.db.unban(id).unwrap();
 
     // a new key replaces the old one; unlinking revokes it
-    let (s, k) = api.call("POST", "/v1/discord/links/165540221100752897/api-key", Some(&api.bot), None).await;
+    let (s, k) = api.call("POST", "/v1/discord/links/100000000000000001/api-key", Some(&api.bot), None).await;
     assert_eq!(s, StatusCode::CREATED);
     let key2 = k["secret"].as_str().unwrap().to_string();
     assert_eq!(api.call("GET", "/v1/me", Some(&key), None).await.0, StatusCode::UNAUTHORIZED);
     let (_, me) = api.call("GET", "/v1/me", Some(&key2), None).await;
     assert_eq!(me["username"], json!("alice"));
     assert_eq!(api.call("GET", "/v1/discord/links", Some(&api.bot), None).await.1.as_array().unwrap().len(), 1);
-    assert_eq!(api.call("DELETE", "/v1/discord/links/165540221100752897", Some(&api.bot), None).await.0, StatusCode::NO_CONTENT);
+    assert_eq!(api.call("DELETE", "/v1/discord/links/100000000000000001", Some(&api.bot), None).await.0, StatusCode::NO_CONTENT);
     assert_eq!(api.call("GET", "/v1/me", Some(&key2), None).await.0, StatusCode::UNAUTHORIZED);
-    assert_eq!(api.call("GET", "/v1/discord/links/165540221100752897", Some(&api.bot), None).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(api.call("GET", "/v1/discord/links/100000000000000001", Some(&api.bot), None).await.0, StatusCode::NOT_FOUND);
     assert!(api.db.account(id).unwrap().is_some(), "the account stays");
 }
 

@@ -247,6 +247,21 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!aim [shots|lobs] [current|lead|homing]", "how players' straight shots and lobbed ones (both without shots|lobs) are aimed at their enemy, for everyone (without a mode: the current ones)"),
 ];
 
+/// The commands alpha testers have (`--tester-gm-level`; the others need `--devcmd-gm-level`):
+/// teleporting, test scenarios, minifigures, dialogues, achievements, animations, looks and
+/// states, and the dev UI's Quick section.
+pub const TESTER_COMMANDS: &[&str] = &[
+    "help", "where", "tp", "moveto", "move", "list", "goto", "test", "own", "dialog", "ach", "count", "defeat", "anim", "skin",
+    "state", "revive", "smash", "smashme", "xp", "stars", "mirrors", "plates",
+];
+
+/// The GM level a command line needs.
+pub fn gm_level_for(message: &str) -> u32 {
+    let levels = crate::state::levels();
+    let cmd = message.get(1..).unwrap_or("").split_whitespace().next().unwrap_or("").to_ascii_lowercase();
+    if TESTER_COMMANDS.contains(&cmd.as_str()) { levels.tester } else { levels.devcmd }
+}
+
 /// Most a `!spawn` brings at once.
 const MAX_SPAWN: u32 = 30;
 
@@ -254,7 +269,10 @@ const MAX_SPAWN: u32 = 30;
 pub fn catalog() -> lmoxide_control::TestCatalog {
     let (spawnable, looks) = crate::npc::test_catalog();
     lmoxide_control::TestCatalog {
-        commands: COMMANDS.iter().map(|(usage, about)| lmoxide_control::TestCommand { usage: usage.to_string(), about: about.to_string() }).collect(),
+        commands: COMMANDS
+            .iter()
+            .map(|(usage, about)| lmoxide_control::TestCommand { usage: usage.to_string(), about: about.to_string(), gm_level: gm_level_for(usage) })
+            .collect(),
         kinds: KINDS
             .iter()
             .map(|(kind, about)| lmoxide_control::TargetKind {
@@ -990,6 +1008,21 @@ fn kinds_help() -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn testers_have_their_commands_only() {
+        // the defaults: testers 1, every command 2
+        assert_eq!(gm_level_for("!goto boss 1"), 1);
+        assert_eq!(gm_level_for("/TP 4200"), 1);
+        assert_eq!(gm_level_for("!own Pirate Captain"), 1);
+        assert_eq!(gm_level_for("!spawn 3 skeleton"), 2);
+        assert_eq!(gm_level_for("!fx 163540"), 2);
+        assert_eq!(gm_level_for("!"), 2);
+        // every tester command exists
+        for cmd in TESTER_COMMANDS {
+            assert!(COMMANDS.iter().any(|(usage, _)| usage[1..].split_whitespace().next() == Some(cmd)), "{cmd}");
+        }
+    }
 
     #[test]
     fn test_scenarios_resolve() {

@@ -25,12 +25,18 @@ sync_interval_minutes = 15
 # alpha_tester = 0
 
 # Discord roles that give a GM level in game; the highest one a member has wins
+# (docs/SECURITY.md "Access levels": 1 alpha tester, 2 contributor, 3 moderator, 4 admin)
 # [[gm_roles]]
 # name = "Admin"
+# role = 0
+# gm_level = 4
+#
+# [[gm_roles]]
+# name = "Contributor"
 # role = 0
 # gm_level = 2
 #
 # [[gm_roles]]
-# name = "Moderator"
+# name = "Alpha Tester"
 # role = 0
 # gm_level = 1

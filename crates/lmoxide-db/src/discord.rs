@@ -165,18 +165,18 @@ mod tests {
         let a = db.create_account("alice", Some("password1"), 0).unwrap();
         let b = db.create_account("bob", Some("password1"), 0).unwrap();
         assert!(db.link_discord(a.id, "12x").is_err());
-        db.link_discord(a.id, "165540221100752897").unwrap();
-        assert!(matches!(db.link_discord(b.id, "165540221100752897"), Err(Error::Conflict(_))));
+        db.link_discord(a.id, "100000000000000001").unwrap();
+        assert!(matches!(db.link_discord(b.id, "100000000000000001"), Err(Error::Conflict(_))));
         assert!(matches!(db.link_discord(a.id, "2"), Err(Error::Conflict(_))));
-        let l = db.discord_link("165540221100752897").unwrap().unwrap();
+        let l = db.discord_link("100000000000000001").unwrap().unwrap();
         assert_eq!((l.account_id, l.username.as_str(), l.banned), (a.id, "alice", false));
         assert_eq!(db.discord_links().unwrap().len(), 1);
 
         let (_, secret) = db.create_account_key(a.id, "discord-bot").unwrap();
-        assert_eq!(db.unlink_discord("165540221100752897").unwrap().id, a.id);
+        assert_eq!(db.unlink_discord("100000000000000001").unwrap().id, a.id);
         assert!(db.authenticate_api_key(&secret).unwrap().is_none(), "unlinking revokes its keys");
         assert!(db.discord_links().unwrap().is_empty());
-        assert!(matches!(db.unlink_discord("165540221100752897"), Err(Error::NotFound(_))));
+        assert!(matches!(db.unlink_discord("100000000000000001"), Err(Error::NotFound(_))));
     }
 
     #[test]

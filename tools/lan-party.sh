@@ -3,9 +3,9 @@
 # --progression) plus the web UI (../lmoxide-webui, production build served by `vite preview`).
 # Ctrl-C stops everything.
 #   tools/lan-party.sh [--reset] [lan-ip]
-# Accounts host and player1..player8, password "password", GM level 2 (the highest anything
+# Accounts host and player1..player8, password "password", GM level 4 (admin: the highest anything
 # checks: admin scope in the web UI, GM chat and test commands in game). Every other account
-# gets GM level 2 in game too (--default-gm-level).
+# gets GM level 4 in game too (--default-gm-level).
 # --reset: delete every character except host's; the others start over at character creation.
 # Env: LMOXIDE_DATA_DIR (as lan-server.sh), LMOXIDE_WEBUI_DIR (../lmoxide-webui), WEBUI_PORT (4173).
 set -euo pipefail
@@ -18,7 +18,7 @@ fi
 DATA=${LMOXIDE_DATA_DIR:-$(realpath -m "$ROOT/../var/data")}
 WEBUI=${LMOXIDE_WEBUI_DIR:-$(realpath -m "$ROOT/../lmoxide-webui")}
 WEBUI_PORT=${WEBUI_PORT:-4173}
-GM=2
+GM=4
 PASSWORD=password
 ACCOUNTS=(host player{1..8})
 

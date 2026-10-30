@@ -66,7 +66,7 @@ if [[ -n ${LMOXIDE_KEEP_LISTENING:-} ]]; then
   KEEP=(python3 "$ROOT/tools/keep-listening.py" --ports "$ports" --pidfile "$LOGS/dev-server.pid" --)
 fi
 RUST_LOG=${RUST_LOG:-info,lmoxide_server=debug} \
-  "${KEEP[@]}" "$ROOT/target/debug/lmoxide-server" --data-dir "$DATA" --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-1}" \
+  "${KEEP[@]}" "$ROOT/target/debug/lmoxide-server" --data-dir "$DATA" --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-2}" \
   "${SERVER_PORTS[@]}" ${LMOXIDE_SERVER_ARGS:-} >"$LOGS/server.log" 2>&1 &
 echo $! >>"$PIDS"
 # The patch server patches the login key into the LMO.exe it serves (and derives PatchVersion

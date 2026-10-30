@@ -15,9 +15,9 @@ the world editor of lmoxide-dev-ui (`/editor/`).
 
 `lmoxide-server --modes ...,world-editor:7104 --editor-content-dir <a git checkout of
 lmoxide-content>`: the World Editor mode's characters are its own (an account logs in to it
-through its universe port, the patcher's Game Mode, with GM level 1 and up:
-`--world-editor-gm-level`); nothing moves or attacks in its copies of the worlds (copy 2); its
-GM level is at least 1. The play modes run beside it in the same process with the published
+through its universe port, the patcher's Game Mode, with GM level 2 (contributor) and up:
+`--world-editor-gm-level`); nothing moves or attacks in its copies of the worlds (copy 2); there
+everyone has the test commands. The play modes run beside it in the same process with the published
 content; what the editor saves lives in its working copy until published.
 `tools/lan-server.sh` runs it all (World Editor on 7104; the content: `var/content-work`, cloned
 from `content/` the first time). `--survey-set` (`var/survey-set`) names the survey set of
@@ -26,7 +26,7 @@ before content records: it is taken into the working copy once (survey/migrate.r
 
 `!preview` (World Editor) plays the world one stands in as the working copy has it, with gameplay
 on, in a copy of one's own; `!preview end` goes back (preview.rs). The dev UI's "Play this" button
-calls `POST /v1/survey/preview` `{end}`: the caller's own character only, so GM level 1 is enough. The old separate survey server
+calls `POST /v1/survey/preview` `{end}`: the caller's own character only, so a contributor's level is enough. The old separate survey server
 (`tools/survey-server.sh`, `!server`) is retired; `lmoxide-server import-characters` copied its
 characters over.
 

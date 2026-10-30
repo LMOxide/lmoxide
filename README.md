@@ -134,7 +134,7 @@ repositories.
 cp docker/.env.example .env                           # the host name and the client paths
 cp docker/lmoxide.example.toml docker/lmoxide.toml    # the server's options
 docker compose up -d
-docker compose exec lmoxide lmoxide game account create <you> --gm-level 2
+docker compose exec lmoxide lmoxide game account create <you> --gm-level 4
 ```
 
 This runs the published images: `lmoxide` (the game server with every game mode, the API and
@@ -159,7 +159,7 @@ tools/servers.sh status | restart | down
 tools/lan-server.sh --release           # the same in the foreground (game, patch server, API)
 ```
 
-Accounts are created at first login (`--auto-register`), and every account gets GM level 1 for
+Accounts are created at first login (`--auto-register`), and every account gets GM level 2 (contributor) for
 the [test commands](docs/DEVELOPMENT.md#test-commands). `tools/lan-party.sh` also starts the web
 UI and creates player accounts.
 
@@ -167,7 +167,7 @@ UI and creates player accounts.
 <summary>Running the server binaries yourself</summary>
 
 ```sh
-cargo run --release -p lmoxide-server -- account create <name> --gm-level 2
+cargo run --release -p lmoxide-server -- account create <name> --gm-level 4
 cargo run --release -p lmoxide-server -- --help
 cargo run --release -p lmoxide-patch-server -- --help
 cargo run --release -p lmoxide-api -- --help
