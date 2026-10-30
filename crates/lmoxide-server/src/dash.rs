@@ -206,6 +206,11 @@ fn path_record(id: Id32, start: [f32; 3], end: [f32; 3], len: f32) -> Bytes {
 }
 
 /// BehaviorControlCenterIIR_c action 11/12 (enter/exit substate) with the substate.
+/// The "Charging" substate (200) of a dash, entered (`true`) or left: enemies' charges too.
+pub fn charging_record(id: Id32, enter: bool) -> Bytes {
+    substate_record(id, if enter { BCC_ENTER_SUBSTATE } else { BCC_EXIT_SUBSTATE })
+}
+
 fn substate_record(id: Id32, action: u8) -> Bytes {
     iir::record("BehaviorControlCenterIIR_c", id, false, |w| w.u8(action).u32(SUBSTATE_CHARGING))
 }

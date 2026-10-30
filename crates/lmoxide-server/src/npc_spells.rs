@@ -169,6 +169,10 @@ pub const REFLECT_DOWN: Duration = Duration::from_secs(3);
 const EFFECT_GAP: Duration = Duration::from_millis(150);
 static LAST_EFFECT: LazyLock<std::sync::Mutex<HashMap<Id32, std::time::Instant>>> = LazyLock::new(Default::default);
 
+/// How high (m) an enemy's knockback throws a player (a guess: the user remembers being thrown
+/// into the air by the Minotaur's charge).
+const KNOCKUP_APEX: f32 = 2.0;
+
 /// How fast an enemy charges (ColumnDash) without a charge speed in its movement set (m/s).
 const DASH_SPEED: f32 = 14.0;
 
@@ -304,13 +308,22 @@ pub fn busy(id: u32) -> Duration {
     let Some(s) = spell(id) else { return Duration::ZERO };
     let strike = cs(s.stats.item_delay.unwrap_or(0.0));
     match channel(s) {
-        Some((interval, ticks)) if !self_centred(s) => strike + interval * ticks,
-        // (a self-centred channel moves on: the recorded Dreadleg spun after players)
-        Some(_) => strike,
+        // (a self-centred channel whose animation is a moving attack moves on: the recorded
+        // Dreadleg spun after players; any other stands, the Minotaur's Rampage slid frozen)
+        Some(_) if self_centred(s) && moving_attack(s.stats.effect_package) => strike,
+        Some((interval, ticks)) => strike + interval * ticks,
         // until its cast animation is over: casting again sooner restarts it (the Minotaur's
         // 3.17 s Smash every 2 s looked frozen)
         None => strike.max(animation_length(s.stats.effect_package)),
     }
+}
+
+/// Whether effect package `package`'s animation is a moving attack (EMotionFX `movingattack`;
+/// data/effect_moving_attacks.json, tools/re/extract_moving_attacks.py).
+fn moving_attack(package: Option<u32>) -> bool {
+    static MOVING: LazyLock<std::collections::HashSet<u32>> =
+        LazyLock::new(|| serde_json::from_str::<Vec<u32>>(include_str!("../../../data/effect_moving_attacks.json")).expect("effect_moving_attacks.json").into_iter().collect());
+    package.is_some_and(|p| MOVING.contains(&p))
 }
 
 /// Whether effect package `package` has timelines waiting for code hook `hook`
@@ -436,10 +449,11 @@ fn cast_as(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [
     // a package that waits for the "charge" hook plays from the cast (the Crooked Tooth
     // Brute's charge arrows) and moves on to "execute" at the strike
     let charge = s.stats.effect_package.filter(|p| has_hook(*p, "charge")).map(|p| (p, effects::new_instance()));
-    if let Some((package, instance)) = charge {
-        show(&run, vec![effects::effect_package_hook(caster, package, "charge", "", 0.0, 0, instance)]);
-    }
     let delay = cs(s.stats.item_delay.unwrap_or(0.0));
+    // (as the recorded For Rome! dash: the hook's value the charge's length, flag 1)
+    if let Some((package, instance)) = charge {
+        show(&run, vec![effects::effect_package_hook(caster, package, "charge", "", (delay.as_secs_f32() - 0.033).max(0.01), 1, instance)]);
+    }
     tokio::spawn(async move {
         tokio::time::sleep(delay).await;
         if !alive(&run) {
@@ -449,7 +463,7 @@ fn cast_as(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [
             return;
         }
         if let Some((package, instance)) = charge.filter(|(p, _)| has_hook(*p, "execute")) {
-            show(&run, vec![effects::effect_package_hook(caster, package, "execute", "charge", 0.0, 0, instance)]);
+            show(&run, vec![effects::effect_package_hook(caster, package, "execute", "charge", 0.0, 1, instance)]);
         }
         run_list(&run, id, ON_USE, root_target(&run), 0);
         let Some((interval, ticks)) = channel(s) else { return };
@@ -572,6 +586,20 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
         "Projectile" => projectile(run, id, a, target, depth),
         // (after its blast, earlier in the list) it dies: no loot, only a kill drops some
         _ if a.kills_caster() => crate::npc::self_destruct(caster),
+        // a knockback on a player (a client action the server carries out, as for enemies):
+        // thrown Distance m away from the caster, spinning (the Minotaur's charge throws them)
+        "Knockaway" | "AreaKnockaway" if who.id.is_some_and(|p| p != caster && crate::npc::is_player(p) && !crate::procs::cc_immune(p)) => {
+            let player = who.id.expect("checked");
+            let distance = a.f("Distance").unwrap_or(3.0).max(0.5);
+            let from = here(run);
+            let Some((_, handle)) = world::position_handles(run.playfield).into_iter().find(|(id, _)| *id == player) else { return };
+            let at = *handle.lock().unwrap();
+            let (dx, dz) = (at[0] - from[0], at[2] - from[2]);
+            let d = dx.hypot(dz);
+            let dir = if d > 0.01 { [dx / d, dz / d] } else { run.facing };
+            let end = [at[0] + dir[0] * distance, at[1], at[2] + dir[1] * distance];
+            tokio::spawn(async move { crate::jumppad::throw_as(player, &handle, end, KNOCKUP_APEX, crate::jumppad::Tumble::SPIN).await });
+        }
         _ if a.client => {}
         "WeaponHit" => {
             if let Some(player) = who.id.filter(|p| *p != caster && crate::npc::is_player(*p)) {
@@ -639,19 +667,27 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             let (from, dir) = (me.pos, run.facing);
             let speed = crate::npc::charge_speed(caster).unwrap_or(DASH_SPEED);
             if let Some(took) = crate::npc::charge(caster, dir, length, speed) {
-                // its effect: at "charge" for the run, then "execute" (as a player's dash)
-                if let Some(fx) = a.u("Value1") {
-                    if has_hook(fx, "charge") {
-                        let instance = effects::new_instance();
-                        show(run, vec![effects::effect_package_hook(caster, fx, "charge", "", 0.0, 0, instance)]);
-                        let run = run.clone();
-                        tokio::spawn(async move {
-                            tokio::time::sleep(took).await;
-                            show(&run, vec![effects::effect_package_hook(run.caster, fx, "execute", "charge", 0.0, 0, instance)]);
-                        });
-                    } else {
-                        show(run, vec![effects::effect_package(caster, fx)]);
-                    }
+                // its effect: at "charge" for the run, then "execute", in the "Charging" substate
+                // (as the recorded For Rome! dash)
+                let fx = a.u("Value1");
+                let instance = effects::new_instance();
+                let mut records = vec![crate::dash::charging_record(caster, true)];
+                match fx {
+                    Some(fx) if has_hook(fx, "charge") => records.push(effects::effect_package_hook(caster, fx, "charge", "", (took.as_secs_f32() - 0.033).max(0.01), 1, instance)),
+                    Some(fx) => records.push(effects::effect_package(caster, fx)),
+                    None => {}
+                }
+                show(run, records);
+                {
+                    let run = run.clone();
+                    tokio::spawn(async move {
+                        tokio::time::sleep(took).await;
+                        let mut records = vec![crate::dash::charging_record(run.caster, false)];
+                        if let Some(fx) = fx.filter(|f| has_hook(*f, "execute")) {
+                            records.push(effects::effect_package_hook(run.caster, fx, "execute", "charge", 0.0, 1, instance));
+                        }
+                        show(&run, records);
+                    });
                 }
                 let hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
                 if let Some(nano) = a.u("TemplateID") {
@@ -1055,8 +1091,11 @@ mod tests {
         assert!(has_hook(496_594, "charge") && !has_hook(496_594, "execute"));
         assert!(has_hook(141_533, "charge") && has_hook(141_533, "execute"));
         assert!(!parallel(100_331) && !parallel(379_720));
-        // a channel's whole length counts as its action, a moving spin's too (Rampage)
+        // a channel's whole length counts as its action (Rampage); Rampage isn't a moving attack,
+        // so its caster stands through it; Dreadleg's spin is one, so he moves (recorded)
         assert_eq!(cast_time(319_891), Duration::from_millis(1500 + 3 * 1000));
+        assert!(moving_attack(Some(239_184)) && !moving_attack(Some(153_852)));
+        assert_eq!(busy(319_891), Duration::from_millis(1500 + 3 * 1000));
     }
 
     /// The Alpha Wolf (#2887) calls Summoned Wolves (Call to Arms 338311, live capture); the
