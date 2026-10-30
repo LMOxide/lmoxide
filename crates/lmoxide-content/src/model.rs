@@ -1330,6 +1330,10 @@ record! {
         /// The AI's use: `melee`, `ranged`, `heal`, ...
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub ai_category: Option<String>,
+        /// An enemy casts it alongside its other actions: it neither waits for the one under way
+        /// nor holds the next one back (enemies otherwise see each action through first).
+        #[serde(default, skip_serializing_if = "crate::record::is_false")]
+        pub parallel: bool,
     }
 }
 

@@ -313,6 +313,16 @@ pub fn busy(id: u32) -> Duration {
     }
 }
 
+/// Whether effect package `package` has timelines waiting for code hook `hook`
+/// (data/effect_code_hooks.json, tools/re/extract_animation_lengths.py).
+fn has_hook(package: u32, hook: &str) -> bool {
+    static HOOKS: LazyLock<HashMap<u32, Vec<String>>> = LazyLock::new(|| {
+        let raw: HashMap<String, Vec<String>> = serde_json::from_str(include_str!("../../../data/effect_code_hooks.json")).expect("effect_code_hooks.json");
+        raw.into_iter().filter_map(|(k, v)| Some((k.parse().ok()?, v))).collect()
+    });
+    HOOKS.get(&package).is_some_and(|h| h.iter().any(|x| x == hook))
+}
+
 /// How long effect package `package` holds its caster in an animation
 /// (data/effect_animation_lengths.json, tools/re/extract_animation_lengths.py).
 fn animation_length(package: Option<u32>) -> Duration {
@@ -370,6 +380,9 @@ struct Run {
     facing: [f32; 2],
     /// The last random roll (stat 520 Rnd rolls it, 522 LastRnd reads it: criteria).
     roll: std::sync::Mutex<u32>,
+    /// The caster's cast generation when this cast started (`npc::cast_generation`): an
+    /// interrupt moves it on, and the cast's later parts don't run.
+    generation: Option<u32>,
     /// The caster's buff counters this cast keeps (AddBuffCounter / RemoveBuff on the caster:
     /// the Bot Battle Merc's minigun alternates its barrels by one).
     counters: std::sync::Mutex<HashMap<u32, u32>>,
@@ -387,30 +400,56 @@ pub fn run_at_once(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id3
     if spell(id).is_none() {
         return;
     }
-    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing: [0.0, 1.0], roll: Default::default(), counters: Default::default() });
+    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing: [0.0, 1.0], generation: None, roll: Default::default(), counters: Default::default() });
     run_list(&run, id, ON_USE, root_target(&run), 0);
 }
 
-/// Enemy `caster` (on `playfield`, with `power`, `npc::enemy_damage`) casts `id` at `player` (at `at`).
+/// Enemy `caster` (on `playfield`, with `power`, `npc::enemy_damage`) casts `id` at `player` (at
+/// `at`) as its action under way (npc.rs `engage`): a player's interrupt cuts it short.
 pub fn cast(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [f32; 3]) {
+    cast_as(caster, playfield, power, id, player, at, !parallel(id));
+}
+
+/// `cast` beside the action under way (a champion's aura, the Defender's counter, an enemy
+/// support ability): an interrupt doesn't stop it.
+pub fn cast_aside(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [f32; 3]) {
+    cast_as(caster, playfield, power, id, player, at, false);
+}
+
+fn cast_as(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [f32; 3], committed: bool) {
     let Some(s) = spell(id) else { return };
     let here = crate::npc::position(caster).unwrap_or(at);
     let self_cast = self_centred(s);
     // (a caster that never turns, an egg sack or a pod, casts at itself)
     let commanded = if self_cast || crate::npc::fixed_facing(caster) { caster } else { player };
     let (command, records) = crate::npc::observed_cast(caster, commanded, id);
+    if committed {
+        crate::npc::set_cast_command(caster, id, commanded, command);
+    }
     world::send_playfield(caster, false, world::Out::Records(records.to_vec()));
     let (dx, dz) = (at[0] - here[0], at[2] - here[2]);
     let d = dx.hypot(dz);
     let facing = if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] };
-    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing, roll: Default::default(), counters: Default::default() });
+    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing, generation: committed.then(|| crate::npc::cast_generation(caster)).flatten(), roll: Default::default(), counters: Default::default() });
     info!(?caster, spell = id, name = %s.name, ?player, "enemy cast");
     run_list(&run, id, PRE_USE, root_target(&run), 0);
+    // a package that waits for the "charge" hook plays from the cast (the Crooked Tooth
+    // Brute's charge arrows) and moves on to "execute" at the strike
+    let charge = s.stats.effect_package.filter(|p| has_hook(*p, "charge")).map(|p| (p, effects::new_instance()));
+    if let Some((package, instance)) = charge {
+        show(&run, vec![effects::effect_package_hook(caster, package, "charge", "", 0.0, 0, instance)]);
+    }
     let delay = cs(s.stats.item_delay.unwrap_or(0.0));
     tokio::spawn(async move {
         tokio::time::sleep(delay).await;
         if !alive(&run) {
+            if let Some((package, instance)) = charge {
+                show(&run, vec![effects::stop_effect_package(caster, package, 0, instance)]);
+            }
             return;
+        }
+        if let Some((package, instance)) = charge.filter(|(p, _)| has_hook(*p, "execute")) {
+            show(&run, vec![effects::effect_package_hook(caster, package, "execute", "charge", 0.0, 0, instance)]);
         }
         run_list(&run, id, ON_USE, root_target(&run), 0);
         let Some((interval, ticks)) = channel(s) else { return };
@@ -427,8 +466,17 @@ pub fn cast(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: 
     });
 }
 
+/// Whether the cast goes on: its caster lives and nothing interrupted it since it started.
 fn alive(run: &Run) -> bool {
-    crate::npc::health_of(run.caster).is_some()
+    crate::npc::health_of(run.caster).is_some() && run.generation.is_none_or(|g| crate::npc::cast_generation(run.caster) == Some(g))
+}
+
+/// Whether enemies cast `id` alongside their other actions (its skill's `parallel`): it
+/// neither waits for the action under way nor holds the next one back (npc.rs `engage`).
+pub fn parallel(id: u32) -> bool {
+    static PARALLEL: LazyLock<std::collections::HashSet<u32>> =
+        LazyLock::new(|| crate::gamedata::get().skills.values().filter(|s| s.parallel).filter_map(|s| s.client.as_ref().map(|c| c.spell)).collect());
+    PARALLEL.contains(&id)
 }
 
 fn here(run: &Run) -> [f32; 3] {
@@ -590,9 +638,20 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             let width = a.f("Radius").unwrap_or(1.0) + 0.5;
             let (from, dir) = (me.pos, run.facing);
             let speed = crate::npc::charge_speed(caster).unwrap_or(DASH_SPEED);
-            if crate::npc::charge(caster, dir, length, speed).is_some() {
+            if let Some(took) = crate::npc::charge(caster, dir, length, speed) {
+                // its effect: at "charge" for the run, then "execute" (as a player's dash)
                 if let Some(fx) = a.u("Value1") {
-                    show(run, vec![effects::effect_package(caster, fx)]);
+                    if has_hook(fx, "charge") {
+                        let instance = effects::new_instance();
+                        show(run, vec![effects::effect_package_hook(caster, fx, "charge", "", 0.0, 0, instance)]);
+                        let run = run.clone();
+                        tokio::spawn(async move {
+                            tokio::time::sleep(took).await;
+                            show(&run, vec![effects::effect_package_hook(run.caster, fx, "execute", "charge", 0.0, 0, instance)]);
+                        });
+                    } else {
+                        show(run, vec![effects::effect_package(caster, fx)]);
+                    }
                 }
                 let hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
                 if let Some(nano) = a.u("TemplateID") {
@@ -988,6 +1047,17 @@ pub fn jitter() -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The Crooked Tooth Brute's Trample plays its arrows at the "charge" hook (and its dash
+    /// effect then "execute"); no enemy skill is parallel unless content says so.
+    #[test]
+    fn charge_hooks_and_parallel() {
+        assert!(has_hook(496_594, "charge") && !has_hook(496_594, "execute"));
+        assert!(has_hook(141_533, "charge") && has_hook(141_533, "execute"));
+        assert!(!parallel(100_331) && !parallel(379_720));
+        // a channel's whole length counts as its action, a moving spin's too (Rampage)
+        assert_eq!(cast_time(319_891), Duration::from_millis(1500 + 3 * 1000));
+    }
 
     /// The Alpha Wolf (#2887) calls Summoned Wolves (Call to Arms 338311, live capture); the
     /// wolves of the same look (Summoned Wolf #1259, ...) don't.

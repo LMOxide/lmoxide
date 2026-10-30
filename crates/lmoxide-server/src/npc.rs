@@ -431,9 +431,17 @@ struct Npc {
     snares: Vec<(f32, std::time::Instant)>,
     /// The speed multiplier its current path was made with.
     speed_factor: f32,
-    /// A channel it is in until then (a spin it moves in): no other cast meanwhile, which
-    /// would cut its animation (the Minotaur's Rampage, frozen).
-    casting_until: Option<std::time::Instant>,
+    /// The action it is seeing through until then (a cast's strike, animation or whole
+    /// channel, a spin it moves in too): no other cast starts meanwhile, which would cut its
+    /// animation (the Minotaur froze); only a player's stun or knockback ends it sooner
+    /// (`interrupt`). Parallel skills (`npc_spells::parallel`) don't wait for it.
+    committed_until: Option<std::time::Instant>,
+    /// Counts the casts an interrupt cancelled: a cast's later parts run only while it is the
+    /// one they started with (`cast_generation`).
+    cast_gen: u32,
+    /// The command of the action under way (spell, its target, its command id), to abort on the
+    /// clients when it is interrupted.
+    cast_command: Option<(u32, Id32, u32)>,
     /// Diminishing returns: when each crowd control of a kind (802 snare, 804 stun) it got
     /// stops counting, and how much each counted one shortens the next.
     diminishing: HashMap<u32, (Vec<std::time::Instant>, f32)>,
@@ -472,7 +480,9 @@ impl Npc {
             threat: None,
             snares: Vec::new(),
             speed_factor: 1.0,
-            casting_until: None,
+            committed_until: None,
+            cast_gen: 0,
+            cast_command: None,
             diminishing: HashMap::new(),
             patrol: None,
             shield: None,
@@ -1454,7 +1464,7 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
         let (playfield, power) = (npc.playfield, enemy_damage(npc.def.level, npc.def.health));
         tokio::spawn(async move {
             let at = world::position_of(attacker).unwrap_or_default();
-            crate::npc_spells::cast(target, playfield, power, crate::npc_spells::REFLECT_COUNTER, attacker, at);
+            crate::npc_spells::cast_aside(target, playfield, power, crate::npc_spells::REFLECT_COUNTER, attacker, at);
         });
     }
     let dealt = if taken <= 0.0 { 0 } else { (((damage as f32) * (1.0 - mitigation) * taken).round().max(1.0) as u32).min(npc.health) };
@@ -2173,6 +2183,8 @@ pub fn stun(id: Id32, duration: Duration) -> Option<Duration> {
         let until = now + duration;
         npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
         npc.stunned_until = Some(until);
+        // a stun interrupts the action under way
+        let abort = interrupt(id, npc);
         // it stops where it is (facing the way it went)
         let stop = npc.walk.take().map(|w| {
             let (here, _) = w.at(now);
@@ -2181,12 +2193,36 @@ pub fn stun(id: Id32, duration: Duration) -> Option<Duration> {
             let d = dx.hypot(dz);
             stop_record(id, here, if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] })
         });
-        (duration, stop)
+        (duration, stop.into_iter().chain(abort).collect::<Vec<_>>())
     };
-    if let Some(record) = stop {
-        world::broadcast(id, vec![record]);
+    if !stop.is_empty() {
+        world::broadcast(id, stop);
     }
     Some(duration)
+}
+
+/// Ends `npc`'s action under way (a player's stun or knockback): its later parts don't run
+/// (`cast_generation`), it may act again, and the clients get its command's abort.
+fn interrupt(id: Id32, npc: &mut Npc) -> Option<bytes::Bytes> {
+    if npc.committed_until.take().is_none_or(|t| t <= std::time::Instant::now()) {
+        return None;
+    }
+    npc.cast_gen = npc.cast_gen.wrapping_add(1);
+    info!(npc = ?id, "action interrupted");
+    let (spell, target, command) = npc.cast_command.take()?;
+    Some(command_record(id, target, spell, BCC_ABORT, command))
+}
+
+/// Which of NPC `id`'s casts is the current one (an interrupt moves it on).
+pub fn cast_generation(id: Id32) -> Option<u32> {
+    NPCS.lock().unwrap().get(&id).map(|n| n.cast_gen)
+}
+
+/// Remembers the command of `id`'s action under way, to abort it if it is interrupted.
+pub fn set_cast_command(id: Id32, spell: u32, target: Id32, command: u32) {
+    if let Some(n) = NPCS.lock().unwrap().get_mut(&id) {
+        n.cast_command = Some((spell, target, command));
+    }
 }
 
 /// Enemy `id` charges `distance` m along `dir` at `speed` m/s (an enemy ColumnDash: the
@@ -2223,7 +2259,7 @@ fn float_stat(id: Id32, stat: u32, value: f32) -> bytes::Bytes {
 /// Enemies that never leave their spot (`stationary`: cannons, pods, eggs, the Kraken) don't move.
 pub fn knock(id: Id32, from: [f32; 3], distance: f32, towards: bool, speed: f32) -> bool {
     let now = std::time::Instant::now();
-    let (here, to) = {
+    let (here, to, abort) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0 && !n.def.stationary) else { return false };
         let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(now).0);
@@ -2234,9 +2270,11 @@ pub fn knock(id: Id32, from: [f32; 3], distance: f32, towards: bool, speed: f32)
         *npc.pos.lock().unwrap() = to;
         let until = now + Duration::from_secs_f32(step.abs() / speed.max(1.0));
         npc.busy_until = Some(npc.busy_until.map_or(until, |b| b.max(until)));
-        (here, to)
+        // a knockback interrupts the action under way
+        let abort = interrupt(id, npc);
+        (here, to, abort)
     };
-    world::send_playfield(id, false, world::Out::Records(vec![crate::game::move_task_record(id, here, to)]));
+    world::send_playfield(id, false, world::Out::Records(abort.into_iter().chain([crate::game::move_task_record(id, here, to)]).collect()));
     true
 }
 
@@ -2288,11 +2326,13 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     let (spell, playfield, power, against_npc, aura) = {
         let mut npcs = NPCS.lock().unwrap();
         let Some(npc) = npcs.get_mut(&id) else { return false };
-        if npc.busy_until.is_some_and(|t| t > now) || npc.casting_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
+        // (a parallel skill may still go while an action is under way, below)
+        let committed = npc.committed_until.is_some_and(|t| t > now);
+        if (npc.busy_until.is_some_and(|t| t > now) && !committed) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
             return false;
         }
         // a heal, shield or totem first (enemy_abilities.rs), when there is one to cast
-        if let Some(kit) = crate::enemy_abilities::kit(npc.def.monster_data) {
+        if let Some(kit) = crate::enemy_abilities::kit(npc.def.monster_data).filter(|_| !committed) {
             let (playfield, faction) = (npc.playfield, npc.def.faction);
             let allies: Vec<crate::enemy_abilities::Ally> = npcs
                 .iter()
@@ -2338,8 +2378,12 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
             }
         }
         let npc = npcs.get(&id).expect("looked up above");
-        // (not a spawn spell whose spawns are all at their cap)
+        // (not a spawn spell whose spawns are all at their cap; while an action is under way,
+        // only the parallel ones)
         spells.retain(|s| !crate::npc_spells::spawns_full(*s, |counter| alive_spawns(&npcs, id, counter)));
+        if committed {
+            spells.retain(|s| crate::npc_spells::parallel(*s));
+        }
         let npc = npcs.get_mut(&id).expect("looked up above");
         let pick = spells
             .into_iter()
@@ -2349,12 +2393,17 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
             .map(|(s, _)| s);
         let Some(spell) = pick else { return false };
         npc.last_attack = Some(now);
-        npc.cooldowns.insert(spell, now + crate::npc_spells::cooldown(spell));
-        let busy = crate::npc_spells::busy(spell);
-        if !busy.is_zero() {
-            npc.busy_until = Some(now + busy);
+        // the action is seen through, and its cooldown counts from its end (a cooldown running
+        // out during a long animation restarted it)
+        let lasts = crate::npc_spells::cast_time(spell);
+        npc.cooldowns.insert(spell, now + lasts + crate::npc_spells::cooldown(spell));
+        if !crate::npc_spells::parallel(spell) {
+            let busy = crate::npc_spells::busy(spell);
+            if !busy.is_zero() {
+                npc.busy_until = Some(now + busy);
+            }
+            npc.committed_until = Some(now + lasts);
         }
-        npc.casting_until = Some(now + crate::npc_spells::cast_time(spell));
         let against_npc = npcs.contains_key(&target);
         let npc = npcs.get_mut(&id).expect("looked up above");
         // a champion entering combat (or whose aura ran out) casts its element aura
@@ -2363,7 +2412,7 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
     };
     if let Some(aura) = aura {
         info!(npc = ?id, aura, "champion aura");
-        crate::npc_spells::cast(id, playfield, power, aura, target, at);
+        crate::npc_spells::cast_aside(id, playfield, power, aura, target, at);
     }
     if against_npc {
         strike(id, target, spell, playfield);

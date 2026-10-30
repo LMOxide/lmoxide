@@ -203,7 +203,7 @@ pub fn run(caster: Id32, playfield: Pf, power: f32, kit: &'static Kit, plan: Pla
             let Some(t) = kit.totem else { return };
             if let Some(spell) = t.spell.as_ref().and_then(|s| crate::gamedata::get().skills.get(s.as_str())).and_then(|s| s.client.as_ref()).map(|c| c.spell) {
                 // the client spell does it all (npc_spells.rs): the cast animation, the mark, the hit
-                crate::npc_spells::cast(caster, playfield, power, spell, target, at);
+                crate::npc_spells::cast_aside(caster, playfield, power, spell, target, at);
                 return;
             }
             if let Some(fx) = t.effect {

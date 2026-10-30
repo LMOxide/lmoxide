@@ -86,6 +86,12 @@ skills differ from others of its look casts its own (`skills.rs` `template_spell
 monsters need `spawn_hash` and maybe `lifetime` (SPAWN-RESEARCH.md). Say in `comment` what is
 client data, live, the user's memory or a guess; `source: guess` when the match is.
 
+## 5b. Actions
+
+Enemies see each cast through (strike, animation, channel) before the next, with the cooldown
+counted from its end; only a player's stun or knockback interrupts. A skill an enemy uses
+alongside its other actions gets `"parallel": true` in its skill record.
+
 ## 6. Check and test
 
 - `cargo run -p lmoxide-content -- fmt` and `-- check --warnings`; `cargo test -p lmoxide-server`
