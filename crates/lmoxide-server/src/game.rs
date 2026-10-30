@@ -1991,7 +1991,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let result = if starter.is_some() { 0 } else { 1 };
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 if let Some(template) = starter {
-                    me.name = [nick.trim(), first.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+                    // stored in reading order, "first nick last" (the launcher's "Fantastic Sparky
+                    // Burrito" arrives as nick Sparky, first Fantastic, last Burrito)
+                    me.name = [first.trim(), nick.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
                     if let Some(owned) = me.collection.as_mut() {
                         owned.insert(template, crate::smash::now_ms() / 1000);
                     }
