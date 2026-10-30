@@ -20,9 +20,9 @@ From this repo (needs Rust and `protoc`; no game client):
 tools/web-dev-backend.sh          # --reset for a fresh database
 ```
 
-API on `http://127.0.0.1:8090` with its own database and two bot keys, printed at startup (also
-in `../var/web-dev/demo-*-key.txt`): `demo-bot` (scope `read`) and `demo-mod-bot` (scope
-`moderate`). Demo accounts: `admin`, `moderator`, `player`, `banned` (password
+API on `http://127.0.0.1:8090` with its own database and three bot keys, printed at startup
+(also in `../var/web-dev/demo-*-key.txt`): `demo-bot` (scope `read`), `demo-mod-bot` (scope
+`moderate`) and `demo-discord-bot` (scope `discord`, for registering and linking). Demo accounts: `admin`, `moderator`, `player`, `banned` (password
 `<name>-password`). Nobody is online unless a game client connects: `/v1/online` returns `[]`,
 kicks answer `{"affected": 0}`, broadcasts reach nobody.
 
@@ -32,8 +32,8 @@ The bot uses **API keys**, not account logins: `Authorization: Bearer lmox_...`.
 creates them:
 
 ```sh
-lmoxide-api key create discord-bot --scope read            # or in Docker:
-docker compose exec lmoxide lmoxide api key create discord-bot --scope moderate
+lmoxide-api key create discord-bot --scope discord         # or in Docker:
+docker compose exec lmoxide lmoxide api key create discord-bot --scope discord
 ```
 
 The secret is printed once; the bot reads it from its environment or a secret file, never from
@@ -42,12 +42,42 @@ its repository. Keys are revoked with `lmoxide-api key revoke <id>` or `DELETE /
 - **`read`**: status, players online with usernames, account and character lookups.
 - **`moderate`**: plus kick, ban, unban, broadcast. Moderate keys can't kick or ban staff
   (accounts with a GM level): 403.
+- **`discord`**: plus the `/v1/discord` routes: register and link Discord accounts, set the GM
+  level of linked accounts, make their account keys and one-time codes. The bot's own key.
 - **`admin`**: don't give a bot this unless it really manages accounts.
 
-The API knows nothing about Discord: the key is shared by everyone who can run the bot's
-commands, so **the bot must check Discord roles itself** before calling moderation routes.
+A key without an account is shared by everyone who can run the bot's commands, so with it **the
+bot must check Discord roles itself** before calling moderation routes. Better: act with the
+person's **account key** (below), and the API decides from their GM level.
 
-**Attribution:** send `X-On-Behalf-Of: discord:<user name> (<user id>)` with every moderation
+## Accounts from Discord
+
+A game account can be linked to one Discord account (`Account.discord_id`, a string). The bot's
+`discord` key manages that:
+
+- **Register**: `POST /v1/discord/accounts {discord_id, username, password, gm_level?}` makes a
+  linked account and returns `{link, key}`. Check first that the person is a member of the
+  Discord server. Allowed while registration is `open` or `discord` (`GET /v1/config`
+  `registration`); with `--registration discord` this is the only way to register.
+- **Account keys**: `key.secret` (and `POST /v1/discord/links/{discord_id}/api-key`, which
+  replaces it) is a key that **acts as that account**: its scope follows the account's GM level,
+  it stops working while the account is banned or after it is unlinked, and the audit log names
+  the account (`account:<name> via api-key:discord-bot`). Keep it secret and use it for that
+  person's commands (`/kick`, `/announce`, ...). Keep using the `discord` key for lookups that
+  ordinary players can't make (`/whois`).
+- **Link an existing account**: `POST /v1/discord/codes {discord_id, purpose: "link"}` →
+  `{code, expires_at}` (`XXXX-XXXX`, 10 minutes, works once). DM it; the person enters it in
+  the web UI while signed in (`POST /v1/me/discord {code}`). There is no event: poll
+  `GET /v1/discord/links/{discord_id}` until it is linked or the code expires, then make the
+  account key.
+- **Forgotten password**: `POST /v1/discord/codes {discord_id, purpose: "login"}` (linked
+  accounts only). DM it; the web UI signs in with it (`POST /v1/auth/code`) and the session may
+  set a new password without the old one.
+- **Roles → GM levels**: `GET /v1/discord/links` lists every linked account with its GM level;
+  `PATCH /v1/discord/links/{discord_id} {gm_level}` sets it (linked accounts only; from the next
+  game login). `DELETE /v1/discord/links/{discord_id}` unlinks and revokes the account's keys.
+
+**Attribution** (with a shared key): send `X-On-Behalf-Of: discord:<user name> (<user id>)` with every moderation
 call. The audit log then records `api-key:discord-bot for discord:<name> (<id>)` instead of just
 the key (printable text, at most 100 characters; it is the bot's claim, not authentication).
 

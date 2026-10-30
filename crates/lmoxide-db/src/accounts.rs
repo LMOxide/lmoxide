@@ -21,6 +21,8 @@ pub struct Account {
     pub last_login_at: Option<i64>,
     pub last_login_ip: Option<String>,
     pub ban: Option<Ban>,
+    /// The linked Discord user id (a snowflake as decimal text).
+    pub discord_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -37,10 +39,10 @@ impl Account {
     }
 }
 
-const COLUMNS: &str =
-    "id, username, password_hash IS NOT NULL, gm_level, created_at, last_login_at, last_login_ip, banned, ban_until, ban_reason";
+pub(crate) const COLUMNS: &str =
+    "id, username, password_hash IS NOT NULL, gm_level, created_at, last_login_at, last_login_ip, banned, ban_until, ban_reason, discord_id";
 
-fn account(r: &Row) -> rusqlite::Result<Account> {
+pub(crate) fn account(r: &Row) -> rusqlite::Result<Account> {
     let banned: bool = r.get(7)?;
     Ok(Account {
         id: r.get(0)?,
@@ -51,6 +53,7 @@ fn account(r: &Row) -> rusqlite::Result<Account> {
         last_login_at: r.get(5)?,
         last_login_ip: r.get(6)?,
         ban: banned.then(|| Ok::<_, rusqlite::Error>(Ban { until: r.get(8)?, reason: r.get(9)? })).transpose()?,
+        discord_id: r.get(10)?,
     })
 }
 
@@ -230,7 +233,7 @@ impl Db {
     }
 
     /// `UPDATE accounts SET <set> WHERE id = ?1`, with the id as the first parameter.
-    fn update_account(&self, set: &str, params: &[&dyn rusqlite::ToSql]) -> Result<()> {
+    pub(crate) fn update_account(&self, set: &str, params: &[&dyn rusqlite::ToSql]) -> Result<()> {
         let n = self.conn().execute(&format!("UPDATE accounts SET {set} WHERE id = ?1"), params)?;
         if n == 0 { Err(Error::NotFound("account")) } else { Ok(()) }
     }

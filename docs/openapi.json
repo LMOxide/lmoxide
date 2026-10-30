@@ -473,6 +473,57 @@
         }
       }
     },
+    "/v1/auth/code": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign in with a `login` code the Discord bot sent: a session for the linked account with\n`password_reset`, in which `/v1/me/password` takes a new password without the current one.\n401 `bad_code` for a wrong or expired code, or a banned account (counts as a failed login).",
+        "operationId": "code_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
+        ]
+      }
+    },
     "/v1/auth/login": {
       "post": {
         "tags": [
@@ -541,7 +592,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "Create a game account (only with `--open-registration`).",
+        "summary": "Create a game account (only when `registration` is `open`).",
         "operationId": "register",
         "requestBody": {
           "content": {
@@ -915,6 +966,279 @@
         ]
       }
     },
+    "/v1/discord/accounts": {
+      "post": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "Create a game account linked to a Discord account, with a key that acts as it. Not while\nregistration is `closed`. Scope: discord.",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiscordRegistration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscordRegistered"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/discord/codes": {
+      "post": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "A one-time code (`XXXX-XXXX`, 10 minutes, works once) for the bot to send to that Discord\nuser in a DM; it replaces their last one for the same purpose. `link`: the Discord account\nmust not be linked yet (409); `login`: it must be (404). Scope: discord.",
+        "operationId": "create_code",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewCode"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscordCode"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/discord/links": {
+      "get": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "Every game account linked to a Discord account. Scope: discord.",
+        "operationId": "links",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DiscordLink"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/discord/links/{discord_id}": {
+      "get": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "The game account linked to a Discord account. Scope: discord.",
+        "operationId": "get_link",
+        "parameters": [
+          {
+            "name": "discord_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscordLink"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "Unlink a Discord account; the keys that act as its game account are revoked, the account\nstays. Scope: discord.",
+        "operationId": "unlink",
+        "parameters": [
+          {
+            "name": "discord_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {},
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "Change the GM level of a linked account (from its next login). Scope: discord.",
+        "operationId": "update_link",
+        "parameters": [
+          {
+            "name": "discord_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkChanges"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscordLink"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/discord/links/{discord_id}/api-key": {
+      "post": {
+        "tags": [
+          "discord"
+        ],
+        "summary": "A new key that acts as the linked account (named `discord-bot`; it replaces the account's\nearlier one). Its scope follows the account's GM level. Scope: discord.",
+        "operationId": "link_api_key",
+        "parameters": [
+          {
+            "name": "discord_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedApiKey"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/instances": {
       "get": {
         "tags": [
@@ -1003,12 +1327,69 @@
         }
       }
     },
+    "/v1/me/discord": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Link the logged-in account to the Discord account that got this `link` code from the bot.\n401 `bad_code` for a wrong or expired code (counts as a failed login); 409 if either is\nlinked already.",
+        "operationId": "link_own_account",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemCode"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me/password": {
       "post": {
         "tags": [
           "auth"
         ],
-        "summary": "Change the logged-in account's password (ends its sessions).",
+        "summary": "Change the logged-in account's password (ends its sessions). `current_password` may be left\nout in a `password_reset` session (from `/v1/auth/code`).",
         "operationId": "change_own_password",
         "requestBody": {
           "content": {
@@ -1330,6 +1711,13 @@
             "format": "int64",
             "description": "Unix time."
           },
+          "discord_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The linked Discord user id (a snowflake, as a string); `null`: not linked."
+          },
           "gm_level": {
             "type": "integer",
             "format": "int32",
@@ -1498,6 +1886,15 @@
           "revoked"
         ],
         "properties": {
+          "account_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Set: the key acts as this account, and its scope follows the account's GM level as a\nlogin session's does (`scope` is then `read` and unused).",
+            "minimum": 0
+          },
           "created_at": {
             "type": "integer",
             "format": "int64"
@@ -1530,6 +1927,7 @@
         "enum": [
           "read",
           "moderate",
+          "discord",
           "admin"
         ]
       },
@@ -1695,12 +2093,15 @@
       "ChangePassword": {
         "type": "object",
         "required": [
-          "current_password",
           "new_password"
         ],
         "properties": {
           "current_password": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required, except in a `password_reset` session."
           },
           "new_password": {
             "type": "string",
@@ -1925,6 +2326,30 @@
           }
         }
       },
+      "CodeLogin": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "As sent by the bot; any case, the dash optional."
+          },
+          "remember": {
+            "type": "boolean",
+            "description": "As in the login: a long session or a short one."
+          }
+        }
+      },
+      "CodePurpose": {
+        "type": "string",
+        "description": "What a one-time code is for.",
+        "enum": [
+          "link",
+          "login"
+        ]
+      },
       "CommandRequest": {
         "type": "object",
         "required": [
@@ -2021,6 +2446,106 @@
           "last_at": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "DiscordCode": {
+        "type": "object",
+        "required": [
+          "code",
+          "expires_at"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "`XXXX-XXXX`; works once."
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix time."
+          }
+        }
+      },
+      "DiscordLink": {
+        "type": "object",
+        "description": "A game account linked to a Discord account.",
+        "required": [
+          "discord_id",
+          "account_id",
+          "username",
+          "gm_level",
+          "banned"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "banned": {
+            "type": "boolean",
+            "description": "Whether a ban is in force."
+          },
+          "discord_id": {
+            "type": "string",
+            "description": "The Discord user id (a snowflake, as a string)."
+          },
+          "gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "DiscordRegistered": {
+        "type": "object",
+        "required": [
+          "link",
+          "key"
+        ],
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/CreatedApiKey",
+            "description": "The new account's key (it acts as the account)."
+          },
+          "link": {
+            "$ref": "#/components/schemas/DiscordLink"
+          }
+        }
+      },
+      "DiscordRegistration": {
+        "type": "object",
+        "required": [
+          "discord_id",
+          "username",
+          "password"
+        ],
+        "properties": {
+          "discord_id": {
+            "type": "string",
+            "description": "The Discord user id (a snowflake, as a string).",
+            "pattern": "^[0-9]{1,20}$"
+          },
+          "gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Default 0.",
+            "minimum": 0
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_.-]+$"
           }
         }
       },
@@ -2359,6 +2884,19 @@
               "null"
             ],
             "description": "Shown to the player in chat."
+          }
+        }
+      },
+      "LinkChanges": {
+        "type": "object",
+        "required": [
+          "gm_level"
+        ],
+        "properties": {
+          "gm_level": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
           }
         }
       },
@@ -2720,6 +3258,22 @@
           }
         }
       },
+      "NewCode": {
+        "type": "object",
+        "required": [
+          "discord_id",
+          "purpose"
+        ],
+        "properties": {
+          "discord_id": {
+            "type": "string",
+            "pattern": "^[0-9]{1,20}$"
+          },
+          "purpose": {
+            "$ref": "#/components/schemas/CodePurpose"
+          }
+        }
+      },
       "Particle": {
         "type": "object",
         "properties": {
@@ -2891,6 +3445,27 @@
           }
         }
       },
+      "RedeemCode": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "As sent by the bot; any case, the dash optional."
+          }
+        }
+      },
+      "Registration": {
+        "type": "string",
+        "description": "Who may create game accounts (`--registration`).",
+        "enum": [
+          "open",
+          "discord",
+          "closed"
+        ]
+      },
       "RemoveAchievementsRequest": {
         "type": "object",
         "description": "Achievements to take away: `ids`, or with `all` every one.",
@@ -2946,6 +3521,7 @@
         "description": "How this API is set up, for clients that adapt to it (always public).",
         "required": [
           "registration_open",
+          "registration",
           "private_status",
           "moderator_gm_level",
           "admin_gm_level"
@@ -2967,9 +3543,13 @@
             "type": "boolean",
             "description": "Whether `/v1/status` and `/v1/online` need a read-scope credential (`--private-status`)."
           },
+          "registration": {
+            "$ref": "#/components/schemas/Registration",
+            "description": "Who may create accounts (`--registration`)."
+          },
           "registration_open": {
             "type": "boolean",
-            "description": "Whether `POST /v1/auth/register` accepts new accounts (`--open-registration`)."
+            "description": "Whether `POST /v1/auth/register` accepts new accounts (`registration` is `open`)."
           }
         }
       },
@@ -2978,7 +3558,8 @@
         "required": [
           "token",
           "expires_at",
-          "account"
+          "account",
+          "password_reset"
         ],
         "properties": {
           "account": {
@@ -2988,6 +3569,10 @@
             "type": "integer",
             "format": "int64",
             "description": "Unix time."
+          },
+          "password_reset": {
+            "type": "boolean",
+            "description": "A session from a one-time sign-in code (`/v1/auth/code`): `/v1/me/password` takes a new\npassword without the current one."
           },
           "scope": {
             "oneOf": [
@@ -3509,6 +4094,10 @@
     {
       "name": "admin",
       "description": "API keys and the audit log"
+    },
+    {
+      "name": "discord",
+      "description": "For the Discord bot (scope discord): Discord accounts linked to game accounts, their account keys, one-time codes"
     },
     {
       "name": "catalog",

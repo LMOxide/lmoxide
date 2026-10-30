@@ -64,6 +64,7 @@ impl From<lmoxide_db::Error> for ApiError {
             lmoxide_db::Error::NotFound(what) => Self::not_found(what),
             lmoxide_db::Error::Invalid(m) => Self::invalid(m),
             lmoxide_db::Error::UsernameTaken => Self::conflict("username already taken"),
+            lmoxide_db::Error::Conflict(m) => Self::conflict(m),
             e => Self::internal(e),
         }
     }

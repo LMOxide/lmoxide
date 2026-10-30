@@ -15,6 +15,9 @@ pub enum Scope {
     Read,
     /// Kick, ban and unban players, broadcast messages.
     Moderate,
+    /// The Discord bot: also registers, links and unlinks Discord accounts, sets the GM level of
+    /// linked accounts, makes their account keys and one-time codes.
+    Discord,
     /// Everything: accounts, passwords, GM levels, API keys, the audit log.
     Admin,
 }
@@ -24,6 +27,7 @@ impl Scope {
         match self {
             Scope::Read => "read",
             Scope::Moderate => "moderate",
+            Scope::Discord => "discord",
             Scope::Admin => "admin",
         }
     }
@@ -35,8 +39,9 @@ impl std::str::FromStr for Scope {
         match s {
             "read" => Ok(Scope::Read),
             "moderate" => Ok(Scope::Moderate),
+            "discord" => Ok(Scope::Discord),
             "admin" => Ok(Scope::Admin),
-            _ => Err(Error::Invalid(format!("unknown scope {s:?} (read, moderate, admin)"))),
+            _ => Err(Error::Invalid(format!("unknown scope {s:?} (read, moderate, discord, admin)"))),
         }
     }
 }
@@ -50,7 +55,22 @@ pub struct ApiKey {
     pub created_at: i64,
     pub last_used_at: Option<i64>,
     pub revoked: bool,
+    /// Set: the key acts as this account; its scope follows the account's GM level (the stored
+    /// scope is `read` and unused).
+    pub account_id: Option<u32>,
 }
+
+/// A live login session.
+#[derive(Debug, Clone, Copy)]
+pub struct SessionInfo {
+    pub account_id: u32,
+    /// Unix time.
+    pub expires_at: i64,
+    /// From a one-time sign-in code: may set a new password without the old one.
+    pub password_reset: bool,
+}
+
+const KEY_COLUMNS: &str = "id, name, scopes, created_at, last_used_at, revoked, account_id";
 
 const KEY_PREFIX: &str = "lmox_";
 
@@ -81,11 +101,37 @@ impl Db {
         Ok((self.api_key(id)?.ok_or(Error::NotFound("API key"))?, secret))
     }
 
+    /// Creates a key that acts as the account; earlier live keys of the account with the same
+    /// name are revoked (one key per account and bot).
+    pub fn create_account_key(&self, account_id: u32, name: &str) -> Result<(ApiKey, String)> {
+        if name.trim().is_empty() || name.len() > 64 {
+            return Err(Error::Invalid("API key names are 1-64 characters".into()));
+        }
+        let secret = new_secret();
+        let conn = self.conn();
+        conn.execute(
+            "UPDATE api_keys SET revoked = 1 WHERE account_id = ?1 AND name = ?2 AND revoked = 0",
+            params![account_id, name],
+        )?;
+        conn.execute(
+            "INSERT INTO api_keys (name, key_hash, scopes, created_at, account_id) VALUES (?1, ?2, 'read', ?3, ?4)",
+            params![name, digest(&secret), now(), account_id],
+        )?;
+        let id = conn.last_insert_rowid();
+        drop(conn);
+        Ok((self.api_key(id)?.ok_or(Error::NotFound("API key"))?, secret))
+    }
+
+    /// Revokes every key that acts as the account; how many.
+    pub fn revoke_account_keys(&self, account_id: u32) -> Result<usize> {
+        Ok(self.conn().execute("UPDATE api_keys SET revoked = 1 WHERE account_id = ?1 AND revoked = 0", [account_id])?)
+    }
+
     pub fn api_key(&self, id: i64) -> Result<Option<ApiKey>> {
         Ok(self
             .conn()
             .query_row(
-                "SELECT id, name, scopes, created_at, last_used_at, revoked FROM api_keys WHERE id = ?1",
+                &format!("SELECT {KEY_COLUMNS} FROM api_keys WHERE id = ?1"),
                 [id],
                 api_key_row,
             )
@@ -95,7 +141,7 @@ impl Db {
     pub fn list_api_keys(&self) -> Result<Vec<ApiKey>> {
         let conn = self.conn();
         let mut stmt =
-            conn.prepare("SELECT id, name, scopes, created_at, last_used_at, revoked FROM api_keys ORDER BY id")?;
+            conn.prepare(&format!("SELECT {KEY_COLUMNS} FROM api_keys ORDER BY id"))?;
         let rows = stmt.query_map([], api_key_row)?;
         Ok(rows.collect::<rusqlite::Result<_>>()?)
     }
@@ -108,8 +154,7 @@ impl Db {
         let conn = self.conn();
         let key = conn
             .query_row(
-                "SELECT id, name, scopes, created_at, last_used_at, revoked FROM api_keys
-                 WHERE key_hash = ?1 AND revoked = 0",
+                &format!("SELECT {KEY_COLUMNS} FROM api_keys WHERE key_hash = ?1 AND revoked = 0"),
                 [digest(secret)],
                 api_key_row,
             )
@@ -127,28 +172,35 @@ impl Db {
 
     /// Starts a login session for the account; returns its token.
     pub fn create_session(&self, account_id: u32, ttl_secs: i64) -> Result<String> {
+        self.create_session_with(account_id, ttl_secs, false)
+    }
+
+    /// [`Db::create_session`]; `password_reset`: from a one-time sign-in code (see
+    /// [`SessionInfo::password_reset`]).
+    pub fn create_session_with(&self, account_id: u32, ttl_secs: i64, password_reset: bool) -> Result<String> {
         let token = new_secret();
         let conn = self.conn();
         let t = now();
         conn.execute("DELETE FROM api_sessions WHERE expires_at <= ?1", [t])?;
         conn.execute(
-            "INSERT INTO api_sessions (token_hash, account_id, created_at, expires_at) VALUES (?1, ?2, ?3, ?4)",
-            params![digest(&token), account_id, t, t + ttl_secs],
+            "INSERT INTO api_sessions (token_hash, account_id, created_at, expires_at, password_reset)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            params![digest(&token), account_id, t, t + ttl_secs, password_reset],
         )?;
         Ok(token)
     }
 
-    /// The account of a live session token, with the session's expiry.
-    pub fn session_account(&self, token: &str) -> Result<Option<(u32, i64)>> {
+    /// The live session with this token.
+    pub fn session_account(&self, token: &str) -> Result<Option<SessionInfo>> {
         if !token.starts_with(KEY_PREFIX) {
             return Ok(None);
         }
         Ok(self
             .conn()
             .query_row(
-                "SELECT account_id, expires_at FROM api_sessions WHERE token_hash = ?1 AND expires_at > ?2",
+                "SELECT account_id, expires_at, password_reset FROM api_sessions WHERE token_hash = ?1 AND expires_at > ?2",
                 params![digest(token), now()],
-                |r| Ok((r.get(0)?, r.get(1)?)),
+                |r| Ok(SessionInfo { account_id: r.get(0)?, expires_at: r.get(1)?, password_reset: r.get(2)? }),
             )
             .optional()?)
     }
@@ -168,6 +220,7 @@ fn api_key_row(r: &rusqlite::Row) -> rusqlite::Result<ApiKey> {
         created_at: r.get(3)?,
         last_used_at: r.get(4)?,
         revoked: r.get(5)?,
+        account_id: r.get(6)?,
     })
 }
 
@@ -188,10 +241,22 @@ mod tests {
 
         let a = db.create_account("alice", Some("password1"), 0).unwrap();
         let token = db.create_session(a.id, 60).unwrap();
-        assert_eq!(db.session_account(&token).unwrap().unwrap().0, a.id);
+        assert_eq!(db.session_account(&token).unwrap().unwrap().account_id, a.id);
         db.set_password(a.id, Some("password2")).unwrap();
         assert!(db.session_account(&token).unwrap().is_none(), "password change ends sessions");
+        let token = db.create_session_with(a.id, 60, true).unwrap();
+        assert!(db.session_account(&token).unwrap().unwrap().password_reset);
         let token = db.create_session(a.id, -1).unwrap();
         assert!(db.session_account(&token).unwrap().is_none(), "expired");
+
+        // account keys: one per account and name
+        let (k1, s1) = db.create_account_key(a.id, "discord-bot").unwrap();
+        assert_eq!(db.authenticate_api_key(&s1).unwrap().unwrap().account_id, Some(a.id));
+        let (_, s2) = db.create_account_key(a.id, "discord-bot").unwrap();
+        assert!(db.authenticate_api_key(&s1).unwrap().is_none(), "replaced");
+        assert!(db.api_key(k1.id).unwrap().unwrap().revoked);
+        assert_eq!(db.revoke_account_keys(a.id).unwrap(), 1);
+        assert!(db.authenticate_api_key(&s2).unwrap().is_none());
+        assert!(db.create_account_key(a.id, "").is_err());
     }
 }

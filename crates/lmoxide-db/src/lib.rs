@@ -7,6 +7,7 @@
 mod accounts;
 mod api;
 mod characters;
+mod discord;
 mod game_sessions;
 
 use std::{
@@ -19,7 +20,8 @@ use rusqlite::{Connection, OptionalExtension, params};
 use serde::Serialize;
 
 pub use accounts::{Account, Ban};
-pub use api::{ApiKey, Scope};
+pub use api::{ApiKey, Scope, SessionInfo};
+pub use discord::{CodePurpose, DiscordLink, validate_discord_id};
 pub use characters::{Character, CharacterSummary, Defeat, QuestState, Visit};
 
 #[derive(Debug, thiserror::Error)]
@@ -30,6 +32,9 @@ pub enum Error {
     NotFound(&'static str),
     #[error("{0}")]
     Invalid(String),
+    /// Something already exists or is taken (a linked Discord account, ...).
+    #[error("{0}")]
+    Conflict(String),
     #[error("username already taken")]
     UsernameTaken,
     #[error("password hashing failed")]
@@ -56,6 +61,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0011_story.sql"),
     include_str!("../migrations/0012_character_speed.sql"),
     include_str!("../migrations/0013_character_name_order.sql"),
+    include_str!("../migrations/0014_discord.sql"),
 ];
 
 pub struct Db {
