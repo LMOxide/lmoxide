@@ -1387,7 +1387,7 @@ checksum = "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae"
 
 [[package]]
 name = "lmoxide"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1407,7 +1407,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-api"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1431,7 +1431,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-content"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1444,7 +1444,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-control"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "reqwest",
  "serde",
@@ -1453,7 +1453,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-db"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "argon2",
  "rand 0.9.5",
@@ -1467,7 +1467,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-net"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "crc32fast",
@@ -1485,7 +1485,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-patch"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ed25519-dalek",
  "futures",
@@ -1502,7 +1502,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-patch-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1533,7 +1533,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-patcher"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -1544,7 +1544,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1570,7 +1570,7 @@ dependencies = [
 
 [[package]]
 name = "lmoxide-survey"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "schemars",
  "serde",
