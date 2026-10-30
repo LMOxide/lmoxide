@@ -53,8 +53,9 @@ const ESCORT_LIFETIME: Duration = Duration::from_secs(3 * 60 * 60);
 #[derive(Clone, Copy, PartialEq)]
 enum Speaker {
     Guide,
-    /// a cinematic without a spawned speaker
-    Player,
+    /// a cinematic: its trigger's own invisible NPC (live: "Cinematic Start Dreadleg Summons
+    /// Pirate", spawns.rs `cinematic_owners`), else the player
+    Trigger,
 }
 
 /// The triggers (recorded "Cinematic Start" NPCs), the first text of their dialogue and its
@@ -62,7 +63,7 @@ enum Speaker {
 const TRIGGERS: &[(&str, Option<u32>, Speaker)] = &[
     ("Cinematic Start Knock Knock", Some(741), Speaker::Guide),
     ("Cinematic Start Lets Smash Things", Some(744), Speaker::Guide),
-    ("Cinematic Start Dreadleg Summons Pirate", Some(749), Speaker::Player),
+    ("Cinematic Start Dreadleg Summons Pirate", Some(749), Speaker::Trigger),
     ("Cinematic Start Ambush", Some(758), Speaker::Guide),
     ("XX_Cinematic Start Lets Build Together", Some(769), Speaker::Guide),
     ("XX_Cinematic Start Dreadleg Escapes", None, Speaker::Guide),
@@ -269,7 +270,11 @@ impl Run {
 
     fn say(&self, first: u32, speaker: Speaker) {
         if let Some(d) = crate::knubot::starting_with(first) {
-            crate::knubot::start(self.player, &self.name, self.speaker(speaker), d);
+            let owner = match speaker {
+                Speaker::Trigger => crate::npc::find(&d.npc, copy_of(self.player)).unwrap_or(self.player),
+                guide => self.speaker(guide),
+            };
+            crate::knubot::start(self.player, &self.name, owner, d);
         }
     }
 

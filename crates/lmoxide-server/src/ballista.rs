@@ -185,6 +185,7 @@ pub fn start() {
                 count: 1,
                 spread: None,
                 requires: Vec::new(),
+                cinematic: false,
                     kind: crate::npc::Kind::Smashable,
                     template: DUMMY_TEMPLATE,
                     name: "XX_Combat Dummy".into(),
