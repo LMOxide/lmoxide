@@ -27,6 +27,9 @@
 //! client only shows, are done to them here (npc.rs `snare`, `stun`, `knock`), for the nano's
 //! TimeExist and shortened by diminishing returns (AddDiminishingReturn). Timings the client
 //! data doesn't give are in docs/TUNABLES.md.
+//!
+//! What a spell's server Lua (LuaScriptID, RDB 1010223) did is in its content skill's `effects`
+//! (the script named in its `comment`): the pets whose owner casts their damage (`pet_attack`).
 
 use crate::instance::Pf;
 use std::{
@@ -56,6 +59,9 @@ struct Spell {
     stats: Stats,
     #[serde(default)]
     lists: HashMap<String, Vec<Action>>,
+    /// What the spell's server Lua did (content skills `effects`, run with list 0: `lua`).
+    #[serde(default)]
+    effects: Vec<lmoxide_content::Action>,
 }
 
 /// Spell stats; times in centiseconds.
@@ -228,6 +234,11 @@ pub fn hit_delay(spell: u32) -> Option<Duration> {
 /// combo step) right away, OnUse (list 0: the area formulas and hits) after the spell's
 /// ItemDelay, when the attack animation strikes.
 pub fn cast(caster: Caster, spell: u32) {
+    cast_as(caster, spell, false)
+}
+
+/// `cast`; `server_cast`: the server casts it for the caster (see `Run::server_cast`).
+fn cast_as(caster: Caster, spell: u32, server_cast: bool) {
     let Some(s) = SPELLS.get(&spell) else { return };
     let delay = hit_delay(spell).unwrap_or(Duration::ZERO);
     let run = Arc::new(Run {
@@ -245,6 +256,7 @@ pub fn cast(caster: Caster, spell: u32) {
         shot_from: Mutex::new(None),
         target: Mutex::new(None),
         locked: Mutex::new(None),
+        server_cast,
     });
     debug!(caster = ?run.caster.id, spell, name = %s.name, ?delay, "ability");
     lock_direction(&run);
@@ -254,6 +266,37 @@ pub fn cast(caster: Caster, spell: u32) {
         run_list(&run, spell, ON_USE, root_target(&run), 0);
         end_counters(&run);
     });
+}
+
+/// A pet's attack `pet_spell` on `target`, when its server Lua has the pet's owner cast the
+/// damage (content skills `effects` `pet.owner_casts`: Team Zombie, Gigantuan and Queen's Guard,
+/// scripts 4355 / 4463 / 4581: `PetOwner:castspell(<damage spell>, spellObject.target)`). The
+/// owner casts that spell on `target` with their active minifigure's power. Returns whether it
+/// was such an attack (the others keep npc.rs's flat pet damage).
+pub fn pet_attack(owner: Id32, pet_spell: u32, target: Id32) -> bool {
+    let Some(spell) = owner_casts(pet_spell) else { return false };
+    let Some(caster) = server_caster(owner, Some(target)) else { return true };
+    info!(?owner, pet_spell, spell, ?target, "pet attack: the owner casts");
+    cast_as(caster, spell, true);
+    true
+}
+
+/// The spell `pet_spell`'s Lua has the pet's owner cast (`pet.owner_casts`).
+fn owner_casts(pet_spell: u32) -> Option<u32> {
+    SPELLS.get(&pet_spell)?.effects.iter().find_map(|e| match e {
+        lmoxide_content::Action::Command { name, args } if name == "pet.owner_casts" => args.get("spell")?.as_u64().map(|v| v as u32),
+        _ => None,
+    })
+}
+
+/// `player` as the caster of a spell the server casts for them (where they are, their active
+/// minifigure), aimed at `target`.
+fn server_caster(player: Id32, target: Option<Id32>) -> Option<Caster> {
+    let (template, upgrades, level) = crate::procs::active_of(player)?;
+    let (playfield, _) = world::whereabouts(player)?;
+    let pos = world::position_handles(playfield).into_iter().find(|(id, _)| *id == player)?.1;
+    let facing = Arc::new(Mutex::new(world::facing_of(player).unwrap_or([0.0, 1.0])));
+    Some(Caster { id: player, playfield, pos, facing, template, upgrades, level, target, ground: None })
 }
 
 /// Spells that OverrideShortcut actions of `spells` (and the nanos they reach) put on the
@@ -411,6 +454,9 @@ struct Run {
     target: Mutex<Option<Id32>>,
     /// The direction a spell that blocks turning was cast in (its shots keep it).
     locked: Mutex<Option<[f32; 2]>>,
+    /// Cast by the server for the caster (a pet's owner: `pet_attack`): its client knows nothing
+    /// of it, so the server shows the spell's client StartEffect actions too.
+    server_cast: bool,
 }
 
 static ACTIVE: LazyLock<Mutex<HashMap<Id32, Arc<Run>>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -445,6 +491,7 @@ pub fn start(caster: Caster, spell: u32, end_record: Bytes) {
         shot_from: Mutex::new(None),
         target: Mutex::new(None),
         locked: Mutex::new(None),
+        server_cast: false,
     });
     info!(caster = ?run.caster.id, spell, name = %s.name, ticks, ?interval, "channel");
     lock_direction(&run);
@@ -722,9 +769,9 @@ fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32)
     let Some(s) = SPELLS.get(&spell) else { return };
     let Some(list) = s.lists.get(event) else { return };
     blast(|| {
-        for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str())) {
+        for a in list.iter().filter(|a| a.on_server() || CROWD_CONTROL.contains(&a.kind.as_str()) || (run.server_cast && a.kind == "StartEffect")) {
             if criteria_met(run, a, target) {
-                if a.on_server() {
+                if a.on_server() || a.kind == "StartEffect" {
                     act(run, spell, a, target, depth);
                 } else {
                     crowd_control(run, spell, a, target);
@@ -984,6 +1031,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
                     cast_nano(&run, nano, Target { id: Some(run.caster.id), pos: at }, depth + 1);
                 }
             });
+        }
+        "StartEffect" => {
+            // (only for a server cast: `run_list`) the effect package on whom it applies to
+            if let (Some(id), Some(package)) = (who.id, a.u("TemplateID")) {
+                show(run, vec![effects::effect_package(id, package)]);
+            }
         }
         "OverrideShortcut" => {
             // buff `spell` puts TemplateID2 on the shortcut showing TemplateID while it is on
@@ -1488,6 +1541,23 @@ mod tests {
         assert!(!blocks(550_766));
     }
 
+    /// Team Zombie's, Gigantuan's and Queen's Guard's pets attack with their Lua pet spell, which
+    /// has the owner cast the damage (server Lua 4355 / 4463 / 4581); other pets don't.
+    #[test]
+    fn lua_pets_have_their_owner_cast_the_damage() {
+        let summons = crate::skills::summons();
+        for (summon, pet, damage, ability_mod) in [(641_633, 642_562, 642_556, 0.25), (641_620, 654_694, 654_693, 0.5), (663_959, 667_155, 667_153, 0.5)] {
+            assert_eq!(summons[&summon]["spell"], serde_json::json!(pet), "summon {summon}");
+            assert_eq!(owner_casts(pet), Some(damage));
+            let hit = SPELLS[&damage].lists[ON_USE].iter().find(|a| a.kind == "WeaponHit").unwrap();
+            assert_eq!(hit.f("AbilityMod"), Some(ability_mod));
+            // its hit effect is a client action: shown by the server for these casts
+            assert!(SPELLS[&damage].lists[ON_USE].iter().any(|a| a.kind == "StartEffect" && a.client));
+        }
+        assert_eq!(owner_casts(crate::npc::DEFAULT_SPELL), None);
+        assert!(!pet_attack(Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_778), crate::npc::DEFAULT_SPELL, Id32::new(50_000, 1)));
+    }
+
     fn test_run(caster: Id32) -> Arc<Run> {
         Arc::new(Run {
             caster: Caster {
@@ -1514,6 +1584,7 @@ mod tests {
             shot_from: Mutex::new(None),
             target: Mutex::new(None),
             locked: Mutex::new(None),
+            server_cast: false,
         })
     }
 

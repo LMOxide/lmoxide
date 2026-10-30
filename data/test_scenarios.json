@@ -512,6 +512,17 @@
           "count": 2
         }
       ]
+    },
+    {
+      "label": "pets",
+      "about": "Zombie Cheerleader, Monster Scientist and Queen with 6 Pirate Corsairs: the specials' pets (Team Zombie, Gigantuan, Queen's Guard) hit by their owner casting the pet damage spell (server Lua 4355/4463/4581: ×0.25 / ×0.5 / ×0.5 of your power; log \"pet attack: the owner casts\")",
+      "team": ["Zombie Cheerleader", "Monster Scientist", "Queen"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
     }
   ]
 }

@@ -39,6 +39,8 @@ const FLAG_CUSTOM_NAME: u32 = 0x8000;
 /// NPC dynel instances start here (players are accounts, so keep clear of small numbers).
 static NEXT_INSTANCE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(900_000);
 const PET_FOLLOW: f32 = 2.0;
+/// Damage of a pet whose attack has no server Lua (Team Zombie, Gigantuan and Queen's Guard
+/// have their owner cast theirs: actions.rs `pet_attack`).
 const PET_DAMAGE: u32 = 60;
 /// Pets that shoot keep this distance from their target.
 const PET_SHOOT_RANGE: f32 = 8.0;
@@ -1488,7 +1490,10 @@ fn pets_tick() {
                         if let Some(pp) = projectile {
                             crate::projectile::launch_visual(id, playfield, pp.item, pp.speed, here, p);
                         }
-                        hit(owner, eid, spell, PET_DAMAGE);
+                        // the Lua pets' owner casts the damage (actions.rs `pet_attack`)
+                        if !crate::actions::pet_attack(owner, spell, eid) {
+                            hit(owner, eid, spell, PET_DAMAGE);
+                        }
                     }
                 }
                 if projectile.is_some() && distance(p, here) <= PET_SHOOT_RANGE {

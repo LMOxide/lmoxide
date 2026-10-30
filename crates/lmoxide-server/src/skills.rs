@@ -36,7 +36,8 @@ static BY_SPELL: LazyLock<HashMap<u32, &'static Skill>> = LazyLock::new(|| {
 static ANY_BY_SPELL: LazyLock<HashMap<u32, &'static Skill>> =
     LazyLock::new(|| crate::gamedata::get().skills.values().filter_map(|s| Some((s.client.as_ref()?.spell, s))).collect());
 
-/// The client spells: `{name, minifigure, stats, lists}` by spell id.
+/// The client spells: `{name, minifigure, stats, lists, effects}` by spell id (`effects`: what
+/// their server Lua did, content skills `effects`).
 pub fn spells() -> HashMap<u32, Value> {
     BY_SPELL
         .iter()
@@ -46,6 +47,9 @@ pub fn spells() -> HashMap<u32, Value> {
             let mut v = json!({ "name": s.name, "stats": c.stats, "lists": lists });
             if let Some(m) = &s.minifigure {
                 v["minifigure"] = json!(m);
+            }
+            if !s.effects.is_empty() {
+                v["effects"] = json!(s.effects);
             }
             (id, v)
         })
@@ -217,9 +221,16 @@ mod tests {
         // From Bad to Worse spawns the invisible anchor its clouds circle (SpawnMonster FXCX, as
         // in the live capture), not the pet summons.json guessed
         const NO_LONGER_SUMMONS: [&str; 1] = ["196059"];
+        // pets that attack with their Lua pet spell (the owner casts the damage: actions.rs
+        // `pet_attack`) where summons.json had none: Team Zombie, Gigantuan, Queen's Guard
+        const LUA_PET_ATTACKS: [(&str, u32); 3] = [("641633", 642_562), ("641620", 654_694), ("663959", 667_155)];
         for (k, v) in data("summons.json").as_object().unwrap().iter().filter(|(k, _)| k.parse::<u32>().is_ok() && !NO_LONGER_SUMMONS.contains(&k.as_str())) {
             let got = &summons[&k.parse::<u32>().unwrap()];
             for f in ["name", "monster_data", "lifetime", "spell"] {
+                if let Some((_, spell)) = LUA_PET_ATTACKS.iter().find(|(s, _)| *s == k).filter(|_| f == "spell") {
+                    assert_eq!(got.get(f), Some(&json!(spell)), "summon {k} lua pet attack");
+                    continue;
+                }
                 assert_eq!(got.get(f), v.get(f), "summon {k} {f}");
             }
             if let Some(p) = v.get("projectile") {
