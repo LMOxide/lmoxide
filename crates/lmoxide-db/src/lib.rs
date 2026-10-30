@@ -55,6 +55,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0010_session_mode.sql"),
     include_str!("../migrations/0011_story.sql"),
     include_str!("../migrations/0012_character_speed.sql"),
+    include_str!("../migrations/0013_character_name_order.sql"),
 ];
 
 pub struct Db {
@@ -253,5 +254,29 @@ mod tests {
             // (0004 then moves account 7 out of the client's NPC range)
             [("Seven".into(), Some(1_000_000_007)), ("seven".into(), Some(1_000_000_007)), ("gone".into(), None), ("99".into(), Some(99))]
         );
+    }
+
+    /// Migration 0013 puts three-word names in reading order; other names stay.
+    #[test]
+    fn character_name_order_migration() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        for (i, sql) in MIGRATIONS[..12].iter().enumerate() {
+            conn.execute_batch(sql).unwrap();
+            conn.pragma_update(None, "user_version", (i + 1) as i64).unwrap();
+        }
+        let names = ["Sparky Fantastic Burrito", "Grumpy Maximum Axe", "alice", "Two Words", "One Two Three Four", "Trailing Space "];
+        let tx = conn.transaction().unwrap();
+        tx.execute("INSERT INTO accounts (id, username, created_at) VALUES (1000000001, 'a', 0)", []).unwrap();
+        for (i, name) in names.iter().enumerate() {
+            tx.execute(
+                "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, created_at, saved_at) VALUES (?1, 1000000001, ?2, 1200, 0, 0, 0, 0, 0)",
+                params![1_000_000_100 + i as u32, name],
+            )
+            .unwrap();
+        }
+        tx.commit().unwrap();
+        let db = Db::init(conn).unwrap();
+        let got: Vec<String> = (0..names.len()).map(|i| db.character_name(1_000_000_100 + i as u32).unwrap().unwrap()).collect();
+        assert_eq!(got, ["Fantastic Sparky Burrito", "Maximum Grumpy Axe", "alice", "Two Words", "One Two Three Four", "Trailing Space "]);
     }
 }

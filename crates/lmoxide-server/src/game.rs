@@ -114,7 +114,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 if presence.is_some() {
                     let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                     let here = world::live_position(id).unwrap_or_else(|| *pos.lock().unwrap());
-                    portals.check(&mut conn, character, place, here).await?;
+                    portals.check(&mut conn, character, place, here, crate::tutorial::compass_open(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG))).await?;
                     // quest areas also after teleports and throws (no movement report)
                     let playfield = place;
                     let records = crate::quests::moved(&mut quest_tracker, &mut me, character, playfield, here);
@@ -552,7 +552,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let here = *pos.lock().unwrap();
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), speed: crate::speed::of(id.instance), ..snapshot.clone() }.spec(place));
+                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), speed: crate::speed::of(id.instance), ..snapshot.clone() }.remote_spec(place));
                             presence = Some(world::join(id, place, pos_handle, spawn, outbox.clone()));
                             // (after the others' spawn records join queued: the client forgot the last
                             // playfield's NPCs)
@@ -591,6 +591,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             } else if tutorial.is_none() {
                                 tutorial = Some(crate::tutorial::Run::start(id, &me.name, here));
                             }
+                            // the tutorial's compass, if the player has it
+                            let records = crate::tutorial::compass_records(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG));
+                            send_records(&mut conn, character, records).await?;
                             // the dialogue the live server started on arrival here (the jail's)
                             crate::knubot::arrived(id, &me.name, place, &|t| me.tags.contains_key(&t));
                             // a Lost Creations level: the run's buffs, quest, the button's arrow
@@ -650,7 +653,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             // portals: where the player is now (a click-to-move report gives the path's end)
                             let here = world::live_position(h.identity).unwrap_or(p);
-                            portals.check(&mut conn, character, place, here).await?;
+                            portals.check(&mut conn, character, place, here, crate::tutorial::compass_open(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG))).await?;
                             if last_save.elapsed() > SAVE_INTERVAL {
                                 last_save = std::time::Instant::now();
                                 me.pos = p;
@@ -763,8 +766,11 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         .and_then(|(object, action)| Some((crate::teleport::door_portal(crate::instance::fixture_base(object.instance))?, action)))
                                 {
                                     // using a portal's door (click or E) opens its window wherever
-                                    // the player stands, as live did
-                                    if action != INTERACTION_STOP_USE {
+                                    // the player stands, as live did (the tutorial's once the player
+                                    // has the compass)
+                                    if action != INTERACTION_STOP_USE
+                                        && crate::tutorial::compass_open(character, place, me.tags.contains_key(&crate::tutorial::DONE_TAG))
+                                    {
                                         portals.use_door(&mut conn, character, portal).await?;
                                     }
                                     stop_after_success = true;
@@ -2014,7 +2020,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let result = if starter.is_some() { 0 } else { 1 };
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 if let Some(template) = starter {
-                    me.name = [nick.trim(), first.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+                    // stored in reading order, "first nick last" (the launcher's "Fantastic Sparky
+                    // Burrito" arrives as nick Sparky, first Fantastic, last Burrito)
+                    me.name = [first.trim(), nick.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
                     if let Some(owned) = me.collection.as_mut() {
                         owned.insert(template, crate::smash::now_ms() / 1000);
                     }
@@ -2280,8 +2288,9 @@ impl Portals {
         Ok(())
     }
 
-    /// The player is at `p` on `playfield`.
-    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: Pf, p: [f32; 3]) -> anyhow::Result<()> {
+    /// The player is at `p` on `playfield`; `open`: whether its portals are (the tutorial's once
+    /// the player has the compass).
+    async fn check(&mut self, conn: &mut Conn, character: u32, playfield: Pf, p: [f32; 3], open: bool) -> anyhow::Result<()> {
         let arrived = crate::teleport::take_arrival(character);
         if playfield != self.playfield || arrived {
             self.armed = false;
@@ -2292,7 +2301,7 @@ impl Portals {
             self.armed = true;
             info!(?p, "portals open again");
         }
-        match crate::teleport::portal_at(playfield, p).filter(|_| self.armed) {
+        match crate::teleport::portal_at(playfield, p).filter(|_| self.armed && open) {
             Some((to, window)) if self.shown != Some(to) => {
                 info!(to, window, "portal");
                 self.used = false;
@@ -3103,7 +3112,7 @@ pub async fn run_bot(playfield: Pf) {
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
     let bot = Character { name: "Bot".into(), ..new_character(String::new(), crate::instance::mode_of(playfield), playfield.model()) };
-    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec(playfield));
+    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.remote_spec(playfield));
 
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     set_costume(id, monster_data_for(START_TEAM[0].1));
@@ -3457,6 +3466,18 @@ pub trait CharacterExt {
     /// What the minifigure's item carries (upgrades, rank, life, achievement counters).
     fn item_state(&self, template: u32) -> crate::collection::ItemState;
     fn spec(&self, place: Pf) -> CharSpec<'_>;
+    /// The character as other players' clients see it: the name above it is only the nick.
+    fn remote_spec(&self, place: Pf) -> CharSpec<'_>;
+}
+
+/// The name other players see above a character: the nick, the middle of a created character's
+/// "first nick last" (the player's own client gets the full name, as live sent it, and the nick
+/// by `SetNameIIR_t`); other names whole.
+pub fn overhead_name(name: &str) -> &str {
+    match name.split(' ').collect::<Vec<_>>()[..] {
+        [_, nick, _] if !nick.is_empty() => nick,
+        _ => name,
+    }
 }
 
 impl CharacterExt for Character {
@@ -3514,6 +3535,10 @@ impl CharacterExt for Character {
             npc: None,
             speeds: crate::speed::speeds(self.speed),
         }
+    }
+
+    fn remote_spec(&self, place: Pf) -> CharSpec<'_> {
+        CharSpec { name: overhead_name(&self.name), ..self.spec(place) }
     }
 }
 
@@ -3630,6 +3655,13 @@ pub fn create_game_object(id: Id32, playfield: Pf, pos: [f32; 3]) -> bytes::Byte
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn others_see_the_nick() {
+        let me = Character { name: "Fantastic Sparky Burrito".into(), ..new_character("t".into(), crate::instance::Mode::Maxed, 1200) };
+        assert_eq!((me.spec(Pf::main(1200)).name, me.remote_spec(Pf::main(1200)).name), ("Fantastic Sparky Burrito", "Sparky"));
+        assert_eq!([overhead_name("alice"), overhead_name("Two Words"), overhead_name("A B C D")], ["alice", "Two Words", "A B C D"]);
+    }
 
     #[test]
     fn active_minifigure_moves_to_first_position() {

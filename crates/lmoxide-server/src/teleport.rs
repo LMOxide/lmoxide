@@ -154,7 +154,9 @@ pub fn start() {
 /// Puts the portals' doors of copy `pf` in (worlds.rs).
 pub fn spawn_world(pf: Pf) {
     let mut presences = Vec::new();
-    for d in DOORS_OF.get(&pf.model()).into_iter().flatten().cloned() {
+    // (the tutorial shows its compass per player, tutorial.rs; the world editor all of them)
+    let editor = crate::instance::mode_of(pf).rules().editor;
+    for d in DOORS_OF.get(&pf.model()).into_iter().flatten().filter(|d| editor || d.guid != crate::tutorial::COMPASS_DOOR).cloned() {
         let (outbox, mut inbox) = tokio::sync::mpsc::unbounded_channel();
         tokio::spawn(async move { while inbox.recv().await.is_some() {} });
         let id = Id32::new(DOOR_TYPE, crate::instance::fixture(pf, d.guid));
@@ -168,6 +170,12 @@ pub fn spawn_world(pf: Pf) {
 pub fn despawn_world(pf: Pf) {
     let gone = DOORS.lock().unwrap().remove(&pf);
     drop(gone);
+}
+
+/// The spawn records of portal door `guid` in copy `pf` (for one player: the tutorial's
+/// compass).
+pub fn door_records_of(pf: Pf, guid: u32) -> Vec<Bytes> {
+    DOORS_OF.get(&pf.model()).into_iter().flatten().find(|d| d.guid == guid).map_or_else(Vec::new, |d| door_records(d, pf))
 }
 
 /// UpdateMessage + `DoorFullUpdateIIR_c` as live sent a portal's door: ProtoGameCodeDynelIIR,

@@ -89,8 +89,9 @@ CINEMATICS = {
                    "likely: BA_Cine_Intro (actors there), flag 4283 Cine_Dino_Intro"),
     "after-t-rex": (637098, 20, None, [], [], None,
                     "likely: dialogue 690's script step DanceParty (the party's actors at the Gauntlet's end)"),
-    "lost-creations-portal": (636512, 21, 4284, [], [], None,
-                              "likely: BA_Cine_Lost_Creations, flag 4284 Cine_Dino_Lost_Creations"),
+    "lost-creations-portal": (636512, 21, 4284, [913], [], None,
+                              "likely: BA_Cine_Lost_Creations, flag 4284 Cine_Dino_Lost_Creations; once the "
+                              "Gauntlet is done (913 XX_D05, as the Lost Creations entry: user 2026-10-29)"),
 }
 # area -> cinematics its trigger names (in order: the first that may play does)
 CINEMATIC_AREAS = {
@@ -187,6 +188,8 @@ SPAWN_MINIFIGURES = {
     "GQKS": ("minifig/jester", "guess: 287 after 'You're welcome to come with us, Jester'"),
     "9UO2": ("minifig/battle-goddess", "guess: 555 after Battle Goddess joins ('Come on mortals')"),
     "7WZE": ("minifig/space-miner", "guess: 352 after the Space Miner's 'I'd like to come with you'"),
+    "FXMI": ("minifig/alien-trooper", "user 2026-10-29: 342 (after the black hole conversation, "
+                                      "'{spawn FXMI 1 m}') gives the Alien Trooper"),
 }
 
 # areas the content lacks: (pf as ba_server.json has it, name) -> role, category. Most are only in the

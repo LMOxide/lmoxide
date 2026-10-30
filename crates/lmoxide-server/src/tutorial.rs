@@ -16,6 +16,11 @@
 //! Captain Dreadleg's defeat stops it and moves the player to the cinematic spot for the last
 //! dialogue, which gives tag 4121: the client then runs its world map tutorial, and clicking
 //! Pirate World (TeleportWindowBypass 74, 4600) ends the tutorial there.
+//!
+//! The Crystal Compass (the portal door to Pirate World by Dreadleg's spot) isn't there from
+//! the start: Dreadleg's line 767 runs `SpawnCompass`, which shows it to that player and opens
+//! its portals for them; until then the door and the portal points do nothing. Players with
+//! tag 4121 have it whenever they are back.
 
 use crate::instance::Pf;
 use std::{collections::HashSet, sync::LazyLock, time::Duration};
@@ -37,6 +42,8 @@ pub const AFTER_BOSS: [f32; 3] = [260.97, 29.0, 266.24];
 /// "Dreadleg Escapes" (story): given by the last dialogue; whoever has it is done.
 pub const DONE_TAG: u32 = 4121;
 pub const BOSS: &str = "Captain Dreadleg";
+/// The Crystal Compass: the door of the portals to Pirate World (spawn/1300/crystal-compass).
+pub const COMPASS_DOOR: u32 = 635_924;
 const GUIDE: &str = "Video Game Guy";
 /// Client script group "Login_SetupChar_Client" (RDB 1010028): opens the creation result path.
 const LOGIN_SETUP_SCRIPT: u32 = 156092;
@@ -80,6 +87,35 @@ const GATED_PADS: &[(u32, &[&str])] = &[(195_056, &["DreadlegSpawnPirate"]), (19
 struct Progress {
     spawned: std::collections::HashMap<&'static str, Vec<Id32>>,
     open: HashSet<u32>,
+}
+
+/// The characters `SpawnCompass` gave the compass (in memory: tag 4121 follows in the same
+/// dialogue).
+static COMPASS: LazyLock<std::sync::Mutex<HashSet<u32>>> = LazyLock::new(Default::default);
+
+/// Whether the player can use the tutorial's portals (always elsewhere, and in the world
+/// editor); `done`: the player has tag 4121.
+pub fn compass_open(character: u32, playfield: Pf, done: bool) -> bool {
+    playfield.model() != PLAYFIELD
+        || done
+        || crate::instance::mode_of(playfield).rules().editor
+        || COMPASS.lock().unwrap().contains(&character)
+}
+
+/// The compass for a player arriving in copy `pf` of the tutorial who has it (`compass_open`).
+pub fn compass_records(character: u32, pf: Pf, done: bool) -> Vec<Bytes> {
+    if pf.model() != PLAYFIELD || !compass_open(character, pf, done) {
+        return Vec::new();
+    }
+    crate::teleport::door_records_of(pf, COMPASS_DOOR)
+}
+
+/// `SpawnCompass`: the compass appears for the player and its portals open.
+fn spawn_compass(player: Id32) {
+    COMPASS.lock().unwrap().insert(player.instance);
+    let records = crate::teleport::door_records_of(copy_of(player), COMPASS_DOOR);
+    crate::world::send_to(player, crate::world::Out::Records(records));
+    info!(?player, "tutorial compass");
 }
 
 static PROGRESS: LazyLock<std::sync::Mutex<std::collections::HashMap<Id32, Progress>>> = LazyLock::new(Default::default);
@@ -302,6 +338,7 @@ pub fn script(player: Id32, step: &str) {
         "DreadlegSpawnPirate" => ("DreadlegSpawnPirate", 0..1),
         "SpawnAmbush" => ("SpawnAmbush", 1..4),
         "SpawnAmbush2" => ("SpawnAmbush2", 4..7),
+        "SpawnCompass" => return spawn_compass(player),
         _ => {
             if !crate::story::script_step(player, step) {
                 info!(?player, step, "tutorial script step not run");
@@ -347,6 +384,17 @@ mod tests {
         assert_eq!(CONTENT.enemies.iter().filter(|e| e.name == "Scallywag").count(), 7);
         assert!(TRIGGERS.iter().filter_map(|t| t.1).chain([LAST_DIALOGUE]).all(|f| crate::knubot::starting_with(f).is_some()));
         assert_eq!(starter(1), Some(317609));
+    }
+
+    #[test]
+    fn compass_after_spawn_compass() {
+        let (pf, character) = (Pf::main(PLAYFIELD), 0x7e57_0001);
+        assert!(!crate::teleport::door_records_of(pf, COMPASS_DOOR).is_empty());
+        assert!(!compass_open(character, pf, false) && compass_records(character, pf, false).is_empty());
+        assert!(compass_open(character, pf, true) && !compass_records(character, pf, true).is_empty());
+        assert!(compass_open(character, Pf::main(4600), false));
+        COMPASS.lock().unwrap().insert(character);
+        assert!(compass_open(character, pf, false) && !compass_records(character, pf, false).is_empty());
     }
 
     #[test]
