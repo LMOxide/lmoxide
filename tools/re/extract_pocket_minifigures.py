@@ -1,8 +1,10 @@
-"""Each pocket adventure's minifigures into content/worlds/*/world.json: `minifigure` (given for
-completing it) and `parts` (the minifigures whose parts drop there).
+"""Each pocket adventure's and story dungeon's minifigures into content/worlds/*/world.json:
+`minifigure` (given for completing it) and `parts` (the minifigures whose parts drop there).
 
 The Linux client's RDB 1000644/1 (TeleportWindowData) entries of playfield type 4 (the pocket
-adventures: the "Complete all ... Pocket Adventures" achievements count exactly these) list
+adventures: the "Complete all ... Pocket Adventures" achievements count exactly these) and 8 (the
+story dungeons: the Ruined Fort, the Sorcerer's Keep, ...; the user, 2026-10-30: the Ruined Fort
+dropped other parts than its window's) list
 rewards (field 14), as the window shows them: the first list's one id is the minifigure's item
 template (the big figure under "Rewards"), the second list's ids are portrait icons ("Parts
 for:"), each a minifigure's MinifigureIconMiddle stat (item templates, RDB 1000620). Winter
@@ -14,7 +16,8 @@ import item_template
 import rdb
 from extract_elements import CLIENT, ROOT, parse
 
-POCKET_ADVENTURE = 4
+# pocket adventures, story dungeons (not open worlds 1 or boss dungeons 2)
+TYPES = (4, 8)
 
 
 def windows():
@@ -34,7 +37,7 @@ def windows():
                 continue
             entry = parse(e)
             fields = dict(entry)
-            if fields.get(2) != POCKET_ADVENTURE:
+            if fields.get(2) not in TYPES:
                 continue
             rewards = [[v for k, v in parse(r) if k == 2] for f2, r in entry if f2 == 14]
             if len(rewards) == 2:

@@ -426,11 +426,16 @@ fn pick_bag(playfield: Pf) -> Option<u32> {
 /// clearing it. None where a story conversation there gives it (its `{spawn <hash>}`, tunables
 /// `story.spawn_minifigures`: the Monkey Cave's Island Warrior, ...): only the conversation does,
 /// once. With tunables `story.repeat_conversation_minifigures` a later clear gives the bag again
-/// once the player (`has_tag`) has had that conversation.
+/// once the player (`has_tag`) has had that conversation. None too where a loot table names its
+/// bag (a world's story conclusion gives its last story dungeon's: the Sorcerer's Keep's Evil
+/// Wizard, ...): only that table does.
 pub fn pocket_reward(playfield: u32, has_tag: impl Fn(u32) -> bool) -> Option<u32> {
     let c = crate::gamedata::get();
     let world = c.worlds.values().find(|w| w.playfield == playfield)?;
     let id = world.minifigure.as_deref()?;
+    if table_gives_bag(id) {
+        return None;
+    }
     if let Some(played) = story_gives(playfield, id, &has_tag)
         && !(played && c.tunables.story.repeat_conversation_minifigures)
     {
@@ -438,6 +443,13 @@ pub fn pocket_reward(playfield: u32, has_tag: impl Fn(u32) -> bool) -> Option<u3
     }
     let minifigure = c.minifigures.get(id)?;
     TABLES.minifigure_bag.get(&minifigure.template).copied()
+}
+
+/// Whether a loot table gives minifigure `id`'s bag by name (`minifig_bags.from` listing it).
+fn table_gives_bag(id: &str) -> bool {
+    crate::gamedata::get().loot.values().flat_map(|t| &t.entries).any(|e| {
+        matches!(&e.drop.minifig_bags, Some(lmoxide_content::MinifigureDrop { from: MinifigureSource::Some(list), .. }) if list.iter().any(|m| m == id))
+    })
 }
 
 /// Whether a dialogue on `playfield` gives minifigure `id` (`spawn <hash>` of a story
@@ -810,6 +822,26 @@ mod tests {
         assert_eq!(story_gives(1643, "minifig/island-warrior", &|_| false), Some(false));
         assert_eq!(story_gives(1643, "minifig/island-warrior", &|t| t == 4141), Some(true));
         assert_eq!(story_gives(1642, "minifig/lifeguard-guy", &|_| true), None);
+    }
+
+    #[test]
+    fn story_dungeons_drop_their_window_parts() {
+        // the Ruined Fort's window: Rewards Jester, Parts for Judge (the user found King and
+        // Jester parts in its chest); the Jester's parts drop nowhere, his story conversation
+        // (`spawn GQKS`) gives him
+        let c = crate::gamedata::get();
+        let judge = c.minifigures["minifig/judge"].template;
+        let jester = c.minifigures["minifig/jester"].template;
+        let fort = Pf::main(5300);
+        for _ in 0..200 {
+            assert!(matches!(reward(pick_part(fort).unwrap()), Reward::Part(_)));
+            assert_eq!(pick_minifigure(fort), Some(judge));
+        }
+        assert!(TABLES.world_minifigures.values().flatten().all(|&(_, m)| m != jester));
+        assert!(pocket_reward(5300, |_| false).is_none());
+        // the Sorcerer's Keep's Evil Wizard comes with the Medieval story's conclusion
+        // (loot/story-medieval-conclusion), not also for clearing it
+        assert!(pocket_reward(5310, |_| false).is_none());
     }
 
     #[test]
