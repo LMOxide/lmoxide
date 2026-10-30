@@ -261,7 +261,7 @@ pub fn pull(player: Id32, guid: u32) {
             }
             _ => None,
         });
-        crate::projectile::enemy_impact(ballista, shot, None);
+        crate::projectile::enemy_impact(ballista, shot, None, None);
         if let Some((id, hits)) = target {
             info!(hits, "ballista hit a dummy");
             crate::npc::hit(player, id, 0, 100);

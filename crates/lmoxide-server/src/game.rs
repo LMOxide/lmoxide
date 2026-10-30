@@ -1856,8 +1856,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                     (me.playfield, *pos.lock().unwrap())
                                 }
                             };
-                            for (name, count) in &setup.spawn {
-                                let n = crate::npc::spawn_test_enemies(name, *count, place, at, TEST_ENEMY_LIFETIME);
+                            for (name, count, spells) in &setup.spawn {
+                                let n = crate::npc::spawn_test_enemies_casting(name, *count, place, at, TEST_ENEMY_LIFETIME, spells);
                                 let line = if n == 0 { format!("no enemy named {name}") } else { format!("{n} x {name} for 15 minutes") };
                                 crate::chat::system(character, &line);
                             }

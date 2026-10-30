@@ -37,7 +37,7 @@
 //!                             rebuilt story conversations too; without n: list them)
 //!   !cinematic [n|name|id]    play a narrated story cinematic (without an argument: list them)
 //!   !story [reset]            the story (cinematics seen, story lines, goals); reset forgets it
-//!   !story quest <line> <step>  put a story line (pirate, medieval, space, mythology, dino or
+//!   !story quest <line> <step>  put a story line (pirate, medieval, let spawn = s.spawn.iter().map(|sp| (sp.name.clone(), sp.count.min(30), sp.spells.clone())).collect();ace, mythology, dino or
 //!                             its main quest) at a step (1 = first; 0 = not started)
 //!   !story advance [line]     complete the current step of a story line (default: the first)
 //!   !story goal|beat|dialogue|seen <arg>   resolve a goal, run a beat, start a dialogue, or play
@@ -343,8 +343,8 @@ pub struct TestSetup {
     pub destination: Option<(u32, [f32; 3], f32)>,
     /// the new team's minifigure templates, the first active; empty = keep the team
     pub team: Vec<u32>,
-    /// enemies to spawn around the player: (name, count)
-    pub spawn: Vec<(String, u32)>,
+    /// enemies to spawn around the player: (name, count, the only spells they cast: none = all)
+    pub spawn: Vec<(String, u32, Vec<u32>)>,
 }
 
 #[derive(serde::Deserialize)]
@@ -377,6 +377,9 @@ struct Goto {
 struct Spawn {
     name: String,
     count: u32,
+    /// cast only these of their spells (e.g. Captain Dreadleg's bomb)
+    #[serde(default)]
+    spells: Vec<u32>,
 }
 
 static SCENARIOS: std::sync::LazyLock<Scenarios> = std::sync::LazyLock::new(|| {
@@ -425,7 +428,7 @@ fn test(arg: Option<&str>) -> Action {
             None => return Action::Reply(vec![format!("test {}: no minifigure named \"{name}\"", s.label)]),
         }
     }
-    let spawn = s.spawn.iter().map(|sp| (sp.name.clone(), sp.count.min(30))).collect();
+    let spawn = s.spawn.iter().map(|sp| (sp.name.clone(), sp.count.min(30), sp.spells.clone())).collect();
     Action::Test(TestSetup { label: s.label.clone(), destination, team, spawn })
 }
 

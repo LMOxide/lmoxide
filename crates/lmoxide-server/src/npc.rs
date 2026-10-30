@@ -368,6 +368,8 @@ struct Npc {
     test_spawn: bool,
     /// Brought by a SpawnMonster action of this character's spell (`spawn_monster`).
     spawned_by: Option<Id32>,
+    /// A test spawn that casts only these of its spells (`!test` scenarios' `spells`).
+    only_spells: Vec<u32>,
     /// When each of its spells can be cast again (npc_spells.rs).
     cooldowns: HashMap<u32, std::time::Instant>,
     /// Casting (or stunned) until then: it stands still.
@@ -409,6 +411,7 @@ impl Npc {
             once: false,
             test_spawn: false,
             spawned_by: None,
+            only_spells: Vec::new(),
             cooldowns: HashMap::new(),
             busy_until: None,
             stunned_until: None,
@@ -889,6 +892,12 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
 /// `playfield`, for `lifetime`. They fight (or break) like the others but don't respawn.
 /// Returns how many appeared.
 pub fn spawn_test_enemies(name: &str, count: u32, playfield: Pf, center: [f32; 3], lifetime: Duration) -> u32 {
+    spawn_test_enemies_casting(name, count, playfield, center, lifetime, &[])
+}
+
+/// `spawn_test_enemies` that cast only `spells` (none: all of theirs), e.g. only Captain
+/// Dreadleg's bomb.
+pub fn spawn_test_enemies_casting(name: &str, count: u32, playfield: Pf, center: [f32; 3], lifetime: Duration, spells: &[u32]) -> u32 {
     let wanted = name.to_ascii_lowercase();
     // (of several by that name the strongest: the Pirate Grotto's Captain Dreadleg, not the
     // tutorial's)
@@ -911,6 +920,7 @@ pub fn spawn_test_enemies(name: &str, count: u32, playfield: Pf, center: [f32; 3
         let def = SpawnDef { pos, ..def.clone() };
         let mut npc = Npc::new(def, playfield, None, Some(until));
         npc.test_spawn = true;
+        npc.only_spells = spells.to_vec();
         NPCS.lock().unwrap().insert(id, npc);
         appear(id);
         ids.push(id);
@@ -1896,7 +1906,8 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
             return false;
         }
-        let pick = spells_for(&npc.def)
+        let spells = if npc.only_spells.is_empty() { spells_for(&npc.def) } else { npc.only_spells.clone() };
+        let pick = spells
             .into_iter()
             .filter(|s| npc.cooldowns.get(s).is_none_or(|t| *t <= now) && d <= reach_of(*s))
             .map(|s| (s, crate::npc_spells::power(s) + crate::npc_spells::jitter()))

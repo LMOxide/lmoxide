@@ -807,6 +807,10 @@ the command's server id); the spin added a `MagicBuffIIR_c` self-snare on the bo
 enemy, target the player, the spell's projectile item, e.g. 197369 for XX_Shot 197370), then
 the hit as `AttackResultIIR` (template = the item's hit nano, e.g. 197368) and
 `CoreProjectileIIR` on the enemy: u32 1 (HitTarget), ID32 projectile, ID32 target, position.
+An enemy's lobbed shot that came down on nobody (Captain Dreadleg's bomb) ends with
+`CoreProjectileIIR` u32 6 (DestroyOnPosition), ID32 projectile, position from LMOxide (not
+recorded: what a player's own client reports for its lobbed shots), so the clients play the
+item's `on_projectile_destroyed` part there.
 Which spells a monster has was server-side (NPC templates); data/npc_spells.json
 (tools/re/extract_npc_spells.py) holds the recorded ones and name matches (docs/TUNABLES.md).
 LMOxide still reports hits with `CombatLogIIR` + Health (see "Hit reports").
