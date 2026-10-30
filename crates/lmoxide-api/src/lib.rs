@@ -5,6 +5,9 @@
 
 mod auth;
 mod catalog;
+mod discord;
+#[cfg(test)]
+mod discord_tests;
 mod error;
 mod routes;
 
@@ -69,7 +72,7 @@ enum KeyCmd {
     /// Create a key; its secret is printed once.
     Create {
         name: String,
-        /// read, moderate or admin.
+        /// read, moderate, discord (the Discord bot) or admin.
         #[arg(long, default_value = "read")]
         scope: String,
     },
@@ -102,9 +105,13 @@ pub struct Config {
     /// Require a read-scope credential for /v1/status and /v1/online too.
     #[arg(long, env = "LMOXIDE_API_PRIVATE_STATUS")]
     pub private_status: bool,
-    /// Allow anyone to create game accounts through POST /v1/auth/register (throttled per
-    /// address).
-    #[arg(long, env = "LMOXIDE_API_OPEN_REGISTRATION")]
+    /// Who may create game accounts: open (anyone, through POST /v1/auth/register, throttled
+    /// per address; the Discord bot too), discord (only the Discord bot, for members of its
+    /// server) or closed (only admins).
+    #[arg(long, env = "LMOXIDE_API_REGISTRATION", value_enum, default_value_t = routes::Registration::Closed)]
+    pub registration: routes::Registration,
+    /// Shorthand for --registration open.
+    #[arg(long, env = "LMOXIDE_API_OPEN_REGISTRATION", conflicts_with = "registration")]
     pub open_registration: bool,
     /// Lifetime of login sessions.
     #[arg(long, env = "LMOXIDE_API_SESSION_TTL_HOURS", default_value_t = 24)]
@@ -130,6 +137,13 @@ pub struct Config {
     /// (GET /v1/catalog/sounds/{id}).
     #[arg(long, env = "LMOXIDE_CLIENT_DIR")]
     pub client_dir: Option<PathBuf>,
+}
+
+impl Config {
+    /// `--registration`, or `open` with `--open-registration`.
+    pub fn registration(&self) -> routes::Registration {
+        if self.open_registration { routes::Registration::Open } else { self.registration }
+    }
 }
 
 pub struct AppState {
@@ -160,6 +174,7 @@ pub async fn blocking<T: Send + 'static>(
         (name = "players", description = "The running game server"),
         (name = "accounts", description = "Accounts and characters"),
         (name = "admin", description = "API keys and the audit log"),
+        (name = "discord", description = "For the Discord bot (scope discord): Discord accounts linked to game accounts, their account keys, one-time codes"),
         (name = "catalog", description = "Game data from the client: effects, looks, animations, character states, test commands"),
     )
 )]

@@ -17,7 +17,7 @@ It opens the game server's SQLite database (same `--data-dir`) for accounts and 
 running game server through its control interface for live data (players online, kicks,
 broadcasts, maintenance). Without a control token those routes answer 503. Flags (each also an
 environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
-`--open-registration`, `--session-ttl-hours`, `--remember-days` (30), `--moderator-gm-level` (1), `--admin-gm-level`
+`--registration open|discord|closed` (default `closed`; `--open-registration` = `open`), `--session-ttl-hours`, `--remember-days` (30), `--moderator-gm-level` (1), `--admin-gm-level`
 (2), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
 `/v1/catalog/sounds/{id}` serves the sounds of effect packages from its RDB; 503 without it).
 
@@ -27,14 +27,26 @@ environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
 
 - an **API key** (bots, scripts): `lmoxide-api key create discord-bot --scope read` prints the
   secret once; admins can also `POST /v1/api-keys`. Scopes: `read` (status, players, accounts,
-  characters), `moderate` (+ kick, ban, unban, broadcast), `admin` (+ create/rename/delete
-  accounts, passwords, GM levels, maintenance, API keys, audit log).
+  characters), `moderate` (+ kick, ban, unban, broadcast), `discord` (+ the `/v1/discord` routes,
+  for the Discord bot), `admin` (+ create/rename/delete accounts, passwords, GM levels,
+  maintenance, API keys, audit log).
+- an **account key**: an API key that belongs to an account (`account_id` in `/v1/api-keys`),
+  made by the Discord bot for each linked account (`POST /v1/discord/links/{discord_id}/api-key`).
+  It acts as that account: its scope follows the GM level as a session's does, `/v1/me` works,
+  it stops working while the account is banned, and it is revoked when the account is unlinked.
+  Audit actor: `account:<username> via api-key:<name>`.
 - a **session token** from `POST /v1/auth/login` with a game account's username and password
   (web UI). Its scope follows the account's GM level; ordinary players get no scope and can only
   use `/v1/me` (their account, password change). Sessions last `--session-ttl-hours`; a login
   with `"remember": true` ("stay signed in") lasts `--remember-days`, and `POST /v1/auth/renew`
   trades a session for a fresh one (new token, old one ends) so a remembered sign-in lasts while
   it's used. Only the token's SHA-256 is stored; logging out, a password change or a ban ends it.
+  `POST /v1/auth/code` signs in with a one-time code the Discord bot sent; that session has
+  `password_reset: true` and may set a new password without the current one.
+
+Registration (`--registration`): `open`: anyone with `POST /v1/auth/register`, and the Discord
+bot; `discord`: only the Discord bot (`POST /v1/discord/accounts`), which checks that the person
+is a member of its server; `closed`: only admins. `GET /v1/config` says which.
 
 API keys used by a bot for someone else may send `X-On-Behalf-Of: <who>` (e.g.
 `discord:name (id)`); the audit log records it next to the key's name.
@@ -48,16 +60,25 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 |---|---|---|---|
 | GET | `/v1/status` | public* | game server up, version, players online, maintenance |
 | GET | `/v1/online` | public* | characters in play (in-game name, playfield) |
-| GET | `/v1/config` | public | `registration_open`, `private_status`, `moderator_gm_level`, `admin_gm_level` |
+| GET | `/v1/config` | public | `registration` (`open`/`discord`/`closed`), `registration_open`, `private_status`, `moderator_gm_level`, `admin_gm_level` |
 | GET | `/v1/playfields` | public | every playfield id with its name (for the ids in other answers); `teleport`: a `!tp` destination |
 | GET | `/v1/minifigures` | public | minifigure template ids with name, series, attack names, upgrade names by bit, parts (tokens) |
 | GET | `/v1/tokens` | public | token ids (minifigure parts, as in a character's `tokens`) with name and minifigure |
 | POST | `/v1/auth/login` | - | `{username, password, remember?}` → `{token, expires_at, scope, account}` |
 | POST | `/v1/auth/renew` | session | `{remember?}` → a new session like the login's; the old token stops working |
 | POST | `/v1/auth/logout` | any | ends the session |
-| POST | `/v1/auth/register` | - | `{username, password}`, only with `--open-registration` |
-| GET | `/v1/me` | session | the logged-in account |
-| POST | `/v1/me/password` | session | `{current_password, new_password}` |
+| POST | `/v1/auth/register` | - | `{username, password}`, only when registration is `open` |
+| POST | `/v1/auth/code` | - | `{code, remember?}`: a `login` code from the Discord bot → a `Session` with `password_reset: true`; 401 `bad_code` (counts as a failed login) |
+| GET | `/v1/me` | session | the logged-in account (`discord_id` when linked) |
+| POST | `/v1/me/password` | session | `{current_password, new_password}`; `current_password` may be left out in a `password_reset` session |
+| POST | `/v1/me/discord` | session | `{code}`: a `link` code from the Discord bot links the account to that Discord account → `Account`; 401 `bad_code`, 409 when either is linked already |
+| GET | `/v1/discord/links` | discord | linked accounts: `[{discord_id, account_id, username, gm_level, banned}]` |
+| GET | `/v1/discord/links/{discord_id}` | discord | one of them, or 404 |
+| PATCH | `/v1/discord/links/{discord_id}` | discord | `{gm_level}` (linked accounts only) |
+| DELETE | `/v1/discord/links/{discord_id}` | discord | unlink; revokes the account's keys, the account stays |
+| POST | `/v1/discord/links/{discord_id}/api-key` | discord | a new account key named `discord-bot` (replaces the earlier one) → `CreatedApiKey` |
+| POST | `/v1/discord/accounts` | discord | `{discord_id, username, password, gm_level?}` → `{link, key}`: a new linked account with its account key; 403 `registration_closed` when `closed`, 409 when taken or linked |
+| POST | `/v1/discord/codes` | discord | `{discord_id, purpose: link\|login}` → `{code, expires_at}`: `XXXX-XXXX`, 10 minutes, once; `link` needs an unlinked Discord account (409), `login` a linked one (404) |
 | GET | `/v1/players` | read | online players with account ids, usernames, game mode, playfield and copy |
 | GET | `/v1/instances` | moderate | running copies of worlds (each game mode's main copies, team copies, previews): mode, kind, players, NPCs; the AI's tick time |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |

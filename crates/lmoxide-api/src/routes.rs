@@ -34,6 +34,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(register))
         .routes(routes!(me))
         .routes(routes!(change_own_password))
+        .merge(crate::discord::router())
         .routes(routes!(instances))
         .routes(routes!(players))
         .routes(routes!(kick))
@@ -62,6 +63,8 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
 pub enum ApiScope {
     Read,
     Moderate,
+    /// The Discord bot's key: `moderate` plus the `/v1/discord` routes.
+    Discord,
     Admin,
 }
 
@@ -70,6 +73,7 @@ impl From<Scope> for ApiScope {
         match s {
             Scope::Read => ApiScope::Read,
             Scope::Moderate => ApiScope::Moderate,
+            Scope::Discord => ApiScope::Discord,
             Scope::Admin => ApiScope::Admin,
         }
     }
@@ -80,6 +84,7 @@ impl From<ApiScope> for Scope {
         match s {
             ApiScope::Read => Scope::Read,
             ApiScope::Moderate => Scope::Moderate,
+            ApiScope::Discord => Scope::Discord,
             ApiScope::Admin => Scope::Admin,
         }
     }
@@ -176,6 +181,8 @@ pub struct Account {
     pub last_login_ip: Option<String>,
     /// The ban in force, if any.
     pub ban: Option<BanInfo>,
+    /// The linked Discord user id (a snowflake, as a string); `null`: not linked.
+    pub discord_id: Option<String>,
     pub characters: Vec<CharacterSummary>,
 }
 
@@ -305,11 +312,16 @@ pub struct Session {
     /// `null`: the account may only see and change itself (`/v1/me`).
     pub scope: Option<ApiScope>,
     pub account: Account,
+    /// A session from a one-time sign-in code (`/v1/auth/code`): `/v1/me/password` takes a new
+    /// password without the current one.
+    pub password_reset: bool,
 }
 
 #[derive(Deserialize, ToSchema)]
 pub struct ChangePassword {
-    pub current_password: String,
+    /// Required, except in a `password_reset` session.
+    #[serde(default)]
+    pub current_password: Option<String>,
     #[schema(min_length = 8, max_length = 128)]
     pub new_password: String,
 }
@@ -536,6 +548,9 @@ pub struct ApiKey {
     pub created_at: i64,
     pub last_used_at: Option<i64>,
     pub revoked: bool,
+    /// Set: the key acts as this account, and its scope follows the account's GM level as a
+    /// login session's does (`scope` is then `read` and unused).
+    pub account_id: Option<u32>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -582,11 +597,19 @@ pub struct AuditQuery {
     pub before: Option<i64>,
 }
 
-fn api_key(k: lmoxide_db::ApiKey) -> ApiKey {
-    ApiKey { id: k.id, name: k.name, scope: k.scope.into(), created_at: k.created_at, last_used_at: k.last_used_at, revoked: k.revoked }
+pub(crate) fn api_key(k: lmoxide_db::ApiKey) -> ApiKey {
+    ApiKey {
+        id: k.id,
+        name: k.name,
+        scope: k.scope.into(),
+        created_at: k.created_at,
+        last_used_at: k.last_used_at,
+        revoked: k.revoked,
+        account_id: k.account_id,
+    }
 }
 
-fn account_dto(db: &lmoxide_db::Db, a: lmoxide_db::Account, show_ip: bool) -> lmoxide_db::Result<Account> {
+pub(crate) fn account_dto(db: &lmoxide_db::Db, a: lmoxide_db::Account, show_ip: bool) -> lmoxide_db::Result<Account> {
     let characters = db
         .characters_of(a.id)?
         .into_iter()
@@ -602,6 +625,7 @@ fn account_dto(db: &lmoxide_db::Db, a: lmoxide_db::Account, show_ip: bool) -> lm
         last_login_at: a.last_login_at,
         last_login_ip: if show_ip { a.last_login_ip } else { None },
         ban,
+        discord_id: a.discord_id,
         characters,
     })
 }
@@ -760,11 +784,25 @@ async fn online_players(State(state): State<Arc<AppState>>, MaybeAuth(auth): May
     Ok(Json(players.into_iter().map(|p| PublicPlayer { character_name: p.character_name, playfield: p.playfield }).collect()))
 }
 
+/// Who may create game accounts (`--registration`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, ToSchema, clap::ValueEnum)]
+#[serde(rename_all = "lowercase")]
+pub enum Registration {
+    /// Anyone, with `POST /v1/auth/register`; the Discord bot too.
+    Open,
+    /// Only the Discord bot (`POST /v1/discord/accounts`), for members of its server.
+    Discord,
+    /// Only admins.
+    Closed,
+}
+
 /// How this API is set up, for clients that adapt to it (always public).
 #[derive(Serialize, ToSchema)]
 pub struct ServerConfig {
-    /// Whether `POST /v1/auth/register` accepts new accounts (`--open-registration`).
+    /// Whether `POST /v1/auth/register` accepts new accounts (`registration` is `open`).
     pub registration_open: bool,
+    /// Who may create accounts (`--registration`).
+    pub registration: Registration,
     /// Whether `/v1/status` and `/v1/online` need a read-scope credential (`--private-status`).
     pub private_status: bool,
     /// GM level from which an account's login session has the moderate scope.
@@ -779,7 +817,8 @@ pub struct ServerConfig {
 async fn config(State(state): State<Arc<AppState>>) -> Json<ServerConfig> {
     let cfg = &state.cfg;
     Json(ServerConfig {
-        registration_open: cfg.open_registration,
+        registration_open: cfg.registration() == Registration::Open,
+        registration: cfg.registration(),
         private_status: cfg.private_status,
         moderator_gm_level: cfg.moderator_gm_level,
         admin_gm_level: cfg.admin_gm_level,
@@ -1006,7 +1045,7 @@ async fn login(
             return Ok(None);
         }
         db.audit(&format!("account:{}", a.username), "api-login", None, c.remember.then_some("remember"))?;
-        Ok(Some(new_session(&st, db, a, ttl)?))
+        Ok(Some(new_session(&st, db, a, ttl, false)?))
     })
     .await?;
     match result {
@@ -1022,15 +1061,21 @@ async fn login(
     }
 }
 
-fn session_ttl(state: &AppState, remember: bool) -> i64 {
+pub(crate) fn session_ttl(state: &AppState, remember: bool) -> i64 {
     if remember { state.cfg.remember_days as i64 * 86400 } else { state.cfg.session_ttl_hours as i64 * 3600 }
 }
 
-fn new_session(state: &AppState, db: &lmoxide_db::Db, a: lmoxide_db::Account, ttl: i64) -> ApiResult<Session> {
-    let token = db.create_session(a.id, ttl)?;
+pub(crate) fn new_session(
+    state: &AppState,
+    db: &lmoxide_db::Db,
+    a: lmoxide_db::Account,
+    ttl: i64,
+    password_reset: bool,
+) -> ApiResult<Session> {
+    let token = db.create_session_with(a.id, ttl, password_reset)?;
     let scope = account_scope(state, a.gm_level).map(ApiScope::from);
     let show_ip = scope.is_some_and(|s| matches!(s, ApiScope::Admin));
-    Ok(Session { token, expires_at: lmoxide_db::now() + ttl, scope, account: account_dto(db, a, show_ip)? })
+    Ok(Session { token, expires_at: lmoxide_db::now() + ttl, scope, account: account_dto(db, a, show_ip)?, password_reset })
 }
 
 /// Trade the current session for a new one (a new token and expiry; the old token stops
@@ -1045,7 +1090,7 @@ async fn renew(State(state): State<Arc<AppState>>, auth: Auth, body: Option<Json
     let st = state.clone();
     blocking(&state, move |db| {
         let a = db.account(id)?.filter(|a| a.active_ban().is_none()).ok_or_else(ApiError::unauthorized)?;
-        let s = new_session(&st, db, a, ttl)?;
+        let s = new_session(&st, db, a, ttl, false)?;
         db.delete_session(&old)?;
         Ok(Json(s))
     })
@@ -1061,7 +1106,7 @@ async fn logout(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Sta
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Create a game account (only with `--open-registration`).
+/// Create a game account (only when `registration` is `open`).
 #[utoipa::path(post, path = "/v1/auth/register", tag = "auth", request_body = Credentials,
     responses((status = CREATED, body = Account), (status = FORBIDDEN, body = ErrorBody), (status = CONFLICT, body = ErrorBody)),
     security(()))]
@@ -1071,7 +1116,7 @@ async fn register(
     headers: HeaderMap,
     Json(c): Json<Credentials>,
 ) -> ApiResult<(StatusCode, Json<Account>)> {
-    if !state.cfg.open_registration {
+    if state.cfg.registration() != Registration::Open {
         return Err(ApiError::new(StatusCode::FORBIDDEN, "registration_closed", "registration is closed"));
     }
     // registrations count as failures so one address can't create accounts in bulk
@@ -1101,13 +1146,18 @@ async fn me(State(state): State<Arc<AppState>>, auth: Auth) -> ApiResult<Json<Ac
     .await
 }
 
-/// Change the logged-in account's password (ends its sessions).
+/// Change the logged-in account's password (ends its sessions). `current_password` may be left
+/// out in a `password_reset` session (from `/v1/auth/code`).
 #[utoipa::path(post, path = "/v1/me/password", tag = "auth", request_body = ChangePassword,
     responses((status = NO_CONTENT), (status = UNAUTHORIZED, body = ErrorBody)))]
 async fn change_own_password(State(state): State<Arc<AppState>>, auth: Auth, Json(c): Json<ChangePassword>) -> ApiResult<StatusCode> {
     let id = auth.account.ok_or_else(|| ApiError::not_found("account (API keys have none)"))?;
     blocking(&state, move |db| {
-        if !db.verify_password(id, &c.current_password)? {
+        let ok = match &c.current_password {
+            Some(p) => db.verify_password(id, p)?,
+            None => auth.password_reset,
+        };
+        if !ok {
             return Err(ApiError::new(StatusCode::UNAUTHORIZED, "bad_credentials", "wrong current password"));
         }
         db.set_password(id, Some(&c.new_password))?;

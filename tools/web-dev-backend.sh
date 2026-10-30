@@ -10,7 +10,8 @@
 # Demo accounts (password = "<name>-password"):
 #   admin (GM 2, admin scope), moderator (GM 1, moderate scope), player (no scope),
 #   banned (banned for 7 days)
-# API keys for bots, created once and printed: demo-bot (read), demo-mod-bot (moderate).
+# API keys for bots, created once and printed: demo-bot (read), demo-mod-bot (moderate),
+# demo-discord-bot (discord: registers and links Discord accounts).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 DATA=${DATA:-$(realpath -m "$ROOT/../var/web-dev")}
@@ -41,6 +42,9 @@ if [[ ! -f $DATA/lmoxide.db ]]; then
   "$API" --data-dir "$DATA" key create demo-bot --scope read 2>/dev/null | tee "$DATA/demo-bot-key.txt"
   "$API" --data-dir "$DATA" key create demo-mod-bot --scope moderate 2>/dev/null | tee "$DATA/demo-mod-bot-key.txt"
 fi
+# made for databases from before the discord scope too
+[[ -f $DATA/demo-discord-bot-key.txt ]] ||
+  "$API" --data-dir "$DATA" key create demo-discord-bot --scope discord 2>/dev/null | tee "$DATA/demo-discord-bot-key.txt"
 
 export RUST_LOG=${RUST_LOG:-info}
 "$SERVER" --data-dir "$DATA" "${GAME_PORTS[@]}" --control-bind "$CONTROL" \
@@ -52,6 +56,7 @@ echo "API:      http://127.0.0.1:$API_PORT  (OpenAPI: /v1/openapi.json, also doc
 echo "Accounts: admin / moderator / player / banned, password <name>-password"
 echo "Bot keys: read $(grep -o 'lmox_[0-9a-f]*' "$DATA/demo-bot-key.txt" 2>/dev/null || echo "(see $DATA)")"
 echo "          moderate $(grep -o 'lmox_[0-9a-f]*' "$DATA/demo-mod-bot-key.txt" 2>/dev/null || echo "(see $DATA; --reset to create)")"
+echo "          discord $(grep -o 'lmox_[0-9a-f]*' "$DATA/demo-discord-bot-key.txt" 2>/dev/null || echo "(see $DATA)")"
 echo "CORS:     $WEB_ORIGINS"
 echo "logs:     $DATA/server.log (game), API below"
 echo

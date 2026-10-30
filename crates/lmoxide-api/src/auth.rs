@@ -1,6 +1,8 @@
 //! Who is calling: `Authorization: Bearer <secret>` with an API key or a login session token
 //! (both `lmox_...`). API keys carry a scope; a session's scope follows its account's GM level
 //! (`--moderator-gm-level`, `--admin-gm-level`), and accounts below both only reach `/v1/me`.
+//! An API key that belongs to an account (the Discord bot's per-person keys) acts as that
+//! account in the same way.
 //!
 //! An API key used by a bot on behalf of someone else (a Discord moderator) may say who in
 //! `X-On-Behalf-Of`; it is recorded in the audit log next to the key's name. It is the key
@@ -37,6 +39,8 @@ pub struct Auth {
     pub account: Option<u32>,
     /// Set for login sessions (to log out).
     pub token: Option<String>,
+    /// A session from a one-time sign-in code (may set a password without the old one).
+    pub password_reset: bool,
 }
 
 impl Auth {
@@ -75,16 +79,30 @@ impl FromRequestParts<Arc<AppState>> for Auth {
         let st = state.clone();
         crate::blocking(state, move |db| {
             if let Some(key) = db.authenticate_api_key(&token)? {
+                // an account key acts as its account, like a login session
+                if let Some(id) = key.account_id {
+                    let account = db.account(id)?.ok_or_else(ApiError::unauthorized)?;
+                    if account.active_ban().is_some() {
+                        return Err(ApiError::unauthorized());
+                    }
+                    return Ok(Auth {
+                        actor: format!("account:{} via api-key:{}", account.username, key.name),
+                        scope: account_scope(&st, account.gm_level),
+                        account: Some(account.id),
+                        token: None,
+                        password_reset: false,
+                    });
+                }
                 let actor = match behalf {
                     Some(who) => format!("api-key:{} for {who}", key.name),
                     None => format!("api-key:{}", key.name),
                 };
-                return Ok(Auth { actor, scope: Some(key.scope), account: None, token: None });
+                return Ok(Auth { actor, scope: Some(key.scope), account: None, token: None, password_reset: false });
             }
-            let Some((account_id, _)) = db.session_account(&token)? else {
+            let Some(session) = db.session_account(&token)? else {
                 return Err(ApiError::unauthorized());
             };
-            let account = db.account(account_id)?.ok_or_else(ApiError::unauthorized)?;
+            let account = db.account(session.account_id)?.ok_or_else(ApiError::unauthorized)?;
             if account.active_ban().is_some() {
                 return Err(ApiError::unauthorized());
             }
@@ -93,6 +111,7 @@ impl FromRequestParts<Arc<AppState>> for Auth {
                 scope: account_scope(&st, account.gm_level),
                 account: Some(account.id),
                 token: Some(token),
+                password_reset: session.password_reset,
             })
         })
         .await

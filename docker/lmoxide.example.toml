@@ -29,7 +29,9 @@ auto-register = false
 default-gm-level = 0
 
 [api]
-open-registration = false
+# who may create accounts: "open" (anyone, POST /v1/auth/register), "discord" (only the
+# Discord bot, for members of its server) or "closed" (only admins)
+registration = "closed"
 # behind Caddy: the client address comes from X-Forwarded-For
 trust-forwarded-for = true
 

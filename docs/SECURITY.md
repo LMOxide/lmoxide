@@ -34,7 +34,7 @@ no transport encryption and we can't add any without rewriting the client, so:
   `--devcmd-gm-level` (default 1). `--default-gm-level` gives everyone a level: only for LAN play.
 - **`--auto-register`** lets anyone create an account by logging in. Leave it off on a public
   server and create accounts with `lmoxide-server account create` or the API (optionally with
-  `--open-registration`).
+  `--registration open`, or `discord` so only the Discord bot registers members of its server).
 
 ## The control interface (port 7300)
 
@@ -49,11 +49,18 @@ token it doesn't start.
   (then `--trust-forwarded-for` so rate limits see client addresses). It warns when it serves
   plain HTTP on a non-loopback address.
 - **Credentials**: API keys and login session tokens are 256-bit random secrets (`lmox_...`); only
-  their SHA-256 is stored. Keys have a scope (`read` < `moderate` < `admin`); a login session's
-  scope follows the account's GM level (`--moderator-gm-level`, `--admin-gm-level`). Moderators
-  can't kick or ban staff. A password change ends the account's sessions.
+  their SHA-256 is stored. Keys have a scope (`read` < `moderate` < `discord` < `admin`); a login
+  session's scope follows the account's GM level (`--moderator-gm-level`, `--admin-gm-level`), and
+  so does an account key's (the keys the Discord bot holds for linked accounts; they stop working
+  while the account is banned or once it is unlinked). Moderators can't kick or ban staff. A
+  password change ends the account's sessions.
+- **Discord codes**: the one-time codes the bot sends in DMs (link an account, sign in to reset
+  a password) are 8 characters from a 31-letter alphabet, last 10 minutes, work once, and only
+  their SHA-256 is stored; wrong ones count as failed logins. A code sign-in may set a new
+  password without the old one, so whoever controls the linked Discord account controls the
+  game account.
 - **Throttling**: a token bucket per address (10 requests/s, bursts of 60), and the same login
-  lockout as the game. Registration (off by default) is limited per address.
+  lockout as the game. Registration (`--registration`, `closed` by default) is limited per address.
 - **Hardening**: 64 KiB request bodies, 30 s timeouts, `Cache-Control: no-store`, CORS only for
   `--cors-origins`. Every administrative action goes to the audit log (`GET /v1/audit`), with the
   `X-On-Behalf-Of` a bot sends for the person behind a command (the bot's claim).
