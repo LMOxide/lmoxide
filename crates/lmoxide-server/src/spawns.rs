@@ -214,7 +214,8 @@ mod tests {
     }
 
     /// The story bosses placed since (docs/TUNABLES.md "Story bosses"): (playfield, old or new name).
-    const STORY_BOSSES: [(&str, &str); 7] = [
+    const STORY_BOSSES: [(&str, &str); 8] = [
+        ("2320", "Hades"),
         ("4300", "Captain Pete"),
         ("4310", "Captain Blackheart"),
         ("4310", "Captain Dreadleg"),
