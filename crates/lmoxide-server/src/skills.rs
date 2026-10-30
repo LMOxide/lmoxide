@@ -238,8 +238,9 @@ mod tests {
             }
         }
         let monsters = monster_spells();
-        // spells added since: the Space Merc Engineer's bomb ring (made up: skill/merc-engineer-bomb-ring)
-        const ADDED: [(u32, u32); 1] = [(388_444, 374_158)];
+        // spells added since: the Space Merc Engineer's drones (skill/merc-engineer-drones-castable: no
+        // monster spell list names it)
+        const ADDED: [(u32, u32); 1] = [(388_444, 374_162)];
         // the Witch Doctor's knife (XX_Stab) instead of the guessed Magic Potion (the user); the
         // Hunter's XX_Bolas instead of the guessed XX_Dart (the live capture); the Grenadier's
         // XX_Bomb (the pirate_grenadier_bomb) instead of XX_Grenade Throw's bottle (the user)
