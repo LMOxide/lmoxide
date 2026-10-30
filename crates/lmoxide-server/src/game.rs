@@ -160,7 +160,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             // a pocket adventure completed (cleared, or its boss defeated, also by
                             // a teammate here) gives its minifigure once a visit: a bag at the
-                            // player's feet (a duplicate pays stars when opened)
+                            // player's feet (a duplicate pays stars when opened); where a story
+                            // conversation gives it (the Monkey Cave's), only that does
                             let completed = match &event {
                                 crate::achievements::Event::Cleared { .. } => true,
                                 crate::achievements::Event::Defeated { boss: true, smashable: false, playfield, .. } => *playfield == me.playfield,

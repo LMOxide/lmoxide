@@ -11,7 +11,10 @@ Inputs:
 
 Which area runs which area quest is not in the client: AREAS below matches them by name
 (source `guess`, except those the capture confirmed). What a goal counts is guessed from its
-text (`goal_rule`); the count is the number in the text, else 3 (user's rule, 2026-10-28).
+text (`goal_rule`); the count is the number in the text, else 3 (user's rule, 2026-10-28). A
+goal nothing counts whose quest area `Quest_<X>` has a `Quest_<X>Complete` area gets that as its
+`area`: entering it completes the goal (quests.rs; the Tar Pit's nest, the Gauntlet's room exits;
+guess by name).
 
   python3 tools/content/import_quests.py ../research/lmoxide-notes/questlist.json [content]
 """
@@ -144,6 +147,10 @@ LIVE_GOALS = {
     221: dict(marker=(329.0, 273.9, 10.0, 18.6)),
     118: dict(marker=(176.8, 398.3, 5.0, 74.6)),
     332: dict(marker=(140.4, 107.5, 10.0, 64.0)),
+}
+# goal -> marker (x, z, radius, y) not from the capture (guesses)
+GOAL_MARKERS = {
+    261: (271.8, 192.7, 5.0, 86.6),  # Return the egg to the nest: at the nest's eggs (dino_egg_1/2)
 }
 LIVE_GOAL_KIND = {93: "trigger", 341: "trigger", 259: "trigger", 298: "defeat", 295: "defeat",
                   343: "defeat", 351: "trigger", 352: "trigger", 353: "trigger", 356: "defeat",
@@ -319,6 +326,12 @@ def main():
                         r = max(((p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2) ** 0.5 for p in a["polygon"])
                         goal["marker"] = {"pos": [round(c[0], 1), round(a["heights"][0], 1), round(c[1], 1)],
                                           "radius": round(min(r, 60.0), 1)}
+                done_in = quest_areas.get((pf, f"{area_name}Complete")) if area else None
+                if done_in and not goal.get("counts") and len(quests) == 1 and len(q["goals"]) == 1:
+                    goal["area"] = done_in[0]
+                if g["id"] in GOAL_MARKERS:
+                    x, z, r, y = GOAL_MARKERS[g["id"]]
+                    goal["marker"] = {"pos": [x, y, z], "radius": r}
                 live = LIVE_GOALS.get(g["id"])
                 if g["id"] in LIVE_GOAL_KIND:
                     goal["kind"] = LIVE_GOAL_KIND[g["id"]]
@@ -356,7 +369,7 @@ def main():
         elif kind == "area" and not rec.get("area"):
             tags.append("todo")
             rec["comment"] = "No Quest_* area matched: not started by the server."
-        if kind == "area" and any(not g.get("counts") for s in steps for g in s["goals"]):
+        if kind == "area" and any(not g.get("counts") and not g.get("area") for s in steps for g in s["goals"]):
             tags.append("todo")
         if tags:
             rec["tags"] = sorted(set(tags))

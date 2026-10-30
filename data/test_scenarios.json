@@ -96,6 +96,22 @@
       }
     },
     {
+      "label": "monkey-kong",
+      "about": "Monkey Cave, next to Monkey Kong: defeating him starts the Island Warrior rescue, whose end gives the Island Warrior (no reward bag besides; no minifigure bags drop there, only parts)",
+      "goto": {
+        "kind": "boss",
+        "name": "Monkey Kong"
+      }
+    },
+    {
+      "label": "egg",
+      "about": "Dinosaur Rise, in Quest_Tarpit: Return the egg to the nest starts; follow the arrow to the nest (dino_egg_1/2): entering Quest_TarpitComplete completes it (!goto quest lists the Gauntlet's room exits too)",
+      "goto": {
+        "kind": "quest",
+        "name": "Return the egg to the nest"
+      }
+    },
+    {
       "label": "combo",
       "about": "Roman Commander with 4 Pirate Corsairs around you (Gladius Slash combo steps, hit sparks)",
       "team": [

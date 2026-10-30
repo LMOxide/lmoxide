@@ -222,6 +222,17 @@ pub fn all_text_tags() -> std::collections::BTreeSet<u32> {
     DATA.texts.keys().filter_map(|k| k.parse().ok()).flat_map(text_tags).collect()
 }
 
+/// The hashes the dialogues on `playfield` spawn (`spawn <hash>`: story quests, minifigures).
+pub fn spawns_on(playfield: u32) -> Vec<String> {
+    let words = |id: &u32| DATA.texts.get(&id.to_string()).map(|t| tags(t)).unwrap_or_default();
+    DATA.dialogues
+        .iter()
+        .filter(|d| d.playfield == playfield)
+        .flat_map(|d| d.texts.iter().flat_map(words))
+        .filter_map(|t| t.strip_prefix("spawn ").and_then(|rest| rest.split_whitespace().next()).map(str::to_string))
+        .collect()
+}
+
 /// The story goals a dialogue's texts resolve (`resolvegoal`).
 #[cfg(test)]
 pub fn goals_resolved(d: &Dialogue) -> Vec<String> {
@@ -784,6 +795,14 @@ mod tests {
         let at = |p: &str| order.iter().position(|t| t.starts_with(p)).unwrap();
         assert!(at("spawn 8G4X") > at("teleportplayernosplash"));
         assert_eq!(order.len(), tags(&DATA.texts["276"]).len());
+    }
+
+    #[test]
+    fn monkey_kong_starts_the_island_warrior_rescue() {
+        // the user's rule: smashing Monkey Kong starts it; its last text gives the Island Warrior
+        assert_eq!(after_defeat("Monkey Kong", true, 1643), ["dialogue/xx-cinematic-rescue-island-warrior-773"]);
+        assert!(after_defeat("Jungle Trickster", false, 1643).is_empty());
+        assert!(spawns_on(1643).iter().any(|h| h == "SIKZ"));
     }
 
     #[test]
