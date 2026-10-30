@@ -37,7 +37,7 @@
 //!                             rebuilt story conversations too; without n: list them)
 //!   !cinematic [n|name|id]    play a narrated story cinematic (without an argument: list them)
 //!   !story [reset]            the story (cinematics seen, story lines, goals); reset forgets it
-//!   !story quest <line> <step>  put a story line (pirate, medieval, let spawn = s.spawn.iter().map(|sp| (sp.name.clone(), sp.count.min(30), sp.spells.clone())).collect();ace, mythology, dino or
+//!   !story quest <line> <step>  put a story line (pirate, medieval, space, mythology, dino or
 //!                             its main quest) at a step (1 = first; 0 = not started)
 //!   !story advance [line]     complete the current step of a story line (default: the first)
 //!   !story goal|beat|dialogue|seen <arg>   resolve a goal, run a beat, start a dialogue, or play
