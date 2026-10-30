@@ -62,7 +62,7 @@ test commands may type `!story reset` too; a GM's `!story reset` is the test com
 | `!mirrors <solve\|reset>` | turn this playfield's Medusa mirrors (Armory, Gauntlet) to the solution or back to the start (`!test mirrors`, `!test mirrors2` go there) |
 | `!team <name>` | team up with that online character at once (you lead), without the invite window: for testing what teams share (kills, smashes, builds, clears) |
 | `!revive` | bring every minifigure (team and collection) back from smashed, at full health |
-| `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there) |
+| `!test [n\|label]` | list the manual test setups, or set one up: go somewhere, switch the team, spawn enemies around you for 15 minutes (`data/test_scenarios.json`; add your own there; e.g. `pets`, `heals`, `luaattacks`, `luaattacks2` for the abilities done in server Lua) |
 | `!spawn [count] <name>` | spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes, as `!test` does (`!spawn 3 Crate`, `!spawn Captain Dreadleg`) |
 | `!despawn [all]` | remove the test spawns (`!spawn`, `!test`) within 30 m, or all of this playfield's |
 | `!speed [factor]` | your movement speed: 1 normal, 0.5 half, 2 double (0.1 to 10; also `x2`, `150%`); kept with the character (DB `characters.speed`) and given again at login and every arrival; without a factor: the current one. It scales the walk/run speed stats (1396-1399; dashes keep theirs), so buffs like the speed pad multiply on top (crates/lmoxide-server/src/speed.rs) |

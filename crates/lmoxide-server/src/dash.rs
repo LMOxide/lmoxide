@@ -85,6 +85,23 @@ pub fn start(
     facing: [f32; 2],
     damage: impl Fn(f32) -> u32 + Send + 'static,
 ) {
+    start_then(caster, playfield, spell, dash, pos, point, facing, damage, |_| ());
+}
+
+#[allow(clippy::too_many_arguments)]
+/// `start`, then `arrive` runs where the dash ended (after its arrival hits; actions.rs: a
+/// ColumnDash's TemplateID2 nano).
+pub fn start_then(
+    caster: Id32,
+    playfield: Pf,
+    spell: u32,
+    dash: Dash,
+    pos: world::Position,
+    point: Option<[f32; 3]>,
+    facing: [f32; 2],
+    damage: impl Fn(f32) -> u32 + Send + 'static,
+    arrive: impl FnOnce([f32; 3]) + Send + 'static,
+) {
     let start = *pos.lock().unwrap();
     // direction and length: towards the point, whole metres, at most the spell's distance (as
     // in the recorded casts); with no point the full distance along the facing
@@ -125,6 +142,7 @@ pub fn start(
         if let (Some(m), Some(r)) = (dash.arrival_mod, dash.arrival_radius) {
             crate::npc::hit_area_with(caster, playfield, end, r, spell, damage(m), |t| show_hit(caster, t, &dash.arrival_visuals));
         }
+        arrive(end);
     });
 }
 

@@ -30,8 +30,11 @@
 //!
 //! What a spell's server Lua (LuaScriptID, RDB 1010223) did is in its content skill's `effects`
 //! (the script named in its `comment`), run with its OnUse (`lua`): heals (Healing Song,
-//! Carpenter's Craft, Circle of Hearts; their area formulas pick allies: `friendly`), and the
-//! pets whose owner casts their damage (`pet_attack`).
+//! Carpenter's Craft, Circle of Hearts; their area formulas pick allies: `friendly`), attacks
+//! whose script casts other spells (Shooting Stars, Mythic Song, the distance dashes of the Evil
+//! Dwarf, Skater Girl and Wrestling Champion, with the recast times they set: `RECHARGE`), and
+//! the pets whose owner casts their damage (`pet_attack`). A ColumnDash's TemplateID2 nano is
+//! cast where it ends (the dashes' landing areas).
 
 use crate::instance::Pf;
 use std::{
@@ -203,15 +206,17 @@ static ITEMS: LazyLock<HashMap<u32, Item>> =
     LazyLock::new(|| crate::skills::projectile_items().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("projectile item"))).collect());
 
 /// Whether `spell` is a minifigure ability (or combo step) whose actions this module runs on a
-/// plain press (`cast`): it has server-side PreUse or OnUse actions.
+/// plain press (`cast`): it has server-side PreUse or OnUse actions, or Lua `effects` (the
+/// attacks done in Lua: Shooting Stars, Mythic Song, the distance dashes).
 /// Only those whose actions reach a WeaponHit (the others' damage came from actions the server
 /// doesn't run, so they keep the plain hit in game.rs), a shortcut override (mode switches
 /// like Mount Up!, which don't hit) or a nano with Lua `effects` (heals).
 pub fn is_ability(spell: u32) -> bool {
     SPELLS.get(&spell).is_some_and(|s| {
         s.minifigure.is_some()
-            && [PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(Action::on_server)))
-            && reaches(spell, &["WeaponHit", "OverrideShortcut", LUA], &mut Vec::new())
+            && (!s.effects.is_empty()
+                || ([PRE_USE, ON_USE].iter().any(|l| s.lists.get(*l).is_some_and(|l| l.iter().any(Action::on_server)))
+                    && reaches(spell, &["WeaponHit", "OverrideShortcut", LUA], &mut Vec::new())))
     })
 }
 
@@ -424,6 +429,7 @@ pub fn is_channel(spell: u32) -> bool {
 }
 
 /// Who casts, and at what.
+#[derive(Clone)]
 pub struct Caster {
     pub id: Id32,
     pub playfield: Pf,
@@ -606,6 +612,32 @@ pub fn minifigure_changed(player: Id32) {
 /// Forgets `player`'s ability buffs (it left).
 pub fn forget_caster_buffs(player: Id32) {
     CASTER_BUFFS.lock().unwrap().remove(&player);
+    RECHARGE.lock().unwrap().retain(|(p, _), _| *p != player);
+}
+
+/// The recast times the abilities' Lua set (the distance dashes' cooldown spells, Air Time's
+/// `ModifyTemplateCooldown`), by (player, ability): until then the server refuses the ability
+/// (game.rs). The client isn't told (no known record sets a recast time; its own spell has none).
+static RECHARGE: LazyLock<Mutex<HashMap<(Id32, u32), Instant>>> = LazyLock::new(Default::default);
+
+/// Whether `player`'s ability `spell` is still recharging (`RECHARGE`).
+pub fn recharging(player: Id32, spell: u32) -> bool {
+    RECHARGE.lock().unwrap().get(&(player, spell)).is_some_and(|t| *t > Instant::now())
+}
+
+/// Sets `player`'s recast time of `spell` to `d` from now.
+fn set_recharge(player: Id32, spell: u32, d: Duration) {
+    debug!(?player, spell, ?d, "recharge");
+    RECHARGE.lock().unwrap().insert((player, spell), Instant::now() + d);
+}
+
+/// Changes the time left of `player`'s recharging `spell` by `secs` (negative: shorter).
+fn add_recharge(player: Id32, spell: u32, secs: f32) {
+    if let Some(t) = RECHARGE.lock().unwrap().get_mut(&(player, spell)) {
+        let d = Duration::from_secs_f32(secs.abs());
+        *t = if secs < 0.0 { t.checked_sub(d).unwrap_or(*t) } else { *t + d };
+        debug!(?player, spell, secs, left = ?t.saturating_duration_since(Instant::now()), "recharge changed");
+    }
 }
 
 /// Whether `caster` is channelling an ability.
@@ -796,11 +828,74 @@ fn run_list(run: &Arc<Run>, spell: u32, event: &str, target: Target, depth: u32)
     })
 }
 
-/// Spell `spell`'s Lua `effects` (content skills `effects`) on `target`.
+/// Spell `spell`'s Lua `effects` (content skills `effects`) on `target`. The spells a script
+/// casts are cast by the server (`server_run`).
 fn lua(run: &Arc<Run>, spell: u32, effects: &[lmoxide_content::Action], target: Target, depth: u32) {
     use lmoxide_content::{Action as Do, Target as Whom};
+    let caster = run.caster.id;
+    let me = Target { id: Some(caster), pos: here(run) };
+    let u = |args: &std::collections::BTreeMap<String, serde_json::Value>, k: &str| args.get(k).and_then(|v| v.as_u64()).map(|v| v as u32);
+    let list = |args: &std::collections::BTreeMap<String, serde_json::Value>, k: &str| -> Vec<u32> {
+        args.get(k).and_then(|v| v.as_array()).into_iter().flatten().filter_map(|v| v.as_u64()).map(|v| v as u32).collect()
+    };
     for e in effects {
         match e {
+            Do::Command { name, args } if name == "ability.ground_cast" => {
+                // Shooting Stars (462): `CastSpellOnGround` at the ground target, else where the
+                // target stands; the empowered spell while a buff of its line is on the caster
+                let empowered = list(args, "buffs").into_iter().any(|b| effects::is_shown(caster, b));
+                let Some(cast) = u(args, if empowered { "spell_with_buff" } else { "spell" }) else { continue };
+                let at = Target { id: None, pos: run.caster.ground.unwrap_or(target.pos) };
+                info!(?caster, spell, cast, empowered, ?at, "lua: ground cast");
+                cast_nano_shown(&server_run(run), cast, at, depth + 1, false);
+            }
+            Do::Command { name, args } if name == "ability.remove_last_buff" => {
+                // the empowered Shooting Stars (202): the newest of the caster's pixies goes
+                if let Some(buff) = list(args, "buffs").into_iter().rev().find(|b| effects::is_shown(caster, *b)) {
+                    remove_buff(run, caster, buff);
+                }
+            }
+            Do::Command { name, args } if name == "ability.alternate" => {
+                // Mythic Song (4621): without the marker buff the first shot and the marker,
+                // with it the second. The shots are cast on the caster: they fly the way she
+                // faces, at her target (`target`)
+                let (Some(marker), Some(first), Some(second)) = (u(args, "marker"), u(args, "first"), u(args, "second")) else { continue };
+                let child = server_run(run);
+                let marked = effects::is_shown(caster, marker);
+                info!(?caster, spell, shot = if marked { second } else { first }, "lua: alternate");
+                if marked {
+                    cast_nano_shown(&child, second, target, depth + 1, false);
+                } else {
+                    cast_nano_shown(&child, first, target, depth + 1, false);
+                    cast_nano(&child, marker, me, depth + 1);
+                }
+            }
+            Do::Command { name, args } if name == "ability.dash_by_distance" => {
+                // Skyward Smash, Air Time, Elbow Press Drop (3821, 3822, 4622): the cooldown, then
+                // the dash for the whole metres to the ground target or the target (≤ 1 ... ≥ 10)
+                let to = run.caster.ground.unwrap_or(target.pos);
+                let metres = (to[0] - me.pos[0]).hypot(to[2] - me.pos[2]);
+                let Some(dash) = dash_for(&list(args, "dashes"), metres) else { continue };
+                if let Some((ability, d)) = u(args, "cooldown_spell").and_then(recast_time) {
+                    set_recharge(caster, ability, d);
+                }
+                if let Some(d) = args.get("cooldown").and_then(|v| serde_json::from_value::<lmoxide_content::units::Duration>(v.clone()).ok()) {
+                    set_recharge(caster, run.spell, d.to_std());
+                }
+                // the dash spells are cast on the caster and go the way she faces: at the target
+                if let Some(dir) = direction(me.pos, to) {
+                    *run.caster.facing.lock().unwrap() = dir;
+                    world::set_facing(caster, dir);
+                }
+                info!(?caster, spell, metres, dash, "lua: dash by distance");
+                cast_nano(&server_run(run), dash, me, depth + 1);
+            }
+            Do::Command { name, args } if name == "ability.cooldown" => {
+                // Air Time's landing hits (3823: `ModifyTemplateCooldown(595462, false, -1, 0, 2)`)
+                if let (Some(ability), Some(secs)) = (u(args, "spell"), args.get("add").and_then(|v| v.as_f64())) {
+                    add_recharge(caster, ability, secs as f32);
+                }
+            }
             Do::Heal { amount, target: whom } => {
                 // `setstat(27, health + life × share)` (scripts 4582, 3242, 802): on whom the
                 // nano is cast (each ally an area formula picked; the caster for Circle of Hearts)
@@ -817,6 +912,52 @@ fn lua(run: &Arc<Run>, spell: u32, effects: &[lmoxide_content::Action], target: 
             other => debug!(spell, ?other, depth, "lua effect not run"),
         }
     }
+}
+
+/// A run for the spells a script casts for `run`'s caster (`Run::server_cast`): the same caster
+/// and ability (damage), its client not knowing them.
+fn server_run(run: &Arc<Run>) -> Arc<Run> {
+    Arc::new(Run {
+        caster: run.caster.clone(),
+        spell: run.spell,
+        started: Instant::now(),
+        length: Duration::ZERO,
+        released: AtomicBool::new(true),
+        aborted: AtomicBool::new(false),
+        counted: Mutex::new(Vec::new()),
+        mitigation_buffs: Mutex::new(Vec::new()),
+        ends_when_hit: false,
+        aim: Mutex::new(None),
+        end_record: Bytes::new(),
+        shot_from: Mutex::new(None),
+        target: Mutex::new(*run.target.lock().unwrap()),
+        locked: Mutex::new(*run.locked.lock().unwrap()),
+        server_cast: true,
+    })
+}
+
+/// The distance dash for `metres` to the target: the Lua's whole metres (`math.modf`), the
+/// first dash up to 1 m, the last from 10 m (the dashes' Distance 1 ... 10).
+fn dash_for(dashes: &[u32], metres: f32) -> Option<u32> {
+    let whole = metres.max(0.0).trunc() as usize;
+    dashes.get(whole.clamp(1, dashes.len().max(1)) - 1).copied()
+}
+
+/// A cooldown spell's recast time (its SetSpellRecastTime: the ability it names and for how long).
+fn recast_time(cooldown: u32) -> Option<(u32, Duration)> {
+    SPELLS.get(&cooldown)?.lists.values().flatten().filter(|a| a.kind == "SetSpellRecastTime").find_map(|a| Some((a.u("NanoTemplate")?, Duration::from_millis(10 * u64::from(a.u("Value")?)))))
+}
+
+/// Removes buff `buff` from `id`.
+fn remove_buff(run: &Run, id: Id32, buff: u32) {
+    let caster = run.caster.id;
+    clear_counter(id, buff);
+    effects::forget_buff(id, buff);
+    if id == caster {
+        crate::npc::set_buff_mitigation(caster, buff, None);
+    }
+    shortcuts::clear(id, buff);
+    show(run, vec![effects::buff_remove(id, buff, caster)]);
 }
 
 /// Heals player `id` (a minifigure not smashed) by `share` of its maximum health, as the Lua's
@@ -934,13 +1075,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
         "RemoveBuff" => {
             // (a smashable takes no buffs: see cast_nano_shown)
             if let (Some(buff), Some(id)) = (a.u("TemplateID"), who.id.filter(|id| !crate::npc::is_smashable(*id))) {
-                clear_counter(id, buff);
-                effects::forget_buff(id, buff);
-                if id == caster {
-                    crate::npc::set_buff_mitigation(caster, buff, None);
-                }
-                shortcuts::clear(id, buff);
-                show(run, vec![effects::buff_remove(id, buff, caster)]);
+                remove_buff(run, id, buff);
             }
         }
         "AddDiminishingReturn" => {
@@ -1047,9 +1182,16 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             }
         }
         "ColumnDash" => {
+            // along the facing; where it ends, its TemplateID2 nano (the distance dashes' landing
+            // area: Skyward Smash 595418, Air Time 595494, Elbow Press Drop 667141)
             let dash = crate::dash::Dash::column(a.f("Distance").unwrap_or(5.0), a.u("Value1").unwrap_or(0));
             let facing = *run.caster.facing.lock().unwrap();
-            crate::dash::start(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0);
+            let (landing, run) = (a.u("TemplateID2"), run.clone());
+            crate::dash::start_then(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0, move |at| {
+                if let Some(nano) = landing {
+                    cast_nano(&run, nano, Target { id: Some(run.caster.id), pos: at }, depth + 1);
+                }
+            });
         }
         "Projectile" => shoot(run, spell, a, who, depth),
         "SpawnMonster" => {
@@ -1656,6 +1798,63 @@ mod tests {
         for id in [caster, ally] {
             crate::npc::player_left(id);
         }
+    }
+
+    /// The attacks done in Lua run here: Shooting Stars (462), Mythic Song (4621) and the
+    /// distance dashes (3821, 3822 + 3823, 4622) with their cooldowns and landing areas.
+    #[test]
+    fn lua_attacks() {
+        for spell in [16_195, 663_944, 595_406, 595_462, 663_965] {
+            assert!(is_ability(spell), "{spell}");
+        }
+        // the dash for the whole metres to the target
+        let skater = [595_489, 595_490, 595_491, 595_492, 595_493, 595_487, 595_486, 595_484, 595_483, 595_488];
+        for (metres, want) in [(0.0, 595_489), (1.9, 595_489), (2.0, 595_490), (5.5, 595_493), (9.99, 595_483), (10.0, 595_488), (25.0, 595_488)] {
+            assert_eq!(dash_for(&skater, metres), Some(want), "{metres} m");
+        }
+        // every dash goes its whole metres and lands with its area (Skyward Smash from 4 m on
+        // the Wrestling Champion's, as its script names them)
+        let effects = |spell: u32| SPELLS[&spell].effects.iter().find_map(|e| match e {
+            lmoxide_content::Action::Command { args, .. } => args.get("dashes").cloned(),
+            _ => None,
+        });
+        for (ability, landing) in [(595_406, [595_418, 667_141]), (595_462, [595_494, 595_494]), (663_965, [667_141, 667_141])] {
+            let dashes: Vec<u32> = serde_json::from_value(effects(ability).unwrap()).unwrap();
+            for (i, dash) in dashes.iter().enumerate() {
+                let a = SPELLS[dash].lists[ON_USE].iter().find(|a| a.kind == "ColumnDash").unwrap();
+                assert_eq!(a.f("Distance"), Some(i as f32 + 1.0), "{dash}");
+                assert_eq!(a.u("TemplateID2"), Some(landing[usize::from(i >= 3)]), "{dash}");
+                assert!(SPELLS.contains_key(&a.u("TemplateID2").unwrap()));
+            }
+        }
+        // the cooldown spells: 7.5 s on Skyward Smash and Elbow Press Drop
+        assert_eq!(recast_time(595_442), Some((595_406, Duration::from_millis(7500))));
+        assert_eq!(recast_time(668_775), Some((663_965, Duration::from_millis(7500))));
+        // Air Time: 6.5 s, 1 s less for each enemy its landing hits (595567, script 3823)
+        let p = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_781);
+        set_recharge(p, 595_462, Duration::from_secs_f32(6.5));
+        add_recharge(p, 595_462, -1.0);
+        let left = RECHARGE.lock().unwrap()[&(p, 595_462)].saturating_duration_since(Instant::now());
+        assert!(recharging(p, 595_462) && left > Duration::from_secs(5) && left <= Duration::from_millis(5500), "{left:?}");
+        forget_caster_buffs(p);
+        assert!(!recharging(p, 595_462));
+        // the shots' items hit with the minifigures' damage nanos
+        for (item, nano) in [(50_717, 16_210), (50_728, 16_211), (667_240, 667_226), (668_570, 667_226)] {
+            assert!(ITEMS[&item].actions.iter().any(|a| a.kind == "CastNano" && a.u("Value") == Some(nano)), "{item}");
+            assert!(SPELLS[&nano].lists[ON_USE].iter().any(|a| a.kind == "WeaponHit"), "{nano}");
+        }
+    }
+
+    /// Mythic Song's shots alternate: the first shot leaves the 0.6 s marker, the next sees it.
+    #[tokio::test]
+    async fn mythic_song_alternates() {
+        let caster = Id32::new(crate::territory::CHARACTER_TYPE, 1_000_000_782);
+        let run = test_run(caster);
+        assert!(!effects::is_shown(caster, 668_568));
+        run_list(&run, 663_944, ON_USE, Target { id: None, pos: [0.0, 0.0, 10.0] }, 0);
+        assert!(effects::is_shown(caster, 668_568), "the first shot puts the marker on");
+        tokio::time::sleep(Duration::from_millis(700)).await;
+        assert!(!effects::is_shown(caster, 668_568), "the marker lasts 0.6 s");
     }
 
     fn test_run(caster: Id32) -> Arc<Run> {

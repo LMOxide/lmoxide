@@ -534,6 +534,28 @@
           "count": 4
         }
       ]
+    },
+    {
+      "label": "luaattacks",
+      "about": "Fairy, Faun, Evil Dwarf and Skater Girl with 6 Pirate Corsairs (Wrestling Champion: !test luaattacks2): the attacks done in server Lua: Shooting Stars (a star at the target), Mythic Song (two shots that alternate), Skyward Smash and Air Time (dash the whole metres to the clicked enemy, up to 10, and hit around where they land; 7.5 s / 6.5 s recast, Air Time 1 s less per enemy hit; logs \"lua: ground cast\", \"lua: alternate\", \"lua: dash by distance\")",
+      "team": ["Fairy", "Faun", "Evil Dwarf", "Skater Girl"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "luaattacks2",
+      "about": "Wrestling Champion with 6 Pirate Corsairs: Elbow Press Drop dashes the whole metres to the clicked enemy (up to 10) and lands with a 3 m hit that knocks enemies up; 7.5 s recast (log \"lua: dash by distance\")",
+      "team": ["Wrestling Champion"],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
     }
   ]
 }

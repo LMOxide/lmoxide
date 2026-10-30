@@ -869,6 +869,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         world::send_playfield(h.identity, false, world::Out::Records(vec![effect.clone()]));
                                         extra.push(effect);
                                     }
+                                } else if spell.is_some_and(|s| crate::actions::recharging(h.identity, s)) {
+                                    // a recast time its Lua set (the distance dashes): refused
+                                    // until it is over
+                                    refused = true;
                                 } else if let Some(spell) = spell {
                                     crate::procs::cast(h.identity, spell);
                                     let damage = me
