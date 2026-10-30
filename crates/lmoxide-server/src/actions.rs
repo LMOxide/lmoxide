@@ -969,13 +969,19 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32) {
 /// `cast_nano`; `own_effect`: send a non-buff nano's EffectPackage on the target (not for an
 /// area formula's nano: the formula record shows it).
 fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: bool) {
+    cast_nano_on(run, nano, target, depth, own_effect, false)
+}
+
+/// `cast_nano_shown`; `at_hit`: cast by a projectile where it hit, so a self-cast nano is
+/// centred there (the Sad Clown's cloud burst 222207, TargetingMode 8), not on the caster.
+fn cast_nano_on(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: bool, at_hit: bool) {
     if depth > MAX_DEPTH {
         return;
     }
     let Some(n) = SPELLS.get(&nano) else { return };
     let caster = run.caster.id;
     // a self-cast nano (TargetingMode 8: the Lifeguard's whirlpool buff) goes on the caster
-    let target = if n.stats.targeting_mode == Some(TARGETING_SELF) && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
+    let target = if !at_hit && n.stats.targeting_mode == Some(TARGETING_SELF) && target.id.is_some() { Target { id: Some(caster), pos: here(run) } } else { target };
     let on_caster = target.id == Some(caster);
     // (a shortcut override is what a buff does, not a hit)
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.on_server() && a.kind != "OverrideShortcut"));
@@ -1199,7 +1205,10 @@ fn face_shot(run: &Run, at: [f32; 3], dir: [f32; 2]) {
 fn impact(run: &Arc<Run>, spell: u32, item: u32, target: Target, depth: u32) {
     let Some(i) = ITEMS.get(&item) else { return };
     for a in i.actions.iter().filter(|a| a.on_server() && criteria_met(run, a, target)) {
-        act(run, spell, a, target, depth + 1);
+        match (a.kind.as_str(), a.u("Value")) {
+            ("CastNano", Some(nano)) if !a.on_caster() => cast_nano_on(run, nano, target, depth + 2, true, true),
+            _ => act(run, spell, a, target, depth + 1),
+        }
     }
 }
 
