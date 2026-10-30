@@ -551,7 +551,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             let here = *pos.lock().unwrap();
                             let (id, snapshot, pos_handle) = (h.identity, me.clone(), pos.clone());
                             let pos = pos.clone();
-                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), speed: crate::speed::of(id.instance), ..snapshot.clone() }.spec(place));
+                            let spawn = move || remote_spawn_records(id, &Character { pos: *pos.lock().unwrap(), speed: crate::speed::of(id.instance), ..snapshot.clone() }.remote_spec(place));
                             presence = Some(world::join(id, place, pos_handle, spawn, outbox.clone()));
                             // (after the others' spawn records join queued: the client forgot the last
                             // playfield's NPCs)
@@ -3064,7 +3064,7 @@ pub async fn run_bot(playfield: Pf) {
     let pos = Arc::new(Mutex::new(START_POS));
     let spawn_pos = pos.clone();
     let bot = Character { name: "Bot".into(), ..new_character(String::new(), crate::instance::mode_of(playfield), playfield.model()) };
-    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.spec(playfield));
+    let spawn = move || remote_spawn_records(id, &Character { pos: *spawn_pos.lock().unwrap(), ..bot.clone() }.remote_spec(playfield));
 
     let _presence = world::join(id, playfield, pos.clone(), spawn, outbox);
     set_costume(id, monster_data_for(START_TEAM[0].1));
@@ -3418,6 +3418,18 @@ pub trait CharacterExt {
     /// What the minifigure's item carries (upgrades, rank, life, achievement counters).
     fn item_state(&self, template: u32) -> crate::collection::ItemState;
     fn spec(&self, place: Pf) -> CharSpec<'_>;
+    /// The character as other players' clients see it: the name above it is only the nick.
+    fn remote_spec(&self, place: Pf) -> CharSpec<'_>;
+}
+
+/// The name other players see above a character: the nick, the middle of a created character's
+/// "first nick last" (the player's own client gets the full name, as live sent it, and the nick
+/// by `SetNameIIR_t`); other names whole.
+pub fn overhead_name(name: &str) -> &str {
+    match name.split(' ').collect::<Vec<_>>()[..] {
+        [_, nick, _] if !nick.is_empty() => nick,
+        _ => name,
+    }
 }
 
 impl CharacterExt for Character {
@@ -3475,6 +3487,10 @@ impl CharacterExt for Character {
             npc: None,
             speeds: crate::speed::speeds(self.speed),
         }
+    }
+
+    fn remote_spec(&self, place: Pf) -> CharSpec<'_> {
+        CharSpec { name: overhead_name(&self.name), ..self.spec(place) }
     }
 }
 
@@ -3591,6 +3607,13 @@ pub fn create_game_object(id: Id32, playfield: Pf, pos: [f32; 3]) -> bytes::Byte
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn others_see_the_nick() {
+        let me = Character { name: "Fantastic Sparky Burrito".into(), ..new_character("t".into(), crate::instance::Mode::Maxed, 1200) };
+        assert_eq!((me.spec(Pf::main(1200)).name, me.remote_spec(Pf::main(1200)).name), ("Fantastic Sparky Burrito", "Sparky"));
+        assert_eq!([overhead_name("alice"), overhead_name("Two Words"), overhead_name("A B C D")], ["alice", "Two Words", "A B C D"]);
+    }
 
     #[test]
     fn active_minifigure_moves_to_first_position() {
