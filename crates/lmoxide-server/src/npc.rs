@@ -2308,6 +2308,15 @@ pub fn set_cast_command(id: Id32, spell: u32, target: Id32, command: u32) {
     }
 }
 
+/// Ends enemy `id`'s command for `spell`, if it is its action under way: the clients get the
+/// command's finish and abort (`observed_end`).
+pub fn end_cast_command(id: Id32, spell: u32) -> Vec<bytes::Bytes> {
+    let mut npcs = NPCS.lock().unwrap();
+    let Some(n) = npcs.get_mut(&id).filter(|n| n.cast_command.is_some_and(|(s, ..)| s == spell)) else { return Vec::new() };
+    let Some((spell, target, command)) = n.cast_command.take() else { return Vec::new() };
+    observed_end(id, target, spell, command)
+}
+
 /// Enemy `id` charges `distance` m along `dir` at `speed` m/s (an enemy ColumnDash: the
 /// Minotaur's Bull Charge): the clients run it there along a dash path (dash.rs, as players'
 /// dashes: at its charge speed stat 1400), ending with a stop at the end. Returns the time it

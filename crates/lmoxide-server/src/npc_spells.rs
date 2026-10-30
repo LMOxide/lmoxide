@@ -692,6 +692,10 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                         if let Some(fx) = fx {
                             records.push(effects::stop_effect_package(run.caster, fx, 0, instance));
                         }
+                        // and the cast's command ends: left running, it held him in the spell's
+                        // "ability" pose (141523, no_interrupt) as he walked on (user: his
+                        // animation froze after the charge, also with the effect stopped)
+                        records.extend(crate::npc::end_cast_command(run.caster, run.spell));
                         show(&run, records);
                     });
                 }
