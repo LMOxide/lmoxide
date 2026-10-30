@@ -361,6 +361,25 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     }
     let cfg = Arc::new(cfg);
 
+    // the world content first: copies made before it is read (a client reconnecting at once
+    // through keep-listening's sockets) would stay empty
+    npc::start();
+    buildie::start();
+    jumppad::start();
+    scenery::start();
+    teleport::start();
+    lost_creations::start();
+    mirrors::start();
+    keygate::start();
+    gates::start();
+    plates::start();
+    pistons::start();
+    tiki::start();
+    ballista::start();
+    // arenas close doors and spawn adds (not in the world editor's copies)
+    encounter::start();
+    worlds::start();
+
     let control_token = match (&cfg.control_token, &cfg.control_token_file) {
         (Some(t), _) => Some(t.trim().to_string()),
         (None, Some(f)) => Some(std::fs::read_to_string(f)?.trim().to_string()),
@@ -392,22 +411,6 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     let territory = tokio::spawn(conn::listen("territory", cfg.addr(cfg.territory_port), cfg.clone(), territory::handle));
     let game = tokio::spawn(conn::listen("game", cfg.addr(cfg.game_port), cfg.clone(), game::handle));
     let chat = tokio::spawn(chat::listen(cfg.addr(cfg.chat_port), cfg.max_connections_per_ip, cfg.proxy_protocol_from.clone()));
-    npc::start();
-    buildie::start();
-    jumppad::start();
-    scenery::start();
-    teleport::start();
-    lost_creations::start();
-    mirrors::start();
-    keygate::start();
-    gates::start();
-    plates::start();
-    pistons::start();
-    tiki::start();
-    ballista::start();
-    // arenas close doors and spawn adds (not in the world editor's copies)
-    encounter::start();
-    worlds::start();
     if cfg.bot {
         chat::BOT_ECHO.store(true, std::sync::atomic::Ordering::Relaxed);
         tokio::spawn(game::run_bot(crate::instance::Pf::main(cfg.start_playfield))
