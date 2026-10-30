@@ -101,7 +101,8 @@ GENERIC = [
     (r"skeleton_ancient_attacker", [319786]),  # XX_Strike
     (r"pirate_swashbuckler", [194140]),  # XX_Slash
     (r"pirate_grenadier", [238116, 238115]),  # XX_Grenade Throw, XX_Slash
-    (r"pirate_islander_hunter", [194218, 194198]),  # XX_Dart, XX_Stab
+    # the live capture's Hunters (201477) cast only XX_Bolas and XX_Stab; XX_Dart was the Scouts'
+    (r"pirate_islander_hunter", [194199, 194198]),  # XX_Bolas, XX_Stab
     # his tiki totem is tunables enemy_abilities.totems; the lobbed XX_Magic Potion 95237 guessed
     # before looked like a snowball; he had a knife attack, used more often (the user, 2026-10-30)
     (r"pirate_islander_witch_doctor", [194198]),  # XX_Stab
