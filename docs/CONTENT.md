@@ -168,7 +168,7 @@ uses new ids.
 | `puzzle` | `puzzles.json` | Medusa mirrors and light gates (mirrors.rs, gates.rs) |
 | `script` | `scripts/<slug>.json` | `area`, `start` (trigger, on_world_load), `params`, `variants`, `waves`, `on_complete` |
 | `region` | `regions/` | worlds that share minifigure drops ("Pirate World") |
-| `npc` | `npcs/` | `kind` (enemy, npc, boss, champion, summon, trigger), `render`, `level`, `stats`, `attack`, `skills`, `ai`, `loot`, `counts_as`, `dialogue`, `on_defeat`, `lifetime` (summons and spawned monsters), `spawn_hash` (the original server's template a SpawnMonster action names by StringHash: what it spawns) |
+| `npc` | `npcs/` | `kind` (enemy, npc, boss, champion, summon, trigger), `render`, `level`, `stats`, `attack`, `skills`, `ai`, `movement` (a client movement set from tunables `npc.movement_sets`, with the speeds changed for it; none: `npc.movement_default` by kind; tools/content/movement_sets.py), `loot`, `counts_as`, `dialogue`, `on_defeat`, `lifetime` (summons and spawned monsters), `spawn_hash` (the original server's template a SpawnMonster action names by StringHash: what it spawns) |
 | `object` | `objects/` | `kind` (smashable, buildie, bouncer, door, interactable, scenery), `render`, `level`, `health`, `loot`, `build`, `launch`, `states`, `on_use`, `on_built`, `on_smashed` |
 | `skill` | `skills/` | `client` (the client spell: id, stats, game action lists), `projectile`, `dash`, `summon`, `range`, `area`, `effects`, `target`, `cooldown`, `cast_time`, `ai_category` |
 | `buff` | `buffs/` | `nano` (the client buff that shows it), `amount`, `duration`, `ends_on`, `stacking`, `max_stacks`, `effects` |

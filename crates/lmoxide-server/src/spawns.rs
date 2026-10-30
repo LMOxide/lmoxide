@@ -82,6 +82,7 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         cinematic: false,
         count: s.count.max(1),
         spread: None,
+        speeds: serde_json::from_value(t["movement"].clone()).ok().and_then(|m| crate::npc::movement_speeds(&m)),
     })
 }
 
@@ -280,6 +281,45 @@ mod tests {
         assert!(owners.values().flatten().all(|d| d.cinematic && d.kind == Kind::Npc && d.monster_data == INVISIBLE_LOOK && d.cars_group == Some(5)));
         // (not in the table the world editor and the tutorial read)
         assert!(table().values().flatten().all(|d| !d.cinematic && d.name != "Cinematic Start Oops"));
+    }
+
+    #[test]
+    fn speeds_match_the_live_capture() {
+        // every NPC record of the live capture (walk, run, sprint, walk backwards, charge) against
+        // what the server gives the spawns of its NPC template
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/live-capture/lmo-captures/playfield-objects.json");
+        let live: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let stats = ["movement_walk_speed", "movement_run_speed", "movement_sprint_speed", "movement_walk_backwards_speed", "movement_charge_speed"];
+        let mut ours: HashMap<u32, Vec<f32>> = HashMap::new();
+        for d in table().into_values().chain(cinematic_owners().into_values()).flatten() {
+            let speeds = crate::npc::speeds(&d);
+            let v = [1396, 1397, 1398, 1399, 1400].map(|s| speeds.iter().find(|x| x.0 == s).unwrap().1).to_vec();
+            if let Some(t) = d.npc_template {
+                assert_eq!(ours.entry(t).or_insert_with(|| v.clone()), &v, "{} (template {t}): spawns differ", d.name);
+            }
+        }
+        let (mut checked, mut wrong) = (0, Vec::new());
+        for o in live["objects"].as_array().unwrap() {
+            let core = &o["core"];
+            let (Some(t), false) = (core["npc_stats"]["template_id"].as_u64(), core["firstname"].is_string()) else { continue };
+            let Some(v) = ours.get(&(t as u32)) else { continue };
+            let want: Vec<f32> = stats.iter().map(|s| core["stats"][*s].as_f64().unwrap() as f32).collect();
+            checked += 1;
+            if want.iter().zip(v).any(|(a, b)| (a - b).abs() > 0.001) {
+                wrong.push((o["name"].clone(), t, want, v.clone()));
+            }
+        }
+        assert!(wrong.is_empty(), "{wrong:?}");
+        assert!(checked > 1000, "{checked} records checked");
+        // the looks' own sets where the capture saw no such template
+        let t = table();
+        let of = |name: &str| t.values().flatten().find(|d| d.name == name).map(|d| crate::npc::speeds(d)[1].1);
+        assert_eq!(of("Ogre"), Some(4.2));
+        assert_eq!(of("Minotaur"), Some(2.8));
+        // `!test speeds`
+        for (name, run) in [("Musketeer", 4.2), ("Skeleton Axeman", 1.4), ("Forest Treeman", 2.2), ("Medieval Ogre Defender Melee War", 4.2), ("Harpy Raider", 4.2), ("Corrupted Chicken Suit Guy", 4.2)] {
+            assert_eq!(of(name), Some(run), "{name}");
+        }
     }
 
     #[test]

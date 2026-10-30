@@ -221,7 +221,10 @@ IIR's blob 1 (nested objects created through the map at `0x1ef7a08`) is another 
   along navmesh waypoints, sent when the NPC's plan changes (a path in progress was re-sent
   with its current start); `StopIIR_c` (pos, rotation, u8 jump, u8 wait) when it stops;
   TrackMoveTask (8) to face the player it fights. NPCs' speed stats 1396–1402 came with their
-  SimpleCharFullUpdate (float stats).
+  SimpleCharFullUpdate (float stats): the values of one client movement set (RDB 1010205:
+  basewalkspeed, baserunspeed, basesprintspeed, basereversewalkspeed, chargespeed; turn speeds
+  1401/1402 always 50) per NPC template, the same on every record of a template in the live
+  capture (content npcs `movement`).
 - **Keyboard movement** needs stat CharRadius (421): the collision capsule radius is
   CharRadius × MonsterScale / 10000, and with 0 `Vehicle_t::CollideAndSlide` blocks every step.
   CommandQueueSize (1360) defaults to 1, which makes the queue "full".

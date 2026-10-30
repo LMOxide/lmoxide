@@ -517,6 +517,18 @@
       "label": "levelup",
       "about": "one level-up where you stand (progression; below the area's cap): full heal, knockaway, the level toast (effect 162167: particles, sound, camera shake) and the level script's tag (level 2: 393 LevelUp talking head \"You made it to Level 2\"; 6: 642 Level6Pusher); the server log says \"level scripts\"",
       "levels": 1
+    },
+    {
+      "label": "speeds",
+      "about": "enemies with different live movement sets around you (content npcs movement, tunables npc.movement_sets): Musketeer MonsterFast (run 4.2, dash 8.4), Skeleton Axeman MonsterSlow (1.4), Forest Treeman treant (2.2, dash 12), Medieval Ogre Defender Melee War ogre (4.2, from its look), Harpy Raider harpy (4.2, dash 12), Corrupted Chicken Suit Guy satyr (4.2, dash 13.4); pull them and watch who keeps up",
+      "spawn": [
+        { "name": "Musketeer", "count": 1 },
+        { "name": "Skeleton Axeman", "count": 1 },
+        { "name": "Forest Treeman", "count": 1 },
+        { "name": "Medieval Ogre Defender Melee War", "count": 1 },
+        { "name": "Harpy Raider", "count": 1 },
+        { "name": "Corrupted Chicken Suit Guy", "count": 1 }
+      ]
     }
   ]
 }

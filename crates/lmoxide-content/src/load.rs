@@ -426,6 +426,21 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             err(Severity::Error, Some(&dir.join("tunables.json")), None, format!("enemy_abilities refers to {r}, which isn't a skill"));
         }
     }
+    // movement sets: the NPCs' and the defaults' are in tunables `npc.movement_sets`
+    let sets = &content.tunables.npc.movement_sets;
+    let d = &content.tunables.npc.movement_default;
+    for set in [&d.enemy, &d.other] {
+        if !sets.is_empty() && !sets.contains_key(set) {
+            err(Severity::Error, Some(&dir.join("tunables.json")), None, format!("npc.movement_default names {set:?}, which isn't in npc.movement_sets"));
+        }
+    }
+    for (id, value) in resolved.iter().filter(|(id, _)| id.starts_with("npc/")) {
+        if let Some(set) = value["movement"]["set"].as_str()
+            && !sets.contains_key(set)
+        {
+            err(Severity::Error, Some(&merged[id].1), Some(id), format!("movement set {set:?} isn't in tunables npc.movement_sets"));
+        }
+    }
     // the kinds each reference may name (the schemas' x-lmoxide-ref); spawn overrides by
     // their template's schema
     let walker = crate::schema::Walker::new();

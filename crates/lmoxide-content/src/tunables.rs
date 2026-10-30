@@ -210,6 +210,38 @@ pub struct NpcTunables {
     /// other (as well as players). A world's `npc_fights.rivals` comes first there.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub factions: Vec<Faction>,
+    /// The client's movement sets by slug (npc `movement.set`).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub movement_sets: BTreeMap<String, MovementSet>,
+    #[serde(default)]
+    pub movement_default: MovementDefault,
+}
+
+/// The client's movement sets (RDB 1010205 `movementset`; monster data names them). The speed
+/// stats an NPC gets: 1396 MovementWalkSpeed = `walk` (basewalkspeed), 1397 MovementRunSpeed =
+/// `run`, 1398 MovementSprintSpeed = `sprint`, 1399 MovementWalkBackwardsSpeed =
+/// `walk_backwards` (basereversewalkspeed), 1400 MovementChargeSpeed = `charge` (dashes).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct MovementSet {
+    /// The client's id (RDB 1010205) and name.
+    pub id: u32,
+    pub name: String,
+    pub walk: f32,
+    pub run: f32,
+    pub sprint: f32,
+    pub walk_backwards: f32,
+    pub charge: f32,
+}
+
+/// The movement set of an NPC without its own `movement`, by kind.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct MovementDefault {
+    /// Enemies and friendly fighters.
+    pub enemy: String,
+    /// Friendly NPCs, pets and the rest.
+    pub other: String,
 }
 
 /// A side of enemies (`npc.factions`): its name and the looks (monster data) on it.

@@ -913,6 +913,25 @@ pub struct SkillUse {
     pub weight: u32,
 }
 
+/// How an NPC moves: one of the client's movement sets (tunables `npc.movement_sets`), with the
+/// speeds the original server changed for it (m/s; the live Queen's Guard ran at 4.5).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Movement {
+    /// A key of tunables `npc.movement_sets`.
+    pub set: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub walk: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sprint: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub walk_backwards: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub charge: Option<f32>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Ai {
@@ -996,6 +1015,9 @@ record! {
         pub skills_from: Option<String>,
         #[serde(default, skip_serializing_if = "crate::record::is_default")]
         pub ai: Ai,
+        /// Its movement speeds; none: tunables `npc.movement_default` by kind.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub movement: Option<Movement>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["loot"]))]
         pub loot: Option<Ref>,
