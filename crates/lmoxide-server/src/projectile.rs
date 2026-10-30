@@ -73,6 +73,10 @@ const BOUNCE_SAME_POINT: f32 = 1.0;
 /// client saw it (m): the client draws moving enemies a little off from where the server has
 /// them, and its shot hits what it draws.
 const CLIENT_HIT_SLACK: f32 = 3.0;
+/// How long a shot with ricochets left waits after a hit with nothing to chain to, for the
+/// caster's client to throw it on (`CoreProjectile::RicochetTarget` turns it a random 15-75°
+/// left or right then, and its later hits are reported against it).
+const REDIRECT_WAIT: Duration = Duration::from_secs(1);
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Params {
@@ -258,13 +262,15 @@ struct Flight {
     /// When this leg started; a bounce or a chain starts a new one (`turn`).
     launched: Instant,
     leg: u32,
+    /// Stopped at a hit until then, for the caster's client to throw it on (`hold`).
+    waiting: Option<Instant>,
 }
 
 impl Flight {
     fn new(start: [f32; 3], end: [f32; 3], speed: f32, range: f32, reach: f32, side: Side) -> Self {
         let d = [0, 1, 2].map(|i| end[i] - start[i]);
         let len = d.iter().map(|v| v * v).sum::<f32>().sqrt().max(0.001);
-        Flight { start, dir: d.map(|v| v / len), speed, range, reach, side, stop_at: None, launched: Instant::now(), leg: 0 }
+        Flight { start, dir: d.map(|v| v / len), speed, range, reach, side, stop_at: None, launched: Instant::now(), leg: 0, waiting: None }
     }
 
     /// A new leg from `start` along `dir` (a ricochet off a wall, or a chain to the next enemy):
@@ -274,7 +280,7 @@ impl Flight {
         if len < 1e-3 {
             return;
         }
-        *self = Flight { start, dir: dir.map(|v| v / len), stop_at: None, launched: Instant::now(), leg: self.leg + 1, ..*self };
+        *self = Flight { start, dir: dir.map(|v| v / len), stop_at: None, launched: Instant::now(), leg: self.leg + 1, waiting: None, ..*self };
     }
 
     /// The point `d` m along the flight.
@@ -345,6 +351,9 @@ struct Live {
     hit: HashSet<Id32>,
     /// Enemies it still flies on to after a hit (`strike`).
     chains: u32,
+    /// Turns the caster's client still gives it (a wall bounce, a chain or a random throw after
+    /// a hit: `CoreProjectile` +0x2ac).
+    ricochets: u32,
     /// Where it last bounced off a wall (the caster's client's ricochet, `report`).
     bounced_at: Option<[f32; 3]>,
 }
@@ -436,6 +445,7 @@ pub fn launch_orbit(caster: Id32, playfield: Pf, spell: u32, circle: &Circle, on
         orbit: Some(orbit),
         hit: HashSet::new(),
         chains: 0,
+        ricochets: 0,
         bounced_at: None,
     };
     LIVE.lock().unwrap().insert(id, live);
@@ -561,8 +571,8 @@ fn send(
     let records = vec![create_game_object(id, playfield, start), full_update(id, &p, caster, target, spell, start, end, playfield, max_distance)];
     let piercing = piercing || p.speed < PIERCING_BELOW_SPEED;
     let flight = (!ballistic).then(|| Flight::new(start, end, p.speed, range, width.unwrap_or(radius_of(p.item) + TARGET_RADIUS), Side::Npcs));
-    let chains = p.chains;
-    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, flight, orbit: None, hit: HashSet::new(), chains, bounced_at: None });
+    let (chains, ricochets) = (p.chains, p.ricochets);
+    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, flight, orbit: None, hit: HashSet::new(), chains, ricochets, bounced_at: None });
     info!(?caster, spell, item = p.item, ballistic, range, "projectile");
     world::send_playfield(caster, true, world::Out::Records(records));
     if !ballistic {
@@ -612,7 +622,7 @@ fn fly(id: Id32, playfield: Pf) {
                 }
             }
             done = done.max(to);
-            if done >= f.limit() {
+            if done >= f.limit() && !f.waiting.is_some_and(|t| Instant::now() < t) {
                 remove(id, END_GRACE);
                 return;
             }
@@ -648,32 +658,49 @@ fn strike(id: Id32, target: Id32, at: [f32; 3]) -> bool {
         }
         Effect::Run(f) => f(Some(target), at),
     }
-    if piercing || chain(id, at) {
+    if piercing || chain(id, at) || hold(id, at) {
         return true;
     }
     remove(id, HIT_GRACE);
     false
 }
 
-/// A shot with chains left (MaxChains: the Hunting Axe) flies on from `at` to the nearest
-/// enemy it hasn't hit within its range, as the client's `CoreProjectile::RicochetTarget` does.
-/// Returns whether it did.
+/// A player's shot with ricochets left that found nothing to chain to stops at `at` for a
+/// while: the caster's client throws it on in a random direction (`report` turns the flight
+/// then) and what it hits after counts. Returns whether it does.
+fn hold(id: Id32, at: [f32; 3]) -> bool {
+    let mut live = LIVE.lock().unwrap();
+    let Some(l) = live.get_mut(&id).filter(|l| l.ricochets > 0) else { return false };
+    let Some(f) = l.flight.as_mut().filter(|f| f.side == Side::Npcs) else { return false };
+    let d = (0..3).map(|i| (at[i] - f.start[i]).powi(2)).sum::<f32>().sqrt();
+    f.stop_at = Some(d.min(f.stop_at.unwrap_or(f32::MAX)));
+    f.waiting = Some(Instant::now() + REDIRECT_WAIT);
+    debug!(?id, "projectile waits for its ricochet");
+    true
+}
+
+/// A shot with chains left (MaxChains: the Hunting Axe) flies on from `at` to an enemy or
+/// smashable it hasn't hit within its range of the caster, as the client's
+/// `CoreProjectile::RicochetTarget` does (the first such in its vicinity list; here the one
+/// nearest `at`, and the client's own pick turns the flight when it reports it). Returns
+/// whether it did.
 fn chain(id: Id32, at: [f32; 3]) -> bool {
-    let Some((caster, hit, f)) = LIVE.lock().unwrap().get(&id).filter(|l| l.chains > 0).and_then(|l| Some((l.caster, l.hit.clone(), l.flight?))) else {
+    let Some((caster, hit, f)) = LIVE.lock().unwrap().get(&id).filter(|l| l.chains > 0 && l.ricochets > 0).and_then(|l| Some((l.caster, l.hit.clone(), l.flight?))) else {
         return false;
     };
-    let Some(playfield) = world::whereabouts(caster).map(|(pf, _)| pf) else { return false };
+    let Some((playfield, from)) = world::whereabouts(caster) else { return false };
     let next = candidates(f.side, playfield)
         .into_iter()
-        .filter(|(t, _)| *t != caster && !hit.contains(t) && crate::npc::is_enemy(*t))
+        .filter(|(t, _)| *t != caster && !hit.contains(t) && (crate::npc::is_enemy(*t) || crate::npc::is_smashable(*t)))
+        .filter(|(_, p)| horizontal(from, *p) <= f.range)
         .map(|(t, p)| (horizontal(at, p), t, p))
-        .filter(|(d, _, _)| *d <= f.range)
         .min_by(|x, y| x.0.total_cmp(&y.0));
     let Some((_, target, p)) = next else { return false };
     let mut live = LIVE.lock().unwrap();
     let Some(l) = live.get_mut(&id) else { return false };
     let Some(f) = l.flight.as_mut() else { return false };
     l.chains -= 1;
+    l.ricochets -= 1;
     let start = [at[0], f.at(0.0)[1], at[2]];
     f.turn(start, [p[0] - at[0], 0.0, p[2] - at[2]]);
     debug!(?id, ?target, left = l.chains, "projectile chains");
@@ -763,6 +790,7 @@ pub fn launch_at_players(
         orbit: None,
         hit: HashSet::new(),
         chains: 0,
+        ricochets: 0,
         bounced_at: None,
     };
     LIVE.lock().unwrap().insert(id, live);
@@ -933,7 +961,7 @@ pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
                 !l.hit.contains(&target) && l.flight.is_some_and(|f| horizontal(f.start, at) <= f.range + f.reach + CLIENT_HIT_SLACK)
             });
             let Some(p) = crate::npc::position(target) else { return };
-            if in_range && horizontal(p, at) < CLIENT_HIT_SLACK && crate::npc::is_enemy(target) {
+            if in_range && horizontal(p, at) < CLIENT_HIT_SLACK && (crate::npc::is_enemy(target) || crate::npc::is_smashable(target)) {
                 debug!(?id, ?target, off = horizontal(p, at), "projectile hit reported by the client");
                 strike(id, target, p);
             }

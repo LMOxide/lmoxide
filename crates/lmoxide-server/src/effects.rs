@@ -67,6 +67,18 @@ pub fn chain_jump(caster: Id32, to: Id32, last: Id32, spell: u32) -> Bytes {
 
 static CHAIN_SEQ: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1);
 
+/// A chain's jump onto `to`, a smashable: `ChainSpellIIR_t` only plays on a character (Activate
+/// takes its target with `CoreCharacter::Get`, a smashable gives none and nothing shows), so the
+/// jump's `package` goes as an `EffectPackageIIR` of `last` aimed at `to`, at its "on_chain_jump"
+/// hook with `chain_jump`'s value (100 × 1000). The arc (506679's moving mesh) starts from the
+/// named target "lastChainTarget", which this record can't name; it falls back to the package's
+/// owner, `last`.
+pub fn chain_jump_to_object(last: Id32, to: Id32, package: u32) -> Bytes {
+    iir::record("EffectPackageIIR", last, false, |w| {
+        to.write(w).u32(package).string("on_chain_jump").string("").f32(100_000.0).u8(0).u32(new_instance()).f32(0.0).f32(0.0).f32(0.0).u32(0)
+    })
+}
+
 /// Buffs shown with `show_buff`, with the generation of their latest add.
 static SHOWN: std::sync::LazyLock<std::sync::Mutex<std::collections::HashMap<(Id32, u32), u64>>> =
     std::sync::LazyLock::new(Default::default);

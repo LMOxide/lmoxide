@@ -1651,8 +1651,8 @@ fn impact(run: &Arc<Run>, spell: u32, item: u32, target: Target, depth: u32) {
 /// A Chain: `nano` on `first`, then up to `jumps` times on the nearest enemy within `radius` of
 /// the last one that it hasn't hit yet (a smashable only when no enemy is in reach), `delay`
 /// apart. Each jump after the first is shown with `ChainSpellIIR_t` (the arc from the previous
-/// one); the first bolt is the spell's own effect (Lightning Blast's 506677: an arc from the
-/// caster too showed it twice).
+/// one; onto a smashable, `effects::chain_jump_to_object`); the first bolt is the spell's own
+/// effect (Lightning Blast's 506677: an arc from the caster too showed it twice).
 fn chain(run: &Arc<Run>, nano: u32, first: Id32, jumps: u32, radius: f32, delay: Duration, depth: u32) {
     let run = run.clone();
     tokio::spawn(async move {
@@ -1662,7 +1662,11 @@ fn chain(run: &Arc<Run>, nano: u32, first: Id32, jumps: u32, radius: f32, delay:
         while let Some(to) = next {
             let Some(pos) = crate::npc::position(to) else { break };
             if last != caster {
-                show(&run, vec![effects::chain_jump(caster, to, last, nano)]);
+                let package = SPELLS.get(&nano).and_then(|n| n.stats.effect_package);
+                match package.filter(|_| crate::npc::is_smashable(to)) {
+                    Some(package) => show(&run, vec![effects::chain_jump_to_object(last, to, package)]),
+                    None => show(&run, vec![effects::chain_jump(caster, to, last, nano)]),
+                }
             }
             cast_nano_shown(&run, nano, Target { id: Some(to), pos }, depth + 1, false);
             hit.push(to);
