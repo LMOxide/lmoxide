@@ -318,7 +318,9 @@ mod tests {
             None => problems.borrow_mut().push(format!("{what}: missing")),
         };
         let wc = data("world_content.json");
-        for (pf, w) in wc.as_object().unwrap().iter().filter(|(_, w)| w.is_object()) {
+        // pocket adventures given their dynels since (the Kingdom's entrances, wired up 2026-10-30)
+        const ADDED_POCKETS: [&str; 4] = ["1652", "1673", "1682", "5610"];
+        for (pf, w) in wc.as_object().unwrap().iter().filter(|(pf, w)| w.is_object() && !ADDED_POCKETS.contains(&pf.as_str())) {
             let new = WORLD_CONTENT.get(pf);
             let old = by_key(&w["simple_dynels"], "guid");
             let got = new.map(|n| by_key(&n["simple_dynels"], "guid")).unwrap_or_default();

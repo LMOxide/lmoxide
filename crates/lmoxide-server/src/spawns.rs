@@ -335,10 +335,14 @@ mod tests {
     /// Spawns deleted since: (playfield, name).
     const REMOVED: [(&str, &str); 1] = [("6300", "Dino Raptor")];
 
+    /// Pocket adventures given proposed spawns since (the Kingdom's entrances, wired up 2026-10-30).
+    const ADDED: [&str; 4] = ["1652", "1673", "1682", "5610"];
+
     /// (the world editor's spawns weren't in the old files)
     #[test]
     fn same_as_the_old_files() {
         let mut new = table();
+        new.retain(|pf, _| !ADDED.contains(&pf.as_str()));
         for defs in new.values_mut() {
             defs.retain(|d| d.source.as_deref() != Some("survey"));
             for d in defs.iter_mut() {
