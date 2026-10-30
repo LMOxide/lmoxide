@@ -33,6 +33,55 @@ first, then `docs/TUNABLES.md` ("Spawned monsters", "Orbiting shots", "Encounter
 | `FXCX` | `npc/main-pierrot2` (TDB 51000 #1058, invisible look 51057), 6 s | Live capture, Dinosaur Rise 6200: a Sad Clown's casts. See "How FXCX was matched". |
 | `lmoxide-merc-engineer-bombs` | `npc/merc-engineer-bomb-anchor` | Made up. **Replace with P9TE, below.** |
 
+## Found 2026-10-29 (second session), not yet in content
+
+Live capture: the caster's `BehaviorControlCenterIIR_c` names the spell id (u32 BE at about +44..+52),
+and the spawned character's `SimpleCharFullUpdateIIR_t` follows within a few frames
+(`research/lmoxide-notes/spawn-research/spawn_casts.py <live.jsonl>`). Lifetimes: first record
+naming the instance to its `n3ToClientFadeIIR_t`.
+
+| Hash | Spell | Caster (live) | Spawns | Lifetime | Evidence |
+|---|---|---|---|---|---|
+| `U1XT` | 663959 Queen's Guard (player) | player, 1200, 9 casts | TDB #3002 Queen's Guard = `npc/queen-s-guard` (352446, CARS 0, lvl 30, 750 HP) | **10 s** (fade 10.1 s in 8 of 9; one killed at 8.2 s) | live |
+| `E9ER` | 338311 Call to Arms | Alpha Wolf #2887, 8030 | one #1259 Summoned Wolf = `npc/summoned-wolf` per cast | none seen (killed 2–11 s) | live |
+| `68MJ` | 379451 "alien reaper egg spawn" | Alien Pod #2873, 8060 | one #1483 Mantis Nymph = `npc/mantis-nymph-3` per cast (not a reaper egg, despite the name) | none seen (killed) | live |
+| `JVYN` | 236106 / 236107 XX_Spawn | Spider eggs #905 / #985, 4200 | #861 Spiderling = `npc/spiderling` (4 after one 236106 cast) | none seen | live |
+| `SS34` | 661545 | Funhouse Poison Hazard Dummy #2961, 8030 | #2963 XX_Invisible Funhouse Poison Hazard Anchor (60 seen, CARS 5, lvl 15) | **16.1 s** (all 60) | client chain + live |
+| `YY1Z` | 635595 / 636105 | (projectile chain below) | #2913 XX_Invisible Fire Geysir (9 seen in 8060) | **6.0 s** (all 9) | client chain + name + live presence |
+
+- `SS34` chain: the dummy's buff 661554 = CastNano 660139 every 1 s, forever; 660139 =
+  CoreRandomPointAreaFormula radius 18 m, one point → 661545 SpawnMonster SS34. Live: an anchor about
+  every second within ~15 m of the dummy (the dummy itself lives 10.1 s). Each anchor shows buff
+  661546 (Projectile, item 660600, falling from 5 m) and area 661548.
+- `YY1Z` chain: 636101 = CastNano 636102 every 0.5 s; 636102 = random point 7–8 m (two
+  formulas) → 636103 Projectile item 636104 "XX_medieval pf kingdom dragon geysir projectile"
+  (EffectPackage 630429), whose hit casts 636105 = SpawnMonster YY1Z. The 636105 cast itself isn't in
+  the capture. The geysir casts 659526 on itself: CastNano 636107 every 0.25 s = radius 2 m
+  area, 636106 WeaponHit AbilityMod 0.5.
+- Queen's Guard today summons a guessed `npc/royal-guard` for 15 s (`skills/queen-s-guard.json`
+  `summon`); live says `npc/queen-s-guard` for 10 s.
+- The capture's "Gargantuan" #2971 (8030) is an enemy (CARS 3), not the player's Gigantuan.
+- Player hashes `XKRD`, `JXNM`, `HH3V`, `XVC4`, `QTVR`, `8W1V` are never cast in the capture (their
+  ids only occur in a large spell-list blob).
+
+Name matches (TDB 51000) to use as `source: guess`:
+- `PRLO` → #2708 "XX_boss hades groundfire"
+- `JIMV` → #2505 "XX_champion aura dread spheres invis anchor"
+- `MCS2` → #2739 "laser drones invis anchor"
+- `ZVJ2` → #2766 "firewall invis anchor"
+- `47LU` or `1NZV` → #1455 "XX_space pd port boss queen purge npc" (which of the two is unknown)
+- `R9TE` → #2847 "XX_Invisible Funhouse Hazard Anchor"
+- `Q74I` → #2768 / #2769 "XX_Invisible Dragon Summoner (Anchor)"
+- `9MCI` → #2765 "XX_Champion Minion Spawner"
+- `N1GC` → #711 "Summoned Satyr"
+- `XNCU` → #591 "Pillar of Lightning"
+- `OPTG` → #2702 "XX_Electric surge lightning bolt"
+- `W71R` → #2632 "lava monkey summoner" or #2635 "lava explosion"
+- `RUQN` (Dragon's Breath): no name match
+
+The hashes appear nowhere in the client but the spell records (1000621); no hash→template table
+exists client-side, so matching stays evidence-based.
+
 ## First finding: the Space Merc Engineer's real "bombs" (do this first)
 
 The made-up bomb ring (`skill/merc-engineer-bomb-ring` 374158, `skill/merc-engineer-bombs`
@@ -79,7 +128,7 @@ StartServerSideScryScript actions). By priority:
    `npc.rs` `summon`, not SpawnMonster). Each needs its hash matched before it switches over:
    - Anchor `XKRD` (NanoTemplate 236376 "main captain2 hate transfer");
    - Gigantuan `JXNM` (654691 "main s14 crazyscientist2 npc spawn wrapper", Arg3 654690);
-   - Queen's Guard `U1XT` (667151, Arg3 654690);
+   - Queen's Guard `U1XT` (667151, Arg3 654690): **matched**, see "Found 2026-10-29";
    - Shadow Puppet `HH3V` (508258 "main jester2 marker", Arg3 659020);
    - Smoke Bomb `XVC4` (595266);
    - Team Zombie `QTVR` ×3 (642804, Arg3 659775);
