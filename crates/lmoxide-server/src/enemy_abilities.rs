@@ -5,8 +5,8 @@
 //! - shields (Skeleton Trident, Space Merc Defender, ...) cover the enemy itself, an ally or
 //!   everyone around for `duration`: a shielded enemy takes `taken` of the damage (0%: none,
 //!   npc.rs `hit`);
-//! - totems (the Witch Doctor) mark the ground under the player and hit everyone within `radius`
-//!   of the mark `delay` later.
+//! - totems (the Witch Doctor) mark the ground under a player between `min_range` and `range`
+//!   away (up close it uses its attacks) and hit everyone around the mark a moment later.
 //!
 //! The client has the effects (and the animations) but no spell saying who cast them how: which
 //! enemy does what and all numbers are the user's memory or guesses (docs/TUNABLES.md "Enemy
@@ -141,7 +141,7 @@ pub fn choose(kit: &Kit, me: Id32, here: [f32; 3], at: [f32; 3], allies: &[Ally]
         }
     }
     if let Some(t) = kit.totem.filter(|_| ready(TOTEM_COOLDOWN))
-        && distance(here, at) <= t.range
+        && (t.min_range..=t.range).contains(&distance(here, at))
     {
         return Some(Plan::Totem { at });
     }
@@ -290,7 +290,7 @@ mod tests {
     #[test]
     fn shields_and_totems() {
         let shield = Box::leak(Box::new(EnemyShield { taken: Ratio(0.0), on: ShieldOn::Area, range: 5.0, duration: D(5.0), cooldown: D(15.0), ..Default::default() }));
-        let totem = Box::leak(Box::new(EnemyTotem { range: 12.0, radius: 2.0, delay: D(1.0), cooldown: D(5.0), ability_mod: 2.5, ..Default::default() }));
+        let totem = Box::leak(Box::new(EnemyTotem { range: 12.0, min_range: 3.0, radius: 2.0, delay: D(1.0), cooldown: D(5.0), ability_mod: 2.5, ..Default::default() }));
         let kit = Kit { shield: Some(shield), totem: Some(totem), ..Default::default() };
         let mut allies = [ally(1, 0.0, 100, false), ally(2, 4.0, 100, false), ally(3, 9.0, 100, false)];
         let plan = choose(&kit, id(1), [0.0; 3], [8.0, 0.0, 0.0], &allies, |_| true, true);
@@ -301,5 +301,7 @@ mod tests {
         let plan = choose(&kit, id(1), [0.0; 3], [8.0, 0.0, 0.0], &allies, |_| true, true);
         assert_eq!(plan, Some(Plan::Totem { at: [8.0, 0.0, 0.0] }));
         assert_eq!(choose(&kit, id(1), [0.0; 3], [20.0, 0.0, 0.0], &allies, |_| true, true), None);
+        // up close: no totem (its attacks instead)
+        assert_eq!(choose(&kit, id(1), [0.0; 3], [2.0, 0.0, 0.0], &allies, |_| true, true), None);
     }
 }

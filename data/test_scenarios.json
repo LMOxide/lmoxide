@@ -505,7 +505,7 @@
     },
     {
       "label": "totem",
-      "about": "2 Witch Doctors around you: knife stabs, and every 5 s from up to 10 m the client's XX_JuJu Totem (his totem animation, the mark under you, the hit within 2 m 1.5 s later)",
+      "about": "2 Witch Doctors around you: knife stabs, and every 5 s from 3–10 m (up close only the knife) the client's XX_JuJu Totem (his totem animation, the mark under you, the hit within 2 m 1.5 s later)",
       "spawn": [
         {
           "name": "Witch doctor",

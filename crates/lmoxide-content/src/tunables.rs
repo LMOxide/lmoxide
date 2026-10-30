@@ -582,6 +582,9 @@ pub struct EnemyTotem {
     pub spell: Option<Ref>,
     /// Cast at players this close (m).
     pub range: f32,
+    /// ...but not closer than this (m): up close it uses its attacks (the Witch Doctor his knife).
+    #[serde(default, skip_serializing_if = "is_unset")]
+    pub min_range: f32,
     pub cooldown: Duration,
     /// Without `spell`: players within this of the mark are hit (m).
     #[serde(default, skip_serializing_if = "is_unset")]
