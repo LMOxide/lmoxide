@@ -34,6 +34,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(register))
         .routes(routes!(me))
         .routes(routes!(change_own_password))
+        .routes(routes!(change_own_username))
         .routes(routes!(my_players))
         .routes(routes!(my_command))
         .merge(crate::discord::router())
@@ -52,7 +53,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(ban))
         .routes(routes!(unban))
         .routes(routes!(search_characters))
-        .routes(routes!(get_character))
+        .routes(routes!(get_character, rename_character))
         .routes(routes!(list_api_keys, create_api_key))
         .routes(routes!(revoke_api_key))
         .routes(routes!(audit_log))
@@ -207,6 +208,10 @@ pub struct Account {
     pub ban: Option<BanInfo>,
     /// The linked Discord user id (a snowflake, as a string); `null`: not linked.
     pub discord_id: Option<String>,
+    /// Unix time the account last changed its own username (`POST /v1/me/username`; the
+    /// cooldown, `username_cooldown_days` in `/v1/config`, counts from it); `null`: never.
+    pub username_changed_at: Option<i64>,
+    /// Its characters. `name` is empty for one still on the creation screen.
     pub characters: Vec<CharacterSummary>,
 }
 
@@ -360,6 +365,23 @@ pub struct ChangePassword {
     pub current_password: Option<String>,
     #[schema(min_length = 8, max_length = 128)]
     pub new_password: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub struct ChangeUsername {
+    /// Required if the account has a password, except in a `password_reset` session.
+    #[serde(default)]
+    pub current_password: Option<String>,
+    #[schema(min_length = 3, max_length = 32, pattern = "^[A-Za-z0-9_.-]+$")]
+    pub new_username: String,
+}
+
+/// A character's new name: 1 to 3 words of up to 32 characters (created characters have
+/// "first nick last"; others see the middle word above it).
+#[derive(Deserialize, ToSchema)]
+pub struct CharacterChanges {
+    #[schema(min_length = 1, max_length = 98)]
+    pub name: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -672,6 +694,7 @@ pub(crate) fn account_dto(db: &lmoxide_db::Db, a: lmoxide_db::Account, show_ip: 
         last_login_ip: if show_ip { a.last_login_ip } else { None },
         ban,
         discord_id: a.discord_id,
+        username_changed_at: a.username_changed_at,
         characters,
     })
 }
@@ -857,6 +880,9 @@ pub struct ServerConfig {
     pub admin_gm_level: u32,
     /// GM level from which an account may use the world editor (`/v1/survey`, `/v1/editor`).
     pub editor_gm_level: u32,
+    /// Days an account waits between changes of its own username (`POST /v1/me/username`);
+    /// admins (`admin_gm_level`) don't wait.
+    pub username_cooldown_days: u32,
 }
 
 /// How this API is set up: registration, GM level thresholds.
@@ -871,6 +897,7 @@ async fn config(State(state): State<Arc<AppState>>) -> Json<ServerConfig> {
         moderator_gm_level: cfg.moderator_gm_level,
         admin_gm_level: cfg.admin_gm_level,
         editor_gm_level: cfg.editor_gm_level,
+        username_cooldown_days: cfg.username_cooldown_days,
     })
 }
 
@@ -1213,6 +1240,43 @@ async fn change_own_password(State(state): State<Arc<AppState>>, auth: Auth, Jso
         db.end_game_sessions(id)?;
         db.audit(&auth.actor, "change-own-password", None, None)?;
         Ok(StatusCode::NO_CONTENT)
+    })
+    .await
+}
+
+/// Change the logged-in account's username (its login name; sessions stay). Once every
+/// `username_cooldown_days` (`/v1/config`), except for admins. `current_password` may be left
+/// out for an account without a password or in a `password_reset` session.
+#[utoipa::path(post, path = "/v1/me/username", tag = "auth", request_body = ChangeUsername,
+    responses((status = OK, body = Account), (status = UNAUTHORIZED, body = ErrorBody), (status = CONFLICT, body = ErrorBody),
+        (status = TOO_MANY_REQUESTS, body = ErrorBody)))]
+async fn change_own_username(State(state): State<Arc<AppState>>, auth: Auth, Json(c): Json<ChangeUsername>) -> ApiResult<Json<Account>> {
+    let id = auth.account.ok_or_else(|| ApiError::not_found("account (API keys have none)"))?;
+    let (cooldown, admin_level) = (i64::from(state.cfg.username_cooldown_days) * 86400, state.cfg.admin_gm_level);
+    blocking(&state, move |db| {
+        let before = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
+        let ok = match &c.current_password {
+            Some(p) => db.verify_password(id, p)?,
+            None => auth.password_reset || !before.has_password,
+        };
+        if !ok {
+            return Err(ApiError::new(StatusCode::UNAUTHORIZED, "bad_credentials", "wrong current password"));
+        }
+        if c.new_username == before.username {
+            return Err(ApiError::invalid("that is the account's username already"));
+        }
+        let next = before.username_changed_at.map(|t| t + cooldown).filter(|&t| t > lmoxide_db::now() && before.gm_level < admin_level);
+        if let Some(next) = next {
+            return Err(ApiError::new(
+                StatusCode::TOO_MANY_REQUESTS,
+                "username_cooldown",
+                format!("the username can be changed again from {next} (unix time)"),
+            ));
+        }
+        db.rename_own_account(id, &c.new_username)?;
+        db.audit_account(&auth.actor, "change-own-username", &before, Some(&c.new_username))?;
+        let a = db.account(id)?.ok_or_else(|| ApiError::not_found("account"))?;
+        Ok(Json(account_dto(db, a, true)?))
     })
     .await
 }
@@ -1582,44 +1646,83 @@ async fn get_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id):
     auth.require(Scope::Read)?;
     blocking(&state, move |db| {
         let c = db.load_character(id)?.ok_or_else(|| ApiError::not_found("character"))?;
-        Ok(Json(Character {
-            id,
-            name: c.name,
-            mode: c.mode,
-
-            playfield: c.playfield,
-            position: c.pos,
-            team: c.team.iter().map(|&(_, template)| template).collect(),
-            stars: c.stars,
-            upgrades: c.upgrades,
-            tokens: c.tokens.into_iter().map(|(t, (gained, spent))| (t, TokenCount { gained, spent })).collect(),
-            xp: c.xp,
-            level: c.level,
-            minifigure_ranks: c.minifigure_levels,
-            achievements: c
-                .tags
-                .into_iter()
-                .map(|(id, achieved_at)| {
-                    let a = achievement_info(id);
-                    EarnedAchievement { id, name: a.name, title: a.title, group: a.group, text: a.text, points: a.points, achieved_at }
-                })
-                .collect(),
-            counters: c.counters,
-            defeats: c
-                .defeats
-                .into_iter()
-                .map(|(n, d)| (n, DefeatCount { kind: d.kind, count: d.count, first_at: d.first_at, last_at: d.last_at }))
-                .collect(),
-            visits: c
-                .visits
-                .into_iter()
-                .map(|(p, v)| (p, VisitCount { count: v.count, first_at: v.first_at, last_at: v.last_at }))
-                .collect(),
-            finds: c.finds,
-        }))
+        Ok(Json(character_dto(id, c)))
     })
     .await
 }
+
+/// Rename a character (its name must not be another account's character's). An online one is
+/// renamed through its game server and sent again where it stands, so everyone sees the new
+/// name. Scope: admin.
+#[utoipa::path(patch, path = "/v1/characters/{id}", tag = "accounts", params(("id" = u32, Path)), request_body = CharacterChanges,
+    responses((status = OK, body = Character), (status = NOT_FOUND, body = ErrorBody), (status = CONFLICT, body = ErrorBody),
+        (status = UNPROCESSABLE_ENTITY, body = ErrorBody), (status = BAD_GATEWAY, body = ErrorBody)))]
+async fn rename_character(State(state): State<Arc<AppState>>, auth: Auth, Path(id): Path<u32>, Json(c): Json<CharacterChanges>) -> ApiResult<Json<Character>> {
+    auth.require(Scope::Admin)?;
+    let name = lmoxide_db::validate_character_name(&c.name)?;
+    let check = name.clone();
+    let old = blocking(&state, move |db| {
+        let old = db.character_name(id)?.ok_or_else(|| ApiError::not_found("character"))?;
+        let account = db.character_account(id)?.ok_or_else(|| ApiError::not_found("character"))?;
+        if !db.character_name_free(account, &check)? {
+            return Err(lmoxide_db::Error::NameTaken.into());
+        }
+        Ok(old)
+    })
+    .await?;
+    let req = lmoxide_control::RenameCharacter { name };
+    let done = control(&state)?.rename_character(id, &req).await.map_err(|e| match e {
+        lmoxide_control::Error::Status { status: 404, .. } => ApiError::not_found("character"),
+        lmoxide_control::Error::Status { status: 409, body } => ApiError::conflict(body),
+        lmoxide_control::Error::Status { status: 422, body } => ApiError::invalid(body),
+        e => ApiError::game_server(e),
+    })?;
+    let actor = auth.actor.clone();
+    blocking(&state, move |db| {
+        db.audit(&actor, "character-rename", Some(&id.to_string()), Some(&format!("{old} -> {}", done.name)))?;
+        let c = db.load_character(id)?.ok_or_else(|| ApiError::not_found("character"))?;
+        Ok(Json(character_dto(id, c)))
+    })
+    .await
+}
+
+fn character_dto(id: u32, c: lmoxide_db::Character) -> Character {
+    Character {
+        id,
+        name: c.name,
+        mode: c.mode,
+        playfield: c.playfield,
+        position: c.pos,
+        team: c.team.iter().map(|&(_, template)| template).collect(),
+        stars: c.stars,
+        upgrades: c.upgrades,
+        tokens: c.tokens.into_iter().map(|(t, (gained, spent))| (t, TokenCount { gained, spent })).collect(),
+        xp: c.xp,
+        level: c.level,
+        minifigure_ranks: c.minifigure_levels,
+        achievements: c
+            .tags
+            .into_iter()
+            .map(|(id, achieved_at)| {
+                let a = achievement_info(id);
+                EarnedAchievement { id, name: a.name, title: a.title, group: a.group, text: a.text, points: a.points, achieved_at }
+            })
+            .collect(),
+        counters: c.counters,
+        defeats: c
+            .defeats
+            .into_iter()
+            .map(|(n, d)| (n, DefeatCount { kind: d.kind, count: d.count, first_at: d.first_at, last_at: d.last_at }))
+            .collect(),
+        visits: c
+            .visits
+            .into_iter()
+            .map(|(p, v)| (p, VisitCount { count: v.count, first_at: v.first_at, last_at: v.last_at }))
+            .collect(),
+        finds: c.finds,
+    }
+}
+
 
 #[derive(Clone, Default)]
 struct AchievementInfo {

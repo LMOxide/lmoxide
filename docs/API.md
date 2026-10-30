@@ -18,7 +18,7 @@ running game server through its control interface for live data (players online,
 broadcasts, maintenance). Without a control token those routes answer 503. Flags (each also an
 environment variable, see `--help`): `--tls-cert/--tls-key`, `--private-status`,
 `--registration open|discord|closed` (default `closed`; `--open-registration` = `open`), `--session-ttl-hours`, `--remember-days` (30), `--moderator-gm-level` (3), `--admin-gm-level`
-(4), `--editor-gm-level` (2; docs/SECURITY.md "Access levels"), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
+(4; `lmoxide` takes the game's), `--editor-gm-level` (2; docs/SECURITY.md "Access levels"), `--username-cooldown-days` (7: how long an account waits between changes of its own username; admins don't), `--cors-origins`, `--trust-forwarded-for`, `--client-dir` (the Windows client folder:
 `/v1/catalog/sounds/{id}` serves the sounds of effect packages from its RDB; 503 without it).
 
 ## Authentication
@@ -71,6 +71,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/auth/code` | - | `{code, remember?}`: a `login` code from the Discord bot → a `Session` with `password_reset: true`; 401 `bad_code` (counts as a failed login) |
 | GET | `/v1/me` | session | the logged-in account (`discord_id` when linked) |
 | POST | `/v1/me/password` | session | `{current_password, new_password}`; `current_password` may be left out in a `password_reset` session |
+| POST | `/v1/me/username` | session | `{current_password, new_username}`: change the account's login name (sessions stay; saved logins such as patcher profiles and `lmo <username>` need the new one). `current_password` may be left out for an account without a password or in a `password_reset` session. Once every `--username-cooldown-days` (`username_changed_at` on the account, `username_cooldown_days` in `/v1/config`), 429 `username_cooldown` before; admins don't wait. 409 taken. Audit `change-own-username` |
 | GET | `/v1/me/players` | session | the account's characters online (`Player`, with `position` and `heading`) |
 | POST | `/v1/me/command` | session | `{command}`: a test command run as one's own character, as if typed in chat; the game server decides by GM level (alpha testers have some, contributors all) → `{affected, replies}` |
 | POST | `/v1/me/discord` | session | `{code}`: a `link` code from the Discord bot links the account to that Discord account → `Account`; 401 `bad_code`, 409 when either is linked already |
@@ -98,14 +99,15 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/maintenance` | admin | `{enabled, message?}`: only GMs may log in |
 | GET | `/v1/accounts?search=&offset=&limit=` | read | by username; header `X-Total-Count`: matches in all |
 | POST | `/v1/accounts` | admin | `{username, password?, gm_level?}` |
-| GET | `/v1/accounts/{id}` | read | with characters; `last_login_ip` for admins only |
-| PATCH | `/v1/accounts/{id}` | admin | `{username?, gm_level?}` |
+| GET | `/v1/accounts/{id}` | read | with characters (`name` empty: still on the creation screen); `last_login_ip` for admins only |
+| PATCH | `/v1/accounts/{id}` | admin | `{username?, gm_level?}` (doesn't start the account's own username cooldown) |
 | DELETE | `/v1/accounts/{id}` | admin | kicks, then deletes with character and friendships |
 | POST | `/v1/accounts/{id}/password` | admin | `{password}` (null removes it) |
 | POST | `/v1/accounts/{id}/ban` | moderate | `{days?, reason?}`; kicks; staff need admin |
 | POST | `/v1/accounts/{id}/unban` | moderate | |
 | GET | `/v1/characters?search=&limit=` | read | characters whose name contains `search` (case-insensitive), by name: `id`, `name`, `mode`, `account_id`, `username` (who plays a character) |
 | GET | `/v1/characters/{id}` | read | team, stars, upgrades, tokens, level and XP, minifigure ranks, earned achievements (id, name, title/group/text as the game shows them, points, time; tags with no name are story or tutorial progress), achievement counters, journal (`defeats` by name with kind/count/first/last time, `visits` by playfield, `finds`) |
+| PATCH | `/v1/characters/{id}` | admin | `{name}`: rename a character (1-3 words of up to 32 characters; created ones are "first nick last" and others see the nick). Names belong to one account: 409 if another account's character has it (case-insensitive). Online: renamed through the game server and sent again where it stands, so every client shows it; offline: the database. Answers the character; audit `character-rename` (`old -> new`) |
 | POST | `/v1/characters/{id}/achievements/remove` | admin | `{ids: [..]}` or `{all: true}`: takes achievements away (and the earned "all of" ones above them; a find achievement's finds; with `all` also the journal and counters) so they can be earned again; story/tutorial tags, stars and XP stay. Online: the client is updated at once (RemoveTag); offline: the database. Answers `{removed, online}`; audit `achievements-remove` |
 | GET/POST | `/v1/api-keys` | admin | list / `{name, scope}` → secret once |
 | DELETE | `/v1/api-keys/{id}` | admin | revoke |

@@ -938,6 +938,82 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Rename a character (its name must not be another account's character's). An online one is\nrenamed through its game server and sent again where it stands, so everyone sees the new\nname. Scope: admin.",
+        "operationId": "rename_character",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CharacterChanges"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Character"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/characters/{id}/achievements/remove": {
@@ -1534,6 +1610,63 @@
         }
       }
     },
+    "/v1/me/username": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Change the logged-in account's username (its login name; sessions stay). Once every\n`username_cooldown_days` (`/v1/config`), except for admins. `current_password` may be left\nout for an account without a password or in a `password_reset` session.",
+        "operationId": "change_own_username",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeUsername"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/minifigures": {
       "get": {
         "tags": [
@@ -1823,7 +1956,8 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CharacterSummary"
-            }
+            },
+            "description": "Its characters. `name` is empty for one still on the creation screen."
           },
           "created_at": {
             "type": "integer",
@@ -1866,6 +2000,14 @@
           },
           "username": {
             "type": "string"
+          },
+          "username_changed_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Unix time the account last changed its own username (`POST /v1/me/username`; the\ncooldown, `username_cooldown_days` in `/v1/config`, counts from it); `null`: never."
           }
         }
       },
@@ -2229,6 +2371,27 @@
           }
         }
       },
+      "ChangeUsername": {
+        "type": "object",
+        "required": [
+          "new_username"
+        ],
+        "properties": {
+          "current_password": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required if the account has a password, except in a `password_reset` session."
+          },
+          "new_username": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        }
+      },
       "Character": {
         "type": "object",
         "required": [
@@ -2402,6 +2565,20 @@
             "format": "int64",
             "description": "Player XP.",
             "minimum": 0
+          }
+        }
+      },
+      "CharacterChanges": {
+        "type": "object",
+        "description": "A character's new name: 1 to 3 words of up to 32 characters (created characters have\n\"first nick last\"; others see the middle word above it).",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 98,
+            "minLength": 1
           }
         }
       },
@@ -3686,7 +3863,8 @@
           "private_status",
           "moderator_gm_level",
           "admin_gm_level",
-          "editor_gm_level"
+          "editor_gm_level",
+          "username_cooldown_days"
         ],
         "properties": {
           "admin_gm_level": {
@@ -3718,6 +3896,12 @@
           "registration_open": {
             "type": "boolean",
             "description": "Whether `POST /v1/auth/register` accepts new accounts (`registration` is `open`)."
+          },
+          "username_cooldown_days": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Days an account waits between changes of its own username (`POST /v1/me/username`);\nadmins (`admin_gm_level`) don't wait.",
+            "minimum": 0
           }
         }
       },

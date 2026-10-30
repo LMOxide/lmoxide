@@ -9,6 +9,8 @@ mod discord;
 #[cfg(test)]
 mod discord_tests;
 mod error;
+#[cfg(test)]
+mod name_tests;
 mod routes;
 
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
@@ -125,6 +127,10 @@ pub struct Config {
     /// GM level from which an account's login session has the admin scope.
     #[arg(long, env = "LMOXIDE_API_ADMIN_GM_LEVEL", default_value_t = 4)]
     pub admin_gm_level: u32,
+    /// Days an account waits between changes of its own username (`POST /v1/me/username`);
+    /// admins don't wait.
+    #[arg(long, env = "LMOXIDE_API_USERNAME_COOLDOWN_DAYS", default_value_t = 7)]
+    pub username_cooldown_days: u32,
     /// GM level from which an account may use the world editor's routes (`/v1/survey`,
     /// `/v1/editor`): the contributors. Keep it at the game server's `--world-editor-gm-level`
     /// (`lmoxide` passes that on).

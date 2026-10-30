@@ -763,8 +763,8 @@ The recorded session is a new character being created and playing the whole tuto
 - Creation screen: the launcher offers "Create character" only when UpdateClientPlayerData's
   character map is empty. CharacterSelection.swf (hero carousel, three name wheels) stores the
   pick in the native `ASCharacterCreation`; `CreateCharacterWithData` carries an empty map (live
-  too). Without `--progression` the server creates the character at GetStartupData, so the screen
-  never shows.
+  too). Every game mode uses it: characters are named on this screen only (never after the login
+  name), and a character still on it has an empty name (it isn't listed).
 - Live sent the new character to the creation playfield 4000 (GUI hidden, no minifigure),
   `SetIsFirstLogin(1)`, and after CharInPlay a `GameActionListIIR_t` (u32 1, u32 0xcfed
   StartClientSideScryScript, u32 seq, u32 4, u32 0, u32 n + n (key, value): (725,1) (726,0)
@@ -774,7 +774,14 @@ The recorded session is a new character being created and playing the whole tuto
   minifigure (RDB 1010700/1: 0 Bumblebee Girl 195928, 1 Roman Commander 317609, 2 Plumber 50715)
   into team slot 6, `SetNameIIR_t` (u32 3, u8 1, u8 1, string nick),
   `SignalCreatePlayerCharacterResult(0)` (non-zero: failed), `TeleportStarted`, a teleport to
-  1300 (67.1, 47.6, 217.9).
+  1300 (67.1, 47.6, 217.9). Names belong to one account (another account's character may not
+  have it). The screen closes as soon as the name is sent (CharacterSelectionController
+  `SlotNameSelected`), and nothing in the UI listens to a failure
+  (`SlotCreatePlayerCharacterResult` 0x14b696e emits `SignalCreateCharacterFailed(code)`, which no
+  script connects): for a taken name the server answers 1, tells the player in chat and sends the
+  creation script again, which opens the screen again. Unused: PlayerInterface
+  `CharacterNeedsNewName(inst, reason, name)` -> PlayerAgent `RenameCharacter(inst, name)` (the
+  character list's rename flow).
 - Tutorial: six invisible trigger NPCs ("Cinematic Start ...") start Video Game Guy's dialogues
   as the player walks past; dialogue tags call server script 599417 with `String1=<step>`
   (DreadlegSpawnPirate, SpawnAmbush, SpawnAmbush2 spawn the Scallywags at AI_Combat1, 2-4, 8-10).

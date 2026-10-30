@@ -48,12 +48,13 @@ An account's GM level decides what it may do, in game and through the API. The d
 | 1 | alpha tester | the Progression and Maxxed modes even with `--play-gm-level 1`; the testers' test commands, in chat or from the dev UI's debugger on their own character: teleporting (`!tp`, `!goto`, `!move`, ...), test scenarios, `!own` any minifigure, `!dialog`, achievements (`!ach`, `!count`, `!defeat`), `!anim`, `!skin`, `!state` and the Quick section (`!revive`, `!smash`, `!xp`, `!stars`, puzzles) |
 | 2 | contributor | the World Editor mode and its API routes; every test command; the client's full GM stat (god camera, flying and the other GM hotkeys) |
 | 3 | moderator | the API's `moderate` scope: kick, ban, broadcast, instances |
-| 4 | admin | the `admin` scope: accounts, keys, the audit log, commands on other players |
+| 4 | admin | the `admin` scope: accounts, keys, the audit log, commands on other players, renaming characters (`!rename`, `PATCH /v1/characters/{id}`); no wait between changes of their own username |
 
 The thresholds are options: game server `--tester-gm-level` (1), `--world-editor-gm-level` (2),
-`--devcmd-gm-level` (2), `--client-gm-level` (2), `--play-gm-level` (0); API
-`--editor-gm-level` (2, `lmoxide` takes the game's), `--moderator-gm-level` (3),
-`--admin-gm-level` (4). The testers' commands are devcmd.rs `TESTER_COMMANDS`;
+`--devcmd-gm-level` (2), `--client-gm-level` (2), `--play-gm-level` (0), `--admin-gm-level` (4);
+API `--editor-gm-level` (2, `lmoxide` takes the game's), `--moderator-gm-level` (3),
+`--admin-gm-level` (4, `lmoxide` takes the game's). The testers' commands are devcmd.rs
+`TESTER_COMMANDS`, the admins' `ADMIN_COMMANDS`;
 `GET /v1/catalog/test-commands` gives each command's level. The Discord bot sets levels from
 Discord roles (its `gm_roles`: Alpha Tester 1, Contributor 2, Admin 4).
 
