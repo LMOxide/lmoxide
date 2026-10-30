@@ -377,6 +377,11 @@ pub fn talk(player: Id32, player_name: &str, npc: Id32, name: &str, playfield: P
 /// invisible owner (spawns.rs `cinematic_owners`), or the player itself for the rebuilt
 /// cinematics whose owner the content doesn't place.
 pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
+    // an owner the dialogue's own actor stands in for (the Gauntlet's Video Game Guy on
+    // Cine_VGG1, 685's `addcinematicactor VGG 444476 Cine_VGG1`) is hidden while the double is on
+    // stage, and the client drops the window's records for an NPC it no longer has (user: the
+    // party's Video Game Guy talked with no words and no buttons): the player owns the window
+    let owner = if owner != player && doubled(player, owner, &dialogue) { player } else { owner };
     let (tx, rx) = mpsc::unbounded_channel();
     let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     if TALKING.lock().unwrap().insert(player, (generation, tx, owner)).is_some() {
@@ -404,6 +409,18 @@ pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
             }
         }
     });
+}
+
+/// Whether one of `d`'s actors stands in for NPC `owner` (`run_text` hides the NPC on the
+/// marker an `addcinematicactor` or `moveactortopos` names for that actor).
+fn doubled(player: Id32, owner: Id32, d: &Dialogue) -> bool {
+    let Some((pf, _)) = world::whereabouts(player) else { return false };
+    d.texts.iter().filter_map(|t| DATA.texts.get(&t.to_string())).flat_map(|text| tags(text)).any(|tag| {
+        match tag.split_whitespace().collect::<Vec<_>>().as_slice() {
+            ["addcinematicactor", alias, _, point, ..] | ["moveactortopos", alias, point, ..] => crate::npc::on_anchor(pf, point, alias) == Some(owner),
+            _ => false,
+        }
+    })
 }
 
 /// The player answered (KnubotAnswerIIR: u16 1, ID32 npc, u32 answer index).
