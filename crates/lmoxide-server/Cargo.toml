@@ -24,3 +24,6 @@ lmoxide-db = { version = "0.1.0", path = "../lmoxide-db" }
 lmoxide-control = { version = "0.1.0", path = "../lmoxide-control" }
 rand = "0.9"
 rpassword = "7.5.4"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

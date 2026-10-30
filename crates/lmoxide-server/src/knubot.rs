@@ -109,6 +109,12 @@ const ANSWER_TIMEOUT: Duration = Duration::from_secs(300);
 const ARRIVALS: &[(u32, Option<u32>, Duration)] = &[(79, None, Duration::from_millis(8800)), (822, Some(322), Duration::ZERO)];
 /// How long after a dialogue's close the one that follows it starts (live: 4.6 s).
 const FOLLOW_DELAY: Duration = Duration::from_millis(4600);
+/// A text that spawns a cinematic actor (`addcinematicactor`) and then makes it the speaker
+/// (`setactiveactor`, as 206's Officer, 822's Swashbuckler, 598's Hades) sends both at once; the
+/// client hasn't built the actor yet and the window's portrait falls back to the owner's (the
+/// default "DJ" icon). The `setactiveactor` is sent again this long after, without holding up
+/// the text's other tags.
+const ACTIVE_ACTOR_RESEND: Duration = Duration::from_millis(300);
 
 /// Players in a dialogue: its generation, where their answers go, and who speaks.
 static TALKING: LazyLock<Mutex<HashMap<Id32, (u64, mpsc::UnboundedSender<u32>, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -339,15 +345,16 @@ pub fn talk(player: Id32, player_name: &str, npc: Id32, name: &str, playfield: P
     start(player, player_name, npc, list[n].clone());
 }
 
-/// Starts `dialogue` for `player` with `owner` as the speaking NPC (the player itself for the
-/// cinematics whose owner isn't spawned).
+/// Starts `dialogue` for `player` with `owner` as the speaking NPC: an NPC, a cinematic's
+/// invisible owner (spawns.rs `cinematic_owners`), or the player itself for the rebuilt
+/// cinematics whose owner the content doesn't place.
 pub fn start(player: Id32, player_name: &str, owner: Id32, dialogue: Dialogue) {
     let (tx, rx) = mpsc::unbounded_channel();
     let generation = GENERATION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     if TALKING.lock().unwrap().insert(player, (generation, tx, owner)).is_some() {
         info!(?player, "dialogue replaced");
     }
-    info!(?player, npc = %dialogue.npc, texts = ?dialogue.texts, "dialogue");
+    info!(?player, npc = %dialogue.npc, ?owner, texts = ?dialogue.texts, "dialogue");
     let name = player_name.to_string();
     tokio::spawn(async move {
         let first = dialogue.texts.first().copied();
@@ -399,6 +406,7 @@ pub fn left(player: Id32) {
 async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: mpsc::UnboundedReceiver<u32>, generation: u64) -> bool {
     let speaker = Speaker { player, owner, name, npc_name: d.npc_name, generation, hidden: Mutex::default() };
     let send = |records: Vec<Bytes>| speaker.send(records);
+    let send: &(dyn Fn(Vec<Bytes>) + Sync) = &send;
     // the cinematic actors "playerActor" and "knubotOwnerActor", then the window
     send(vec![
         actor(player, KnubotActorMessage { actor_reference: Some(id_proto(player)), ..msg(Kind::AddCinematicActorReference, "playerActor") }),
@@ -409,7 +417,7 @@ async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: 
     let mut cleared = false;
     let mut ended = true;
     while i < d.texts.len() {
-        cleared = run_text(&speaker, d.texts[i]).await;
+        cleared = run_text(&speaker, d.texts[i], send).await;
         let next = d.texts.get(i + 1).copied();
         let next_answer = next.and_then(|t| DATA.answers.get(&t.to_string()).copied());
         let options: Vec<u32> = next_answer.into_iter().chain([GOODBYE]).collect();
@@ -420,7 +428,7 @@ async fn run(player: Id32, owner: Id32, name: String, d: Dialogue, mut answers: 
             Some(_) => {
                 // goodbye: a following text without its own answer is the epilogue
                 if let Some(t) = next.filter(|_| next_answer.is_none()) {
-                    cleared = run_text(&speaker, t).await;
+                    cleared = run_text(&speaker, t, send).await;
                 }
                 break;
             }
@@ -463,18 +471,26 @@ impl Speaker {
     }
 }
 
-/// Runs text `id`'s tags; returns whether its last tag cleared the cinematic.
-async fn run_text(s: &Speaker, id: u32) -> bool {
+/// Runs text `id`'s tags, its records going to `send`; returns whether its last tag cleared the
+/// cinematic.
+async fn run_text(s: &Speaker, id: u32, send: &(dyn Fn(Vec<Bytes>) + Sync)) -> bool {
+    use tokio::time::{sleep_until, Instant};
     let Some(text) = DATA.texts.get(&id.to_string()) else {
         warn!(id, "dialogue text missing");
         return false;
     };
-    let send = |records: Vec<Bytes>| s.send(records);
+    // the actors this text spawned, and a `setactiveactor` naming one of them to send again
+    // (`ACTIVE_ACTOR_RESEND`)
+    let mut spawned = std::collections::HashSet::new();
+    let mut resend: Option<(Instant, Bytes)> = None;
     if !text.split('{').next().unwrap_or("").trim().is_empty() {
         send(vec![append(s, id, 0)]);
     }
     let mut cleared = false;
     for (n, tag) in in_play_order(tags(text)).into_iter().enumerate() {
+        if let Some((_, r)) = resend.take_if(|(at, _)| *at <= Instant::now()) {
+            send(vec![r]);
+        }
         let words: Vec<&str> = tag.split_whitespace().collect();
         let mut records = Vec::new();
         cleared = false;
@@ -487,7 +503,11 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
                 records.push(actor(s.player, KnubotActorMessage { follow_actor: Some(follow), ..placed(Kind::MoveCameraToActor, a, "") }));
             }
             ["movecameratopos", p, ..] => records.push(actor(s.player, placed(Kind::MoveCameraToStaticPoint, "", p))),
-            ["setactiveactor", a, ..] => records.push(actor(s.player, msg(Kind::SetActiveActor, a))),
+            ["setactiveactor", a, ..] => {
+                let record = actor(s.player, msg(Kind::SetActiveActor, a));
+                resend = spawned.contains(*a).then(|| (Instant::now() + ACTIVE_ACTOR_RESEND, record.clone()));
+                records.push(record);
+            }
             ["moveactortopos", a, p, ..] => {
                 // (an NPC placed where the actor walks to, a boss waiting there, is hidden too)
                 if let Some(npc) = world::whereabouts(s.player).and_then(|(pf, _)| crate::npc::on_anchor(pf, p, a)) {
@@ -515,9 +535,17 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
                     }
                 }
                 records.push(spawn_client_npc(s.player, alias, template.parse().unwrap_or(0), point));
+                spawned.insert(alias.to_string());
             }
             ["removecinematicactor", alias, ..] => records.push(actor(s.player, msg(Kind::RemoveActor, alias))),
-            ["delay", secs, ..] => tokio::time::sleep(Duration::from_secs_f32(secs.parse().unwrap_or(1.0))).await,
+            ["delay", secs, ..] => {
+                let until = Instant::now() + Duration::from_secs_f32(secs.parse().unwrap_or(1.0));
+                if let Some((at, r)) = resend.take_if(|(at, _)| *at <= until) {
+                    sleep_until(at).await;
+                    send(vec![r]);
+                }
+                sleep_until(until).await;
+            }
             // tags, story goals, teleports, script steps
             _ => {
                 server_tag(s.player, &tag, &words);
@@ -525,6 +553,10 @@ async fn run_text(s: &Speaker, id: u32) -> bool {
         }
         records.push(append(s, id, n as u32 + 1));
         send(records);
+    }
+    if let Some((at, r)) = resend {
+        sleep_until(at).await;
+        send(vec![r]);
     }
     cleared
 }
@@ -759,6 +791,32 @@ mod tests {
         assert_eq!(teleport_args(&["220.531", "255.793", "y", "16", "4610"]), Some((Some(4610), [220.531, 16.0, 255.793], 0.0)));
         let (pf, at, _) = teleport_args(&["88.3", "256.0", "y", "24.5", "r", "250"]).unwrap();
         assert_eq!((pf, at), (None, [88.3, 24.5, 256.0]));
+    }
+
+    /// When each `setactiveactor` of `alias` went out running `text` (time paused: the delays
+    /// take no time).
+    async fn active_actor_times(text: u32, alias: &str) -> Vec<Duration> {
+        let player = Id32::new(50000, 0x7fff_fff0);
+        let s = Speaker { player, owner: player, name: "Tester".into(), npc_name: None, generation: 0, hidden: Mutex::default() };
+        let set = actor(player, msg(Kind::SetActiveActor, alias));
+        let start = tokio::time::Instant::now();
+        let sent = Mutex::new(Vec::new());
+        let sink = |records: Vec<Bytes>| sent.lock().unwrap().extend(records.into_iter().map(|r| (start.elapsed(), r)));
+        run_text(&s, text, &sink).await;
+        sent.into_inner().unwrap().into_iter().filter(|(_, r)| *r == set).map(|(t, _)| t).collect()
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn new_speaker_named_again() {
+        let ms = Duration::from_millis;
+        // 206: the Officer spawned after `delay 1`, made the speaker at once and again 300 ms on
+        // (during the `delay 2` after it, not after the text)
+        assert_eq!(active_actor_times(206, "Officer").await, [ms(1000), ms(1000) + ACTIVE_ACTOR_RESEND]);
+        // 822: the Swashbuckler, during the `delay 1`; 598: Hades, at the text's end
+        assert_eq!(active_actor_times(822, "Swashbuckler").await, [ms(0), ACTIVE_ACTOR_RESEND]);
+        assert_eq!(active_actor_times(598, "Hades").await, [ms(0), ACTIVE_ACTOR_RESEND]);
+        // 812: the owner, not spawned by the text: once
+        assert_eq!(active_actor_times(812, "knubotOwnerActor").await, [ms(0)]);
     }
 
     #[test]

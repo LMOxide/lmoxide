@@ -671,6 +671,13 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   `playerActor` and `knubotOwnerActor`. After a text: AnswerList [next text's line (the 50001
   answer with the same wording), Goodbye (50001/0)]; an answerless next text is the epilogue
   on goodbye; ClearCinematicState before Close.
+- **Owner**: live opened cinematics' windows with the invisible trigger NPC that owns them as
+  the npc ("Cinematic Start Oops" (50000, 1991) for 206; LMO_Captures.cap: characters with
+  monster data 51057, CARS group 5, npc_stats template = the dialogue's 51000 name id); LMOxide
+  spawns those (spawns.rs `cinematic_owners`). The portrait follows `setactiveactor`; one naming
+  an actor the same text just spawned (`addcinematicactor`, 206's Officer) reaches the client
+  before the actor exists and the portrait falls back to the owner's (the default "DJ" icon),
+  so LMOxide sends it again 300 ms later (knubot.rs `ACTIVE_ACTOR_RESEND`).
 - **remoteformat** `key` attributes: the client shows texts without them.
 - A dialogue sent while the client still loads a playfield is lost.
 - **Area quests** (quests.rs; LMO_Captures.cap, the client's writers `quests::operator<<`,
