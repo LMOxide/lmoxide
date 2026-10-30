@@ -80,6 +80,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut observed_casts: HashMap<u32, (u32, Id32, u32, std::time::Instant)> = HashMap::new();
     // the tutorial, while in it
     let mut tutorial: Option<crate::tutorial::Run> = None;
+    // a line for the player once in the world (their created name was taken)
+    let mut arrival_notice: Option<String> = None;
     // clearing the playfield in this visit: its own enemies, and those defeated so far
     let mut residents: std::collections::HashSet<Id32> = Default::default();
     let mut defeated_here: std::collections::HashSet<Id32> = Default::default();
@@ -633,6 +635,12 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             send_records(&mut conn, character, records).await?;
                             if let Some(record) = tutorial.as_mut().and_then(|t| t.moved(here)) {
                                 conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                            }
+                            // (a created character whose name was taken: in the world now)
+                            if me.playfield != crate::tutorial::CREATION_PLAYFIELD
+                                && let Some(line) = arrival_notice.take()
+                            {
+                                crate::chat::system(character, &line);
                             }
                             if me.playfield == crate::tutorial::CREATION_PLAYFIELD {
                                 // a new character: the client's creation script sends the name and
@@ -2061,23 +2069,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let (nick, first, last) = (r.string()?, r.string()?, r.string()?);
                 let set = r.u32()?;
                 let names_ok = [&nick, &first, &last].iter().all(|n| n.chars().count() <= 32) && !nick.trim().is_empty();
-                // stored in reading order, "first nick last" (the launcher's "Fantastic Sparky
-                // Burrito" arrives as nick Sparky, first Fantastic, last Burrito)
-                let name = [first.trim(), nick.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
                 let starter = crate::tutorial::starter(set).filter(|_| names_ok && me.playfield == crate::tutorial::CREATION_PLAYFIELD);
-                // names belong to one account: taken at once in the database, so two players
-                // can't both get one
-                let free = starter.is_some()
-                    && match state::db().set_character_name(character, &name) {
-                        Ok(()) => true,
-                        Err(lmoxide_db::Error::NameTaken) => false,
-                        Err(e) => {
-                            warn!(character, "setting the character's name failed: {e:#}");
-                            false
-                        }
-                    };
-                let starter = starter.filter(|_| free);
-                info!(character, %nick, %first, %last, set, free, ok = starter.is_some(), "SetCharacterCreationData");
+                // stored in reading order, "first nick last" (the launcher's "Fantastic Sparky
+                // Burrito" arrives as nick Sparky, first Fantastic, last Burrito); taken at once in
+                // the database, so two players can't both get one, else the next free surname
+                let claimed = starter.and_then(|_| crate::tutorial::claim_name(character, first.trim(), nick.trim(), last.trim()));
+                let starter = starter.filter(|_| claimed.is_some());
+                info!(character, %nick, %first, %last, set, name = ?claimed, ok = starter.is_some(), "SetCharacterCreationData");
                 let result = if starter.is_some() { 0 } else { 1 };
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 if starter.is_none() && me.playfield == crate::tutorial::CREATION_PLAYFIELD {
@@ -2085,14 +2083,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     // shows no failure (the creation script would only send it again): say why and
                     // disconnect. Back in the launcher the character isn't listed (no name yet), so
                     // the launcher offers creation again.
-                    let why = if names_ok && crate::tutorial::starter(set).is_some() {
-                        format!("The name {name} is taken. Pick another one on the character creation screen.")
-                    } else {
-                        "That name can't be used. Pick another one on the character creation screen.".into()
-                    };
+                    let why = "That name can't be used. Pick another one on the character creation screen.".to_string();
                     let _ = outbox.send(world::Out::Kick(Some(why)));
                 }
-                if let Some(template) = starter {
+                if let (Some(template), Some((name, picked))) = (starter, claimed) {
+                    if !picked {
+                        let wanted = [first.trim(), nick.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+                        arrival_notice = Some(format!("{wanted} was taken: you are {name}."));
+                    }
                     me.name = name;
                     crate::sessions::set_character_name(character, &me.name);
                     crate::community::renamed(character, &me.name);

@@ -779,9 +779,14 @@ The recorded session is a new character being created and playing the whole tuto
   `SlotNameSelected`), and nothing in the UI listens to a failure
   (`SlotCreatePlayerCharacterResult` 0x14b696e emits `SignalCreateCharacterFailed(code)`, which no
   script connects). The name and set are picked in the launcher before login and kept in the
-  native `ASCharacterCreation`, so the creation script would only send the same name again: for a
-  taken name the server answers 1, tells the player in chat and disconnects them; the launcher then
-  lists no character (one without a name isn't listed) and offers creation again. Unused: PlayerInterface
+  native `ASCharacterCreation`, so the creation script would only send the same name again, and
+  the client's own rename prompt (PlayerInterface `CharacterNeedsNewName`) is a stub in 1.5
+  (`FlowControlModule_t::SlotCharacterNeedsNewName` 0x113f49c only asserts; no Flash module
+  listens to `AccountManagement.SignalCharacterNeedsNewName`). So a taken name keeps the first
+  name and nick and gets the next free surname on the creation screen's surname wheel (RDB
+  1010700/1 LastNames, `data/creation_names.json` from tools/re/extract_creation_names.py);
+  creation succeeds and the player is told in chat once in the world ("X was taken: you are Y").
+  An invalid pick (bad set, empty nick) is answered 1 and the player disconnected with the reason. Unused: PlayerInterface
   `CharacterNeedsNewName(inst, reason, name)` -> PlayerAgent `RenameCharacter(inst, name)` (the
   character list's rename flow).
 - Tutorial: six invisible trigger NPCs ("Cinematic Start ...") start Video Game Guy's dialogues

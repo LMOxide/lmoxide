@@ -174,6 +174,48 @@ pub fn starter(set: u32) -> Option<u32> {
     STARTER_SETS.get(set as usize).copied()
 }
 
+/// The creation screen's surname wheel (RDB 1010700/1 LastNames, in its order;
+/// tools/re/extract_creation_names.py).
+fn surnames() -> &'static [String] {
+    static NAMES: std::sync::LazyLock<Vec<String>> = std::sync::LazyLock::new(|| {
+        #[derive(serde::Deserialize)]
+        struct Lists {
+            last: Vec<String>,
+        }
+        serde_json::from_str::<Lists>(include_str!("../../../data/creation_names.json")).expect("creation_names.json").last
+    });
+    &NAMES
+}
+
+/// The names to try for a created "first nick last": it, then the same first name and nick with
+/// each surname after `last` on the wheel (wrapping around).
+fn name_candidates<'a>(first: &'a str, nick: &'a str, last: &'a str) -> impl Iterator<Item = String> + 'a {
+    let join = move |last: &str| [first, nick, last].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+    let wheel = surnames();
+    let at = wheel.iter().position(|n| n == last).map_or(0, |i| i + 1);
+    std::iter::once(join(last)).chain((0..wheel.len()).map(move |i| &wheel[(at + i) % wheel.len()]).filter(move |n| *n != last).map(move |n| join(n)))
+}
+
+/// Gives the created `character` its name, stored in reading order "first nick last" (names
+/// belong to one account: another account's character may not have it). Taken: the same first
+/// name and nick with the next free surname on the creation screen's wheel, since the client
+/// can't ask for another name (the launcher picked it before login and shows no failure).
+/// Returns the name given and whether it is the one picked; `None` if nothing was free.
+pub fn claim_name(character: u32, first: &str, nick: &str, last: &str) -> Option<(String, bool)> {
+    let db = crate::state::db();
+    for (i, name) in name_candidates(first, nick, last).enumerate() {
+        match db.set_character_name(character, &name) {
+            Ok(()) => return Some((name, i == 0)),
+            Err(lmoxide_db::Error::NameTaken) => {}
+            Err(e) => {
+                tracing::warn!(character, "setting the character's name failed: {e:#}");
+                return None;
+            }
+        }
+    }
+    None
+}
+
 /// `GameActionListIIR_t` starting the creation script (recorded): u32 1, action
 /// StartClientSideScryScript (0xcfed), sequence, 4, 0, 4 (key, value) pairs (761 = the script),
 /// 0, 0, no strings, u8 0.
@@ -376,6 +418,20 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A taken created name tries the next surnames on the wheel, wrapping around.
+    #[test]
+    fn name_candidates_follow_the_surname_wheel() {
+        let wheel = surnames();
+        assert_eq!(wheel.len(), 730);
+        let tried: Vec<String> = name_candidates("Electric", "Cuckoo", "Elk").take(3).collect();
+        assert_eq!(tried, ["Electric Cuckoo Elk", "Electric Cuckoo Emerald", "Electric Cuckoo Empanada"]);
+        let last = wheel.last().unwrap();
+        let tried: Vec<String> = name_candidates("A", "B", last).take(2).collect();
+        assert_eq!(tried, [format!("A B {last}"), format!("A B {}", wheel[0])]);
+        // every surname once, the picked one first
+        assert_eq!(name_candidates("A", "B", "Elk").count(), wheel.len());
+    }
 
     #[test]
     fn data() {
