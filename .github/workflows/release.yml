@@ -18,6 +18,8 @@ permissions:
   packages: write
 
 env:
+  # docker/build-push-action's build records aren't needed (and broke the release job's download)
+  DOCKER_BUILD_RECORD_UPLOAD: false
   IMAGE: ghcr.io/lmoxide/lmoxide
 
 jobs:
@@ -120,6 +122,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          # only the builds (not docker/build-push-action's .dockerbuild records)
+          pattern: "{server,patcher-*}"
           merge-multiple: true
       - name: Checksums
         run: sha256sum lmoxide-* > SHA256SUMS
