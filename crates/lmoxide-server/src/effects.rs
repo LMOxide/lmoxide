@@ -180,6 +180,14 @@ pub fn ground_effect(owner: Id32, package: u32, at: [f32; 3], spell: u32, instan
     })
 }
 
+/// `ground_effect` started at a code hook (the Witch Doctor's totem: "onhit" plays its mark and
+/// drop on the ground).
+pub fn ground_effect_hook(owner: Id32, package: u32, hook: &str, at: [f32; 3], instance: u32) -> Bytes {
+    iir::record("EffectPackageIIR", owner, false, |w| {
+        Id32::new(0, 0).write(w).u32(package).string(hook).string("").f32(0.0).u8(0).u32(instance).f32(at[0]).f32(at[1]).f32(at[2]).u32(0)
+    })
+}
+
 /// `StopEffectPackageIIR` (owner): u32 package, u32 owning spell, u32 instance (recorded).
 pub fn stop_effect_package(owner: Id32, package: u32, spell: u32, instance: u32) -> Bytes {
     iir::record("StopEffectPackageIIR", owner, false, |w| w.u32(package).u32(spell).u32(instance))

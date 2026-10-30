@@ -18,6 +18,7 @@ mod editor;
 mod discovery;
 mod effects;
 mod encounter;
+mod enemy_abilities;
 mod game;
 mod gamedata;
 mod gates;

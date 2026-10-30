@@ -413,6 +413,14 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             }
         }
     }
+    // tunables naming records: the enemy abilities' NPCs
+    let abilities = &content.tunables.enemy_abilities;
+    let ability_npcs = abilities.healers.iter().flat_map(|h| &h.npcs).chain(abilities.shields.iter().flat_map(|s| &s.npcs)).chain(abilities.totems.iter().flat_map(|t| &t.npcs));
+    for r in ability_npcs {
+        if !r.starts_with("npc/") || !resolved.contains_key(r) {
+            err(Severity::Error, Some(&dir.join("tunables.json")), None, format!("enemy_abilities refers to {r}, which isn't an NPC"));
+        }
+    }
     // the kinds each reference may name (the schemas' x-lmoxide-ref); spawn overrides by
     // their template's schema
     let walker = crate::schema::Walker::new();

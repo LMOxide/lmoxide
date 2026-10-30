@@ -57,6 +57,10 @@ pub struct Tunables {
     /// Who achievements count for.
     #[serde(default)]
     pub achievements: AchievementTunables,
+    /// Enemies' support abilities no client spell describes: healers, shields, the Witch
+    /// Doctor's totem (server enemy_abilities.rs).
+    #[serde(default)]
+    pub enemy_abilities: EnemyAbilities,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
@@ -480,6 +484,116 @@ pub struct LostCreations {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[schemars(extend("x-lmoxide-ref" = ["lc"]))]
     pub force_level: Option<Ref>,
+}
+
+/// Enemies' support abilities no client spell describes (server enemy_abilities.rs). The
+/// client has their effects (and animations), not who cast them how: the numbers are guesses.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct EnemyAbilities {
+    /// Healers heal bosses too (the user thinks live did).
+    #[serde(default = "yes")]
+    pub heals_bosses: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub healers: Vec<EnemyHealer>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub shields: Vec<EnemyShield>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub totems: Vec<EnemyTotem>,
+}
+
+/// An enemy that heals a hurt ally (the Medic).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct EnemyHealer {
+    /// The enemies (their looks: every NPC with the same monster data heals).
+    #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
+    pub npcs: Vec<Ref>,
+    /// Health given, a share of the healed ally's maximum.
+    pub heal: Ratio,
+    /// Heals an ally (not itself) below this share of its maximum.
+    pub below: Ratio,
+    /// How far away the ally may be (m).
+    pub range: f32,
+    pub cooldown: Duration,
+    /// The heal lands this long after the cast (the thrown bottle's flight).
+    pub travel: Duration,
+    /// Played from the healer at the ally (a thrown bottle).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub projectile_effect: Option<u32>,
+    /// Played on the ally when healed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub heal_effect: Option<u32>,
+}
+
+/// Who an enemy's shield covers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum ShieldOn {
+    /// The enemy itself.
+    #[default]
+    Itself,
+    /// The most hurt unshielded ally in `range` (else itself).
+    Ally,
+    /// Itself and every ally within `radius`.
+    Area,
+}
+
+/// An enemy that shields itself or allies for a while (Skeleton Trident, Space Merc Defender).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct EnemyShield {
+    /// The enemies (by monster data, as healers).
+    #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
+    pub npcs: Vec<Ref>,
+    /// Damage a shielded enemy still takes: 0% none at all, 50% half.
+    pub taken: Ratio,
+    #[serde(default)]
+    pub on: ShieldOn,
+    /// `ally`: how far away the ally may be; `area`: the radius (m).
+    #[serde(default)]
+    pub range: f32,
+    pub duration: Duration,
+    /// From one shield's start to the next one's.
+    pub cooldown: Duration,
+    /// Shown on the shielded while it lasts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effect: Option<u32>,
+    /// Played on the caster when it casts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cast_effect: Option<u32>,
+    /// Played from the caster at a shielded ally.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub projectile_effect: Option<u32>,
+}
+
+/// An enemy that marks the ground under a player and drops something on it after a moment (the
+/// Witch Doctor's tiki totem).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct EnemyTotem {
+    #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
+    pub npcs: Vec<Ref>,
+    /// Cast at players this close (m); the enemy keeps 80% of it away.
+    pub range: f32,
+    /// Players within this of the mark are hit (m).
+    pub radius: f32,
+    /// From the mark to the hit.
+    pub delay: Duration,
+    pub cooldown: Duration,
+    /// The hit: the enemy's damage x this (as a spell's AbilityMod).
+    pub ability_mod: f32,
+    /// Played on the caster (code hook "charge") and on the mark (hook "onhit").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub effect: Option<u32>,
+    /// Played on the mark when it hits.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drop_effect: Option<u32>,
+    /// A buff given to the players hit (a stun), for `stun_time`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stun_buff: Option<u32>,
+    #[serde(default)]
+    pub stun_time: Duration,
 }
 
 /// Who achievements count for.

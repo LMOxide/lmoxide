@@ -462,6 +462,56 @@
           "count": 2
         }
       ]
+    },
+    {
+      "label": "healers",
+      "about": "2 Medics with 3 Musketeers around you (enemy_abilities.rs): hurt a Musketeer below 70% and a Medic throws it a heal bottle (20% of its maximum, every 8 s)",
+      "spawn": [
+        {
+          "name": "Medic",
+          "count": 2
+        },
+        {
+          "name": "Musketeer",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "label": "shields",
+      "about": "shield enemies around you (enemy_abilities.rs): Skeleton Trident (itself, 8 s), Space Merc Defender (an ally, 6 s) with 2 Space Merc Brawlers, Ogre Defender (everyone within 6 m, 6 s), Gremlin Warlock (an ally); shielded enemies take tunables enemy_abilities.shields[].taken (0%: nothing)",
+      "spawn": [
+        {
+          "name": "Skeleton Trident",
+          "count": 1
+        },
+        {
+          "name": "Space Merc Defender",
+          "count": 1
+        },
+        {
+          "name": "Space Merc Brawler",
+          "count": 2
+        },
+        {
+          "name": "Medieval Ogre Defender Melee War",
+          "count": 1
+        },
+        {
+          "name": "Gremlin Warlock Lvl1",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "label": "totem",
+      "about": "2 Witch Doctors around you (enemy_abilities.rs): from up to 12 m they mark the ground under you and a tiki totem drops on it 1 s later (hits within 2.5 m), every 5 s",
+      "spawn": [
+        {
+          "name": "Witch doctor",
+          "count": 2
+        }
+      ]
     }
   ]
 }

@@ -411,6 +411,8 @@ struct Npc {
     /// Diminishing returns: when each crowd control of a kind (802 snare, 804 stun) it got
     /// stops counting, and how much each counted one shortens the next.
     diminishing: HashMap<u32, (Vec<std::time::Instant>, f32)>,
+    /// Shielded (enemy_abilities.rs): the share of damage it still takes, until then.
+    shield: Option<(f32, std::time::Instant)>,
 }
 
 impl Npc {
@@ -442,6 +444,7 @@ impl Npc {
             speed_factor: 1.0,
             diminishing: HashMap::new(),
             patrol: None,
+            shield: None,
         }
     }
 }
@@ -617,6 +620,25 @@ pub fn boss_near(playfield: Pf, at: [f32; 2], radius: f32) -> Option<Id32> {
 /// A live NPC's health and maximum (`None` while it's dead or gone).
 pub fn health_of(id: Id32) -> Option<(u32, u32)> {
     NPCS.lock().unwrap().get(&id).filter(|n| n.presence.is_some() && n.health > 0).map(|n| (n.health, n.def.health))
+}
+
+/// Heals a live NPC by `amount` (an enemy healer, enemy_abilities.rs); returns its new health.
+pub fn heal_npc(id: Id32, amount: u32) -> Option<u32> {
+    let health = {
+        let mut npcs = NPCS.lock().unwrap();
+        let n = npcs.get_mut(&id).filter(|n| n.presence.is_some() && n.health > 0)?;
+        n.health = (n.health + amount).min(n.def.health);
+        n.health
+    };
+    world::send_playfield(id, true, world::Out::Records(vec![int32_stat(id, STAT_HEALTH, health)]));
+    Some(health)
+}
+
+/// Shields a live NPC until `until`: it takes `taken` of the damage (enemy_abilities.rs).
+pub fn shield_npc(id: Id32, taken: f32, until: std::time::Instant) {
+    if let Some(n) = NPCS.lock().unwrap().get_mut(&id) {
+        n.shield = Some((taken, until));
+    }
 }
 
 /// Heals a live NPC to full (an encounter reset).
@@ -1182,7 +1204,9 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     } else {
         damage
     };
-    let dealt = (((damage as f32) * (1.0 - mitigation)).round().max(1.0) as u32).min(npc.health);
+    // a shield (enemy_abilities.rs) lets `taken` of it through: 0% stops it all
+    let taken = npc.shield.filter(|(_, until)| *until > std::time::Instant::now()).map_or(1.0, |(taken, _)| taken);
+    let dealt = if taken <= 0.0 { 0 } else { (((damage as f32) * (1.0 - mitigation) * taken).round().max(1.0) as u32).min(npc.health) };
     npc.health -= dealt;
     let health = npc.health;
     info!(?attacker, npc = %npc.def.name, damage, health, "hit");
@@ -1914,6 +1938,12 @@ fn reach_of(spell: u32) -> f32 {
     crate::npc_spells::range(spell).max(MELEE_RANGE + 1.0)
 }
 
+/// How close enemy `def` walks up to its target: a totem caster stays at its totem's range
+/// (enemy_abilities.rs), others as `keep_distance`.
+fn keep_for(def: &SpawnDef) -> f32 {
+    crate::enemy_abilities::keep_distance(def.monster_data).map_or_else(|| keep_distance(&spells_for(def)), |k| k.clamp(MELEE_RANGE, AGGRO_RANGE - 1.0))
+}
+
 /// How close an enemy with `spells` walks up to its target: to melee range if it has a melee
 /// attack, otherwise to 80% of its shortest ranged attack (kept inside the aggro range).
 fn keep_distance(spells: &[u32]) -> f32 {
@@ -1951,6 +1981,40 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         if npc.busy_until.is_some_and(|t| t > now) || npc.last_attack.is_some_and(|t| t.elapsed() < ATTACK_INTERVAL) {
             return false;
         }
+        // a heal, shield or totem first (enemy_abilities.rs), when there is one to cast
+        if let Some(kit) = crate::enemy_abilities::kit(npc.def.monster_data) {
+            let (playfield, faction) = (npc.playfield, npc.def.faction);
+            let allies: Vec<crate::enemy_abilities::Ally> = npcs
+                .iter()
+                .filter(|(_, n)| n.playfield == playfield && n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0 && n.def.faction == faction && n.owner.is_none())
+                .map(|(o, n)| crate::enemy_abilities::Ally {
+                    id: *o,
+                    pos: n.now_at(now),
+                    health: n.health,
+                    max: n.def.health,
+                    boss: rank_of(&n.def) >= BOSS_RANK,
+                    shielded: n.shield.is_some_and(|(_, until)| until > now),
+                })
+                .filter(|a| distance(here, a.pos) <= 30.0)
+                .collect();
+            let npc = npcs.get_mut(&id).expect("looked up above");
+            let heals_bosses = crate::gamedata::get().tunables.enemy_abilities.heals_bosses;
+            let plan = crate::enemy_abilities::choose(kit, id, here, at, &allies, |key| npc.cooldowns.get(&key).is_none_or(|t| *t <= now), heals_bosses);
+            if let Some(plan) = plan {
+                let (key, cooldown) = plan.cooldown(kit);
+                npc.cooldowns.insert(key, now + cooldown);
+                npc.last_attack = Some(now);
+                npc.busy_until = Some(now + plan.busy());
+                let (playfield, power) = (npc.playfield, enemy_damage(npc.def.level, npc.def.health));
+                drop(npcs);
+                if is_player(target) {
+                    mark_in_combat(target);
+                }
+                crate::enemy_abilities::run(id, playfield, power, kit, plan);
+                return true;
+            }
+        }
+        let npc = npcs.get_mut(&id).expect("looked up above");
         let spells = if npc.only_spells.is_empty() { spells_for(&npc.def) } else { npc.only_spells.clone() };
         let pick = spells
             .into_iter()
@@ -2065,7 +2129,7 @@ fn fighters_tick(awake: &std::collections::HashSet<Pf>) {
         .unwrap()
         .iter()
         .filter(|(_, n)| awake.contains(&n.playfield) && n.def.fights() && n.presence.is_some() && n.health > 0)
-        .map(|(id, n)| (*id, n.playfield, n.def.pos, keep_distance(&spells_for(&n.def))))
+        .map(|(id, n)| (*id, n.playfield, n.def.pos, keep_for(&n.def)))
         .collect();
     for (id, playfield, home, keep) in fighters {
         let Some(here) = current(id) else { continue };
@@ -2262,7 +2326,7 @@ async fn ai() {
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
             .map(|(id, n)| {
                 let threat = n.threat.filter(|(_, t)| t.elapsed() < THREAT_MEMORY).map(|(p, _)| p);
-                (*id, n.playfield, n.def.pos, stand_reach(&n.def), keep_distance(&spells_for(&n.def)), threat, n.def.faction)
+                (*id, n.playfield, n.def.pos, stand_reach(&n.def), keep_for(&n.def), threat, n.def.faction)
             })
             .collect();
         // rival enemies: (id, playfield, side, position)
