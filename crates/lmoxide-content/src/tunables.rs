@@ -568,20 +568,29 @@ pub struct EnemyShield {
 }
 
 /// An enemy that marks the ground under a player and drops something on it after a moment (the
-/// Witch Doctor's tiki totem).
+/// Witch Doctor's tiki totem), on its own cooldown besides its attacks. With `spell` that client
+/// spell is cast at the player (its animation, ground effect and hit); otherwise the server
+/// shows `effect` and hits within `radius` after `delay` itself.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct EnemyTotem {
     #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
     pub npcs: Vec<Ref>,
+    /// The skill cast (its client spell).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["skill"]))]
+    pub spell: Option<Ref>,
     /// Cast at players this close (m).
     pub range: f32,
-    /// Players within this of the mark are hit (m).
-    pub radius: f32,
-    /// From the mark to the hit.
-    pub delay: Duration,
     pub cooldown: Duration,
-    /// The hit: the enemy's damage x this (as a spell's AbilityMod).
+    /// Without `spell`: players within this of the mark are hit (m).
+    #[serde(default, skip_serializing_if = "is_unset")]
+    pub radius: f32,
+    /// Without `spell`: from the mark to the hit.
+    #[serde(default, skip_serializing_if = "is_no_time")]
+    pub delay: Duration,
+    /// Without `spell`: the hit, the enemy's damage x this (as a spell's AbilityMod).
+    #[serde(default, skip_serializing_if = "is_unset")]
     pub ability_mod: f32,
     /// Played on the caster (code hook "charge") and on the mark (hook "onhit").
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -592,8 +601,16 @@ pub struct EnemyTotem {
     /// A buff given to the players hit (a stun), for `stun_time`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stun_buff: Option<u32>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "is_no_time")]
     pub stun_time: Duration,
+}
+
+fn is_unset(v: &f32) -> bool {
+    *v == 0.0
+}
+
+fn is_no_time(d: &Duration) -> bool {
+    d.0 == 0.0
 }
 
 /// Who achievements count for.

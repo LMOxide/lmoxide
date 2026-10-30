@@ -2004,7 +2004,7 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
                 if is_player(target) {
                     mark_in_combat(target);
                 }
-                crate::enemy_abilities::run(id, playfield, power, kit, plan);
+                crate::enemy_abilities::run(id, playfield, power, kit, plan, target);
                 return true;
             }
         }

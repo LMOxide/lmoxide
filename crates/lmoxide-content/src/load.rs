@@ -421,6 +421,11 @@ pub fn load(dir: &Path, options: &Options) -> (Content, Vec<Problem>) {
             err(Severity::Error, Some(&dir.join("tunables.json")), None, format!("enemy_abilities refers to {r}, which isn't an NPC"));
         }
     }
+    for r in abilities.totems.iter().filter_map(|t| t.spell.as_ref()) {
+        if !r.starts_with("skill/") || !resolved.contains_key(r) {
+            err(Severity::Error, Some(&dir.join("tunables.json")), None, format!("enemy_abilities refers to {r}, which isn't a skill"));
+        }
+    }
     // the kinds each reference may name (the schemas' x-lmoxide-ref); spawn overrides by
     // their template's schema
     let walker = crate::schema::Walker::new();

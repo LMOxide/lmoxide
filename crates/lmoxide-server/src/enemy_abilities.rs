@@ -149,8 +149,8 @@ pub fn choose(kit: &Kit, me: Id32, here: [f32; 3], at: [f32; 3], allies: &[Ally]
 }
 
 /// Carries out `plan` of enemy `caster` (on `playfield`, hitting for `power` before the
-/// ability's AbilityMod).
-pub fn run(caster: Id32, playfield: Pf, power: f32, kit: &'static Kit, plan: Plan) {
+/// ability's AbilityMod) against `target`.
+pub fn run(caster: Id32, playfield: Pf, power: f32, kit: &'static Kit, plan: Plan, target: Id32) {
     info!(npc = ?caster, ?plan, "enemy ability");
     match plan {
         Plan::Heal { ally, amount } => {
@@ -201,6 +201,11 @@ pub fn run(caster: Id32, playfield: Pf, power: f32, kit: &'static Kit, plan: Pla
         }
         Plan::Totem { at } => {
             let Some(t) = kit.totem else { return };
+            if let Some(spell) = t.spell.as_ref().and_then(|s| crate::gamedata::get().skills.get(s.as_str())).and_then(|s| s.client.as_ref()).map(|c| c.spell) {
+                // the client spell does it all (npc_spells.rs): the cast animation, the mark, the hit
+                crate::npc_spells::cast(caster, playfield, power, spell, target, at);
+                return;
+            }
             if let Some(fx) = t.effect {
                 let instance = effects::new_instance();
                 show(
