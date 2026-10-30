@@ -52,7 +52,12 @@ pub async fn territory_closed(account: u32, timeout: Duration) -> bool {
 static CHARACTERS: LazyLock<Mutex<HashMap<u32, u32>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 
 pub fn set_character(account: u32, character: u32) {
-    CHARACTERS.lock().unwrap().insert(account, character);
+    let old = CHARACTERS.lock().unwrap().insert(account, character).unwrap_or(account);
+    if old != character {
+        // a chat connection made before (after a server restart the client's chat reconnects
+        // before its game login: it went to the account's id) is this character's now
+        crate::chat::retarget(old, character);
+    }
 }
 
 /// The character the account plays (its first, the account's id, if none was picked).

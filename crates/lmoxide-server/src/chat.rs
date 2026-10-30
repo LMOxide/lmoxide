@@ -108,6 +108,9 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
     let mut lines = FramedRead::new(rd, LinesCodec::new_with_max_length(MAX_LINE));
     let login_deadline = tokio::time::Instant::now() + LOGIN_TIMEOUT;
     let (tx, mut rx) = mpsc::unbounded_channel::<String>();
+    // the account logged in, and the character it plays (looked up again for every line: the
+    // game login can pick it after the chat connected, `retarget`)
+    let mut login = None;
     let mut account = None;
     let mut nick = String::new();
     // a player this server sent to the peer server: its chat goes there (switch.rs)
@@ -119,12 +122,16 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
             line = lines.next() => {
                 let Some(line) = line.transpose()? else { break };
                 debug!(%line, "<-");
+                if let Some(l) = login {
+                    account = Some(crate::sessions::character_of(l));
+                }
                 let (cmd, rest) = line.split_once(' ').unwrap_or((line.as_str(), ""));
                 match cmd.to_ascii_uppercase().as_str() {
                     "PASS" => {
                         let cookie: u32 = rest.trim_start_matches(':').trim().parse().unwrap_or(0);
                         let logged_in = crate::state::or_log(crate::state::db().game_session(cookie), "session", None);
                         // chat is addressed to characters: the one the account plays
+                        login = logged_in;
                         account = logged_in.map(crate::sessions::character_of);
                         info!(?account, "chat login");
                         let Some(a) = account else {
@@ -193,7 +200,7 @@ async fn handle(sock: TcpStream) -> anyhow::Result<()> {
             Some(out) = rx.recv() => send(&mut wr, &out).await?,
         }
     }
-    if let Some(a) = account {
+    if let Some(a) = login.map(crate::sessions::character_of).or(account) {
         let mut clients = CLIENTS.lock().unwrap();
         if clients.get(&a).is_some_and(|c| c.same_channel(&tx)) {
             clients.remove(&a);
@@ -265,6 +272,33 @@ pub fn set_team(character: u32, team: Option<u32>) {
         }
     }
     debug!(character, ?old, ?new, "chat: team channel");
+}
+
+/// The chat connection of `old` is `new`'s (the account now plays `new`): its channels and nick
+/// move to it (the game's `rejoin` at CharInPlay then sends their JOINs). Without this, chat typed
+/// after a server restart went to the account's id: test commands answered nobody and the client
+/// showed no channel (the user, 2026-10-30).
+pub fn retarget(old: u32, new: u32) {
+    let mut clients = CLIENTS.lock().unwrap();
+    if clients.contains_key(&new) {
+        return;
+    }
+    let Some(tx) = clients.remove(&old) else { return };
+    clients.insert(new, tx);
+    drop(clients);
+    let mut nicks = NICKS.lock().unwrap();
+    if let Some(nick) = nicks.remove(&old) {
+        nicks.insert(new, nick);
+    }
+    drop(nicks);
+    let old_team = TEAM_CHANNELS.lock().unwrap().remove(&old).map(|c| c.to_ascii_lowercase());
+    for (channel, members) in CHANNELS.lock().unwrap().iter_mut() {
+        if members.remove(&old) && Some(channel) != old_team.as_ref() {
+            members.insert(new);
+        }
+    }
+    set_team(new, crate::community::team_of(new));
+    info!(old, new, "chat: connection moved to the character played");
 }
 
 /// Sends the JOINs of a connected character's channels again (the default ones and its team's).
@@ -384,6 +418,24 @@ pub fn broadcast(sender: u32, text: &str) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_chat_that_connected_first_follows_the_game_login() {
+        // after a server restart the chat connected as the account (9_000_001), then the game
+        // logged in its character 9_000_002: the rejoin at CharInPlay reaches its connection
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        CLIENTS.lock().unwrap().insert(9_000_001, tx);
+        NICKS.lock().unwrap().insert(9_000_001, "host-0".into());
+        CHANNELS.lock().unwrap().entry("#chatgroup_general_d1_1".into()).or_default().insert(9_000_001);
+        crate::sessions::set_character(9_000_001, 9_000_002);
+        assert!(!CLIENTS.lock().unwrap().contains_key(&9_000_001));
+        assert!(CHANNELS.lock().unwrap()["#chatgroup_general_d1_1"].contains(&9_000_002));
+        rejoin(9_000_002);
+        assert_eq!(rx.try_recv().unwrap(), ":host-0!u@9000002.0.0 JOIN #ChatGroup_General_D1_1");
+        // a later login of the same character changes nothing
+        crate::sessions::set_character(9_000_001, 9_000_002);
+        assert!(CLIENTS.lock().unwrap().contains_key(&9_000_002));
+    }
 
     #[test]
     fn capture_keeps_server_lines_while_open() {
