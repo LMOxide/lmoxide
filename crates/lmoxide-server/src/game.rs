@@ -2672,15 +2672,21 @@ fn progress(
     let owned_set = me.collection.clone();
     let owned = move |t: u32| owned_set.as_ref().is_none_or(|o| o.contains_key(&t));
     use lmoxide_content::tunables::AchievementMinifigs;
-    let lost_creations_team: Vec<u32> = match crate::gamedata::get().tunables.lost_creations.achievement_minifigs {
-        AchievementMinifigs::Unsmashed => me.team.iter().map(|&(_, t)| t).filter(|t| !me.smashed.contains_key(t)).collect(),
-        AchievementMinifigs::Team => me.team.iter().map(|&(_, t)| t).collect(),
-        AchievementMinifigs::Active => me.team.first().map(|&(_, t)| t).into_iter().collect(),
+    let team = |which: AchievementMinifigs| -> Vec<u32> {
+        match which {
+            AchievementMinifigs::Unsmashed => me.team.iter().map(|&(_, t)| t).filter(|t| !me.smashed.contains_key(t)).collect(),
+            AchievementMinifigs::Team => me.team.iter().map(|&(_, t)| t).collect(),
+            AchievementMinifigs::Active => me.team.first().map(|&(_, t)| t).into_iter().collect(),
+        }
     };
+    let tunables = &crate::gamedata::get().tunables;
+    let lost_creations_team = team(tunables.lost_creations.achievement_minifigs);
+    let target_team = team(tunables.achievements.target_minifigs);
     let ctx = crate::achievements::Ctx {
         character,
         active: me.team.first().map(|&(_, t)| t),
         lost_creations_team: &lost_creations_team,
+        target_team: &target_team,
         locate: &locate,
         upgrades: &bought,
         owned: &owned,

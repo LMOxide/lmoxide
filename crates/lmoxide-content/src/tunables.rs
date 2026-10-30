@@ -54,6 +54,9 @@ pub struct Tunables {
     /// The story: narrated cinematics, quest pickups.
     #[serde(default)]
     pub story: Story,
+    /// Who achievements count for.
+    #[serde(default)]
+    pub achievements: AchievementTunables,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
@@ -479,11 +482,22 @@ pub struct LostCreations {
     pub force_level: Option<Ref>,
 }
 
-/// Who a completed Lost Creations level counts for.
+/// Who achievements count for.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct AchievementTunables {
+    /// Which of a player's minifigures a defeated boss or a conquered dungeon or pocket adventure
+    /// counts for (the "<minifigure>_<target>" achievements: "Defeat X as Y", "Conquer X as Y").
+    #[serde(default)]
+    pub target_minifigs: AchievementMinifigs,
+}
+
+/// Which of a player's minifigures an achievement counts for (a completed Lost Creations level,
+/// a defeated boss, a conquered dungeon).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum AchievementMinifigs {
-    /// The equipped minifigures not smashed in the run (user's rule).
+    /// The equipped minifigures not smashed (in the Lost Creations: in the run; user's rule).
     #[default]
     Unsmashed,
     /// Every equipped minifigure.
