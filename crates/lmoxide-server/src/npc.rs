@@ -1858,11 +1858,12 @@ pub fn stun(id: Id32, duration: Duration) -> Option<Duration> {
 
 /// A player's ability knocks enemy `id` `distance` m away from `from` (`towards`: pulls it
 /// that far towards `from`, stopping short of it) at `speed` m/s; it stands still meanwhile.
+/// Enemies that never leave their spot (`stationary`: cannons, pods, eggs, the Kraken) don't move.
 pub fn knock(id: Id32, from: [f32; 3], distance: f32, towards: bool, speed: f32) -> bool {
     let now = std::time::Instant::now();
     let (here, to) = {
         let mut npcs = NPCS.lock().unwrap();
-        let Some(npc) = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0) else { return false };
+        let Some(npc) = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0 && !n.def.stationary) else { return false };
         let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(now).0);
         let (dx, dz) = (here[0] - from[0], here[2] - from[2]);
         let d = dx.hypot(dz).max(0.1);
@@ -2642,6 +2643,17 @@ mod tests {
         assert!(knock(id, [0.0; 3], 20.0, true, 25.0));
         // pulled up to melee range, not through the caster
         assert!((at(id)[0] - MELEE_RANGE).abs() < 1e-4, "{:?}", at(id));
+        NPCS.lock().unwrap().remove(&id);
+    }
+
+    #[test]
+    fn stationary_enemies_stay_put() {
+        let id = walking_enemy(4, [10.0, 0.0, 0.0], [10.0, 0.0, 0.0]);
+        NPCS.lock().unwrap().get_mut(&id).unwrap().def.stationary = true;
+        assert!(!knock(id, [0.0; 3], 5.0, false, 25.0));
+        assert!(!knock(id, [0.0; 3], 5.0, true, 25.0));
+        assert_eq!(*NPCS.lock().unwrap()[&id].pos.lock().unwrap(), [10.0, 0.0, 0.0]);
+        assert!(!is_busy(id));
         NPCS.lock().unwrap().remove(&id);
     }
 }
