@@ -1105,6 +1105,7 @@ pub fn spawn_test_enemies_casting(name: &str, count: u32, playfield: Pf, center:
         .filter(|(_, d)| matches!(d.kind, Kind::Enemy | Kind::Smashable) && d.name.to_ascii_lowercase() == wanted)
         .max_by_key(|(_, d)| d.health)
         .map(|(_, d)| d.clone())
+        .or_else(|| crate::spawns::enemy_template_named(name))
     else {
         return 0;
     };
@@ -2126,12 +2127,16 @@ fn keep_distance(spells: &[u32]) -> f32 {
     (ranges.iter().copied().fold(f32::MAX, f32::min) * 0.8).clamp(MELEE_RANGE, AGGRO_RANGE - 1.0)
 }
 
-/// The spells NPC `def` fights with: its monster's (the NPC templates' `skills`, skills.rs), else its own.
+/// The spells NPC `def` fights with: its template's when they differ from its look's, else its
+/// monster's (the NPC templates' `skills`, skills.rs), else its own.
 fn spells_for(def: &SpawnDef) -> Vec<u32> {
     if def.unarmed {
         return Vec::new();
     }
-    crate::npc_spells::spells_of(def.monster_data).map_or_else(|| vec![def.spell], <[u32]>::to_vec)
+    def.npc_template
+        .and_then(crate::npc_spells::spells_of_template)
+        .or_else(|| crate::npc_spells::spells_of(def.monster_data))
+        .map_or_else(|| vec![def.spell], <[u32]>::to_vec)
 }
 
 /// How close players must come to an enemy that never leaves its spot: its own `reach`, else

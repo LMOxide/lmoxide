@@ -118,6 +118,22 @@ pub fn spawned_templates() -> HashMap<String, (SpawnDef, Option<std::time::Durat
         .collect()
 }
 
+/// An enemy template (kinds `enemy`, `boss`, `champion`) named `name` (any case) as the NPC code's
+/// definition, for test spawns of enemies nothing places (the live capture's Alpha Wolves and
+/// funhouse dummies appeared during play).
+pub fn enemy_template_named(name: &str) -> Option<SpawnDef> {
+    let c = crate::gamedata::get();
+    c.npcs
+        .values()
+        .filter(|n| matches!(n.kind, NpcKind::Enemy | NpcKind::Boss | NpcKind::Champion) && n.name.trim().eq_ignore_ascii_case(name))
+        .filter_map(|n| {
+            let spawn = Spawn { kind: SpawnKind::Enemy, name: n.name.trim().to_string(), source: n.source, ..Default::default() };
+            let t = serde_json::to_value(n).ok()?;
+            def_from(&spawn, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))
+        })
+        .max_by_key(|d| d.health)
+}
+
 /// A template's loot table when it isn't the one its kind rolls anyway (tunables
 /// `loot.tables`: `smashable`, `enemy`, which bosses and champions trade for theirs by rank).
 pub fn own_loot(c: &Content, kind: Kind, loot: Option<&str>) -> Option<String> {

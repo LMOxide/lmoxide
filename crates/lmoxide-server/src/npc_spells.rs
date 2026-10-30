@@ -51,6 +51,7 @@ use crate::{effects, world};
 
 struct Data {
     monsters: HashMap<u32, Vec<u32>>,
+    templates: HashMap<u32, Vec<u32>>,
     spells: HashMap<u32, Spell>,
     items: HashMap<u32, Item>,
 }
@@ -122,6 +123,7 @@ struct Item {
 
 static DATA: LazyLock<Data> = LazyLock::new(|| Data {
     monsters: crate::skills::monster_spells(),
+    templates: crate::skills::template_spells(),
     spells: crate::skills::spells().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("skill"))).collect(),
     items: crate::skills::projectile_items().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("projectile item"))).collect(),
 });
@@ -159,6 +161,12 @@ fn spell(id: u32) -> Option<&'static Spell> {
 /// The spells enemies of monsterdata `monster_data` cast, if known.
 pub fn spells_of(monster_data: u32) -> Option<&'static [u32]> {
     DATA.monsters.get(&monster_data).map(Vec::as_slice)
+}
+
+/// The spells enemies of NPC template `template` cast when they aren't their look's
+/// ([`spells_of`]).
+pub fn spells_of_template(template: u32) -> Option<&'static [u32]> {
+    DATA.templates.get(&template).map(Vec::as_slice)
 }
 
 /// Whether this module runs `spell` (otherwise it's a plain hit, npc.rs `attack`).
@@ -712,6 +720,18 @@ pub fn jitter() -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The Alpha Wolf (#2887) calls Summoned Wolves (Call to Arms 338311, live capture); the
+    /// wolves of the same look (Summoned Wolf #1259, ...) don't.
+    #[test]
+    fn a_template_casts_its_own_spells() {
+        assert!(spells_of_template(2887).is_some_and(|s| s.contains(&338_311)));
+        assert!(spells_of(350_950).is_some_and(|s| !s.contains(&338_311)));
+        assert_eq!(spells_of_template(1259), None);
+        // a cast of it spawns what its hash names, a 7.5 s recast apart
+        assert!(crate::npc::can_spawn("E9ER"));
+        assert_eq!(cooldown(338_311), Duration::from_millis(7500));
+    }
 
     #[test]
     fn recorded_enemies_have_their_spells() {

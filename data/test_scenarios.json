@@ -623,6 +623,35 @@
       "about": "Bumblebee Girl with 4 Pirate Corsairs: Plan Bee's swarm (221524) keeps stinging x0.25 every 0.5 s for its 2 s (4 hits of spell 221524 in the log after each shot that lands); Honey Pot renews the swarm on enemies already swarmed",
       "team": ["Bumblebee Girl"],
       "spawn": [{ "name": "Pirate Corsair", "count": 4 }]
+    },
+    {
+      "label": "callwolves",
+      "about": "two Alpha Wolves: Call to Arms (338311) brings a Summoned Wolf (SpawnMonster E9ER) every 7.5 s while they fight; the summoned wolves don't call more (log \"spawned monster\")",
+      "spawn": [{ "name": "Alpha Wolf", "count": 2 }]
+    },
+    {
+      "label": "hatch",
+      "about": "spider eggs and Alien Pods: walk up to one and it hatches (Spider egg: a Spiderling, JVYN; Alien Pod: a Mantis Nymph, 68MJ) and breaks without loot",
+      "spawn": [
+        { "name": "Spider egg", "count": 3 },
+        { "name": "Alien Pod", "count": 2 }
+      ]
+    },
+    {
+      "label": "poisonhazard",
+      "about": "a Funhouse Poison Hazard Dummy (invisible, on the ring around you): every second a poison blob falls at a random point within 18 m of it (anchor SS34, 16 s) and leaves a puddle that hurts",
+      "spawn": [{ "name": "XX_Invisible Funhouse Poison Hazard Dummy", "count": 1 }]
+    },
+    {
+      "label": "geysirs",
+      "about": "three fire geysirs (invisible, what YY1Z spawns): each burns 2 m around itself every 0.25 s",
+      "spawn": [{ "name": "XX_Invisible Fire Geysir", "count": 3 }]
+    },
+    {
+      "label": "queensguard",
+      "about": "Queen with 6 Pirate Corsairs: Queen's Guard brings the live capture's Queen's Guard (#3002) for 10 s, not the old Royal Guard for 15 s",
+      "team": ["Queen"],
+      "spawn": [{ "name": "Pirate Corsair", "count": 6 }]
     }
   ]
 }

@@ -31,9 +31,17 @@ first, then `docs/TUNABLES.md` ("Spawned monsters", "Orbiting shots", "Encounter
 | Hash | Spawns | Evidence |
 |---|---|---|
 | `FXCX` | `npc/main-pierrot2` (TDB 51000 #1058, invisible look 51057), 6 s | Live capture, Dinosaur Rise 6200: a Sad Clown's casts. See "How FXCX was matched". |
+| `E9ER`, `68MJ`, `JVYN`, `SS34`, `YY1Z`, `U1XT` | see "Found 2026-10-29" | Live capture. |
+| `JIMV` | `npc/champion-aura-dread-spheres-anchor` (#2505), 12 s | Name match (guess). |
+| `ZVJ2` | `npc/champion-aura-firewall-anchor` (#2766), 11 s | Name match (guess). |
 | `P9TE` | `npc/merc-engineer-drones-holder` (TDB 51000 #1464, invisible look 51057), 11 s | Name match; the client's drone spells and item (see "The Space Merc Engineer's drones"). |
 
-## Found 2026-10-29 (second session), not yet in content
+## Found 2026-10-29 (second session), in content since 2026-10-30
+
+Applied 2026-10-30 (see TUNABLES "Spawned monsters" for what is guessed): the spells below are imported with
+`tools/re/import_spells.py` (writes a spell chain and its projectile items into content), the casters
+(Alpha Wolf, spider eggs, Alien Pods, funhouse dummies, fire geysirs) have them as `skills`, and JIMV / ZVJ2
+have name-matched anchors. `!test callwolves`, `hatch`, `poisonhazard`, `geysirs`, `queensguard`.
 
 Live capture: the caster's `BehaviorControlCenterIIR_c` names the spell id (u32 BE at about +44..+52),
 and the spawned character's `SimpleCharFullUpdateIIR_t` follows within a few frames

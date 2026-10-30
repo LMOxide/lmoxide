@@ -134,16 +134,44 @@ pub fn summons() -> HashMap<u32, Value> {
         .collect()
 }
 
-/// The spells each enemy look (monster data) casts: the `skills` of its NPC templates.
+/// The spells each enemy look (monster data) casts: the `skills` most of its NPC templates have
+/// (ties: the first's), so one template's own (the Alpha Wolf's Call to Arms, [`template_spells`])
+/// doesn't spread to the others.
 pub fn monster_spells() -> HashMap<u32, Vec<u32>> {
     let c = crate::gamedata::get();
-    let mut out: HashMap<u32, Vec<u32>> = HashMap::new();
+    let mut lists: HashMap<u32, Vec<(Vec<u32>, usize)>> = HashMap::new();
     for n in c.npcs.values() {
         let (Some(md), false) = (n.render.monster_data, n.skills.is_empty()) else { continue };
         let spells: Vec<u32> = n.skills.iter().filter_map(|u| c.skills.get(&u.skill)?.client.as_ref().map(|c| c.spell)).collect();
-        out.entry(md).or_insert(spells);
+        let seen = lists.entry(md).or_default();
+        match seen.iter_mut().find(|(s, _)| *s == spells) {
+            Some((_, count)) => *count += 1,
+            None => seen.push((spells, 1)),
+        }
     }
-    out
+    lists
+        .into_iter()
+        .map(|(md, seen)| {
+            let most = seen.iter().map(|(_, n)| *n).max().unwrap_or(0);
+            (md, seen.into_iter().find(|(_, n)| *n == most).map(|(s, _)| s).unwrap_or_default())
+        })
+        .collect()
+}
+
+/// The spells each NPC template (`npc_template`, TDB 51000) casts when its own `skills` differ
+/// from its look's ([`monster_spells`]): the Alpha Wolf's Call to Arms, which the Summoned
+/// Wolves of the same look don't cast.
+pub fn template_spells() -> HashMap<u32, Vec<u32>> {
+    let c = crate::gamedata::get();
+    let looks = monster_spells();
+    c.npcs
+        .values()
+        .filter(|n| !n.skills.is_empty())
+        .filter_map(|n| {
+            let spells: Vec<u32> = n.skills.iter().filter_map(|u| c.skills.get(&u.skill)?.client.as_ref().map(|c| c.spell)).collect();
+            (looks.get(&n.render.monster_data?) != Some(&spells)).then_some((n.render.npc_template?, spells))
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -227,6 +255,11 @@ mod tests {
         for (k, v) in data("summons.json").as_object().unwrap().iter().filter(|(k, _)| k.parse::<u32>().is_ok() && !NO_LONGER_SUMMONS.contains(&k.as_str())) {
             let got = &summons[&k.parse::<u32>().unwrap()];
             for f in ["name", "monster_data", "lifetime", "spell"] {
+                // Queen's Guard brings the live capture's Queen's Guard for 10 s (U1XT,
+                // npc/queen-s-guard-summon), not the guessed Royal Guard for 15 s
+                if k == "663959" && (f == "name" || f == "lifetime") {
+                    continue;
+                }
                 if let Some((_, spell)) = LUA_PET_ATTACKS.iter().find(|(s, _)| *s == k).filter(|_| f == "spell") {
                     assert_eq!(got.get(f), Some(&json!(spell)), "summon {k} lua pet attack");
                     continue;
