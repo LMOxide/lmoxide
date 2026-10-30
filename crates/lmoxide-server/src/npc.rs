@@ -304,6 +304,9 @@ pub struct SpawnDef {
     /// Has no attack (its template's `ai.unarmed`).
     #[serde(default)]
     pub unarmed: bool,
+    /// Never turns, not even to cast (its template's `ai.fixed_facing`: egg sacks, mounds, pods).
+    #[serde(default)]
+    pub fixed_facing: bool,
     /// Proposed content: the bounded area the camp was placed in (the spawn's `anchor`).
     #[serde(default)]
     pub anchor: Option<String>,
@@ -395,6 +398,8 @@ struct Npc {
     test_spawn: bool,
     /// Brought by a SpawnMonster action of this character's spell (`spawn_monster`).
     spawned_by: Option<Id32>,
+    /// The caster's spawn counter it counts in while alive (`SpawnHow::counter`).
+    spawn_counter: Option<u32>,
     /// A test spawn that casts only these of its spells (`!test` scenarios' `spells`).
     only_spells: Vec<u32>,
     /// When each of its spells can be cast again (npc_spells.rs).
@@ -445,6 +450,7 @@ impl Npc {
             once: false,
             test_spawn: false,
             spawned_by: None,
+            spawn_counter: None,
             only_spells: Vec::new(),
             cooldowns: HashMap::new(),
             busy_until: None,
@@ -1216,20 +1222,38 @@ pub fn can_spawn(hash: &str) -> bool {
     SPAWNED.contains_key(hash)
 }
 
+/// How a SpawnMonster action brings its monster (`spawn_monster`).
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SpawnHow {
+    /// The player an enemy starts on.
+    pub foe: Option<Id32>,
+    /// The caster's spawn counter it counts in while alive: its NanoTemplate's AddBuffCounter on
+    /// the caster ("spawncontrol"), which the caster's criteria cap (`spawned_count`).
+    pub counter: Option<u32>,
+    /// Its level instead of its template's, health scaled to match (an enemy caster's: the
+    /// Alien Mindslicer's abducted minifigures).
+    pub level: Option<u32>,
+}
+
 /// A SpawnMonster action of `caster`'s spell brings template `hash` at `at` on `playfield`: an
-/// enemy (which drops nothing, starts on `foe` when it has one, and doesn't respawn) or an
+/// enemy (which drops nothing, starts on `how.foe` when it has one, and doesn't respawn) or an
 /// anchor (an invisible friendly NPC orbiting shots circle: the Sad Clown's clouds), gone after
 /// its template's `lifetime`. Returns it, or `None` for an unknown template.
-pub fn spawn_monster(caster: Id32, playfield: Pf, hash: &str, at: [f32; 3], foe: Option<Id32>) -> Option<Id32> {
+pub fn spawn_monster(caster: Id32, playfield: Pf, hash: &str, at: [f32; 3], how: SpawnHow) -> Option<Id32> {
     let (def, lifetime) = SPAWNED.get(hash)?;
+    let foe = how.foe;
     let loot = if def.kind == Kind::Enemy { Some(SPAWNED_LOOT.to_string()) } else { def.loot.clone() };
-    let def = SpawnDef { pos: at, loot, ..def.clone() };
+    let mut def = SpawnDef { pos: at, loot, ..def.clone() };
+    if let Some(level) = how.level.filter(|l| *l != def.level && def.kind == Kind::Enemy) {
+        def.health = ((def.health as f32 * regular_life(level) as f32 / regular_life(def.level) as f32).round() as u32).max(1);
+        def.level = level;
+    }
     let lifetime = lifetime.unwrap_or(SPAWNED_LIFETIME);
     let id = new_id(&def);
     let now = std::time::Instant::now();
     info!(?caster, hash, name = %def.name, ?at, ?lifetime, "spawned monster");
     let threat = foe.filter(|f| def.kind == Kind::Enemy && is_player(*f)).map(|f| (f, now));
-    let npc = Npc { spawned_by: Some(caster), threat, ..Npc::new(def, playfield, None, Some(now + lifetime)) };
+    let npc = Npc { spawned_by: Some(caster), spawn_counter: how.counter, threat, ..Npc::new(def, playfield, None, Some(now + lifetime)) };
     NPCS.lock().unwrap().insert(id, npc);
     appear(id);
     tokio::spawn(async move {
@@ -1237,6 +1261,17 @@ pub fn spawn_monster(caster: Id32, playfield: Pf, hash: &str, at: [f32; 3], foe:
         despawn(id);
     });
     Some(id)
+}
+
+/// How many of what `caster`'s SpawnMonster actions brought are alive and count in its spawn
+/// counter `counter` (`SpawnHow::counter`).
+pub fn spawned_count(caster: Id32, counter: u32) -> u32 {
+    NPCS.lock().unwrap().values().filter(|n| n.spawned_by == Some(caster) && n.spawn_counter == Some(counter) && n.presence.is_some() && n.health > 0).count() as u32
+}
+
+/// A live NPC's level.
+pub fn level_of(id: Id32) -> Option<u32> {
+    NPCS.lock().unwrap().get(&id).map(|n| n.def.level)
 }
 
 /// Removes what `caster`'s SpawnMonster actions brought (a boss arena resetting); how many.
@@ -1286,6 +1321,7 @@ pub fn summon(owner: Id32, playfield: Pf, spell: u32, pos: [f32; 3]) {
         reach: None,
         stationary: false,
         unarmed: false,
+        fixed_facing: false,
         anchor: None,
         fights: false,
         faction: None,
@@ -2358,8 +2394,16 @@ fn attack(id: Id32, player: Id32, spell: u32, power: f32) {
     hurt_player(id, player, spell, enemy_hit(power, 1.0));
 }
 
-/// Turn an enemy that stays put towards `target`.
+/// Whether NPC `id` never turns (`SpawnDef::fixed_facing`).
+pub fn fixed_facing(id: Id32) -> bool {
+    NPCS.lock().unwrap().get(&id).is_some_and(|n| n.def.fixed_facing)
+}
+
+/// Turn an enemy that stays put towards `target` (not one that never turns).
 fn face(id: Id32, here: [f32; 3], target: [f32; 3]) {
+    if fixed_facing(id) {
+        return;
+    }
     let (dx, dz) = (target[0] - here[0], target[2] - here[2]);
     let d = dx.hypot(dz);
     if d > 0.01 {
@@ -2758,6 +2802,7 @@ mod tests {
             reach: None,
         stationary: false,
         unarmed: false,
+        fixed_facing: false,
             anchor: None,
             fights: false,
             faction: None,

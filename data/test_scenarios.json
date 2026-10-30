@@ -652,6 +652,24 @@
       "about": "Queen with 6 Pirate Corsairs: Queen's Guard brings the live capture's Queen's Guard (#3002) for 10 s, not the old Royal Guard for 15 s",
       "team": ["Queen"],
       "spawn": [{ "name": "Pirate Corsair", "count": 6 }]
+    },
+    {
+      "label": "abduct",
+      "about": "a Space Alien Mindslicer: every 12.5 s he abducts a random minifigure beside him (an Abducted Medic that heals, an Abducted Shaman with the Witch Doctor's totems; a third pick spawns nothing yet), at his level, with a beam to it; they go after 45 s",
+      "spawn": [{ "name": "Space Alien Mindslicer", "count": 1 }]
+    },
+    {
+      "label": "mound",
+      "about": "two Small Spider Mounds (Dinosaur Rise, level 26): within 12.5 m each spawns a Summoned Spider beside itself every 2.5 s, up to 5 alive each; the mounds never turn",
+      "spawn": [{ "name": "Small Spider Mound", "count": 2 }]
+    },
+    {
+      "label": "hurler",
+      "about": "the Crooked Tooth Hurler (Gatekeeper) and a Gremlin Warlock: the Hurler throws a Summoned Gremlin where it lands (3.5-10 m away, up to 5 alive); the Warlock shields a gremlin near it (its Defensive Tether's effect)",
+      "spawn": [
+        { "name": "Gatekeeper (Crooked Tooth Hurler)", "count": 1 },
+        { "name": "Gremlin Warlock Lvl1", "count": 1 }
+      ]
     }
   ]
 }

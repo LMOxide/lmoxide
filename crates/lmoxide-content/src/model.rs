@@ -963,6 +963,10 @@ pub struct Ai {
     /// Has no attack at all, not even the default one (spider egg sacks and mounds).
     #[serde(default, skip_serializing_if = "crate::record::is_false")]
     pub unarmed: bool,
+    /// Never turns, not even to attack (spider egg sacks, mounds, Alien Pods: objects that hatch
+    /// or spawn); stationary enemies turn to players otherwise (cannons).
+    #[serde(default, skip_serializing_if = "crate::record::is_false")]
+    pub fixed_facing: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

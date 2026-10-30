@@ -202,6 +202,7 @@ pub fn start() {
                     reach: None,
                     stationary: false,
                     unarmed: false,
+                    fixed_facing: false,
                     anchor: None,
                     fights: false,
                     faction: None,

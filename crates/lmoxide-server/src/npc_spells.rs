@@ -86,6 +86,8 @@ struct Stats {
     power: Option<f32>,
     #[serde(rename = "EffectPackage")]
     effect_package: Option<u32>,
+    #[serde(rename = "MaxBuffCounters")]
+    max_buff_counters: Option<u32>,
 }
 
 #[derive(Deserialize)]
@@ -136,7 +138,21 @@ const PRE_USE: &str = "39";
 const TARGETING_GROUND: u32 = 7;
 const TARGETING_SELF: u32 = 8;
 const CRITERIA_HAS_ABILITY: u32 = 91;
+// the client's CriteriaOperator_e (CriteriaOperator::RegisterCriteriaOperator in the Linux build)
+const CRITERIA_STAT_AT_MOST: u32 = 7;
+const CRITERIA_STAT_AT_LEAST: u32 = 8;
+const CRITERIA_HEALTH_ABOVE: u32 = 152;
+const CRITERIA_HEALTH_BELOW: u32 = 153;
+const CRITERIA_BUFF_COUNTER_MORE: u32 = 159;
+const CRITERIA_BUFF_COUNTER_LESS: u32 = 160;
 const CRITERIA_BUFF_COUNTER: u32 = 166;
+/// Stats 520 Rnd (a new roll, 1–100) and 522 LastRnd (the same roll again): the Alien
+/// Mindslicer's and Crikey the Kraken's spawns pick one by it.
+const STAT_RND: u32 = 520;
+const STAT_LAST_RND: u32 = 522;
+/// A monster spawned at its caster stands this far from it (the Alpha Wolf's called wolf came a
+/// little away from it: the user, 2026-10-30).
+const SPAWN_BESIDE: f32 = 2.5;
 /// A buff without TimeExist on a character: as long as the original server showed Captain
 /// Dreadleg's "spin tired" stun (MagicBuffIIR_c duration 300 cs, recorded).
 const DEFAULT_BUFF: Duration = Duration::from_secs(3);
@@ -251,6 +267,8 @@ struct Run {
     aimed: [f32; 3],
     /// Where the caster faced when it cast (sectors, columns, straight shots).
     facing: [f32; 2],
+    /// The last random roll (stat 520 Rnd rolls it, 522 LastRnd reads it: criteria).
+    roll: std::sync::Mutex<u32>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -264,13 +282,14 @@ pub fn cast(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: 
     let Some(s) = spell(id) else { return };
     let here = crate::npc::position(caster).unwrap_or(at);
     let self_cast = self_centred(s);
-    let commanded = if self_cast { caster } else { player };
+    // (a caster that never turns, an egg sack or a pod, casts at itself)
+    let commanded = if self_cast || crate::npc::fixed_facing(caster) { caster } else { player };
     let (command, records) = crate::npc::observed_cast(caster, commanded, id);
     world::send_playfield(caster, false, world::Out::Records(records.to_vec()));
     let (dx, dz) = (at[0] - here[0], at[2] - here[2]);
     let d = dx.hypot(dz);
     let facing = if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] };
-    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing });
+    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing, roll: Default::default() });
     info!(?caster, spell = id, name = %s.name, ?player, "enemy cast");
     run_list(&run, id, PRE_USE, root_target(&run), 0);
     let delay = cs(s.stats.item_delay.unwrap_or(0.0));
@@ -338,11 +357,32 @@ fn players_where(run: &Run, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f3
     world::live_positions(run.playfield).into_iter().filter(|(id, p)| inside(*p) && crate::npc::is_player(*id)).collect()
 }
 
-fn criteria_met(a: &Action) -> bool {
-    a.criteria.iter().all(|&[_, y, kind]| match kind {
-        // enemies have no upgrades and run no buff counters
+/// Whether action `a`'s criteria hold for the caster: its health share, random rolls, and its
+/// buff counters, which for an enemy are its spawn counters (what its SpawnMonsters brought
+/// that is alive, `npc::spawned_count`) and otherwise 0. Others (context switches 18 / 19,
+/// operator 4) hold.
+fn criteria_met(run: &Run, a: &Action) -> bool {
+    let health = || crate::npc::health_of(run.caster).map_or(0.0, |(h, max)| 100.0 * h as f32 / max.max(1) as f32);
+    let counter = |buff: u32| crate::npc::spawned_count(run.caster, buff);
+    let stat = |stat: u32| match stat {
+        STAT_RND => {
+            let r = 1 + (random_unit() * 100.0) as u32 % 100;
+            *run.roll.lock().unwrap() = r;
+            Some(r)
+        }
+        STAT_LAST_RND => Some(*run.roll.lock().unwrap()),
+        _ => None,
+    };
+    a.criteria.iter().all(|&[x, y, kind]| match kind {
+        // enemies have no upgrades
         CRITERIA_HAS_ABILITY => false,
-        CRITERIA_BUFF_COUNTER => y == 0,
+        CRITERIA_STAT_AT_MOST => stat(x).is_none_or(|v| v <= y),
+        CRITERIA_STAT_AT_LEAST => stat(x).is_none_or(|v| v >= y),
+        CRITERIA_HEALTH_ABOVE => health() > y as f32,
+        CRITERIA_HEALTH_BELOW => health() < y as f32,
+        CRITERIA_BUFF_COUNTER => counter(x) == y,
+        CRITERIA_BUFF_COUNTER_MORE => counter(x) > y,
+        CRITERIA_BUFF_COUNTER_LESS => counter(x) < y,
         _ => true,
     })
 }
@@ -351,7 +391,7 @@ fn run_list(run: &Arc<Run>, id: u32, event: &str, target: Target, depth: u32) {
     let Some(list) = spell(id).and_then(|s| s.lists.get(event)) else { return };
     // (one blast: its formulas hit each player once with a nano, actions::blast)
     crate::actions::blast(|| {
-        for a in list.iter().filter(|a| criteria_met(a)) {
+        for a in list.iter().filter(|a| criteria_met(run, a)) {
             act(run, id, a, target, depth);
         }
     })
@@ -478,15 +518,49 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             }
         }
         "SpawnMonster" => {
-            // the original server's monster (StringHash: content npcs `spawn_hash`) where the
-            // spell aims, then its NanoTemplate cast on it: an add that joins the fight against
-            // the player (dropping nothing), or an anchor shots circle (the Space Merc
-            // Engineer's drones, which stay where he cast them)
+            // the original server's monster (StringHash: content npcs `spawn_hash`), then its
+            // NanoTemplate cast on it: an add that joins the fight against the player (dropping
+            // nothing, at the caster's level), or an anchor shots circle (the Space Merc
+            // Engineer's drones, which stay where he cast them). Where: at a ground point the
+            // spell aims at (the drones, a thrown gremlin's landing); otherwise beside the
+            // caster (eggs and pods hatch where they are, the Alpha Wolf's wolf comes next to
+            // it), moved by RelXPos / RelZPos (m) when the action says
             let Some(hash) = a.args.get("StringHash").and_then(|v| v.as_str()) else { return };
-            match crate::npc::spawn_monster(caster, run.playfield, hash, who.pos, Some(run.player)) {
+            let rel = [a.f("RelXPos").unwrap_or(0.0), a.f("RelZPos").unwrap_or(0.0)];
+            let ground = who.id.is_none() || spell(id).is_some_and(|s| s.stats.targeting_mode == Some(TARGETING_GROUND));
+            let at = if ground && !a.on_caster() {
+                [who.pos[0] + rel[0], who.pos[1], who.pos[2] + rel[1]]
+            } else {
+                let base = here(run);
+                let off = if rel != [0.0, 0.0] {
+                    rel
+                } else {
+                    let angle = random_unit() * std::f32::consts::TAU;
+                    [SPAWN_BESIDE * angle.cos(), SPAWN_BESIDE * angle.sin()]
+                };
+                [base[0] + off[0], base[1], base[2] + off[1]]
+            };
+            let nano = a.u("NanoTemplate");
+            // the nano's AddBuffCounter on the caster ("spawncontrol") counts the spawn
+            let counter = nano.and_then(spell).and_then(|n| n.lists.get(ON_USE)?.iter().find(|c| c.kind == "AddBuffCounter" && c.on_caster())?.u("TemplateID"));
+            // as many alive as the counter buff holds (MaxBuffCounters: the Crooked Tooth Hurler's
+            // gremlins, a spider nest's spiders, 5 each)
+            if let Some((c, max)) = counter.and_then(|c| Some((c, spell(c)?.stats.max_buff_counters?)))
+                && crate::npc::spawned_count(caster, c) >= max as u32
+            {
+                debug!(spell = id, hash, "enemy spawn monster: its spawn counter is full");
+                return;
+            }
+            let how = crate::npc::SpawnHow { foe: Some(run.player), counter, level: crate::npc::level_of(caster) };
+            match crate::npc::spawn_monster(caster, run.playfield, hash, at, how) {
                 Some(spawned) => {
-                    if let Some(nano) = a.u("NanoTemplate") {
-                        cast_nano(run, nano, Target { id: Some(spawned), pos: who.pos }, depth + 1, false);
+                    if let Some(nano) = nano {
+                        // a nano that isn't a buff plays its effect from the caster to the spawn
+                        // (the Alpha Wolf's call: a beam to the wolf, a MovingMesh at "target")
+                        if let Some(package) = spell(nano).filter(|n| n.stats.time_exist.is_none()).and_then(|n| n.stats.effect_package) {
+                            show(run, vec![effects::effect_package_on(caster, spawned, package, "", effects::new_instance())]);
+                        }
+                        cast_nano(run, nano, Target { id: Some(spawned), pos: at }, depth + 1, false);
                     }
                 }
                 None => debug!(spell = id, hash, "enemy spawn monster: no template with this spawn_hash"),

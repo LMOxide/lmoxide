@@ -1207,7 +1207,7 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             // spell aims (the clicked point, or where the enemy clicked on stands: it stays
             // there), then the spell's NanoTemplate cast on it (the Sad Clown's clouds circle it)
             let Some(hash) = a.args.get("StringHash").and_then(|v| v.as_str()) else { return };
-            match crate::npc::spawn_monster(caster, run.caster.playfield, hash, who.pos, None) {
+            match crate::npc::spawn_monster(caster, run.caster.playfield, hash, who.pos, Default::default()) {
                 Some(id) => {
                     // (without the nano's own effect: live showed nothing where the anchor appeared)
                     if let Some(nano) = a.u("NanoTemplate") {
