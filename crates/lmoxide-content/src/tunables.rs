@@ -199,6 +199,18 @@ pub struct NpcTunables {
     pub regen_share: Ratio,
     /// Share of maximum health per tick in combat (rounded down).
     pub regen_share_in_combat: Ratio,
+    /// Rival sides of enemies in every world: enemies of different sides that meet attack each
+    /// other (as well as players). A world's `npc_fights.rivals` comes first there.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub factions: Vec<Faction>,
+}
+
+/// A side of enemies (`npc.factions`): its name and the looks (monster data) on it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Faction {
+    pub name: String,
+    pub monster_data: Vec<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]

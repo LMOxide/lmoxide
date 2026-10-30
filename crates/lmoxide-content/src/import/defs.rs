@@ -1476,6 +1476,7 @@ pub fn loot_and_tunables(
             regen_tick: Duration(1.0),
             regen_share: Ratio(0.05),
             regen_share_in_combat: Ratio(0.005),
+            factions: Vec::new(),
         },
         progression: Progression {
             minifigure_xp: map_u32(&progression["minifigure_xp"]),

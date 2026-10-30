@@ -85,6 +85,10 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
     })
 }
 
+/// Where the factions of every world (tunables `npc.factions`) are numbered from (a world's own
+/// rival sides are 0, 1, ...).
+pub const GLOBAL_FACTIONS: u32 = 1000;
+
 /// What SpawnMonster game actions spawn, by the original server's template hash (content npcs
 /// `spawn_hash`): the template as the NPC code's definition (enemies, bosses and champions
 /// fight; NPCs, triggers and summons are friendly anchors nobody fights), and its `lifetime`.
@@ -141,6 +145,10 @@ pub fn table_of(c: &Content) -> HashMap<String, Vec<SpawnDef>> {
             for d in defs.iter_mut().filter(|d| d.kind == Kind::Enemy) {
                 d.faction = f.rivals.iter().position(|side| side.contains(&d.monster_data)).map(|i| i as u32);
             }
+        }
+        // the sides in every world (tunables `npc.factions`), numbered apart from the world's own
+        for d in defs.iter_mut().filter(|d| d.kind == Kind::Enemy && d.faction.is_none()) {
+            d.faction = c.tunables.npc.factions.iter().position(|f| f.monster_data.contains(&d.monster_data)).map(|i| GLOBAL_FACTIONS + i as u32);
         }
         if !defs.is_empty() {
             table.insert(w.playfield.to_string(), defs);
@@ -286,6 +294,16 @@ mod tests {
     }
 
     #[test]
+    fn factions_everywhere() {
+        let table = table();
+        // skeletons and ghost pirates are rivals in the Grotto (4310) as on the Isle of Yarr
+        let sides: std::collections::BTreeSet<u32> = table["4310"].iter().filter_map(|d| d.faction).collect();
+        assert!(sides.len() >= 2, "{sides:?}");
+        // the Isle of Yarr keeps its own sides
+        assert!(table["4200"].iter().any(|d| d.faction == Some(0)));
+    }
+
+    #[test]
     fn own_loot_tables() {
         let c = crate::gamedata::get();
         // the usual tables aren't "own": bosses and champions still trade them by rank
@@ -324,6 +342,8 @@ mod tests {
         for defs in new.values_mut() {
             defs.retain(|d| d.source.as_deref() != Some("survey"));
             for d in defs.iter_mut() {
+                // (the factions of every world came after)
+                d.faction = d.faction.filter(|&f| f < GLOBAL_FACTIONS);
                 if let Some((_, old, _)) = ATTACKS_CHANGED.iter().find(|(name, _, new)| d.name == *name && d.spell == *new) {
                     d.spell = *old;
                 }
