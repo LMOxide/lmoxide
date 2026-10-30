@@ -675,6 +675,16 @@
       "label": "overlord",
       "about": "the Alien Reaper Overlord (Gatekeeper): every 16.4 s within 15 m he spawns four Alien Pods 2 m north, east, south and west of himself (up to 5 alive), which hatch Mantis Nymphs when you come close",
       "spawn": [{ "name": "Gatekeeper (Alien Reaper Overlord)", "count": 1 }]
+    },
+    {
+      "label": "hive",
+      "about": "two Vespid Colonies (space_buzzer_hive): within 12.5 m each spawns a Vespid beside itself every 2.5 s, up to 5 alive each (or !spawn Vespid Colony)",
+      "spawn": [{ "name": "Vespid Colony", "count": 2 }]
+    },
+    {
+      "label": "artillery",
+      "about": "the Merc Artillery Bot (Gatekeeper): from 5-20 m it shells you from its right and left cannons (firing animation, a marker where the shell lands, 2 m blast); up close it stomps (4 m, knocks you 10 m away)",
+      "spawn": [{ "name": "Gatekeeper (Merc Artillery Bot)", "count": 1 }]
     }
   ]
 }

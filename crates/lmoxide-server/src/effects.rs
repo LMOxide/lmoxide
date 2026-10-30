@@ -36,6 +36,19 @@ pub fn npc_buff_add(target: Id32, buff: u32, duration_cs: i32, level: u32) -> By
     })
 }
 
+/// `MagicBuffIIR_c` add of a buff NPC `caster` (at `level`) casts on `target`, as live sent the
+/// Alpha Wolf's call 438236 on the wolf it brought (whose effect is the beam between them):
+/// the second u8 0, GameActionExecutorData (1, 0, buff, level, 0, 0, 0) and the level as the
+/// casting level (byte-checked against the live capture but for the end time, 0 as in
+/// `buff_add`).
+pub fn npc_cast_buff_add(target: Id32, buff: u32, caster: Id32, duration_cs: i32, level: u32) -> Bytes {
+    iir::record("MagicBuffIIR_c", target, false, |w| {
+        let w = caster.write(w.u32(buff).u8(0)).u32(0).u32(0).i32(duration_cs).u8(0).u8(0);
+        let w = [1, 0, buff, level, 0, 0, 0].iter().fold(w, |w, v| w.u32(*v));
+        w.u32(level).u64(0)
+    })
+}
+
 /// `MagicBuffIIR_c` mode 2 (update, ReadSubClass 0x139fdcc -> CoreMagicHolder::UpdateBuff): u32
 /// buff, u8 2, ID32 caster, u32 counter, u32 counter type, u32 time left (centiseconds), u32
 /// casting level, u32 (passed on to UpdateBuff). Used for buff counters (AddBuffCounter).

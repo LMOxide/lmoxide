@@ -535,7 +535,9 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 [who.pos[0] + rel[0], who.pos[1], who.pos[2] + rel[1]]
             } else {
                 let base = here(run);
-                let off = if rel != [0.0, 0.0] {
+                // (a spell that also breaks its caster hatches it: right where it was)
+                let hatches = spell(id).and_then(|s| s.lists.get(ON_USE)).is_some_and(|l| l.iter().any(Action::kills_caster));
+                let off = if rel != [0.0, 0.0] || hatches {
                     rel
                 } else {
                     let angle = random_unit() * std::f32::consts::TAU;
@@ -562,7 +564,8 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                         // Alpha Wolf's 438236 on its wolf, whose effect is the beam between
                         // them, a MovingMesh at "target"), then its actions run there
                         let lasts = spell(nano).and_then(|n| n.stats.time_exist).map_or(SPAWN_BUFF, cs);
-                        show(run, effects::show_buff(spawned, nano, caster, Some(lasts)));
+                        let level = crate::npc::level_of(caster).unwrap_or(1);
+                        show(run, vec![effects::npc_cast_buff_add(spawned, nano, caster, (lasts.as_millis() / 10) as i32, level)]);
                         run_list(run, nano, ON_USE, Target { id: Some(spawned), pos: at }, depth + 1);
                     }
                 }
@@ -595,10 +598,18 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
     match target.id {
         Some(on) if is_buff => {
             let duration = n.stats.time_exist.map_or(DEFAULT_BUFF, cs);
-            show(run, effects::show_buff(on, nano, caster, Some(duration)));
-            // a stun on the caster (e.g. tired after a spin) keeps it from moving
-            if on_caster && n.lists.values().flatten().any(|a| a.kind == "Stun") {
-                crate::npc::set_busy(caster, duration);
+            if on != caster && crate::npc::level_of(on).is_some() {
+                // on another NPC (what it spawned: the Alien Reaper Overlord's pod visuals 440781,
+                // whose effect beams from him to the pod) as live sent NPC-cast buffs
+                let level = crate::npc::level_of(caster).unwrap_or(1);
+                show(run, vec![effects::npc_cast_buff_add(on, nano, caster, (duration.as_millis() / 10) as i32, level)]);
+            } else {
+                show(run, effects::show_buff(on, nano, caster, Some(duration)));
+            }
+            // a stun on the caster (e.g. tired after a spin) or another NPC (a fresh pod, 3 s)
+            // keeps it from moving and casting
+            if (on_caster || crate::npc::level_of(on).is_some()) && n.lists.values().flatten().any(|a| a.kind == "Stun") {
+                crate::npc::set_busy(on, duration);
             }
         }
         Some(on) if own_effect => {
