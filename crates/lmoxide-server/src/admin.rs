@@ -55,6 +55,17 @@ pub enum AccountCmd {
         reason: Option<String>,
     },
     Unban { username: String },
+    /// Change an account's username (its login name).
+    Rename { username: String, new_username: String },
+    /// Rename a character (ids: `account list-characters`). For a character in play use
+    /// `!rename` or the API: its server would save the old name back.
+    RenameCharacter {
+        character: u32,
+        /// The new name (1-3 words; quote it).
+        name: String,
+    },
+    /// List an account's characters.
+    ListCharacters { username: String },
     /// List accounts.
     List {
         /// Only names containing this.
@@ -102,7 +113,13 @@ fn import_characters(db: &Db, from: &std::path::Path, mode: &str) -> anyhow::Res
                 }
                 c.mode = mode.to_string();
                 let id = db.new_character_id()?;
-                db.save_character(id, ours.id, &c)?;
+                match db.save_character(id, ours.id, &c) {
+                    Err(lmoxide_db::Error::NameTaken) => {
+                        println!("{} ({}): {} skipped: another account has a character with this name", ours.username, ours.id, c.name);
+                        continue;
+                    }
+                    r => r?,
+                }
                 println!("{} ({}): {} -> character {id}, {mode}", ours.username, ours.id, c.name);
                 copied += 1;
             }
@@ -153,6 +170,26 @@ fn account(db: &Db, cmd: AccountCmd) -> anyhow::Result<()> {
             db.unban(a.id)?;
             db.audit_account("cli", "account-unban", &a, None)?;
             println!("{} unbanned", a.username);
+        }
+        AccountCmd::Rename { username, new_username } => {
+            let a = find(&username)?;
+            db.rename_account(a.id, &new_username)?;
+            db.audit_account("cli", "account-rename", &a, Some(&new_username))?;
+            println!("{} is now {new_username}", a.username);
+        }
+        AccountCmd::RenameCharacter { character, name } => {
+            let old = db.character_name(character)?.with_context(|| format!("no character {character}"))?;
+            let name = db.rename_character(character, &name)?;
+            db.audit("cli", "character-rename", Some(&character.to_string()), Some(&format!("{old} -> {name}")))?;
+            println!("character {character}: {old} -> {name}");
+            println!("(a running server saves the old name back while the character plays: use !rename or the API then)");
+        }
+        AccountCmd::ListCharacters { username } => {
+            let a = find(&username)?;
+            println!("{:<10} {:<14} {:<8} name", "id", "mode", "playfield");
+            for c in db.characters_of(a.id)? {
+                println!("{:<10} {:<14} {:<8} {}", c.id, c.mode, c.playfield, if c.name.is_empty() { "(on the creation screen)" } else { &c.name });
+            }
         }
         AccountCmd::List { search } => {
             println!("{:<10} {:<24} {:>3} {:<8} ban", "id", "username", "gm", "password");
