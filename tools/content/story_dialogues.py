@@ -75,9 +75,11 @@ CONV = [
      "the same gate 'Without Pizza Guy' (speaker labels of 801/802): the guard turns the crew away; epilogue 802 "
      "gives nothing; 805/806 and 803/856, 804/855 are duplicates (806, 855, 856 left out)"),
     ("dreadleg-escapes-again", "Cinematic Start Dreadleg Escapes Again", 2728, "", 4200,
-     [828, 829, 830, 831, 833, 841, 834, 836, 840], ("area", ["cinematic-dreadleg1"]), {"requires": [4161]}, L,
-     "area Cinematic_Dreadleg1 19.9 m from its 11 markers (Cine_*AfterFight*); epilogue 840 gives 4183 Dreadleg "
-     "Escapes Again, resolves AKJH (Pirate step after H1DR) and teleports; needs 4161 (inside the fort)"),
+     [828, 829, 830, 831, 833, 841, 834, 836, 840], ("boss", "Captain Dreadleg"), {"requires": [4161]}, L,
+     "after Captain Dreadleg's fight in the Jacket Fort (828 'Enough! Ye a strong scallywag fer sure!'; its markers "
+     "Cine_*AfterFight* are in area Cinematic_Dreadleg1, where the fight starts: trigger/4200/dreadleg-fort-fight, "
+     "script/4200/dreadleg-fort); epilogue 840 gives 4183 Dreadleg Escapes Again, resolves AKJH (Pirate step after "
+     "H1DR) and teleports; needs 4161 (inside the fort)"),
     ("dreadleg-appears", "Cinematic Start Dreadleg Appears", 1668, "", 4200,
      [382, 383, 384, 385], ("area", ["ba-cine-dreadlegappears1"]), {}, L,
      "was the silent beat 385 on BA_Cine_DreadlegAppears1 (3.6 m from Cine_Dreadleg1); 541 Dreadleg Appears, K0TT"),

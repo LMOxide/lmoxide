@@ -418,11 +418,18 @@ fn holds(index: &Index, st: &State, pf: Pf, c: &Condition) -> bool {
 
 /// Hops `player` back to `to` (they crossed a server wall).
 fn push_back(player: Id32, to: [f32; 3]) {
+    info!(player = player.instance, ?to, "server wall: pushed back");
+    hop(player, to, PUSH_APEX);
+}
+
+/// Moves the player to `to` in a plain low hop (`apex` m above the higher end; no tumble): the
+/// client places them along the arc (ParameterizedBallisticMoveTask, `Vehicle_t::PlaceAt`), so
+/// walls in between don't stop it (story.rs's barriers, the push back from a server wall).
+pub fn hop(player: Id32, to: [f32; 3], apex: f32) {
     let Some((pf, _)) = world::whereabouts(player) else { return };
     let Some((_, handle)) = world::position_handles(pf).into_iter().find(|(id, _)| *id == player) else { return };
-    info!(player = player.instance, ?to, "server wall: pushed back");
-    let hop = crate::jumppad::Tumble { knockback: false, launched: false, direction: 0 };
-    tokio::spawn(async move { crate::jumppad::throw_as(player, &handle, to, PUSH_APEX, hop).await });
+    let how = crate::jumppad::Tumble { knockback: false, launched: false, direction: 0 };
+    tokio::spawn(async move { crate::jumppad::throw_as(player, &handle, to, apex, how).await });
 }
 
 /// Runs fired trigger `t`'s actions.

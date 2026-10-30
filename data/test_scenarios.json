@@ -598,6 +598,16 @@
           "count": 2
         }
       ]
+    },
+    {
+      "label": "forestbarrier",
+      "about": "south of the Enchanted Forest's first magical barrier (5210 Collision_Barrier1): walk north into it. Before the Faerie Queen's spell it stops you; after !story quest medieval 11 and !story beat 321 (her spell: tag 434, resolves XOAJ) or talking to her after the Quarry, you hop through, both ways, and through the other three barriers too (log \"story: through a barrier\")",
+      "goto": { "playfield": 5210, "pos": [110.0, 54.0, 164.0] }
+    },
+    {
+      "label": "fortdreadleg",
+      "about": "inside the Jacket Fort (4200), west of its courtyard: with !story quest pirate 11 and !story beat 810 (the pizza delivery: tag 4161, resolves H1DR) walk east into the courtyard: Captain Dreadleg appears and fights (log \"story script\"); \"Dreadleg Escapes Again\" plays only after his defeat, then teleports you out (tag 4183: he doesn't come again)",
+      "goto": { "playfield": 4200, "pos": [282.0, 69.5, 314.0] }
     }
   ]
 }

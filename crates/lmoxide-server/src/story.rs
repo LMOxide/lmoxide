@@ -33,8 +33,17 @@
 //! `done/<quest>` (step done), `goal/<hash>` (resolved), `count/<hash>`, `wait/<hash>` (progress
 //! waiting for its step: Lua 1699's buff), `chain` (`migrate` ran).
 //!
+//! - **Barriers** (`story_cross`): the Enchanted Forest's magical barriers are client walls that
+//!   never open (RDB 1040010 `Collision_Barrier1-4`, always on); the server areas on both sides of
+//!   each (`BA_FirstBarrier*`, `BA_SpiderJump*`, `BA_FairieVillage*`) carry the player across once
+//!   the Faerie Queen's spell protects them (tag 434, or the goal after it done).
+//! - **Story fights** (`story_script`): a script wave that starts only for players at that point
+//!   of the story (the Jacket Fort's Captain Dreadleg: tag 4161, not yet 4183); the conversation
+//!   after the fight is a rebuilt dialogue that starts on his defeat (`start: boss`).
+//!
 //! Trigger commands (`register_command`): `cinematic {name}`, `dialogue {dialogue}`, `tag {tag}`,
-//! `story_goal {goal, requires}`, `story_beat {text}`.
+//! `story_goal {goal, requires}`, `story_beat {text}`, `story_cross {to, requires, goal}`,
+//! `story_script {script, requires, unless}`.
 
 use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, LazyLock, Mutex};
@@ -81,6 +90,12 @@ pub enum Order {
     /// Test command: resolve the current step's goals of line `main` (none: the first line
     /// running).
     Advance(Option<u32>),
+    /// Carry the player through a barrier to `to` (`story_cross`) if they have all of
+    /// `requires` (tags) or story goal `goal` is done.
+    Cross { to: [f32; 3], requires: Vec<u32>, goal: Option<String> },
+    /// Start script `script` in the player's copy (`story_script`) if they have all of
+    /// `requires` and none of `unless` (tags).
+    Script { script: String, requires: Vec<u32>, unless: Vec<u32> },
 }
 
 /// Whether the teleport windows are open whatever the story (`--story-windows`): `Unlocked`
@@ -171,6 +186,67 @@ pub fn init() {
             None => info!(trigger = f.trigger, "story_beat: no text"),
         }),
     );
+    register_command(
+        "story_cross",
+        Arc::new(move |f, args| {
+            let Some(to) = arg_str(args, "to") else { return info!(trigger = f.trigger, "story_cross: no area to cross to") };
+            let Some(land) = crossing(f.area, &to, f.pos) else { return info!(trigger = f.trigger, to, "story_cross: no such areas") };
+            send(f.player, Order::Cross { to: land, requires: tags_arg(args), goal: arg_str(args, "goal") });
+        }),
+    );
+    register_command(
+        "story_script",
+        Arc::new(move |f, args| {
+            let Some(script) = arg_str(args, "script") else { return info!(trigger = f.trigger, "story_script: no script") };
+            let unless = args.get("unless").and_then(Value::as_array).map(|a| a.iter().filter_map(|v| v.as_u64().map(|n| n as u32)).collect()).unwrap_or_default();
+            send(f.player, Order::Script { script, requires: tags_arg(args), unless });
+        }),
+    );
+}
+
+/// How far past the area across a barrier a crossing player lands (m): outside it, so landing
+/// doesn't carry them back.
+const CROSS_BEYOND: f32 = 1.0;
+/// A player carried through a barrier isn't carried again for this long (the hop passes the
+/// other side's area).
+const CROSS_COOLDOWN: std::time::Duration = std::time::Duration::from_millis(2000);
+/// The hop through a barrier: its height above the higher end (m).
+const CROSS_APEX: f32 = 0.6;
+
+/// Players carried through a barrier, when.
+static CROSSED: LazyLock<Mutex<HashMap<Id32, Instant>>> = LazyLock::new(Default::default);
+
+/// Where a player at `pos` in area `from` (none: just `pos`) crossing to strip area `to` lands:
+/// straight across, `CROSS_BEYOND` past the strip's middle line (square to its longest edge,
+/// away from `from`), keeping their place along it and their height.
+fn crossing(from: Option<&str>, to: &str, pos: [f32; 3]) -> Option<[f32; 3]> {
+    let areas = &crate::gamedata::get().areas;
+    let shape = |id: &str| areas.get(id).and_then(|a| a.shape.as_ref());
+    let there_shape = shape(to)?;
+    let there = there_shape.centre();
+    let here = from.and_then(shape).map_or(pos, |s| s.centre());
+    let (mut nx, mut nz) = (there[0] - here[0], there[2] - here[2]);
+    // square to the strip's longest edge
+    if let lmoxide_content::Shape::Polygon { points, .. } = there_shape {
+        let edges = points.iter().zip(points.iter().cycle().skip(1)).map(|(a, b)| (b[0] - a[0], b[1] - a[1]));
+        if let Some((ux, uz)) = edges.max_by(|a, b| (a.0.hypot(a.1)).total_cmp(&b.0.hypot(b.1))) {
+            let (px, pz) = (-uz, ux);
+            let sign = if px * nx + pz * nz < 0.0 { -1.0 } else { 1.0 };
+            (nx, nz) = (px * sign, pz * sign);
+        }
+    }
+    let n = nx.hypot(nz);
+    if n < 0.001 {
+        return None;
+    }
+    let (nx, nz) = (nx / n, nz / n);
+    let across = (there[0] - pos[0]) * nx + (there[2] - pos[2]) * nz + CROSS_BEYOND;
+    Some([pos[0] + nx * across, pos[1], pos[2] + nz * across])
+}
+
+/// Whether story goal `hash` is done: resolved, or its step passed (`!story quest`).
+fn goal_done(c: &Character, hash: &str) -> bool {
+    resolved(c, hash) || find_goal(hash).is_some_and(|(_, q, i, _)| passed(c, q.steps[i].quest))
 }
 
 /// A command's `requires`: tags.
@@ -712,6 +788,30 @@ fn handle_inner(order: Order, c: &mut Character, player: Id32, name: &str, place
             let hashes: Vec<String> = step.goals.iter().filter_map(|g| g.hash.clone()).collect();
             return hashes.iter().flat_map(|h| resolve(c, character, place, h, "test command")).collect();
         }
+        Order::Cross { to, requires, goal } => {
+            let may = (!requires.is_empty() && requires.iter().all(|t| c.tags.contains_key(t))) || goal.as_deref().is_some_and(|g| goal_done(c, g));
+            if !may {
+                return Vec::new();
+            }
+            let now = Instant::now();
+            let mut crossed = CROSSED.lock().unwrap();
+            crossed.retain(|_, at| now.duration_since(*at) < CROSS_COOLDOWN);
+            if crossed.contains_key(&player) {
+                return Vec::new();
+            }
+            crossed.insert(player, now);
+            drop(crossed);
+            info!(character, ?to, "story: through a barrier");
+            crate::triggers::hop(player, to, CROSS_APEX);
+        }
+        Order::Script { script, requires, unless } => {
+            if requires.iter().all(|t| c.tags.contains_key(t)) && !unless.iter().any(|t| c.tags.contains_key(t)) {
+                match crate::scripts::start(place, &script, None) {
+                    Ok(what) => info!(character, script, "story script: {what}"),
+                    Err(why) => info!(character, script, "story script not started: {why}"),
+                }
+            }
+        }
     }
     Vec::new()
 }
@@ -1018,6 +1118,95 @@ mod tests {
         assert_eq!(names(&r).last().map(String::as_str), Some("MainQuestUpdateIIR_c"));
         assert_eq!(step_of(&c, 45), None);
         assert!(show(&c, player.instance, Pf::main(1200)).is_empty());
+    }
+
+    #[test]
+    fn barrier_crossings() {
+        // every strip beside the Enchanted Forest's barriers carries the player straight across
+        // the client wall, past the strip on the other side (else landing would carry them back)
+        let c = crate::gamedata::get();
+        let crossings: Vec<_> = c
+            .triggers
+            .values()
+            .filter(|t| t.id.starts_with("trigger/5210/"))
+            .flat_map(|t| t.actions.iter().map(move |a| (t, a)))
+            .filter_map(|(t, a)| match a {
+                lmoxide_content::Action::Command { name, args } if name == "story_cross" => Some((t.area.clone()?, args.clone())),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(crossings.len(), 26);
+        let walls: Vec<&lmoxide_content::Area> = c.areas.values().filter(|a| a.name.starts_with("Collision_Barrier")).collect();
+        assert_eq!(walls.len(), 4);
+        let shape = |id: &str| c.areas[id].shape.clone().unwrap();
+        for (from, args) in crossings {
+            let to = args["to"].as_str().unwrap();
+            assert_eq!(args["requires"], serde_json::json!([434]));
+            assert_eq!(args["goal"], "XOAJ");
+            let start = shape(&from).centre();
+            let pos = [start[0], start[1] + 1.0, start[2]];
+            let land = crossing(Some(&from), to, pos).unwrap();
+            assert!(!shape(to).contains(land, 1.0) && !shape(&from).contains(land, 1.0), "{from} -> {to}: lands in a strip");
+            let moved = ((land[0] - pos[0]).powi(2) + (land[2] - pos[2]).powi(2)).sqrt();
+            assert!(moved > 1.0 && moved < 4.5, "{from} -> {to}: {moved} m");
+            // it crosses exactly one barrier wall's line
+            let crossed = walls
+                .iter()
+                .filter(|w| {
+                    let Some(lmoxide_content::Shape::Polygon { points, .. }) = &w.shape else { return false };
+                    points.windows(2).any(|s| segments_cross([pos[0], pos[2]], [land[0], land[2]], s[0], s[1]))
+                })
+                .count();
+            assert_eq!(crossed, 1, "{from} -> {to}");
+        }
+    }
+
+    fn segments_cross(a: [f32; 2], b: [f32; 2], c: [f32; 2], d: [f32; 2]) -> bool {
+        let side = |p: [f32; 2], q: [f32; 2], r: [f32; 2]| (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+        side(a, b, c) * side(a, b, d) < 0.0 && side(c, d, a) * side(c, d, b) < 0.0
+    }
+
+    #[test]
+    fn barriers_need_the_faerie_queens_spell() {
+        let mut c = crate::game::new_character("t".into(), crate::instance::Mode::Progression, 5210);
+        let player = Id32::new(50000, 0x0100_0f10);
+        let cross = || Order::Cross { to: [110.0, 54.0, 170.0], requires: vec![434], goal: Some("XOAJ".into()) };
+        let crossed = |player| CROSSED.lock().unwrap().contains_key(&player);
+        handle(cross(), &mut c, player, "t", Pf::main(5210));
+        assert!(!crossed(player));
+        // at "Return to the Faerie Queen": not yet
+        let medieval = find_line("medieval").unwrap();
+        handle(Order::SetStep { main: medieval, step: 11 }, &mut c, player, "t", Pf::main(5210));
+        handle(cross(), &mut c, player, "t", Pf::main(5210));
+        assert!(!crossed(player));
+        // her spell (text 321: tag 434)
+        c.tags.insert(434, 0);
+        handle(cross(), &mut c, player, "t", Pf::main(5210));
+        assert!(crossed(player));
+        // past that step (the test command) without the tag also does
+        let other = Id32::new(50000, 0x0100_0f11);
+        c.tags.remove(&434);
+        handle(Order::SetStep { main: medieval, step: 12 }, &mut c, other, "t", Pf::main(5210));
+        handle(cross(), &mut c, other, "t", Pf::main(5210));
+        assert!(crossed(other));
+    }
+
+    #[test]
+    fn dreadleg_fights_in_the_jacket_fort_first() {
+        let c = crate::gamedata::get();
+        // entering the fort's courtyard starts his fight (for who is inside the fort, not after)
+        let t = &c.triggers["trigger/4200/dreadleg-fort-fight"];
+        assert_eq!(t.area.as_deref(), Some("area/4200/cinematic-dreadleg1"));
+        let lmoxide_content::Action::Command { name, args } = &t.actions[0] else { panic!("not a command") };
+        assert_eq!((name.as_str(), &args["requires"], &args["unless"]), ("story_script", &serde_json::json!([4161]), &serde_json::json!([4183])));
+        let script = args["script"].as_str().unwrap();
+        assert!(c.scripts.contains_key(script));
+        assert!(c.spawns.values().any(|s| s.name == "Captain Dreadleg" && s.wave.as_ref().is_some_and(|w| w.script == script)));
+        // no trigger starts "Dreadleg Escapes Again" by itself: his defeat there does
+        let id = "dialogue/dreadleg-escapes-again-828";
+        assert!(!c.triggers.values().any(|t| t.actions.iter().any(|a| matches!(a, lmoxide_content::Action::Dialogue { dialogue } if dialogue == id))));
+        assert!(crate::knubot::after_defeat("Captain Dreadleg", true, false, 4200).contains(&id.to_string()));
+        assert!(!crate::knubot::after_defeat("Captain Dreadleg", true, false, 4310).contains(&id.to_string()));
     }
 
     #[test]
