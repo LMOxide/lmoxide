@@ -110,11 +110,12 @@ const ARRIVALS: &[(u32, Option<u32>, Duration)] = &[(79, None, Duration::from_mi
 /// How long after a dialogue's close the one that follows it starts (live: 4.6 s).
 const FOLLOW_DELAY: Duration = Duration::from_millis(4600);
 /// A text that spawns a cinematic actor (`addcinematicactor`) and then makes it the speaker
-/// (`setactiveactor`, as 206's Officer, 822's Swashbuckler, 598's Hades) sends both at once; the
-/// client hasn't built the actor yet and the window's portrait falls back to the owner's (the
-/// default "DJ" icon). The `setactiveactor` is sent again this long after, without holding up
-/// the text's other tags.
-const ACTIVE_ACTOR_RESEND: Duration = Duration::from_millis(300);
+/// (`setactiveactor`, as 206's Officer, 822's Swashbuckler, 598's Hades): sent at once, the
+/// client hasn't built the actor yet, ignores the `setactiveactor` and the window's portrait
+/// stays the owner's (the default "DJ" icon). The `setactiveactor`, and the tags after it, wait
+/// until this long after the spawn. (Not sent twice: the client's conversation window clears
+/// its text on every `setactiveactor`, Conversation.swf `SlotActiveCinematicActorSet`.)
+const ACTIVE_ACTOR_WAIT: Duration = Duration::from_millis(300);
 
 /// Players in a dialogue: its generation, where their answers go, and who speaks.
 static TALKING: LazyLock<Mutex<HashMap<Id32, (u64, mpsc::UnboundedSender<u32>, Id32)>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -499,23 +500,17 @@ impl Speaker {
 /// Runs text `id`'s tags, its records going to `send`; returns whether its last tag cleared the
 /// cinematic.
 async fn run_text(s: &Speaker, id: u32, send: &(dyn Fn(Vec<Bytes>) + Sync)) -> bool {
-    use tokio::time::{sleep_until, Instant};
     let Some(text) = DATA.texts.get(&id.to_string()) else {
         warn!(id, "dialogue text missing");
         return false;
     };
-    // the actors this text spawned, and a `setactiveactor` naming one of them to send again
-    // (`ACTIVE_ACTOR_RESEND`)
-    let mut spawned = std::collections::HashSet::new();
-    let mut resend: Option<(Instant, Bytes)> = None;
+    // the actors this text spawned, and when (`ACTIVE_ACTOR_WAIT`)
+    let mut spawned = HashMap::new();
     if !text.split('{').next().unwrap_or("").trim().is_empty() {
         send(vec![append(s, id, 0)]);
     }
     let mut cleared = false;
     for (n, tag) in in_play_order(tags(text)).into_iter().enumerate() {
-        if let Some((_, r)) = resend.take_if(|(at, _)| *at <= Instant::now()) {
-            send(vec![r]);
-        }
         let words: Vec<&str> = tag.split_whitespace().collect();
         let mut records = Vec::new();
         cleared = false;
@@ -529,9 +524,10 @@ async fn run_text(s: &Speaker, id: u32, send: &(dyn Fn(Vec<Bytes>) + Sync)) -> b
             }
             ["movecameratopos", p, ..] => records.push(actor(s.player, placed(Kind::MoveCameraToStaticPoint, "", p))),
             ["setactiveactor", a, ..] => {
-                let record = actor(s.player, msg(Kind::SetActiveActor, a));
-                resend = spawned.contains(*a).then(|| (Instant::now() + ACTIVE_ACTOR_RESEND, record.clone()));
-                records.push(record);
+                if let Some(at) = spawned.get(*a) {
+                    tokio::time::sleep_until(*at + ACTIVE_ACTOR_WAIT).await;
+                }
+                records.push(actor(s.player, msg(Kind::SetActiveActor, a)));
             }
             ["moveactortopos", a, p, ..] => {
                 // (an NPC placed where the actor walks to, a boss waiting there, is hidden too)
@@ -560,17 +556,10 @@ async fn run_text(s: &Speaker, id: u32, send: &(dyn Fn(Vec<Bytes>) + Sync)) -> b
                     }
                 }
                 records.push(spawn_client_npc(s.player, alias, template.parse().unwrap_or(0), point));
-                spawned.insert(alias.to_string());
+                spawned.insert(alias.to_string(), tokio::time::Instant::now());
             }
             ["removecinematicactor", alias, ..] => records.push(actor(s.player, msg(Kind::RemoveActor, alias))),
-            ["delay", secs, ..] => {
-                let until = Instant::now() + Duration::from_secs_f32(secs.parse().unwrap_or(1.0));
-                if let Some((at, r)) = resend.take_if(|(at, _)| *at <= until) {
-                    sleep_until(at).await;
-                    send(vec![r]);
-                }
-                sleep_until(until).await;
-            }
+            ["delay", secs, ..] => tokio::time::sleep(Duration::from_secs_f32(secs.parse().unwrap_or(1.0))).await,
             // tags, story goals, teleports, script steps
             _ => {
                 server_tag(s.player, &tag, &words);
@@ -578,10 +567,6 @@ async fn run_text(s: &Speaker, id: u32, send: &(dyn Fn(Vec<Bytes>) + Sync)) -> b
         }
         records.push(append(s, id, n as u32 + 1));
         send(records);
-    }
-    if let Some((at, r)) = resend {
-        sleep_until(at).await;
-        send(vec![r]);
     }
     cleared
 }
@@ -844,15 +829,14 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn new_speaker_named_again() {
+    async fn new_speaker_waited_for() {
         let ms = Duration::from_millis;
-        // 206: the Officer spawned after `delay 1`, made the speaker at once and again 300 ms on
-        // (during the `delay 2` after it, not after the text)
-        assert_eq!(active_actor_times(206, "Officer").await, [ms(1000), ms(1000) + ACTIVE_ACTOR_RESEND]);
-        // 822: the Swashbuckler, during the `delay 1`; 598: Hades, at the text's end
-        assert_eq!(active_actor_times(822, "Swashbuckler").await, [ms(0), ACTIVE_ACTOR_RESEND]);
-        assert_eq!(active_actor_times(598, "Hades").await, [ms(0), ACTIVE_ACTOR_RESEND]);
-        // 812: the owner, not spawned by the text: once
+        // once each (a second one would clear the window's text): 206's Officer, spawned after
+        // `delay 1`, 300 ms after it; 822's Swashbuckler and 598's Hades 300 ms in
+        assert_eq!(active_actor_times(206, "Officer").await, [ms(1000) + ACTIVE_ACTOR_WAIT]);
+        assert_eq!(active_actor_times(822, "Swashbuckler").await, [ACTIVE_ACTOR_WAIT]);
+        assert_eq!(active_actor_times(598, "Hades").await, [ACTIVE_ACTOR_WAIT]);
+        // 812: the owner, not spawned by the text: at once
         assert_eq!(active_actor_times(812, "knubotOwnerActor").await, [ms(0)]);
     }
 

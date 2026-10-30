@@ -676,8 +676,10 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   monster data 51057, CARS group 5, npc_stats template = the dialogue's 51000 name id); LMOxide
   spawns those (spawns.rs `cinematic_owners`). The portrait follows `setactiveactor`; one naming
   an actor the same text just spawned (`addcinematicactor`, 206's Officer) reaches the client
-  before the actor exists and the portrait falls back to the owner's (the default "DJ" icon),
-  so LMOxide sends it again 300 ms later (knubot.rs `ACTIVE_ACTOR_RESEND`).
+  before the actor exists, is ignored and the portrait stays the owner's (the default "DJ"
+  icon), so LMOxide holds it (and the tags after it) until 300 ms after the spawn (knubot.rs
+  `ACTIVE_ACTOR_WAIT`). It must go once: the conversation window clears its text on every
+  `setactiveactor` (Conversation.swf `ConversationWindow.SlotActiveCinematicActorSet`).
 - **remoteformat** `key` attributes: the client shows texts without them.
 - A dialogue sent while the client still loads a playfield is lost.
 - **Area quests** (quests.rs; LMO_Captures.cap, the client's writers `quests::operator<<`,
