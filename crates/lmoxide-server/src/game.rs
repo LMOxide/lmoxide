@@ -411,6 +411,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 }
                 // older saves had potions per session: they start with the new character's
                 me.tokens.entry(TOKEN_HEALTH_POTIONS).or_insert((START_POTIONS, 0));
+                // characters made before the maxed modes' starting stars get them
+                if !mode.rules().progression && me.stars == 0 {
+                    me.stars = MAXED_STARS;
+                }
                 // smashed minifigures stay smashed until their rebuild time, across logins
                 let now = crate::smash::now_ms();
                 me.smashed.retain(|_, until| *until > now);
@@ -2208,7 +2212,7 @@ pub fn new_character(name: String, mode: crate::instance::Mode, playfield: u32) 
         playfield,
         pos: START_POS,
         team: START_TEAM.to_vec(),
-        stars: 0,
+        stars: if mode.rules().progression { 0 } else { MAXED_STARS },
         upgrades: Default::default(),
         tokens: [(TOKEN_HEALTH_POTIONS, (START_POTIONS, 0))].into(),
         xp: 0,
@@ -3358,6 +3362,8 @@ async fn send_token(conn: &mut Conn, character: u32, token: u32, gained: u64, sp
 /// A health orb heals 15% of the active minifigure's maximum health, rounded half-up (live
 /// capture 2016, 58 samples; live's record wasn't clamped to the maximum, ours is).
 const HEALTH_ORB_HEAL_SHARE: f32 = 0.15;
+/// Stars a new character of a mode without progression (maxed, world editor) starts with.
+pub const MAXED_STARS: u64 = 10_000_000;
 /// Potions a new character starts with (the count is saved; enemies drop more, loot.rs).
 pub const START_POTIONS: u64 = 5;
 /// "Potion of Health" (in shortcut slot 100): the heal was server-side (script 464: 80% of the

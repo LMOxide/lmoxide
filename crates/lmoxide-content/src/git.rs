@@ -26,6 +26,50 @@ pub fn is_repo(dir: &Path) -> bool {
     git(dir, &["rev-parse", "--git-dir"]).is_ok()
 }
 
+/// The content repository: the origin of a working copy [`start_copy`] makes.
+pub const CONTENT_REPOSITORY: &str = "https://github.com/LMOxide/lmoxide-content.git";
+
+/// Makes `dir` a working copy of the content tree at `src` (a folder, not necessarily a
+/// checkout: an image's or a release's content): its files, committed, origin
+/// [`CONTENT_REPOSITORY`].
+pub fn start_copy(src: &Path, dir: &Path) -> anyhow::Result<()> {
+    copy_tree(src, dir)?;
+    git(dir, &["init", "-q"])?;
+    git(dir, &["add", "-A"])?;
+    git(
+        dir,
+        &[
+            "-c",
+            "user.name=lmoxide",
+            "-c",
+            "user.email=lmoxide@localhost",
+            "commit",
+            "-qm",
+            "The content this server came with",
+        ],
+    )?;
+    git(dir, &["remote", "add", "origin", CONTENT_REPOSITORY])?;
+    Ok(())
+}
+
+/// Copies the files under `src` to `dst` (not a `.git`).
+fn copy_tree(src: &Path, dst: &Path) -> anyhow::Result<()> {
+    std::fs::create_dir_all(dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        if entry.file_name() == ".git" {
+            continue;
+        }
+        let to = dst.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_tree(&entry.path(), &to)?;
+        } else {
+            std::fs::copy(entry.path(), &to)?;
+        }
+    }
+    Ok(())
+}
+
 /// A file's text at a commit (`HEAD`, a hash), if it was there.
 pub fn file_at(dir: &Path, rev: &str, rel: &Path) -> Option<String> {
     git(dir, &["show", &format!("{rev}:{}", rel.to_string_lossy())]).ok()
@@ -257,6 +301,23 @@ mod tests {
     use super::*;
     use crate::canon;
     use serde_json::json;
+
+    #[test]
+    fn working_copy_started_from_a_folder() {
+        let tmp = std::env::temp_dir().join(format!("lmoxide-start-copy-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp);
+        let (src, dir) = (tmp.join("src"), tmp.join("work"));
+        std::fs::create_dir_all(src.join("npcs")).unwrap();
+        std::fs::write(src.join("npcs/a.json"), "{}").unwrap();
+        // a submodule's .git file stays behind
+        std::fs::write(src.join(".git"), "gitdir: elsewhere").unwrap();
+        start_copy(&src, &dir).unwrap();
+        assert!(is_repo(&dir));
+        assert!(dir.join("npcs/a.json").exists());
+        assert!(changed_files(&dir).unwrap().is_empty());
+        assert_eq!(git(&dir, &["remote", "get-url", "origin"]).unwrap().trim(), CONTENT_REPOSITORY);
+        std::fs::remove_dir_all(&tmp).unwrap();
+    }
 
     #[test]
     fn changes_and_history() {

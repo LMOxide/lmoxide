@@ -340,7 +340,8 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     if cfg.runs(instance::Mode::WorldEditor) {
         let dir = cfg.survey_set.clone().unwrap_or_else(|| storage.data_dir.join("survey"));
         survey::init(dir);
-        editor::init(&cfg.editor_content_dir.clone().unwrap_or_else(|| gamedata::dir(cfg.content_dir.clone())));
+        let play = gamedata::dir(cfg.content_dir.clone());
+        editor::init(&cfg.editor_content_dir.clone().unwrap_or_else(|| play.clone()), &play);
     }
     if cfg.runs(instance::Mode::Progression) || cfg.runs(instance::Mode::Maxed) {
         content::init(cfg.content_queue.clone());

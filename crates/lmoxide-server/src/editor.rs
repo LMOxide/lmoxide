@@ -46,8 +46,15 @@ struct ProblemView {
 
 static EDITOR: LazyLock<Mutex<Option<Editor>>> = LazyLock::new(|| Mutex::new(None));
 
-/// Opens the working copy at `dir` (survey servers).
-pub fn init(dir: &Path) {
+/// Opens the working copy at `dir` (survey servers); one that isn't there yet is made from the
+/// content the server plays, `src`.
+pub fn init(dir: &Path, src: &Path) {
+    if !dir.exists() {
+        match git::start_copy(src, dir) {
+            Ok(()) => info!(dir = %dir.display(), from = %src.display(), "content working copy made"),
+            Err(e) => warn!("making the content working copy {} from {}: {e:#}", dir.display(), src.display()),
+        }
+    }
     match Work::open(dir) {
         Ok(work) => {
             for n in &work.notes {

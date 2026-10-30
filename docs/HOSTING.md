@@ -216,8 +216,11 @@ the server is stopped. With the bot, back up the `discord-bot-data` volume as we
 
 ## The world editor
 
-The World Editor mode (port 7104) saves into a git clone of the content repository in the data
-volume (`editor-content-dir`). Make it once:
+The World Editor mode (port 7104) saves into a git checkout of the content in the data volume
+(`editor-content-dir`, `/data/content-work`). The server makes it on its first start (a copy of
+the content the image plays, committed, its `origin` the content repository); without it the
+World Editor's worlds would be empty. To start from the content repository's latest instead, clone
+it there before the first start (or after removing the folder):
 
 ```sh
 docker compose exec lmoxide git clone https://github.com/LMOxide/lmoxide-content.git /data/content-work
