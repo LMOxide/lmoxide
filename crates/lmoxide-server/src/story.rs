@@ -555,8 +555,9 @@ pub fn handle(order: Order, c: &mut Character, player: Id32, name: &str, place: 
         }
         Order::Spawn(hash) => {
             let Some((main, q, step)) = find_step(&hash) else {
-                // (a minifigure the dialogue gives: game.rs grants it, see `spawn_minifigure`)
-                if !crate::gamedata::get().tunables.story.spawn_minifigures.contains_key(&hash) {
+                // (a minifigure the dialogue gives, or the Homestone: game.rs grants them, see
+                // `spawn_minifigure`, homestone.rs)
+                if !crate::gamedata::get().tunables.story.spawn_minifigures.contains_key(&hash) && hash != crate::homestone::hash() {
                     info!(character, hash, "spawn: not a story quest or minifigure (an NPC template?)");
                 }
                 return Vec::new();

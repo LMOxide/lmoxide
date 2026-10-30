@@ -22,6 +22,7 @@ mod enemy_abilities;
 mod game;
 mod gamedata;
 mod gates;
+mod homestone;
 mod instance;
 mod jumppad;
 mod knubot;

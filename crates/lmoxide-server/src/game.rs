@@ -372,6 +372,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 info!(character, template, "story minifigure: owned already");
                             }
                         }
+                        if crate::homestone::gives(&order) && !grant_homestone(&mut conn, character, &mut me).await? {
+                            info!(character, "Homestone: owned already");
+                        }
                         let name = me.name.clone();
                         let mut records = crate::story::handle(order, &mut me, Id32::new(crate::territory::CHARACTER_TYPE, character), &name, place);
                         records.extend(story_npc_records(&me, place, &mut story_hidden));
@@ -534,6 +537,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         let args = Writer::new().i32(2).i32(100).u32(POTION_SPELL).finish();
                         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_SERVER_SHORTCUT, args)
                             .await?;
+                        // the Homestone: its spell, and its shortcut once the jail escape gave it
+                        for (endpoint, method, args) in crate::homestone::entry(&me) {
+                            conn.send_as(Some(character), endpoint, method, args).await?;
+                        }
                         conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, echo)
                             .await?;
                         // the World Map's teleport spots for this world, all unlocked
@@ -868,6 +875,25 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         let effect = crate::effects::effect_package(h.identity, POTION_EFFECT);
                                         world::send_playfield(h.identity, false, world::Out::Records(vec![effect.clone()]));
                                         extra.push(effect);
+                                    }
+                                } else if spell.is_some_and(crate::homestone::is_spell) {
+                                    // the Homestone: back to the LEGO Center after its cast
+                                    // (not in a Lost Creations level)
+                                    if let Some((endpoint, method, args)) = crate::homestone::refused(place) {
+                                        conn.send_as(Some(character), endpoint, method, args).await?;
+                                        refused = true;
+                                    } else if let Some((playfield, at, rot)) = crate::homestone::destination() {
+                                        let effect = crate::homestone::effect(h.identity);
+                                        world::send_playfield(h.identity, false, world::Out::Records(vec![effect.clone()]));
+                                        extra.push(effect);
+                                        let cast = crate::homestone::cast_time();
+                                        can_execute_after = Some(cast);
+                                        let outbox = outbox.clone();
+                                        tokio::spawn(async move {
+                                            tokio::time::sleep(cast).await;
+                                            let _ = outbox.send(world::Out::Teleport(Some(playfield), at, rot));
+                                        });
+                                        info!(character, playfield, "Homestone");
                                     }
                                 } else if let Some(spell) = spell {
                                     crate::procs::cast(h.identity, spell);
@@ -1734,6 +1760,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                         } else {
                                             "story minifigure owned already (!collection limit to collect them)"
                                         };
+                                        crate::chat::system(character, line);
+                                    }
+                                    if crate::homestone::gives(&order) {
+                                        let line = if grant_homestone(&mut conn, character, &mut me).await? { "Homestone obtained" } else { "Homestone owned already" };
                                         crate::chat::system(character, line);
                                     }
                                     let name = me.name.clone();
@@ -2756,6 +2786,19 @@ async fn grant_story_minifigure(conn: &mut Conn, character: u32, me: &mut Charac
         conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::ADD_ITEM, args).await?;
     }
     grant_minifigure(conn, character, me, collection, template).await
+}
+
+/// The Homestone a story conversation gives (`spawn SLXS`, homestone.rs): its item's AddItem
+/// and the spell's shortcut, as live; false when the character has it already.
+async fn grant_homestone(conn: &mut Conn, character: u32, me: &mut Character) -> anyhow::Result<bool> {
+    if !crate::homestone::give(me) {
+        return Ok(false);
+    }
+    for (endpoint, method, args) in [crate::homestone::add_item(character), crate::homestone::shortcut()] {
+        conn.send_as(Some(character), endpoint, method, args).await?;
+    }
+    info!(character, "Homestone obtained");
+    Ok(true)
 }
 
 /// Adds `template` to a limited collection (a bag, a minifigure built from parts, an

@@ -1507,6 +1507,7 @@ pub fn loot_and_tunables(
         story: std::mem::take(&mut tree.tunables.story),
         achievements: std::mem::take(&mut tree.tunables.achievements),
         enemy_abilities: std::mem::take(&mut tree.tunables.enemy_abilities),
+        homestone: std::mem::take(&mut tree.tunables.homestone),
         more: std::mem::take(&mut tree.tunables.more),
     };
     Ok(())

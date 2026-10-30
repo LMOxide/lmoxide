@@ -666,6 +666,16 @@ Recorded session; layouts from the client's ReadSubClass. Implemented in `knubot
   AppendText (u32 1, remoteformat XML, u8 1, u32 0, i32 -1, f32 4, f32 20); AnswerList (u32 n,
   n × remoteformat); C>S Answer (u32 index); CloseChatWindow (u32 1, remoteformat 100/0);
   KnubotActorIIR / SpawnClientNPCIIR (record flag 1; u32 length + protobuf, proto/).
+- **Item gifts** (`spawn <hash> 1 m`): the AddItem's ACG item carries the resource hash as its
+  fixed32 `hash` (bytes = the 4 characters reversed: "SLXS" = `53 58 4c 53`). Text 823 (jail
+  escape, LMO_Captures.cap 311.68 s): AddTag 4182; AddItem(104 backpack, -1, 443457 "XX_Item that
+  gives Homestone", hash SLXS); AddServerShortcut(2, 103, 155998 Homestone); AddItem(110002, -1,
+  bag 519409, hash 7LLT) and the Swashbuckler into the collection; the client answered
+  AddShortcut(2, 103, 155998, 0). The Homestone spell was in the character's FullCharacter spell
+  list already (LearnSpell 155998 after character creation, next to the potion's 104554).
+  `GameCharInterface::BroadcastMessage(String)` (0x5d) shows the string as a FIFO message
+  (GamecodeClient_t::BroadcastMessage -> FeedbackGUI FIFO mode 4); LMOxide uses it for the
+  Homestone's refusal in Lost Creations (not recorded).
 - **Running a text**: words before the first tag → AppendText antitag 0; then per tag: do it,
   AppendText antitag = tags done (the client cuts the text at its tags; antitag N shows segment
   N alone: Conversation.swf clears the window first, so each AppendText replaces the text).

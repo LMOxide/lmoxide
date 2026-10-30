@@ -448,8 +448,14 @@ fn test(arg: Option<&str>) -> Action {
     let Some(arg) = arg else {
         let mut lines = vec!["!test <n|label>:".to_string()];
         lines.extend(list.iter().enumerate().map(|(i, s)| format!("{} {}: {}", i + 1, s.label, s.about)));
+        lines.push("homestone: give the Homestone (the jail escape's), then cast it from its shortcut".into());
         return Action::Reply(lines);
     };
+    if arg.eq_ignore_ascii_case("homestone") {
+        // the jail escape's `spawn SLXS` (text 823): the item and the shortcut; cast it to go to
+        // the LEGO Center (refused in a Lost Creations level)
+        return Action::Story(Some(crate::story::Order::Spawn(crate::homestone::hash().to_string())), false);
+    }
     let found = arg.parse::<usize>().ok().and_then(|n| list.get(n.wrapping_sub(1))).or_else(|| {
         let a = arg.to_ascii_lowercase();
         list.iter().find(|s| s.label.to_ascii_lowercase() == a)
@@ -1078,7 +1084,8 @@ mod tests {
 
     #[test]
     fn test_scenarios_resolve() {
-        assert!(matches!(run("!test", Pf::main(1200), [0.0; 3]), Action::Reply(l) if l.len() == SCENARIOS.scenarios.len() + 1));
+        assert!(matches!(run("!test", Pf::main(1200), [0.0; 3]), Action::Reply(l) if l.len() == SCENARIOS.scenarios.len() + 2));
+        assert!(matches!(run("!test Homestone", Pf::main(1200), [0.0; 3]), Action::Story(Some(crate::story::Order::Spawn(h)), false) if h == "SLXS"));
         for (i, s) in SCENARIOS.scenarios.iter().enumerate() {
             // every scenario's minifigures and playfields exist (target kinds need the NPCs)
             if s.goto.as_ref().is_some_and(|g| g.kind.is_some()) {

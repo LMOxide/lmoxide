@@ -61,9 +61,42 @@ pub struct Tunables {
     /// Doctor's totem (server enemy_abilities.rs).
     #[serde(default)]
     pub enemy_abilities: EnemyAbilities,
+    /// The Homestone: the jail escape gives it, its spell returns to the LEGO Center.
+    #[serde(default)]
+    pub homestone: Homestone,
     /// Anything else, by name (`section.name`).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub more: BTreeMap<String, serde_json::Value>,
+}
+
+/// The Homestone (server homestone.rs). A dialogue's `spawn <hash>` gives its item
+/// (`[Give Homestone]{spawn SLXS 1 m}`, text 823; the live capture's AddItem carries the hash),
+/// whose actions put the spell on its shortcut; the spell is game action 637122
+/// (`ga_teleportplayer` with `Teleport_X=330;Teleport_Y=49;Teleport_Z=67;Teleport_Rotation=45;
+/// TeleportPlayfieldID=1200;DenyFromEndless=1`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
+pub struct Homestone {
+    /// The `spawn <hash>` that gives it (empty: nothing gives it).
+    pub hash: String,
+    /// "XX_Item that gives Homestone" (LearnSpell, AddToShortcutbar).
+    #[schemars(extend("x-lmoxide-client" = "item"))]
+    pub item: u32,
+    #[schemars(extend("x-lmoxide-client" = "spell"))]
+    pub spell: u32,
+    /// The shortcut bar position the item puts the spell on.
+    pub shortcut: u32,
+    /// The cast: nano 637122's ItemDelay, and its effect package (the hearthstone particles,
+    /// 5 s) on the caster.
+    pub cast: Duration,
+    #[schemars(extend("x-lmoxide-client" = "effect_package"))]
+    pub effect_package: u32,
+    /// Where it goes.
+    #[schemars(extend("x-lmoxide-ref" = ["world"]))]
+    pub world: Ref,
+    pub arrival: Point,
+    /// Refused in a Lost Creations level (DenyFromEndless), with this line (TDB 50018 8617458).
+    pub denied_text: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
