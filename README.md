@@ -7,7 +7,7 @@ and the client can't be played without a server. LMOxide replaces that server, s
 released client (1.5.557666) works again on Windows and Linux. Everything was reverse-engineered
 from the client.
 
-![In game on an LMOxide server](docs/img/first-inplay.png)
+![In game on an LMOxide server](docs/img/screenshot.png)
 
 <!-- Feature screenshots go here. -->
 
