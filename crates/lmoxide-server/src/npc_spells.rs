@@ -587,9 +587,17 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             let pulses = a.u("Arg2").unwrap_or(1).max(1);
             let delay = cs(a.f("DelayTime").unwrap_or(0.0));
             let lifetime = (delay + pulse * pulses).max(GROUND_MIN_VISUAL);
+            // RelXPos / RelZPos (m) move it, Z along the caster's facing and X across it (the
+            // T-Rex's stomp: eight feet in a 14 m line through each player, 0.5 s apart)
+            let (rx, rz) = (a.f("RelXPos").unwrap_or(0.0), a.f("RelZPos").unwrap_or(0.0));
+            let [fx, fz] = run.facing;
+            let at = [who.pos[0] + rz * fx + rx * fz, who.pos[1], who.pos[2] + rz * fz - rx * fx];
+            let who = Target { id: if rx == 0.0 && rz == 0.0 { who.id } else { None }, pos: at };
+            // (shown at once: packages time themselves to the DelayTime, a fuse burning or the
+            // T-Rex's eighth foot coming down 3.75 s in)
             if let Some(package) = a.u("EffectPackage") {
                 let instance = effects::new_instance();
-                show(run, vec![effects::ground_effect(caster, package, who.pos, id, instance)]);
+                show(run, vec![effects::ground_effect(caster, package, at, id, instance)]);
                 let run = run.clone();
                 tokio::spawn(async move {
                     tokio::time::sleep(lifetime).await;

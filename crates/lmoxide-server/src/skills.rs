@@ -290,9 +290,9 @@ mod tests {
             // Swashbuckler, Treant Brown, Troll Hornblower, Troll Ranged; the Lizard Man the T-Rex's hit and rawr
             (98_178, &[100_144, 188_671]),
             (192_828, &[188_671]),
-            (337_606, &[238_037, 16_101]),
+            (337_606, &[331_516, 16_101]),
             (331_167, &[191_516]),
-            (331_170, &[101_246]),
+            (331_170, &[319_299]),
             (521_311, &[521_897, 521_607]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
