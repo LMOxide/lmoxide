@@ -70,11 +70,6 @@ pub fn kit(look: u32) -> Option<&'static Kit> {
     KITS.get(&look)
 }
 
-/// How far a totem caster stays from its target (80% of the totem's range), if it casts one.
-pub fn keep_distance(look: u32) -> Option<f32> {
-    kit(look)?.totem.map(|t| t.range * 0.8)
-}
-
 /// An enemy near the caster, as the abilities see it.
 #[derive(Debug, Clone, Copy)]
 pub struct Ally {
@@ -272,7 +267,6 @@ mod tests {
         assert!(kit(201479).is_some_and(|k| k.totem.is_some() && k.heal.is_none()));
         assert!(kit(99330).is_some_and(|k| k.shield.is_some_and(|s| s.on == ShieldOn::Itself)));
         assert!(kit(379392).is_some_and(|k| k.shield.is_some_and(|s| s.on == ShieldOn::Ally)));
-        assert_eq!(keep_distance(201479), Some(12.0 * 0.8));
     }
 
     #[test]

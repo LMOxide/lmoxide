@@ -1938,12 +1938,6 @@ fn reach_of(spell: u32) -> f32 {
     crate::npc_spells::range(spell).max(MELEE_RANGE + 1.0)
 }
 
-/// How close enemy `def` walks up to its target: a totem caster stays at its totem's range
-/// (enemy_abilities.rs), others as `keep_distance`.
-fn keep_for(def: &SpawnDef) -> f32 {
-    crate::enemy_abilities::keep_distance(def.monster_data).map_or_else(|| keep_distance(&spells_for(def)), |k| k.clamp(MELEE_RANGE, AGGRO_RANGE - 1.0))
-}
-
 /// How close an enemy with `spells` walks up to its target: to melee range if it has a melee
 /// attack, otherwise to 80% of its shortest ranged attack (kept inside the aggro range).
 fn keep_distance(spells: &[u32]) -> f32 {
@@ -2129,7 +2123,7 @@ fn fighters_tick(awake: &std::collections::HashSet<Pf>) {
         .unwrap()
         .iter()
         .filter(|(_, n)| awake.contains(&n.playfield) && n.def.fights() && n.presence.is_some() && n.health > 0)
-        .map(|(id, n)| (*id, n.playfield, n.def.pos, keep_for(&n.def)))
+        .map(|(id, n)| (*id, n.playfield, n.def.pos, keep_distance(&spells_for(&n.def))))
         .collect();
     for (id, playfield, home, keep) in fighters {
         let Some(here) = current(id) else { continue };
@@ -2326,7 +2320,7 @@ async fn ai() {
             .filter(|(_, n)| n.def.kind == Kind::Enemy && n.presence.is_some() && n.health > 0)
             .map(|(id, n)| {
                 let threat = n.threat.filter(|(_, t)| t.elapsed() < THREAT_MEMORY).map(|(p, _)| p);
-                (*id, n.playfield, n.def.pos, stand_reach(&n.def), keep_for(&n.def), threat, n.def.faction)
+                (*id, n.playfield, n.def.pos, stand_reach(&n.def), keep_distance(&spells_for(&n.def)), threat, n.def.faction)
             })
             .collect();
         // rival enemies: (id, playfield, side, position)

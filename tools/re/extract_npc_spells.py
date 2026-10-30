@@ -102,8 +102,9 @@ GENERIC = [
     (r"pirate_swashbuckler", [194140]),  # XX_Slash
     (r"pirate_grenadier", [238116, 238115]),  # XX_Grenade Throw, XX_Slash
     (r"pirate_islander_hunter", [194218, 194198]),  # XX_Dart, XX_Stab
-    # pirate_islander_witch_doctor: none (his tiki totem is tunables enemy_abilities.totems; the
-    # lobbed XX_Magic Potion 95237 guessed before looked like a snowball, the user, 2026-10-30)
+    # his tiki totem is tunables enemy_abilities.totems; the lobbed XX_Magic Potion 95237 guessed
+    # before looked like a snowball; he had a knife attack, used more often (the user, 2026-10-30)
+    (r"pirate_islander_witch_doctor", [194198]),  # XX_Stab
     (r"pirate_captain_pete", [201244, 238115]),  # XX_Cannon, XX_Slash
     (r"harpy(_blade)?", [15086, 196231]),  # XX_Feather Fling, XX_Smack
     (r"gremlin_warlock_.*", [332423]),  # XX_Bolt

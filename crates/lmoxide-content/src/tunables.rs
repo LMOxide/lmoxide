@@ -574,7 +574,7 @@ pub struct EnemyShield {
 pub struct EnemyTotem {
     #[schemars(extend("x-lmoxide-ref" = ["npc"]))]
     pub npcs: Vec<Ref>,
-    /// Cast at players this close (m); the enemy keeps 80% of it away.
+    /// Cast at players this close (m).
     pub range: f32,
     /// Players within this of the mark are hit (m).
     pub radius: f32,
