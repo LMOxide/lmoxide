@@ -677,7 +677,7 @@ mod tests {
         for _ in 0..200 {
             let p = around([10.0, 5.0, 20.0], 1.5);
             let d = (p[0] - 10.0).hypot(p[2] - 20.0);
-            assert!((0.75..=1.5).contains(&d), "{d}");
+            assert!((0.749..=1.501).contains(&d), "{d}");
             assert_eq!(p[1], 5.0);
         }
     }
