@@ -2171,6 +2171,14 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 conn.send_as(Some(character), Endpoint::GameCharInterfaceProject, game_char_interface_project::SIGNAL_CREATE_PLAYER_CHARACTER_RESULT, args)
                     .await?;
                 if starter.is_some() {
+                    // The client's first chat connect (ChatServerInterface_c::FrameProcess, about
+                    // 1.5 s after entering) reads its own character without checking it is there:
+                    // during a teleport it isn't, and the client segfaults. The creation script
+                    // answers at once, so wait for that connect before leaving 4000.
+                    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(5);
+                    while !crate::chat::connected(character) && tokio::time::Instant::now() < deadline {
+                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                    }
                     // on to the tutorial, without progression to the start playfield (the teleport
                     // sends the character again, with its team)
                     conn.send_as(Some(character), Endpoint::GameCharInterface, game_char_interface::TELEPORT_STARTED, Bytes::new()).await?;

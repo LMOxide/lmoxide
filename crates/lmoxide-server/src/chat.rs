@@ -304,6 +304,11 @@ pub fn retarget(old: u32, new: u32) {
     info!(old, new, "chat: connection moved to the character played");
 }
 
+/// Whether the character's client has logged in to chat (`PASS`).
+pub fn connected(character: u32) -> bool {
+    CLIENTS.lock().unwrap().contains_key(&character)
+}
+
 /// Sends the JOINs of a connected character's channels again (the default ones and its team's).
 pub fn rejoin(character: u32) {
     let Some(nick) = NICKS.lock().unwrap().get(&character).cloned() else { return };
