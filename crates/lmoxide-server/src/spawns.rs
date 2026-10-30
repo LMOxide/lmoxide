@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use lmoxide_content::{Content, FightRole, Rot, Source, Spawn, SpawnKind};
+use lmoxide_content::{Content, FightRole, NpcKind, Rot, Source, Spawn, SpawnKind};
 use serde_json::Value;
 
 use crate::npc::{Kind, SpawnDef};
@@ -81,6 +81,27 @@ pub fn def_from(s: &Spawn, t: &Value, spell_of: &dyn Fn(&str) -> Option<u32>, ow
         count: s.count.max(1),
         spread: None,
     })
+}
+
+/// What SpawnMonster game actions spawn, by the original server's template hash (content npcs
+/// `spawn_hash`): the template as the NPC code's definition (enemies, bosses and champions
+/// fight; NPCs, triggers and summons are friendly anchors nobody fights), and its `lifetime`.
+pub fn spawned_templates() -> HashMap<String, (SpawnDef, Option<std::time::Duration>)> {
+    let c = crate::gamedata::get();
+    c.npcs
+        .values()
+        .filter_map(|n| {
+            let hash = n.spawn_hash.clone()?;
+            let kind = match n.kind {
+                NpcKind::Enemy | NpcKind::Boss | NpcKind::Champion => SpawnKind::Enemy,
+                NpcKind::Npc | NpcKind::Trigger | NpcKind::Summon => SpawnKind::Npc,
+            };
+            let spawn = Spawn { kind, name: n.name.trim().to_string(), source: n.source, ..Default::default() };
+            let t = serde_json::to_value(n).ok()?;
+            let def = def_from(&spawn, &t, &|a| c.skills.get(a).and_then(|s| s.client.as_ref()).map(|c| c.spell), &|kind, loot| own_loot(c, kind, loot))?;
+            Some((hash, (def, n.lifetime.map(|d| d.to_std()))))
+        })
+        .collect()
 }
 
 /// A template's loot table when it isn't the one its kind rolls anyway (tunables
@@ -226,12 +247,21 @@ mod tests {
         ("6300", "T-Rex"),
     ];
 
+    /// Basic attacks changed since: (name, old spell, new spell). The Space Merc Engineer's
+    /// 374158 (no client definition) is his bomb ring now, his shot his basic attack.
+    const ATTACKS_CHANGED: [(&str, u32, u32); 1] = [("Space Merc Engineer", 374_158, 374_159)];
+
     /// (the world editor's spawns weren't in the old files)
     #[test]
     fn same_as_the_old_files() {
         let mut new = table();
         for defs in new.values_mut() {
             defs.retain(|d| d.source.as_deref() != Some("survey"));
+            for d in defs.iter_mut() {
+                if let Some((_, old, _)) = ATTACKS_CHANGED.iter().find(|(name, _, new)| d.name == *name && d.spell == *new) {
+                    d.spell = *old;
+                }
+            }
         }
         let mut old = old_table();
         for (pf, defs) in new.iter_mut().chain(old.iter_mut()) {

@@ -829,6 +829,16 @@ From the Linux build (2026-10-26):
   stats 421 and 360 each / 100, MonsterScale 0 counting as 1); a character's
   (`SimpleChar_t::UpdateMonsterScale`) = CharRadius / 100 × MonsterScale / 100, at least 0.1.
   tools/re/extract_projectile_sizes.py writes the items' radii.
+- **Orbiting** (`ProjectileOrbitingMoveTask`, move type 3): the full update's target
+  (CoreProjectile +0x244, `GetTarget`) is the centre, re-read every frame, so the shot follows
+  it. OnStart: offset = the full update's local offset (+0x290) + Z × (target's +0x5c + the
+  projectile's +0x5c, their radii); angle = the start angle around y (+0x288, radians); rate =
+  speed × π / 1.8 (the action's Speed in degrees a second). Each frame: angle += dt × rate, and
+  the position is the centre + the offset turned by the angle around +Y (a quaternion). The
+  task never ends by itself: the server despawns the shot. Live (2016 capture, the Sad Clown's
+  clouds): item 222206, type 3, caster the player, target the anchor, end (0, 0, 0), speed 2.0,
+  spell 222171/222197/222198 with start angles (0, 0/2.094/4.189, 0) and offset (1.5, 0.5, 0),
+  attractor, ricochets, chains and max distance 0.
 - **Dodge** (not used): the client has dodge hotkeys (`CoreHotkeyDispatcher::MovementDodge*`,
   `DoDodge`) that call `SimpleChar_t::ToggleDodge`, which sends `ToggleDodge(u32 direction)`
   (GameCharAgentProject sender method 16) unless a flag at `SimpleChar_t+0x3ef` says otherwise.

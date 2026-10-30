@@ -205,7 +205,10 @@ mod tests {
             }
         }
         let summons = summons();
-        for (k, v) in data("summons.json").as_object().unwrap().iter().filter(|(k, _)| k.parse::<u32>().is_ok()) {
+        // From Bad to Worse spawns the invisible anchor its clouds circle (SpawnMonster FXCX, as
+        // in the live capture), not the pet summons.json guessed
+        const NO_LONGER_SUMMONS: [&str; 1] = ["196059"];
+        for (k, v) in data("summons.json").as_object().unwrap().iter().filter(|(k, _)| k.parse::<u32>().is_ok() && !NO_LONGER_SUMMONS.contains(&k.as_str())) {
             let got = &summons[&k.parse::<u32>().unwrap()];
             for f in ["name", "monster_data", "lifetime", "spell"] {
                 assert_eq!(got.get(f), v.get(f), "summon {k} {f}");
@@ -215,8 +218,11 @@ mod tests {
             }
         }
         let monsters = monster_spells();
+        // spells added since: the Space Merc Engineer's bomb ring (made up: skill/merc-engineer-bomb-ring)
+        const ADDED: [(u32, u32); 1] = [(388_444, 374_158)];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
-            let want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
+            let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
+            want.extend(ADDED.iter().filter(|(md, _)| k == &md.to_string()).map(|(_, s)| *s));
             assert_eq!(monsters.get(&k.parse::<u32>().unwrap()), Some(&want), "monster {k}");
         }
     }

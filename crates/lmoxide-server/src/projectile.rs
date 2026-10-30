@@ -19,6 +19,13 @@
 //!
 //! Ballistic (lobbed) shots land on the point they were thrown at and act there once, at the
 //! first report or, failing one, when their flight is over.
+//!
+//! Orbiting shots (ProjectileType 3: the Fortune Teller's cards, the Sad Clown's clouds) circle
+//! the full update's target dynel, wherever it goes, as the client moves them
+//! (ProjectileOrbitingMoveTask: the offset, plus the target's and the projectile's radii ahead,
+//! turned around the vertical by the start angle plus Speed × 100 degrees a second). The server
+//! moves them the same way and hits what they touch (`circle`); they last until a hit or for
+//! their lifetime, and the server removes them.
 
 use crate::instance::Pf;
 use std::{
@@ -291,6 +298,37 @@ fn crossing(a: [f32; 3], b: [f32; 3], p: [f32; 3], reach: f32) -> Option<f32> {
     (off < reach && (c[1] - p[1]).abs() < 2.0 * reach + 1.0).then_some(t)
 }
 
+/// An orbiting shot as the client moves it: around `centre` (followed), `offset` (m, with the
+/// radii) turned `angle` + `rate` × t radians around the vertical; it hits what comes within
+/// `reach`, until `until`.
+#[derive(Clone, Copy)]
+struct Orbit {
+    centre: Id32,
+    offset: [f32; 3],
+    angle: f32,
+    rate: f32,
+    reach: f32,
+    side: Side,
+    launched: Instant,
+    until: Instant,
+}
+
+impl Orbit {
+    /// Where it is `t` s after the launch with the centre at `c` (the client's quaternion turn
+    /// around +Y: x' = x cos a + z sin a, z' = z cos a - x sin a).
+    fn at(&self, c: [f32; 3], t: f32) -> [f32; 3] {
+        let (s, k) = (self.angle + self.rate * t).sin_cos();
+        let [x, y, z] = self.offset;
+        [c[0] + x * k + z * s, c[1] + y, c[2] + z * k - x * s]
+    }
+}
+
+/// An orbiting shot's turn rate (rad/s) from its speed (m/s on the wire): the client's
+/// OnStart takes speed × π / 1.8, i.e. the action's Speed in degrees a second.
+fn orbit_rate(speed: f32) -> f32 {
+    speed * std::f32::consts::PI / 1.8
+}
+
 struct Live {
     caster: Id32,
     spell: u32,
@@ -301,6 +339,8 @@ struct Live {
     end: [f32; 3],
     /// A straight shot's flight (`fly`).
     flight: Option<Flight>,
+    /// An orbiting shot's circle (`circle`).
+    orbit: Option<Orbit>,
     hit: HashSet<Id32>,
     /// Enemies it still flies on to after a hit (`strike`).
     chains: u32,
@@ -326,6 +366,122 @@ pub struct Shot {
 }
 
 pub const BALLISTIC: u32 = 2;
+pub const ORBITING: u32 = 3;
+/// How long an orbiting shot circles when its spell has no TimeExist: live's Sad Clown clouds
+/// (buffs of 500 cs on their anchor, despawned 5.2–5.3 s after they appeared).
+pub const ORBIT_LIFETIME: Duration = Duration::from_secs(5);
+
+/// One orbiting shot of a Projectile action (ProjectileType 3): `item` circling `centre` (a
+/// character, followed) at `speed` (m/s on the wire: Speed / 100), starting `angle` degrees
+/// around (RotY) at `offset` (m: DisplaceMentX/Y/Z; the client adds the centre's and the item's
+/// radii ahead), for `lifetime`. `hits_players`: an enemy's (it hits players), else a player's.
+pub struct Circle {
+    pub item: u32,
+    pub speed: f32,
+    pub centre: Id32,
+    pub angle: f32,
+    pub offset: [f32; 3],
+    pub lifetime: Duration,
+    pub hits_players: bool,
+}
+
+/// `caster` sends an orbiting shot of `spell` (`circle`) on `playfield`; `on_hit` runs for what
+/// it touches (it bursts there), and it is gone after its lifetime. Nothing is sent when the
+/// centre isn't there.
+pub fn launch_orbit(caster: Id32, playfield: Pf, spell: u32, circle: &Circle, on_hit: OnHit) {
+    let Some(c) = centre_position(circle.centre, playfield) else { return };
+    let p = Params {
+        item: circle.item,
+        move_type: ORBITING,
+        speed: circle.speed,
+        attractor: 0,
+        offset_z: 0.0,
+        ricochets: 0,
+        chains: 0,
+        range: 0.0,
+        charge_items: vec![],
+        channel_interval: 0.0,
+        channel_buff: None,
+        counter_buff: None,
+    };
+    let id = Id32::new(PROJECTILE_TYPE, NEXT.fetch_add(1, Ordering::Relaxed));
+    let angle = circle.angle.to_radians();
+    let ahead = TARGET_RADIUS + radius_of(circle.item);
+    let launched = Instant::now();
+    let orbit = Orbit {
+        centre: circle.centre,
+        offset: [circle.offset[0], circle.offset[1], circle.offset[2] + ahead],
+        angle,
+        rate: orbit_rate(circle.speed),
+        reach: radius_of(circle.item) + TARGET_RADIUS,
+        side: if circle.hits_players { Side::Players } else { Side::Npcs },
+        launched,
+        until: launched + circle.lifetime,
+    };
+    let start = orbit.at(c, 0.0);
+    let records = vec![
+        create_game_object(id, playfield, start),
+        // (no end point: live sent zeros, the clients circle the target)
+        full_update_turned(id, &p, caster, Some(circle.centre), spell, start, [0.0; 3], playfield, 0, [0.0, angle, 0.0], circle.offset),
+    ];
+    let live = Live {
+        caster,
+        spell,
+        effect: Effect::Run(on_hit),
+        piercing: false,
+        ballistic: false,
+        end: c,
+        flight: None,
+        orbit: Some(orbit),
+        hit: HashSet::new(),
+        chains: 0,
+        bounced_at: None,
+    };
+    LIVE.lock().unwrap().insert(id, live);
+    debug!(?caster, spell, item = circle.item, centre = ?circle.centre, "orbiting projectile");
+    world::send_playfield(caster, true, world::Out::Records(records));
+    circle_on(id, playfield);
+}
+
+/// Where the centre of an orbit is now, if it is still on `playfield`: an NPC along its walk, a
+/// player where it is now.
+fn centre_position(id: Id32, playfield: Pf) -> Option<[f32; 3]> {
+    if crate::npc::is_npc(id) {
+        return crate::npc::position(id);
+    }
+    world::whereabouts(id).filter(|(pf, _)| *pf == playfield).and_then(|_| world::live_position(id))
+}
+
+/// Moves orbiting shot `id` on the server as the clients do, every `STEP`, and hits what it
+/// passed (`strike`: it bursts on the first), until its time is up or its centre is gone.
+fn circle_on(id: Id32, playfield: Pf) {
+    tokio::spawn(async move {
+        let mut tick = tokio::time::interval(STEP);
+        let mut last: Option<[f32; 3]> = None;
+        loop {
+            tick.tick().await;
+            let Some((o, caster, hit)) = LIVE.lock().unwrap().get(&id).and_then(|l| Some((l.orbit?, l.caster, l.hit.clone()))) else { return };
+            let now = Instant::now();
+            let Some(c) = centre_position(o.centre, playfield).filter(|_| now < o.until) else {
+                remove(id, Duration::ZERO);
+                return;
+            };
+            let here = o.at(c, now.duration_since(o.launched).as_secs_f32());
+            let from = last.unwrap_or(here);
+            last = Some(here);
+            let first = candidates(o.side, playfield)
+                .into_iter()
+                .filter(|(t, _)| *t != caster && *t != o.centre && !hit.contains(t))
+                .filter_map(|(t, p)| crossing(from, here, p, o.reach).map(|s| (s, t, p)))
+                .min_by(|x, y| x.0.total_cmp(&y.0));
+            if let Some((_, target, at)) = first
+                && !strike(id, target, at)
+            {
+                return;
+            }
+        }
+    });
+}
 
 static LIVE: LazyLock<Mutex<HashMap<Id32, Live>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 static NEXT: AtomicU32 = AtomicU32::new(1);
@@ -405,7 +561,7 @@ fn send(
     let piercing = piercing || p.speed < PIERCING_BELOW_SPEED;
     let flight = (!ballistic).then(|| Flight::new(start, end, p.speed, range, width.unwrap_or(radius_of(p.item) + TARGET_RADIUS), Side::Npcs));
     let chains = p.chains;
-    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, flight, hit: HashSet::new(), chains, bounced_at: None });
+    LIVE.lock().unwrap().insert(id, Live { caster, spell, effect, piercing, ballistic, end, flight, orbit: None, hit: HashSet::new(), chains, bounced_at: None });
     info!(?caster, spell, item = p.item, ballistic, range, "projectile");
     world::send_playfield(caster, true, world::Out::Records(records));
     if !ballistic {
@@ -480,7 +636,8 @@ fn strike(id: Id32, target: Id32, at: [f32; 3]) -> bool {
         if !l.hit.insert(target) {
             return true;
         }
-        (l.caster, l.spell, l.effect.clone(), l.piercing, l.flight.map_or(Side::Npcs, |f| f.side))
+        let side = l.flight.map(|f| f.side).or(l.orbit.map(|o| o.side)).unwrap_or(Side::Npcs);
+        (l.caster, l.spell, l.effect.clone(), l.piercing, side)
     };
     info!(?caster, ?target, spell, "projectile hit");
     world::send_playfield(caster, side == Side::Players, world::Out::Records(vec![hit_record(caster, id, target, at)]));
@@ -602,6 +759,7 @@ pub fn launch_at_players(
         ballistic: false,
         end,
         flight: Some(flight),
+        orbit: None,
         hit: HashSet::new(),
         chains: 0,
         bounced_at: None,
@@ -663,12 +821,34 @@ fn hit_record(caster: Id32, id: Id32, target: Id32, at: [f32; 3]) -> Bytes {
 
 /// `CoreProjectileFullUpdateIIR` (ReadSubClass 0x1244a60): header ProtoGameCodeDynelIIR, then
 /// u32 item, u32 move type (1 straight, 2 ballistic, 3 orbiting), ID32 caster, ID32 target,
-/// start, target position, f32 (5.0), f32 speed (m/s), u32 spell, start angle, local offset
-/// (0, 0, forward), u32 attractor (0, or the caster attachment point it starts from),
-/// u32 ricochets, u32 chains (CoreProjectile +0x2b0: `RicochetTarget` to the next enemy), i32 max distance (m; 0: the spell's AttackRange,
-/// CoreProjectileFullUpdateIIR::Transfer).
+/// start, target position, f32 (5.0), f32 speed (m/s), u32 spell, start angles (3 × f32,
+/// radians around x, y, z; an orbiting shot's start is the y one), local offset (3 × f32, m; 0,
+/// 0, forward for shots, an orbit's offset from its target), u32 attractor (0, or the caster
+/// attachment point it starts from), u32 ricochets, u32 chains (CoreProjectile +0x2b0:
+/// `RicochetTarget` to the next enemy), i32 max distance (m; 0: the spell's AttackRange,
+/// CoreProjectileFullUpdateIIR::Transfer). The caster and target go to CoreProjectile +0x23c and
+/// +0x244 (`GetTarget`: what an orbiting shot circles).
 #[allow(clippy::too_many_arguments)]
 fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: u32, start: [f32; 3], end: [f32; 3], playfield: Pf, max_distance: i32) -> Bytes {
+    full_update_turned(id, p, caster, target, spell, start, end, playfield, max_distance, [0.0; 3], [0.0, 0.0, p.offset_z])
+}
+
+/// `full_update` with the start angles (radians around x, y, z: CoreProjectile +0x284..) and the
+/// local offset (m: +0x290..) an orbiting shot circles with.
+#[allow(clippy::too_many_arguments)]
+fn full_update_turned(
+    id: Id32,
+    p: &Params,
+    caster: Id32,
+    target: Option<Id32>,
+    spell: u32,
+    start: [f32; 3],
+    end: [f32; 3],
+    playfield: Pf,
+    max_distance: i32,
+    angles: [f32; 3],
+    offset: [f32; 3],
+) -> Bytes {
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(start[0]), y: Some(start[1]), z: Some(start[2]) }),
         rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
@@ -680,7 +860,7 @@ fn full_update(id: Id32, p: &Params, caster: Id32, target: Option<Id32>, spell: 
         let w = target.unwrap_or_default().write(caster.write(w));
         let w = [start, end].iter().flatten().fold(w, |w, v| w.f32(*v));
         let w = w.f32(5.0).f32(p.speed).u32(spell);
-        let w = [0.0, 0.0, 0.0, 0.0, 0.0, p.offset_z].iter().fold(w, |w, v| w.f32(*v));
+        let w = angles.iter().chain(&offset).fold(w, |w, v| w.f32(*v));
         w.u32(p.attractor).u32(p.ricochets).u32(p.chains).i32(max_distance)
     })
 }
@@ -693,7 +873,15 @@ pub fn report(from: Id32, blob: &[u8], rest: &[u8]) {
     let f = |i: usize| rest.get(i..i + 4).map(|b| f32::from_be_bytes(b.try_into().unwrap()));
     let (Some(action), Some(kind), Some(instance)) = (u(0), u(4), u(8)) else { return };
     let id = Id32::new(kind, instance);
-    let straight = LIVE.lock().unwrap().get(&id).filter(|l| l.caster == from).map(|l| l.flight.is_some());
+    let (straight, orbiting) = match LIVE.lock().unwrap().get(&id).filter(|l| l.caster == from) {
+        Some(l) => (Some(l.flight.is_some()), l.orbit.is_some()),
+        None => (None, false),
+    };
+    if orbiting {
+        // the server moves orbiting shots and decides their hits (`circle_on`); the caster's
+        // client stopping one at a wall or a hit isn't the others' business
+        return;
+    }
     if !(action == 1 && straight == Some(true)) {
         world::send_playfield(from, false, world::Out::Records(vec![Bytes::copy_from_slice(blob)]));
     }
@@ -876,6 +1064,33 @@ mod tests {
     #[test]
     fn another_floor_is_missed() {
         assert!(first_hit(blaster(), |_| [0.0, 6.0, 10.0]).is_none());
+    }
+
+    fn orbit(offset: [f32; 3], angle_deg: f32, speed: f32) -> Orbit {
+        let now = Instant::now();
+        Orbit { centre: Id32::new(1, 1), offset, angle: angle_deg.to_radians(), rate: orbit_rate(speed), reach: 1.0, side: Side::Npcs, launched: now, until: now }
+    }
+
+    fn near(a: [f32; 3], b: [f32; 3]) -> bool {
+        (0..3).all(|i| (a[i] - b[i]).abs() < 1e-3)
+    }
+
+    /// Wheel of Fortune: Speed 300 (3 m/s on the wire) is 300° a second; a card starts ahead
+    /// (its offset is only the radii, along z) turned by its RotY, and follows its centre.
+    #[test]
+    fn orbits_turn_around_their_centre() {
+        assert!((orbit_rate(3.0) - 300f32.to_radians()).abs() < 1e-4);
+        let card = orbit([0.0, 0.0, 1.0], 0.0, 3.0);
+        assert!(near(card.at([0.0; 3], 0.0), [0.0, 0.0, 1.0]));
+        // a quarter turn (0.3 s at 300°/s): +z turns to +x
+        assert!(near(card.at([0.0; 3], 0.3), [1.0, 0.0, 0.0]));
+        assert!(near(card.at([10.0, 2.0, 5.0], 0.0), [10.0, 2.0, 6.0]));
+        // RotY 90 starts where the first is a quarter turn later
+        assert!(near(orbit([0.0, 0.0, 1.0], 90.0, 3.0).at([0.0; 3], 0.0), [1.0, 0.0, 0.0]));
+        // the Sad Clown's clouds: 1.5 m to the side, 0.5 m up, plus the radii ahead
+        let cloud = orbit([1.5, 0.5, 1.0], 0.0, 2.0);
+        let p = cloud.at([0.0; 3], 0.7);
+        assert!(((p[0] * p[0] + p[2] * p[2]).sqrt() - 3.25f32.sqrt()).abs() < 1e-3 && (p[1] - 0.5).abs() < 1e-6);
     }
 
     #[test]

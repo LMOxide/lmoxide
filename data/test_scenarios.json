@@ -413,6 +413,32 @@
           "count": 1
         }
       ]
+    },
+    {
+      "label": "orbits",
+      "about": "Fortune Teller, Sad Clown, Scarecrow and Trendsetter with 6 Pirate Corsairs (orbiting shots, ProjectileType 3: Wheel of Fortune's cards circle her, From Bad to Worse's clouds circle where it was aimed, Flock of Birds, Circle of Hearts)",
+      "team": [
+        "Fortune Teller",
+        "Sad Clown",
+        "Scarecrow",
+        "Trendsetter"
+      ],
+      "spawn": [
+        {
+          "name": "Pirate Corsair",
+          "count": 6
+        }
+      ]
+    },
+    {
+      "label": "engineer",
+      "about": "two Space Merc Engineers (their bomb ring: four bombs circling the spot they cast it on, bursting on a player; and their shots)",
+      "spawn": [
+        {
+          "name": "Space Merc Engineer",
+          "count": 2
+        }
+      ]
     }
   ]
 }

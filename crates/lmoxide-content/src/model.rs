@@ -980,9 +980,14 @@ record! {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["dialogue"]))]
         pub dialogue: Option<Ref>,
-        /// Summons: how long they stay.
+        /// Summons and spawned monsters: how long they stay.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub lifetime: Option<Duration>,
+        /// The original server's monster template that SpawnMonster game actions name by
+        /// `StringHash` (e.g. `FXCX`: the Sad Clown's invisible cloud anchor): what they
+        /// spawn. The client doesn't have these templates, so each one is matched by hand.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub spawn_hash: Option<String>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub on_defeat: Vec<Action>,
     }

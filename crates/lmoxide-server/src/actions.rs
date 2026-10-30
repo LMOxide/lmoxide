@@ -914,6 +914,20 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
             crate::dash::start(caster, run.caster.playfield, run.spell, dash, run.caster.pos.clone(), None, facing, |_| 0);
         }
         "Projectile" => shoot(run, spell, a, who, depth),
+        "SpawnMonster" => {
+            // the original server's monster (StringHash, content npcs `spawn_hash`) where the
+            // spell aims (the clicked point, or where the enemy clicked on stands: it stays
+            // there), then the spell's NanoTemplate cast on it (the Sad Clown's clouds circle it)
+            let Some(hash) = a.args.get("StringHash").and_then(|v| v.as_str()) else { return };
+            match crate::npc::spawn_monster(caster, run.caster.playfield, hash, who.pos, None) {
+                Some(id) => {
+                    if let Some(nano) = a.u("NanoTemplate") {
+                        cast_nano(run, nano, Target { id: Some(id), pos: who.pos }, depth + 1);
+                    }
+                }
+                None => debug!(spell, hash, "spawn monster: no template with this spawn_hash"),
+            }
+        }
         "Chain" => {
             if let (Some(first), Some(nano)) = (who.id.filter(|id| *id != caster && chainable(*id)), a.u("TemplateID")) {
                 let jumps = a.u("Value").unwrap_or(1);
@@ -1066,6 +1080,30 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
     let caster = run.caster.id;
     let from = here(run);
     let (move_type, speed) = (a.u("ProjectileType").unwrap_or(1), a.f("Speed").unwrap_or(1000.0) / 100.0);
+    if move_type == crate::projectile::ORBITING {
+        // it circles whom it is cast on: the caster (the Fortune Teller's cards go where she
+        // goes) or the spell's target (a spawned anchor)
+        let centre = target.id.unwrap_or(caster);
+        let circle = crate::projectile::Circle {
+            item,
+            speed,
+            centre,
+            angle: a.f("RotY").unwrap_or(0.0),
+            offset: ["DisplaceMentX", "DisplaceMentY", "DisplaceMentZ"].map(|k| a.f(k).unwrap_or(0.0) / 100.0),
+            lifetime: orbit_lifetime(spell, centre),
+            hits_players: false,
+        };
+        if centre != caster && SPELLS.get(&spell).is_some_and(|s| s.stats.time_exist.is_none()) {
+            // the original server showed the spell sending them as a buff on what they circle
+            // for as long as they last (live: the clouds' 222171/222197/222198 on the anchor, 500 cs)
+            show(run, effects::show_buff(centre, spell, caster, Some(circle.lifetime)));
+        }
+        let playfield = run.caster.playfield;
+        let run = run.clone();
+        let on_hit: crate::projectile::OnHit = Arc::new(move |hit, pos| impact(&run, spell, item, Target { id: hit, pos }, depth));
+        crate::projectile::launch_orbit(caster, playfield, spell, &circle, on_hit);
+        return;
+    }
     let shots = if move_type == crate::projectile::BALLISTIC { crate::projectile::Shots::Lobbed } else { crate::projectile::Shots::Straight };
     // an enemy is aimed at as every player's shot is (`projectile::aim_at`); one that is no
     // longer there (smashed, defeated) isn't, and isn't named to the clients either
@@ -1110,6 +1148,14 @@ fn shoot(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: 
         Arc::new(move |hit, pos| impact(&run, spell, item, Target { id: hit, pos }, depth))
     };
     crate::projectile::launch_shot(caster, run.caster.playfield, spell, &shot, start, towards, aimed.filter(|_| !volley), on_hit);
+}
+
+/// How long the orbiting shots of `spell` circle `centre`: the spell's TimeExist (the Wheel of
+/// Fortune's 5 s), else `projectile::ORBIT_LIFETIME` (live's clouds), at most as long as the
+/// spawned anchor they circle stays.
+fn orbit_lifetime(spell: u32, centre: Id32) -> Duration {
+    let lasts = SPELLS.get(&spell).and_then(|s| s.stats.time_exist).map_or(crate::projectile::ORBIT_LIFETIME, |cs| Duration::from_millis(10 * u64::from(cs)));
+    crate::npc::spawned_time_left(centre).map_or(lasts, |left| lasts.min(left))
 }
 
 /// A spell that blocks turning keeps the direction it was cast in: towards its target (an enemy

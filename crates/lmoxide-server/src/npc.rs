@@ -366,6 +366,8 @@ struct Npc {
     once: bool,
     /// Spawned by a test command (`!spawn`, `!test`): `!despawn` removes it.
     test_spawn: bool,
+    /// Brought by a SpawnMonster action of this character's spell (`spawn_monster`).
+    spawned_by: Option<Id32>,
     /// When each of its spells can be cast again (npc_spells.rs).
     cooldowns: HashMap<u32, std::time::Instant>,
     /// Casting (or stunned) until then: it stands still.
@@ -406,6 +408,7 @@ impl Npc {
             temporary,
             once: false,
             test_spawn: false,
+            spawned_by: None,
             cooldowns: HashMap::new(),
             busy_until: None,
             stunned_until: None,
@@ -985,6 +988,59 @@ pub fn despawn_summons_of(owners: &[Id32]) -> usize {
         ids.iter().filter_map(|id| npcs.remove(id)).collect()
     };
     gone.len()
+}
+
+/// What SpawnMonster actions spawn, by the original server's template hash (content npcs
+/// `spawn_hash`, spawns.rs), with their lifetimes.
+static SPAWNED: LazyLock<HashMap<String, (SpawnDef, Option<Duration>)>> = LazyLock::new(crate::spawns::spawned_templates);
+
+/// How long a spawned monster without a `lifetime` stays: an enemy's add until it is defeated
+/// or this is up (assumed; docs/TUNABLES.md).
+const SPAWNED_LIFETIME: Duration = Duration::from_secs(5 * 60);
+/// What spawned enemies drop: nothing, as live's summoned adds (encounter.rs).
+const SPAWNED_LOOT: &str = "loot/none";
+
+/// Whether a SpawnMonster action's template `hash` is known (content npcs `spawn_hash`).
+pub fn can_spawn(hash: &str) -> bool {
+    SPAWNED.contains_key(hash)
+}
+
+/// A SpawnMonster action of `caster`'s spell brings template `hash` at `at` on `playfield`: an
+/// enemy (which drops nothing, starts on `foe` when it has one, and doesn't respawn) or an
+/// anchor (an invisible friendly NPC orbiting shots circle: the Sad Clown's clouds), gone after
+/// its template's `lifetime`. Returns it, or `None` for an unknown template.
+pub fn spawn_monster(caster: Id32, playfield: Pf, hash: &str, at: [f32; 3], foe: Option<Id32>) -> Option<Id32> {
+    let (def, lifetime) = SPAWNED.get(hash)?;
+    let loot = if def.kind == Kind::Enemy { Some(SPAWNED_LOOT.to_string()) } else { def.loot.clone() };
+    let def = SpawnDef { pos: at, loot, ..def.clone() };
+    let lifetime = lifetime.unwrap_or(SPAWNED_LIFETIME);
+    let id = new_id(&def);
+    let now = std::time::Instant::now();
+    info!(?caster, hash, name = %def.name, ?at, ?lifetime, "spawned monster");
+    let threat = foe.filter(|f| def.kind == Kind::Enemy && is_player(*f)).map(|f| (f, now));
+    let npc = Npc { spawned_by: Some(caster), threat, ..Npc::new(def, playfield, None, Some(now + lifetime)) };
+    NPCS.lock().unwrap().insert(id, npc);
+    appear(id);
+    tokio::spawn(async move {
+        tokio::time::sleep(lifetime).await;
+        despawn(id);
+    });
+    Some(id)
+}
+
+/// Removes what `caster`'s SpawnMonster actions brought (a boss arena resetting); how many.
+pub fn despawn_spawned_by(caster: Id32) -> usize {
+    let gone: Vec<Npc> = {
+        let mut npcs = NPCS.lock().unwrap();
+        let ids: Vec<Id32> = npcs.iter().filter(|(_, n)| n.spawned_by == Some(caster)).map(|(id, _)| *id).collect();
+        ids.iter().filter_map(|id| npcs.remove(id)).collect()
+    };
+    gone.len()
+}
+
+/// How long spawned monster `id` has left, if it is one.
+pub fn spawned_time_left(id: Id32) -> Option<Duration> {
+    NPCS.lock().unwrap().get(&id).filter(|n| n.spawned_by.is_some()).and_then(|n| n.temporary).map(|t| t.saturating_duration_since(std::time::Instant::now()))
 }
 
 /// How far from the player test enemies appear.

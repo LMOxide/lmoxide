@@ -5,9 +5,10 @@
 //!
 //! - Boss arenas: a player entering the start area engages the boss inside: the entrance closes
 //!   (VisualOpen hidden, VisualClosed shown, as recorded in the tutorial) and the players
-//!   inside hear the boss music. At 2/3 and 1/3 of its health the boss gets adds (regular
-//!   enemies of the area). Its defeat opens the entrance and the exit and stops the music;
-//!   when nobody is left near the arena it resets (full health, adds gone, doors open).
+//!   inside hear the boss music. Adds come only from the boss's own abilities (SpawnMonster,
+//!   npc_spells.rs); waves of other enemies wait for scripts made from footage or the client's
+//!   scripts. Its defeat opens the entrance and the exit and stops the music; when nobody is
+//!   left near the arena it resets (full health, what its abilities spawned gone, doors open).
 //! - Ambushes: entering an ambush area spawns two waves (as the recorded tutorial ambush: 3
 //!   and 3) of the enemies around there, then the area rests a while.
 //! - Champions: each side dungeon ("Defeat the champion" area quests) gets a champion named
@@ -43,11 +44,6 @@ use crate::{npc::SpawnDef, world};
 const TICK: Duration = Duration::from_secs(1);
 /// An engaged arena nobody is near any more resets after this.
 const RESET_AFTER: Duration = Duration::from_secs(20);
-/// A boss's adds drop nothing: 28 live summoned adds never dropped a bag (live capture 2016).
-const ADD_LOOT: &str = "loot/none";
-/// Boss health shares that bring adds.
-const ADD_THRESHOLDS: [f32; 2] = [2.0 / 3.0, 1.0 / 3.0];
-const ADDS: usize = 3;
 const AMBUSH_WAVE: usize = 3;
 const AMBUSH_REST: Duration = Duration::from_secs(5 * 60);
 /// How far around an ambush area its enemies come from.
@@ -185,7 +181,7 @@ static DATA: LazyLock<HashMap<u32, PlayfieldDef>> = LazyLock::new(|| {
 #[derive(Clone)]
 enum Arena {
     Idle,
-    Engaged { boss: Id32, players: HashSet<Id32>, adds: Vec<Id32>, waves: usize, empty_since: Option<Instant> },
+    Engaged { boss: Id32, players: HashSet<Id32>, empty_since: Option<Instant> },
     Won { boss: Id32 },
 }
 
@@ -447,7 +443,7 @@ fn enter_arena(player: Id32, playfield: Pf, i: usize, arena: &ArenaDef) {
                 if !matches!(entry, Arena::Idle) {
                     return;
                 }
-                *entry = Arena::Engaged { boss, players: [player].into(), adds: vec![], waves: 0, empty_since: None };
+                *entry = Arena::Engaged { boss, players: [player].into(), empty_since: None };
             }
             info!(?playfield, arena = %arena.area.name, ?boss, ?player, "arena engaged");
             set_doors(playfield, arena);
@@ -506,7 +502,7 @@ fn tick() {
     for ((playfield, i), state) in arenas {
         let Some(def) = DATA.get(&playfield.model()).and_then(|d| d.arenas.get(i)) else { continue };
         let next = match state {
-            Arena::Engaged { boss, players, mut adds, mut waves, empty_since } => match crate::npc::health_of(boss) {
+            Arena::Engaged { boss, players, empty_since } => match crate::npc::health_of(boss) {
                 None => {
                     info!(?playfield, arena = %def.area.name, "arena won");
                     for p in &players {
@@ -514,13 +510,7 @@ fn tick() {
                     }
                     Some(Arena::Won { boss })
                 }
-                Some((health, max)) => {
-                    while waves < ADD_THRESHOLDS.len() && (health as f32) <= max as f32 * ADD_THRESHOLDS[waves] {
-                        waves += 1;
-                        if let Some(at) = crate::npc::position(boss) {
-                            adds.extend(spawn_wave(playfield, def.area.centre(), at, ADDS, Some(ADD_LOOT)));
-                        }
-                    }
+                Some(_) => {
                     let c = def.area.centre();
                     let near = players.iter().any(|p| {
                         world::whereabouts(*p).is_some_and(|(pf, pos)| pf == playfield && (pos[0] - c[0]).hypot(pos[2] - c[1]) <= def.area.radius() * 1.5 + 30.0)
@@ -529,15 +519,14 @@ fn tick() {
                     if empty_since.is_some_and(|t| t.elapsed() >= RESET_AFTER) {
                         info!(?playfield, arena = %def.area.name, "arena reset");
                         crate::npc::restore(boss);
-                        for a in adds {
-                            crate::npc::despawn(a);
-                        }
+                        // what its abilities spawned (SpawnMonster: adds, anchors) goes too
+                        crate::npc::despawn_spawned_by(boss);
                         for p in &players {
                             music(*p, false);
                         }
                         Some(Arena::Idle)
                     } else {
-                        Some(Arena::Engaged { boss, players, adds, waves, empty_since })
+                        Some(Arena::Engaged { boss, players, empty_since })
                     }
                 }
             },

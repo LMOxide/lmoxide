@@ -26,8 +26,13 @@
 //! - CastNano with an Interval: a pulse every Interval while the spell lasts and the caster fights
 //!   (the champions' element auras, npc.rs `champion_aura`).
 //!
-//! Not run: SpawnMonster (adds come from encounter.rs; the Laser Drones and Firewall auras' anchors),
-//! server scripts, damage redirects, buff counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
+//! - SpawnMonster: the content template with that `spawn_hash` (npc.rs `spawn_monster`) where the
+//!   action applies, then the action's NanoTemplate cast on it: adds that fight the player and
+//!   drop nothing, or invisible anchors that orbiting shots circle (ProjectileType 3,
+//!   projectile.rs `launch_orbit`: the Space Merc Engineer's bombs). Templates nobody matched
+//!   to a hash yet spawn nothing.
+//!
+//! Not run: server scripts, damage redirects, buff counters. Choosing which spell to cast, ranges and cooldowns: `npc.rs` `engage`; the guesses are
 //! in docs/TUNABLES.md.
 
 use crate::instance::Pf;
@@ -444,6 +449,21 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 trap(run, nano, who.pos, lifetime, depth);
             }
         }
+        "SpawnMonster" => {
+            // the original server's monster (StringHash: content npcs `spawn_hash`) where the
+            // spell aims, then its NanoTemplate cast on it: an add that joins the fight against
+            // the player (dropping nothing), or an anchor shots circle (the Space Merc
+            // Engineer's bombs, which stay where he cast them)
+            let Some(hash) = a.args.get("StringHash").and_then(|v| v.as_str()) else { return };
+            match crate::npc::spawn_monster(caster, run.playfield, hash, who.pos, Some(run.player)) {
+                Some(spawned) => {
+                    if let Some(nano) = a.u("NanoTemplate") {
+                        cast_nano(run, nano, Target { id: Some(spawned), pos: who.pos }, depth + 1, true);
+                    }
+                }
+                None => debug!(spell = id, hash, "enemy spawn monster: no template with this spawn_hash"),
+            }
+        }
         other => debug!(spell = id, action = other, "enemy spell action not run"),
     }
 }
@@ -555,6 +575,23 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
         let run = run.clone();
         Arc::new(move |hit, pos| impact(&run, item, Target { id: hit, pos }, depth))
     };
+    if move_type == crate::projectile::ORBITING {
+        // it circles the caster or whom it is cast on (a spawned anchor), and bursts on the
+        // first player it touches
+        let centre = if a.on_caster() { caster } else { target.id.unwrap_or(caster) };
+        let lasts = spell(id).and_then(|s| s.stats.time_exist).map_or(crate::projectile::ORBIT_LIFETIME, cs);
+        let circle = crate::projectile::Circle {
+            item,
+            speed,
+            centre,
+            angle: turn,
+            offset: ["DisplaceMentX", "DisplaceMentY", "DisplaceMentZ"].map(|k| a.f(k).unwrap_or(0.0) / 100.0),
+            lifetime: crate::npc::spawned_time_left(centre).map_or(lasts, |left| lasts.min(left)),
+            hits_players: true,
+        };
+        crate::projectile::launch_orbit(caster, run.playfield, id, &circle, on_hit());
+        return;
+    }
     if a.on_caster() || turn != 0.0 || (aimed_at.is_none() && target.id.is_some()) {
         let base = if a.on_caster() || target.id == Some(caster) {
             run.facing
