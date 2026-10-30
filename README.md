@@ -114,20 +114,39 @@ The game's data (worlds, NPCs, skills, loot, minifigures, achievements) is its o
 `content/` as a git submodule ([docs/CONTENT.md](docs/CONTENT.md)). Clone with
 `git clone --recurse-submodules`, or run `git submodule update --init` in an existing clone.
 
+### Install without Rust
+
+Every version tag publishes builds on the [Releases](https://github.com/LMOxide/lmoxide/releases)
+page and images on GitHub's container registry:
+
+| | |
+|---|---|
+| `ghcr.io/lmoxide/lmoxide` | the server image (`latest` or a version) |
+| `lmoxide-<version>-x86_64-linux.tar.gz` | the server binaries, `content/` and an example config, for Linux without Docker |
+| `lmoxide-patcher-<version>-linux`, `-windows.exe`, `-macos.tar.gz` | the command-line patcher |
+
+The web UI, the dev UI, the Discord bot and the GUI patcher publish theirs in their own
+repositories.
+
 ### Docker
 
 ```sh
 cp docker/.env.example .env                           # the host name and the client paths
 cp docker/lmoxide.example.toml docker/lmoxide.toml    # the server's options
-docker compose up -d --build
+docker compose up -d
 docker compose exec lmoxide lmoxide game account create <you> --gm-level 2
 ```
 
-This runs `lmoxide`: the game server (every game mode: Progression, Maxxed, World Editor), the
-API and the patch server in one process, with the database in the `data` volume, and Caddy in
-front for HTTPS (certificates for `LMOXIDE_PUBLIC_HOST`). The game ports (7100/7103/7104
-universe, 7101, 7102, 7200) are published directly. Read the deployment checklist in
+This runs the published images: `lmoxide` (the game server with every game mode, the API and
+the patch server in one process, the database in the `data` volume), Caddy in front for HTTPS
+(certificates for `LMOXIDE_PUBLIC_HOST`), the web UI at `/`, the dev UI at `/dev/` and,
+optionally, the Discord bot. The game ports (7100/7103/7104 universe, 7101, 7102, 7200) are
+published directly. [docs/HOSTING.md](docs/HOSTING.md) goes through it step by step: ports,
+the Discord bot, patcher self-updates, updating and backups. Read the deployment checklist in
 [docs/SECURITY.md](docs/SECURITY.md) before you open the server to the internet.
+
+To build the images from source instead: `docker compose -f docker-compose.yml -f
+docker-compose.build.yml up -d --build`.
 
 ### LAN play from source
 
@@ -187,6 +206,7 @@ See [docs/PATCHING.md](docs/PATCHING.md) and
 
 | | |
 |---|---|
+| [HOSTING.md](docs/HOSTING.md) | running a public server from the published images: Docker Compose, Caddy, the web UI, dev UI and Discord bot, updates, backups |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | test runs, in-game test commands, scripts, reverse-engineering tools |
 | [PROTOCOL.md](docs/PROTOCOL.md) | how the client talks to the server: boot, framing, RPCs, login, game systems |
 | [CONTENT.md](docs/CONTENT.md) | the game's data in one editable tree (`content/`): its format, commands, what the import did |

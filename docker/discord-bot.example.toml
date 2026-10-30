@@ -1,0 +1,36 @@
+# The Discord bot's settings for docker-compose.yml (the `discord` profile). Copy to
+# docker/discord-bot.toml and fill in your Discord server's ids. Secrets are not kept here:
+# secrets/discord_token and secrets/discord_bot_key (docs/HOSTING.md). Every setting is explained
+# in the bot's config.example.toml and docs/DEPLOYING.md (LMOxide/lmoxide-discord-bot).
+
+# The API, on the compose network (docker-compose.yml also sets LMOXIDE_API_URL to this)
+api_url = "http://lmoxide:8080"
+# The web UI, for the links the bot sends (linking an account, password resets)
+webui_url = "https://lmo.example.org"
+
+# The Discord server (Developer Mode on, right click the server, Copy Server ID)
+guild_id = 0
+
+# Discord user ids who may do anything with the bot
+admins = []
+
+# The bot's database (the members' account keys): the discord-bot-data volume
+data_dir = "/data"
+
+# Minutes between full role/GM syncs
+sync_interval_minutes = 15
+
+[roles]
+# Given to everyone who registers or links an account (leave out for none)
+# alpha_tester = 0
+
+# Discord roles that give a GM level in game; the highest one a member has wins
+# [[gm_roles]]
+# name = "Admin"
+# role = 0
+# gm_level = 2
+#
+# [[gm_roles]]
+# name = "Moderator"
+# role = 0
+# gm_level = 1

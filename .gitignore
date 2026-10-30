@@ -9,3 +9,7 @@ dist/
 lmoxide-patch-data/
 secrets/
 .env
+# a hoster's settings and patcher builds (docs/HOSTING.md)
+docker/lmoxide.toml
+docker/discord-bot.toml
+/patchers/

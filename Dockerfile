@@ -2,6 +2,7 @@
 # One image with every LMOxide binary. docker-compose.yml runs `lmoxide` (game server, API and
 # patch server in one process, docker/lmoxide.example.toml); the separate programs are there too.
 #   docker build -t lmoxide .
+#   docker build --target dist --output type=local,dest=out .   (the release tarball's files, in out/)
 
 FROM rust:1-bookworm AS build
 RUN apt-get update \
@@ -22,9 +23,17 @@ RUN mkdir -p /out/linux-overlay \
  && cc -shared -fPIC -O2 -o /out/linux-overlay/liblmofixes.so patches/linux-client/lmo-fixes.c -lpthread \
  && cp patches/linux-client/lmo /out/linux-overlay/lmo
 
+# What the release tarball holds (.github/workflows/release.yml)
+FROM scratch AS dist
+COPY --from=build /out/bin/ /bin/
+COPY --from=build /out/linux-overlay/ /linux-overlay/
+COPY --from=build /src/content/ /content/
+COPY --from=build /src/docker/lmoxide.example.toml /src/README.md /
+
+# git: the world editor's content working copy is a git clone (docs/HOSTING.md)
 FROM debian:bookworm-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates tini \
+ && apt-get install -y --no-install-recommends ca-certificates tini git \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --system --uid 10001 --home-dir /data lmoxide \
  && mkdir -p /data /patch-data /clients \

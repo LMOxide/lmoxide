@@ -6,3 +6,13 @@ dist/
 .claude/
 **/__pycache__/
 docs/img/
+content/.git
+.github/
+secrets/
+.env
+docker/lmoxide.toml
+docker/discord-bot.toml
+patchers/
+var/
+lmoxide-data/
+lmoxide-patch-data/

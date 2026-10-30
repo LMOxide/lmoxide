@@ -1,0 +1,131 @@
+# On a version tag (v1.2.3, the same as Cargo.toml's workspace version):
+# - lmoxide-1.2.3-x86_64-linux.tar.gz: every server binary, content/, the Linux client overlay and
+#   docker/lmoxide.example.toml (built on Debian 12: glibc 2.36 or newer)
+# - the command-line patcher: lmoxide-patcher-1.2.3-linux, lmoxide-patcher-1.2.3-windows.exe
+#   (named as a patch server's --patcher-dir expects them, for `lmoxide-patcher self-update`) and
+#   lmoxide-patcher-1.2.3-macos.tar.gz (Apple silicon and Intel)
+# - the image ghcr.io/lmoxide/lmoxide (tags 1.2.3, latest, sha-<commit>)
+# all on the GitHub Release for the tag.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE: ghcr.io/lmoxide/lmoxide
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: true
+      - name: Version
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          # a patcher's self-update compares its version with the one in the file name
+          if [[ "$GITHUB_REF" == refs/tags/v* && "${GITHUB_REF_NAME#v}" != "$version" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME doesn't match Cargo.toml's version $version"
+            exit 1
+          fi
+      - uses: docker/setup-buildx-action@v3
+      # the files (the Dockerfile's dist stage), then the image from the same build
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: dist
+          outputs: type=local,dest=out
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Archive
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="lmoxide-$version-x86_64-linux"
+          mv out "$name"
+          tar czf "$name.tar.gz" "$name"
+          cp "$name/bin/lmoxide-patcher" "lmoxide-patcher-$version-linux"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server
+          path: |
+            lmoxide-*.tar.gz
+            lmoxide-patcher-*-linux
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # the command-line patcher for Windows and macOS (Linux's comes from the server build above)
+  patcher:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        shell: bash
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir out
+          if [ "$RUNNER_OS" = Windows ]; then
+            cargo build --release --locked -p lmoxide-patcher
+            cp target/release/lmoxide-patcher.exe "out/lmoxide-patcher-$v-windows.exe"
+          else
+            cargo build --release --locked -p lmoxide-patcher --target aarch64-apple-darwin
+            cargo build --release --locked -p lmoxide-patcher --target x86_64-apple-darwin
+            mkdir "lmoxide-patcher-$v-macos"
+            lipo -create -output "lmoxide-patcher-$v-macos/lmoxide-patcher" \
+              target/aarch64-apple-darwin/release/lmoxide-patcher \
+              target/x86_64-apple-darwin/release/lmoxide-patcher
+            tar czf "out/lmoxide-patcher-$v-macos.tar.gz" "lmoxide-patcher-$v-macos"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: patcher-${{ runner.os }}
+          path: out/*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [server, patcher]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Checksums
+        run: sha256sum lmoxide-* > SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            lmoxide-*
+            SHA256SUMS
+          generate_release_notes: true

@@ -1,13 +1,15 @@
-# LMOxide: one process (game server with every game mode, REST API, patch server) behind Caddy.
+# LMOxide from the published images: the server (game server with every game mode, REST API and
+# patch server in one process), Caddy in front for HTTPS, the web UI, the dev UI and, behind the
+# `discord` profile, the Discord bot. docs/HOSTING.md walks through it.
 #   cp docker/.env.example .env && cp docker/lmoxide.example.toml docker/lmoxide.toml   (edit both)
-#   docker compose up -d --build
-# Admin commands: docker compose exec lmoxide lmoxide game account gm <user> 1
-#                 docker compose exec lmoxide lmoxide api key create discord-bot --scope read
+#   docker compose up -d
+# Admin commands: docker compose exec lmoxide lmoxide game account create <you> --gm-level 2
+#                 docker compose exec lmoxide lmoxide api key create discord-bot --scope discord
+# Building the images from source instead: docker-compose.build.yml.
 
 services:
   lmoxide:
-    image: lmoxide:latest
-    build: .
+    image: ghcr.io/lmoxide/lmoxide:${LMOXIDE_VERSION:-latest}
     restart: unless-stopped
     environment:
       RUST_LOG: ${RUST_LOG:-info}
@@ -16,6 +18,7 @@ services:
       - ./docker/lmoxide.toml:/etc/lmoxide/lmoxide.toml:ro
       - ${LMOXIDE_WINDOWS_CLIENT:?set LMOXIDE_WINDOWS_CLIENT in .env}:/clients/windows:ro
       - ${LMOXIDE_LINUX_CLIENT:?set LMOXIDE_LINUX_CLIENT in .env}:/clients/linux:ro
+      - ${LMOXIDE_PATCHER_DIR:-./patchers}:/patchers:ro
     ports:
       # the game modes' universe ports (Progression, Maxxed, World Editor), territory, game, chat:
       # raw TCP, published as they are
@@ -25,7 +28,7 @@ services:
       - "7101:7101"
       - "7102:7102"
       - "7200:7200"
-    # HTTP (API, patch server) on 8080 stays on the compose network: Caddy serves it with HTTPS
+    # HTTP (API, patch server) on 8080 stays on the compose network: Caddy serves it
     stop_grace_period: 15s
 
   caddy:
@@ -36,18 +39,47 @@ services:
     volumes:
       - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
+      - caddy-config:/config
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
+    depends_on: [lmoxide, webui, dev-ui]
+
+  # the web UI (players and admins), at / on LMOXIDE_PUBLIC_HOST
+  webui:
+    image: ghcr.io/lmoxide/lmoxide-webui:${LMOXIDE_WEBUI_VERSION:-latest}
+    restart: unless-stopped
+
+  # the dev UI (debugger, world editor), at /dev/
+  dev-ui:
+    image: ghcr.io/lmoxide/lmoxide-dev-ui:${LMOXIDE_DEV_UI_VERSION:-latest}
+    restart: unless-stopped
+
+  # the Discord bot: COMPOSE_PROFILES=discord in .env (or --profile discord)
+  discord-bot:
+    image: ghcr.io/lmoxide/lmoxide-discord-bot:${LMOXIDE_DISCORD_BOT_VERSION:-latest}
+    profiles: [discord]
+    restart: unless-stopped
+    environment:
+      RUST_LOG: ${RUST_LOG:-info}
+      LMOXIDE_API_URL: http://lmoxide:8080
+      DISCORD_TOKEN_FILE: /run/secrets/discord_token
+      LMOXIDE_API_KEY_FILE: /run/secrets/discord_bot_key
+    volumes:
+      - ./docker/discord-bot.toml:/etc/lmoxide-discord-bot/config.toml:ro
+      - discord-bot-data:/data
+    secrets: [discord_token, discord_bot_key]
     depends_on: [lmoxide]
 
-  # The Discord bot (its own repository) talks to the API with a key:
-  # discord-bot:
-  #   image: lmoxide-discord-bot:latest
-  #   environment:
-  #     LMOXIDE_API: http://lmoxide:8080
-  #     LMOXIDE_API_KEY_FILE: /run/secrets/discord_bot_key
+secrets:
+  discord_token:
+    file: ./secrets/discord_token
+  discord_bot_key:
+    file: ./secrets/discord_bot_key
 
 volumes:
   data:
   caddy-data:
+  caddy-config:
+  discord-bot-data:

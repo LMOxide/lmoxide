@@ -4,14 +4,16 @@
 
 # the database (accounts, characters) and the login key
 data_dir = "/data"
-# the host name players reach (game ports and HTTP); clients may use a name, as live did
+# the host name players reach (game ports and HTTP); clients may use a name, as live did.
+# The same as LMOXIDE_PUBLIC_HOST in .env; also change it in api-url and website below.
 public_host = "lmo.example.org"
 
 [http]
 # the API (/v1/...), the patch server (/patch/, /control/, /lmoxide/v1/...) and the web files;
 # Caddy in front adds HTTPS (docker/Caddyfile)
 bind = "0.0.0.0:8080"
-# a built web UI (lmoxide-webui's dist/), served for every other path
+# a built web UI (lmoxide-webui's dist/), served for every other path. Not needed with
+# docker-compose.yml: Caddy sends those paths to the web UI's own container.
 # web_dir = "/srv/webui"
 
 [game]
@@ -40,6 +42,14 @@ server-name = "LMOxide"
 client-dir = "/clients/windows"
 linux-client-dir = "/clients/linux"
 linux-overlay-dir = "/usr/local/share/lmoxide/linux-overlay"
-# behind Caddy on 443
-public-http-port = 443
+# behind Caddy: the game client speaks plain HTTP, so its addresses use port 80 (Caddy serves the
+# patch server's paths there without redirecting); LMOxide patchers may use HTTPS on 443
+public-http-port = 80
+public-https-port = 443
+# announced to patchers: the API (their server status line) and the website (the web UI)
+api-url = "https://lmo.example.org/api"
+website = "https://lmo.example.org/"
+# builds of the GUI patcher for its self-update (lmoxide-patcher-gui-<version>-<platform>[.exe]),
+# from the PATCHER_DIR folder in .env; docs/HOSTING.md
+patcher-dir = "/patchers"
 upstream = "http://update.lego.funcom.com/legoupm"
