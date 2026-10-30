@@ -1,9 +1,10 @@
 //! LMOxide storage in one SQLite database (WAL mode), shared by the game server and the REST
-//! API: accounts, characters, friendships, API keys and sessions, the audit log and settings.
+//! API: accounts, characters, friendships (and account friends), API keys and sessions, the audit log and settings.
 //!
 //! Both processes may open the same file. Calls are synchronous and short; async callers that
 //! must not block (the API) run them on a blocking thread.
 
+mod account_friends;
 mod accounts;
 mod api;
 mod characters;
@@ -19,6 +20,7 @@ use std::{
 use rusqlite::{Connection, OptionalExtension, params};
 use serde::Serialize;
 
+pub use account_friends::{AccountFriend, FriendRequestNotice, FriendState, Requested};
 pub use accounts::{Account, Ban};
 pub use api::{ApiKey, Scope, SessionInfo};
 pub use discord::{CodePurpose, DiscordLink, validate_discord_id};
@@ -67,6 +69,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0014_discord.sql"),
     include_str!("../migrations/0015_access_levels.sql"),
     include_str!("../migrations/0016_character_names.sql"),
+    include_str!("../migrations/0017_account_friends.sql"),
 ];
 
 pub struct Db {

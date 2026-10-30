@@ -20,21 +20,21 @@ struct Args {
     cfg: crate::Config,
 }
 
-struct Api {
-    app: Router,
-    db: Arc<Db>,
-    bot: String,
+pub(crate) struct Api {
+    pub(crate) app: Router,
+    pub(crate) db: Arc<Db>,
+    pub(crate) bot: String,
 }
 
 impl Api {
-    fn new(args: &[&str]) -> Self {
+    pub(crate) fn new(args: &[&str]) -> Self {
         let cfg = Args::parse_from(std::iter::once("api").chain(args.iter().copied())).cfg;
         let db = Arc::new(Db::open_in_memory().unwrap());
         let (_, bot) = db.create_api_key("discord-bot", Scope::Discord).unwrap();
         Api { app: crate::app(cfg, db.clone()).unwrap(), db, bot }
     }
 
-    async fn call(&self, method: &str, path: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
+    pub(crate) async fn call(&self, method: &str, path: &str, token: Option<&str>, body: Option<Value>) -> (StatusCode, Value) {
         let mut req = Request::builder().method(method).uri(path);
         if let Some(t) = token {
             req = req.header("authorization", format!("Bearer {t}"));
@@ -51,7 +51,7 @@ impl Api {
         (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
     }
 
-    async fn register(&self, discord_id: &str, username: &str, gm_level: u32) -> (StatusCode, Value) {
+    pub(crate) async fn register(&self, discord_id: &str, username: &str, gm_level: u32) -> (StatusCode, Value) {
         let body = json!({"discord_id": discord_id, "username": username, "password": "password1", "gm_level": gm_level});
         self.call("POST", "/v1/discord/accounts", Some(&self.bot), Some(body)).await
     }

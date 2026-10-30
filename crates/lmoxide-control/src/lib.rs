@@ -14,13 +14,43 @@
 //! | GET | `/v1/test-commands` | | [`TestCatalog`] |
 //! | POST | `/v1/broadcast` | [`Broadcast`] | [`Done`] |
 //! | POST | `/v1/maintenance` | [`Maintenance`] | [`Status`] |
+//! | POST | `/v1/friends/changed` | [`FriendsChanged`] | [`Done`] (online characters told) |
 //! | any | `/v1/survey/...` | | survey servers (lmoxide-server's survey.rs, docs/SURVEY.md "API"): [`Client::survey`] |
 
 use serde::{Deserialize, Serialize};
 
+/// What a program was built from (build.rs): the workspace version, the git commit and when.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Build {
+    pub version: String,
+    /// The full commit hash; none when built without git or `LMOXIDE_GIT_COMMIT`.
+    pub commit: Option<String>,
+    /// Unix time of that commit.
+    pub commit_time: Option<i64>,
+    /// Unix time it was built (when the build script last ran: a new commit, or
+    /// `LMOXIDE_BUILD_TIME`).
+    pub built: Option<i64>,
+}
+
+impl Build {
+    /// This build's (lmoxide-control's build.rs; the same for every crate of the workspace).
+    pub fn this() -> Build {
+        let some = |s: &str| (!s.is_empty()).then(|| s.to_string());
+        Build {
+            version: env!("CARGO_PKG_VERSION").into(),
+            commit: some(env!("LMOXIDE_GIT_COMMIT")),
+            commit_time: env!("LMOXIDE_GIT_COMMIT_TIME").parse().ok(),
+            built: env!("LMOXIDE_BUILD_TIME").parse().ok(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
     pub version: String,
+    /// What the game server was built from (none from servers before it was there).
+    #[serde(default)]
+    pub build: Option<Build>,
     /// Unix time the server started.
     pub started_at: i64,
     pub players_online: u32,
@@ -98,6 +128,16 @@ pub struct Kick {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Broadcast {
     pub message: String,
+}
+
+/// Character friendships the API made or ended (account friends): online characters' friend
+/// lists are updated. Pairs of character ids.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct FriendsChanged {
+    #[serde(default)]
+    pub added: Vec<(u32, u32)>,
+    #[serde(default)]
+    pub removed: Vec<(u32, u32)>,
 }
 
 /// A test command (`!loot potion`) run as if the player had typed it in chat; the player's GM
@@ -327,6 +367,10 @@ impl Client {
 
     pub async fn test_catalog(&self) -> Result<TestCatalog, Error> {
         self.send(self.http.get(format!("{}/v1/test-commands", self.base))).await
+    }
+
+    pub async fn friends_changed(&self, f: &FriendsChanged) -> Result<Done, Error> {
+        self.send(self.http.post(format!("{}/v1/friends/changed", self.base)).json(f)).await
     }
 
     pub async fn maintenance(&self, m: &Maintenance) -> Result<Status, Error> {

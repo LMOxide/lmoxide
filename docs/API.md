@@ -59,6 +59,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | Method | Path | Scope | |
 |---|---|---|---|
 | GET | `/v1/status` | public* | game server up, version, players online, maintenance |
+| GET | `/v1/version` | public* | what the API and the game server were built from: `{api, game_server, game_server_started_at}`, each `{version, commit, commit_time, built}` (git commit hash and unix times; `commit` is null in builds without git or `LMOXIDE_GIT_COMMIT`, `game_server` while it doesn't answer) |
 | GET | `/v1/online` | public* | characters in play (in-game name, playfield) |
 | GET | `/v1/config` | public | `registration` (`open`/`discord`/`closed`), `registration_open`, `private_status`, `moderator_gm_level`, `admin_gm_level` |
 | GET | `/v1/playfields` | public | every playfield id with its name (for the ids in other answers); `teleport`: a `!tp` destination |
@@ -75,6 +76,13 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/me/players` | session | the account's characters online (`Player`, with `position` and `heading`) |
 | POST | `/v1/me/command` | session | `{command}`: a test command run as one's own character, as if typed in chat; the game server decides by GM level (alpha testers have some, contributors all) → `{affected, replies}` |
 | POST | `/v1/me/discord` | session | `{code}`: a `link` code from the Discord bot links the account to that Discord account → `Account`; 401 `bad_code`, 409 when either is linked already |
+| GET | `/v1/me/friends` | session | account friends and requests either way: `[{account_id, username, state: friends\|incoming\|outgoing, requested_at, accepted_at}]` (below) |
+| POST | `/v1/me/friends` | session | `{username}`: ask that account → 201 `AccountFriend` (`outgoing`; `friends` at once if they had asked you); 404, 409 already friends or asked, 422 yourself |
+| POST | `/v1/me/friends/{account_id}/accept` | session | accept their request → `AccountFriend`; 404 when they didn't ask |
+| POST | `/v1/me/friends/{account_id}/reject` | session | turn it down (deleted; they may ask again) |
+| DELETE | `/v1/me/friends/{account_id}` | session | stop being friends (the characters' friendships between the two go too) or withdraw a request |
+| GET | `/v1/discord/friend-requests` | discord | requests waiting for a target linked to Discord that the bot hasn't sent: `[{requester_id, requester_username, target_id, target_username, discord_id, requested_at}]`, oldest first |
+| POST | `/v1/discord/friend-requests/{requester_id}/{target_id}/notified` | discord | the bot sent it (not listed again); 404 when no such request waits |
 | GET | `/v1/discord/links` | discord | linked accounts: `[{discord_id, account_id, username, gm_level, banned}]` |
 | GET | `/v1/discord/links/{discord_id}` | discord | one of them, or 404 |
 | PATCH | `/v1/discord/links/{discord_id}` | discord | `{gm_level}` (linked accounts only) |
@@ -114,6 +122,16 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/audit?limit=&before=` | admin | administrative actions, newest first; for actions on an account `target` is its username and `target_account_id` its id |
 
 \* public unless `--private-status`, then `read`.
+
+**Account friends.** One account asks another (by username); once the other accepts, every
+character of each is friends with every character of the other (rows in `friendships`, so the
+game's friend list shows them and a character can still remove one in game), and characters
+made later become friends with the other account's characters when first saved. Removing the
+account friendship removes the friendships between their characters. The API tells the game
+server (control `POST /v1/friends/changed`), so characters online see friends come and go at
+once. The Discord bot DMs targets linked to Discord with Accept / Reject buttons: it polls
+`/v1/discord/friend-requests`, marks each sent, and answers with the target's account key.
+Session routes take account keys too (the bot's per-member keys).
 
 The game data routes (`/v1/playfields`, `/v1/minifigures`, `/v1/tokens`) send
 `Cache-Control: public, max-age=3600`; the catalogs `private, max-age=3600` with an `ETag` (a

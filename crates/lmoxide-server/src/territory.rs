@@ -212,6 +212,8 @@ fn create_character(account: u32, id: u32, mode: crate::instance::Mode) {
         c.collection = Some(crate::loot::membership_minifigures().iter().map(|&t| (t, now)).collect());
     }
     match crate::store::Store.create(id, account, &c) {
+        // (friends with the account's friends' characters from here, Db::save_character; their
+        // lists show it once it has its name, community::renamed)
         Ok(()) => info!(account, character = id, name = %c.name, playfield = c.playfield, "character created"),
         Err(e) => warn!(account, "creating the character failed: {e:#}"),
     }

@@ -449,6 +449,35 @@ fn befriend(a: u32, b: u32) {
     info!(a, b, "friends: added");
 }
 
+/// Friendships made or ended elsewhere (account friends, through the API; already in the
+/// database): the online characters' friend lists follow. Returns how many were told.
+pub fn friendships_changed(added: &[(u32, u32)], removed: &[(u32, u32)]) -> u32 {
+    let st = STATE.lock().unwrap();
+    let mut told = 0;
+    for &(a, b) in added {
+        for (to, other) in [(a, b), (b, a)] {
+            // (a character still on the creation screen has no name yet: renamed() adds it)
+            if st.online.contains_key(&to) && !name_of(&st, other).is_empty() {
+                friends_update(&st, to, &[other]);
+                told += 1;
+            }
+        }
+    }
+    for &(a, b) in removed {
+        for (to, other) in [(a, b), (b, a)] {
+            if st.online.contains_key(&to) {
+                friends_removed(&st, to, other);
+                told += 1;
+            }
+        }
+    }
+    if told > 0 {
+        info!(added = added.len(), removed = removed.len(), told, "friends: changed by the API");
+    }
+    told
+}
+
+
 fn invite(character: u32, target: u32) {
     let mut st = STATE.lock().unwrap();
     if target == character || !st.online.contains_key(&target) {

@@ -247,6 +247,7 @@ impl Db {
         let mut conn = self.conn();
         let tx = conn.transaction()?;
         let t = now();
+        let new: bool = tx.query_row("SELECT count(*) = 0 FROM characters WHERE id = ?1", [id], |r| r.get(0))?;
         tx.execute(
             "INSERT INTO characters (id, account_id, name, playfield, pos_x, pos_y, pos_z, stars, xp, level, created_at, saved_at,
                limited_collection, mode, speed)
@@ -355,6 +356,10 @@ impl Db {
             for (key, value) in &c.story {
                 story.execute(params![id, key, value])?;
             }
+        }
+        if new {
+            // friends with the characters of the account's friends (account_friends.rs)
+            crate::account_friends::befriend_new_character(&tx, id, account_id, t)?;
         }
         tx.commit()?;
         Ok(())

@@ -10,6 +10,11 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY . .
+# what /v1/version reports (.git isn't copied in): the release workflow and
+# docker-compose.build.yml pass the commit and its unix time
+ARG LMOXIDE_GIT_COMMIT=""
+ARG LMOXIDE_GIT_COMMIT_TIME=""
+ENV LMOXIDE_GIT_COMMIT=$LMOXIDE_GIT_COMMIT LMOXIDE_GIT_COMMIT_TIME=$LMOXIDE_GIT_COMMIT_TIME
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/src/target \
     cargo build --release --locked \

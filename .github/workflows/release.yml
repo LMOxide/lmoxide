@@ -37,6 +37,8 @@ jobs:
             echo "::error::tag $GITHUB_REF_NAME doesn't match Cargo.toml's version $version"
             exit 1
           fi
+          # what /v1/version reports (the Dockerfile's build arguments)
+          echo "COMMIT_TIME=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@v3
       # the files (the Dockerfile's dist stage), then the image from the same build
       - uses: docker/build-push-action@v6
@@ -44,6 +46,9 @@ jobs:
           context: .
           target: dist
           outputs: type=local,dest=out
+          build-args: |
+            LMOXIDE_GIT_COMMIT=${{ github.sha }}
+            LMOXIDE_GIT_COMMIT_TIME=${{ env.COMMIT_TIME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Archive
@@ -77,6 +82,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            LMOXIDE_GIT_COMMIT=${{ github.sha }}
+            LMOXIDE_GIT_COMMIT_TIME=${{ env.COMMIT_TIME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -2,11 +2,19 @@
 # bot are their own repositories, checked out next to this one (../lmoxide-webui, ...).
 #   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
 #   docker compose -f docker-compose.yml -f docker-compose.build.yml build lmoxide   (only one)
+# The images report what they were built from (/v1/version, the bot's /version, the UIs'
+# version.json) when the commit is in the environment (.git isn't copied into the builds):
+#   export LMOXIDE_GIT_COMMIT=$(git rev-parse HEAD) LMOXIDE_GIT_COMMIT_TIME=$(git log -1 --format=%ct)
+# (the other repositories take GIT_COMMIT, their own commit: see their READMEs)
 
 services:
   lmoxide:
     image: lmoxide:latest
-    build: .
+    build:
+      context: .
+      args:
+        LMOXIDE_GIT_COMMIT: ${LMOXIDE_GIT_COMMIT:-}
+        LMOXIDE_GIT_COMMIT_TIME: ${LMOXIDE_GIT_COMMIT_TIME:-}
   webui:
     image: lmoxide-webui:latest
     build: ../lmoxide-webui
