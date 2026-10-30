@@ -104,6 +104,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | POST | `/v1/accounts/{id}/password` | admin | `{password}` (null removes it) |
 | POST | `/v1/accounts/{id}/ban` | moderate | `{days?, reason?}`; kicks; staff need admin |
 | POST | `/v1/accounts/{id}/unban` | moderate | |
+| GET | `/v1/characters?search=&limit=` | read | characters whose name contains `search` (case-insensitive), by name: `id`, `name`, `mode`, `account_id`, `username` (who plays a character) |
 | GET | `/v1/characters/{id}` | read | team, stars, upgrades, tokens, level and XP, minifigure ranks, earned achievements (id, name, title/group/text as the game shows them, points, time; tags with no name are story or tutorial progress), achievement counters, journal (`defeats` by name with kind/count/first/last time, `visits` by playfield, `finds`) |
 | POST | `/v1/characters/{id}/achievements/remove` | admin | `{ids: [..]}` or `{all: true}`: takes achievements away (and the earned "all of" ones above them; a find achievement's finds; with `all` also the journal and counters) so they can be earned again; story/tutorial tags, stars and XP stay. Online: the client is updated at once (RemoveTag); offline: the database. Answers `{removed, online}`; audit `achievements-remove` |
 | GET/POST | `/v1/api-keys` | admin | list / `{name, scope}` → secret once |

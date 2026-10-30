@@ -851,6 +851,54 @@
         }
       }
     },
+    "/v1/characters": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Characters by name (their in-game names), with the account each belongs to: who plays a\ncharacter, for tools such as a Discord bot. Scope: read.",
+        "operationId": "search_characters",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Only characters whose name contains this (case-insensitive).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "At most 100 (default 25).",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CharacterMatch"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/characters/{id}": {
       "get": {
         "tags": [
@@ -2354,6 +2402,40 @@
             "format": "int64",
             "description": "Player XP.",
             "minimum": 0
+          }
+        }
+      },
+      "CharacterMatch": {
+        "type": "object",
+        "description": "A character found by name, with its account.",
+        "required": [
+          "id",
+          "name",
+          "mode",
+          "account_id",
+          "username"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "mode": {
+            "type": "string",
+            "description": "The game mode the character belongs to: `progression`, `maxed` or `world-editor`."
+          },
+          "name": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "description": "The account's login name."
           }
         }
       },

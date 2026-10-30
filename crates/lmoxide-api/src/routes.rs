@@ -51,6 +51,7 @@ pub fn router() -> OpenApiRouter<Arc<AppState>> {
         .routes(routes!(set_password))
         .routes(routes!(ban))
         .routes(routes!(unban))
+        .routes(routes!(search_characters))
         .routes(routes!(get_character))
         .routes(routes!(list_api_keys, create_api_key))
         .routes(routes!(revoke_api_key))
@@ -219,6 +220,18 @@ pub struct CharacterSummary {
     pub stars: u64,
     /// Unix time of the last save.
     pub saved_at: i64,
+}
+
+/// A character found by name, with its account.
+#[derive(Serialize, ToSchema)]
+pub struct CharacterMatch {
+    pub id: u32,
+    pub name: String,
+    /// The game mode the character belongs to: `progression`, `maxed` or `world-editor`.
+    pub mode: String,
+    pub account_id: u32,
+    /// The account's login name.
+    pub username: String,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -611,6 +624,14 @@ pub struct AccountQuery {
     #[serde(default)]
     pub offset: u32,
     /// At most 200 (default 50).
+    pub limit: Option<u32>,
+}
+
+#[derive(Deserialize, IntoParams)]
+pub struct CharacterQuery {
+    /// Only characters whose name contains this (case-insensitive).
+    pub search: String,
+    /// At most 100 (default 25).
     pub limit: Option<u32>,
 }
 
@@ -1530,6 +1551,28 @@ async fn kick_quietly(state: &AppState, account: u32, reason: &str) {
     {
         tracing::warn!(account, "kick after account change failed: {e}");
     }
+}
+
+/// Characters by name (their in-game names), with the account each belongs to: who plays a
+/// character, for tools such as a Discord bot. Scope: read.
+#[utoipa::path(get, path = "/v1/characters", tag = "accounts", params(CharacterQuery),
+    responses((status = OK, body = [CharacterMatch])))]
+async fn search_characters(
+    State(state): State<Arc<AppState>>,
+    auth: Auth,
+    Query(q): Query<CharacterQuery>,
+) -> ApiResult<Json<Vec<CharacterMatch>>> {
+    auth.require(Scope::Read)?;
+    blocking(&state, move |db| {
+        let found = db.search_characters(q.search.trim(), q.limit.unwrap_or(25).min(100))?;
+        Ok(Json(
+            found
+                .into_iter()
+                .map(|(c, username)| CharacterMatch { id: c.id, name: c.name, mode: c.mode, account_id: c.account_id, username })
+                .collect(),
+        ))
+    })
+    .await
 }
 
 /// A saved character. Scope: read.

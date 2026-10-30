@@ -382,6 +382,32 @@ impl Db {
         Ok(self.conn().query_row("SELECT name FROM characters WHERE id = ?1", [id], |r| r.get(0)).optional()?)
     }
 
+    /// Characters whose name contains `search` (case-insensitive), by name, with their
+    /// account's username.
+    pub fn search_characters(&self, search: &str, limit: u32) -> Result<Vec<(CharacterSummary, String)>> {
+        let conn = self.conn();
+        let mut stmt = conn.prepare(
+            "SELECT c.id, c.account_id, c.name, c.playfield, c.stars, c.saved_at, c.mode, a.username
+             FROM characters c JOIN accounts a ON a.id = c.account_id
+             WHERE instr(lower(c.name), lower(?1)) > 0 ORDER BY c.name, c.id LIMIT ?2",
+        )?;
+        let rows = stmt.query_map(params![search, limit], |r| {
+            Ok((
+                CharacterSummary {
+                    id: r.get(0)?,
+                    account_id: r.get(1)?,
+                    name: r.get(2)?,
+                    mode: r.get(6)?,
+                    playfield: r.get(3)?,
+                    stars: r.get::<_, i64>(4)? as u64,
+                    saved_at: r.get(5)?,
+                },
+                r.get(7)?,
+            ))
+        })?;
+        Ok(rows.collect::<rusqlite::Result<_>>()?)
+    }
+
     pub fn characters_of(&self, account_id: u32) -> Result<Vec<CharacterSummary>> {
         let conn = self.conn();
         let mut stmt = conn.prepare(
@@ -467,6 +493,10 @@ mod tests {
         assert!(db.load_character(a.id).unwrap().is_none());
         db.save_character(a.id, a.id, &c).unwrap();
         assert_eq!(db.load_character(a.id).unwrap().unwrap(), c);
+        let found = db.search_characters("LIC", 10).unwrap();
+        assert_eq!(found.len(), 1);
+        assert_eq!((found[0].0.id, found[0].1.as_str()), (a.id, "alice"));
+        assert!(db.search_characters("bob", 10).unwrap().is_empty());
         c.team.pop();
         c.stars = 5;
         db.save_character(a.id, a.id, &c).unwrap();
