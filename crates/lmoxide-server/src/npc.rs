@@ -404,6 +404,9 @@ struct Npc {
     spawned_by: Option<Id32>,
     /// The caster's spawn counter it counts in while alive (`SpawnHow::counter`).
     spawn_counter: Option<u32>,
+    /// Its reflect is up (the Space Merc Defender, `npc_spells::REFLECT_CASTABLE`), or comes back
+    /// at this time after a hit took it down.
+    reflect: Option<Result<(), std::time::Instant>>,
     /// A test spawn that casts only these of its spells (`!test` scenarios' `spells`).
     only_spells: Vec<u32>,
     /// When each of its spells can be cast again (npc_spells.rs).
@@ -455,6 +458,7 @@ impl Npc {
             test_spawn: false,
             spawned_by: None,
             spawn_counter: None,
+            reflect: None,
             only_spells: Vec::new(),
             cooldowns: HashMap::new(),
             busy_until: None,
@@ -1438,6 +1442,17 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     };
     // a shield (enemy_abilities.rs) lets `taken` of it through: 0% stops it all
     let taken = npc.shield.filter(|(_, until)| *until > std::time::Instant::now()).map_or(1.0, |(taken, _)| taken);
+    // a player's hit takes a reflect down and is answered with its counter (Lua 905 / 1813: the
+    // Space Merc Defender's charged orb back at the attacker); it is up again 3 s later
+    if by_player && npc.reflect == Some(Ok(())) {
+        npc.reflect = Some(Err(std::time::Instant::now() + crate::npc_spells::REFLECT_DOWN));
+        world::send_playfield(target, false, world::Out::Records(vec![crate::effects::buff_remove(target, crate::npc_spells::REFLECT_BUFF, Id32::default())]));
+        let (playfield, power) = (npc.playfield, enemy_damage(npc.def.level, npc.def.health));
+        tokio::spawn(async move {
+            let at = world::position_of(attacker).unwrap_or_default();
+            crate::npc_spells::cast(target, playfield, power, crate::npc_spells::REFLECT_COUNTER, attacker, at);
+        });
+    }
     let dealt = if taken <= 0.0 { 0 } else { (((damage as f32) * (1.0 - mitigation) * taken).round().max(1.0) as u32).min(npc.health) };
     npc.health -= dealt;
     let health = npc.health;
@@ -2260,6 +2275,18 @@ fn engage(id: Id32, target: Id32, at: [f32; 3], here: [f32; 3]) -> bool {
         }
         let npc = npcs.get(&id).expect("looked up above");
         let mut spells = if npc.only_spells.is_empty() { spells_for(&npc.def) } else { npc.only_spells.clone() };
+        // the reflect isn't cast: it is up while the enemy fights (below, and `hit`)
+        let reflects = spells.contains(&crate::npc_spells::REFLECT_CASTABLE);
+        spells.retain(|s| *s != crate::npc_spells::REFLECT_CASTABLE);
+        if reflects {
+            let npc = npcs.get_mut(&id).expect("looked up above");
+            if npc.reflect.is_none_or(|r| r.is_err_and(|back| back <= now)) {
+                npc.reflect = Some(Ok(()));
+                let record = crate::effects::npc_buff_add(id, crate::npc_spells::REFLECT_BUFF, 60_000, npc.def.level);
+                world::send_playfield(id, false, world::Out::Records(vec![record]));
+            }
+        }
+        let npc = npcs.get(&id).expect("looked up above");
         // (not a spawn spell whose spawns are all at their cap)
         spells.retain(|s| !crate::npc_spells::spawns_full(*s, |counter| alive_spawns(&npcs, id, counter)));
         let npc = npcs.get_mut(&id).expect("looked up above");

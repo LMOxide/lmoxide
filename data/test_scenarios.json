@@ -479,7 +479,7 @@
     },
     {
       "label": "shields",
-      "about": "shield enemies around you (enemy_abilities.rs): Skeleton Trident (itself, 8 s), Space Merc Defender (an ally, 6 s) with 2 Space Merc Brawlers, Ogre Defender (everyone within 6 m, 6 s), Gremlin Warlock (an ally); shielded enemies take tunables enemy_abilities.shields[].taken (0%: nothing)",
+      "about": "shield enemies around you (enemy_abilities.rs): Skeleton Trident (itself, 8 s), Space Merc Defender (now his reflect: hit him for the orb) with 2 Space Merc Brawlers, Ogre Defender (everyone within 6 m, 6 s), Gremlin Warlock (an ally); shielded enemies take tunables enemy_abilities.shields[].taken (0%: nothing)",
       "spawn": [
         {
           "name": "Skeleton Trident",
@@ -695,6 +695,11 @@
       "label": "battlemerc",
       "about": "two regular Bot Battle Mercs: a missile from 6-25 m with the red X where it lands, the stomp up close (knockaway); no jumping animation",
       "spawn": [{ "name": "Bot Battle Merc", "count": 2 }]
+    },
+    {
+      "label": "defender",
+      "about": "two Space Merc Defenders: their laser shot; their reflect (the shield look) is up while they fight: hit one and it charges and fires an orb back at you, and its reflect comes back 3 s later",
+      "spawn": [{ "name": "Space Merc Defender", "count": 2 }]
     }
   ]
 }

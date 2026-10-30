@@ -155,6 +155,20 @@ const CRITERIA_BUFF_COUNTER: u32 = 166;
 /// Mindslicer's and Crikey the Kraken's spawns pick one by it.
 const STAT_RND: u32 = 520;
 const STAT_LAST_RND: u32 = 522;
+/// The Space Merc Defender's reflect, the server Lua's (scripts 1813 / 905): the castable 373290
+/// puts the reflect buff 373291 on him; a hit while it is on casts the counter 373292 (a charge,
+/// then an orb, ×1.25) at the attacker and takes the buff off, and the reapplier 531804 puts it
+/// back when its 3 s end. The castable isn't cast: the buff is up while he fights (npc.rs).
+pub const REFLECT_CASTABLE: u32 = 373_290;
+pub const REFLECT_BUFF: u32 = 373_291;
+pub const REFLECT_COUNTER: u32 = 373_292;
+pub const REFLECT_DOWN: Duration = Duration::from_secs(3);
+
+/// How far apart one caster's server-played StartEffects on other NPCs go out (a guess: the
+/// client showed only two of the Overlord's four pod beams sent at once).
+const EFFECT_GAP: Duration = Duration::from_millis(150);
+static LAST_EFFECT: LazyLock<std::sync::Mutex<HashMap<Id32, std::time::Instant>>> = LazyLock::new(Default::default);
+
 /// A monster spawned at its caster stands this far from it (live capture, 8030: a Summoned Wolf
 /// appeared 4.6 m from the Alpha Wolf that called it, which had just arrived itself).
 const SPAWN_BESIDE: f32 = 4.5;
@@ -686,11 +700,25 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
                 // on another NPC (what it spawned: the Alien Reaper Overlord's pod visuals 440781,
                 // whose effect beams from him to the pod) as live sent NPC-cast buffs
                 let level = crate::npc::level_of(caster).unwrap_or(1);
-                let mut records = vec![effects::npc_cast_buff_add(on, nano, caster, (duration.as_millis() / 10) as i32, level)];
+                show(run, vec![effects::npc_cast_buff_add(on, nano, caster, (duration.as_millis() / 10) as i32, level)]);
                 // its StartEffects the server plays, from the caster at it (the client doesn't
-                // for a server's NPC buff: the Overlord's beam and glow on each pod, 464434)
-                records.extend(n.lists.get(ON_USE).into_iter().flatten().filter(|a| a.kind == "StartEffect" && !a.on_caster()).filter_map(|a| a.u("TemplateID")).map(|fx| effects::effect_package_on(caster, on, fx, "", effects::new_instance())));
-                show(run, records);
+                // for a server's NPC buff: the Overlord's beam and glow on each pod, 464434),
+                // each caster's `EFFECT_GAP` apart (all four pods' at once showed only two)
+                let fx: Vec<Bytes> = n.lists.get(ON_USE).into_iter().flatten().filter(|a| a.kind == "StartEffect" && !a.on_caster()).filter_map(|a| a.u("TemplateID")).map(|fx| effects::effect_package_on(caster, on, fx, "", effects::new_instance())).collect();
+                if !fx.is_empty() {
+                    let wait = {
+                        let mut last = LAST_EFFECT.lock().unwrap();
+                        let now = std::time::Instant::now();
+                        let at = last.get(&caster).map_or(now, |t| (*t + EFFECT_GAP).max(now));
+                        last.insert(caster, at);
+                        at - now
+                    };
+                    let run = run.clone();
+                    tokio::spawn(async move {
+                        tokio::time::sleep(wait).await;
+                        show(&run, fx);
+                    });
+                }
             } else {
                 show(run, effects::show_buff(on, nano, caster, Some(duration)));
             }

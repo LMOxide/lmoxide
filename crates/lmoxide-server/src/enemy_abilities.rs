@@ -267,11 +267,13 @@ mod tests {
 
     #[test]
     fn the_content_names_the_enemies() {
-        // Medic, Witch Doctor, Skeleton Trident, Space Merc Defender looks
+        // Medic, Witch Doctor, Skeleton Trident, Gremlin Warlock looks; the Space Merc Defender
+        // has his reflect instead (npc_spells.rs REFLECT_*)
         assert!(kit(192825).is_some_and(|k| k.heal.is_some()));
         assert!(kit(201479).is_some_and(|k| k.totem.is_some() && k.heal.is_none()));
         assert!(kit(99330).is_some_and(|k| k.shield.is_some_and(|s| s.on == ShieldOn::Itself)));
-        assert!(kit(379392).is_some_and(|k| k.shield.is_some_and(|s| s.on == ShieldOn::Ally)));
+        assert!(kit(350094).is_some_and(|k| k.shield.is_some_and(|s| s.on == ShieldOn::Ally)));
+        assert!(kit(379392).is_none());
     }
 
     #[test]
