@@ -1,0 +1,170 @@
+# Spawn research: which monster each SpawnMonster hash is
+
+Hand-off for a research session (written 2026-10-29). The server can now spawn monsters from
+spells. What's missing is the data: which NPC template each SpawnMonster action means. Read this
+first, then `docs/TUNABLES.md` ("Spawned monsters", "Orbiting shots", "Encounters") and
+`docs/CONTENT.md` (npc `spawn_hash`, server-made spell ids).
+
+## How spawning works now
+
+- A spell's `SpawnMonster` game action names the original server's monster template by a
+  4-character `StringHash` (e.g. `FXCX`). Those templates were server-side and aren't in the
+  client, so the hash means nothing until we match it by hand.
+- Content: an NPC record (`content/npcs/*.json`) with `"spawn_hash": "FXCX"` is what that hash
+  spawns. Its `lifetime` is how long it stays (none: 5 min, `npc.rs` `SPAWNED_LIFETIME`).
+- Server (`npc.rs` `spawn_monster`, called from `actions.rs` for players' spells and
+  `npc_spells.rs` for enemies' spells): it spawns the template where the action applies (ApplyOn 1:
+  the caster, else the spell's target: a clicked point, an enemy's or a player's position). Then it
+  casts the action's `NanoTemplate` on the spawned monster.
+  - Kinds `enemy`/`boss`/`champion`: they fight the caster's player and drop nothing (live: 28
+    summoned adds, no bag). Templates named for hashes become anchors otherwise.
+  - Kinds `npc`/`trigger`/`summon`: invisible friendly anchors nobody fights; orbiting shots
+    (ProjectileType 3, `projectile.rs` `launch_orbit`) circle them.
+  - A boss arena's reset removes what its boss spawned (`npc::despawn_spawned_by`).
+- An unmatched hash spawns nothing (debug log "no template with this spawn_hash").
+- Boss arenas no longer get invented health-share waves (user, 2026-10-29). Adds come only from
+  the boss's own SpawnMonster abilities. Other waves wait for a separate script built from
+  footage or the client's scripts, which is not part of this research.
+
+## What's matched
+
+| Hash | Spawns | Evidence |
+|---|---|---|
+| `FXCX` | `npc/main-pierrot2` (TDB 51000 #1058, invisible look 51057), 6 s | Live capture, Dinosaur Rise 6200: a Sad Clown's casts. See "How FXCX was matched". |
+| `lmoxide-merc-engineer-bombs` | `npc/merc-engineer-bomb-anchor` | Made up. **Replace with P9TE, below.** |
+
+## First finding: the Space Merc Engineer's real "bombs" (do this first)
+
+The made-up bomb ring (`skill/merc-engineer-bomb-ring` 374158, `skill/merc-engineer-bombs`
+2000374158, `skill/merc-engineer-bomb-blast` 2000374159, `npc/merc-engineer-bomb-anchor`) can be
+replaced by client data. None of it is in the content tree: the importer only took spells and
+items that some NPC references.
+
+- **374162** "XX_merc engineer drones castable":
+  - SpawnMonster `P9TE`, ApplyOn 3 (on his target, the player, as the user saw in footage);
+  - SetSpellRecastTime 750 (7.5 s; the user remembered ~9 s).
+- **P9TE** = TDB 51000 **#1464 "XX_merc engineer drones holder"** (the name matches; the client has
+  no template data, so its look should be the invisible 51057 as other anchors).
+- **374164** (no name found yet): four Projectile actions, ApplyOn 3, ProjectileType 3, item
+  **374203**, Speed 110 (110°/s), DisplaceMentY 50, DisplaceMentZ 300 (3 m out), RotY 0/180/270/90.
+  This is the ring itself, cast on the holder.
+- **Item 374203** "XX_merc engineer drones projectile": MonsterData 51057, EffectPackage 376220
+  (the visible drone/bomb, not the grenade's potion), on hit CastNano **374204** = WeaponHit
+  AbilityMod **2.5** (the user: "way more damage").
+- Unknown:
+  - Who casts 374164 on the holder: likely the holder itself (server script) right after it spawns.
+    So the holder template should "cast on spawn" 374164, or the castable's SpawnMonster should get
+    NanoTemplate 374164 as a documented guess.
+  - How long it lasts: the user says ~10 s.
+  - The castable's range and when the engineer uses it (no AttackRange on 374162).
+  - Whether a drone bursts on its first hit (the user: bombs explode on touch).
+- To do: import 374162, 374164, 374204 and item 374203 into content (`tools/re/py gameactions.py
+  <id>`, `tools/re/py item_template.py <id>` print them). Add `npc/merc-engineer-drones-holder`
+  with `spawn_hash: P9TE`, point the engineer's `skills` at 374162 and drop the made-up records.
+  Then `!test engineer`.
+
+## The hashes still to match
+
+All 119 SpawnMonster actions in the client (68 hashes, 82 spells) are in
+`research/lmoxide-notes/spawn_actions.json` (`spawn_actions.py` regenerates it; it also lists
+StartServerSideScryScript actions). By priority:
+
+1. **Spells the content already casts** (they run today and spawn nothing):
+   - `47LU` ×4 + `1NZV` (NanoTemplate 366112): Alien Queen's purge 366110;
+   - `PRLO` (Arg3 620170, String0 "IdentifyHadesFire"): Hades' groundfire 623501;
+   - `JIMV` (579610, 636113), `MCS2` (635567), `ZVJ2` (636582): the champions' Dread Spheres,
+     Laser Drones and Firewall auras' anchors;
+   - `RUQN`: Dragon's Breath 321685 (nobody casts it in content).
+2. **Players' abilities still on guessed pets** (`summon` blocks in content/skills, run through
+   `npc.rs` `summon`, not SpawnMonster). Each needs its hash matched before it switches over:
+   - Anchor `XKRD` (NanoTemplate 236376 "main captain2 hate transfer");
+   - Gigantuan `JXNM` (654691 "main s14 crazyscientist2 npc spawn wrapper", Arg3 654690);
+   - Queen's Guard `U1XT` (667151, Arg3 654690);
+   - Shadow Puppet `HH3V` (508258 "main jester2 marker", Arg3 659020);
+   - Smoke Bomb `XVC4` (595266);
+   - Team Zombie `QTVR` ×3 (642804, Arg3 659775);
+   - UFO `8W1V`.
+
+   Switching one over means removing its `summon` block (as From Bad to Worse), adding its hash to
+   `NO_LONGER_SUMMONS` in the `skills.rs` test, and checking what its NanoTemplate chain does.
+3. **Boss and enemy kits not imported yet** (their spells aren't in content). Among them:
+   - Crikey the Kraken `LS1V`/`MUC9`/`0GOL` (616742, by health bands: criteria 520/522 59-60 %,
+     80-81 %);
+   - Hades summon `1XMM` (485835);
+   - Captain Pete's monkeys `QQVS`/`LR2L`;
+   - Stormhammer's pillar/satyr `XNCU`/`N1GC`;
+   - Alien Queen defense `YSFN`/`2L72`;
+   - alien mindslicer `NQKR`/`ROT1`/`25XL`, overlord `J27F`, reaper egg `68MJ`, buzzer hive
+     `VOOL`;
+   - police HQ mech drones `P9TE`/`4WD1`, Dreadleg ship `E2II`, banshee `5UK2`, champion minions
+     `9MCI`, dragon geysir `YY1Z`, tombstones `YMS9`/`9NM9`;
+   - and more in the JSON (skip DEV TECH / dev ones).
+
+   world-events.md (same folder) maps several of these to their arenas.
+
+Also open: what the SpawnMonster args mean. Our guesses:
+- `Value` (1; the Queen and Team Zombie repeat the action instead of raising it, so not a count);
+- `Value2`;
+- `Arg3` (a spell, e.g. 654690: maybe what the monster casts on spawn, or its AI kit);
+- `String0`;
+- `RelYPos`;
+- `CollisionFlag` (snap to ground?);
+- `HateValue`;
+- criteria 520/522 (health %).
+
+The server ignores all of these except StringHash and NanoTemplate.
+
+## Sources, best first
+
+1. **Client names (offline, fast).** TDB 51000 has 1612 NPC template names
+   (`research/lmoxide-notes/spawn-research/npc_template_names.py <lmoxide/tools/re>`, run with
+   `tools/re/py`). Spawned monsters are often named after the spell: "main pierrot2 hate transfer"
+   → template "main pierrot2"; "merc engineer drones castable" → "XX_merc engineer drones
+   holder"; "champion aura firewall spawn anchor" → #2766 "XX_champion aura firewall invis anchor";
+   laser drones → #2739; "boss hades groundfire spawn" → #2708 "XX_boss hades groundfire"; dread
+   spheres probably the same pattern. "main captain2", "main jester2" and the other players' spawns
+   have no TDB name: try other text categories, the RDB NPC tables, or the live/beta captures.
+   A name match is a guess: mark it `source: guess` (or `client` for the look) with a comment
+   saying how it was matched.
+2. **Live capture `LMO_Captures.cap`** (2016, 13 playfields: 4200, 4000, 1640, 1300, 4600, 1643,
+   1200, 8030, 8000, 8060, 4610, 6200, 2210). A cast's MagicCommand, then an `UpdateMessage` op 0 +
+   `SimpleCharFullUpdateIIR_t` for the spawned monster (name, monster data, template id 1058-style,
+   CARS group, level, health), then its despawn or fade gives template, look and lifetime.
+   - Tools: `tools/re/livecap.py` (`--jsonl` dump; one exists at
+     `/tmp/claude-1000/-home-dgmastertemple-Dropbox-Development-projects-lego-minifigures-online/fd40152d-e907-4ff2-b11b-10b91516db46/scratchpad/live.jsonl`
+     while that tmp survives) and `tools/re/live_playfield.py` (decoders; spawns are in
+     `data/live-capture/lmo-captures/playfield-objects.json`).
+   - The scripts used for FXCX are in `research/lmoxide-notes/spawn-research/`
+     (`capture_records_naming.py`: every record naming given instance ids).
+   - **Timestamps are microseconds** (`ts_raw / 1e6`). Older outputs' `t` is 10x too small.
+   - The 28 summoned adds in the capture (loot research) are the obvious next targets: find which
+     boss cast what just before each appeared.
+3. **Beta capture `LMO_Packets.zip`** (2013-14). Keep its findings in its own doc, never merged with
+   live (`research/beta-capture-findings-2026-10-28.md`).
+4. **The user's footage and memory** (they check footage on request). Ask when a guess shapes
+   gameplay: counts, positions, lifetimes, what it looks like.
+
+## How FXCX was matched (the method)
+
+1. `data/live-capture/lmo-captures/playfield-objects.json` had five "main pierrot2" characters in
+   6200 (monster data 51057, template 1058, CARS 5, level 30, radius 0) a few seconds apart.
+2. In the dump, the records around them showed CoreProjectileFullUpdateIIR with the anchor as target
+   (the clouds, type 3, item 222206, spells 222171/222197/222198). That tied the anchor to From Bad
+   to Worse (196059 → SpawnMonster FXCX → NanoTemplate 245949 → 245964 → the three orbs).
+3. Lifetimes came from the same records: MagicBuffIIR_c of the orb spells on the anchor (500 cs),
+   n3ToClientFadeIIR_t at 6 s, and the clouds' despawns at about 5.2 s.
+
+## What to deliver
+
+- For each hash matched: the NPC record (`spawn_hash`, kind, look, `lifetime`, `source`, a
+  comment with the evidence). Use the existing template when there is one, and import any missing
+  spells and items.
+- A row per change in `docs/TUNABLES.md` ("Spawned monsters" lists the unmatched hashes: keep it
+  current).
+- `!test` scenarios for what can be tried (`data/test_scenarios.json`; the user tests: give them
+  test cases).
+- Check with `cargo run -p lmoxide-content -- check --warnings` and `fmt`, and run
+  `cargo test -p lmoxide-server`. The `same_as_the_old_files` tests list deliberate differences
+  from the archive.
+- Commit content (its own repo in `content/`) and the server repo separately. Restart the LAN
+  server with `tools/lan-server.sh --restart --release`.
