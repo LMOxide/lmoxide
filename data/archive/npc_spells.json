@@ -3558,6 +3558,100 @@
     ]
    }
   },
+  "238198": {
+   "name": "XX_boss dreadleg bomb effect",
+   "stats": {
+    "TargetingMode": 5
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "WeaponHit",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "Value": 1,
+       "DamageType": 1000,
+       "AbilityMod": 5.0
+      }
+     }
+    ]
+   }
+  },
+  "238199": {
+   "name": "XX_boss dreadleg bomb aoe",
+   "stats": {
+    "TargetingMode": 7,
+    "EffectPackage": 239180
+   },
+   "lists": {
+    "0": [
+     {
+      "type": "CoreFilteredAreaFormula",
+      "client": false,
+      "args": {
+       "Radius": 2,
+       "ApplyOn": 3,
+       "NanoTemplate": 238198,
+       "NPCSelectMode": 3,
+       "Angle": 360,
+       "Ascending": 1
+      }
+     },
+     {
+      "type": "ColumnFormula",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "NanoTemplate": 238198,
+       "NPCSelectMode": 3,
+       "Distance": 10,
+       "Ascending": 1,
+       "FloatValue1": 1.0
+      }
+     },
+     {
+      "type": "ColumnFormula",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "NanoTemplate": 238198,
+       "NPCSelectMode": 3,
+       "Value1": 1,
+       "Distance": 10,
+       "Ascending": 1,
+       "FloatValue1": 1.0
+      }
+     },
+     {
+      "type": "ColumnFormula",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "NanoTemplate": 238198,
+       "NPCSelectMode": 3,
+       "Value1": 2,
+       "Distance": 10,
+       "Ascending": 1,
+       "FloatValue1": 1.0
+      }
+     },
+     {
+      "type": "ColumnFormula",
+      "client": false,
+      "args": {
+       "ApplyOn": 3,
+       "NanoTemplate": 238198,
+       "NPCSelectMode": 3,
+       "Value1": 3,
+       "Distance": 10,
+       "Ascending": 1,
+       "FloatValue1": 1.0
+      }
+     }
+    ]
+   }
+  },
   "238200": {
    "name": "XX_boss dreadleg bomb pge",
    "stats": {

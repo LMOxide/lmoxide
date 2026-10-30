@@ -401,8 +401,10 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             }
         }
         "ColumnFormula" => {
-            let from = me.pos;
-            let dir = run.facing;
+            // from the caster, or from a ground point (where Captain Dreadleg's bomb went off);
+            // Value1 turns it by quarters (the bomb's four arms), as actions.rs
+            let from = if target.id.is_none() && !a.on_caster() { target.pos } else { me.pos };
+            let dir = rotate(run.facing, 90.0 * a.u("Value1").unwrap_or(0) as f32);
             let length = a.f("Distance").unwrap_or(5.0);
             let width = a.f("FloatValue1").unwrap_or(1.0);
             let hits = players_where(run, |p| on_line(from, dir, p, length, width).is_some());
@@ -439,7 +441,18 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                     show(&run, vec![effects::stop_effect_package(run.caster, package, id, instance)]);
                 });
             }
-            if let Some(nano) = a.u("NanoTemplate") {
+            // three nanos (the action is server-only, so read from the data): TemplateID once when
+            // the zone starts (the "impact aoe" ones: Sheriff, Tribal Woman, Clumsy Guy; the
+            // Banana), NanoTemplate every pulse (often the same nano: then only the pulses), and
+            // TemplateID2 once when it ends (Captain Dreadleg's bomb aoe 238199 after its 0.5 s
+            // fuse; the champions' brambles after their 3 s rock marker)
+            let pulsed = a.u("NanoTemplate");
+            let first = a.u("TemplateID").filter(|n| Some(*n) != pulsed);
+            let last = a.u("TemplateID2").map(|n| (n, delay + pulse * pulses));
+            if first.is_some() || last.is_some() {
+                ground_once(run, first.map(|n| (n, delay)).into_iter().chain(last).collect(), who.pos, depth);
+            }
+            if let Some(nano) = pulsed {
                 ground_zone(run, nano, who.pos, delay, pulse, pulse * pulses, depth);
             }
         }
@@ -501,6 +514,13 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
                 show(run, vec![effects::effect_package(on, package)]);
             }
         }
+        // a nano at a bare ground point plays its effect there (Captain Dreadleg's bomb aoe:
+        // the explosion 239180)
+        None if own_effect => {
+            if let Some(package) = n.stats.effect_package {
+                show(run, vec![effects::effect_package_at(caster, package, target.pos)]);
+            }
+        }
         _ => {}
     }
     run_list(run, nano, ON_USE, target, depth);
@@ -539,6 +559,17 @@ fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: 
             tokio::time::sleep(pulse).await;
         }
     });
+}
+
+/// A ground zone's one-off nanos at `at`: each (nano, after) cast once that long from now.
+fn ground_once(run: &Arc<Run>, nanos: Vec<(u32, Duration)>, at: [f32; 3], depth: u32) {
+    for (nano, after) in nanos {
+        let run = run.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(after).await;
+            cast_nano(&run, nano, Target { id: None, pos: at }, depth + 1, true);
+        });
+    }
 }
 
 /// A trap at `at` (PlaceTrap): springs once, when a player comes within TRAP_RADIUS during
@@ -620,7 +651,7 @@ fn projectile(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
         let run = run.clone();
         tokio::spawn(async move {
             tokio::time::sleep(flight).await;
-            crate::projectile::enemy_impact(run.caster, shot, None);
+            crate::projectile::enemy_impact(run.caster, shot, None, Some(to));
             impact(&run, item, Target { id: None, pos: to }, depth);
         });
     }
@@ -645,6 +676,12 @@ fn on_line(from: [f32; 3], dir: [f32; 2], p: [f32; 3], length: f32, width: f32) 
     let along = dx * dir[0] + dz * dir[1];
     let across = (dx * dir[1] - dz * dir[0]).abs();
     ((0.0..=length).contains(&along) && across <= width).then_some(along)
+}
+
+/// `dir` turned by `degrees` (positive: clockwise seen from above, as RotY).
+fn rotate(dir: [f32; 2], degrees: f32) -> [f32; 2] {
+    let (s, c) = degrees.to_radians().sin_cos();
+    [dir[0] * c + dir[1] * s, -dir[0] * s + dir[1] * c]
 }
 
 /// Whether `p` lies in the sector from `start` to `start + angle` degrees around `facing`.
@@ -705,13 +742,34 @@ mod tests {
         let monster = |name: &str| {
             table.values().flatten().filter(|d| d.kind == crate::npc::Kind::Enemy && d.name == name).max_by_key(|d| d.health).map(|d| u64::from(d.monster_data))
         };
-        for s in scenarios["scenarios"].as_array().unwrap().iter().filter(|s| ["abilities", "blackheart"].contains(&s["label"].as_str().unwrap())) {
+        for s in scenarios["scenarios"].as_array().unwrap().iter().filter(|s| ["abilities", "blackheart", "bomb"].contains(&s["label"].as_str().unwrap())) {
             for spawn in s["spawn"].as_array().unwrap() {
                 let name = spawn["name"].as_str().unwrap();
                 let md = monster(name).unwrap_or_else(|| panic!("no enemy named {name}"));
-                assert!(spells_of(md as u32).is_some_and(|s| s.iter().all(|s| known(*s))), "{name}");
+                let spells = spells_of(md as u32).unwrap_or_default();
+                assert!(!spells.is_empty() && spells.iter().all(|s| known(*s)), "{name}");
+                // `spells`: the only ones the test spawn casts are its own
+                for only in spawn.get("spells").and_then(|v| v.as_array()).into_iter().flatten() {
+                    assert!(spells.contains(&(only.as_u64().unwrap() as u32)), "{name} {only}");
+                }
             }
         }
+    }
+
+    /// Captain Dreadleg's bomb: the lobbed Bomb casts the ground effect, whose TemplateID2 (the
+    /// explosion, with its effect package) and the explosion's damage nano are there.
+    #[test]
+    fn dreadleg_bomb_explodes() {
+        let item = projectile_of(238_202).map(|(item, _)| item);
+        assert_eq!(item, Some(238_201));
+        let lands = DATA.items[&238_201].actions.iter().find(|a| a.kind == "CastNano").and_then(|a| a.u("Value"));
+        assert_eq!(lands, Some(238_200));
+        let pge = spell(238_200).unwrap().lists[ON_USE].iter().find(|a| a.kind == "CorePersistentGroundEffect").unwrap();
+        assert_eq!(pge.u("TemplateID2"), Some(238_199));
+        let aoe = spell(238_199).expect("bomb aoe extracted");
+        assert_eq!(aoe.stats.effect_package, Some(239_180));
+        assert!(aoe.lists[ON_USE].iter().all(|a| a.u("NanoTemplate") == Some(238_198)));
+        assert!(spell(238_198).is_some_and(|s| s.lists[ON_USE].iter().any(|a| a.kind == "WeaponHit")));
     }
 
     #[test]
@@ -722,5 +780,8 @@ mod tests {
         assert_eq!(on_line(o, [0.0, 1.0], [0.0, 0.0, -1.0], 10.0, 1.0), None);
         assert!(in_sector(o, [0.0, 1.0], [0.0, 0.0, 2.0], -30.0, 60.0));
         assert!(!in_sector(o, [0.0, 1.0], [0.0, 0.0, -2.0], -30.0, 60.0));
+        // the bomb's cross: Value1 quarter turns of the facing
+        let east = rotate([0.0, 1.0], 90.0);
+        assert_eq!(on_line(o, east, [4.0, 0.0, 0.5], 10.0, 1.0).map(f32::round), Some(4.0));
     }
 }

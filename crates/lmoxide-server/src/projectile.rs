@@ -798,11 +798,18 @@ pub fn launch_enemy(caster: Id32, playfield: Pf, spell: u32, item: u32, move_typ
     (id, Duration::from_secs_f32((dx * dx + dz * dz).sqrt() / speed.max(0.1)))
 }
 
-/// An enemy's projectile `id` (from `launch_enemy`) arrived: the hit, when it hit someone, then
-/// it is removed.
-pub fn enemy_impact(caster: Id32, id: Id32, hit: Option<(Id32, [f32; 3])>) {
-    if let Some((target, at)) = hit {
-        world::send_playfield(caster, true, world::Out::Records(vec![hit_record(caster, id, target, at)]));
+/// An enemy's projectile `id` (from `launch_enemy`) arrived: the hit, when it hit someone, else
+/// its end where it came down (`landed`: DestroyOnPosition, so the clients play its destroy
+/// effect there, as a player's lobbed shot's own client reports it: Captain Dreadleg's bomb's
+/// thud), then it is removed.
+pub fn enemy_impact(caster: Id32, id: Id32, hit: Option<(Id32, [f32; 3])>, landed: Option<[f32; 3]>) {
+    let record = match (hit, landed) {
+        (Some((target, at)), _) => Some(hit_record(caster, id, target, at)),
+        (None, Some(at)) => Some(destroy_record(caster, id, at)),
+        (None, None) => None,
+    };
+    if let Some(record) = record {
+        world::send_playfield(caster, true, world::Out::Records(vec![record]));
     }
     tokio::spawn(async move {
         tokio::time::sleep(HIT_GRACE).await;
@@ -817,6 +824,11 @@ fn hit_record(caster: Id32, id: Id32, target: Id32, at: [f32; 3]) -> Bytes {
         let w = target.write(id.write(w.u32(1)));
         w.f32(at[0]).f32(at[1] + 1.0).f32(at[2])
     })
+}
+
+/// `CoreProjectileIIR` DestroyOnPosition: u32 6, ID32 projectile, position; identity the caster.
+fn destroy_record(caster: Id32, id: Id32, at: [f32; 3]) -> Bytes {
+    iir::record("CoreProjectileIIR", caster, false, |w| id.write(w.u32(6)).f32(at[0]).f32(at[1]).f32(at[2]))
 }
 
 /// `CoreProjectileFullUpdateIIR` (ReadSubClass 0x1244a60): header ProtoGameCodeDynelIIR, then

@@ -166,6 +166,13 @@ const RETARGET_RANGE: f32 = 15.0;
 const STANDING_STILL: f32 = 0.3;
 /// Shots within about 15° of the facing don't turn the caster (cos 15°).
 const FACING_ALREADY: f32 = 0.966;
+/// Melee sectors (a minifigure ability's CoreFilteredAreaFormula around the caster, under 360°,
+/// with an enemy clicked): an enemy is in reach when its edge is (characters' CharRadius 50, as
+/// projectile.rs `TARGET_RADIUS`), not only its centre.
+const MELEE_TARGET_RADIUS: f32 = 0.5;
+/// ... and the clicked enemy is hit this much further still (the server's position of a running
+/// enemy lags the clients' by a step or so).
+const MELEE_LAG_SLACK: f32 = 0.5;
 
 static SPELLS: LazyLock<HashMap<u32, Spell>> =
     LazyLock::new(|| crate::skills::spells().into_iter().map(|(k, v)| (k, serde_json::from_value(v).expect("skill"))).collect());
@@ -842,12 +849,12 @@ fn act(run: &Arc<Run>, spell: u32, a: &'static Action, target: Target, depth: u3
                                 },
                                 None => centre.pos,
                             };
-                            area_formula(&run, a, pos, depth);
+                            area_formula(&run, a, pos, false, depth);
                             tokio::time::sleep(Duration::from_millis(10 * interval as u64)).await;
                         }
                     });
                 }
-                _ => area_formula(run, a, centre.pos, depth),
+                _ => area_formula(run, a, centre.pos, centre.id == Some(caster), depth),
             }
         }
         "ColumnFormula" => {
@@ -1052,20 +1059,90 @@ fn ground_zone(run: &Arc<Run>, nano: u32, at: [f32; 3], delay: Duration, pulse: 
     });
 }
 
-/// One pulse of a CoreFilteredAreaFormula around `center`: the enemies in the shape (nearest
-/// first, at most Max1) get its nano.
-fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], depth: u32) {
-    let caster = run.caster.id;
-    let radius = a.f("Radius").unwrap_or(2.0);
-    let min = a.f("Min").unwrap_or(0.0);
-    let angle = a.f("Angle").unwrap_or(360.0);
-    let from = a.f("AngleStart").unwrap_or(-angle / 2.0);
-    let facing = *run.caster.facing.lock().unwrap();
-    let mut hits = crate::npc::targets_where(run.caster.playfield, |p| {
+/// A CoreFilteredAreaFormula's shape: within `radius` (m) and not nearer than `min`, in the
+/// sector from `from` to `from + angle` degrees around the facing (`angle` 360: all round).
+#[derive(Clone, Copy, Debug)]
+struct Shape {
+    radius: f32,
+    min: f32,
+    angle: f32,
+    from: f32,
+}
+
+impl Shape {
+    fn of(a: &Action) -> Shape {
+        let angle = a.f("Angle").unwrap_or(360.0);
+        Shape { radius: a.f("Radius").unwrap_or(2.0), min: a.f("Min").unwrap_or(0.0), angle, from: a.f("AngleStart").unwrap_or(-angle / 2.0) }
+    }
+
+    /// Whether `p` is in the shape around `center` facing `facing`, `extra` m further out.
+    fn holds(&self, center: [f32; 3], facing: [f32; 2], p: [f32; 3], extra: f32) -> bool {
         let d = distance(p, center);
-        d <= radius && d >= min && (angle >= 360.0 || in_sector(center, facing, p, from, angle))
-    });
+        d <= self.radius + extra && d >= self.min && (self.angle >= 360.0 || in_sector(center, facing, p, self.from, self.angle))
+    }
+}
+
+/// The enemies of `candidates` a formula of `shape` around `center` hits, nearest first. With a
+/// clicked enemy `melee` (a melee sector: `melee_target`) the caster first turns to it as its
+/// client does (`facing` is the server's, often stale: the client turns to a clicked enemy
+/// without reporting it), enemies are in reach by their edge (`MELEE_TARGET_RADIUS`), and the
+/// clicked one even `MELEE_LAG_SLACK` further. Returns the facing used, and the hits.
+fn shape_hits(shape: Shape, center: [f32; 3], facing: [f32; 2], candidates: Vec<(Id32, [f32; 3])>, melee: Option<(Id32, [f32; 3])>) -> ([f32; 2], Vec<(Id32, [f32; 3])>) {
+    let facing = melee.and_then(|(_, p)| direction(center, p)).unwrap_or(facing);
+    let extra = if melee.is_some() { MELEE_TARGET_RADIUS } else { 0.0 };
+    let mut hits: Vec<_> = candidates
+        .into_iter()
+        .filter(|(id, p)| shape.holds(center, facing, *p, extra) || melee.is_some_and(|(t, _)| t == *id && shape.holds(center, facing, *p, extra + MELEE_LAG_SLACK)))
+        .collect();
     hits.sort_by(|(_, x), (_, y)| distance(*x, center).total_cmp(&distance(*y, center)));
+    (facing, hits)
+}
+
+/// The horizontal direction from `a` to `b` (none when they are on top of each other).
+fn direction(a: [f32; 3], b: [f32; 3]) -> Option<[f32; 2]> {
+    let (dx, dz) = (b[0] - a[0], b[2] - a[2]);
+    let d = dx.hypot(dz);
+    (d > 0.01).then(|| [dx / d, dz / d])
+}
+
+/// The enemy clicked for a melee sector of `shape` (a minifigure ability's formula around the
+/// caster, under 360°), and where it is, if it is still there.
+fn melee_target(run: &Run, shape: Shape, around_caster: bool) -> Option<(Id32, [f32; 3])> {
+    if !around_caster || shape.angle >= 360.0 || !SPELLS.get(&run.spell).is_some_and(|s| s.minifigure.is_some()) {
+        return None;
+    }
+    let clicked = (*run.target.lock().unwrap()).or(run.caster.target).filter(|t| *t != run.caster.id)?;
+    crate::npc::targets_where(run.caster.playfield, |_| true).into_iter().find(|(id, _)| *id == clicked)
+}
+
+/// One pulse of a CoreFilteredAreaFormula around `center` (the caster's position when
+/// `around_caster`): the enemies in the shape (nearest first, at most Max1) get its nano.
+fn area_formula(run: &Arc<Run>, a: &'static Action, center: [f32; 3], around_caster: bool, depth: u32) {
+    let caster = run.caster.id;
+    let shape = Shape::of(a);
+    let stale = *run.caster.facing.lock().unwrap();
+    let melee = melee_target(run, shape, around_caster);
+    let reach = shape.radius + if melee.is_some() { MELEE_TARGET_RADIUS + MELEE_LAG_SLACK } else { 0.0 };
+    let candidates = crate::npc::targets_where(run.caster.playfield, |p| distance(p, center) <= reach);
+    let (facing, mut hits) = shape_hits(shape, center, stale, candidates, melee);
+    if let Some((target, at)) = melee {
+        // the caster turned to the clicked enemy (its client did so without saying)
+        *run.caster.facing.lock().unwrap() = facing;
+        let stale_angle = direction(center, at).map_or(0.0, |d| (d[0].atan2(d[1]) - stale[0].atan2(stale[1])).to_degrees());
+        debug!(
+            spell = run.spell,
+            ?target,
+            distance = distance(center, at),
+            radius = shape.radius,
+            stale_angle = (stale_angle + 540.0).rem_euclid(360.0) - 180.0,
+            ?stale,
+            ?facing,
+            hit = hits.iter().any(|(id, _)| *id == target),
+            stale_hit = shape.holds(center, stale, at, 0.0),
+            hits = hits.len(),
+            "melee check"
+        );
+    }
     if let Some(max) = a.u("Max1").filter(|m| *m > 0) {
         hits.truncate(max as usize);
     }
@@ -1466,6 +1543,34 @@ mod tests {
         assert!(!in_sector(c, north, [2.0, 0.0, 0.0], -30.0, 60.0));
         assert!(in_sector(c, north, [2.0, 0.0, 0.1], -45.0, 180.0));
         assert!(!in_sector(c, north, [0.0, 0.0, -2.0], -45.0, 90.0));
+    }
+
+    /// Gladius Slash's sector (Radius 2, Angle 60, AngleStart -30) with the server's facing stale.
+    #[test]
+    fn melee_turns_to_the_clicked_enemy() {
+        let slash = Shape { radius: 2.0, min: 0.0, angle: 60.0, from: -30.0 };
+        let c = [0.0, 0.0, 0.0];
+        let north = [0.0, 1.0];
+        let (east, west, behind) = (Id32::new(50_000, 1), Id32::new(50_000, 2), Id32::new(50_000, 3));
+        let enemies = vec![(east, [1.5, 0.0, 0.0]), (west, [-1.5, 0.0, 0.0]), (behind, [0.0, 0.0, -1.5])];
+        // no clicked enemy: the stale facing (north) hits nobody
+        let (_, hits) = shape_hits(slash, c, north, enemies.clone(), None);
+        assert!(hits.is_empty());
+        // the east one clicked: the caster turns east and hits it, not the others
+        let (facing, hits) = shape_hits(slash, c, north, enemies.clone(), Some((east, [1.5, 0.0, 0.0])));
+        assert!((facing[0] - 1.0).abs() < 1e-5 && facing[1].abs() < 1e-5, "{facing:?}");
+        assert_eq!(hits.iter().map(|(id, _)| *id).collect::<Vec<_>>(), vec![east]);
+        // in reach by its edge (2 + 0.5), and the clicked one with the lag slack (2 + 0.5 + 0.5)
+        let near = Id32::new(50_000, 4);
+        let far = vec![(east, [2.9, 0.0, 0.0]), (near, [2.4, 0.0, 0.3])];
+        let (_, hits) = shape_hits(slash, c, north, far.clone(), Some((east, [2.9, 0.0, 0.0])));
+        assert_eq!(hits.iter().map(|(id, _)| *id).collect::<Vec<_>>(), vec![near, east]);
+        // ... but not beyond
+        let (_, hits) = shape_hits(slash, c, north, vec![(east, [3.1, 0.0, 0.0])], Some((east, [3.1, 0.0, 0.0])));
+        assert!(hits.is_empty());
+        // other formulas keep the plain shape: centre within the radius, around the facing
+        let (_, hits) = shape_hits(slash, c, [1.0, 0.0], far, None);
+        assert!(hits.is_empty());
     }
 }
 

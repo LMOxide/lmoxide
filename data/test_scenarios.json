@@ -1,5 +1,5 @@
 {
-  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn; optional).",
+  "_comment": "Manual test setups for the `!test` chat command (devcmd.rs). Each: label, about, where to go (goto: a test target kind with an optional enemy/target name and number, or playfield with an optional pos; neither = stay here), team (minifigure names, first active; optional), spawn (enemies by name around you for 15 minutes, no respawn, casting only `spells` when given; optional).",
   "scenarios": [
     {
       "label": "smash",
@@ -59,6 +59,13 @@
       "about": "the Pirate Grotto's Captain Dreadleg (was named Captain Blackheart) where you stand: his slash, spin (then stunned), shot and bomb",
       "spawn": [
         {"name": "Captain Dreadleg", "count": 1}
+      ]
+    },
+    {
+      "label": "bomb",
+      "about": "the Pirate Grotto's Captain Dreadleg where you stand, throwing only his bomb (238202: lands with a thud and a scorch, explodes 0.5 s later: 2 m around and in a cross of four 10 m arms)",
+      "spawn": [
+        {"name": "Captain Dreadleg", "count": 1, "spells": [238202]}
       ]
     },
     {

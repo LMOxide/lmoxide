@@ -262,7 +262,8 @@ def main():
             for a in acts:
                 g = a["args"]
                 if a["type"] in FOLLOW:
-                    todo += [g[k] for k in ("Value", "NanoTemplate", "TemplateID") if isinstance(g.get(k), int) and g[k] > 1000]
+                    # (TemplateID2: a ground effect's nano, Captain Dreadleg's bomb aoe 238199)
+                    todo += [g[k] for k in ("Value", "NanoTemplate", "TemplateID", "TemplateID2") if isinstance(g.get(k), int) and g[k] > 1000]
                 if a["type"] == "Projectile" and g.get("ItemInstance") and str(g["ItemInstance"]) not in items:
                     irec = item_record(g["ItemInstance"])
                     if irec:
