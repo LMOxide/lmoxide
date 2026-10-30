@@ -525,9 +525,12 @@ fn arrive(pf: Pf, script: &str, wave: usize, started: Instant) {
 
 fn spawn_now(run: &mut Run, pf: Pf, s: &Script, i: usize, spawns: &[(Placement, SpawnDef)]) {
     let mut n = 0;
+    // (a Lost Creations run's later levels: stronger enemies)
+    let factor = crate::lost_creations::health_factor(pf);
     for (p, def) in wave_placements(pf, s, i, spawns) {
         for k in 0..def.count.max(1) {
             let mut def = def.clone();
+            def.health = ((def.health as f32 * factor).round() as u32).max(1);
             if k > 0 {
                 def.pos = around(def.pos, def.spread.unwrap_or(crate::gamedata::get().tunables.lost_creations.spawn_spread));
             }

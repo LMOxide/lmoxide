@@ -685,6 +685,16 @@
       "label": "artillery",
       "about": "the Merc Artillery Bot (Gatekeeper): from 5-20 m it shells you from its right and left cannons (firing animation, a marker where the shell lands, 2 m blast); up close it stomps (4 m, knocks you 10 m away)",
       "spawn": [{ "name": "Gatekeeper (Merc Artillery Bot)", "count": 1 }]
+    },
+    {
+      "label": "grenadiers2",
+      "about": "two Pirate Grenadiers: their bomb (recast 5 or 7.5 s at random), their grenade (190612, its own particle and blast) and their slash up close",
+      "spawn": [{ "name": "Pirate Grenadier", "count": 2 }]
+    },
+    {
+      "label": "battlemerc",
+      "about": "two regular Bot Battle Mercs: a missile from 6-25 m with the red X where it lands, the stomp up close (knockaway); no jumping animation",
+      "spawn": [{ "name": "Bot Battle Merc", "count": 2 }]
     }
   ]
 }

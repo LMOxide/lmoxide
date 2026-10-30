@@ -273,12 +273,14 @@ mod tests {
         let monsters = monster_spells();
         // spells added since: the Space Merc Engineer's drones (skill/merc-engineer-drones-castable: no
         // monster spell list names it), the Alien Mindslicer's abductions (the user, 2026-10-30)
-        const ADDED: [(u32, u32); 2] = [(388_444, 374_162), (386_089, 378_128)];
+        // and the Pirate Grenadier's grenade (190612, the user: he had more than the bomb)
+        const ADDED: [(u32, u32); 3] = [(388_444, 374_162), (386_089, 378_128), (192_821, 190_612)];
         // the Witch Doctor's knife (XX_Stab) instead of the guessed Magic Potion (the user); the
         // Hunter's XX_Bolas instead of the guessed XX_Dart (the live capture); the Grenadier's
         // XX_Bomb (the pirate_grenadier_bomb) instead of XX_Grenade Throw's bottle (the user)
-        const REPLACED: [(u32, &[u32]); 3] =
-            [(201_479, &[194_198]), (201_477, &[194_199, 194_198]), (192_821, &[190_796, 238_115])];
+        // the Bot Battle Merc's stomp and missile instead of the generic Shot (the user, 2026-10-30)
+        const REPLACED: [(u32, &[u32]); 4] =
+            [(201_479, &[194_198]), (201_477, &[194_199, 194_198]), (192_821, &[190_796, 238_115]), (359_212, &[361_429, 361_424])];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();
             if let Some((_, spells)) = REPLACED.iter().find(|(md, _)| k == &md.to_string()) {

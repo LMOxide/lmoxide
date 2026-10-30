@@ -339,6 +339,17 @@ struct Info {
 
 static INFO: LazyLock<Mutex<Info>> = LazyLock::new(Default::default);
 
+/// The level (1, 2, ...) of the run whose level copy `pf` is.
+pub fn run_level(pf: Pf) -> Option<u32> {
+    INFO.lock().unwrap().copies.get(&pf).map(|c| c.0)
+}
+
+/// How much a wave enemy's health is multiplied by in copy `pf` (tunables
+/// `lost_creations.health_per_level`); 1 outside a run.
+pub fn health_factor(pf: Pf) -> f32 {
+    run_level(pf).map_or(1.0, |level| 1.0 + tunables().health_per_level.max(0.0) * level.saturating_sub(1) as f32)
+}
+
 /// `run`'s current copy and members for `INFO`.
 fn publish(run: &Run) {
     let mut info = INFO.lock().unwrap();

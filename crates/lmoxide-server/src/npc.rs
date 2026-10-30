@@ -1284,7 +1284,8 @@ fn hatch_now(id: Id32, foe: Id32) {
         (spell, npc.playfield, enemy_damage(npc.def.level, npc.def.health), *npc.pos.lock().unwrap())
     };
     info!(npc = ?id, spell, "hatches");
-    crate::npc_spells::cast(id, playfield, power, spell, foe, world::position_of(foe).unwrap_or(here));
+    // (at once: the egg turns into what it hatches as its visuals end, client 440781)
+    crate::npc_spells::run_at_once(id, playfield, power, spell, foe, world::position_of(foe).unwrap_or(here));
 }
 
 /// How many of what `caster`'s SpawnMonster actions brought are alive and count in its spawn

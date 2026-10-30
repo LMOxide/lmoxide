@@ -576,6 +576,10 @@ pub struct LostCreations {
     /// How far (m) the second and later enemies of a spawn's `count` land from its point, when
     /// the point gives no `spread` (live Monster Laboratory: 1.0-1.6 m).
     pub spawn_spread: f32,
+    /// How much more health a level's wave enemies (the Gatekeepers too) have on each level of
+    /// the run after the first: health × (1 + this × (level − 1)). 0: the same on every level.
+    #[serde(default)]
+    pub health_per_level: f32,
     /// Before a level's wave spawns, each point it uses shows `wave_particle` this long (live
     /// Monster Laboratory: 2.0 s, then the enemies; the only pause between waves).
     pub wave_telegraph: Duration,

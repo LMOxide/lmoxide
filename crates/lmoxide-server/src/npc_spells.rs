@@ -139,8 +139,13 @@ const TARGETING_GROUND: u32 = 7;
 const TARGETING_SELF: u32 = 8;
 const CRITERIA_HAS_ABILITY: u32 = 91;
 // the client's CriteriaOperator_e (CriteriaOperator::RegisterCriteriaOperator in the Linux build)
+// (stat comparisons: StatCheckScriptCommand_t::Compare's jump table)
+const CRITERIA_STAT_EQUAL: u32 = 0;
+const CRITERIA_STAT_LESS: u32 = 1;
+const CRITERIA_STAT_MORE: u32 = 2;
 const CRITERIA_STAT_AT_MOST: u32 = 7;
 const CRITERIA_STAT_AT_LEAST: u32 = 8;
+const CRITERIA_STAT_NOT_EQUAL: u32 = 24;
 const CRITERIA_HEALTH_ABOVE: u32 = 152;
 const CRITERIA_HEALTH_BELOW: u32 = 153;
 const CRITERIA_BUFF_COUNTER_MORE: u32 = 159;
@@ -175,6 +180,21 @@ const CROWD_CONTROL: &[&str] = &["AddSnare", "Stun", "Knockaway", "AreaKnockaway
 /// formula's Radius), checked this often.
 const TRAP_RADIUS: f32 = 2.0;
 const TRAP_POLL: Duration = Duration::from_millis(250);
+
+/// The buff counters spawn nanos (SpawnMonster NanoTemplates) count on the caster: an enemy's
+/// count of these is its alive spawns (`npc::spawned_count`), not a cast's counter.
+static SPAWN_COUNTERS: LazyLock<std::collections::HashSet<u32>> = LazyLock::new(|| {
+    DATA.spells
+        .values()
+        .flat_map(|s| s.lists.values().flatten())
+        .filter(|a| a.kind == "SpawnMonster")
+        .filter_map(|a| a.u("NanoTemplate"))
+        .filter_map(spell)
+        .flat_map(|n| n.lists.values().flatten())
+        .filter(|a| a.kind == "AddBuffCounter" && a.on_caster())
+        .filter_map(|a| a.u("TemplateID"))
+        .collect()
+});
 
 fn spell(id: u32) -> Option<&'static Spell> {
     DATA.spells.get(&id)
@@ -227,13 +247,32 @@ pub fn power(id: u32) -> f32 {
 }
 
 /// How long after a cast the spell can be cast again: its RechargeDelay, or the recast time
-/// its own SetSpellRecastTime sets, whichever is longer.
+/// its own SetSpellRecastTime sets, whichever is longer. Recasts picked by a random roll (stats
+/// 520 / 522: the Pirate Grenadier's bomb, 5 or 7.5 s) roll here; other criteria hold.
 pub fn cooldown(id: u32) -> Duration {
     let Some(s) = spell(id) else { return Duration::ZERO };
+    let roll = 1 + (random_unit() * 100.0) as u32 % 100;
+    let rolled = |a: &&Action| {
+        a.criteria.iter().all(|&[x, y, kind]| {
+            if x != STAT_RND && x != STAT_LAST_RND {
+                return true;
+            }
+            match kind {
+                CRITERIA_STAT_EQUAL => roll == y,
+                CRITERIA_STAT_LESS => roll < y,
+                CRITERIA_STAT_MORE => roll > y,
+                CRITERIA_STAT_AT_MOST => roll <= y,
+                CRITERIA_STAT_AT_LEAST => roll >= y,
+                CRITERIA_STAT_NOT_EQUAL => roll != y,
+                _ => true,
+            }
+        })
+    };
     let recast = s
         .lists
         .values()
         .flatten()
+        .filter(rolled)
         // (or its spell line's, on the caster: the Overlord's pods 10 s apart)
         .filter(|a| (a.kind == "SetSpellRecastTime" && a.u("NanoTemplate").is_none_or(|n| n == id)) || (a.kind == "SetSpellLineRecastTime" && a.on_caster()))
         .filter_map(|a| a.f("Value"))
@@ -289,12 +328,25 @@ struct Run {
     facing: [f32; 2],
     /// The last random roll (stat 520 Rnd rolls it, 522 LastRnd reads it: criteria).
     roll: std::sync::Mutex<u32>,
+    /// The caster's buff counters this cast keeps (AddBuffCounter / RemoveBuff on the caster:
+    /// the Bot Battle Merc's minigun alternates its barrels by one).
+    counters: std::sync::Mutex<HashMap<u32, u32>>,
 }
 
 #[derive(Clone, Copy, Debug)]
 struct Target {
     id: Option<Id32>,
     pos: [f32; 3],
+}
+
+/// Enemy `caster` runs spell `id`'s actions at `player` (at `at`) at once, without the cast's
+/// command and delay: an Alien Reaper Overlord's egg hatching when its spawn visuals end.
+pub fn run_at_once(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: [f32; 3]) {
+    if spell(id).is_none() {
+        return;
+    }
+    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing: [0.0, 1.0], roll: Default::default(), counters: Default::default() });
+    run_list(&run, id, ON_USE, root_target(&run), 0);
 }
 
 /// Enemy `caster` (on `playfield`, with `power`, `npc::enemy_damage`) casts `id` at `player` (at `at`).
@@ -309,7 +361,7 @@ pub fn cast(caster: Id32, playfield: Pf, power: f32, id: u32, player: Id32, at: 
     let (dx, dz) = (at[0] - here[0], at[2] - here[2]);
     let d = dx.hypot(dz);
     let facing = if d > 0.01 { [dx / d, dz / d] } else { [0.0, 1.0] };
-    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing, roll: Default::default() });
+    let run = Arc::new(Run { caster, playfield, power, spell: id, player, aimed: at, facing, roll: Default::default(), counters: Default::default() });
     info!(?caster, spell = id, name = %s.name, ?player, "enemy cast");
     run_list(&run, id, PRE_USE, root_target(&run), 0);
     let delay = cs(s.stats.item_delay.unwrap_or(0.0));
@@ -383,7 +435,7 @@ fn players_where(run: &Run, inside: impl Fn([f32; 3]) -> bool) -> Vec<(Id32, [f3
 /// operator 4) hold.
 fn criteria_met(run: &Run, a: &Action) -> bool {
     let health = || crate::npc::health_of(run.caster).map_or(0.0, |(h, max)| 100.0 * h as f32 / max.max(1) as f32);
-    let counter = |buff: u32| crate::npc::spawned_count(run.caster, buff);
+    let counter = |buff: u32| crate::npc::spawned_count(run.caster, buff) + run.counters.lock().unwrap().get(&buff).copied().unwrap_or(0);
     let stat = |stat: u32| match stat {
         STAT_RND => {
             let r = 1 + (random_unit() * 100.0) as u32 % 100;
@@ -396,8 +448,12 @@ fn criteria_met(run: &Run, a: &Action) -> bool {
     a.criteria.iter().all(|&[x, y, kind]| match kind {
         // enemies have no upgrades
         CRITERIA_HAS_ABILITY => false,
+        CRITERIA_STAT_EQUAL => stat(x).is_none_or(|v| v == y),
+        CRITERIA_STAT_LESS => stat(x).is_none_or(|v| v < y),
+        CRITERIA_STAT_MORE => stat(x).is_none_or(|v| v > y),
         CRITERIA_STAT_AT_MOST => stat(x).is_none_or(|v| v <= y),
         CRITERIA_STAT_AT_LEAST => stat(x).is_none_or(|v| v >= y),
+        CRITERIA_STAT_NOT_EQUAL => stat(x).is_none_or(|v| v != y),
         CRITERIA_HEALTH_ABOVE => health() > y as f32,
         CRITERIA_HEALTH_BELOW => health() < y as f32,
         CRITERIA_BUFF_COUNTER => counter(x) == y,
@@ -443,6 +499,16 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 }
             }
         }
+        // the caster's own counter, kept by this cast (spawn counters are its spawns instead)
+        "AddBuffCounter" if a.on_caster() && a.u("TemplateID").is_some_and(|b| !SPAWN_COUNTERS.contains(&b)) => {
+            if let Some(buff) = a.u("TemplateID") {
+                let max = spell(buff).and_then(|b| b.stats.max_buff_counters).unwrap_or(u32::MAX);
+                let mut counters = run.counters.lock().unwrap();
+                let n = counters.entry(buff).or_default();
+                *n = n.saturating_add_signed(a.f("Value").unwrap_or(1.0) as i32).min(max);
+            }
+        }
+        "RemoveBuff" if a.on_caster() && a.u("TemplateID").is_some_and(|b| run.counters.lock().unwrap().remove(&b).is_some()) => {}
         "RemoveBuff" => {
             if let (Some(buff), Some(on)) = (a.u("TemplateID"), who.id) {
                 effects::forget_buff(on, buff);
