@@ -655,7 +655,7 @@
     },
     {
       "label": "abduct",
-      "about": "a Space Alien Mindslicer: every 12.5 s he abducts a random minifigure beside him (an Abducted Medic that heals, an Abducted Shaman with the Witch Doctor's totems; a third pick spawns nothing yet), at his level, with a beam to it; they go after 45 s",
+      "about": "a Space Alien Mindslicer: every 12.5 s he abducts a random minifigure 4.5 m from him (an Abducted Medic that heals, an Abducted Shaman with the Troll Shaman Swamp's look, an Abducted Doctor with the Witch Doctor's look and totems), at his level, wearing his spawncontrol buff; they go after 45 s",
       "spawn": [{ "name": "Space Alien Mindslicer", "count": 1 }]
     },
     {
@@ -670,6 +670,11 @@
         { "name": "Gatekeeper (Crooked Tooth Hurler)", "count": 1 },
         { "name": "Gremlin Warlock Lvl1", "count": 1 }
       ]
+    },
+    {
+      "label": "overlord",
+      "about": "the Alien Reaper Overlord (Gatekeeper): every 16.4 s within 15 m he spawns four Alien Pods 2 m north, east, south and west of himself (up to 5 alive), which hatch Mantis Nymphs when you come close",
+      "spawn": [{ "name": "Gatekeeper (Alien Reaper Overlord)", "count": 1 }]
     }
   ]
 }

@@ -150,9 +150,12 @@ const CRITERIA_BUFF_COUNTER: u32 = 166;
 /// Mindslicer's and Crikey the Kraken's spawns pick one by it.
 const STAT_RND: u32 = 520;
 const STAT_LAST_RND: u32 = 522;
-/// A monster spawned at its caster stands this far from it (the Alpha Wolf's called wolf came a
-/// little away from it: the user, 2026-10-30).
-const SPAWN_BESIDE: f32 = 2.5;
+/// A monster spawned at its caster stands this far from it (live capture, 8030: a Summoned Wolf
+/// appeared 4.6 m from the Alpha Wolf that called it, which had just arrived itself).
+const SPAWN_BESIDE: f32 = 4.5;
+/// How long a spawn nano without TimeExist shows on what it spawned (live capture: the Alpha
+/// Wolf's 438236 on its wolf, 5900 cs).
+const SPAWN_BUFF: Duration = Duration::from_secs(59);
 /// A buff without TimeExist on a character: as long as the original server showed Captain
 /// Dreadleg's "spin tired" stun (MagicBuffIIR_c duration 300 cs, recorded).
 const DEFAULT_BUFF: Duration = Duration::from_secs(3);
@@ -555,12 +558,12 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
             match crate::npc::spawn_monster(caster, run.playfield, hash, at, how) {
                 Some(spawned) => {
                     if let Some(nano) = nano {
-                        // a nano that isn't a buff plays its effect from the caster to the spawn
-                        // (the Alpha Wolf's call: a beam to the wolf, a MovingMesh at "target")
-                        if let Some(package) = spell(nano).filter(|n| n.stats.time_exist.is_none()).and_then(|n| n.stats.effect_package) {
-                            show(run, vec![effects::effect_package_on(caster, spawned, package, "", effects::new_instance())]);
-                        }
-                        cast_nano(run, nano, Target { id: Some(spawned), pos: at }, depth + 1, false);
+                        // the spawn nano is a buff on the spawn, cast by the caster (live: the
+                        // Alpha Wolf's 438236 on its wolf, whose effect is the beam between
+                        // them, a MovingMesh at "target"), then its actions run there
+                        let lasts = spell(nano).and_then(|n| n.stats.time_exist).map_or(SPAWN_BUFF, cs);
+                        show(run, effects::show_buff(spawned, nano, caster, Some(lasts)));
+                        run_list(run, nano, ON_USE, Target { id: Some(spawned), pos: at }, depth + 1);
                     }
                 }
                 None => debug!(spell = id, hash, "enemy spawn monster: no template with this spawn_hash"),
