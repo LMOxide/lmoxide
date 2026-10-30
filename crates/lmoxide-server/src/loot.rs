@@ -75,6 +75,8 @@ struct Tables {
     minifigure_bag: HashMap<u32, u32>,
     /// playfield -> the minifigures dropped there: (rarity weight, minifigure template)
     world_minifigures: HashMap<u32, Vec<(u32, u32)>>,
+    /// pocket adventure playfield -> its own minifigures (world `parts`): parts only, no bags
+    parts_only: HashMap<u32, Vec<u32>>,
     /// free chests (LootType 1)
     chests: Vec<u32>,
     /// member chests (LootType 2): every player is a member here
@@ -112,6 +114,7 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
         bag_minifigure: HashMap::new(),
         minifigure_bag: HashMap::new(),
         world_minifigures: HashMap::new(),
+        parts_only: HashMap::new(),
         chests: Vec::new(),
         member_chests: Vec::new(),
         potion_items: HashMap::new(),
@@ -195,7 +198,8 @@ static TABLES: LazyLock<Tables> = LazyLock::new(|| {
                 let tier = m.obtain.as_ref().and_then(|o| o.rarity.as_ref()).unwrap_or(&rarity.default);
                 (*rarity.tiers.get(tier).unwrap_or_else(|| panic!("{}: unknown rarity tier {tier}", m.id)), m.template)
             })
-            .collect();
+            .collect::<Vec<_>>();
+        t.parts_only.insert(w.playfield, list.iter().map(|&(_, m)| m).collect());
         t.world_minifigures.insert(w.playfield, list);
     }
     t
@@ -402,19 +406,40 @@ fn pick_part(playfield: Pf) -> Option<u32> {
     TABLES.part_items.get(&minifigure).and_then(|p| pick_weighted(p))
 }
 
+/// A minifigure whose whole bag drops in `playfield`: as `pick_minifigure`, but not a pocket
+/// adventure's own (world `parts`), which drop only as parts (the user, 2026-10-29).
+fn pick_bag_minifigure(playfield: Pf) -> Option<u32> {
+    let list = TABLES.world_minifigures.get(&playfield.model())?;
+    match TABLES.parts_only.get(&playfield.model()) {
+        Some(parts) => pick_weighted(&list.iter().filter(|(_, m)| !parts.contains(m)).copied().collect::<Vec<_>>()),
+        None => pick_weighted(list),
+    }
+}
+
 /// The bag of a minifigure dropped in `playfield`.
 fn pick_bag(playfield: Pf) -> Option<u32> {
-    let minifigure = pick_minifigure(playfield)?;
+    let minifigure = pick_bag_minifigure(playfield)?;
     TABLES.minifigure_bag.get(&minifigure).copied()
 }
 
 /// The bag of pocket adventure `playfield`'s minifigure (world `minifigure`): its reward for
-/// clearing it.
+/// clearing it. None where a story conversation there gives it (its `{spawn <hash>}`, tunables
+/// `story.spawn_minifigures`: the Monkey Cave's Island Warrior, ...): only the conversation does.
 pub fn pocket_reward(playfield: u32) -> Option<u32> {
     let c = crate::gamedata::get();
     let world = c.worlds.values().find(|w| w.playfield == playfield)?;
-    let minifigure = c.minifigures.get(world.minifigure.as_ref()?)?;
+    let id = world.minifigure.as_deref()?;
+    if story_gives(playfield, id) {
+        return None;
+    }
+    let minifigure = c.minifigures.get(id)?;
     TABLES.minifigure_bag.get(&minifigure.template).copied()
+}
+
+/// Whether a dialogue on `playfield` gives minifigure `id` (`spawn <hash>` of a story minifigure).
+fn story_gives(playfield: u32, id: &str) -> bool {
+    let story = &crate::gamedata::get().tunables.story.spawn_minifigures;
+    crate::knubot::spawns_on(playfield).iter().any(|h| story.get(h).is_some_and(|m| m == id))
 }
 
 /// The bag item that holds minifigure `template`.
@@ -475,6 +500,7 @@ fn roll_table(id: &str, orb_bonus: u64, playfield: Pf, power: u32, out: &mut Vec
             Drop::Heart => out.push(t.health_orb),
             Drop::Potion => out.push(t.potion),
             Drop::Part(from) => out.extend(pick_from(&from, playfield).and_then(|m| TABLES.part_items.get(&m).and_then(|p| pick_weighted(p)))),
+            Drop::Bag(MinifigureSource::World(_)) => out.extend(pick_bag(playfield)),
             Drop::Bag(from) => out.extend(pick_from(&from, playfield).and_then(|m| TABLES.minifigure_bag.get(&m).copied())),
             Drop::Chest(list) => {
                 let chests: Vec<u32> = list.iter().filter_map(|c| template_of(c)).collect();
@@ -742,6 +768,35 @@ mod tests {
         // and only so: its parts and bag drop nowhere
         assert!(TABLES.world_minifigures.values().flatten().all(|&(_, m)| m != lifeguard));
         assert!(pocket_reward(4200).is_none());
+    }
+
+    #[test]
+    fn pocket_adventure_minifigures_drop_as_parts_only() {
+        // Monkey Cave (parts: Hollywood Starlet, Saxophone Player): their parts drop, never a
+        // whole bag, also not from a table's world bag (Monkey Kong's loot had Saxophone
+        // Player's bag 358537)
+        let c = crate::gamedata::get();
+        let parts = [c.minifigures["minifig/hollywood-starlet"].template, c.minifigures["minifig/saxophone-player"].template];
+        let cave = Pf::main(1643);
+        for _ in 0..200 {
+            assert!(pick_bag(cave).is_none());
+            assert!(matches!(reward(pick_part(cave).unwrap()), Reward::Part(_)));
+            for item in roll(Source::Boss, 0, cave, 1000) {
+                assert!(!matches!(reward(item), Reward::MinifigureBag(_)), "a bag in the Monkey Cave");
+            }
+        }
+        assert!(parts.iter().all(|m| TABLES.world_minifigures[&1643].iter().any(|&(_, w)| w == *m)));
+    }
+
+    #[test]
+    fn a_story_conversation_gives_the_pocket_minifigure() {
+        // Monkey Cave (Island Warrior, 774 `spawn SIKZ`), Dragoon Dwelling (Revolutionary
+        // Soldier, 779 `spawn RG5K`), Jacket Cellar (Pizza Delivery Man, 788 `spawn 5WM9`): no
+        // reward bag besides; Beach Cave's Lifeguard Guy still comes as one
+        for pf in [1643, 1632, 1670] {
+            assert!(pocket_reward(pf).is_none(), "{pf}");
+        }
+        assert!(pocket_reward(1642).is_some());
     }
 
     #[test]

@@ -89,6 +89,14 @@
       }
     },
     {
+      "label": "monkey-kong",
+      "about": "Monkey Cave, next to Monkey Kong: defeating him starts the Island Warrior rescue, whose end gives the Island Warrior (no reward bag besides; no minifigure bags drop there, only parts)",
+      "goto": {
+        "kind": "boss",
+        "name": "Monkey Kong"
+      }
+    },
+    {
       "label": "combo",
       "about": "Roman Commander with 4 Pirate Corsairs around you (Gladius Slash combo steps, hit sparks)",
       "team": [

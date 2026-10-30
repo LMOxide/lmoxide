@@ -169,11 +169,9 @@ BEAT_REQUIRES = {
     "area/6300/cine-d06-cutscene1": [1540],
     "area/6300/cine-d06-cutscenefallback1": [1540],
 }
-# recorded dialogues started on a story area
-DIALOGUES = {
-    "area/1643/cine-rescue-island-warrior1": [("dialogue/xx-cinematic-rescue-island-warrior-773",
-                                               "likely: the live capture's Island Warrior rescue (4141), its area by name")],
-}
+# recorded dialogues started on a story area (none: the live Island Warrior rescue, 773, starts on
+# Monkey Kong's defeat, its record's `defeated`; user, 2026-10-29)
+DIALOGUES = {}
 for _area, _list in story_dialogues.TRIGGERS.items():
     DIALOGUES.setdefault(_area, []).extend(_list)
 # a dialogue's `spawn <hash>` that gives a minifigure (its bag): hash -> (minifigure, evidence)
