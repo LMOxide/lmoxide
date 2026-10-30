@@ -778,8 +778,10 @@ The recorded session is a new character being created and playing the whole tuto
   have it). The screen closes as soon as the name is sent (CharacterSelectionController
   `SlotNameSelected`), and nothing in the UI listens to a failure
   (`SlotCreatePlayerCharacterResult` 0x14b696e emits `SignalCreateCharacterFailed(code)`, which no
-  script connects): for a taken name the server answers 1, tells the player in chat and sends the
-  creation script again, which opens the screen again. Unused: PlayerInterface
+  script connects). The name and set are picked in the launcher before login and kept in the
+  native `ASCharacterCreation`, so the creation script would only send the same name again: for a
+  taken name the server answers 1, tells the player in chat and disconnects them; the launcher then
+  lists no character (one without a name isn't listed) and offers creation again. Unused: PlayerInterface
   `CharacterNeedsNewName(inst, reason, name)` -> PlayerAgent `RenameCharacter(inst, name)` (the
   character list's rename flow).
 - Tutorial: six invisible trigger NPCs ("Cinematic Start ...") start Video Game Guy's dialogues

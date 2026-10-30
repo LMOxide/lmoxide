@@ -2091,12 +2091,16 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let result = if starter.is_some() { 0 } else { 1 };
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
                 if starter.is_none() && me.playfield == crate::tutorial::CREATION_PLAYFIELD {
-                    // the creation screen closes once the name is sent and shows no failure: say
-                    // why and open it again (the creation script)
-                    let why = if names_ok && crate::tutorial::starter(set).is_some() { format!("The name {name} is taken. Please pick another.") } else { "That name can't be used. Please pick another.".into() };
-                    crate::chat::system(character, &why);
-                    let record = crate::tutorial::creation_script_record(id);
-                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                    // The name was picked in the launcher before login, the client keeps it and
+                    // shows no failure (the creation script would only send it again): say why and
+                    // disconnect. Back in the launcher the character isn't listed (no name yet), so
+                    // the launcher offers creation again.
+                    let why = if names_ok && crate::tutorial::starter(set).is_some() {
+                        format!("The name {name} is taken. Pick another one on the character creation screen.")
+                    } else {
+                        "That name can't be used. Pick another one on the character creation screen.".into()
+                    };
+                    let _ = outbox.send(world::Out::Kick(Some(why)));
                 }
                 if let Some(template) = starter {
                     me.name = name;
