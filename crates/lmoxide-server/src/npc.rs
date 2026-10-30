@@ -2317,6 +2317,28 @@ pub fn end_cast_command(id: Id32, spell: u32) -> Vec<bytes::Bytes> {
     observed_end(id, target, spell, command)
 }
 
+/// Enemy `id` blinks next to `to` (MELEE_RANGE short of it, facing it): the spiders' Silk
+/// Thread. Returns whether it went.
+pub fn blink(id: Id32, to: [f32; 3]) -> bool {
+    let now = std::time::Instant::now();
+    let (here, end, dir) = {
+        let mut npcs = NPCS.lock().unwrap();
+        let Some(npc) = npcs.get_mut(&id).filter(|n| n.def.kind == Kind::Enemy && n.health > 0 && !n.def.stationary) else { return false };
+        let here = npc.walk.take().map_or_else(|| *npc.pos.lock().unwrap(), |w| w.at(now).0);
+        let (dx, dz) = (to[0] - here[0], to[2] - here[2]);
+        let d = dx.hypot(dz);
+        if d <= MELEE_RANGE {
+            return false;
+        }
+        let dir = [dx / d, dz / d];
+        let end = [to[0] - dir[0] * MELEE_RANGE, to[1], to[2] - dir[1] * MELEE_RANGE];
+        *npc.pos.lock().unwrap() = end;
+        (here, end, dir)
+    };
+    world::send_playfield(id, false, world::Out::Records(crate::dash::blink_records(id, here, end, dir)));
+    true
+}
+
 /// Enemy `id` charges `distance` m along `dir` at `speed` m/s (an enemy ColumnDash: the
 /// Minotaur's Bull Charge): the clients run it there along a dash path (dash.rs, as players'
 /// dashes: at its charge speed stat 1400), ending with a stop at the end. Returns the time it

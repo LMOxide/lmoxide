@@ -280,7 +280,7 @@ mod tests {
         // the Bot Battle Merc's stomp and missile instead of the generic Shot, the Grenadier's
         // grenade instead of an XX_Slash his look can't animate, the Space Merc Defender's
         // reflect (the user, 2026-10-30)
-        const REPLACED: [(u32, &[u32]); 14] = [
+        const REPLACED: [(u32, &[u32]); 15] = [
             (201_479, &[194_198]),
             (201_477, &[194_199, 194_198]),
             (192_821, &[190_796, 190_612]),
@@ -300,6 +300,8 @@ mod tests {
             // animate; the Crooked Tooth Brute's charge, ground smash and swings (the user)
             (327_846, &[319_338, 319_946]),
             (157_082, &[100_331, 100_312, 100_799]),
+            // the spiders' live kit (Skew, Web, Silk Thread, Taunt) for the generic Venom + Stab
+            (231_991, &[197_776, 197_778, 198_074, 198_187]),
         ];
         for (k, v) in data("npc_spells.json")["monsters"].as_object().unwrap() {
             let mut want: Vec<u32> = serde_json::from_value(v["spells"].clone()).unwrap();

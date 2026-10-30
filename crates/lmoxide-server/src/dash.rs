@@ -218,8 +218,18 @@ fn substate_record(id: Id32, action: u8) -> Bytes {
 /// `StopIIR_c`: position, rotation (yaw towards `dir`), u8 1, u8 0 (as after the recorded dashes).
 /// Also turns a standing player (actions.rs: towards their shots).
 pub(crate) fn stop_record(id: Id32, at: [f32; 3], dir: [f32; 2]) -> Bytes {
+    stop_with(id, at, dir, [1, 0])
+}
+
+/// An enemy's Blink (the spiders' Silk Thread, as the live capture's Giant spider): in the
+/// Charging substate, a stop where it stands and one (u8 1, 1) where it lands, at once.
+pub fn blink_records(id: Id32, from: [f32; 3], to: [f32; 3], dir: [f32; 2]) -> Vec<Bytes> {
+    vec![stop_with(id, from, dir, [0, 0]), charging_record(id, true), stop_with(id, to, dir, [1, 1]), charging_record(id, false)]
+}
+
+fn stop_with(id: Id32, at: [f32; 3], dir: [f32; 2], flags: [u8; 2]) -> Bytes {
     let half = dir[0].atan2(dir[1]) / 2.0;
     iir::record("StopIIR_c", id, false, |w| {
-        w.f32(at[0]).f32(at[1]).f32(at[2]).f32(0.0).f32(half.sin()).f32(0.0).f32(half.cos()).u8(1).u8(0)
+        w.f32(at[0]).f32(at[1]).f32(at[2]).f32(0.0).f32(half.sin()).f32(0.0).f32(half.cos()).u8(flags[0]).u8(flags[1])
     })
 }

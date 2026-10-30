@@ -295,10 +295,16 @@ pub fn cooldown(id: u32) -> Duration {
         .flatten()
         .filter(rolled)
         // (or its spell line's, on the caster: the Overlord's pods 10 s apart)
-        .filter(|a| (a.kind == "SetSpellRecastTime" && a.u("NanoTemplate").is_none_or(|n| n == id)) || (a.kind == "SetSpellLineRecastTime" && a.on_caster()))
+        // (a twin of the same name counts: the spiders' XX_Taunt 198187 sets 197418's, also XX_Taunt)
+        .filter(|a| (a.kind == "SetSpellRecastTime" && a.u("NanoTemplate").is_none_or(|n| n == id || twin(n, &s.name))) || (a.kind == "SetSpellLineRecastTime" && a.on_caster()))
         .filter_map(|a| a.f("Value"))
         .fold(0.0f32, f32::max);
     cs(s.stats.recharge_delay.unwrap_or(0.0).max(recast))
+}
+
+/// Whether spell `id` is named `name`.
+fn twin(id: u32, name: &str) -> bool {
+    spell(id).is_some_and(|t| t.name == name)
 }
 
 /// How long the caster stands still for a cast: until the strike (ItemDelay), and for
@@ -785,6 +791,10 @@ fn act(run: &Arc<Run>, id: u32, a: &Action, target: Target, depth: u32) {
                 let lifetime = Duration::from_secs(a.u("TimedLength").unwrap_or(3) as u64);
                 trap(run, nano, who.pos, lifetime, depth);
             }
+        }
+        // the caster hops next to its target (the spiders' Silk Thread)
+        "Blink" if !a.on_caster() => {
+            crate::npc::blink(caster, who.pos);
         }
         "SpawnMonster" => {
             // the original server's monster (StringHash: content npcs `spawn_hash`), then its
