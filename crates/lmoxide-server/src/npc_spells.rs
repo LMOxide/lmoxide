@@ -478,7 +478,8 @@ fn cast_nano(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_effect: 
     let caster = run.caster;
     let on_caster = target.id == Some(caster);
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| !a.client));
-    let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
+    // (a server-made nano's TimeExist is only how long what it sends lasts: the clients don't know it)
+    let is_buff = target.id.is_some() && !crate::skills::is_server_made(nano) && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
     // a player immune to crowd control (True Grit, Stalwart) doesn't get slows, stuns and
     // knockbacks (the client would run them)
     let crowd_control = n.lists.values().flatten().any(|a| CROWD_CONTROL.contains(&a.kind.as_str()));

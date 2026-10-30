@@ -978,7 +978,8 @@ fn cast_nano_shown(run: &Arc<Run>, nano: u32, target: Target, depth: u32, own_ef
     let on_caster = target.id == Some(caster);
     // (a shortcut override is what a buff does, not a hit)
     let server_actions = n.lists.get(ON_USE).is_some_and(|l| l.iter().any(|a| a.on_server() && a.kind != "OverrideShortcut"));
-    let is_buff = target.id.is_some() && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
+    // (a server-made nano's TimeExist is only how long what it sends lasts: the clients don't know it)
+    let is_buff = target.id.is_some() && !crate::skills::is_server_made(nano) && (n.stats.time_exist.is_some() || (on_caster && !server_actions));
     // a smashable takes no buffs: it isn't a character, and the clients crashed on one with a
     // client action (Chicken Suit Guy's egg splash snares, AddSnare, on a Broken Wagon)
     if is_buff && target.id.is_some_and(crate::npc::is_smashable) {

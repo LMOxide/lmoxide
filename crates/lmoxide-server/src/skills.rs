@@ -13,6 +13,15 @@ fn action(a: &GameAction) -> Value {
     json!({ "type": a.kind, "client": a.client, "args": a.args, "criteria": a.criteria })
 }
 
+/// Server-made spells (content skills with no client spell) take ids from here up
+/// (docs/CONTENT.md): the clients have no data for them, so they are never shown as buffs.
+pub const SERVER_SPELLS_FROM: u32 = 2_000_000_000;
+
+/// Whether `spell` is server-made (`SERVER_SPELLS_FROM`).
+pub fn is_server_made(spell: u32) -> bool {
+    spell >= SERVER_SPELLS_FROM
+}
+
 /// Skills with a definition in the client's data, by client spell.
 static BY_SPELL: LazyLock<HashMap<u32, &'static Skill>> = LazyLock::new(|| {
     crate::gamedata::get()
