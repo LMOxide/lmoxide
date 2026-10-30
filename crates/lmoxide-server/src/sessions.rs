@@ -60,17 +60,6 @@ pub fn character_of(account: u32) -> u32 {
     CHARACTERS.lock().unwrap().get(&account).copied().unwrap_or(account)
 }
 
-/// account instance -> login name (the name of a new character)
-static NAMES: LazyLock<Mutex<HashMap<u32, String>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
-
-pub fn set_name(account: u32, name: &str) {
-    NAMES.lock().unwrap().insert(account, name.to_string());
-}
-
-pub fn name(account: u32) -> Option<String> {
-    NAMES.lock().unwrap().get(&account).cloned()
-}
-
 /// A logged-in game connection (for the control interface: players online, kicks), by character.
 struct Online {
     account: u32,
@@ -187,6 +176,27 @@ pub fn remove_achievements(character: u32, which: Option<Vec<u32>>) -> Option<to
     let (tx, rx) = tokio::sync::oneshot::channel();
     o.outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(Some(tx))))).ok()?;
     Some(rx)
+}
+
+/// Asks `character`'s connection to rename it; `None` if it isn't online.
+pub fn rename(character: u32, name: &str) -> Option<tokio::sync::oneshot::Receiver<Result<String, std::sync::Arc<lmoxide_db::Error>>>> {
+    let online = ONLINE.lock().unwrap();
+    let o = online.get(&character)?;
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    o.outbox.send(world::Out::Rename(name.to_string(), std::sync::Arc::new(std::sync::Mutex::new(Some(tx))))).ok()?;
+    Some(rx)
+}
+
+/// The name of a character in play changed (creation, a rename).
+pub fn set_character_name(character: u32, name: &str) {
+    if let Some(o) = ONLINE.lock().unwrap().get_mut(&character) {
+        o.character_name = name.to_string();
+    }
+}
+
+/// An online character by name (case-insensitive).
+pub fn character_named(name: &str) -> Option<u32> {
+    ONLINE.lock().unwrap().iter().find(|(_, o)| o.character_name.eq_ignore_ascii_case(name)).map(|(&c, _)| c)
 }
 
 /// The account's characters online (usually one).

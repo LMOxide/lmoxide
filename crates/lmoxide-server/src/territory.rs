@@ -77,12 +77,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
             (Some(Endpoint::PlayerAgent), agent::GET_STARTUP_DATA) => {
                 let md5 = r.string()?;
                 info!(account, %md5, "GetStartupData");
-                // Without progression there is no tutorial: a new account's character is made
-                // here (named after the account), so the client lists it instead of offering
-                // character creation.
-                if !mode.rules().progression && owned(account, mode).is_empty() {
-                    create_character(account, new_id(account), mode, cfg.start_playfield);
-                }
                 let me = Some(account);
                 conn.send_as(me, Endpoint::PlayerInterface, interface::UPDATE_CLIENT_PLAYER_DATA, client_player_data(account, mode))
                     .await?;
@@ -117,7 +111,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     Some(id) => id,
                     None => {
                         let id = new_id(account);
-                        create_character(account, id, mode, crate::tutorial::CREATION_PLAYFIELD);
+                        create_character(account, id, mode);
                         id
                     }
                 };
@@ -205,15 +199,15 @@ fn delete_character(account: u32, character: u32) {
     }
 }
 
-/// Saves a new character `id` for `account`, named after it, in `playfield`.
-fn create_character(account: u32, id: u32, mode: crate::instance::Mode, playfield: u32) {
-    let name = crate::state::or_log(crate::state::db().account(account), "account", None).map(|a| a.username);
-    let Some(name) = name else { return };
-    let mut c = crate::game::new_character(name, mode, playfield);
-    if playfield == crate::tutorial::CREATION_PLAYFIELD {
-        // as live: no minifigure until the player's pick arrives; the character owns only the
-        // members' minifigures until then (its starter is added with the pick)
-        c.team.clear();
+/// Saves a new character `id` for `account` on the creation screen, without a name until the
+/// player picks one (every game mode: the name comes from the creation screen).
+fn create_character(account: u32, id: u32, mode: crate::instance::Mode) {
+    let mut c = crate::game::new_character(String::new(), mode, crate::tutorial::CREATION_PLAYFIELD);
+    // as live: no minifigure until the player's pick arrives (its starter is added with the
+    // pick)
+    c.team.clear();
+    if mode.rules().progression {
+        // the character owns only the members' minifigures until then
         let now = crate::smash::now_ms() / 1000;
         c.collection = Some(crate::loot::membership_minifigures().iter().map(|&t| (t, now)).collect());
     }

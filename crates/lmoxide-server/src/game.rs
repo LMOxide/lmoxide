@@ -267,6 +267,27 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             None => crate::chat::system(character, &format!("{} achievements removed{}", gone.len(), if which.is_none() { ", and the journal and counters (they show again after logging in)" } else { "" })),
                         }
                     }
+                    world::Out::Rename(name, reply) => {
+                        let result = state::db().rename_character(character, &name).map_err(std::sync::Arc::new);
+                        let renamed = result.as_ref().ok().cloned();
+                        if let Some(tx) = reply.lock().unwrap().take() {
+                            let _ = tx.send(result);
+                        }
+                        if let Some(name) = renamed {
+                            info!(character, old = %me.name, new = %name, "character renamed");
+                            me.name = name;
+                            crate::sessions::set_character_name(character, &me.name);
+                            crate::community::renamed(character, &me.name);
+                            let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                            let record = crate::tutorial::set_name_record(id, overhead_name(&me.name));
+                            conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                            crate::chat::system(character, &format!("You are {} now.", me.name));
+                            // sent again where it stands, so every client shows the new name
+                            let at = *pos.lock().unwrap();
+                            teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, place, &mut place, None, Some((at, heading[0].atan2(heading[1]))))
+                                .await?;
+                        }
+                    }
                     world::Out::Enter(to, at, line) => {
                         crate::chat::system(character, &line);
                         let at = at.unwrap_or_else(|| *pos.lock().unwrap());
@@ -377,7 +398,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let cookie = r.u32()?;
                 let version = r.string()?;
                 // `claimed` is the character: the login cookie's account must own it (an
-                // account's first character has the account's id and may not be saved yet)
+                // account's first character has the account's id)
                 let ip_key = format!("ip:{}", conn.peer.ip());
                 let session = state::or_log(state::db().game_session(cookie), "session", None);
                 let owner = state::or_log(state::db().character_account(claimed), "character", None).unwrap_or(claimed);
@@ -391,15 +412,19 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                     conn.send_as(Some(claimed), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args).await?;
                     return Ok(());
                 };
+                // characters are made by the territory manager (creation screen) before this
+                let Some(saved) = store.load(claimed) else {
+                    warn!(character = claimed, account = account.id, "Authenticate2 refused: no such character");
+                    let args = Writer::new().i32(0).finish();
+                    conn.send_as(Some(claimed), Endpoint::GameserverToClientRPC, client::ACK_AUTHENTICATE, args).await?;
+                    return Ok(());
+                };
                 character = claimed;
                 conn.authenticated = true;
                 // (chat finds the character by the account)
                 crate::sessions::set_character(account.id, character);
                 gm_level = account.gm_level.max(cfg.default_gm_level);
-                me = store.load(character).unwrap_or_else(|| Character {
-                    name: crate::sessions::name(character).unwrap_or_else(|| account.username.clone()),
-                    ..me.clone()
-                });
+                me = saved;
                 // the movement speed factor (`!speed`): the character's speed stats show it
                 me.speed = crate::speed::sane(me.speed);
                 crate::speed::set(character, me.speed);
@@ -1677,6 +1702,18 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                         crate::devcmd::Action::RemoveAchievements(which) => {
                             let _ = outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(None))));
                         }
+                        crate::devcmd::Action::Rename(target, name) => {
+                            // (in a task: renaming oneself goes through this connection)
+                            let target = target.unwrap_or(character);
+                            tokio::spawn(async move {
+                                let line = match crate::control::rename(target, &name).await {
+                                    Ok((name, true)) => format!("renamed {target} to {name}"),
+                                    Ok((name, false)) => format!("renamed {target} to {name} (offline)"),
+                                    Err((_, why)) => format!("not renamed: {why}"),
+                                };
+                                crate::chat::system(character, &line);
+                            });
+                        }
                         crate::devcmd::Action::Story(order, reset) => {
                             if reset {
                                 let records = crate::story::reset(&mut me, character);
@@ -2034,14 +2071,37 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 let (nick, first, last) = (r.string()?, r.string()?, r.string()?);
                 let set = r.u32()?;
                 let names_ok = [&nick, &first, &last].iter().all(|n| n.chars().count() <= 32) && !nick.trim().is_empty();
+                // stored in reading order, "first nick last" (the launcher's "Fantastic Sparky
+                // Burrito" arrives as nick Sparky, first Fantastic, last Burrito)
+                let name = [first.trim(), nick.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
                 let starter = crate::tutorial::starter(set).filter(|_| names_ok && me.playfield == crate::tutorial::CREATION_PLAYFIELD);
-                info!(character, %nick, %first, %last, set, ok = starter.is_some(), "SetCharacterCreationData");
+                // names belong to one account: taken at once in the database, so two players
+                // can't both get one
+                let free = starter.is_some()
+                    && match state::db().set_character_name(character, &name) {
+                        Ok(()) => true,
+                        Err(lmoxide_db::Error::NameTaken) => false,
+                        Err(e) => {
+                            warn!(character, "setting the character's name failed: {e:#}");
+                            false
+                        }
+                    };
+                let starter = starter.filter(|_| free);
+                info!(character, %nick, %first, %last, set, free, ok = starter.is_some(), "SetCharacterCreationData");
                 let result = if starter.is_some() { 0 } else { 1 };
                 let id = Id32::new(crate::territory::CHARACTER_TYPE, character);
+                if starter.is_none() && me.playfield == crate::tutorial::CREATION_PLAYFIELD {
+                    // the creation screen closes once the name is sent and shows no failure: say
+                    // why and open it again (the creation script)
+                    let why = if names_ok && crate::tutorial::starter(set).is_some() { format!("The name {name} is taken. Please pick another.") } else { "That name can't be used. Please pick another.".into() };
+                    crate::chat::system(character, &why);
+                    let record = crate::tutorial::creation_script_record(id);
+                    conn.send_as(Some(character), Endpoint::GameserverToClientRPC, client::PASS_BLOB, iir::pass_blob(&[record])).await?;
+                }
                 if let Some(template) = starter {
-                    // stored in reading order, "first nick last" (the launcher's "Fantastic Sparky
-                    // Burrito" arrives as nick Sparky, first Fantastic, last Burrito)
-                    me.name = [first.trim(), nick.trim(), last.trim()].iter().filter(|n| !n.is_empty()).copied().collect::<Vec<_>>().join(" ");
+                    me.name = name;
+                    crate::sessions::set_character_name(character, &me.name);
+                    crate::community::renamed(character, &me.name);
                     if let Some(owned) = me.collection.as_mut() {
                         owned.insert(template, crate::smash::now_ms() / 1000);
                     }

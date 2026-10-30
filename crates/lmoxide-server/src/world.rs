@@ -45,6 +45,9 @@ pub enum Out {
     Enter(Pf, Option<[f32; 3]>, String),
     /// Take achievements away (`None`: all; achievements::remove), answering what was removed.
     RemoveAchievements(Option<Vec<u32>>, Reply<Vec<u32>>),
+    /// Rename the character (an admin's), answering the name as stored or why not
+    /// (`lmoxide_db::Db::rename_character`).
+    Rename(String, Reply<Result<String, std::sync::Arc<lmoxide_db::Error>>>),
     /// Open teleport window `n` for the player, as a portal would (a trigger wall, walls.rs).
     Window(u32),
     /// The player's minifigure (item template) was smashed (smash.rs).

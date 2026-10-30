@@ -404,8 +404,15 @@ impl Db {
     /// another account's character has the name. Returns the name as stored.
     pub fn rename_character(&self, id: u32, name: &str) -> Result<String> {
         let name = validate_character_name(name)?;
+        self.set_character_name(id, &name)?;
+        Ok(name)
+    }
+
+    /// Gives a character `name` as it is (the creation screen's pick); [`Error::NameTaken`] if
+    /// another account's character has it.
+    pub fn set_character_name(&self, id: u32, name: &str) -> Result<()> {
         let n = self.conn().execute("UPDATE characters SET name = ?2 WHERE id = ?1", params![id, name]).map_err(name_taken)?;
-        if n == 0 { Err(Error::NotFound("character")) } else { Ok(name) }
+        if n == 0 { Err(Error::NotFound("character")) } else { Ok(()) }
     }
 
     /// Whether `account_id` may give one of its characters this name (no other account's

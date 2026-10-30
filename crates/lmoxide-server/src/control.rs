@@ -33,6 +33,7 @@ pub async fn serve(addr: SocketAddr, token: String) -> anyhow::Result<()> {
         .route("/v1/players/{account}/command", post(command))
         .route("/v1/test-commands", get(test_commands))
         .route("/v1/characters/{character}/achievements/remove", post(remove_achievements))
+        .route("/v1/characters/{character}/name", post(rename_character))
         .route("/v1/broadcast", post(broadcast))
         .route("/v1/maintenance", post(maintenance))
         .layer(axum::extract::DefaultBodyLimit::max(64 * 1024))
@@ -154,6 +155,33 @@ async fn remove_achievements(Path(character): Path<u32>, Json(r): Json<lmoxide_c
     store.save(character, &c).map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("{e:#}")))?;
     info!(character, ?removed, "control: achievements removed (offline)");
     Ok(Json(lmoxide_control::RemovedAchievements { removed, online: false }))
+}
+
+async fn rename_character(Path(character): Path<u32>, Json(r): Json<lmoxide_control::RenameCharacter>) -> Result<Json<lmoxide_control::CharacterRenamed>, (StatusCode, String)> {
+    let (name, online) = rename(character, &r.name).await?;
+    Ok(Json(lmoxide_control::CharacterRenamed { name, online }))
+}
+
+/// Renames a character: through its connection when it is online (it is sent again where it
+/// stands, so every client shows the new name), else in the database. Returns the name as
+/// stored and whether it was online; refusals as an HTTP status and why.
+pub async fn rename(character: u32, name: &str) -> Result<(String, bool), (StatusCode, String)> {
+    let refused = |e: &lmoxide_db::Error| match e {
+        lmoxide_db::Error::NotFound(_) => (StatusCode::NOT_FOUND, format!("no character {character}")),
+        lmoxide_db::Error::NameTaken => (StatusCode::CONFLICT, "another account has a character with this name".to_string()),
+        lmoxide_db::Error::Invalid(m) => (StatusCode::UNPROCESSABLE_ENTITY, m.clone()),
+        e => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+    };
+    if let Some(answer) = sessions::rename(character, name) {
+        let answer = tokio::time::timeout(COMMAND_WAIT, answer).await;
+        let result = answer
+            .map_err(|_| (StatusCode::GATEWAY_TIMEOUT, "the character's connection didn't answer".to_string()))?
+            .map_err(|_| (StatusCode::GATEWAY_TIMEOUT, "the character went offline".to_string()))?;
+        return result.map(|n| (n, true)).map_err(|e| refused(&e));
+    }
+    let name = state::db().rename_character(character, name).map_err(|e| refused(&e))?;
+    info!(character, %name, "control: character renamed (offline)");
+    Ok((name, false))
 }
 
 async fn test_commands() -> Json<TestCatalog> {

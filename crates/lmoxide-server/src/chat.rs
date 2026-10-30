@@ -278,11 +278,13 @@ pub fn rejoin(character: u32) {
     }
 }
 
-/// A private message ("/tell"): `target` is a nick or a character name.
+/// A private message ("/tell"): `target` is a nick or a character name (its name now: the nick
+/// keeps the name it logged in with).
 fn tell(from: u32, nick: &str, target: &str, text: &str) {
+    let named = crate::sessions::character_named(target);
     let found = NICKS.lock().unwrap().iter().find_map(|(&a, n)| {
         let name = n.rsplit_once('-').map_or(n.as_str(), |(name, _)| name);
-        (n.eq_ignore_ascii_case(target) || name.eq_ignore_ascii_case(target)).then(|| (a, n.clone()))
+        (named == Some(a) || n.eq_ignore_ascii_case(target) || name.eq_ignore_ascii_case(target)).then(|| (a, n.clone()))
     });
     match found {
         Some((to, to_nick)) => {

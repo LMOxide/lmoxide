@@ -255,6 +255,16 @@ pub fn login(character: u32, name: &str, playfield: Pf, outbox: world::Outbox) -
     Guard(character)
 }
 
+/// The character in play has a new name (creation, a rename): its friends' lists show it.
+pub fn renamed(character: u32, name: &str) {
+    let mut st = STATE.lock().unwrap();
+    let Some(o) = st.online.get_mut(&character) else { return };
+    o.name = name.to_string();
+    for &f in &friends_of(character) {
+        friends_update(&st, f, &[character]);
+    }
+}
+
 pub struct Guard(u32);
 
 impl Drop for Guard {

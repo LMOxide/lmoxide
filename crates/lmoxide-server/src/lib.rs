@@ -165,6 +165,10 @@ pub struct Config {
     /// teleporting, test scenarios, minifigures, dialogues, achievements, animations, looks).
     #[arg(long, env = "LMOXIDE_TESTER_GM_LEVEL", default_value_t = 1)]
     pub tester_gm_level: u32,
+    /// GM level needed for the admins' commands (devcmd.rs `ADMIN_COMMANDS`: `!rename`). The
+    /// `lmoxide` binary gives the API the same (its `--admin-gm-level`).
+    #[arg(long, env = "LMOXIDE_ADMIN_GM_LEVEL", default_value_t = 4)]
+    pub admin_gm_level: u32,
     /// GM level from which the client gets every GM bit in its GmLevel stat (god camera, flying
     /// and the other GM hotkeys; docs/PROTOCOL.md "Client hotkey GM gates"). Below it the stat
     /// isn't sent.
@@ -332,7 +336,7 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
     }
     state::init(db, key);
     state::set_data_dir(storage.data_dir.clone());
-    state::set_levels(state::Levels { tester: cfg.tester_gm_level, devcmd: cfg.devcmd_gm_level, client: cfg.client_gm_level });
+    state::set_levels(state::Levels { tester: cfg.tester_gm_level, devcmd: cfg.devcmd_gm_level, admin: cfg.admin_gm_level, client: cfg.client_gm_level });
     let mut cfg = cfg;
     if cfg.mode == Mode::Progression {
         cfg.progression = true;

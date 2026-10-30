@@ -160,11 +160,13 @@ async fn run(file: File) -> anyhow::Result<()> {
     }
     let patch = Arc::new(lmoxide_patch_server::Config::try_parse_from(options("patch", &file.patch, &patch_defaults)?).context("[patch]")?);
     // the API lets the same accounts into the world editor's routes as the game into its mode
+    // (and its admins the admins' commands)
     let editor_level = game.cfg.world_editor_gm_level.to_string();
+    let admin_level = game.cfg.admin_gm_level.to_string();
     let api = ApiArgs::try_parse_from(options(
         "api",
         &file.api,
-        &[("control-url", format!("http://{control}")), ("control-token", token), ("editor-gm-level", editor_level)],
+        &[("control-url", format!("http://{control}")), ("control-token", token), ("editor-gm-level", editor_level), ("admin-gm-level", admin_level)],
     )?)
         .context("[api]")?
         .cfg;

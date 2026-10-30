@@ -60,7 +60,6 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>, mode: crate::instance::Mod
                     Ok((account, gm_level)) => {
                         let player = Id32::new(PLAYER_ID_TYPE, account);
                         let cookie = state::db().create_game_session_in(account, SESSION_TTL, mode.id())?;
-                        crate::sessions::set_name(account, &username);
                         info!(%username, account, gm_level, mode = mode.id(), "login accepted");
                         // The client handler (0xb4b580) treats nAuthStatus 1 as authenticated,
                         // reports any non-zero eReason as a login problem, and asserts that our

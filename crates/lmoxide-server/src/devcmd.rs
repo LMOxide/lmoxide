@@ -113,6 +113,8 @@ pub enum Action {
     Quests(bool),
     /// Take achievements away (`None`: all of them).
     RemoveAchievements(Option<Vec<u32>>),
+    /// rename a character (`None`: one's own) (`!rename`; control::rename)
+    Rename(Option<u32>, String),
     /// smash the nearest smashable (or defeat the nearest enemy) as if the player hit it
     Smash,
     /// bring every minifigure of the player (team and collection) back from smashed, full health
@@ -192,6 +194,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!list <kind>", "numbered list of a kind of test target"),
     ("!goto <kind> [n]", "go next to target n (default 1) of that kind"),
     ("!goto player <name>", "go next to a player online (character or account name)"),
+    ("!rename [<who> =] <new name>", "admins: rename your character, or someone's (who: a character name or id, or the account name of a player online); online characters are sent again where they stand so everyone sees it"),
     ("!test [n|label]", "list the manual test setups, or set one up (data/test_scenarios.json)"),
     ("!spawn [count] <name>", "spawn count (default 1, at most 30) of an enemy or smashable around you for 15 minutes"),
     ("!despawn [all]", "remove the test spawns (!spawn, !test) within 30 m, or all of this playfield's"),
@@ -255,11 +258,45 @@ pub const TESTER_COMMANDS: &[&str] = &[
     "state", "revive", "smash", "smashme", "xp", "stars", "mirrors", "plates",
 ];
 
+/// The commands only admins have (`--admin-gm-level`).
+pub const ADMIN_COMMANDS: &[&str] = &["rename"];
+
 /// The GM level a command line needs.
 pub fn gm_level_for(message: &str) -> u32 {
     let levels = crate::state::levels();
     let cmd = message.get(1..).unwrap_or("").split_whitespace().next().unwrap_or("").to_ascii_lowercase();
-    if TESTER_COMMANDS.contains(&cmd.as_str()) { levels.tester } else { levels.devcmd }
+    if ADMIN_COMMANDS.contains(&cmd.as_str()) {
+        levels.admin
+    } else if TESTER_COMMANDS.contains(&cmd.as_str()) {
+        levels.tester
+    } else {
+        levels.devcmd
+    }
+}
+
+/// `!rename`'s `<who>`: `me`, a character id, a player online (character or account name) or a
+/// saved character's name.
+fn rename_target(who: &str) -> Result<Option<u32>, String> {
+    if who.eq_ignore_ascii_case("me") {
+        return Ok(None);
+    }
+    if let Ok(id) = who.parse::<u32>() {
+        return Ok(Some(id));
+    }
+    let players = crate::sessions::players();
+    if let Some(p) = players.iter().find(|p| p.character_name.eq_ignore_ascii_case(who)).or_else(|| players.iter().find(|p| p.username.eq_ignore_ascii_case(who))) {
+        return Ok(Some(p.character_id));
+    }
+    let saved = crate::state::or_log(crate::state::db().search_characters(who, 50), "characters", Vec::new());
+    let exact: Vec<_> = saved.iter().filter(|(c, _)| c.name.eq_ignore_ascii_case(who)).collect();
+    match exact[..] {
+        [] => Err(format!("no character named {who}")),
+        [(c, _)] => Ok(Some(c.id)),
+        _ => Err(format!(
+            "{who} names several characters (one per game mode): use an id, {}",
+            exact.iter().map(|(c, _)| format!("{} ({})", c.id, c.mode)).collect::<Vec<_>>().join(", ")
+        )),
+    }
 }
 
 /// Most a `!spawn` brings at once.
@@ -685,6 +722,18 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 (None, _) => reply(vec![format!("nobody named {name} is online")]),
             }
         }
+        "rename" => {
+            let rest = args.join(" ");
+            let (who, name) = rest.split_once('=').map_or(("me", rest.as_str()), |(w, n)| (w.trim(), n.trim()));
+            if name.is_empty() {
+                reply(vec!["usage: !rename [<who> =] <new name>".into()])
+            } else {
+                match rename_target(who) {
+                    Ok(target) => Action::Rename(target, name.to_string()),
+                    Err(e) => reply(vec![e]),
+                }
+            }
+        }
         "point" if !args.is_empty() => Action::Point(args.join(" ")),
         "point" => reply(vec!["usage: !point <name>".into()]),
         "goto" if args.first().is_some_and(|k| k.eq_ignore_ascii_case("point")) && args.get(1).is_some_and(|n| n.parse::<usize>().is_err()) => {
@@ -1018,6 +1067,8 @@ mod tests {
         assert_eq!(gm_level_for("!spawn 3 skeleton"), 2);
         assert_eq!(gm_level_for("!fx 163540"), 2);
         assert_eq!(gm_level_for("!"), 2);
+        assert_eq!(gm_level_for("!rename me = Grumpy Axe"), 4);
+        assert_eq!(gm_level_for("!RENAME x"), 4);
         // every tester command exists
         for cmd in TESTER_COMMANDS {
             assert!(COMMANDS.iter().any(|(usage, _)| usage[1..].split_whitespace().next() == Some(cmd)), "{cmd}");

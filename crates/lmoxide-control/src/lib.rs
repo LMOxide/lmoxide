@@ -125,6 +125,20 @@ pub struct RemovedAchievements {
     pub online: bool,
 }
 
+/// A character's new name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenameCharacter {
+    pub name: String,
+}
+
+/// The name as stored, and whether the character was online (then every client nearby shows
+/// it at once).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CharacterRenamed {
+    pub name: String,
+    pub online: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Maintenance {
     pub enabled: bool,
@@ -303,6 +317,12 @@ impl Client {
 
     pub async fn remove_achievements(&self, character: u32, r: &RemoveAchievements) -> Result<RemovedAchievements, Error> {
         self.send(self.http.post(format!("{}/v1/characters/{character}/achievements/remove", self.base)).json(r)).await
+    }
+
+    /// Renames a character. Refusals come back as [`Error::Status`]: 404 no such character, 409
+    /// another account's character has the name, 422 not a character name.
+    pub async fn rename_character(&self, character: u32, r: &RenameCharacter) -> Result<CharacterRenamed, Error> {
+        self.send(self.http.post(format!("{}/v1/characters/{character}/name", self.base)).json(r)).await
     }
 
     pub async fn test_catalog(&self) -> Result<TestCatalog, Error> {

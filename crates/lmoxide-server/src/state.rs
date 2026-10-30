@@ -21,11 +21,12 @@ pub fn set_data_dir(dir: std::path::PathBuf) {
 
 /// `Some(message)` while in maintenance: only accounts with a GM level may log in.
 /// The GM levels that unlock things (`--tester-gm-level`, `--devcmd-gm-level`,
-/// `--client-gm-level`), for code without the config at hand.
+/// `--admin-gm-level`, `--client-gm-level`), for code without the config at hand.
 #[derive(Debug, Clone, Copy)]
 pub struct Levels {
     pub tester: u32,
     pub devcmd: u32,
+    pub admin: u32,
     pub client: u32,
 }
 
@@ -33,7 +34,7 @@ static LEVELS: OnceLock<Levels> = OnceLock::new();
 
 pub fn levels() -> Levels {
     // tests run without serve(): the defaults
-    *LEVELS.get_or_init(|| Levels { tester: 1, devcmd: 2, client: 2 })
+    *LEVELS.get_or_init(|| Levels { tester: 1, devcmd: 2, admin: 4, client: 2 })
 }
 
 pub fn set_levels(levels: Levels) {
