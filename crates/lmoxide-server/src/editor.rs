@@ -253,6 +253,10 @@ struct Summary {
     rev: u64,
     /// The kind's list fields (schemas/index.json).
     fields: BTreeMap<&'static str, Value>,
+    /// The other names of its look (`render.monster_data`): every enemy, NPC, object and
+    /// minifigure wearing it, live's names, the client's (searched too).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    names: Vec<String>,
     problems: usize,
     changed: bool,
 }
@@ -277,12 +281,25 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
         let problems = problems(ed);
         let changed = changed_keys(&ed.work);
         let words: Vec<String> = q.q.as_deref().unwrap_or("").to_lowercase().split_whitespace().map(str::to_string).collect();
+        // every name of each look
+        let looks: HashMap<u64, Vec<String>> = lmoxide_content::catalog::catalog("monster_data", &ed.work, &ed.reference)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|e| (e.id, std::iter::once(e.name).chain(e.names).collect()))
+            .collect();
         let mut out = Vec::new();
         for (k, e) in ed.work.records() {
             let kind = k.id.kind.as_str();
             let id = k.id.to_string();
             let v = &e.value;
             let world = ed.work.world_of(k);
+            let own = str_field(v, "name");
+            let names: Vec<String> = v
+                .pointer("/render/monster_data")
+                .and_then(Value::as_u64)
+                .and_then(|m| looks.get(&m))
+                .map(|all| all.iter().filter(|n| **n != own).cloned().collect())
+                .unwrap_or_default();
             let keep = q.kind.as_deref().is_none_or(|x| x == kind)
                 && q.feature.as_deref().is_none_or(|f| f == k.feature)
                 && q.world.as_deref().is_none_or(|w| world.as_deref().is_some_and(|x| x == w || x.split('-').next() == Some(w)))
@@ -291,7 +308,7 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
                 && q.author.as_deref().is_none_or(|a| str_field(v, "author").eq_ignore_ascii_case(a))
                 && (!q.changed || changed.contains(k))
                 && (!q.problems || problems.by_id.contains_key(&id))
-                && words.iter().all(|w| id.to_lowercase().contains(w) || str_field(v, "name").to_lowercase().contains(w) || str_field(v, "title").to_lowercase().contains(w));
+                && words.iter().all(|w| id.to_lowercase().contains(w) || str_field(v, "name").to_lowercase().contains(w) || str_field(v, "title").to_lowercase().contains(w) || names.iter().any(|n| n.to_lowercase().contains(w)));
             if !keep {
                 continue;
             }
@@ -312,6 +329,7 @@ async fn list(Query(q): Query<ListQuery>) -> R<List> {
                 author: str_field(v, "author"),
                 rev: v.get("rev").and_then(Value::as_u64).unwrap_or(0),
                 fields,
+                names,
                 problems: problems.by_id.get(&id).map_or(0, Vec::len),
                 changed: changed.contains(k),
             });
