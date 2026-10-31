@@ -1703,6 +1703,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 "already owned"
                             };
                             crate::chat::system(character, line);
+                            // (the dev UI's Minifigures list reads it back)
+                            if let Err(e) = store.save(character, &me) {
+                                warn!(character, "save failed: {e:#}");
+                            }
                         }
                         crate::devcmd::Action::LimitCollection(limit) => {
                             let now = crate::smash::now_ms() / 1000;

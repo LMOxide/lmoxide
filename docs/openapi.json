@@ -2795,6 +2795,22 @@
             },
             "description": "Earned achievements."
           },
+          "collection": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The minifigures owned (template -> unix time obtained); null: every one (`!collection all`).",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "propertyNames": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
           "counters": {
             "type": "object",
             "description": "Achievement counters: stat -> minifigure template (0 = the player) -> value (stat 3000116\nenemies defeated, 3000126 smashables smashed, 3000112/3000113 per-minifigure counters).",

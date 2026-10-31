@@ -278,6 +278,8 @@ pub struct Character {
     /// Story progress (unix times): "main/<main quest>" line started, "done/<quest>" step done,
     /// "goal/<hash>" resolved, "cinematic/<name>" seen, "count/<hash>" counted.
     pub story: BTreeMap<String, i64>,
+    /// The minifigures owned (template -> unix time obtained); null: every one (`!collection all`).
+    pub collection: Option<BTreeMap<u32, i64>>,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -1777,6 +1779,7 @@ fn character_dto(id: u32, c: lmoxide_db::Character) -> Character {
             .collect(),
         finds: c.finds,
         story: c.story,
+        collection: c.collection,
     }
 }
 
