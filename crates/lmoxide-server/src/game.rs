@@ -1738,6 +1738,22 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 crate::chat::system(character, &line);
                             }
                         }
+                        crate::devcmd::Action::Grant(ids) => {
+                            let mut granted = 0;
+                            for id in &ids {
+                                let before = me.tags.contains_key(id);
+                                let out = progress(&mut me, &collection, character, Some((Some(&crate::achievements::Event::Tag(*id)), 1)));
+                                send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
+                                granted += usize::from(!before && me.tags.contains_key(id));
+                            }
+                            // the "all of" achievements they complete
+                            let out = progress(&mut me, &collection, character, Some((None, 0)));
+                            send_progress(&mut conn, character, place, &mut me, &mut collection, out).await?;
+                            if let Err(e) = store.save(character, &me) {
+                                warn!(character, "saving character failed: {e:#}");
+                            }
+                            crate::chat::system(character, &format!("{granted} of {} achievements granted", ids.len()));
+                        }
                         crate::devcmd::Action::RemoveAchievements(which) => {
                             let _ = outbox.send(world::Out::RemoveAchievements(which, std::sync::Arc::new(std::sync::Mutex::new(None))));
                         }
@@ -1786,6 +1802,10 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             let records = story_npc_records(&me, place, &mut story_hidden);
                             send_records(&mut conn, character, records).await?;
+                            // (the dev UI's Story tab reads it back)
+                            if let Err(e) = store.save(character, &me) {
+                                warn!(character, "saving character failed: {e:#}");
+                            }
                         }
                         crate::devcmd::Action::Quests(reset) => {
                             if reset {
@@ -1796,6 +1816,9 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             }
                             for line in crate::quests::summary(&me) {
                                 crate::chat::system(character, &line);
+                            }
+                            if reset && let Err(e) = store.save(character, &me) {
+                                warn!(character, "saving character failed: {e:#}");
                             }
                         }
                         crate::devcmd::Action::Achievements => {

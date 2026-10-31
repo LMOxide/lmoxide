@@ -275,6 +275,9 @@ pub struct Character {
     pub visits: BTreeMap<u32, VisitCount>,
     /// Collectibles and places found ("<playfield>:<world object name>") -> unix time.
     pub finds: BTreeMap<String, i64>,
+    /// Story progress (unix times): "main/<main quest>" line started, "done/<quest>" step done,
+    /// "goal/<hash>" resolved, "cinematic/<name>" seen, "count/<hash>" counted.
+    pub story: BTreeMap<String, i64>,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -559,6 +562,8 @@ pub struct Spawnable {
     pub kind: String,
     pub level: u32,
     pub playfields: Vec<u32>,
+    /// Its look (monster data; 0 none): the dev UI searches every name of it.
+    pub monster_data: u32,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -596,7 +601,7 @@ impl From<lmoxide_control::TestCatalog> for TestCatalog {
                 .collect(),
             dialogues: c.dialogues.into_iter().map(|d| TestDialogue { n: d.n, npc: d.npc, playfield: d.playfield }).collect(),
             loot_kinds: c.loot_kinds,
-            spawnable: c.spawnable.into_iter().map(|s| Spawnable { name: s.name, kind: s.kind, level: s.level, playfields: s.playfields }).collect(),
+            spawnable: c.spawnable.into_iter().map(|s| Spawnable { name: s.name, kind: s.kind, level: s.level, playfields: s.playfields, monster_data: s.monster_data }).collect(),
             looks: c.looks.into_iter().map(|l| Look { monster_data: l.monster_data, names: l.names, kind: l.kind }).collect(),
         }
     }
@@ -1771,6 +1776,7 @@ fn character_dto(id: u32, c: lmoxide_db::Character) -> Character {
             .map(|(p, v)| (p, VisitCount { count: v.count, first_at: v.first_at, last_at: v.last_at }))
             .collect(),
         finds: c.finds,
+        story: c.story,
     }
 }
 

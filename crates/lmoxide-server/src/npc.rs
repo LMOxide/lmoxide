@@ -1175,6 +1175,7 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
                 kind: kind_name(&d.kind).into(),
                 level: d.level,
                 playfields: Vec::new(),
+                monster_data: d.monster_data,
             });
             if !s.playfields.contains(&playfield) {
                 s.playfields.push(playfield);
@@ -1190,6 +1191,31 @@ pub fn test_catalog() -> (Vec<lmoxide_control::Spawnable>, Vec<lmoxide_control::
                 l.names.push(d.name.clone());
             }
         }
+    }
+    // enemy, boss and champion templates no world places (`!spawn` takes them by name too:
+    // spawns::enemy_template_named), e.g. the Gatekeeper's variants
+    for n in crate::gamedata::get().npcs.values() {
+        use lmoxide_content::NpcKind;
+        let kind = match n.kind {
+            NpcKind::Enemy => "enemy",
+            NpcKind::Boss => "boss",
+            NpcKind::Champion => "champion",
+            _ => continue,
+        };
+        let name = n.name.trim();
+        if name.is_empty() || spawnable.contains_key(&name.to_ascii_lowercase()) {
+            continue;
+        }
+        spawnable.insert(
+            name.to_ascii_lowercase(),
+            lmoxide_control::Spawnable {
+                name: name.to_string(),
+                kind: kind.into(),
+                level: n.level.unwrap_or(1),
+                playfields: Vec::new(),
+                monster_data: n.render.monster_data.unwrap_or(0),
+            },
+        );
     }
     let mut spawnable: Vec<_> = spawnable.into_values().collect();
     for s in &mut spawnable {

@@ -2784,7 +2784,8 @@
           "counters",
           "defeats",
           "visits",
-          "finds"
+          "finds",
+          "story"
         ],
         "properties": {
           "achievements": {
@@ -2885,6 +2886,17 @@
             "type": "integer",
             "format": "int64",
             "minimum": 0
+          },
+          "story": {
+            "type": "object",
+            "description": "Story progress (unix times): \"main/<main quest>\" line started, \"done/<quest>\" step done,\n\"goal/<hash>\" resolved, \"cinematic/<name>\" seen, \"count/<hash>\" counted.",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
           },
           "team": {
             "type": "array",
@@ -4424,7 +4436,8 @@
           "name",
           "kind",
           "level",
-          "playfields"
+          "playfields",
+          "monster_data"
         ],
         "properties": {
           "kind": {
@@ -4434,6 +4447,12 @@
           "level": {
             "type": "integer",
             "format": "int32",
+            "minimum": 0
+          },
+          "monster_data": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Its look (monster data; 0 none): the dev UI searches every name of it.",
             "minimum": 0
           },
           "name": {

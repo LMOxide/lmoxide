@@ -126,6 +126,8 @@ pub enum Action {
     Team(String),
     /// feed achievement events (n times)
     Progress(crate::achievements::Event, u32),
+    /// `!grant`: earn these achievements (lore ids) as if their rules held, rewards too
+    Grant(Vec<u32>),
     /// gain XP
     Xp(u64),
     /// gain stars
@@ -218,6 +220,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!stars <n>", "gain n stars (minifigure XP for ranking up)"),
     ("!ach", "achievements earned, kill and smash counters"),
     ("!quests [reset]", "area quests started, their progress and cooldowns; reset: clear them (start them again)"),
+    ("!grant <id ...>", "earn achievements now (their rewards too, and the \"all of\" ones they complete); !unach takes them away"),
     ("!unach <id ...>|all", "take achievements away (and the \"all of\" ones above them; all: also the journal and counters), to earn them again; story and tutorial progress stays"),
     ("!count <kills|smashes|builds> [n] [name]", "count n (default 1) defeats or builds for achievements"),
     ("!defeat <boss name>", "count a boss defeat (boss achievements, the active minifigure's)"),
@@ -853,6 +856,10 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 Ok(ids) if !ids.is_empty() => Action::RemoveAchievements(Some(ids)),
                 _ => Action::Reply(vec!["!unach <achievement id ...> | all (the ids are in the web UI and the world editor: [1613])".into()]),
             },
+        },
+        "grant" => match args.iter().map(|a| a.trim_matches(|c| c == '[' || c == ']').parse::<u32>()).collect::<Result<Vec<_>, _>>() {
+            Ok(ids) if !ids.is_empty() => Action::Grant(ids),
+            _ => reply(vec!["usage: !grant <achievement id ...> (the ids are in the dev UI's Achievements and the world editor: [1613])".into()]),
         },
         "xp" => Action::Xp(args.first().and_then(|n| n.parse().ok()).unwrap_or(0).min(10_000_000)),
         "stars" => match args.first().and_then(|n| n.parse::<u64>().ok()) {

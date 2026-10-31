@@ -278,8 +278,11 @@ pub struct Spawnable {
     /// `enemy` or `smashable`
     pub kind: String,
     pub level: u32,
-    /// where it lives
+    /// where it lives (none: a template no world places, spawned by name)
     pub playfields: Vec<u32>,
+    /// its look (monster data; 0 none)
+    #[serde(default)]
+    pub monster_data: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
