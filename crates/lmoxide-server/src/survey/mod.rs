@@ -304,6 +304,7 @@ pub fn start(all: Vec<(u32, SpawnDef)>) {
             st.bases.entry(pf).or_default().push(def);
         }
         st.catalog = catalog_of(&st.bases);
+        add_client_looks(&mut st.catalog, work);
         migrate::run(&st.dir, work, &st.catalog, &[]);
         st.features = work.features();
         let playfields: std::collections::BTreeSet<u32> =
@@ -410,11 +411,98 @@ fn catalog_of(bases: &BTreeMap<u32, Vec<SpawnDef>>) -> Vec<(Placeable, SpawnDef)
             let place = crate::teleport::destination(top).map_or_else(|| top.to_string(), |d| d.name.clone());
             let used = if uses.len() > 1 { format!("{place} ×{n}, {total} in all") } else { format!("{place} ×{n}") };
             let level = (kind == SKind::Enemy).then_some(def.level);
-            (Placeable { kind, name, monster_data, template, level, used: Some(used) }, def)
+            (Placeable { kind, name, monster_data, template, level, used: Some(used), names: Vec::new() }, def)
         })
         .collect();
     out.sort_by(|a, b| (a.0.kind, &a.0.name).cmp(&(b.0.kind, &b.0.name)));
     out
+}
+
+/// The client's looks (data/monster_data.json): its name for each and what live used it for.
+static CLIENT_LOOKS: &str = include_str!("../../../../data/monster_data.json");
+
+/// Every name of each look (records wearing it first, then live's names, then the client's), and
+/// what kind live used it as.
+fn look_names(work: &lmoxide_content::work::Work) -> BTreeMap<u32, (Vec<String>, Option<SKind>, Option<String>)> {
+    use serde_json::Value;
+    type Names = BTreeMap<u32, (Vec<String>, Option<SKind>, Option<String>)>;
+    fn add(out: &mut Names, look: u64, name: &str) {
+        let e = out.entry(look as u32).or_default();
+        if !name.is_empty() && !e.0.iter().any(|n| n == name) {
+            e.0.push(name.to_string());
+        }
+    }
+    let mut out = Names::new();
+    for (_, e) in work.records().filter(|(k, _)| matches!(k.id.kind, RecordKind::Npc | RecordKind::Object | RecordKind::Minifig) && k.feature == "live") {
+        if let Some(look) = e.value.pointer("/render/monster_data").and_then(Value::as_u64) {
+            add(&mut out, look, e.value.get("name").and_then(Value::as_str).unwrap_or(""));
+        }
+    }
+    let Ok(client) = serde_json::from_str::<Value>(CLIENT_LOOKS) else { return out };
+    for m in client.get("monster_data").and_then(Value::as_array).into_iter().flatten() {
+        let Some(look) = m.get("id").and_then(Value::as_u64) else { continue };
+        for u in m.get("used_by").and_then(Value::as_array).into_iter().flatten() {
+            add(&mut out, look, u.get("name").and_then(Value::as_str).unwrap_or(""));
+            let kind = match u.get("kind").and_then(Value::as_str) {
+                Some("enemy") => Some(SKind::Enemy),
+                Some("npc") => Some(SKind::Npc),
+                Some("smashable") => Some(SKind::Smashable),
+                _ => None,
+            };
+            let e = out.entry(look as u32).or_default();
+            e.1 = e.1.or(kind);
+        }
+        let name = m.get("name").and_then(Value::as_str).unwrap_or("");
+        add(&mut out, look, name);
+        // only characters (animated) are placeable as enemies or NPCs; props need a template
+        let character = m.get("motion_set").is_some_and(|v| !v.is_null())
+            && !["statel", "smashie", "buildie", "effect_mesh", "crate", "chest", "jump_pad", "_drop"].iter().any(|p| name.to_lowercase().contains(p));
+        if character {
+            out.entry(look as u32).or_default().2 = Some(name.to_string());
+        }
+    }
+    out
+}
+
+/// "pirate_swashbuckler" -> "Pirate Swashbuckler"
+fn pretty(client_name: &str) -> String {
+    client_name
+        .split(['_', ' '])
+        .filter(|w| !w.is_empty())
+        .map(|w| {
+            let mut c = w.chars();
+            c.next().map(|f| f.to_uppercase().chain(c).collect::<String>()).unwrap_or_default()
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// Gives each catalog look its other names, and adds the client's character looks the base
+/// content never spawns (as live used them, else as an NPC; the editor can change the kind).
+fn add_client_looks(catalog: &mut Vec<(Placeable, SpawnDef)>, work: &lmoxide_content::work::Work) {
+    let names = look_names(work);
+    let spawned: HashSet<u32> = catalog.iter().filter_map(|(p, _)| p.monster_data).collect();
+    for (p, _) in catalog.iter_mut() {
+        if let Some((all, _, _)) = p.monster_data.and_then(|m| names.get(&m)) {
+            p.names = all.iter().filter(|n| **n != p.name).cloned().collect();
+        }
+    }
+    let mut extra: Vec<(Placeable, SpawnDef)> = names
+        .iter()
+        .filter(|(look, (_, kind, character))| !spawned.contains(look) && character.is_some() && *kind != Some(SKind::Smashable))
+        .filter_map(|(&look, (all, kind, client))| {
+            let kind = kind.unwrap_or(SKind::Npc);
+            let client = client.as_deref().unwrap_or("");
+            // a record's or live's name, else the client's made readable
+            let name = all.iter().find(|n| *n != client).cloned().unwrap_or_else(|| pretty(client));
+            let level = (kind == SKind::Enemy).then_some(1);
+            let def = bare_def(nkind(kind).ok()?, look, 0, 1);
+            let names = all.iter().filter(|n| **n != name).cloned().collect();
+            Some((Placeable { kind, name, monster_data: Some(look), template: None, level, used: Some("client look, not spawned".into()), names }, def))
+        })
+        .collect();
+    catalog.append(&mut extra);
+    catalog.sort_by(|a, b| (a.0.kind, &a.0.name).cmp(&(b.0.kind, &b.0.name)));
 }
 
 // ------------------------------------------------------------------ the world
@@ -947,6 +1035,10 @@ pub struct Placeable {
     pub level: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub used: Option<String>,
+    /// Its look's other names: the client's, other records and minifigures wearing it, what
+    /// live used it for.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub names: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -1182,7 +1274,7 @@ async fn surveyors() -> R<Vec<SurveyorInfo>> {
 
 async fn catalog() -> R<Vec<Placeable>> {
     with(|st| {
-        let bouncers = crate::jumppad::looks().into_iter().map(|l| Placeable { kind: SKind::Bouncer, name: l.name, monster_data: None, template: Some(l.visual), level: None, used: Some(l.used) });
+        let bouncers = crate::jumppad::looks().into_iter().map(|l| Placeable { kind: SKind::Bouncer, name: l.name, monster_data: None, template: Some(l.visual), level: None, used: Some(l.used), names: Vec::new() });
         Ok(Json(st.catalog.iter().map(|(p, _)| p.clone()).chain(bouncers).collect()))
     })
 }
@@ -1563,7 +1655,7 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         let now = ids::now();
         if let Some(kind) = c.kind {
             // changed into another spawn: that look's template (its spells, health, ...)
-            let what = Placeable { kind, name: o.def.name.clone(), monster_data: c.monster_data.flatten(), template: c.template.flatten(), level: Some(o.def.level), used: None };
+            let what = Placeable { kind, name: o.def.name.clone(), monster_data: c.monster_data.flatten(), template: c.template.flatten(), level: Some(o.def.level), used: None, names: Vec::new() };
             let objects: Vec<&Object> = st.objects.values().collect();
             o.template = Some(records::template_for(work, &objects, &what, &author, now)?);
             o.def.kind = nkind(kind)?;
@@ -1875,7 +1967,7 @@ fn put_snapshot(st: &mut State, work: &mut Work, id: String, pf: u32, b: Snapsho
         return store_bouncer(st, work, pf, p, &author)?.ok_or_else(|| Error::Invalid(format!("{id} wasn't saved")));
     }
     let key = Key::parse(&id, b.feature.clone()).map_err(Error::Invalid)?;
-    let what = Placeable { kind, name: b.name.clone(), monster_data: b.monster_data, template: b.template, level: b.level, used: None };
+    let what = Placeable { kind, name: b.name.clone(), monster_data: b.monster_data, template: b.template, level: b.level, used: None, names: Vec::new() };
     let now = ids::now();
     let objects: Vec<&Object> = st.objects.values().collect();
     let template = records::template_for(work, &objects, &what, &author, now)?;

@@ -21,6 +21,10 @@ pub struct Entry {
     /// The content record it belongs to (`skill/...` for a spell).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub record: Option<String>,
+    /// Its other names: a look's client name, every enemy, NPC, object and minifigure wearing
+    /// it, what used it on live (searchable in the editor's pickers).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub names: Vec<String>,
 }
 
 /// The catalogs there are.
@@ -59,6 +63,7 @@ pub fn catalog(name: &str, work: &Work, reference: &Path) -> Option<Vec<Entry>> 
             name,
             detail,
             record,
+            names: Vec::new(),
         });
     };
     // records of `kind` carrying the id at `pointer`
@@ -78,15 +83,74 @@ pub fn catalog(name: &str, work: &Work, reference: &Path) -> Option<Vec<Entry>> 
         };
     match name {
         "monster_data" => {
-            from_records(RecordKind::Npc, "/render/monster_data", &mut add);
-            from_records(RecordKind::Object, "/render/monster_data", &mut add);
+            // every name a look goes by: records first (the first one names it), then the
+            // client's own name and what live used it for
+            #[derive(Default)]
+            struct Look {
+                names: Vec<String>,
+                kinds: Vec<String>,
+                record: Option<String>,
+                client: Option<String>,
+            }
+            fn named(looks: &mut BTreeMap<u64, Look>, id: u64, name: String, kind: String, record: Option<String>) {
+                let l = looks.entry(id).or_default();
+                if !name.is_empty() && !l.names.contains(&name) {
+                    l.names.push(name);
+                }
+                if !kind.is_empty() && !l.kinds.contains(&kind) {
+                    l.kinds.push(kind);
+                }
+                if l.record.is_none() {
+                    l.record = record;
+                }
+            }
+            let mut looks: BTreeMap<u64, Look> = BTreeMap::new();
+            for kind in [RecordKind::Npc, RecordKind::Object, RecordKind::Minifig] {
+                for (k, e) in work
+                    .records()
+                    .filter(|(k, _)| k.id.kind == kind && k.feature == "live")
+                {
+                    if let Some(id) = e.value.pointer("/render/monster_data").and_then(Value::as_u64) {
+                        // an NPC record says enemy / npc / smashable
+                        let what = e.value.get("kind").and_then(Value::as_str).unwrap_or(kind.as_str());
+                        named(&mut looks, id, name_of(&e.value), what.to_string(), Some(k.id.to_string()));
+                    }
+                }
+            }
             for m in read(&reference.join("monster_data.json"))?
                 .get("monster_data")?
                 .as_array()?
             {
-                if let Some(id) = m.get("id").and_then(Value::as_u64) {
-                    add(id, name_of(m), Some("look".into()), None);
+                let Some(id) = m.get("id").and_then(Value::as_u64) else {
+                    continue;
+                };
+                for u in m.get("used_by").and_then(Value::as_array).into_iter().flatten() {
+                    let kind = u.get("kind").and_then(Value::as_str).unwrap_or("");
+                    named(&mut looks, id, name_of(u), kind.to_string(), None);
                 }
+                let client = name_of(m);
+                looks.entry(id).or_default().client = Some(client).filter(|c| !c.is_empty());
+            }
+            for (id, l) in looks {
+                let mut names = l.names.into_iter();
+                let name = names.next().or_else(|| l.client.clone()).unwrap_or_else(|| format!("look {id}"));
+                // "enemy · skeleton_axe · also Skeleton Warrior"
+                let mut others: Vec<String> = names.collect();
+                let client = l.client.filter(|c| *c != name);
+                let mut detail = vec![if l.kinds.is_empty() { "look".to_string() } else { l.kinds.join("/") }];
+                detail.extend(client.clone());
+                if !others.is_empty() {
+                    let shown: Vec<&str> = others.iter().take(4).map(String::as_str).collect();
+                    detail.push(format!("also {}", shown.join(", ")));
+                }
+                others.extend(client);
+                out.insert(id, Entry {
+                    id,
+                    name,
+                    detail: Some(detail.join(" · ")),
+                    record: l.record,
+                    names: others,
+                });
             }
         }
         "effect_package" => {

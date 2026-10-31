@@ -153,6 +153,7 @@ pub fn run(dir: &Path, work: &mut Work, catalog: &[(Placeable, SpawnDef)], objec
                     template: p.template,
                     level: p.level,
                     used: None,
+                    names: Vec::new(),
                 };
                 records::template_for(work, objects, &what, &p.author, now).and_then(|t| {
                     let mut o = records::new_object(

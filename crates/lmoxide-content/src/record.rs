@@ -84,8 +84,10 @@ pub struct GameAction {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Point {
+    #[schemars(extend("x-lmoxide-position" = true))]
     pub pos: Vec3,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-rotation" = true))]
     pub rot: Option<Rot>,
 }
 
