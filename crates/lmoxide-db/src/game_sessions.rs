@@ -57,6 +57,11 @@ impl Db {
             .optional()?)
     }
 
+    /// Moves a live cookie to game mode `mode` (`!mode`: the reconnect that follows logs in there).
+    pub fn set_game_session_mode(&self, cookie: u32, mode: &str) -> Result<bool> {
+        Ok(self.conn().execute("UPDATE game_sessions SET mode = ?2 WHERE cookie = ?1 AND expires_at > ?3", params![cookie, mode, now()])? > 0)
+    }
+
     /// The account's characters in game mode `mode`.
     pub fn characters_in(&self, account_id: u32, mode: &str) -> Result<Vec<crate::CharacterSummary>> {
         Ok(self.characters_of(account_id)?.into_iter().filter(|c| c.mode == mode).collect())

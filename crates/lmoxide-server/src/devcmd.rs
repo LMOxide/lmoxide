@@ -107,6 +107,8 @@ pub enum Action {
     /// play this world as the world editor's working copy has it, in a copy of one's own
     /// (`!preview`; preview.rs); `false`: back from the preview
     Preview(bool),
+    /// `!mode <mode>`: play the account's character of another game mode (territory::switch_mode)
+    SwitchMode(crate::instance::Mode),
 
     /// show the achievement summary
     Achievements,
@@ -186,6 +188,7 @@ pub enum Action {
 pub const COMMANDS: &[(&str, &str)] = &[
     ("!help", "the commands"),
     ("!where", "current playfield and position"),
+    ("!mode <progression|maxed|editor>", "play your character of another game mode: the game asks to relocate to a new server, Yes takes you there (no restart, no patcher)"),
     ("!preview [end]", "play this world as the world editor's working copy has it (unpublished changes too), enemies fighting, in a copy of your own; `!preview end` goes back"),
     ("!instance [copy]", "which running copy of this world you are in; go to another copy (0 = the main one; other copies are empty for now)"),
     ("!tp <playfield|name>", "go to a playfield's arrival point (number or part of its name)"),
@@ -871,6 +874,15 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
         "revive" => Action::Revive,
         "team" if !args.is_empty() => Action::Team(args.join(" ")),
         "team" => reply(vec!["usage: !team <character name> (online)".into()]),
+        "mode" => match args.first().map(|a| a.to_ascii_lowercase()).as_deref() {
+            Some("progression" | "play" | "game") => Action::SwitchMode(crate::instance::Mode::Progression),
+            Some("maxed" | "maxxed") => Action::SwitchMode(crate::instance::Mode::Maxed),
+            Some("editor" | "world-editor" | "worldeditor" | "survey") => Action::SwitchMode(crate::instance::Mode::WorldEditor),
+            _ => reply(vec![format!(
+                "this is the {} mode; usage: !mode <progression|maxed|editor> (you come back as your character there)",
+                crate::instance::mode_of(playfield).name()
+            )]),
+        },
         "preview" => match args.first().copied() {
             None => Action::Preview(true),
             Some("end" | "off" | "back") => Action::Preview(false),

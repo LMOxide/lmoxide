@@ -179,6 +179,30 @@ fn listed(account: u32, mode: crate::instance::Mode) -> Vec<lmoxide_db::Characte
     owned(account, mode).into_iter().filter(|c| c.playfield != crate::tutorial::CREATION_PLAYFIELD).collect()
 }
 
+/// `!mode`: moves the login (`cookie`) of `account` to game mode `to`, for the reconnect after
+/// the game server drops it: the client asks to relocate, `LoginFromCrash` comes here and
+/// connects the character played last in the cookie's mode. The reply, or why not.
+pub fn switch_mode(cfg: &crate::Config, account: u32, cookie: u32, from: crate::instance::Mode, to: crate::instance::Mode) -> Result<String, String> {
+    if to == from {
+        return Err(format!("already in the {} mode", to.name()));
+    }
+    let gm = crate::state::or_log(crate::state::db().account(account), "account", None).map_or(0, |a| a.gm_level).max(cfg.default_gm_level);
+    let needed = if to.rules().editor { cfg.world_editor_gm_level } else { cfg.play_gm_level };
+    if gm < needed {
+        return Err(format!("the {} mode needs GM level {needed}", to.name()));
+    }
+    let Some(target) = listed(account, to).into_iter().max_by_key(|c| c.saved_at) else {
+        return Err(format!("you have no character in the {0} mode yet: log in once through the patcher's {0} game mode to make one", to.name()));
+    };
+    match crate::state::db().set_game_session_mode(cookie, to.id()) {
+        Ok(true) => {}
+        Ok(false) => return Err("your login has expired: log in again".into()),
+        Err(e) => return Err(format!("couldn't switch: {e}")),
+    }
+    info!(account, from = from.id(), to = to.id(), character = target.id, "switching game mode");
+    Ok(format!("Going to the {} mode as {}: when the game asks to relocate to a new server, click Yes.", to.name(), target.name))
+}
+
 /// Deletes `character` of `account`, first writing everything it had to
 /// `<data dir>/deleted-characters/<character>-<unix time>.json` (the database row's contents).
 fn delete_character(account: u32, character: u32) {

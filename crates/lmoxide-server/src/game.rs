@@ -72,6 +72,8 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
     let mut community: Option<crate::community::Guard> = None;
     // the account's effective GM level and its entry in the online list (control interface)
     let mut gm_level = 0;
+    // the account and its login cookie (`!mode` moves the cookie to another game mode)
+    let mut login = (0u32, 0u32);
     // when the player asked to reset their story (`/story reset`), for its confirmation
     let mut story_reset_asked: Option<std::time::Instant> = None;
     let mut _online: Option<crate::sessions::OnlineGuard> = None;
@@ -430,6 +432,7 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                 // (chat finds the character by the account)
                 crate::sessions::set_character(account.id, character);
                 gm_level = account.gm_level.max(cfg.default_gm_level);
+                login = (account.id, cookie);
                 me = saved;
                 // the movement speed factor (`!speed`): the character's speed stats show it
                 me.speed = crate::speed::sane(me.speed);
@@ -1833,6 +1836,13 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                             teleport(&mut conn, &store, character, &mut me, &collection, &mut presence, &pos, crate::instance::towards(mode, place, playfield, character), &mut place, None, Some((at, rot)))
                                 .await?;
                         }
+                        crate::devcmd::Action::SwitchMode(to) => match crate::territory::switch_mode(&cfg, login.0, login.1, mode, to) {
+                            // saved as the connection closes; the client asks to relocate
+                            Ok(line) => {
+                                let _ = outbox.send(world::Out::Kick(Some(line)));
+                            }
+                            Err(line) => crate::chat::system(character, &line),
+                        },
                         crate::devcmd::Action::Preview(true) => {
                             crate::chat::system(character, "making a preview of this world from the world editor's working copy...");
                             let (outbox, model, id) = (outbox.clone(), place.model(), Id32::new(crate::territory::CHARACTER_TYPE, character));
