@@ -257,6 +257,29 @@ pub fn goals_resolved(d: &Dialogue) -> Vec<String> {
     d.texts.iter().flat_map(words).filter_map(|t| t.strip_prefix("resolvegoal ").map(|h| h.trim().to_string())).collect()
 }
 
+/// The story side of every dialogue, and of every dialogue text on its own (a story beat): the
+/// tags it gives, the story goals it resolves, the hashes it spawns (story steps among them) and
+/// the tags it requires (story.rs dates each tag on the story's timeline from these).
+pub fn story_sources() -> Vec<StorySource> {
+    let words = |id: &u32| DATA.texts.get(&id.to_string()).map(|t| tags(t)).unwrap_or_default();
+    let source = |words: Vec<String>, requires: Vec<u32>| StorySource {
+        gives: words.iter().filter_map(|t| t.strip_prefix("addtagtoplayer ").and_then(|t| t.trim().parse().ok())).collect(),
+        resolves: words.iter().filter_map(|t| t.strip_prefix("resolvegoal ").map(|h| h.trim().to_string())).collect(),
+        spawns: words.iter().filter_map(|t| t.strip_prefix("spawn ").and_then(|r| r.split_whitespace().next()).map(str::to_string)).collect(),
+        requires,
+    };
+    let mut out: Vec<StorySource> = DATA.dialogues.iter().map(|d| source(d.texts.iter().flat_map(words).collect(), d.requires.clone())).collect();
+    out.extend(DATA.texts.values().map(|text| source(tags(text), Vec::new())));
+    out
+}
+
+pub struct StorySource {
+    pub gives: Vec<u32>,
+    pub resolves: Vec<String>,
+    pub spawns: Vec<String>,
+    pub requires: Vec<u32>,
+}
+
 /// Every dialogue text that resolves story goals: (the tags it gives, the goals it resolves).
 pub fn goal_texts() -> Vec<(Vec<u32>, Vec<String>)> {
     DATA.texts

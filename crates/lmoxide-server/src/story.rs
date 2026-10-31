@@ -259,6 +259,67 @@ fn lines() -> impl Iterator<Item = (u32, &'static Quest)> {
     crate::gamedata::get().quests.values().filter(|q| q.kind == QuestKind::Story && !q.steps.is_empty()).filter_map(|q| Some((q.main?, q)))
 }
 
+/// The story lines in the game's order (main quest ids): Pirate, Medieval, Space, Mythology, Dino.
+pub const LINE_ORDER: [u32; 5] = [45, 84, 108, 17, 122];
+
+/// A point of the whole story: (line in `LINE_ORDER`, step 1.. the player is on; 0 not started,
+/// the line's steps + 1 done). Everything at or before a point has happened there.
+pub type Point = (usize, usize);
+
+/// Where each lore flag the story's dialogues give is first given on the story's timeline: a
+/// dialogue resolving a step's goal gives its tags once that step is done, one spawning a step
+/// once it starts, any other once the tags it requires are there (flags no story dialogue
+/// leads to aren't here).
+static TAG_TIMES: LazyLock<HashMap<u32, Point>> = LazyLock::new(|| {
+    let index = |main: u32| LINE_ORDER.iter().position(|m| *m == main);
+    let sources = crate::knubot::story_sources();
+    let mut times: HashMap<u32, Point> = HashMap::new();
+    for _ in 0..16 {
+        let mut changed = false;
+        for s in &sources {
+            let events = s
+                .resolves
+                .iter()
+                .filter_map(|h| find_goal(h).and_then(|(main, _, i, _)| Some((index(main)?, i + 2))))
+                .chain(s.spawns.iter().filter_map(|h| find_step(h).and_then(|(main, _, i)| Some((index(main)?, i + 1)))));
+            let at = events.max().or_else(|| s.requires.iter().filter_map(|t| times.get(t)).max().copied());
+            let Some(at) = at else { continue };
+            for t in &s.gives {
+                if times.get(t).is_none_or(|old| at < *old) {
+                    times.insert(*t, at);
+                    changed = true;
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    times
+});
+
+/// `!story at`: the lore flags to have at point `at` (given at or before it) and to lose (after
+/// it). Achievements are left alone.
+pub fn tags_at(at: Point) -> (Vec<u32>, Vec<u32>) {
+    let (mut have, mut lose) = (Vec::new(), Vec::new());
+    for (&tag, &when) in TAG_TIMES.iter().filter(|(t, _)| !crate::achievements::is_achievement(**t)) {
+        if when <= at { have.push(tag) } else { lose.push(tag) }
+    }
+    (have, lose)
+}
+
+/// `!story at`: every line before `line` done, `line` on `step`, every line after it not
+/// started (as `SetStep` each); the records to send.
+pub fn set_position(c: &mut Character, player: Id32, name: &str, place: Pf, line: usize, step: usize) -> Vec<Bytes> {
+    let mut records = Vec::new();
+    for (i, &main) in LINE_ORDER.iter().enumerate() {
+        let Some(q) = self::line(main) else { continue };
+        let want = if i < line { q.steps.len() + 1 } else if i == line { step } else { 0 };
+        records.extend(handle(Order::SetStep { main, step: want }, c, player, name, place));
+    }
+    records
+}
+
 fn line(main: u32) -> Option<&'static Quest> {
     lines().find(|(m, _)| *m == main).map(|(_, q)| q)
 }
@@ -1118,6 +1179,22 @@ mod tests {
         assert_eq!(names(&r).last().map(String::as_str), Some("MainQuestUpdateIIR_c"));
         assert_eq!(step_of(&c, 45), None);
         assert!(show(&c, player.instance, Pf::main(1200)).is_empty());
+    }
+
+    #[test]
+    fn story_flags_are_dated() {
+        // the Dino line's intro needs 676, which a Mythology conversation gives: dated within the
+        // Mythology line (index 3) or before it, never in the Dino line
+        let times = &*super::TAG_TIMES;
+        assert!(times.len() > 10, "{} story flags dated", times.len());
+        if let Some(at) = times.get(&676) {
+            assert!(at.0 <= 3, "676 at {at:?}");
+        }
+        let (have, lose) = super::tags_at((0, 0));
+        assert!(have.len() < lose.len(), "{} given before the story starts", have.len());
+        let (have, lose) = super::tags_at((4, 99));
+        assert!(lose.is_empty() && !have.is_empty());
+        eprintln!("{} dated; 676 at {:?}", times.len(), times.get(&676));
     }
 
     #[test]

@@ -1738,6 +1738,36 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 crate::chat::system(character, &line);
                             }
                         }
+                        crate::devcmd::Action::StoryAt(line, step) => {
+                            let (name, id) = (me.name.clone(), Id32::new(crate::territory::CHARACTER_TYPE, character));
+                            let records = crate::story::set_position(&mut me, id, &name, place, line, step);
+                            send_records(&mut conn, character, records).await?;
+                            // the lore flags the story's dialogues give up to there (what NPCs say)
+                            let (have, lose) = crate::story::tags_at((line, step));
+                            let now = crate::smash::now_ms() / 1000;
+                            let (mut added, mut removed) = (0, 0);
+                            for tag in have {
+                                if me.tags.insert(tag, now).is_none() {
+                                    let (endpoint, method, args) = crate::achievements::add_tag(tag);
+                                    conn.send_as(Some(character), endpoint, method, args).await?;
+                                    added += 1;
+                                }
+                            }
+                            for tag in lose {
+                                if me.tags.remove(&tag).is_some() {
+                                    let (endpoint, method, args) = crate::achievements::remove_tag(tag);
+                                    conn.send_as(Some(character), endpoint, method, args).await?;
+                                    removed += 1;
+                                }
+                            }
+                            let records = story_npc_records(&me, place, &mut story_hidden);
+                            send_records(&mut conn, character, records).await?;
+                            if let Err(e) = store.save(character, &me) {
+                                warn!(character, "saving character failed: {e:#}");
+                            }
+                            info!(character, line, step, added, removed, "story position set (test command)");
+                            crate::chat::system(character, &format!("story set: line {} step {step}; {added} story flags given, {removed} taken", line + 1));
+                        }
                         crate::devcmd::Action::Grant(ids) => {
                             let mut granted = 0;
                             for id in &ids {

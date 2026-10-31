@@ -128,6 +128,8 @@ pub enum Action {
     Progress(crate::achievements::Event, u32),
     /// `!grant`: earn these achievements (lore ids) as if their rules held, rewards too
     Grant(Vec<u32>),
+    /// `!story at <line> <step>`: the whole story at that point (story::set_position, tags_at)
+    StoryAt(usize, usize),
     /// gain XP
     Xp(u64),
     /// gain stars
@@ -238,6 +240,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!cinematic [n|name|package]", "play a narrated story cinematic (again; without an argument: list them)"),
     ("!story [reset]", "the story: cinematics seen, story lines started, goals resolved; reset: forget them (the lore flags stay)"),
     ("!story quest <line> <step>", "put a story line (pirate, medieval, space, mythology, dino or its main quest id) at step <step> (1: its first; 0: not started; past the last: done) and show it in the tracker"),
+    ("!story at <line> <step>", "the whole story at that point: every line before it done, that line on <step> (0 not started, past the last: done), the lines after it not started, and the story's lore flags (what the NPCs say) as they are there"),
     ("!story advance [line]", "complete the current step of a story line (default: the first one running), as its goal resolving would"),
     ("!story progress <hash> [n]", "count n (default 1) toward a counted story goal the player is on, as a reward script does (the Dino pieces: !story progress GBWD)"),
     ("!story goal <hash>|beat <text>|dialogue <id>|seen <cinematic>", "resolve a story goal, run a story beat (a dialogue text's server side), start a dialogue (unless its tags are had), or play a cinematic as its trigger would (once)"),
@@ -818,6 +821,11 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 (None, _) => Action::Story(None, false),
                 (Some("reset"), _) => Action::Story(None, true),
                 (Some("goal"), Some(h)) => Action::Story(Some(Order::Goal { hash: h.to_ascii_uppercase(), requires: Vec::new() }), false),
+                (Some("at"), Some(l)) => match (crate::story::find_line(l).and_then(|m| crate::story::LINE_ORDER.iter().position(|x| *x == m)), args.get(2).and_then(|n| n.parse::<usize>().ok())) {
+                    (Some(line), Some(step)) => Action::StoryAt(line, step),
+                    (None, _) => reply(vec![format!("no story line \"{l}\" (pirate, medieval, space, mythology, dino)")]),
+                    _ => reply(vec!["usage: !story at <line> <step>".into()]),
+                },
                 (Some("quest"), Some(l)) => match (crate::story::find_line(l), args.get(2).and_then(|n| n.parse::<usize>().ok())) {
                     (Some(main), Some(step)) => Action::Story(Some(Order::SetStep { main, step }), false),
                     (None, _) => reply(vec![format!("no story line \"{l}\" (pirate, medieval, space, mythology, dino)")]),
