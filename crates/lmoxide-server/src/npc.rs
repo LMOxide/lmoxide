@@ -1322,6 +1322,35 @@ pub fn escort(owner: Id32, playfield: Pf, def: SpawnDef, lifetime: Duration) -> 
     id
 }
 
+/// The escorts (`escort`) following `owner` on `playfield`.
+pub fn escorts_of(owner: Id32, playfield: Pf) -> Vec<Id32> {
+    NPCS.lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, n)| n.playfield == playfield && n.summon.is_none() && n.owner.is_some_and(|(o, _)| o == owner))
+        .map(|(id, _)| *id)
+        .collect()
+}
+
+/// Walks NPC `id` towards `goal` (as `steer`: a new path only when the goal moved); where it is
+/// now. jumppad.rs walks an escort onto its owner's pad with it.
+pub fn walk_to(id: Id32, goal: [f32; 3]) -> Option<[f32; 3]> {
+    let here = current(id)?;
+    steer(id, here, goal, None);
+    Some(here)
+}
+
+/// Stops NPC `id` where it is now, without telling the clients (a jump's own records do), and
+/// gives its position for the jump to move.
+pub fn halt(id: Id32) -> Option<world::Position> {
+    let here = current(id)?;
+    let mut npcs = NPCS.lock().unwrap();
+    let npc = npcs.get_mut(&id)?;
+    npc.walk = None;
+    *npc.pos.lock().unwrap() = here;
+    Some(npc.pos.clone())
+}
+
 /// Removes an NPC (it disappears for everyone).
 pub fn despawn(id: Id32) {
     let npc = NPCS.lock().unwrap().remove(&id);
@@ -1859,6 +1888,10 @@ fn pets_tick() {
             if let Some(npc) = NPCS.lock().unwrap().remove(&id) {
                 drop(npc.presence); // despawns it
             }
+            continue;
+        }
+        // an escort following its owner over a jump pad (jumppad.rs)
+        if crate::jumppad::escort_jumping(id) {
             continue;
         }
         let Some(here) = current(id) else { continue };
@@ -3155,6 +3188,34 @@ mod tests {
         NPCS.lock().unwrap().remove(&id);
         // copies placed elsewhere don't patrol
         assert!(Npc::new(def, Pf::main(1), None, Some(std::time::Instant::now())).def.patrol.is_empty());
+    }
+
+    #[test]
+    fn escorts_follow_over_pads() {
+        // an owner's escorts on its playfield, not its summons nor others' escorts
+        let owner = Id32::new(50000, 899_990);
+        let until = std::time::Instant::now() + Duration::from_secs(60);
+        let pf = Pf::main(1);
+        let pet = |pf, owner| Npc::new(SpawnDef { kind: Kind::Pet, ..test_spawn_def() }, pf, Some((owner, until)), None);
+        let [escort, summon, elsewhere, other] = [899_991, 899_992, 899_993, 899_994].map(|i| Id32::new(50000, i));
+        {
+            let mut npcs = NPCS.lock().unwrap();
+            npcs.insert(escort, pet(pf, owner));
+            npcs.insert(summon, Npc { summon: Some((1, None)), ..pet(pf, owner) });
+            npcs.insert(elsewhere, pet(Pf::main(2), owner));
+            npcs.insert(other, pet(pf, Id32::new(50000, 899_995)));
+        }
+        assert_eq!(escorts_of(owner, pf), vec![escort]);
+        // walking it onto the pad, then stopping it there for the jump
+        assert_eq!(walk_to(escort, [5.0, 0.0, 0.0]), Some([0.0; 3]));
+        assert!(NPCS.lock().unwrap()[&escort].walk.is_some());
+        let pos = halt(escort).unwrap();
+        assert!(NPCS.lock().unwrap()[&escort].walk.is_none());
+        assert!(distance(*pos.lock().unwrap(), [0.0; 3]) < 0.5);
+        let mut npcs = NPCS.lock().unwrap();
+        for id in [escort, summon, elsewhere, other] {
+            npcs.remove(&id);
+        }
     }
 
     #[test]
