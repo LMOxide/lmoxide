@@ -156,7 +156,7 @@ pub const KIND_INFO: &[KindInfo] = &[
         title: "Achievement",
         plural: "Achievements",
         per_world: false,
-        list: &["title", "kind", "lore"],
+        list: &["title", "kind", "lore", "text", "parent", "children", "counter", "n", "target"],
     },
     KindInfo {
         kind: "quest",
