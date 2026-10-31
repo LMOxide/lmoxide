@@ -294,8 +294,9 @@ mod tests {
             (331_167, &[191_516, 319_342]),
             (331_170, &[319_299]),
             (521_311, &[521_897, 521_607]),
-            // the Minotaur's quick smash and Bull Charge (the user: he charges, has melee attacks)
-            (636_593, &[319_298, 319_891, 3_202]),
+            // the Minotaur's quick smash and Bull Charge (the user: he charges, has melee attacks; his
+            // look has no spin for a Rampage)
+            (636_593, &[319_298, 3_202]),
             // the troll heavy hitter's own ground smash instead of a Rampage its look can't
             // animate; the Crooked Tooth Brute's charge, ground smash and swings (the user)
             (327_846, &[319_338, 319_946]),

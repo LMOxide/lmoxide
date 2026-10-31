@@ -720,7 +720,7 @@
     },
     {
       "label": "minotaur",
-      "about": "the Minotaur: a quick smash up close, Rampage (a spin; nothing else is cast until it ends), and Bull Charge from up to 8 m (he runs 8 m at you at his charge speed; ×2 and a knockback)",
+      "about": "the Minotaur: a quick smash up close and Bull Charge from up to 8 m (he runs 8 m at you at his charge speed; ×2 and a knockback)",
       "spawn": [{ "name": "Minotaur", "count": 1 }]
     },
     {
