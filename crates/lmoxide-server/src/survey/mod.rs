@@ -507,10 +507,56 @@ fn add_client_looks(catalog: &mut Vec<(Placeable, SpawnDef)>, work: &lmoxide_con
 
 // ------------------------------------------------------------------ the world
 
+/// Whether the world editor's copy of playfield `pf` runs (someone came in, worlds.rs): only
+/// then are its objects and walls in the game. The records stay listed either way.
+fn running(pf: u32) -> bool {
+    crate::worlds::is_spawned(crate::instance::Mode::WorldEditor.main(pf))
+}
+
+/// The world editor's copy of `pf` started (its first surveyor came in): its objects and walls
+/// join it.
+pub fn copy_started(pf: u32) {
+    let mut guard = STATE.lock().unwrap();
+    let Some(st) = guard.as_mut() else { return };
+    let State { objects, by_npc, walls, surveyors, notes, .. } = st;
+    let mut n = 0;
+    for o in objects.values_mut().filter(|o| o.playfield == pf && o.npc.is_none()) {
+        spawn(surveyors, notes, o);
+        if let Some(id) = o.npc {
+            by_npc.insert(id, o.id.clone());
+            n += 1;
+        }
+    }
+    for w in walls.values_mut().filter(|w| w.playfield == pf && w.pieces.is_empty()) {
+        spawn_wall(surveyors, w);
+    }
+    info!(playfield = pf, objects = n, "survey: world spawned");
+}
+
+/// The world editor's copy of `pf` is being dropped (empty for a while): its objects and walls
+/// leave the game until someone comes in again.
+pub fn copy_dropped(pf: u32) {
+    let mut guard = STATE.lock().unwrap();
+    let Some(st) = guard.as_mut() else { return };
+    let State { objects, by_npc, walls, .. } = st;
+    for o in objects.values_mut().filter(|o| o.playfield == pf) {
+        if let Some(id) = o.npc {
+            by_npc.remove(&id);
+        }
+        despawn(o);
+    }
+    for w in walls.values_mut().filter(|w| w.playfield == pf) {
+        w.pieces.clear();
+    }
+}
+
 /// Spawns the object under a new NPC id (the client needs ~1.5 s before an id is reused).
 /// Surveyors who hide it have the id in their hidden set before it joins the world, so it
-/// isn't sent to them.
+/// isn't sent to them. Nothing while its world's copy isn't running (`copy_started` does it).
 fn spawn(surveyors: &HashMap<Id32, Surveyor>, notes: &Notes, o: &mut Object) {
+    if !running(o.playfield) {
+        return;
+    }
     let def = o.spawn_def();
     let id = npc::new_id(&def);
     {
@@ -2402,6 +2448,9 @@ fn look_of(color: &str) -> &'static (&'static str, [u32; 2], [f32; 2], f32) {
 /// Spawns the wall's pieces: its look scaled to its height, side by side across its width.
 /// Surveyors who hide it don't get them.
 fn spawn_wall(surveyors: &HashMap<Id32, Surveyor>, w: &mut Wall) {
+    if !running(w.playfield) {
+        return;
+    }
     let (_, visual, [x0, x1], height) = *look_of(&w.def.color);
     let [width, h, _] = w.def.size;
     let scale = (h / height).max(0.05);

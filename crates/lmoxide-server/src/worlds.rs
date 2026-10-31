@@ -1,7 +1,8 @@
 //! Running copies of worlds (instance.rs) are spawned when their first player arrives: the
 //! residents (npc.rs), and the fixtures (buildies, jump pads, scenery, portal doors, the puzzles'
 //! mirrors, beams and statues), each with its own state. A main copy stays (asleep while empty,
-//! npc.rs); an extra copy is dropped once it has been empty for a while (`drop_copy`).
+//! npc.rs); an extra copy, and a world editor copy, is dropped once it has been empty for a while
+//! (`drop_copy`).
 
 use std::{
     collections::{HashMap, HashSet},
@@ -20,14 +21,18 @@ static SPAWNED: LazyLock<Mutex<HashSet<Pf>>> = LazyLock::new(Default::default);
 const EMPTY_DROP: Duration = Duration::from_secs(180);
 const DROP_CHECK: Duration = Duration::from_secs(30);
 
-/// Drops extra copies nobody has been in for `EMPTY_DROP` (main copies stay, asleep).
+/// Drops extra copies and world editor copies nobody has been in for `EMPTY_DROP` (other main
+/// copies stay, asleep).
 pub fn start() {
     tokio::spawn(async {
         let mut tick = tokio::time::interval(DROP_CHECK);
         let mut empty_since: HashMap<Pf, Instant> = HashMap::new();
         loop {
             tick.tick().await;
-            let extras: Vec<Pf> = spawned().into_iter().filter(|pf| pf.copy() >= crate::instance::FIRST_EXTRA_COPY).collect();
+            let extras: Vec<Pf> = spawned()
+                .into_iter()
+                .filter(|pf| pf.copy() >= crate::instance::FIRST_EXTRA_COPY || crate::instance::mode_of(*pf).rules().editor)
+                .collect();
             empty_since.retain(|pf, _| extras.contains(pf));
             for pf in extras {
                 let occupied = crate::world::positions(pf).iter().any(|(id, _)| crate::npc::is_player(*id));
@@ -59,6 +64,9 @@ pub fn ensure(pf: Pf) {
     crate::tiki::spawn_world(pf);
     crate::lost_creations::spawn_world(pf);
     crate::lost_creations::spawn_entry(pf);
+    if pf.is_main() && crate::instance::mode_of(pf).rules().editor {
+        crate::survey::copy_started(pf.model());
+    }
     info!(playfield = ?pf, mode = crate::instance::mode_of(pf).id(), ms = started.elapsed().as_millis() as u64, "world copy spawned");
 }
 
@@ -66,6 +74,9 @@ pub fn ensure(pf: Pf) {
 pub fn drop_copy(pf: Pf) {
     if !SPAWNED.lock().unwrap().remove(&pf) {
         return;
+    }
+    if pf.is_main() && crate::instance::mode_of(pf).rules().editor {
+        crate::survey::copy_dropped(pf.model());
     }
     crate::npc::despawn_world(pf);
     crate::buildie::despawn_world(pf);
