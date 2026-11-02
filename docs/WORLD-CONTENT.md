@@ -20,8 +20,8 @@ world editor (survey server, docs/SURVEY.md)
   var/content-work main        one commit with the branch's records as it has them, authored as
                                the editor, Approved-By:, Lmoxide-Branch:, Lmoxide-Commits:; the
                                branch starts again from there
-        │ push to lmoxide-content main (by hand for now), play servers pull
-        ▼
+        │ Push (web UI, admin): fast-forwards the played content (default), or pushes to
+        ▼ --content-push (a remote, e.g. lmoxide-content with a deploy key)
 play servers (content/ or --content-dir): run it from their next start
 ```
 
@@ -41,16 +41,24 @@ editor, on the control interface and through lmoxide-api (admin):
 
 | Route | |
 |---|---|
-| `GET /v1/content/state` | `content` (the tree it runs), `pending` (branches waiting), `unpushed` (merged commits `origin/main` doesn't have) |
+| `GET /v1/content/state` | `content` (the tree it runs), `pending` (branches waiting), `unpushed` (merged commits the push target doesn't have; null: unknown), `push_target` |
+| `POST /v1/content/push` | sends the working copy's `main` (the merged branches) to the push target: `{target, commits, from, to}`. 409 when it can't (the target has commits `main` doesn't, edits there in files that change, or it isn't a git checkout) |
 | `GET /v1/content/branches` | every branch: open ones (oldest first), then closed ones. `branch` (`contrib/<editor>/<name>`), `title` (the name as typed), `author`, `status` (`open`: nothing to merge, `pending`, `rejected`; closed: `merged`, `reset`, `deleted`), `tip`, `base`, `updated`, `decision` (`{status, by, at, reason, tip}`, a rejection of its current tip), `closed` (`{status, by, at, merged_as?, decision?}`), `commits: [{hash, author, by, created, subject, message}]` (oldest first; the message without trailers), `records: [{id, feature, change, file, author, before, after, conflict, base?}]` (`before` as the content has it now; a closed branch's as it started), `conflicts` |
 | `GET /v1/content/branches/{editor}/{name}` | one open branch |
 | `POST /v1/content/branches/{editor}/{name}/merge` | `{message?, force?}`: one commit on the working copy's `main` with the branch's records as it has them (record by record: a whole-record write, so edits of other records of the same file never clash), its message (default: the branch's), authored as its editor; the branch starts again from the new `main`, its commits kept in the history. Records of the working copy still as the content had them take the branch's version and the editor's worlds respawn them. `{merged, branch}`. 409 with `records` when the content changed some of its records since the branch started (`force` puts the branch's versions over them) |
 | `POST /v1/content/branches/{editor}/{name}/reject` | `{reason}`: rejected until its editor commits to it again |
 
 Branch titles, rejections and closed branches are kept beside the working copy
-(`var/content-work-review.json`); closed branches' commits under `refs/contrib-history/`. A
-merge doesn't push: play servers get merged commits once `main` is pushed to the content
-repository and they pull (on the LAN: `git -C content pull ../var/content-work main`).
+(`var/content-work-review.json`); closed branches' commits under `refs/contrib-history/`.
+
+**Push target.** By default the content the server plays (`--content-dir`, on the LAN the
+checkout's `content/`): Push fast-forwards that checkout to `main` (only fast-forwards: when it
+has commits of its own, restart the server first, which brings the editor's copy up to them), and
+play servers run it from their next start. Docker images play a plain content folder, which
+can't take a push: set `--content-push` (`LMOXIDE_CONTENT_PUSH`) to a git remote, e.g.
+`git@github.com:<you>/lmoxide-content.git`, with `--content-push-key` an SSH deploy key that has
+write access to that one repository (`--content-push-branch`, default `main`); the count of
+unpushed commits is then known after the first push from this server.
 
 ## Walls and trigger areas
 
@@ -148,9 +156,8 @@ step (2026-10-30: nothing dropped them before).
 
 ## Not built yet
 
-Pushing merged commits to the content repository from the server (a server-side token), and
-play servers pulling and respawning what they can; a preview of a commit in a play copy before
-merging. Until 2026-11-02 Publish made publish queue entries (`var/content-queue`,
+Play servers pulling pushed content and respawning what they can while running; a preview of
+a branch in a play copy before merging. Until 2026-11-02 Publish made publish queue entries (`var/content-queue`,
 `--content-queue`, now ignored); the queue entries left there aren't read any more.
 
 ## Before content records

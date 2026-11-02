@@ -543,10 +543,98 @@ pub fn download(dir: &Path, branch: &str, format: Format) -> anyhow::Result<Vec<
     }
 }
 
-/// How many commits `HEAD` has that `origin`'s main doesn't (merged, not pushed), when it
-/// has a remote-tracking `origin/main`.
-pub fn unpushed(dir: &Path) -> Option<u64> {
-    git(dir, &["rev-list", "--count", "origin/main..HEAD"]).ok()?.trim().parse().ok()
+// ------------------------------------------------------------------ pushing
+
+/// Where merged commits go (`Push` in the web UI).
+#[derive(Debug, Clone, PartialEq)]
+pub enum PushTarget {
+    /// A checkout of the content (the play servers' `content/`): fast-forwarded to the working
+    /// copy's `main`. Play servers take it in at their next start.
+    Checkout(PathBuf),
+    /// A git remote (a URL or path), its `branch`; `key`: an SSH key for it (a deploy key with
+    /// write access, for GitHub).
+    Remote { url: String, branch: String, key: Option<PathBuf> },
+}
+
+impl PushTarget {
+    /// For people: the folder, or the remote and branch.
+    pub fn describe(&self) -> String {
+        match self {
+            PushTarget::Checkout(dir) => dir.display().to_string(),
+            PushTarget::Remote { url, branch, .. } => format!("{url} ({branch})"),
+        }
+    }
+}
+
+/// The last commit pushed to a remote target (pushing to a checkout reads the checkout).
+const PUSHED: &str = "refs/lmoxide/pushed";
+
+/// The commit `target` has now, when this checkout has it (else unknown).
+fn target_head(dir: &Path, target: &PushTarget) -> Option<String> {
+    let head = match target {
+        PushTarget::Checkout(to) => git(to, &["rev-parse", "HEAD"]).ok()?.trim().to_string(),
+        PushTarget::Remote { .. } => rev(dir, PUSHED)?,
+    };
+    git(dir, &["cat-file", "-e", &format!("{head}^{{commit}}")]).ok()?;
+    Some(head)
+}
+
+/// How many commits of `HEAD` (merged) `target` doesn't have yet. Unknown when the target has
+/// commits this checkout doesn't know, or a remote nothing was pushed to from here yet.
+pub fn unpushed(dir: &Path, target: &PushTarget) -> Option<u64> {
+    let theirs = target_head(dir, target)?;
+    git(dir, &["rev-list", "--count", &format!("{theirs}..HEAD")]).ok()?.trim().parse().ok()
+}
+
+/// What a push did.
+#[derive(Debug, Clone, Serialize)]
+pub struct Pushed {
+    pub target: String,
+    /// Commits the target got.
+    pub commits: u64,
+    /// The target's commit before, and now.
+    pub from: Option<String>,
+    pub to: String,
+}
+
+/// Pushes the working copy's `HEAD` (`main`, with the merged branches) to `target`. A checkout
+/// is only fast-forwarded: when it has commits `main` doesn't (or edits in files that changed),
+/// nothing happens and the error says why.
+pub fn push(dir: &Path, target: &PushTarget) -> anyhow::Result<Pushed> {
+    let head = rev(dir, "HEAD").ok_or_else(|| anyhow::anyhow!("the working copy has no commit"))?;
+    match target {
+        PushTarget::Checkout(to) => {
+            anyhow::ensure!(
+                crate::git::is_repo(to) && git(to, &["rev-parse", "--show-prefix"])?.trim().is_empty(),
+                "{} isn't a git checkout of the content (an image's or release's content can't take pushes: push to the content repository instead)",
+                to.display()
+            );
+            let theirs = git(to, &["rev-parse", "HEAD"])?.trim().to_string();
+            // (their commit here, to compare)
+            git(dir, &["fetch", "-q", &std::fs::canonicalize(to)?.to_string_lossy(), "HEAD"])?;
+            if theirs == head || git(dir, &["merge-base", "--is-ancestor", &head, &theirs]).is_ok() {
+                return Ok(Pushed { target: target.describe(), commits: 0, from: Some(theirs.clone()), to: theirs });
+            }
+            anyhow::ensure!(
+                git(dir, &["merge-base", "--is-ancestor", &theirs, &head]).is_ok(),
+                "{} has commits the world editor's content doesn't (restart the server: it brings the editor's copy up to them first)",
+                to.display()
+            );
+            let commits: u64 = git(dir, &["rev-list", "--count", &format!("{theirs}..{head}")])?.trim().parse()?;
+            git(to, &["fetch", "-q", &std::fs::canonicalize(dir)?.to_string_lossy(), &head])?;
+            git(to, &["merge", "--ff-only", "-q", &head]).map_err(|e| anyhow::anyhow!("{} couldn't take them (edits there in files they change?): {e:#}", to.display()))?;
+            Ok(Pushed { target: target.describe(), commits, from: Some(theirs), to: head })
+        }
+        PushTarget::Remote { url, branch, key } => {
+            let before = rev(dir, PUSHED);
+            let commits = before.as_ref().and_then(|b| git(dir, &["rev-list", "--count", &format!("{b}..{head}")]).ok()).and_then(|n| n.trim().parse().ok()).unwrap_or(0);
+            let ssh = key.as_ref().map(|k| format!("ssh -i {} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new", k.display()));
+            let env: Vec<(&str, &str)> = ssh.as_deref().map(|s| vec![("GIT_SSH_COMMAND", s)]).unwrap_or_default();
+            git_env(dir, &env, &["push", "-q", url, &format!("{head}:refs/heads/{branch}")])?;
+            git(dir, &["update-ref", PUSHED, &head])?;
+            Ok(Pushed { target: target.describe(), commits, from: before, to: head })
+        }
+    }
 }
 
 #[cfg(test)]
@@ -634,6 +722,49 @@ mod tests {
         let work = Work::open(&dir).unwrap();
         assert_eq!(crate::git::changes(&work).unwrap().iter().map(|c| c.key.id.to_string()).collect::<Vec<_>>(), ["npc/b"]);
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn push_to_checkout_and_remote() {
+        let dir = tree("push");
+        let play = dir.with_file_name(format!("{}-play", dir.file_name().unwrap().to_string_lossy()));
+        let bare = dir.with_file_name(format!("{}-bare", dir.file_name().unwrap().to_string_lossy()));
+        let _ = std::fs::remove_dir_all(&play);
+        let _ = std::fs::remove_dir_all(&bare);
+        git(dir.parent().unwrap(), &["clone", "-q", &dir.to_string_lossy(), &play.to_string_lossy()]).unwrap();
+        let target = PushTarget::Checkout(play.clone());
+        assert_eq!(unpushed(&dir, &target), Some(0));
+        let mut work = Work::open(&dir).unwrap();
+        level(&mut work, "a", 9, "ann");
+        let (_, b) = commit(&work, &of(&work, "ann", "a"), "ann", "ann", "x", "A to 9").unwrap();
+        merge(&dir, &b, "root", None, false, 1, |_| None).unwrap();
+        assert_eq!(unpushed(&dir, &target), Some(1));
+        let p = push(&dir, &target).unwrap();
+        assert_eq!(p.commits, 1);
+        assert_eq!(unpushed(&dir, &target), Some(0));
+        let played = records_of(&std::fs::read_to_string(play.join("npcs/a.json")).unwrap());
+        assert_eq!(played[&Key::live("npc/a")]["level"], 9);
+        assert_eq!(push(&dir, &target).unwrap().commits, 0);
+        // a checkout with commits of its own: nothing to push while main has none it lacks,
+        // refused once both have their own
+        git(&play, &["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "theirs"]).unwrap();
+        assert_eq!(push(&dir, &target).unwrap().commits, 0);
+        level(&mut work, "b", 4, "ann");
+        let (_, b) = commit(&work, &of(&work, "ann", "b"), "ann", "ann", "x", "B to 4").unwrap();
+        merge(&dir, &b, "root", None, false, 2, |_| None).unwrap();
+        assert!(push(&dir, &target).is_err());
+        // (still counted: the push says why it can't go)
+        assert_eq!(unpushed(&dir, &target), Some(1));
+        // a remote: unknown until pushed from here once
+        git(dir.parent().unwrap(), &["init", "-q", "--bare", &bare.to_string_lossy()]).unwrap();
+        let remote = PushTarget::Remote { url: bare.to_string_lossy().into_owned(), branch: "main".into(), key: None };
+        assert_eq!(unpushed(&dir, &remote), None);
+        push(&dir, &remote).unwrap();
+        assert_eq!(unpushed(&dir, &remote), Some(0));
+        assert_eq!(git(&bare, &["rev-parse", "main"]).unwrap().trim(), rev(&dir, "HEAD").unwrap());
+        for d in [&dir, &play, &bare] {
+            let _ = std::fs::remove_dir_all(d);
+        }
     }
 
     #[test]

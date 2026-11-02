@@ -224,6 +224,14 @@ World Editor's worlds would be empty. At every start after that it takes the ima
 World Editor edits what players play. With unpublished edits it keeps the copy as it is and logs
 a warning ("content working copy ... not brought up"): commit and merge or discard them, then restart.
 
+The web UI's **Push** sends merged branches on. The image's own content folder can't take them,
+so point it at your copy of the content repository: create an SSH key in the data volume
+(`ssh-keygen -t ed25519 -N "" -f /data/content-push-key`), add `content-push-key.pub` to that
+repository as a deploy key with write access (GitHub: Settings → Deploy keys; no account is
+needed for the server), and set `content-push = "git@github.com:<you>/lmoxide-content.git"` and
+`content-push-key = "/data/content-push-key"`. Servers take pushed content in from their next
+start, once their image or `content/` has it.
+
 How edits are reviewed and published: [WORLD-EDITOR-CONTENT.md](WORLD-EDITOR-CONTENT.md).
 
 ## Variations

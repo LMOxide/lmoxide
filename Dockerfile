@@ -36,10 +36,11 @@ COPY --from=build /src/content/ /content/
 COPY --from=build /src/data/monster_data.json /src/data/effect_catalog.json /src/data/stats.json /reference/
 COPY --from=build /src/docker/lmoxide.example.toml /src/README.md /
 
-# git: the world editor's content working copy is a git clone (docs/HOSTING.md)
+# git: the world editor's content working copy is a git clone (docs/HOSTING.md); openssh-client: Push
+# to the content repository with a deploy key (--content-push-key)
 FROM debian:bookworm-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates tini git \
+ && apt-get install -y --no-install-recommends ca-certificates tini git openssh-client \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --system --uid 10001 --home-dir /data lmoxide \
  && mkdir -p /data /patch-data /clients \

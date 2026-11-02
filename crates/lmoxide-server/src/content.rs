@@ -141,6 +141,7 @@ pub fn save_point(pf: u32, name: &str, pos: [f32; 3], heading: f32, author: &str
 pub fn routes() -> Router {
     Router::new()
         .route("/v1/content/state", get(state))
+        .route("/v1/content/push", post(push))
         .route("/v1/content/branches", get(branches))
         .route("/v1/content/branches/{owner}/{name}", get(branch))
         .route("/v1/content/branches/{owner}/{name}/merge", post(merge))
@@ -171,15 +172,23 @@ impl From<ReviewError> for Error {
     }
 }
 
-/// The content this server runs, how many contributor branches wait for review, and how many
-/// merged commits the content repository (`origin`) doesn't have yet.
+/// The content this server runs, how many contributor branches wait for review, how many merged
+/// commits the push target doesn't have yet (null: unknown), and that target.
 async fn state() -> Json<Value> {
     let review = crate::editor::review(|ed| Ok(crate::editor::review_state(ed))).await.ok();
     Json(json!({
         "content": crate::gamedata::loaded_from(),
-        "pending": review.map(|r| r.0),
-        "unpushed": review.and_then(|r| r.1),
+        "pending": review.as_ref().map(|r| r.0),
+        "unpushed": review.as_ref().and_then(|r| r.1),
+        "push_target": review.map(|r| r.2),
     }))
+}
+
+/// Pushes the merged branches to the push target (default: the content this server plays,
+/// fast-forwarded; play servers take it in at their next start). `{target, commits, from, to}`.
+async fn push(headers: HeaderMap) -> Result<Json<lmoxide_content::contrib::Pushed>, Error> {
+    let by = crate::survey::author_of(&headers);
+    Ok(Json(crate::editor::review(move |ed| crate::editor::push(ed, &by)).await?))
 }
 
 /// Every contributor branch: open ones (pending, rejected, open), then closed ones (merged,

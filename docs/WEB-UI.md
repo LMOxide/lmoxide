@@ -68,7 +68,8 @@ ones first, then merged/reset/deleted ones; fields in docs/WORLD-CONTENT.md): it
 `before` (the content now) and `after` (the branch; show the fields that differ) and `conflict`
 (the content changed it since the branch started). `POST .../{editor}/{name}/merge
 {message?, force?}` (409 with `error.records` on conflicts unless `force`), `POST .../reject
-{reason}`. `GET /v1/content/state`: `pending` (the badge count) and `unpushed`.
+{reason}`. `GET /v1/content/state`: `pending` (the badge count), `unpushed` (null: unknown) and `push_target`; `POST /v1/content/push`
+sends what was merged there (`{target, commits, from, to}`; 409 with the reason when it can't).
 
 Moderators get 403 when they kick or ban staff (accounts with a GM level); only admins can.
 

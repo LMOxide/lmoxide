@@ -28,6 +28,8 @@ pub(crate) struct Editor {
     reference: PathBuf,
     /// The whole tree's problems by id, from the last check (none: changed since).
     problems: Option<Arc<Problems>>,
+    /// Where admins push merged branches (`POST /v1/content/push`).
+    push: contrib::PushTarget,
 }
 
 #[derive(Default)]
@@ -48,8 +50,9 @@ static EDITOR: LazyLock<Mutex<Option<Editor>>> = LazyLock::new(|| Mutex::new(Non
 
 /// Opens the working copy at `dir` (survey servers); one that isn't there yet is made from the
 /// content the server plays, `src`; one made before is brought up to it (`git::catch_up`: the
-/// world editor kept an old copy while players got new content).
-pub fn init(dir: &Path, src: &Path) {
+/// world editor kept an old copy while players got new content). `push`: where merged branches
+/// go (none: `src`, the played content).
+pub fn init(dir: &Path, src: &Path, push: Option<contrib::PushTarget>) {
     if !dir.exists() {
         match git::start_copy(src, dir) {
             Ok(()) => info!(dir = %dir.display(), from = %src.display(), "content working copy made"),
@@ -77,7 +80,9 @@ pub fn init(dir: &Path, src: &Path) {
             let reference = std::env::var_os("LMOXIDE_REFERENCE_DIR")
                 .map(PathBuf::from)
                 .unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/../../data")));
-            *EDITOR.lock().unwrap() = Some(Editor { work, reference, problems: None });
+            let push = push.unwrap_or_else(|| contrib::PushTarget::Checkout(std::fs::canonicalize(src).unwrap_or_else(|_| src.to_path_buf())));
+            info!(target = %push.describe(), "content: merged branches push to");
+            *EDITOR.lock().unwrap() = Some(Editor { work, reference, problems: None, push });
         }
         Err(e) => warn!("content work copy {}: {e:#}; the world editor can't edit content", dir.display()),
     }
@@ -240,10 +245,18 @@ pub(crate) fn branches(ed: &mut Editor) -> Result<Vec<contrib::Branch>, ReviewEr
     contrib::list(ed.work.dir()).map_err(|e| ReviewError::Internal(format!("{e:#}")))
 }
 
-/// How many branches wait for review, and how many merged commits `origin` doesn't have yet.
-pub(crate) fn review_state(ed: &mut Editor) -> (usize, Option<u64>) {
+/// How many branches wait for review, how many merged commits the push target doesn't have
+/// yet, and that target.
+pub(crate) fn review_state(ed: &mut Editor) -> (usize, Option<u64>, String) {
     let pending = contrib::list(ed.work.dir()).map(|l| l.iter().filter(|b| b.status == "pending").count()).unwrap_or(0);
-    (pending, contrib::unpushed(ed.work.dir()))
+    (pending, contrib::unpushed(ed.work.dir(), &ed.push), ed.push.describe())
+}
+
+/// Pushes the merged branches (the working copy's `main`) to the push target.
+pub(crate) fn push(ed: &mut Editor, by: &str) -> Result<contrib::Pushed, ReviewError> {
+    let p = contrib::push(ed.work.dir(), &ed.push).map_err(|e| ReviewError::Refused(format!("{e:#}")))?;
+    info!(by = %by, target = %p.target, commits = p.commits, to = %p.to, "content: pushed");
+    Ok(p)
 }
 
 /// Puts records of the working copy that are still `from` to `to` (a merged branch's into

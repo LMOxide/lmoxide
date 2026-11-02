@@ -241,6 +241,18 @@ pub struct Config {
     /// editor saves to (docs/WORLD-EDITOR-CONTENT.md; default: `--content-dir`).
     #[arg(long, env = "LMOXIDE_EDITOR_CONTENT_DIR")]
     pub editor_content_dir: Option<PathBuf>,
+    /// Where admins push merged contributor branches (the web UI's Push): a git remote (URL or
+    /// path), e.g. the content repository. Default: the content the server plays
+    /// (`--content-dir`, a git checkout), fast-forwarded; play servers take it in at their next
+    /// start (docs/WORLD-CONTENT.md).
+    #[arg(long, env = "LMOXIDE_CONTENT_PUSH")]
+    pub content_push: Option<String>,
+    /// The branch `--content-push` pushes to.
+    #[arg(long, env = "LMOXIDE_CONTENT_PUSH_BRANCH", default_value = "main")]
+    pub content_push_branch: String,
+    /// An SSH key for `--content-push` (a deploy key with write access on GitHub).
+    #[arg(long, env = "LMOXIDE_CONTENT_PUSH_KEY")]
+    pub content_push_key: Option<PathBuf>,
     /// Add a server-side character that walks around the start position (for testing what
     /// other players look like).
     #[arg(long, env = "LMOXIDE_BOT")]
@@ -347,7 +359,12 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         let dir = cfg.survey_set.clone().unwrap_or_else(|| storage.data_dir.join("survey"));
         survey::init(dir);
         let play = gamedata::dir(cfg.content_dir.clone());
-        editor::init(&cfg.editor_content_dir.clone().unwrap_or_else(|| play.clone()), &play);
+        let push = cfg.content_push.clone().map(|url| lmoxide_content::contrib::PushTarget::Remote {
+            url,
+            branch: cfg.content_push_branch.clone(),
+            key: cfg.content_push_key.clone(),
+        });
+        editor::init(&cfg.editor_content_dir.clone().unwrap_or_else(|| play.clone()), &play, push);
     }
     if cfg.runs(instance::Mode::Progression) || cfg.runs(instance::Mode::Maxed) {
         content::init();

@@ -22,6 +22,10 @@ bind = "0.0.0.0"
 modes = "progression:7100,maxed:7103,world-editor:7104"
 # the world editor's content working copy (a git clone of the content repository)
 editor-content-dir = "/data/content-work"
+# where the web UI's Push sends merged contributor branches (the image's content can't take them):
+# your copy of the content repository and a deploy key with write access (docs/HOSTING.md)
+# content-push = "git@github.com:<you>/lmoxide-content.git"
+# content-push-key = "/data/content-push-key"
 # the story's teleport windows: "unlocked" (every window open, the default) or "locked" (a
 # window opens as the character's story reaches it, as live)
 # story-windows = "locked"
