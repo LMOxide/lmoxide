@@ -735,6 +735,7 @@ fn helper_at(playfield: u32, pos: [f32; 3]) -> (Id32, Vec<bytes::Bytes>) {
             cars_group: 5,
             npc: Some(lmoxide_net::proto::proto_core_character_iir::NpcStats { template_id: Some(INVISIBLE_LOOK), ..Default::default() }),
             speeds: (&[][..]).into(),
+            rot: None,
         },
     );
     (helper, records)
@@ -868,6 +869,25 @@ fn mark_selecting(st: &mut State, id: &str) {
     }
 }
 
+/// A character that isn't an enemy stood frozen after a hit: the client leaves its animation
+/// where its look has nothing to play. Moves free it but leave it facing another way (a stop
+/// after them doesn't turn it back, tried in game 2026-11-02), so once the hit has landed it
+/// spawns again, as it was (selected still, if it was).
+fn settle_after_hit(npc: Id32) {
+    tokio::spawn(async move {
+        tokio::time::sleep(SETTLE_AFTER_HIT).await;
+        let mut guard = STATE.lock().unwrap();
+        let Some(st) = guard.as_mut() else { return };
+        let Some(id) = st.by_npc.get(&npc).cloned() else { return };
+        respawn(st, &id);
+        mark_selecting(st, &id);
+        sync_all(st);
+    });
+}
+
+/// How long after a hit [`settle_after_hit`] spawns the character again.
+const SETTLE_AFTER_HIT: Duration = Duration::from_millis(600);
+
 /// A player attacked NPC `target`: it becomes their selection.
 pub fn attacked(attacker: Id32, target: Id32) {
     if attacker.kind != crate::territory::CHARACTER_TYPE {
@@ -876,6 +896,9 @@ pub fn attacked(attacker: Id32, target: Id32) {
     let mut guard = STATE.lock().unwrap();
     let Some(st) = guard.as_mut() else { return };
     let Some(id) = st.by_npc.get(&target).cloned() else { return };
+    if st.objects.get(&id).is_some_and(|o| o.def.kind != Kind::Enemy) {
+        settle_after_hit(target);
+    }
     let s = st.surveyors.entry(attacker).or_default();
     if s.selected.as_deref() == Some(id.as_str()) {
         return;

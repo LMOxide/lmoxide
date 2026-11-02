@@ -3708,6 +3708,10 @@ pub struct CharSpec<'a> {
     pub npc: Option<proto_core_character_iir::NpcStats>,
     /// Movement speed float stats (stat, m/s), see `PLAYER_SPEEDS`.
     pub speeds: std::borrow::Cow<'static, [(u32, f32)]>,
+    /// Its heading (yaw, radians; as `StopIIR_c` turns characters), in the full update as live
+    /// sent its NPCs': a stop sent with the spawn of a world just entered came too early and was
+    /// lost, so they all faced the same way (2026-11-02). None: unturned.
+    pub rot: Option<f32>,
 }
 
 /// Game rules on a saved character (the type lives in lmoxide-db).
@@ -3794,6 +3798,7 @@ impl CharacterExt for Character {
             cars_group: 0,
             npc: None,
             speeds: crate::speed::speeds(self.speed),
+            rot: None,
         }
     }
 
@@ -3818,7 +3823,10 @@ fn simple_char_full_update(id: Id32, c: &CharSpec) -> bytes::Bytes {
     let team = if c.npc.is_none() { crate::community::team_ids(id.instance) } else { None };
     let dynel = ProtoGameCodeDynelIir {
         position: Some(ProtoVec3 { x: Some(pos[0]), y: Some(pos[1]), z: Some(pos[2]) }),
-        rotation: Some(ProtoQuat { x: Some(0.0), y: Some(0.0), z: Some(0.0), w: Some(1.0) }),
+        rotation: Some({
+            let half = c.rot.unwrap_or(0.0) / 2.0;
+            ProtoQuat { x: Some(0.0), y: Some(half.sin()), z: Some(0.0), w: Some(half.cos()) }
+        }),
         playfield_instance: Some(playfield.key()),
         running_effects: vec![],
     };

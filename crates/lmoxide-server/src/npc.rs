@@ -1075,6 +1075,7 @@ fn spec(def: &SpawnDef, playfield: Pf, pos: [f32; 3], health: u32) -> CharSpec<'
         cars_group: def.cars_group.unwrap_or(CARS_ENEMIES),
         npc: Some(NpcStats { template_id: Some(def.npc_template.unwrap_or(def.monster_data)), icon: def.icon, ..Default::default() }),
         speeds: speeds(def).to_vec().into(),
+        rot: def.rot,
     }
 }
 
@@ -1520,7 +1521,6 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     if in_editor {
         // nothing is hurt: attacking something selects it
         crate::survey::attacked(attacker, target);
-        settle_after_hit(target);
         return None;
     }
     let mut npcs = NPCS.lock().unwrap();
@@ -1529,11 +1529,6 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     let by_player = attacker.kind == crate::territory::CHARACTER_TYPE && !by_npc;
     let npc = npcs.get_mut(&target)?;
     if npc.presence.is_none() || npc.health == 0 || npc.def.kind == Kind::Pet || (npc.def.kind == Kind::Npc && !npc.def.fights()) {
-        let friendly = npc.presence.is_some() && npc.def.kind == Kind::Npc;
-        drop(npcs);
-        if by_player && friendly {
-            settle_after_hit(target);
-        }
         return None;
     }
     // not while the player has a story goal its CARS rule names (the jail's cracked wall before
@@ -1544,10 +1539,6 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
     }
     // friendly fighters are hurt only by enemies
     if npc.def.fights() && !by_npc {
-        drop(npcs);
-        if by_player {
-            settle_after_hit(target);
-        }
         return None;
     }
     if by_player {
@@ -2032,27 +2023,6 @@ fn path_task(w: lmoxide_net::stream::Writer, points: &[[f32; 3]], looped: bool) 
     let first = if points.len() > 1 { distance(points[0], points[1]) } else { 0.0 };
     w.u8(looped as u8).u32(0).u8(0).u32(0).f32(first / 35.0)
 }
-
-/// A character that isn't an enemy, hit where its hit does nothing (the world editor, a friendly
-/// NPC), stood frozen in the client: the hit puts its animation where its look has nothing to
-/// play, and only a move brings it out (a stop doesn't, nor its health or BCC state; tried in
-/// game 2026-11-02). Once the hit has landed: a step of a few centimetres, then it stands again
-/// where it was, facing as it did.
-fn settle_after_hit(id: Id32) {
-    let Some((pos, rot)) = NPCS.lock().unwrap().get(&id).filter(|n| matches!(n.def.kind, Kind::Npc | Kind::Fighter)).map(|n| (*n.pos.lock().unwrap(), n.def.rot.unwrap_or(0.0))) else { return };
-    let step = [pos[0] + SETTLE_STEP, pos[1], pos[2]];
-    tokio::spawn(async move {
-        tokio::time::sleep(SETTLE_AFTER_HIT).await;
-        world::send_playfield(id, false, world::Out::Records(vec![path_record(id, pos, step)]));
-        tokio::time::sleep(SETTLE_STEP_TIME).await;
-        world::send_playfield(id, false, world::Out::Records(vec![stop_record(id, pos, [rot.sin(), rot.cos()])]));
-    });
-}
-
-/// [`settle_after_hit`]: when after the hit it steps, how far, and when it stands again.
-const SETTLE_AFTER_HIT: std::time::Duration = std::time::Duration::from_millis(600);
-const SETTLE_STEP: f32 = 0.05;
-const SETTLE_STEP_TIME: std::time::Duration = std::time::Duration::from_millis(1000);
 
 /// `StopIIR_c` as the original server stopped NPCs: position, rotation (yaw towards `dir`),
 /// u8 0 (smooth correction, not a jump), u8 0.
