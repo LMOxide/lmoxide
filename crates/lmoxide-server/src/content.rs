@@ -177,7 +177,7 @@ impl From<ReviewError> for Error {
 async fn state() -> Json<Value> {
     let review = crate::editor::review(|ed| Ok(crate::editor::review_state(ed))).await.ok();
     Json(json!({
-        "content": crate::gamedata::loaded_from(),
+        "content": crate::gamedata::loaded_from().map(|d| std::fs::canonicalize(&d).unwrap_or(d)),
         "pending": review.as_ref().map(|r| r.0),
         "unpushed": review.as_ref().and_then(|r| r.1),
         "push_target": review.map(|r| r.2),
