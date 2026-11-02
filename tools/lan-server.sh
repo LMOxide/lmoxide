@@ -55,7 +55,8 @@ DATA=${LMOXIDE_DATA_DIR:-$VAR/data}
 MODES=${LMOXIDE_MODES:-progression:7100,maxed:7103,world-editor:7104}
 MODE_PORTS=$(tr ',' '\n' <<<"$MODES" | cut -d: -f2 | paste -sd,)
 # the content the world editor edits: a git checkout of lmoxide-content (docs/WORLD-EDITOR-CONTENT.md),
-# made from content/ the first time, its origin the content repository
+# made from content/ the first time, its origin the content repository; the server fast-forwards it
+# to content/ at every start (editor.rs, git::catch_up), keeping unpublished edits that don't clash
 WORK=${LMOXIDE_CONTENT_WORK:-$VAR/content-work}
 if [[ ! -d $WORK/.git ]]; then
   git clone -q "$ROOT/content" "$WORK"

@@ -47,12 +47,20 @@ struct ProblemView {
 static EDITOR: LazyLock<Mutex<Option<Editor>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Opens the working copy at `dir` (survey servers); one that isn't there yet is made from the
-/// content the server plays, `src`.
+/// content the server plays, `src`; one made before is brought up to it (`git::catch_up`: the
+/// world editor kept an old copy while players got new content).
 pub fn init(dir: &Path, src: &Path) {
     if !dir.exists() {
         match git::start_copy(src, dir) {
             Ok(()) => info!(dir = %dir.display(), from = %src.display(), "content working copy made"),
             Err(e) => warn!("making the content working copy {} from {}: {e:#}", dir.display(), src.display()),
+        }
+    } else if git::is_repo(dir) && !same_dir(dir, src) {
+        match git::catch_up(dir, src) {
+            Ok(git::CatchUp::Current) => {}
+            Ok(git::CatchUp::Moved(from)) => info!(dir = %dir.display(), from = %src.display(), was = %from, "content working copy brought up to the played content"),
+            Ok(git::CatchUp::Kept(why)) => warn!("content working copy {} not brought up to {}: {why}", dir.display(), src.display()),
+            Err(e) => warn!("bringing the content working copy {} up to {}: {e:#}", dir.display(), src.display()),
         }
     }
     match Work::open(dir) {
@@ -73,6 +81,10 @@ pub fn init(dir: &Path, src: &Path) {
         }
         Err(e) => warn!("content work copy {}: {e:#}; the world editor can't edit content", dir.display()),
     }
+}
+
+fn same_dir(a: &Path, b: &Path) -> bool {
+    matches!((std::fs::canonicalize(a), std::fs::canonicalize(b)), (Ok(a), Ok(b)) if a == b)
 }
 
 // ------------------------------------------------------------------ errors

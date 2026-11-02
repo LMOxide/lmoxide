@@ -52,6 +52,67 @@ pub fn start_copy(src: &Path, dir: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// How [`catch_up`] left a working copy.
+#[derive(Debug, PartialEq)]
+pub enum CatchUp {
+    /// It already had `src`'s content.
+    Current,
+    /// It moved to `src`'s content (the commit it had before).
+    Moved(String),
+    /// It kept what it had: the reason (unpublished edits in the way, commits of its own).
+    Kept(String),
+}
+
+/// Brings working copy `dir` up to the content tree at `src` (the content the server plays), so
+/// the world editor edits what players see. `src` a checkout of the content repository (a
+/// development tree's `content/`): a fast-forward to its commit, which keeps unpublished edits
+/// unless they touch a file that changed. `src` a plain folder (an image's or a release's
+/// content): its files committed on top, only when the copy has no unpublished edits.
+pub fn catch_up(dir: &Path, src: &Path) -> anyhow::Result<CatchUp> {
+    let head = || git(dir, &["rev-parse", "HEAD"]).map(|h| h.trim().to_string());
+    let before = head()?;
+    let src_is_checkout = is_repo(src) && git(src, &["rev-parse", "--show-prefix"])?.trim().is_empty();
+    if src_is_checkout {
+        let src = std::fs::canonicalize(src)?;
+        git(dir, &["fetch", "-q", &src.to_string_lossy(), "HEAD"])?;
+        let target = git(dir, &["rev-parse", "FETCH_HEAD"])?.trim().to_string();
+        if target == before || git(dir, &["merge-base", "--is-ancestor", &target, "HEAD"]).is_ok() {
+            return Ok(CatchUp::Current);
+        }
+        if git(dir, &["merge-base", "--is-ancestor", "HEAD", &target]).is_err() {
+            return Ok(CatchUp::Kept(format!("it has commits of its own not in {}", src.display())));
+        }
+        return Ok(match git(dir, &["merge", "--ff-only", "-q", &target]) {
+            Ok(_) => CatchUp::Moved(before),
+            Err(e) => CatchUp::Kept(format!("unpublished edits in files that changed ({e})")),
+        });
+    }
+    if !git(dir, &["status", "--porcelain", "--untracked-files=all"])?.trim().is_empty() {
+        return Ok(CatchUp::Kept("it has unpublished edits".into()));
+    }
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        if entry.file_name() == ".git" {
+            continue;
+        }
+        if entry.file_type()?.is_dir() {
+            std::fs::remove_dir_all(entry.path())?;
+        } else {
+            std::fs::remove_file(entry.path())?;
+        }
+    }
+    copy_tree(src, dir)?;
+    git(dir, &["add", "-A"])?;
+    if git(dir, &["diff", "--cached", "--quiet"]).is_ok() {
+        return Ok(CatchUp::Current);
+    }
+    git(
+        dir,
+        &["-c", "user.name=lmoxide", "-c", "user.email=lmoxide@localhost", "commit", "-qm", "The content this server came with (updated)"],
+    )?;
+    Ok(CatchUp::Moved(before))
+}
+
 /// Copies the files under `src` to `dst` (not a `.git`).
 fn copy_tree(src: &Path, dst: &Path) -> anyhow::Result<()> {
     std::fs::create_dir_all(dst)?;
@@ -316,6 +377,51 @@ mod tests {
         assert!(dir.join("npcs/a.json").exists());
         assert!(changed_files(&dir).unwrap().is_empty());
         assert_eq!(git(&dir, &["remote", "get-url", "origin"]).unwrap().trim(), CONTENT_REPOSITORY);
+        std::fs::remove_dir_all(&tmp).unwrap();
+    }
+
+    #[test]
+    fn working_copy_catches_up() {
+        let tmp = std::env::temp_dir().join(format!("lmoxide-catch-up-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp);
+        let (src, dir, plain) = (tmp.join("content"), tmp.join("work"), tmp.join("plain"));
+        let g = |d: &Path, args: &[&str]| git(d, &[&["-c", "user.name=t", "-c", "user.email=t@t"], args].concat()).unwrap();
+        let write = |d: &Path, f: &str, text: &str| {
+            std::fs::create_dir_all(d.join(f).parent().unwrap()).unwrap();
+            std::fs::write(d.join(f), text).unwrap();
+        };
+        // a checkout of the content: fast-forwards, keeping an edit to a file that didn't change
+        std::fs::create_dir_all(&src).unwrap();
+        write(&src, "npcs/a.json", "1");
+        write(&src, "npcs/b.json", "1");
+        g(&src, &["init", "-q"]);
+        g(&src, &["add", "-A"]);
+        g(&src, &["commit", "-qm", "one"]);
+        g(&tmp, &["clone", "-q", &src.to_string_lossy(), &dir.to_string_lossy()]);
+        assert_eq!(catch_up(&dir, &src).unwrap(), CatchUp::Current);
+        write(&src, "npcs/a.json", "2");
+        g(&src, &["commit", "-qam", "two"]);
+        write(&dir, "npcs/b.json", "edited");
+        assert!(matches!(catch_up(&dir, &src).unwrap(), CatchUp::Moved(_)));
+        assert_eq!(std::fs::read_to_string(dir.join("npcs/a.json")).unwrap(), "2");
+        assert_eq!(std::fs::read_to_string(dir.join("npcs/b.json")).unwrap(), "edited");
+        // an edit to a file that changed stays, and the copy with it
+        write(&src, "npcs/b.json", "3");
+        g(&src, &["commit", "-qam", "three"]);
+        assert!(matches!(catch_up(&dir, &src).unwrap(), CatchUp::Kept(_)));
+        assert_eq!(std::fs::read_to_string(dir.join("npcs/b.json")).unwrap(), "edited");
+        // a plain folder: its files committed on top, files it lacks gone; not over edits
+        std::fs::create_dir_all(&plain).unwrap();
+        write(&plain, "npcs/a.json", "9");
+        g(&dir, &["checkout", "-q", "--", "."]);
+        assert!(matches!(catch_up(&dir, &plain).unwrap(), CatchUp::Moved(_)));
+        assert_eq!(std::fs::read_to_string(dir.join("npcs/a.json")).unwrap(), "9");
+        assert!(!dir.join("npcs/b.json").exists());
+        assert_eq!(catch_up(&dir, &plain).unwrap(), CatchUp::Current);
+        write(&dir, "npcs/c.json", "new");
+        write(&plain, "npcs/a.json", "10");
+        assert!(matches!(catch_up(&dir, &plain).unwrap(), CatchUp::Kept(_)));
+        assert_eq!(std::fs::read_to_string(dir.join("npcs/a.json")).unwrap(), "9");
         std::fs::remove_dir_all(&tmp).unwrap();
     }
 

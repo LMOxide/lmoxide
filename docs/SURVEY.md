@@ -20,7 +20,7 @@ through its universe port, the patcher's Game Mode, with GM level 2 (contributor
 everyone has the test commands. The play modes run beside it in the same process with the published
 content; what the editor saves lives in its working copy until published.
 `tools/lan-server.sh` runs it all (World Editor on 7104; the content: `var/content-work`, cloned
-from `content/` the first time). `--survey-set` (`var/survey-set`) names the survey set of
+from `content/` the first time and brought up to it at every start). `--survey-set` (`var/survey-set`) names the survey set of
 before content records: it is taken into the working copy once (survey/migrate.rs; its
 `migrated.json` says what was done) and otherwise left alone.
 
@@ -189,7 +189,11 @@ changes, so changes made in game (a selection by attacking, someone else's edit)
 
 Survey servers also edit the content tree itself (docs/WORLD-EDITOR-CONTENT.md): a git checkout
 of lmoxide-content, `var/content-work` (`--editor-content-dir`; `tools/lan-server.sh` clones it from
-`content/` the first time, its `origin` the content repository). Saves write the record's file
+`content/` the first time, its `origin` the content repository). At every start the server brings
+the working copy up to the content it plays (`git::catch_up`): a fast-forward to `content/`'s
+commit, which keeps unpublished edits unless a file they touch changed (then the copy stays as it
+was and the log warns); from an image's or release's plain content folder, its files committed on
+top, only when there are no unpublished edits. Saves write the record's file
 at once (canonical form); nothing is committed here. Routes under `/v1/editor` on the control
 interface, passed on by lmoxide-api like `/v1/survey` (admin; the caller is the author).
 Records are named by query (`?id=npc/pirate&feature=live`; ids hold slashes).
