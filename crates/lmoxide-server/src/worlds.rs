@@ -47,6 +47,12 @@ pub fn start() {
     });
 }
 
+/// Whether `pf` is the World Editor's copy of its world (its survey objects and walls live
+/// there): the mode's own copy, not copy 0 (that one is Progression's).
+fn is_editor_world(pf: Pf) -> bool {
+    pf == crate::instance::Mode::WorldEditor.main(pf.model())
+}
+
 /// Spawns copy `pf` unless it is already there.
 pub fn ensure(pf: Pf) {
     if !SPAWNED.lock().unwrap().insert(pf) {
@@ -64,7 +70,7 @@ pub fn ensure(pf: Pf) {
     crate::tiki::spawn_world(pf);
     crate::lost_creations::spawn_world(pf);
     crate::lost_creations::spawn_entry(pf);
-    if pf.is_main() && crate::instance::mode_of(pf).rules().editor {
+    if is_editor_world(pf) {
         crate::survey::copy_started(pf.model());
     }
     info!(playfield = ?pf, mode = crate::instance::mode_of(pf).id(), ms = started.elapsed().as_millis() as u64, "world copy spawned");
@@ -75,7 +81,7 @@ pub fn drop_copy(pf: Pf) {
     if !SPAWNED.lock().unwrap().remove(&pf) {
         return;
     }
-    if pf.is_main() && crate::instance::mode_of(pf).rules().editor {
+    if is_editor_world(pf) {
         crate::survey::copy_dropped(pf.model());
     }
     crate::npc::despawn_world(pf);
@@ -125,4 +131,18 @@ pub fn element(pf: Pf) -> u32 {
 /// The element of playfield `model` (content `element`; 0 none).
 pub fn element_of(model: u32) -> u32 {
     crate::gamedata::get().world_by_playfield(model).and_then(|w| w.element).map_or(0, |e| e.id())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instance::Mode;
+
+    #[test]
+    fn editor_worlds() {
+        // (copy 0 is Progression's: the editor's objects never spawned there, 2026-11-02)
+        assert!(is_editor_world(Mode::WorldEditor.main(1200)));
+        assert!(!is_editor_world(Mode::Progression.main(1200)));
+        assert!(!is_editor_world(Mode::Maxed.main(1200)));
+    }
 }
