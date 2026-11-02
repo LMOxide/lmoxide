@@ -294,6 +294,109 @@ pub fn moved(t: &mut Tracker, c: &mut Character, character: u32, playfield: Pf, 
     records
 }
 
+/// How far (m, across) an arena's start may lie outside an area quest's area and still be that
+/// quest's arena (Treasure Island's Kraken start is 4 m out of Quest_Boss).
+const ARENA_PAIR_DISTANCE: f32 = 6.0;
+/// How far apart (m) an arena's floor and the quest area's may be (the Kraken's start is 11 m
+/// above Quest_Boss's floor).
+const ARENA_PAIR_HEIGHT: f32 = 15.0;
+
+/// The area quest an arena belongs to: the one whose area holds the arena's start (`centre`,
+/// x z; `floor`: its lowest height), else the nearest within `ARENA_PAIR_DISTANCE`. Its main id.
+pub(crate) fn arena_quest(model: u32, centre: [f32; 2], floor: f32) -> Option<u32> {
+    let index = INDEX.read().unwrap();
+    index
+        .by_playfield
+        .get(&model)?
+        .iter()
+        .map(|&i| &index.quests[i])
+        .filter_map(|q| match &q.area {
+            Shape::Polygon { points, heights } if points.len() >= 3 && (heights[0] - floor).abs() <= ARENA_PAIR_HEIGHT => {
+                Some((q.main, polygon_distance(points, centre)))
+            }
+            _ => None,
+        })
+        .filter(|&(_, d)| d <= ARENA_PAIR_DISTANCE)
+        .min_by(|a, b| a.1.total_cmp(&b.1))
+        .map(|(main, _)| main)
+}
+
+/// How far (x z) `p` lies outside a polygon (0 inside).
+fn polygon_distance(points: &[[f32; 2]], p: [f32; 2]) -> f32 {
+    let (x, z) = (p[0], p[1]);
+    let mut inside = false;
+    let mut best = f32::MAX;
+    for i in 0..points.len() {
+        let (a, b) = (points[i], points[(i + points.len() - 1) % points.len()]);
+        if (a[1] > z) != (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0] {
+            inside = !inside;
+        }
+        let (dx, dz) = (b[0] - a[0], b[1] - a[1]);
+        let t = (((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz).max(1e-6)).clamp(0.0, 1.0);
+        best = best.min((x - a[0] - t * dx).hypot(z - a[1] - t * dz));
+    }
+    if inside { 0.0 } else { best }
+}
+
+/// An area quest's name and steps' count (`!area`).
+pub(crate) fn area_quest_name(main: u32) -> Option<(String, usize)> {
+    let index = INDEX.read().unwrap();
+    index.quests.iter().find(|q| q.main == main).map(|q| (q.quest.name.clone(), q.quest.steps.len()))
+}
+
+/// The area quest whose area `pos` is in on playfield `model` (`!area`): its main id.
+pub(crate) fn area_quest_here(model: u32, pos: [f32; 3]) -> Option<u32> {
+    let index = INDEX.read().unwrap();
+    index.by_playfield.get(&model)?.iter().map(|&i| &index.quests[i]).find(|q| q.area.contains(pos, HEIGHT_SLACK)).map(|q| q.main)
+}
+
+/// Counts `event`, which happened at one of `at` (where the defeated one stood, where the player
+/// stood), toward area quest `main`'s goal at `step` as a world copy keeps it (encounter.rs: an
+/// arena's quest goal met by anyone there, whether or not the quest runs for them). Returns how
+/// many it adds (0: it doesn't count) and the goal's count; `None`: no counted goal at `step`.
+pub(crate) fn copy_counts(main: u32, step: u32, at: &[[f32; 3]], event: &Event) -> Option<(u32, u32, usize)> {
+    let index = INDEX.read().unwrap();
+    let q = index.quests.iter().find(|q| q.main == main)?;
+    let goal = q.quest.steps.get(step as usize)?.goals.iter().find(|g| g.counts.is_some())?;
+    let here = goal.anywhere || at.iter().any(|p| q.area.contains(*p, HEIGHT_SLACK));
+    Some((u32::from(here && counts(goal, event)), goal.count.max(1), q.quest.steps.len()))
+}
+
+/// Puts area quest `main` for this character back to not started, without a cooldown (`!area
+/// reset`); the tracker shows it again on entering its area.
+pub fn reset_one(t: &mut Tracker, c: &mut Character, character: u32, main: u32) -> Vec<Bytes> {
+    let shown = t.shown.remove(&main).is_some();
+    c.quests.remove(&main);
+    info!(character, main, "area quest reset");
+    if shown { vec![main_quest_removed(character, main)] } else { Vec::new() }
+}
+
+/// Completes area quest `main` for this character at once, as its last goal being met would
+/// (`!area complete`): started first if it isn't shown, cooldown and rewards as usual.
+pub fn complete_one(t: &mut Tracker, c: &mut Character, character: u32, main: u32) -> Vec<Bytes> {
+    let mut records = Vec::new();
+    {
+        let index = INDEX.read().unwrap();
+        let Some(q) = index.quests.iter().find(|q| q.main == main) else { return records };
+        let state = c.quests.entry(main).or_default();
+        // (a cooldown doesn't stop it)
+        state.cooldown_until = 0;
+        if !t.shown.contains_key(&main) {
+            records.push(main_quest_added(character, &q.line(), state.step));
+            records.push(full_update(character, &q.line(), state.step as usize, state.progress, false));
+            t.shown.insert(main, false);
+        }
+    }
+    // every remaining step: its goal met
+    for _ in 0..64 {
+        if !t.shown.contains_key(&main) {
+            break;
+        }
+        records.extend(advance(t, c, character, u32::MAX as u64, &|q, _, _| q.main == main, true));
+    }
+    records
+}
+
 /// Whether `event` counts toward `goal`.
 pub(crate) fn counts(goal: &lmoxide_content::QuestGoal, event: &Event) -> bool {
     let (name, ok) = match (goal.counts.as_deref(), event) {
@@ -354,27 +457,35 @@ pub fn pickup_drops(t: &Tracker, c: &Character, event: &Event) -> Vec<u32> {
 
 /// Advances (by `times`) the shown quests whose current goal `ok(quest, goal, paused)` accepts.
 fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64, ok: &dyn Fn(&AreaQuest, &lmoxide_content::QuestGoal, bool) -> bool) -> Vec<Bytes> {
+    advance(t, c, character, times, ok, false)
+}
+
+/// `advance_where`; `force`: also goals the server doesn't count (`!area complete`).
+fn advance(t: &mut Tracker, c: &mut Character, character: u32, times: u64, ok: &dyn Fn(&AreaQuest, &lmoxide_content::QuestGoal, bool) -> bool, force: bool) -> Vec<Bytes> {
     let index = INDEX.read().unwrap();
     let Some(list) = index.by_playfield.get(&t.playfield.model()) else { return Vec::new() };
 
     let now = unix_now();
     let mut records = Vec::new();
+    // area quests completed (their arenas open: encounter.rs)
+    let mut done = Vec::new();
     for &i in list {
         let q = &index.quests[i];
         let Some(&paused) = t.shown.get(&q.main) else { continue };
         let Some(state) = c.quests.get_mut(&q.main) else { continue };
         let Some(step) = q.quest.steps.get(state.step as usize) else { continue };
-        let Some(goal) = step.goals.iter().find(|g| g.counts.is_some() || g.area.is_some()) else { continue };
+        let Some(goal) = step.goals.iter().find(|g| g.counts.is_some() || g.area.is_some()).or(if force { step.goals.first() } else { None }) else { continue };
         if !ok(q, goal, paused) {
             continue;
         }
-        let n = (times.min(u32::MAX as u64) as u32).min(goal.count.saturating_sub(state.progress));
+        let count = if force { goal.count.max(1) } else { goal.count };
+        let n = (times.min(u32::MAX as u64) as u32).min(count.saturating_sub(state.progress));
         if n == 0 {
             continue;
         }
         state.progress += n;
         info!(character, main = q.main, progress = state.progress, count = goal.count, "quest progress");
-        if state.progress < goal.count {
+        if state.progress < count {
             records.push(goal_record(character, step.quest, goal.goal, 2, goal.step() * n));
             continue;
         }
@@ -405,6 +516,11 @@ fn advance_where(t: &mut Tracker, c: &mut Character, character: u32, times: u64,
         if let Some(script) = &q.quest.reward_script {
             reward_script(character, script);
         }
+        done.push(q.main);
+    }
+    drop(index);
+    for main in done {
+        crate::encounter::quest_done(t.playfield, main);
     }
     records
 }

@@ -1855,6 +1855,26 @@ pub async fn handle(mut conn: Conn, cfg: Arc<Config>) -> anyhow::Result<()> {
                                 warn!(character, "saving character failed: {e:#}");
                             }
                         }
+                        crate::devcmd::Action::Area(how) => {
+                            let at = world::live_position(Id32::new(crate::territory::CHARACTER_TYPE, character)).unwrap_or(me.pos);
+                            let (lines, main) = crate::encounter::area_command(place, at, how);
+                            let records = match (how, main) {
+                                (Some(true), Some(main)) => crate::quests::complete_one(&mut quest_tracker, &mut me, character, main),
+                                (Some(false), Some(main)) => crate::quests::reset_one(&mut quest_tracker, &mut me, character, main),
+                                _ => Vec::new(),
+                            };
+                            send_records(&mut conn, character, records).await?;
+                            for line in lines {
+                                crate::chat::system(character, &line);
+                            }
+                            if how.is_some() && main.is_some() {
+                                let line = if how == Some(true) { "  the quest: completed for you" } else { "  the quest: your progress and cooldown cleared (walk in again to start it)" };
+                                crate::chat::system(character, line);
+                                if let Err(e) = store.save(character, &me) {
+                                    warn!(character, "saving character failed: {e:#}");
+                                }
+                            }
+                        }
                         crate::devcmd::Action::Achievements => {
                             let (earned, total) = crate::achievements::summary(&me);
                             let count = |stat: u32| me.counters.get(&stat).and_then(|m| m.get(&0)).copied().unwrap_or(0);

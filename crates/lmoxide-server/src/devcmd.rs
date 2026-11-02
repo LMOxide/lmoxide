@@ -47,6 +47,8 @@
 //!   !keygate <open|reset>     open the Underworld's front gate as its pedestal does, or put it
 //!                             (and the collapsing floor) back
 //!   !plates <solve|reset>     light every plate of the Gauntlet's plate room, or none
+//!   !area [complete|reset]    the area quest you're in (or the nearest arena's): complete it
+//!                             for you and open its arenas, or reset both; bare: their state
 //!   !revive                   every minifigure (team and collection) back to full health
 //!   !smashme                  smash the active minifigure (it rebuilds after the smash timer)
 //!   !loot <kind>              drop a loot bag at your feet: potion, part, bag, chest, memberchest,
@@ -114,6 +116,8 @@ pub enum Action {
     Achievements,
     /// show the quests (true: clear their progress and cooldowns first)
     Quests(bool),
+    /// `!area`: the area quest here and its arenas (`Some(true)` complete, `Some(false)` reset)
+    Area(Option<bool>),
     /// Take achievements away (`None`: all of them).
     RemoveAchievements(Option<Vec<u32>>),
     /// rename a character (`None`: one's own) (`!rename`; control::rename)
@@ -247,6 +251,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
     ("!mirrors <solve|reset>", "turn this playfield's Medusa mirrors to the solution or the start"),
     ("!keygate <open|reset>", "open the Underworld's front gate as its pedestal does (crystal, light, gate), or put it and the collapsing floor back"),
     ("!plates <solve|reset>", "light every plate of the Gauntlet's plate room, or none"),
+    ("!area [complete|reset]", "the area quest you're in (else the nearest arena's within 60 m): complete it for you and open its arenas (as its goal met), or reset your progress and cooldown and its arenas (doors, the copy's goal count); bare: the quest, its arenas and their state"),
     ("!fx <id> [hook] [@near|@ground]", "play effect package <id> on yourself, from a code hook (onhit, charge, ...), on the nearest enemy as target (@near) or at your feet (@ground)"),
     ("!speed [factor]", "your movement speed: 1 normal, 0.5 half, 2 double (0.1 to 10; kept with the character across logins); without a factor: the current one"),
     ("!buff <buff> [secs]", "put a content buff on yourself as a trigger's apply_buff does (`!buff speed-pad 60`: the speed pad's buff and its trail)"),
@@ -267,7 +272,7 @@ pub const COMMANDS: &[(&str, &str)] = &[
 /// states, and the dev UI's Quick section.
 pub const TESTER_COMMANDS: &[&str] = &[
     "help", "where", "tp", "moveto", "move", "list", "goto", "test", "own", "dialog", "ach", "count", "defeat", "anim", "skin",
-    "state", "revive", "smash", "smashme", "xp", "stars", "mirrors", "plates",
+    "state", "revive", "smash", "smashme", "xp", "stars", "mirrors", "plates", "area",
 ];
 
 /// The commands only admins have (`--admin-gm-level`).
@@ -852,6 +857,12 @@ pub fn run(message: &str, playfield: Pf, pos: [f32; 3]) -> Action {
                 _ => reply(vec!["usage: !story [reset] | quest <line> <step> | advance [line] | goal <hash> | progress <hash> [n] | spawn <hash> | beat <text> | dialogue <id> | seen <cinematic>".into()]),
             }
         }
+        "area" => match args.first().copied() {
+            None => Action::Area(None),
+            Some("complete") => Action::Area(Some(true)),
+            Some("reset") => Action::Area(Some(false)),
+            _ => reply(vec!["usage: !area [complete|reset]".into()]),
+        },
         "ach" | "achievements" => Action::Achievements,
         "quests" | "quest" => match args.first().copied() {
             None => Action::Quests(false),

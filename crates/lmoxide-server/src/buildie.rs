@@ -343,10 +343,12 @@ async fn build(id: Id32) {
         b.progress = (b.progress + rate).min(b.def.max);
         records.push(stat_record(id, STAT_HEALTH, b.progress));
         let done = b.progress >= b.def.max;
+        let mut built_event = None;
         if done {
             b.state = State::Built;
             info!(builders = ?stay, buildie = %b.def.name, "built");
             let event = crate::achievements::Event::Built { name: b.def.name.clone() };
+            built_event = Some(event.clone());
             // every builder counts it; their teammates there count it once (TeamProgress)
             let mut told: std::collections::HashSet<u32> = stay.iter().map(|p| p.instance).collect();
             for &p in &stay {
@@ -366,6 +368,9 @@ async fn build(id: Id32) {
         drop(buildies);
         world::send_playfield(id, false, world::Out::Records(records));
         if done {
+            if let Some(event) = &built_event {
+                crate::encounter::world_event(playfield, &[pos], event);
+            }
             crate::jumppad::activate(playfield, pos);
             crate::gates::built(id);
             crate::tiki::built(id);

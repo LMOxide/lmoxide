@@ -19,6 +19,13 @@
 //! won arena, a spent ambush and a fallen champion stay so until nobody is left there (a new
 //! instance). In the open worlds they come back after their rest.
 //!
+//! Arena quests: an arena whose start lies in an area quest's area (the `Quest_*` area the quest
+//! starts in as the player walks through the arena's door) is that quest's arena. Its doors open
+//! (as when its boss falls) once the quest is done: a player completing it there, or its goal met
+//! in that copy by anyone (`world_event`: kills, smashes and builds in the quest's area, whether
+//! or not the quest runs for them, so a player whose quest cools down isn't shut in). Its boss
+//! falling still opens it too. Arenas without a boss never close their entrance.
+//!
 //! Exploration: the "Achievement_*" / "BA_Explore_*" areas the exploration achievements name.
 //!
 //! What lies past a boss (farther from the playfield's entrance than its arena's start: later
@@ -197,6 +204,8 @@ enum Ambush {
 #[derive(Default)]
 struct State {
     arenas: HashMap<(Pf, usize), Arena>,
+    /// Arena quests' goals as each copy counts them (`world_event`): (step, progress).
+    goals: HashMap<(Pf, usize), (u32, u32)>,
     ambushes: HashMap<(Pf, usize), Ambush>,
     /// side dungeons: the champion and when the next may come
     champions: HashMap<Pf, (Option<Id32>, Instant)>,
@@ -577,7 +586,7 @@ fn tick() {
     // pocket worlds nobody is in any more: a new instance next time
     let pockets: HashSet<Pf> = {
         let st = STATE.lock().unwrap();
-        st.arenas.keys().map(|k| k.0).chain(st.ambushes.keys().map(|k| k.0)).chain(st.champions.keys().copied()).filter(|pf| pocket(*pf)).collect()
+        st.arenas.keys().map(|k| k.0).chain(st.ambushes.keys().map(|k| k.0)).chain(st.goals.keys().map(|k| k.0)).chain(st.champions.keys().copied()).filter(|pf| pocket(*pf)).collect()
     };
     for playfield in pockets {
         if world::positions(playfield).iter().any(|(id, _)| crate::npc::is_player(*id)) {
@@ -587,6 +596,7 @@ fn tick() {
             let mut st = STATE.lock().unwrap();
             st.ambushes.retain(|k, a| k.0 != playfield || matches!(a, Ambush::Wave { .. }));
             st.champions.retain(|pf, (id, _)| *pf != playfield || id.is_some());
+            st.goals.retain(|k, _| k.0 != playfield);
             let won = st.arenas.iter().filter(|(k, a)| k.0 == playfield && matches!(a, Arena::Won { .. })).map(|(k, _)| k.1).collect();
             st.arenas.retain(|k, a| k.0 != playfield || !matches!(a, Arena::Won { .. }));
             won
@@ -604,7 +614,149 @@ pub fn forget(pf: Pf) {
     let mut st = STATE.lock().unwrap();
     st.arenas.retain(|k, _| k.0 != pf);
     st.ambushes.retain(|k, _| k.0 != pf);
+    st.goals.retain(|k, _| k.0 != pf);
     st.champions.remove(&pf);
+}
+
+/// The area quest (main id) arena `i` of playfield `model` belongs to (quests.rs `arena_quest`).
+fn quest_of(model: u32, i: usize) -> Option<u32> {
+    let a = &DATA.get(&model)?.arenas.get(i)?.area;
+    crate::quests::arena_quest(model, a.centre(), a.heights[0])
+}
+
+/// Arena `i` of copy `pf` is won without its boss (`why`: its quest done, a test command): its
+/// doors open, the engaged players' boss music stops. The boss, if it stands, stays.
+fn win(pf: Pf, i: usize, why: &str) -> bool {
+    let Some(def) = DATA.get(&pf.model()).and_then(|d| d.arenas.get(i)) else { return false };
+    let before = {
+        let mut st = STATE.lock().unwrap();
+        let entry = st.arenas.entry((pf, i)).or_insert(Arena::Idle);
+        let before = entry.clone();
+        let boss = match &before {
+            Arena::Won { .. } => return false,
+            Arena::Engaged { boss, .. } => *boss,
+            // (no boss: health_of never finds it, so an open world doesn't make it ready again)
+            Arena::Idle => Id32::default(),
+        };
+        *entry = Arena::Won { boss };
+        before
+    };
+    info!(playfield = ?pf, arena = %def.area.name, why, "arena won");
+    if let Arena::Engaged { players, .. } = before {
+        for p in &players {
+            music(*p, false);
+        }
+    }
+    set_doors(pf, def);
+    true
+}
+
+/// Area quest `main` was completed by a player in copy `pf` (quests.rs): its arenas open.
+pub fn quest_done(pf: Pf, main: u32) {
+    let Some(def) = DATA.get(&pf.model()) else { return };
+    for i in 0..def.arenas.len() {
+        if quest_of(pf.model(), i) == Some(main) {
+            win(pf, i, "its quest done");
+        }
+    }
+}
+
+/// `event` happened in copy `pf` at one of `at` (where the defeated one or the buildie stood,
+/// where the player stood): it counts toward the arena quests' goals there, as the copy keeps
+/// them; a goal's last step met opens its arena.
+pub fn world_event(pf: Pf, at: &[[f32; 3]], event: &crate::achievements::Event) {
+    let Some(def) = DATA.get(&pf.model()) else { return };
+    if crate::instance::rules(pf).editor {
+        return;
+    }
+    for i in 0..def.arenas.len() {
+        let Some(main) = quest_of(pf.model(), i) else { continue };
+        let (won, (step, progress)) = {
+            let st = STATE.lock().unwrap();
+            (matches!(st.arenas.get(&(pf, i)), Some(Arena::Won { .. })), st.goals.get(&(pf, i)).copied().unwrap_or_default())
+        };
+        if won {
+            continue;
+        }
+        let Some((n, count, steps)) = crate::quests::copy_counts(main, step, at, event) else { continue };
+        if n == 0 {
+            continue;
+        }
+        let (step, progress) = if progress + n >= count { (step + 1, 0) } else { (step, progress + n) };
+        info!(playfield = ?pf, arena = %def.arenas[i].area.name, main, step, progress, count, "arena quest goal (copy)");
+        STATE.lock().unwrap().goals.insert((pf, i), (step, progress));
+        if step as usize >= steps {
+            win(pf, i, "its quest's goal met");
+        }
+    }
+}
+
+/// `!area [complete|reset]` at `pos` in copy `pf`: the area quest the player is in (else the one
+/// of the nearest arena within 60 m) and its arenas. `complete`: they open (the caller
+/// completes the quest for the player); `reset`: back to unengaged with their doors and the
+/// copy's goal count reset (a fallen boss stays down; a standing one is healed). Returns the
+/// reply and the quest's main id.
+pub fn area_command(pf: Pf, pos: [f32; 3], how: Option<bool>) -> (Vec<String>, Option<u32>) {
+    let model = pf.model();
+    let arenas = DATA.get(&model).map(|d| d.arenas.as_slice()).unwrap_or_default();
+    let main = crate::quests::area_quest_here(model, pos).or_else(|| {
+        arenas
+            .iter()
+            .enumerate()
+            .map(|(i, a)| (i, (a.area.centre()[0] - pos[0]).hypot(a.area.centre()[1] - pos[2])))
+            .filter(|&(_, d)| d <= 60.0)
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .and_then(|(i, _)| quest_of(model, i))
+    });
+    let mine: Vec<usize> = (0..arenas.len()).filter(|&i| main.is_some() && quest_of(model, i) == main).collect();
+    let mut lines = Vec::new();
+    match main.and_then(crate::quests::area_quest_name) {
+        Some((name, _)) => lines.push(format!("area quest: {name} (main {})", main.unwrap_or_default())),
+        None => lines.push("no area quest here (nor an arena's within 60 m)".into()),
+    }
+    if main.is_some() && mine.is_empty() {
+        lines.push("  no arena belongs to it".into());
+    }
+    for &i in &mine {
+        let a = &arenas[i];
+        match how {
+            Some(true) => {
+                let opened = win(pf, i, "!area complete");
+                lines.push(format!("  arena {}: {}", a.area.name, if opened { "won, its doors open" } else { "was won already" }));
+            }
+            Some(false) => {
+                let before = {
+                    let mut st = STATE.lock().unwrap();
+                    st.goals.remove(&(pf, i));
+                    st.arenas.insert((pf, i), Arena::Idle)
+                };
+                match before {
+                    Some(Arena::Engaged { boss, players, .. }) => {
+                        crate::npc::restore(boss);
+                        crate::npc::despawn_spawned_by(boss);
+                        for p in &players {
+                            music(*p, false);
+                        }
+                    }
+                    Some(Arena::Won { boss }) => crate::npc::restore(boss),
+                    _ => {}
+                }
+                set_doors(pf, a);
+                lines.push(format!("  arena {}: reset (doors as before the fight, goal count 0)", a.area.name));
+            }
+            None => {
+                let st = STATE.lock().unwrap();
+                let state = match st.arenas.get(&(pf, i)) {
+                    Some(Arena::Engaged { .. }) => "engaged",
+                    Some(Arena::Won { .. }) => "won",
+                    _ => "idle",
+                };
+                let (step, progress) = st.goals.get(&(pf, i)).copied().unwrap_or_default();
+                lines.push(format!("  arena {}: {state}; copy's goal count: step {}, {progress}", a.area.name, step + 1));
+            }
+        }
+    }
+    (lines, main)
 }
 
 /// Shows every arena door on `playfield` as it is now (a mirror puzzle solved or reset).
@@ -653,6 +805,46 @@ mod tests {
         assert!(SHIELDS.len() >= 10, "{} shields", SHIELDS.len());
     }
     use super::*;
+
+    #[test]
+    fn arenas_pair_with_their_quests() {
+        let name = |pf: u32, arena: &str| {
+            let i = DATA[&pf].arenas.iter().position(|a| a.area.name == arena).unwrap();
+            quest_of(pf, i).and_then(crate::quests::area_quest_name).map(|q| q.0)
+        };
+        assert_eq!(name(5500, "MiniBossEncounter_Start_Arena").as_deref(), Some("Best the Champion of the Arena"));
+        assert_eq!(name(3300, "EventEncounter_Start_Platform").as_deref(), Some("Fend off the invaders"));
+        // 4 m out of Quest_Boss
+        assert_eq!(name(4500, "BossEncounter_Start_CrikeyTheKraken").as_deref(), Some("Defeat Crikey the Kraken"));
+        // the Research forcefield room's miniboss: its own quest, not the Port's 12 m away
+        assert_eq!(name(3310, "MinibossEncounter_Start_Mech").as_deref(), Some("Defeat Shadrack Circuit-burn"));
+        // no quest area: Pete (12 m from the nearest), Hades, the Skyforge
+        assert_eq!(name(4300, "BossEncounter_Start_Pete"), None);
+        assert_eq!(name(2500, "Gorgonzola_Start"), None);
+        let paired: usize = DATA.iter().map(|(&pf, d)| (0..d.arenas.len()).filter(|&i| quest_of(pf, i).is_some()).count()).sum();
+        println!("{paired} arenas have a quest");
+        assert!(paired >= 25, "{paired}");
+    }
+
+    #[test]
+    fn a_copy_counts_an_arena_quest_goal() {
+        // the Space HQ platform event: "Fend off the invaders", 3 kills in Quest_Platform
+        let pf = Pf::main(3300);
+        let i = DATA[&3300].arenas.iter().position(|a| a.area.name == "EventEncounter_Start_Platform").unwrap();
+        let c = DATA[&3300].arenas[i].area.centre();
+        let at = [c[0], DATA[&3300].arenas[i].area.heights[0] + 1.0, c[1]];
+        let kill = crate::achievements::Event::Defeated { id: Id32::default(), name: "Space Merc Brawler".into(), smashable: false, boss: false, champion: false, level: 1, playfield: 3300 };
+        assert_eq!(door_hidden(pf, DATA[&3300].arenas[i].doors.exit[0]), Some(false));
+        // far away: doesn't count
+        world_event(pf, &[[at[0] + 300.0, at[1], at[2]]], &kill);
+        assert!(STATE.lock().unwrap().goals.get(&(pf, i)).is_none());
+        for _ in 0..3 {
+            world_event(pf, &[at], &kill);
+        }
+        assert!(matches!(STATE.lock().unwrap().arenas.get(&(pf, i)), Some(Arena::Won { .. })));
+        assert_eq!(door_hidden(pf, DATA[&3300].arenas[i].doors.exit[0]), Some(true));
+        forget(pf);
+    }
 
     #[test]
     fn data_and_polygons() {

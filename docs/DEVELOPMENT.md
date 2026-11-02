@@ -59,6 +59,7 @@ test commands may type `!story reset` too; a GM's `!story reset` is the test com
 | `!window <id>` | open teleport window `<id>` (RDB 1000644) as a portal would; 73 and 74 ask "Do you want to travel to …?" like their portals (`!goto portal n` lands next to a portal: walk 8 m away, then step in) |
 | `!aura <0-4>` | set the active minifigure's aura tier |
 | `!plates <solve\|reset>` | light every plate of the Gauntlet's plate room (`!test plates`), or none |
+| `!area [complete\|reset]` | the area quest you're in (else the nearest arena's within 60 m): `complete` completes it for you and opens its arenas (as its goal met); `reset` clears your progress and cooldown and puts its arenas back (doors, the copy's goal count; a fallen boss stays down); bare: the quest, its arenas, their state and the copy's goal count |
 | `!keygate <open\|reset>` | open the Underworld's front gate as its pedestal does (crystal, light, gate), or put it and the collapsing floor behind it back (`!goto pedestal` goes there) |
 | `!mirrors <solve\|reset>` | turn this playfield's Medusa mirrors (Armory, Gauntlet) to the solution or back to the start (`!test mirrors`, `!test mirrors2` go there) |
 | `!team <name>` | team up with that online character at once (you lead), without the invite window: for testing what teams share (kills, smashes, builds, clears) |

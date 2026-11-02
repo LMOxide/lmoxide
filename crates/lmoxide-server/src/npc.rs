@@ -1631,6 +1631,14 @@ pub fn hit(attacker: Id32, target: Id32, spell: u32, damage: u32) -> Option<bool
             };
             if by_player {
                 crate::community::share(attacker.instance, npc.playfield, &event);
+                // an arena quest's goal as the copy counts it (encounter.rs; not under NPCS)
+                if let Ok(rt) = tokio::runtime::Handle::try_current() {
+                    let (pf, at, event) = (npc.playfield, *npc.pos.lock().unwrap(), event.clone());
+                    rt.spawn(async move {
+                        let by = world::whereabouts(attacker).map(|(_, p)| p);
+                        crate::encounter::world_event(pf, &[Some(at), by].into_iter().flatten().collect::<Vec<_>>(), &event);
+                    });
+                }
             }
             world::send_to(attacker, world::Out::Progress(event));
         }
