@@ -5,7 +5,7 @@
 //! walls (triggers.rs); jump pads come with world_data.rs.
 //!
 //! What editors commit goes on their branches of the world editor's working copy
-//! (lmoxide_content::contrib); admins see those commits and merge or reject them here
+//! (lmoxide_content::contrib); admins review those branches and merge or reject them here
 //! (`/v1/content` on the control interface, through lmoxide-api), on a server that runs the
 //! world editor. Merged commits are on the working copy's `main`; play servers take them once
 //! they are in the content they run (pushed to the content repository, pulled).
@@ -24,7 +24,7 @@ use axum::{
     routing::{get, post},
 };
 use lmoxide_content::id::RecordKind;
-use lmoxide_content::contrib::Contribution;
+use lmoxide_content::contrib::Branch;
 use lmoxide_content::views;
 use lmoxide_content::work::Work;
 use serde::Deserialize;
@@ -141,10 +141,10 @@ pub fn save_point(pf: u32, name: &str, pos: [f32; 3], heading: f32, author: &str
 pub fn routes() -> Router {
     Router::new()
         .route("/v1/content/state", get(state))
-        .route("/v1/content/commits", get(commits))
-        .route("/v1/content/commits/{hash}", get(commit))
-        .route("/v1/content/commits/{hash}/merge", post(merge))
-        .route("/v1/content/commits/{hash}/reject", post(reject))
+        .route("/v1/content/branches", get(branches))
+        .route("/v1/content/branches/{owner}/{name}", get(branch))
+        .route("/v1/content/branches/{owner}/{name}/merge", post(merge))
+        .route("/v1/content/branches/{owner}/{name}/reject", post(reject))
 }
 
 struct Error(StatusCode, String, Vec<String>);
@@ -153,7 +153,7 @@ impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let mut body = json!({ "code": "content", "message": self.1 });
         if !self.2.is_empty() {
-            body["files"] = json!(self.2);
+            body["records"] = json!(self.2);
         }
         (self.0, Json(json!({ "error": body }))).into_response()
     }
@@ -164,15 +164,15 @@ impl From<ReviewError> for Error {
         match e {
             ReviewError::Off => Error(StatusCode::NOT_FOUND, "this server has no world editor content (a working copy, --editor-content-dir)".into(), Vec::new()),
             ReviewError::NotFound(m) => Error(StatusCode::NOT_FOUND, m, Vec::new()),
-            ReviewError::Conflict(m, files) if !files.is_empty() => Error(StatusCode::CONFLICT, format!("{m} ({})", files.join(", ")), files),
-            ReviewError::Conflict(m, files) => Error(StatusCode::CONFLICT, m, files),
+            ReviewError::Refused(m) => Error(StatusCode::CONFLICT, m, Vec::new()),
+            ReviewError::Conflict(m, ids) => Error(StatusCode::CONFLICT, format!("{m}: {}", ids.join(", ")), ids),
             ReviewError::Internal(m) => Error(StatusCode::INTERNAL_SERVER_ERROR, m, Vec::new()),
         }
     }
 }
 
-/// The content this server runs, how many contributor commits wait, and how many merged ones
-/// the content repository (`origin`) doesn't have yet.
+/// The content this server runs, how many contributor branches wait for review, and how many
+/// merged commits the content repository (`origin`) doesn't have yet.
 async fn state() -> Json<Value> {
     let review = crate::editor::review(|ed| Ok(crate::editor::review_state(ed))).await.ok();
     Json(json!({
@@ -182,25 +182,36 @@ async fn state() -> Json<Value> {
     }))
 }
 
-/// Every contributor commit, oldest first: pending, merged and rejected.
-async fn commits() -> Result<Json<Vec<Contribution>>, Error> {
-    Ok(Json(crate::editor::review(crate::editor::contributions).await?))
+/// Every contributor branch: open ones (pending, rejected, open), then closed ones (merged,
+/// reset, deleted).
+async fn branches() -> Result<Json<Vec<Branch>>, Error> {
+    Ok(Json(crate::editor::review(crate::editor::branches).await?))
 }
 
-async fn commit(UrlPath(hash): UrlPath<String>) -> Result<Json<Contribution>, Error> {
-    let all = crate::editor::review(crate::editor::contributions).await?;
-    all.into_iter()
-        .find(|c| c.hash == hash || (hash.len() >= 7 && c.hash.starts_with(&hash)))
-        .map(Json)
-        .ok_or_else(|| Error(StatusCode::NOT_FOUND, format!("no contributor commit {hash}"), Vec::new()))
+async fn branch(UrlPath((owner, name)): UrlPath<(String, String)>) -> Result<Json<Branch>, Error> {
+    let want = format!("contrib/{owner}/{name}");
+    let all = crate::editor::review(crate::editor::branches).await?;
+    all.into_iter().find(|b| b.branch == want && b.closed.is_none()).map(Json).ok_or_else(|| Error(StatusCode::NOT_FOUND, format!("no branch {want}"), Vec::new()))
 }
 
-/// Merges a pending commit into the content (the working copy's `main`), as its contributor,
-/// with `Approved-By:` the caller. 409 with `files` when the content changed them since.
-async fn merge(headers: HeaderMap, UrlPath(hash): UrlPath<String>) -> Result<Json<Value>, Error> {
+#[derive(Deserialize, Default)]
+#[serde(default)]
+struct MergeRequest {
+    /// The merge commit's message (default: the branch's commits').
+    message: Option<String>,
+    /// Put the branch's versions over records the content changed since it started.
+    force: bool,
+}
+
+/// Merges a branch into the content (the working copy's `main`) as one commit by its editor,
+/// with `Approved-By:` the caller; the branch starts again from there. 409 with `records` when
+/// the content changed some of its records since (`force` to merge anyway).
+async fn merge(headers: HeaderMap, UrlPath((owner, name)): UrlPath<(String, String)>, body: Option<Json<MergeRequest>>) -> Result<Json<Value>, Error> {
     let by = crate::survey::author_of(&headers);
-    let (c, merged) = crate::editor::review(move |ed| crate::editor::merge_contribution(ed, &hash, &by)).await?;
-    Ok(Json(json!({ "merged": merged, "commit": c })))
+    let r = body.map(|b| b.0).unwrap_or_default();
+    let branch = format!("contrib/{owner}/{name}");
+    let (b, merged) = crate::editor::review(move |ed| crate::editor::merge_branch(ed, &branch, &by, r.message, r.force)).await?;
+    Ok(Json(json!({ "merged": merged, "branch": b })))
 }
 
 #[derive(Deserialize, Default)]
@@ -209,9 +220,10 @@ struct Rejection {
     reason: Option<String>,
 }
 
-/// Rejects a pending commit with a reason; it stays on the contributor's branch.
-async fn reject(headers: HeaderMap, UrlPath(hash): UrlPath<String>, body: Option<Json<Rejection>>) -> Result<Json<Contribution>, Error> {
+/// Rejects a branch with a reason: rejected until its editor commits to it again.
+async fn reject(headers: HeaderMap, UrlPath((owner, name)): UrlPath<(String, String)>, body: Option<Json<Rejection>>) -> Result<Json<Branch>, Error> {
     let by = crate::survey::author_of(&headers);
     let reason = body.and_then(|b| b.0.reason).filter(|r| !r.trim().is_empty());
-    Ok(Json(crate::editor::review(move |ed| crate::editor::reject_contribution(ed, &hash, &by, reason)).await?))
+    let branch = format!("contrib/{owner}/{name}");
+    Ok(Json(crate::editor::review(move |ed| crate::editor::reject_branch(ed, &branch, &by, reason)).await?))
 }

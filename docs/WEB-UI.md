@@ -61,18 +61,14 @@ would answer 403.
 | `admin` | create/rename/delete accounts, set passwords and GM levels, maintenance mode, API keys (secret shown once at creation), audit log, **world content** (below) |
 
 **World content** (admin; docs/WORLD-CONTENT.md, routes `/v1/content/...`, not in openapi.json;
-changed 2026-11-02): world editors commit their changes with a message to their own branch;
-admins merge or reject each commit. `GET /v1/content/commits` (oldest first) and
-`GET /v1/content/commits/{hash}`: `hash`, `branch` (`contrib/<name>`), `author` (whose changes),
-`by` (who committed them), `created` (unix), `subject`, `message` (the whole commit message),
-`status` (`pending`, `merged`, `rejected`), `decision` (`{status, by, at, reason?, merged_as?}`)
-and its `records`: each content record's `id`, `feature`, `change` (`added`, `changed`,
-`removed`), `file`, `author`, and the record `before` and `after` (JSON; show the fields that
-differ). `POST /v1/content/commits/{hash}/merge` merges it (`{merged, commit}`; 409 when decided
-already, or with `error.files` when the content changed those files since: the contributor needs
-to commit again). `POST /v1/content/commits/{hash}/reject {reason}`. `GET /v1/content/state`:
-`pending` (the badge count) and `unpushed` (merged commits not in the content repository yet).
-The publish queue routes (`/v1/content/queue`, `approve`, `reject`) are gone.
+changed 2026-11-02): world editors commit their changes with messages to branches of theirs
+(`contrib/<editor>/<name>`); admins review a branch as a whole. `GET /v1/content/branches` (open
+ones first, then merged/reset/deleted ones; fields in docs/WORLD-CONTENT.md): its title, author,
+`status`, its `commits` (hash, subject, whole message, who committed), its `records` with
+`before` (the content now) and `after` (the branch; show the fields that differ) and `conflict`
+(the content changed it since the branch started). `POST .../{editor}/{name}/merge
+{message?, force?}` (409 with `error.records` on conflicts unless `force`), `POST .../reject
+{reason}`. `GET /v1/content/state`: `pending` (the badge count) and `unpushed`.
 
 Moderators get 403 when they kick or ban staff (accounts with a GM level); only admins can.
 

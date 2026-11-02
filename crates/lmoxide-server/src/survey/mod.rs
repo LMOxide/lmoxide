@@ -1217,6 +1217,18 @@ impl IntoResponse for Error {
 
 type R<T> = Result<Json<T>, Error>;
 
+impl From<crate::editor::ReviewError> for Error {
+    fn from(e: crate::editor::ReviewError) -> Self {
+        use crate::editor::ReviewError as E;
+        match e {
+            E::Off => Error::Off,
+            E::NotFound(m) => Error::NotFound(m),
+            E::Refused(m) | E::Internal(m) => Error::Invalid(m),
+            E::Conflict(m, ids) => Error::Invalid(format!("{m}: {}", ids.join(", "))),
+        }
+    }
+}
+
 /// Runs `f` on the working copy and the survey state (in that lock order: crate::editor).
 fn with_work<T>(f: impl FnOnce(&mut Work, &mut State) -> Result<T, Error>) -> Result<T, Error> {
     crate::editor::work(|work| with(|st| f(work, st))).unwrap_or(Err(Error::Off))
@@ -1283,7 +1295,9 @@ pub fn routes() -> Router {
         .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/unpublished", get(unpublished))
         .route("/v1/survey/commit", post(commit))
-        .route("/v1/survey/commits", get(commits))
+        .route("/v1/survey/branches", get(branches))
+        .route("/v1/survey/branches/{owner}/{name}", axum::routing::delete(delete_branch))
+        .route("/v1/survey/branches/{owner}/{name}/reset", post(reset_branch))
         .route("/v1/survey/download", get(download))
         .route("/v1/survey/export", get(export))
 }
@@ -2239,16 +2253,16 @@ fn playfield_name(pf: u32) -> String {
     crate::teleport::destination(pf).map_or_else(|| pf.to_string(), |d| d.name.clone())
 }
 
-/// The working copy's records changed since its last commit and not committed to their author's
-/// branch as they are (lmoxide_content::contrib).
+/// The working copy's records changed since its last commit and not committed to one of their
+/// author's branches as they are (lmoxide_content::contrib).
 fn unpublished_changes(work: &Work) -> Result<Vec<git::Change>, Error> {
-    let mut branches: HashMap<String, BTreeMap<Key, Option<serde_json::Value>>> = HashMap::new();
+    let mut branches: HashMap<String, BTreeMap<Key, Vec<Option<serde_json::Value>>>> = HashMap::new();
     let all = git::changes(work).map_err(|e| Error::Invalid(format!("{e:#}")))?;
     Ok(all
         .into_iter()
         .filter(|c| {
             let on = branches.entry(c.author.clone()).or_insert_with(|| contrib::committed(work.dir(), &c.author));
-            on.get(&c.key) != Some(&c.after)
+            on.get(&c.key).is_none_or(|values| !values.contains(&c.after))
         })
         .collect())
 }
@@ -2306,6 +2320,8 @@ async fn unpublished(headers: HeaderMap) -> R<Vec<Unpublished>> {
 struct CommitRequest {
     /// The commit message: what changed and why.
     message: String,
+    /// The branch's name (one of the author's, or a new one; default "changes").
+    branch: Option<String>,
     /// Only this playfield's changes.
     playfield: Option<u32>,
     /// Only this feature's changes.
@@ -2326,9 +2342,9 @@ struct Committed {
     unpublished: Vec<Unpublished>,
 }
 
-/// Commits changes of one editor (default the caller) to their branch, `contrib/<name>`
-/// (lmoxide_content::contrib): for an admin to merge into the content. They stay in the working
-/// copy as they are.
+/// Commits changes of one editor (default the caller) to one of their branches,
+/// `contrib/<editor>/<branch>` (lmoxide_content::contrib): for an admin to merge into the
+/// content. They stay in the working copy as they are.
 async fn commit(headers: HeaderMap, Json(r): Json<CommitRequest>) -> R<Committed> {
     let me = author_of(&headers);
     let author = r.author.clone().filter(|a| !a.is_empty()).unwrap_or(me.clone());
@@ -2349,9 +2365,10 @@ async fn commit(headers: HeaderMap, Json(r): Json<CommitRequest>) -> R<Committed
                 return Err(Error::Invalid(format!("{author} has nothing uncommitted there")));
             }
             let records = chosen.len();
-            let hash = contrib::commit(work, &chosen, &author, &me, &r.message).map_err(|e| Error::Invalid(format!("not committed: {e:#}")))?;
-            info!(by = %me, author = %author, records, commit = %hash, "survey: committed");
-            Ok(Json(Committed { commit: hash, branch: contrib::branch_of(&author), records, unpublished: unpublished_of(st, work, &me)? }))
+            let name = r.branch.as_deref().map(str::trim).filter(|b| !b.is_empty()).unwrap_or("changes");
+            let (hash, branch) = contrib::commit(work, &chosen, &author, &me, name, &r.message).map_err(|e| Error::Invalid(format!("not committed: {e:#}")))?;
+            info!(by = %me, author = %author, records, commit = %hash, branch = %branch, "survey: committed");
+            Ok(Json(Committed { commit: hash, branch, records, unpublished: unpublished_of(st, work, &me)? }))
         })
     })
     .await
@@ -2359,44 +2376,62 @@ async fn commit(headers: HeaderMap, Json(r): Json<CommitRequest>) -> R<Committed
 }
 
 #[derive(Deserialize)]
-struct CommitsQuery {
-    /// Whose commits: default the caller's; `*`: everyone's.
+struct BranchesQuery {
+    /// Whose branches: default the caller's; `*`: everyone's.
     author: Option<String>,
 }
 
-/// An editor's commits (default the caller's), oldest first: pending, merged or rejected (with
-/// the admin's reason), each with its records before and after.
-async fn commits(headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<CommitsQuery>) -> R<Vec<contrib::Contribution>> {
+/// An editor's branches (default the caller's): open ones (pending, rejected, open) with their
+/// commits and records, then closed ones (merged, reset, deleted).
+async fn branches(headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<BranchesQuery>) -> R<Vec<contrib::Branch>> {
     let author = q.author.filter(|a| !a.is_empty()).unwrap_or_else(|| author_of(&headers));
-    tokio::task::spawn_blocking(move || {
-        with_work(|work, _| {
-            let all = contrib::list(work.dir()).map_err(|e| Error::Invalid(format!("{e:#}")))?;
-            let branch = contrib::branch_of(&author);
-            Ok(Json(all.into_iter().filter(|c| author == "*" || c.branch == branch).collect()))
-        })
-    })
-    .await
-    .map_err(|e| Error::Invalid(e.to_string()))?
+    let all = crate::editor::review(crate::editor::branches).await?;
+    let owner = lmoxide_content::slug(&author);
+    Ok(Json(all.into_iter().filter(|b| author == "*" || contrib::owner_of(&b.branch) == Some(owner.as_str())).collect()))
+}
+
+#[derive(Serialize)]
+struct ResetBranch {
+    branch: contrib::Branch,
+    /// Records of the working copy put back as the content has them.
+    reverted: usize,
+}
+
+/// Resets one of the caller's branches to the content: its commits are dropped (kept in the
+/// history) and its records in the working copy go back to the content's.
+async fn reset_branch(headers: HeaderMap, axum::extract::Path((owner, name)): axum::extract::Path<(String, String)>) -> R<ResetBranch> {
+    let by = author_of(&headers);
+    let branch = format!("contrib/{owner}/{name}");
+    let (branch, reverted) = crate::editor::review(move |ed| crate::editor::reset_branch(ed, &branch, &by, false)).await?;
+    Ok(Json(ResetBranch { branch, reverted }))
+}
+
+/// As [`reset_branch`], and the branch is gone.
+async fn delete_branch(headers: HeaderMap, axum::extract::Path((owner, name)): axum::extract::Path<(String, String)>) -> R<ResetBranch> {
+    let by = author_of(&headers);
+    let branch = format!("contrib/{owner}/{name}");
+    let (branch, reverted) = crate::editor::review(move |ed| crate::editor::reset_branch(ed, &branch, &by, true)).await?;
+    Ok(Json(ResetBranch { branch, reverted }))
 }
 
 #[derive(Deserialize)]
 struct DownloadQuery {
-    /// Whose commits: default the caller's.
-    author: Option<String>,
-    /// `patch` (default: `git am` applies it) or `bundle` (`git fetch <file> contrib/<name>`).
+    /// The branch (`contrib/<editor>/<name>`).
+    branch: String,
+    /// `patch` (default: `git am` applies it) or `bundle` (`git fetch <file> <branch>`).
     format: Option<String>,
 }
 
-/// An editor's commits not merged yet (default the caller's), as patches or a git bundle.
-async fn download(headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<DownloadQuery>) -> Result<Response, Error> {
-    let author = q.author.filter(|a| !a.is_empty()).unwrap_or_else(|| author_of(&headers));
+/// A branch's commits not merged yet, as patches or a git bundle.
+async fn download(axum::extract::Query(q): axum::extract::Query<DownloadQuery>) -> Result<Response, Error> {
     let format = match q.format.as_deref() {
         None | Some("patch") => contrib::Format::Patch,
         Some("bundle") => contrib::Format::Bundle,
         Some(f) => return Err(Error::Invalid(format!("format {f}: patch or bundle"))),
     };
+    let branch = q.branch;
     let bytes = tokio::task::spawn_blocking(move || {
-        with_work(|work, _| contrib::download(work.dir(), &author, format).map_err(|e| Error::NotFound(format!("{e:#}"))))
+        with_work(|work, _| contrib::download(work.dir(), &branch, format).map_err(|e| Error::NotFound(format!("{e:#}"))))
     })
     .await
     .map_err(|e| Error::Invalid(e.to_string()))??;

@@ -9,16 +9,17 @@ through the content repository's `main`, after an admin approved it.
 world editor (survey server, docs/SURVEY.md)
   var/content-work/            a git checkout of LMOxide/lmoxide-content: every editor's work,
                                saved as they make it (uncommitted: differs from main)
-        │ Commit (the editor's header): one editor's chosen changes and a message
+        │ Commit (the editor's header): one editor's chosen changes, a message, a branch
         ▼
-  contrib/<name> branches      one branch per contributor in that checkout, a commit per Commit,
-                               authored as the editor (Content-Author:; Committed-By: when an
-                               admin committed someone's changes); downloadable as patches or
-                               a git bundle
-        │ merge (web UI, admin)              reject: stays on the branch, with the reason
-        ▼
-  var/content-work main        the commit's change on top, authored as the editor, with
-                               Approved-By: and Lmoxide-Contribution: <the branch commit>
+  contrib/<editor>/<name>      as many branches per editor as they like, in that checkout; a
+                               commit per Commit, authored as the editor (Content-Author:;
+                               Committed-By: when someone committed for them); downloadable as
+                               patches or a git bundle; reset or deleted by their editor
+        │ merge the branch (web UI, admin)   reject: "changes asked for", with the reason,
+        ▼                                    until the editor commits to it again
+  var/content-work main        one commit with the branch's records as it has them, authored as
+                               the editor, Approved-By:, Lmoxide-Branch:, Lmoxide-Commits:; the
+                               branch starts again from there
         │ push to lmoxide-content main (by hand for now), play servers pull
         ▼
 play servers (content/ or --content-dir): run it from their next start
@@ -33,21 +34,23 @@ crossing one does what it says), trigger areas and walls (triggers.rs, below), s
 (scripts.rs, `!script list|start|stop`), smash rules (achievements.rs). Features: `live` and what is nested under the server's active features
 (lmoxide-content `Options::features`).
 
-Contributor commits (lmoxide_content::contrib). Contributors, on the survey server (`/v1/survey`,
-docs/SURVEY.md): `POST /commit`, `GET /commits`, `GET /download`. Admins, on a server that runs
-the world editor, on the control interface and through lmoxide-api (admin):
+Contributor branches (lmoxide_content::contrib). Editors, on the survey server (`/v1/survey`,
+docs/SURVEY.md): `POST /commit`, `GET /branches`, `POST /branches/{editor}/{name}/reset`,
+`DELETE /branches/{editor}/{name}`, `GET /download`. Admins, on a server that runs the world
+editor, on the control interface and through lmoxide-api (admin):
 
 | Route | |
 |---|---|
-| `GET /v1/content/state` | `content` (the tree it runs), `pending` (commits waiting), `unpushed` (merged commits `origin/main` doesn't have) |
-| `GET /v1/content/commits` | every contributor commit, oldest first: `hash`, `branch`, `author` (whose changes), `by` (who committed them), `created`, `subject`, `message` (the whole message, trailers left out), `status` (`pending`, `merged`, `rejected`), `decision` (`{status, by, at, reason?, merged_as?}`), `records: [{ id, feature, change, file, author, before, after }]` |
-| `GET /v1/content/commits/{hash}` | one (a hash prefix of 7+ works) |
-| `POST /v1/content/commits/{hash}/merge` | merges it into the working copy's `main` (as a cherry-pick: only that commit's change, without touching the files); records of the working copy still as the commit found them take its version and the editor's worlds respawn them. `{merged, commit}`. 409 when it was decided already, or with `files` when `main` changed those files since the commit's base (the contributor commits their records again: their next commit is on top of the content) |
-| `POST /v1/content/commits/{hash}/reject` | `{ reason }`: rejected, with the reason; it stays on the branch |
+| `GET /v1/content/state` | `content` (the tree it runs), `pending` (branches waiting), `unpushed` (merged commits `origin/main` doesn't have) |
+| `GET /v1/content/branches` | every branch: open ones (oldest first), then closed ones. `branch` (`contrib/<editor>/<name>`), `title` (the name as typed), `author`, `status` (`open`: nothing to merge, `pending`, `rejected`; closed: `merged`, `reset`, `deleted`), `tip`, `base`, `updated`, `decision` (`{status, by, at, reason, tip}`, a rejection of its current tip), `closed` (`{status, by, at, merged_as?, decision?}`), `commits: [{hash, author, by, created, subject, message}]` (oldest first; the message without trailers), `records: [{id, feature, change, file, author, before, after, conflict, base?}]` (`before` as the content has it now; a closed branch's as it started), `conflicts` |
+| `GET /v1/content/branches/{editor}/{name}` | one open branch |
+| `POST /v1/content/branches/{editor}/{name}/merge` | `{message?, force?}`: one commit on the working copy's `main` with the branch's records as it has them (record by record: a whole-record write, so edits of other records of the same file never clash), its message (default: the branch's), authored as its editor; the branch starts again from the new `main`, its commits kept in the history. Records of the working copy still as the content had them take the branch's version and the editor's worlds respawn them. `{merged, branch}`. 409 with `records` when the content changed some of its records since the branch started (`force` puts the branch's versions over them) |
+| `POST /v1/content/branches/{editor}/{name}/reject` | `{reason}`: rejected until its editor commits to it again |
 
-Decisions are kept beside the working copy (`var/content-work-review.json`). A merge doesn't push:
-play servers get merged commits once `main` is pushed to the content repository and they pull
-(on the LAN: `git -C content pull ../var/content-work main`).
+Branch titles, rejections and closed branches are kept beside the working copy
+(`var/content-work-review.json`); closed branches' commits under `refs/contrib-history/`. A
+merge doesn't push: play servers get merged commits once `main` is pushed to the content
+repository and they pull (on the LAN: `git -C content pull ../var/content-work main`).
 
 ## Walls and trigger areas
 

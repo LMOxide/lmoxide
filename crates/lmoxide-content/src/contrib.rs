@@ -1,8 +1,11 @@
-//! Contributors' commits (docs/WORLD-CONTENT.md): what a world editor commits of their changes in
-//! the working copy goes on a branch of their own, `contrib/<name>`, made in a temporary worktree
-//! so the shared working copy (and everyone's unsaved work in it) stays as it is. An admin merges
-//! a commit into the working copy's branch (`main`) or rejects it; contributors download their
-//! branch as patches or a git bundle.
+//! Contributors' branches (docs/WORLD-CONTENT.md): what a world editor commits of their changes
+//! in the working copy goes on a branch of theirs, `contrib/<editor>/<name>` (as many as they
+//! like), made in a temporary worktree so the shared working copy (and everyone's unsaved work
+//! in it) stays as it is. An admin reviews a branch as a whole, like a pull request: merging puts
+//! its records, as the branch has them, on the working copy's `main` in one commit and resets the
+//! branch to `main`; rejecting asks for changes (the next commit reopens it). Its editor can
+//! reset or delete it. Merges are record by record: a conflict is a record `main` changed since
+//! the branch started that the branch changes too.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -14,13 +17,18 @@ use serde_json::Value;
 use crate::git::{Change, file_at, git, records_of};
 use crate::work::{Key, Work};
 
-/// A contributor's branch: `contrib/<slug of their name>`.
-pub fn branch_of(author: &str) -> String {
-    format!("contrib/{}", crate::slug(author))
+/// Where merged, reset and deleted branches' commits are kept (for the lists).
+const HISTORY: &str = "refs/contrib-history/";
+
+/// A contributor's branch: `contrib/<slug of their name>/<slug of the branch's name>`.
+pub fn branch_of(author: &str, name: &str) -> String {
+    format!("contrib/{}/{}", crate::slug(author), crate::slug(name))
 }
 
-/// Where a branch's decided commits are kept when the next commit starts again from `HEAD`.
-const HISTORY: &str = "refs/contrib-history/";
+/// The editor's part of a branch's name (`contrib/<editor>/<name>`).
+pub fn owner_of(branch: &str) -> Option<&str> {
+    branch.strip_prefix("contrib/")?.split('/').next()
+}
 
 /// The address a contributor's commits carry (`Content-Author:`).
 fn email_of(author: &str) -> String {
@@ -40,79 +48,108 @@ fn rev(dir: &Path, name: &str) -> Option<String> {
     git(dir, &["rev-parse", "--verify", "-q", &format!("{name}^{{commit}}")]).ok().map(|h| h.trim().to_string())
 }
 
-/// Commits `changes` (records of the working copy `work`, as they are now) to `author`'s branch:
-/// on top of their last commit, else of the working copy's `HEAD`. `by`: who asked (an admin
-/// may commit someone's changes; `Committed-By:` then). The new commit's hash.
-pub fn commit(work: &Work, changes: &[Change], author: &str, by: &str, message: &str) -> anyhow::Result<String> {
-    anyhow::ensure!(!changes.is_empty(), "nothing to commit");
-    anyhow::ensure!(!message.trim().is_empty(), "a commit needs a message");
-    anyhow::ensure!(!crate::slug(author).is_empty(), "no author");
-    let dir = work.dir();
-    let branch = format!("refs/heads/{}", branch_of(author));
-    let old = rev(dir, &branch);
-    let head = rev(dir, "HEAD").ok_or_else(|| anyhow::anyhow!("the working copy has no commit"))?;
-    // every commit of the branch merged or rejected: start again from HEAD (on a rejected one,
-    // the next could never merge), the old ones kept for the lists
-    let fresh = match &old {
-        Some(tip) => {
-            let decided = decisions(dir);
-            let all_decided = git(dir, &["cherry", "HEAD", tip])?.lines().all(|l| l.starts_with("- ") || l.split_once(' ').is_some_and(|(_, h)| decided.contains_key(h)));
-            if all_decided && *tip != head {
-                git(dir, &["update-ref", &format!("{HISTORY}{}/{}", crate::slug(author), &tip[..12]), tip])?;
-            }
-            all_decided
-        }
-        None => true,
-    };
-    let base = if fresh { head } else { old.clone().expect("checked") };
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
-    let tmp = std::env::temp_dir().join(format!("lmoxide-contrib-{}-{nanos}", std::process::id()));
-    git(dir, &["worktree", "add", "-q", "--detach", &tmp.to_string_lossy(), &base])?;
-    let made = (|| -> anyhow::Result<String> {
-        let mut t = Work::open(&tmp)?;
-        for c in changes {
-            // a new record goes where it is in the working copy's file
-            let before = if c.after.is_some() && t.get(&c.key).is_none() { work.next_in_file(&c.key).filter(|k| t.get(k).is_some()) } else { None };
-            t.reset_before(&c.key, c.after.clone(), before.as_ref()).map_err(|e| anyhow::anyhow!("{} ({}): {e}", c.key.id, c.key.feature))?;
-        }
-        git(&tmp, &["add", "-A"])?;
-        anyhow::ensure!(git(&tmp, &["diff", "--cached", "--quiet"]).is_err(), "nothing to commit: {} has these records as they are", branch_of(author));
-        let mut msg = format!("{}\n\nContent-Author: {author} <{}>", message.trim(), email_of(author));
-        if by != author {
-            msg.push_str(&format!("\nCommitted-By: {by}"));
-        }
-        let email = email_of(author);
-        let env = [COMMITTER[0], COMMITTER[1], ("GIT_AUTHOR_NAME", author), ("GIT_AUTHOR_EMAIL", email.as_str())];
-        git_env(&tmp, &env, &["commit", "-q", "-m", &msg])?;
-        rev(&tmp, "HEAD").ok_or_else(|| anyhow::anyhow!("no commit made"))
-    })();
-    let _ = git(dir, &["worktree", "remove", "--force", &tmp.to_string_lossy()]);
-    let _ = std::fs::remove_dir_all(&tmp);
-    let hash = made?;
-    git(dir, &["update-ref", &branch, &hash, old.as_deref().unwrap_or("")])?;
-    Ok(hash)
+fn now_nanos() -> u128 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos())
 }
 
-/// The records `author`'s branch changed and nobody merged yet: their value there (none:
-/// removed). A change of the working copy that has this value is committed, not unpublished.
-pub fn committed(dir: &Path, author: &str) -> BTreeMap<Key, Option<Value>> {
-    let branch = branch_of(author);
-    let mut out = BTreeMap::new();
-    let (Some(tip), Some(head)) = (rev(dir, &branch), rev(dir, "HEAD")) else { return out };
-    let Ok(base) = git(dir, &["merge-base", &head, &tip]) else { return out };
-    let base = base.trim();
-    for file in changed_json(dir, base, &tip) {
-        let at_base = file_at(dir, base, &file).map(|t| records_of(&t)).unwrap_or_default();
-        let at_tip = file_at(dir, &tip, &file).map(|t| records_of(&t)).unwrap_or_default();
-        // (merged: HEAD has it so too)
-        let at_head = file_at(dir, &head, &file).map(|t| records_of(&t)).unwrap_or_default();
-        for k in at_base.keys().chain(at_tip.keys()) {
-            if at_base.get(k) != at_tip.get(k) && at_head.get(k) != at_tip.get(k) {
-                out.insert(k.clone(), at_tip.get(k).cloned());
-            }
-        }
-    }
+/// Runs `f` in a temporary worktree of `dir` at `at` (removed after): its result.
+fn in_worktree<T>(dir: &Path, at: &str, f: impl FnOnce(&Path) -> anyhow::Result<T>) -> anyhow::Result<T> {
+    let tmp = std::env::temp_dir().join(format!("lmoxide-contrib-{}-{}", std::process::id(), now_nanos()));
+    git(dir, &["worktree", "add", "-q", "--detach", &tmp.to_string_lossy(), at])?;
+    let out = f(&tmp);
+    let _ = git(dir, &["worktree", "remove", "--force", &tmp.to_string_lossy()]);
+    let _ = std::fs::remove_dir_all(&tmp);
+    let _ = git(dir, &["worktree", "prune"]);
     out
+}
+
+// ------------------------------------------------------------------ review state
+
+/// What admins decided about a branch (it stays until its next commit).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Decision {
+    /// `rejected`.
+    pub status: String,
+    pub by: String,
+    /// Unix time.
+    pub at: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+    /// The branch's last commit it was about.
+    pub tip: String,
+}
+
+/// A branch that was merged, reset or deleted (its commits under [`HISTORY`]).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Closed {
+    pub branch: String,
+    pub title: String,
+    /// `merged`, `reset` or `deleted`.
+    pub status: String,
+    pub by: String,
+    pub at: u64,
+    /// The commit it became on `main`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub merged_as: Option<String>,
+    /// The rejection it had, if any.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decision: Option<Decision>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+struct BranchState {
+    /// The name as its editor typed it.
+    title: String,
+    decision: Option<Decision>,
+}
+
+/// Kept beside the working copy ([`review_file`]).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
+struct Review {
+    branches: BTreeMap<String, BranchState>,
+    /// By the branch's last commit then.
+    closed: BTreeMap<String, Closed>,
+}
+
+/// `var/content-work` -> `var/content-work-review.json`.
+pub fn review_file(dir: &Path) -> PathBuf {
+    let name = dir.file_name().map_or("content-work".into(), |n| n.to_string_lossy().into_owned());
+    dir.with_file_name(format!("{name}-review.json"))
+}
+
+fn review(dir: &Path) -> Review {
+    std::fs::read_to_string(review_file(dir)).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
+}
+
+fn save_review(dir: &Path, r: &Review) -> anyhow::Result<()> {
+    let path = review_file(dir);
+    std::fs::write(path.with_extension("json.tmp"), crate::canon::to_string(r)?)?;
+    std::fs::rename(path.with_extension("json.tmp"), path)?;
+    Ok(())
+}
+
+// ------------------------------------------------------------------ what a branch changes
+
+/// A record a branch changes: `before` as `main` has it now (merged: as the branch started),
+/// `after` as the branch has it.
+#[derive(Debug, Clone, Serialize)]
+pub struct BranchRecord {
+    #[serde(flatten)]
+    pub key: Key,
+    /// `added`, `changed` or `removed` (against `before`).
+    pub change: &'static str,
+    pub file: PathBuf,
+    /// Who saved it last on the branch.
+    pub author: String,
+    pub before: Option<Value>,
+    pub after: Option<Value>,
+    /// `main` changed it since the branch started: merging puts the branch's version over that.
+    pub conflict: bool,
+    /// The record as the branch started (with a conflict).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub base: Option<Value>,
 }
 
 /// The content files (not schemas) that differ between two commits.
@@ -125,248 +162,383 @@ fn changed_json(dir: &Path, from: &str, to: &str) -> Vec<PathBuf> {
         .collect()
 }
 
-/// The records a commit changed, before and after (a record moved to another file is changed).
-pub fn records_of_commit(dir: &Path, hash: &str) -> Vec<Change> {
-    let parent = format!("{hash}^");
-    let (mut before, mut after) = (BTreeMap::new(), BTreeMap::new());
-    let mut file_of = BTreeMap::new();
-    for file in changed_json(dir, &parent, hash) {
-        for (k, v) in file_at(dir, &parent, &file).map(|t| records_of(&t)).unwrap_or_default() {
-            file_of.entry(k.clone()).or_insert_with(|| file.clone());
-            before.insert(k, v);
-        }
-        for (k, v) in file_at(dir, hash, &file).map(|t| records_of(&t)).unwrap_or_default() {
-            file_of.insert(k.clone(), file.clone());
-            after.insert(k, v);
+/// Records in `files` at `rev`, with the file each is in.
+fn records_at(dir: &Path, rev: &str, files: &[PathBuf]) -> BTreeMap<Key, (Value, PathBuf)> {
+    let mut out = BTreeMap::new();
+    for f in files {
+        for (k, v) in file_at(dir, rev, f).map(|t| records_of(&t)).unwrap_or_default() {
+            out.insert(k, (v, f.clone()));
         }
     }
-    let author = |v: &Value| v.get("author").and_then(Value::as_str).unwrap_or("").to_string();
-    let keys: BTreeSet<&Key> = before.keys().chain(after.keys()).collect();
+    out
+}
+
+/// The records the commits `base..tip` change, against `against` (`main` now; `base` for a
+/// branch already merged). Records `against` has as the branch does are left out.
+fn net(dir: &Path, base: &str, tip: &str, against: &str) -> Vec<BranchRecord> {
+    let files = changed_json(dir, base, tip);
+    let at_base = records_at(dir, base, &files);
+    let at_tip = records_at(dir, tip, &files);
+    let at_main = if against == base { at_base.clone() } else { records_at(dir, against, &files) };
+    let keys: BTreeSet<&Key> = at_base.keys().chain(at_tip.keys()).collect();
+    let val = |m: &BTreeMap<Key, (Value, PathBuf)>, k: &Key| m.get(k).map(|(v, _)| v.clone());
     keys.into_iter()
-        .filter(|k| before.get(*k) != after.get(*k))
-        .map(|k| {
-            let (b, a) = (before.get(k).cloned(), after.get(k).cloned());
-            Change {
+        .filter(|k| val(&at_base, k) != val(&at_tip, k))
+        .filter_map(|k| {
+            let (b, t, m) = (val(&at_base, k), val(&at_tip, k), val(&at_main, k));
+            if m == t {
+                return None;
+            }
+            let conflict = m != b;
+            Some(BranchRecord {
                 key: k.clone(),
-                change: match (&b, &a) {
+                change: match (&m, &t) {
                     (None, _) => "added",
                     (_, None) => "removed",
                     _ => "changed",
                 },
-                file: file_of[k].clone(),
-                author: a.as_ref().or(b.as_ref()).map(author).unwrap_or_default(),
-                before: b,
-                after: a,
-            }
+                file: at_tip.get(k).or(at_base.get(k)).map(|(_, f)| f.clone()).unwrap_or_default(),
+                author: t.as_ref().or(b.as_ref()).and_then(|v| v.get("author")).and_then(Value::as_str).unwrap_or("").to_string(),
+                before: m,
+                after: t,
+                conflict,
+                base: if conflict { b } else { None },
+            })
         })
         .collect()
 }
 
-/// What an admin decided about a commit (kept beside the working copy, [`review_file`]).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Decision {
-    /// `merged` or `rejected`.
-    pub status: String,
-    pub by: String,
-    /// Unix time.
-    pub at: u64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
-    /// The commit it became on `main`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub merged_as: Option<String>,
-}
-
-/// `var/content-work` -> `var/content-work-review.json`.
-pub fn review_file(dir: &Path) -> PathBuf {
-    let name = dir.file_name().map_or("content-work".into(), |n| n.to_string_lossy().into_owned());
-    dir.with_file_name(format!("{name}-review.json"))
-}
-
-fn decisions(dir: &Path) -> BTreeMap<String, Decision> {
-    std::fs::read_to_string(review_file(dir)).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
-}
-
-fn decide(dir: &Path, hash: &str, d: Decision) -> anyhow::Result<()> {
-    let mut all = decisions(dir);
-    all.insert(hash.to_string(), d);
-    let path = review_file(dir);
-    std::fs::write(path.with_extension("json.tmp"), crate::canon::to_string(&all)?)?;
-    std::fs::rename(path.with_extension("json.tmp"), path)?;
-    Ok(())
-}
-
-/// A contributor's commit, as admins review it.
+/// One commit of a branch.
 #[derive(Debug, Clone, Serialize)]
-pub struct Contribution {
+pub struct BranchCommit {
     pub hash: String,
-    pub branch: String,
     /// The editor whose changes these are (`Content-Author:`).
     pub author: String,
-    /// Who committed them (the author, or an admin for them).
+    /// Who committed them (the editor, or someone for them).
     pub by: String,
-    /// Unix time it was committed.
+    /// Unix time.
     pub created: u64,
-    /// The commit message's first line.
+    /// The message's first line.
     pub subject: String,
-    /// The whole commit message, without its trailers.
+    /// The whole message, without its trailers.
     pub message: String,
-    /// `pending`, `merged` or `rejected`.
-    pub status: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub decision: Option<Decision>,
-    pub records: Vec<Change>,
 }
 
-fn describe(dir: &Path, hash: &str, branch: &str, status: &str, decision: Option<Decision>) -> anyhow::Result<Contribution> {
-    let f = git(dir, &["show", "-s", "--format=%at%x1f%an%x1f%(trailers:key=Content-Author,valueonly,separator=%x2C)%x1f%(trailers:key=Committed-By,valueonly,separator=%x2C)%x1f%s%x1f%B", hash])?;
-    let parts: Vec<&str> = f.splitn(6, '\x1f').collect();
-    let [at, git_author, author, by, subject, body] = parts[..] else { anyhow::bail!("{hash}: unreadable commit") };
-    let author = author.trim().split(" <").next().unwrap_or("").trim();
-    let author = if author.is_empty() { git_author.trim() } else { author };
-    let message: Vec<&str> = body.trim_end().lines().filter(|l| !l.starts_with("Content-Author:") && !l.starts_with("Committed-By:")).collect();
-    Ok(Contribution {
-        hash: hash.to_string(),
+fn commits_of(dir: &Path, base: &str, tip: &str) -> Vec<BranchCommit> {
+    let format = "--format=%H%x1f%at%x1f%an%x1f%(trailers:key=Content-Author,valueonly,separator=%x2C)%x1f%(trailers:key=Committed-By,valueonly,separator=%x2C)%x1f%s%x1f%B%x1e";
+    let log = git(dir, &["log", "--reverse", format, &format!("{base}..{tip}")]).unwrap_or_default();
+    log.split('\x1e')
+        .map(|e| e.trim_start_matches('\n'))
+        .filter(|e| !e.trim().is_empty())
+        .filter_map(|e| {
+            let f: Vec<&str> = e.splitn(7, '\x1f').collect();
+            let [hash, at, git_author, author, by, subject, body] = f[..] else { return None };
+            let author = author.trim().split(" <").next().unwrap_or("").trim();
+            let author = if author.is_empty() { git_author.trim() } else { author };
+            let message: Vec<&str> = body.trim_end().lines().filter(|l| !l.starts_with("Content-Author:") && !l.starts_with("Committed-By:")).collect();
+            Some(BranchCommit {
+                hash: hash.to_string(),
+                author: author.to_string(),
+                by: Some(by.trim()).filter(|b| !b.is_empty()).unwrap_or(author).to_string(),
+                created: at.trim().parse().unwrap_or(0),
+                subject: subject.to_string(),
+                message: message.join("\n").trim().to_string(),
+            })
+        })
+        .collect()
+}
+
+/// A contributor's branch as editors and admins see it.
+#[derive(Debug, Clone, Serialize)]
+pub struct Branch {
+    /// `contrib/<editor>/<name>`.
+    pub branch: String,
+    /// The name as its editor typed it.
+    pub title: String,
+    /// Whose branch (the first commit's author).
+    pub author: String,
+    /// `open` (nothing to merge), `pending`, `rejected` (until its next commit); closed ones:
+    /// `merged`, `reset`, `deleted`.
+    pub status: String,
+    /// Its last commit.
+    pub tip: String,
+    /// The commit of `main` it started from.
+    pub base: String,
+    /// Unix time of its last commit.
+    pub updated: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decision: Option<Decision>,
+    /// A closed branch: how and by whom.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub closed: Option<Closed>,
+    /// Oldest first.
+    pub commits: Vec<BranchCommit>,
+    pub records: Vec<BranchRecord>,
+    /// How many records `main` changed since the branch started.
+    pub conflicts: usize,
+}
+
+fn describe(dir: &Path, branch: &str, tip: &str, rv: &Review, closed: Option<Closed>) -> anyhow::Result<Branch> {
+    let head = rev(dir, "HEAD").ok_or_else(|| anyhow::anyhow!("the working copy has no commit"))?;
+    let base = git(dir, &["merge-base", &head, tip])?.trim().to_string();
+    let commits = commits_of(dir, &base, tip);
+    let records = net(dir, &base, tip, if closed.is_some() { &base } else { &head });
+    let state = rv.branches.get(branch).cloned().unwrap_or_default();
+    let decision = state.decision.filter(|d| d.tip == tip);
+    let status = match &closed {
+        Some(c) => c.status.clone(),
+        None if records.is_empty() => "open".into(),
+        None if decision.is_some() => "rejected".into(),
+        None => "pending".into(),
+    };
+    let title = closed.as_ref().map(|c| c.title.clone()).filter(|t| !t.is_empty()).unwrap_or(state.title);
+    Ok(Branch {
         branch: branch.to_string(),
-        author: author.to_string(),
-        by: Some(by.trim()).filter(|b| !b.is_empty()).unwrap_or(author).to_string(),
-        created: at.trim().parse().unwrap_or(0),
-        subject: subject.to_string(),
-        message: message.join("\n").trim().to_string(),
-        status: status.to_string(),
-        decision,
-        records: records_of_commit(dir, hash),
+        title: if title.is_empty() { branch.rsplit('/').next().unwrap_or(branch).to_string() } else { title },
+        author: commits.first().map(|c| c.author.clone()).unwrap_or_else(|| owner_of(branch).unwrap_or("").to_string()),
+        status,
+        tip: tip.to_string(),
+        base,
+        updated: commits.last().map_or(0, |c| c.created),
+        decision: if closed.is_some() { None } else { decision },
+        conflicts: records.iter().filter(|r| r.conflict).count(),
+        closed,
+        commits,
+        records,
     })
 }
 
-/// Every contributor's commits not in `HEAD` (and the ones merged or rejected), oldest first.
-pub fn list(dir: &Path) -> anyhow::Result<Vec<Contribution>> {
-    let decided = decisions(dir);
-    let mut out = Vec::new();
-    let mut seen = BTreeSet::new();
-    for refname in git(dir, &["for-each-ref", "--format=%(refname)", "refs/heads/contrib/", HISTORY])?.lines() {
-        let slug = refname.strip_prefix("refs/heads/contrib/").or_else(|| refname.strip_prefix(HISTORY).and_then(|r| r.split('/').next())).unwrap_or("");
-        let branch = format!("contrib/{slug}");
-        let branch = branch.as_str();
-        // `+ hash`: not in HEAD; `- hash`: the same change is (merged)
-        for line in git(dir, &["cherry", "HEAD", refname])?.lines() {
-            let Some((sign, hash)) = line.split_once(' ') else { continue };
-            if !seen.insert(hash.to_string()) {
-                continue;
-            }
-            let d = decided.get(hash).cloned();
-            let status = d.as_ref().map_or(if sign == "-" { "merged" } else { "pending" }, |d| d.status.as_str()).to_string();
-            out.push(describe(dir, hash, branch, &status, d)?);
+/// Every contributor branch: the open ones, then the closed ones (merged, reset, deleted),
+/// each oldest first.
+pub fn list(dir: &Path) -> anyhow::Result<Vec<Branch>> {
+    let rv = review(dir);
+    let mut open = Vec::new();
+    for line in git(dir, &["for-each-ref", "--format=%(refname:short) %(objectname)", "refs/heads/contrib/"])?.lines() {
+        let Some((branch, tip)) = line.split_once(' ') else { continue };
+        open.push(describe(dir, branch, tip, &rv, None)?);
+    }
+    open.sort_by_key(|b| b.updated);
+    let mut closed = Vec::new();
+    for line in git(dir, &["for-each-ref", "--format=%(objectname)", HISTORY])?.lines() {
+        let Some(c) = rv.closed.get(line.trim()) else { continue };
+        closed.push(describe(dir, &c.branch.clone(), line.trim(), &rv, Some(c.clone()))?);
+    }
+    closed.sort_by_key(|b| b.closed.as_ref().map_or(0, |c| c.at));
+    open.extend(closed);
+    Ok(open)
+}
+
+/// One open branch.
+pub fn get(dir: &Path, branch: &str) -> anyhow::Result<Option<Branch>> {
+    let Some(tip) = rev(dir, &format!("refs/heads/{branch}")) else { return Ok(None) };
+    Ok(Some(describe(dir, branch, &tip, &review(dir), None)?))
+}
+
+/// The records `author`'s open branches change (and `main` doesn't have so): each one's
+/// values there (none: removed). A change of the working copy that has one of them is
+/// committed, not uncommitted.
+pub fn committed(dir: &Path, author: &str) -> BTreeMap<Key, Vec<Option<Value>>> {
+    let mut out: BTreeMap<Key, Vec<Option<Value>>> = BTreeMap::new();
+    let Some(head) = rev(dir, "HEAD") else { return out };
+    let prefix = format!("refs/heads/contrib/{}/", crate::slug(author));
+    for tip in git(dir, &["for-each-ref", "--format=%(objectname)", &prefix]).unwrap_or_default().lines() {
+        let Ok(base) = git(dir, &["merge-base", &head, tip]) else { continue };
+        for r in net(dir, base.trim(), tip, &head) {
+            out.entry(r.key).or_default().push(r.after);
         }
     }
-    // (stable: a branch's commits of the same second stay in their order)
-    out.sort_by_key(|c| c.created);
-    Ok(out)
+    out
 }
 
-/// One contributor commit (as [`list`] has it).
-pub fn get(dir: &Path, hash: &str) -> anyhow::Result<Option<Contribution>> {
-    Ok(list(dir)?.into_iter().find(|c| c.hash == hash || (hash.len() >= 7 && c.hash.starts_with(hash))))
+// ------------------------------------------------------------------ committing
+
+/// Commits `changes` (records of the working copy `work`, as they are now) to `author`'s
+/// branch `name` (made from `main` when new; the name as typed is its title). `by`: who asked
+/// (someone may commit an editor's changes for them; `Committed-By:` then). The new commit's
+/// hash and the branch.
+pub fn commit(work: &Work, changes: &[Change], author: &str, by: &str, name: &str, message: &str) -> anyhow::Result<(String, String)> {
+    anyhow::ensure!(!changes.is_empty(), "nothing to commit");
+    anyhow::ensure!(!message.trim().is_empty(), "a commit needs a message");
+    anyhow::ensure!(!name.trim().is_empty(), "a commit goes on a branch: name it");
+    let dir = work.dir();
+    let branch = branch_of(author, name);
+    let refname = format!("refs/heads/{branch}");
+    let old = rev(dir, &refname);
+    let base = match &old {
+        Some(h) => h.clone(),
+        None => rev(dir, "HEAD").ok_or_else(|| anyhow::anyhow!("the working copy has no commit"))?,
+    };
+    let hash = in_worktree(dir, &base, |tmp| {
+        let mut t = Work::open(tmp)?;
+        for c in changes {
+            // a new record goes where it is in the working copy's file
+            let before = if c.after.is_some() && t.get(&c.key).is_none() { work.next_in_file(&c.key).filter(|k| t.get(k).is_some()) } else { None };
+            t.reset_before(&c.key, c.after.clone(), before.as_ref()).map_err(|e| anyhow::anyhow!("{} ({}): {e}", c.key.id, c.key.feature))?;
+        }
+        git(tmp, &["add", "-A"])?;
+        anyhow::ensure!(git(tmp, &["diff", "--cached", "--quiet"]).is_err(), "nothing to commit: {branch} has these records as they are");
+        let mut msg = format!("{}\n\nContent-Author: {author} <{}>", message.trim(), email_of(author));
+        if by != author {
+            msg.push_str(&format!("\nCommitted-By: {by}"));
+        }
+        let email = email_of(author);
+        let env = [COMMITTER[0], COMMITTER[1], ("GIT_AUTHOR_NAME", author), ("GIT_AUTHOR_EMAIL", email.as_str())];
+        git_env(tmp, &env, &["commit", "-q", "-m", &msg])?;
+        rev(tmp, "HEAD").ok_or_else(|| anyhow::anyhow!("no commit made"))
+    })?;
+    git(dir, &["update-ref", &refname, &hash, old.as_deref().unwrap_or("")])?;
+    let mut rv = review(dir);
+    let state = rv.branches.entry(branch.clone()).or_default();
+    if state.title.is_empty() || old.is_none() {
+        state.title = name.trim().to_string();
+    }
+    save_review(dir, &rv)?;
+    Ok((hash, branch))
 }
 
-/// Why a merge didn't happen.
+// ------------------------------------------------------------------ admins and editors
+
+/// Why a merge, rejection or reset didn't happen.
 #[derive(Debug)]
-pub enum MergeError {
+pub enum ReviewError {
     NotFound,
-    /// Merged or rejected already.
-    Decided(String),
-    /// Files both the commit and `main` changed since its base.
+    /// Nothing to merge (`open`).
+    Empty,
+    /// Records `main` changed since the branch started (merge again with `force`).
     Conflicts(Vec<String>),
     Other(anyhow::Error),
 }
 
-impl From<anyhow::Error> for MergeError {
+impl From<anyhow::Error> for ReviewError {
     fn from(e: anyhow::Error) -> Self {
-        MergeError::Other(e)
+        ReviewError::Other(e)
     }
 }
 
-/// Merges a pending contributor commit into the working copy's branch (`HEAD`, `main`): its
-/// change applied on top (as a cherry-pick, without touching the working tree), authored as the
-/// contributor, with `Approved-By:` and `Lmoxide-Contribution:` (the commit's hash). The index
-/// follows; the files of the working tree stay as they are (the editor brings the records it
-/// didn't change in line). The commit as merged, and the new commit's hash.
-pub fn merge(dir: &Path, hash: &str, approver: &str, now: u64) -> Result<(Contribution, String), MergeError> {
-    let c = get(dir, hash)?.ok_or(MergeError::NotFound)?;
-    if c.status != "pending" {
-        return Err(MergeError::Decided(c.status));
+/// Moves a branch's commits to the history (its ref under [`HISTORY`], `closed` kept by tip).
+fn close(dir: &Path, rv: &mut Review, b: &Branch, closed: Closed) -> anyhow::Result<()> {
+    git(dir, &["update-ref", &format!("{HISTORY}{}/{}", b.branch.trim_start_matches("contrib/"), &b.tip[..12]), &b.tip])?;
+    rv.closed.insert(b.tip.clone(), closed);
+    if let Some(s) = rv.branches.get_mut(&b.branch) {
+        s.decision = None;
+    }
+    Ok(())
+}
+
+/// Merges a branch into the working copy's branch (`HEAD`, `main`): one commit with its
+/// records as the branch has them, authored as its editor, `message` (default: its commits'),
+/// `Approved-By:`, `Lmoxide-Branch:` and `Lmoxide-Commits:`. With conflicts only when `force`.
+/// The working tree's files stay as they are (the caller brings the records in line); the
+/// branch is reset to the new `main`. `next_in_file`: where a new record goes (the working
+/// copy's order). The branch as merged and the new commit.
+pub fn merge(dir: &Path, branch: &str, approver: &str, message: Option<&str>, force: bool, now: u64, next_in_file: impl Fn(&Key) -> Option<Key>) -> Result<(Branch, String), ReviewError> {
+    let b = get(dir, branch)?.ok_or(ReviewError::NotFound)?;
+    if b.records.is_empty() {
+        return Err(ReviewError::Empty);
+    }
+    if b.conflicts > 0 && !force {
+        return Err(ReviewError::Conflicts(b.records.iter().filter(|r| r.conflict).map(|r| r.key.id.to_string()).collect()));
     }
     let head = rev(dir, "HEAD").ok_or_else(|| anyhow::anyhow!("the working copy has no commit"))?;
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(["merge-tree", "--write-tree", "--name-only", &format!("--merge-base={}^", c.hash), &head, &c.hash])
-        .output()
-        .map_err(anyhow::Error::from)?;
-    let text = String::from_utf8_lossy(&out.stdout).into_owned();
-    let mut lines = text.lines();
-    let tree = lines.next().unwrap_or("").trim().to_string();
-    if out.status.code() == Some(1) {
-        let files: Vec<String> = lines.take_while(|l| !l.is_empty()).map(str::to_string).collect();
-        return Err(MergeError::Conflicts(files));
+    let text = match message.map(str::trim).filter(|m| !m.is_empty()) {
+        Some(m) => m.to_string(),
+        None if b.commits.len() == 1 => b.commits[0].message.clone(),
+        None => format!("{}\n\n{}", b.title, b.commits.iter().map(|c| format!("- {}", c.subject)).collect::<Vec<_>>().join("\n")),
+    };
+    let mut msg = format!("{text}\n\nContent-Author: {} <{}>", b.author, email_of(&b.author));
+    for by in b.commits.iter().map(|c| c.by.as_str()).filter(|by| *by != b.author).collect::<BTreeSet<_>>() {
+        msg.push_str(&format!("\nCommitted-By: {by}"));
     }
-    if !out.status.success() || tree.is_empty() {
-        return Err(anyhow::anyhow!("git merge-tree: {}", String::from_utf8_lossy(&out.stderr).trim()).into());
-    }
-    let info = git(dir, &["show", "-s", "--format=%an%x1f%ae%x1f%ad%x1f%B", &c.hash])?;
-    let parts: Vec<&str> = info.splitn(4, '\x1f').collect();
-    let [name, email, date, body] = parts[..] else { return Err(anyhow::anyhow!("{}: unreadable commit", c.hash).into()) };
-    let msg = format!("{}\nApproved-By: {approver}\nLmoxide-Contribution: {}", body.trim_end(), c.hash);
-    let env = [COMMITTER[0], COMMITTER[1], ("GIT_AUTHOR_NAME", name), ("GIT_AUTHOR_EMAIL", email), ("GIT_AUTHOR_DATE", date)];
-    let new = git_env(dir, &env, &["commit-tree", &tree, "-p", &head, "-m", &msg])?.trim().to_string();
-    git(dir, &["update-ref", "-m", &format!("merge {}", c.hash), "HEAD", &new, &head])?;
+    msg.push_str(&format!(
+        "\nApproved-By: {approver}\nLmoxide-Branch: {}\nLmoxide-Commits: {}",
+        b.branch,
+        b.commits.iter().map(|c| &c.hash[..12]).collect::<Vec<_>>().join(", ")
+    ));
+    let author = b.author.clone();
+    let records = b.records.clone();
+    let new = in_worktree(dir, &head, |tmp| {
+        let mut t = Work::open(tmp)?;
+        for r in &records {
+            let before = if r.after.is_some() && t.get(&r.key).is_none() { next_in_file(&r.key).filter(|k| t.get(k).is_some()) } else { None };
+            t.reset_before(&r.key, r.after.clone(), before.as_ref()).map_err(|e| anyhow::anyhow!("{} ({}): {e}", r.key.id, r.key.feature))?;
+        }
+        git(tmp, &["add", "-A"])?;
+        anyhow::ensure!(git(tmp, &["diff", "--cached", "--quiet"]).is_err(), "nothing to merge: main has these records so");
+        let email = email_of(&author);
+        let env = [COMMITTER[0], COMMITTER[1], ("GIT_AUTHOR_NAME", author.as_str()), ("GIT_AUTHOR_EMAIL", email.as_str())];
+        git_env(tmp, &env, &["commit", "-q", "-m", &msg])?;
+        rev(tmp, "HEAD").ok_or_else(|| anyhow::anyhow!("no commit made"))
+    })?;
+    git(dir, &["update-ref", "-m", &format!("merge {}", b.branch), "HEAD", &new, &head])?;
     // the index as HEAD has it; the files stay
     git(dir, &["reset", "-q"])?;
-    decide(dir, &c.hash, Decision { status: "merged".into(), by: approver.into(), at: now, reason: None, merged_as: Some(new.clone()) })?;
-    Ok((c, new))
+    git(dir, &["update-ref", &format!("refs/heads/{}", b.branch), &new, &b.tip])?;
+    let mut rv = review(dir);
+    let closed = Closed { branch: b.branch.clone(), title: b.title.clone(), status: "merged".into(), by: approver.into(), at: now, merged_as: Some(new.clone()), decision: rv.branches.get(&b.branch).and_then(|s| s.decision.clone()) };
+    close(dir, &mut rv, &b, closed)?;
+    save_review(dir, &rv)?;
+    Ok((b, new))
 }
 
-/// Rejects a pending contributor commit, with the reason. It stays on its branch; what the
-/// contributor commits next goes on top.
-pub fn reject(dir: &Path, hash: &str, by: &str, reason: Option<String>, now: u64) -> Result<Contribution, MergeError> {
-    let mut c = get(dir, hash)?.ok_or(MergeError::NotFound)?;
-    if c.status != "pending" {
-        return Err(MergeError::Decided(c.status));
+/// Rejects a branch with the reason: it stays, rejected, until its next commit.
+pub fn reject(dir: &Path, branch: &str, by: &str, reason: Option<String>, now: u64) -> Result<Branch, ReviewError> {
+    let b = get(dir, branch)?.ok_or(ReviewError::NotFound)?;
+    if b.records.is_empty() {
+        return Err(ReviewError::Empty);
     }
-    let d = Decision { status: "rejected".into(), by: by.into(), at: now, reason, merged_as: None };
-    decide(dir, &c.hash, d.clone())?;
-    c.status = "rejected".into();
-    c.decision = Some(d);
-    Ok(c)
+    let mut rv = review(dir);
+    rv.branches.entry(b.branch.clone()).or_default().decision = Some(Decision { status: "rejected".into(), by: by.into(), at: now, reason, tip: b.tip.clone() });
+    save_review(dir, &rv)?;
+    get(dir, branch)?.ok_or(ReviewError::NotFound)
 }
 
-/// How a contributor's commits download.
+/// Resets a branch to `main` (`delete`: removes it): its commits go to the history. The branch
+/// as it was (its records: the caller puts the working copy's back as `main` has them).
+pub fn reset(dir: &Path, branch: &str, by: &str, delete: bool, now: u64) -> Result<Branch, ReviewError> {
+    let b = get(dir, branch)?.ok_or(ReviewError::NotFound)?;
+    let head = rev(dir, "HEAD").ok_or_else(|| anyhow::anyhow!("the working copy has no commit"))?;
+    let mut rv = review(dir);
+    if !b.commits.is_empty() {
+        let closed = Closed { branch: b.branch.clone(), title: b.title.clone(), status: if delete { "deleted" } else { "reset" }.into(), by: by.into(), at: now, merged_as: None, decision: rv.branches.get(&b.branch).and_then(|s| s.decision.clone()) };
+        close(dir, &mut rv, &b, closed)?;
+    }
+    let refname = format!("refs/heads/{}", b.branch);
+    if delete {
+        git(dir, &["update-ref", "-d", &refname, &b.tip])?;
+        rv.branches.remove(&b.branch);
+    } else {
+        git(dir, &["update-ref", &refname, &head, &b.tip])?;
+    }
+    save_review(dir, &rv)?;
+    Ok(b)
+}
+
+/// How a branch downloads.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Format {
-    /// `git format-patch` of the commits not in `HEAD` (`git am` applies them).
+    /// `git format-patch` of its commits not in `HEAD` (`git am` applies them).
     Patch,
-    /// A git bundle of the branch (`git fetch <file> contrib/<name>`), needing `HEAD`'s history.
+    /// A git bundle of the branch (`git fetch <file> <branch>`), needing `HEAD`'s history.
     Bundle,
 }
 
-/// `author`'s commits not merged yet, to download.
-pub fn download(dir: &Path, author: &str, format: Format) -> anyhow::Result<Vec<u8>> {
-    let branch = branch_of(author);
-    anyhow::ensure!(rev(dir, &branch).is_some(), "{author} has no commits ({branch})");
+/// An open branch's commits, to download.
+pub fn download(dir: &Path, branch: &str, format: Format) -> anyhow::Result<Vec<u8>> {
+    anyhow::ensure!(rev(dir, &format!("refs/heads/{branch}")).is_some(), "no branch {branch}");
     let range = format!("HEAD..{branch}");
     match format {
         Format::Patch => {
-            let out = Command::new("git").arg("-C").arg(dir).args(["format-patch", "--stdout", "--ignore-if-in-upstream", &range]).output()?;
+            let out = Command::new("git").arg("-C").arg(dir).args(["format-patch", "--stdout", &range]).output()?;
             anyhow::ensure!(out.status.success(), "git format-patch: {}", String::from_utf8_lossy(&out.stderr).trim());
+            anyhow::ensure!(!out.stdout.is_empty(), "{branch} has no commits that main doesn't");
             Ok(out.stdout)
         }
         Format::Bundle => {
-            let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
-            let file = std::env::temp_dir().join(format!("lmoxide-bundle-{}-{nanos}.bundle", std::process::id()));
-            let made = git(dir, &["bundle", "create", "-q", &file.to_string_lossy(), &branch, "^HEAD"]);
+            let file = std::env::temp_dir().join(format!("lmoxide-bundle-{}-{}.bundle", std::process::id(), now_nanos()));
+            let made = git(dir, &["bundle", "create", "-q", &file.to_string_lossy(), branch, "^HEAD"]);
             let bytes = made.and_then(|_| Ok(std::fs::read(&file)?));
             let _ = std::fs::remove_file(&file);
-            bytes.map_err(|e| anyhow::anyhow!("{e:#} (nothing to download: every commit of {branch} is merged?)"))
+            bytes.map_err(|e| anyhow::anyhow!("{e:#} ({branch} has no commits that main doesn't?)"))
         }
     }
 }
@@ -388,8 +560,8 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(dir.join("npcs")).unwrap();
         std::fs::write(dir.join("content.json"), canon::to_string(&json!({ "format": 1, "reference": "../data" })).unwrap()).unwrap();
-        for (slug, level) in [("a", 1), ("b", 1)] {
-            std::fs::write(dir.join(format!("npcs/{slug}.json")), canon::to_string(&json!({ "id": format!("npc/{slug}"), "level": level })).unwrap()).unwrap();
+        for slug in ["a", "b", "c"] {
+            std::fs::write(dir.join(format!("npcs/{slug}.json")), canon::to_string(&json!({ "id": format!("npc/{slug}"), "level": 1 })).unwrap()).unwrap();
         }
         crate::load::format_tree(&dir, false).unwrap();
         let g = |args: &[&str]| git(&dir, &[&["-c", "user.name=t", "-c", "user.email=t@t"], args].concat()).unwrap();
@@ -406,75 +578,88 @@ mod tests {
         work.save(&k, v, None, who, 1).unwrap();
     }
 
+    fn of(work: &Work, who: &str, slug: &str) -> Vec<Change> {
+        crate::git::changes(work).unwrap().into_iter().filter(|c| c.author == who && c.key.id.to_string() == format!("npc/{slug}")).collect()
+    }
+
+    fn lvl(v: &Option<Value>) -> u64 {
+        v.as_ref().unwrap()["level"].as_u64().unwrap()
+    }
+
     #[test]
-    fn commit_merge_reject() {
+    fn branches_reject_fix_merge() {
         let dir = tree("flow");
         let mut work = Work::open(&dir).unwrap();
         level(&mut work, "a", 2, "ann");
-        level(&mut work, "b", 5, "bob");
-        let mine: Vec<Change> = crate::git::changes(&work).unwrap().into_iter().filter(|c| c.author == "ann").collect();
-        assert_eq!(mine.len(), 1);
-        let h = commit(&work, &mine, "ann", "ann", "Ann's level\n\nWhy: tests").unwrap();
-        // the working copy is untouched, ann's change is on her branch
+        level(&mut work, "b", 5, "ann");
+        // two branches of ann's
+        let (h1, b1) = commit(&work, &of(&work, "ann", "a"), "ann", "ann", "Isle of Yarr", "A to 2\n\nWhy: tests").unwrap();
+        let (_, b2) = commit(&work, &of(&work, "ann", "b"), "ann", "root", "Other work", "B to 5").unwrap();
+        assert_eq!((b1.as_str(), b2.as_str()), ("contrib/ann/isle-of-yarr", "contrib/ann/other-work"));
+        // the working copy is untouched; both changes count as committed
         assert_eq!(crate::git::changes(&work).unwrap().len(), 2);
-        let on = committed(&dir, "ann");
-        assert_eq!(on.get(&Key::live("npc/a")).cloned().flatten().unwrap()["level"], 2);
-        assert!(!on.contains_key(&Key::live("npc/b")));
+        assert_eq!(committed(&dir, "ann").len(), 2);
         let l = list(&dir).unwrap();
-        assert_eq!(l.len(), 1);
-        let c = &l[0];
-        assert_eq!((c.hash.as_str(), c.author.as_str(), c.status.as_str(), c.subject.as_str()), (h.as_str(), "ann", "pending", "Ann's level"));
-        assert_eq!(c.message, "Ann's level\n\nWhy: tests");
-        assert_eq!(c.records.len(), 1);
-        assert_eq!(c.records[0].change, "changed");
-        assert_eq!(c.records[0].before.as_ref().unwrap()["level"], 1);
-        // a second commit goes on top; download has both
+        let first = l.iter().find(|b| b.branch == b1).unwrap();
+        assert_eq!((first.title.as_str(), first.author.as_str(), first.status.as_str()), ("Isle of Yarr", "ann", "pending"));
+        assert_eq!(first.commits.len(), 1);
+        assert_eq!((first.commits[0].hash.as_str(), first.commits[0].message.as_str()), (h1.as_str(), "A to 2\n\nWhy: tests"));
+        assert_eq!(first.records.len(), 1);
+        assert_eq!((lvl(&first.records[0].before), lvl(&first.records[0].after)), (1, 2));
+        assert_eq!(l.iter().find(|b| b.branch == b2).unwrap().commits[0].by, "root");
+        // rejected; the fix on the same branch reopens it, and merging takes both as one commit
+        assert_eq!(reject(&dir, &b1, "root", Some("too low".into()), 5).unwrap().status, "rejected");
         level(&mut work, "a", 3, "ann");
-        let mine: Vec<Change> = crate::git::changes(&work).unwrap().into_iter().filter(|c| c.author == "ann").collect();
-        let h2 = commit(&work, &mine, "ann", "root", "Level 3").unwrap();
-        let patch = String::from_utf8(download(&dir, "ann", Format::Patch).unwrap()).unwrap();
-        assert!(patch.contains("Ann's level") && patch.contains("Level 3"));
-        assert!(!download(&dir, "ann", Format::Bundle).unwrap().is_empty());
-        assert_eq!(get(&dir, &h2).unwrap().unwrap().by, "root");
-        // reject the first, merge the second (only its own change: 2 -> 3)
-        let r = reject(&dir, &h, "root", Some("no".into()), 5).unwrap();
-        assert_eq!(r.status, "rejected");
-        assert!(matches!(merge(&dir, &h, "root", 6), Err(MergeError::Decided(_))));
-        // the second changes the line the rejected one did: main (1) and its base (2) differ there
-        match merge(&dir, &h2, "root", 7) {
-            Err(MergeError::Conflicts(files)) => assert_eq!(files, ["npcs/a.json"]),
-            other => panic!("{other:?}"),
-        }
-        assert_eq!(list(&dir).unwrap().iter().map(|c| c.status.as_str()).collect::<Vec<_>>(), ["rejected", "pending"]);
-        // once both are decided, the next commit starts from HEAD and merges; the old ones stay listed
-        reject(&dir, &h2, "root", None, 8).unwrap();
-        level(&mut work, "a", 4, "ann");
-        let mine: Vec<Change> = crate::git::changes(&work).unwrap().into_iter().filter(|c| c.author == "ann").collect();
-        let h3 = commit(&work, &mine, "ann", "ann", "Level 4").unwrap();
-        assert_eq!(git(&dir, &["rev-parse", &format!("{h3}^")]).unwrap().trim(), rev(&dir, "HEAD").unwrap());
-        merge(&dir, &h3, "root", 9).unwrap();
-        let statuses: Vec<(String, String)> = list(&dir).unwrap().into_iter().map(|c| (c.subject, c.status)).collect();
-        assert_eq!(statuses, [("Ann's level".into(), "rejected".into()), ("Level 3".into(), "rejected".into()), ("Level 4".into(), "merged".into())]);
+        commit(&work, &of(&work, "ann", "a"), "ann", "ann", "Isle of Yarr", "A to 3").unwrap();
+        let b = get(&dir, &b1).unwrap().unwrap();
+        assert_eq!((b.status.as_str(), b.commits.len(), b.records.len()), ("pending", 2, 1));
+        assert_eq!(lvl(&b.records[0].after), 3);
+        let patch = String::from_utf8(download(&dir, &b1, Format::Patch).unwrap()).unwrap();
+        assert!(patch.contains("A to 2") && patch.contains("A to 3"));
+        assert!(!download(&dir, &b1, Format::Bundle).unwrap().is_empty());
+        let (_, new) = merge(&dir, &b1, "root", None, false, 6, |_| None).unwrap();
+        assert_eq!(rev(&dir, "HEAD").unwrap(), new);
+        let body = git(&dir, &["show", "-s", "--format=%an|%B", &new]).unwrap();
+        assert!(body.starts_with("ann|Isle of Yarr\n\n- A to 2\n- A to 3") && body.contains("Approved-By: root") && body.contains("Lmoxide-Branch: contrib/ann/isle-of-yarr"), "{body}");
+        let at_head = records_at(&dir, "HEAD", &[PathBuf::from("npcs/a.json")]).remove(&Key::live("npc/a")).map(|x| x.0);
+        assert_eq!(lvl(&at_head), 3);
+        // the branch is back at main, open; the merge shows in the history
+        let b = get(&dir, &b1).unwrap().unwrap();
+        assert_eq!((b.status.as_str(), b.tip.as_str()), ("open", new.as_str()));
+        let l = list(&dir).unwrap();
+        let merged = l.iter().find(|b| b.status == "merged").unwrap();
+        assert_eq!((merged.commits.len(), merged.records.len(), merged.closed.as_ref().unwrap().merged_as.as_deref()), (2, 1, Some(new.as_str())));
+        assert_eq!(merged.closed.as_ref().unwrap().decision.as_ref().unwrap().reason.as_deref(), Some("too low"));
+        // the working copy has npc/a as main does: only b is still a change
+        let work = Work::open(&dir).unwrap();
+        assert_eq!(crate::git::changes(&work).unwrap().iter().map(|c| c.key.id.to_string()).collect::<Vec<_>>(), ["npc/b"]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
-    fn merge_applies_on_main() {
-        let dir = tree("merge");
+    fn conflicts_and_reset() {
+        let dir = tree("conflict");
         let mut work = Work::open(&dir).unwrap();
-        level(&mut work, "a", 2, "ann");
-        let mine = crate::git::changes(&work).unwrap();
-        let h = commit(&work, &mine, "ann", "ann", "A to 2").unwrap();
-        let (_, new) = merge(&dir, &h, "root", 1).unwrap();
-        assert_eq!(rev(&dir, "HEAD").unwrap(), new);
-        let body = git(&dir, &["show", "-s", "--format=%an|%B", &new]).unwrap();
-        assert!(body.starts_with("ann|A to 2") && body.contains("Approved-By: root") && body.contains(&format!("Lmoxide-Contribution: {h}")), "{body}");
-        // main has it; the working copy's file was already so: nothing unpublished
-        assert_eq!(file_at(&dir, &new, Path::new("npcs/a.json")).map(|t| records_of(&t)).unwrap()[&Key::live("npc/a")]["level"], 2);
-        let work = Work::open(&dir).unwrap();
-        assert!(crate::git::changes(&work).unwrap().is_empty());
-        assert_eq!(list(&dir).unwrap()[0].status, "merged");
-        assert!(committed(&dir, "ann").is_empty());
+        level(&mut work, "c", 4, "ann");
+        let (_, ann) = commit(&work, &of(&work, "ann", "c"), "ann", "ann", "work", "C to 4").unwrap();
+        level(&mut work, "c", 7, "bob");
+        let (_, bob) = commit(&work, &of(&work, "bob", "c"), "bob", "bob", "work", "C to 7").unwrap();
+        merge(&dir, &bob, "root", None, false, 1, |_| None).unwrap();
+        // main changed npc/c since ann's branch started: a conflict, merged only when forced
+        let b = get(&dir, &ann).unwrap().unwrap();
+        assert_eq!((b.conflicts, lvl(&b.records[0].before), lvl(&b.records[0].base)), (1, 7, 1));
+        match merge(&dir, &ann, "root", None, false, 2, |_| None) {
+            Err(ReviewError::Conflicts(ids)) => assert_eq!(ids, ["npc/c"]),
+            other => panic!("{other:?}"),
+        }
+        // ann resets hers: open again, from main; a reset shows in the history
+        let was = reset(&dir, &ann, "ann", false, 3).unwrap();
+        assert_eq!(was.records.len(), 1);
+        let b = get(&dir, &ann).unwrap().unwrap();
+        assert_eq!((b.status.as_str(), b.commits.len()), ("open", 0));
+        assert!(list(&dir).unwrap().iter().any(|b| b.status == "reset" && b.commits.len() == 1));
+        reset(&dir, &ann, "ann", true, 4).unwrap();
+        assert!(get(&dir, &ann).unwrap().is_none());
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

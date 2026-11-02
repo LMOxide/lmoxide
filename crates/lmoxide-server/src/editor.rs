@@ -194,34 +194,37 @@ fn changed(ed: &mut Editor, keys: &[Key]) {
     crate::survey::content_changed(&ed.work, keys);
 }
 
-// ------------------------------------------------------------------ contributors' commits
+// ------------------------------------------------------------------ contributors' branches
 
-/// Why an admin's review of a contributor commit didn't go through (content.rs answers it).
+/// Why an admin's or editor's action on a contributor branch didn't go through (content.rs and
+/// survey.rs answer it).
 pub(crate) enum ReviewError {
     /// No world editor here (no working copy).
     Off,
     NotFound(String),
-    /// Merged or rejected already, or files changed on both sides.
+    /// Nothing to merge, or someone else's branch.
+    Refused(String),
+    /// Records `main` changed since the branch started (their ids).
     Conflict(String, Vec<String>),
     Internal(String),
 }
 
-impl From<contrib::MergeError> for ReviewError {
-    fn from(e: contrib::MergeError) -> Self {
+impl From<contrib::ReviewError> for ReviewError {
+    fn from(e: contrib::ReviewError) -> Self {
         match e {
-            contrib::MergeError::NotFound => ReviewError::NotFound("no such contributor commit".into()),
-            contrib::MergeError::Decided(s) => ReviewError::Conflict(format!("that commit is {s} already"), Vec::new()),
-            contrib::MergeError::Conflicts(files) => ReviewError::Conflict(
-                "the commit and the content both changed these files since the commit's base: the contributor needs to commit their records again on top of the content".into(),
-                files,
+            contrib::ReviewError::NotFound => ReviewError::NotFound("no such branch".into()),
+            contrib::ReviewError::Empty => ReviewError::Refused("that branch has nothing main doesn't".into()),
+            contrib::ReviewError::Conflicts(ids) => ReviewError::Conflict(
+                "the content changed these records since the branch started; merging puts the branch's versions over them (merge with force)".into(),
+                ids,
             ),
-            contrib::MergeError::Other(e) => ReviewError::Internal(format!("{e:#}")),
+            contrib::ReviewError::Other(e) => ReviewError::Internal(format!("{e:#}")),
         }
     }
 }
 
-/// Runs `f` on the working copy's folder, off the async threads, with the editor locked (so no
-/// commit or save runs meanwhile).
+/// Runs `f` on the editor, off the async threads, with the editor locked (so no commit or save
+/// runs meanwhile).
 pub(crate) async fn review<T: Send + 'static>(f: impl FnOnce(&mut Editor) -> Result<T, ReviewError> + Send + 'static) -> Result<T, ReviewError> {
     tokio::task::spawn_blocking(move || {
         let mut guard = EDITOR.lock().unwrap();
@@ -232,42 +235,62 @@ pub(crate) async fn review<T: Send + 'static>(f: impl FnOnce(&mut Editor) -> Res
     .map_err(|e| ReviewError::Internal(e.to_string()))?
 }
 
-/// Every contributor commit (pending, merged, rejected), oldest first.
-pub(crate) fn contributions(ed: &mut Editor) -> Result<Vec<contrib::Contribution>, ReviewError> {
+/// Every contributor branch: open ones, then closed ones.
+pub(crate) fn branches(ed: &mut Editor) -> Result<Vec<contrib::Branch>, ReviewError> {
     contrib::list(ed.work.dir()).map_err(|e| ReviewError::Internal(format!("{e:#}")))
 }
 
-/// How many commits wait, and how many merged ones `origin` doesn't have yet.
+/// How many branches wait for review, and how many merged commits `origin` doesn't have yet.
 pub(crate) fn review_state(ed: &mut Editor) -> (usize, Option<u64>) {
-    let pending = contrib::list(ed.work.dir()).map(|l| l.iter().filter(|c| c.status == "pending").count()).unwrap_or(0);
+    let pending = contrib::list(ed.work.dir()).map(|l| l.iter().filter(|b| b.status == "pending").count()).unwrap_or(0);
     (pending, contrib::unpushed(ed.work.dir()))
 }
 
-/// Merges a contributor commit into the working copy's branch. Records of the working copy
-/// still as the commit found them take its version (others changed them since or not at all:
-/// they stay), and the world editor's worlds spawn them again. The commit as merged and the
-/// new commit's hash.
-pub(crate) fn merge_contribution(ed: &mut Editor, hash: &str, approver: &str) -> Result<(contrib::Contribution, String), ReviewError> {
-    let (c, new) = contrib::merge(ed.work.dir(), hash, approver, now())?;
+/// Puts records of the working copy that are still `from` to `to` (a merged branch's into
+/// main's new version; a reset branch's back to main's), and the world editor's worlds spawn
+/// them again. How many.
+fn bring_in_line(ed: &mut Editor, records: &[contrib::BranchRecord], from: impl Fn(&contrib::BranchRecord) -> Option<Value>, to: impl Fn(&contrib::BranchRecord) -> Option<Value>) -> Result<usize, ReviewError> {
     let mut keys = Vec::new();
-    for r in &c.records {
+    for r in records {
         let current = ed.work.get(&r.key).map(|e| e.value.clone());
-        if current != r.after && current == r.before {
-            ed.work.reset(&r.key, r.after.clone()).map_err(|e| ReviewError::Internal(e.to_string()))?;
+        if current == from(r) && current != to(r) {
+            ed.work.reset(&r.key, to(r)).map_err(|e| ReviewError::Internal(e.to_string()))?;
             keys.push(r.key.clone());
         }
     }
     if !keys.is_empty() {
         changed(ed, &keys);
     }
-    info!(commit = %c.hash, merged_as = %new, by = %approver, author = %c.author, records = c.records.len(), "content: contributor commit merged");
-    Ok((c, new))
+    Ok(keys.len())
 }
 
-pub(crate) fn reject_contribution(ed: &mut Editor, hash: &str, by: &str, reason: Option<String>) -> Result<contrib::Contribution, ReviewError> {
-    let c = contrib::reject(ed.work.dir(), hash, by, reason, now())?;
-    info!(commit = %c.hash, by = %by, author = %c.author, "content: contributor commit rejected");
-    Ok(c)
+/// Merges a branch into the working copy's `main` (one commit; `force` over records main
+/// changed since). Records of the working copy still as main had them take the branch's
+/// version. The branch as merged and the new commit's hash.
+pub(crate) fn merge_branch(ed: &mut Editor, branch: &str, approver: &str, message: Option<String>, force: bool) -> Result<(contrib::Branch, String), ReviewError> {
+    let work = &ed.work;
+    let (b, new) = contrib::merge(work.dir(), branch, approver, message.as_deref(), force, now(), |k| work.next_in_file(k))?;
+    bring_in_line(ed, &b.records, |r| r.before.clone(), |r| r.after.clone())?;
+    info!(branch = %b.branch, merged_as = %new, by = %approver, author = %b.author, records = b.records.len(), "content: branch merged");
+    Ok((b, new))
+}
+
+pub(crate) fn reject_branch(ed: &mut Editor, branch: &str, by: &str, reason: Option<String>) -> Result<contrib::Branch, ReviewError> {
+    let b = contrib::reject(ed.work.dir(), branch, by, reason, now())?;
+    info!(branch = %b.branch, by = %by, author = %b.author, "content: branch rejected");
+    Ok(b)
+}
+
+/// Resets (or deletes) one of `by`'s own branches; the working copy's records still as the
+/// branch had them go back to main's. The branch as it was and how many records went back.
+pub(crate) fn reset_branch(ed: &mut Editor, branch: &str, by: &str, delete: bool) -> Result<(contrib::Branch, usize), ReviewError> {
+    if contrib::owner_of(branch) != Some(lmoxide_content::slug(by).as_str()) {
+        return Err(ReviewError::Refused(format!("{branch} isn't yours")));
+    }
+    let b = contrib::reset(ed.work.dir(), branch, by, delete, now())?;
+    let reverted = bring_in_line(ed, &b.records, |r| r.after.clone(), |r| r.before.clone())?;
+    info!(branch = %b.branch, by = %by, delete, reverted, "content: branch reset");
+    Ok((b, reverted))
 }
 
 // ------------------------------------------------------------------ routes
