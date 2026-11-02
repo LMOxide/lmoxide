@@ -4,7 +4,7 @@ A server mode for recording where things were on live, in game, together. Nothin
 Surveyors place enemies, NPCs, smashables and buildies by standing where they belong. They confirm,
 edit or delete the guessed content, and mark areas (missions, achievements, dialogues, scripts,
 comments) for someone to review later. Everything they do is content records (docs/CONTENT.md)
-in the world editor's copy of the content repository, `var/content-work`; publishing queues it for
+in the world editor's copy of the content repository, `var/content-work`; committing puts it on the editor's branch for
 an admin to approve (docs/WORLD-CONTENT.md).
 
 Status: steps 1–4 work (tested with the Linux client and the world editor). The world editor is
@@ -18,7 +18,7 @@ lmoxide-content>`: the World Editor mode's characters are its own (an account lo
 through its universe port, the patcher's Game Mode, with GM level 2 (contributor) and up:
 `--world-editor-gm-level`); nothing moves or attacks in its copies of the worlds (copy 2); there
 everyone has the test commands. The play modes run beside it in the same process with the published
-content; what the editor saves lives in its working copy until published.
+content; what the editor saves lives in its working copy until an admin merges it.
 `tools/lan-server.sh` runs it all (World Editor on 7104; the content: `var/content-work`, cloned
 from `content/` the first time and brought up to it at every start). `--survey-set` (`var/survey-set`) names the survey set of
 before content records: it is taken into the working copy once (survey/migrate.rs; its
@@ -178,9 +178,11 @@ crate's (`Note`, `Script`, `TriggerWall`, ...), written into content records
 | POST | `/objects/{id}/forget` | | its record back to its last commit (a new one goes, a deleted one comes back, where it was in its file): its `SurveyObject`, else `null`. Undoing a placement, a delete or an edit |
 | PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`; bouncers: with `template` and `target`) | writes the record exactly so, spawned again. Redo, undoing a delete |
 | POST | `/playfields/{pf}/objects` | a snapshot as for `PUT /objects/{id}` (its `playfield` is ignored) | a new record in `pf` (paste): an id from its name, author from the request, feature checked, a `wave` must be one of `pf`'s (else 422); saved and spawned; nobody's selection changes. The new `SurveyObject` |
-| GET | `/unpublished` | | the working copy's changes since its last commit not in the publish queue, the caller's first: `[{playfield (0: definitions), playfield_name, feature, feature_path, author, mine, summary, items: [{kind (placement, trigger, note, script, smash_rule, record), id, name, op, details, updated, tags}]}]` |
-| POST | `/publish` | `{playfield?, feature?, author?, ids?}` (author: default the caller, `*` everyone) | `{records, unpublished}`: the chosen changes become one publish queue entry (docs/WORLD-CONTENT.md) |
-| GET | `/export?author=` | (author: default the caller, `*` everyone) | everything that author changed since the working copy's last commit, published or not, as a publish queue entry to download: `{seq: 0, created, by, summary, status: "exported", records: [{id, feature, change, file, author, before, after}]}`. A record is the author's when they saved it last; a removed one counts for whoever saved it last before. The world editor's Publish dialog downloads yours ("Export mine") |
+| GET | `/unpublished` | | the working copy's changes since its last commit not committed (as they are) to their author's branch, the caller's first: `[{playfield (0: definitions), playfield_name, feature, feature_path, author, mine, summary, items: [{kind (placement, trigger, note, script, smash_rule, record), id, name, op, details, updated, tags}]}]` |
+| POST | `/commit` | `{message, playfield?, feature?, author?, ids?}` (author: default the caller; one editor's) | `{commit, branch, records, unpublished}`: the chosen changes become one commit on that editor's branch `contrib/<name>`, for an admin to merge (docs/WORLD-CONTENT.md) |
+| GET | `/commits?author=` | (author: default the caller, `*` everyone) | that editor's commits, oldest first, as admins see them (`GET /v1/content/commits`): status `pending`, `merged`, `rejected` with the `decision` |
+| GET | `/download?author=&format=` | (format `patch`, default, or `bundle`) | that editor's commits not merged yet: `git format-patch` output (`git am` applies it) or a git bundle of the branch (`git fetch <file> contrib/<name>`) |
+| GET | `/export?author=` | (author: default the caller, `*` everyone) | everything that author changed since the working copy's last commit, published or not, as JSON to download: `{seq: 0, created, by, summary, status: "exported", records: [{id, feature, change, file, author, before, after}]}`. A record is the author's when they saved it last; a removed one counts for whoever saved it last before. The world editor's Commit dialog downloads yours ("Export mine") |
 
 The page polls `state` every second and reloads objects and notes when `revision` or the playfield
 changes, so changes made in game (a selection by attacking, someone else's edit) show up.

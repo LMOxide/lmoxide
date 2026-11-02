@@ -61,19 +61,18 @@ would answer 403.
 | `admin` | create/rename/delete accounts, set passwords and GM levels, maintenance mode, API keys (secret shown once at creation), audit log, **world content** (below) |
 
 **World content** (admin; docs/WORLD-CONTENT.md, routes `/v1/content/...`, not in openapi.json;
-changed 2026-10-28, the web UI's page needs redoing): what world editors published waits in a
-queue of entries (`GET /v1/content/queue`, oldest first; `GET /v1/content/queue/{seq}`). An entry
-has `seq`, `created` (unix), `by` (who published), `summary` ("Isle of Yarr: 3 records (feature
-live)"), `status` (`queued`, `rejected`) and `reason`, and its `records`: each content record's
-`id`, `feature`, `change` (`added`, `changed`, `removed`), `file`, `author`, and the record
-`before` and `after` (JSON; show the fields that differ, as the world editor's record pages do).
-Reject (`POST /v1/content/reject {seq, reason}`) keeps the entry, rejected. Approve
-(`POST /v1/content/approve {seq}`) will commit the entry to the content repository; it answers
-501 until that is built (show it disabled with that message), and Preview (in the game for a
-while before approving) comes with it. `GET /v1/content/state` gives the badge count (`queued`).
-History will be the content repository's (commits with `Content-Author:` and `Approved-By:`).
-The rules, summary, features, refresh, preview and history routes of the old approved-set flow
-are gone.
+changed 2026-11-02): world editors commit their changes with a message to their own branch;
+admins merge or reject each commit. `GET /v1/content/commits` (oldest first) and
+`GET /v1/content/commits/{hash}`: `hash`, `branch` (`contrib/<name>`), `author` (whose changes),
+`by` (who committed them), `created` (unix), `subject`, `message` (the whole commit message),
+`status` (`pending`, `merged`, `rejected`), `decision` (`{status, by, at, reason?, merged_as?}`)
+and its `records`: each content record's `id`, `feature`, `change` (`added`, `changed`,
+`removed`), `file`, `author`, and the record `before` and `after` (JSON; show the fields that
+differ). `POST /v1/content/commits/{hash}/merge` merges it (`{merged, commit}`; 409 when decided
+already, or with `error.files` when the content changed those files since: the contributor needs
+to commit again). `POST /v1/content/commits/{hash}/reject {reason}`. `GET /v1/content/state`:
+`pending` (the badge count) and `unpushed` (merged commits not in the content repository yet).
+The publish queue routes (`/v1/content/queue`, `approve`, `reject`) are gone.
 
 Moderators get 403 when they kick or ban staff (accounts with a GM level); only admins can.
 

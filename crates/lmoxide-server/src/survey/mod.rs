@@ -41,7 +41,7 @@ use crate::{
     npc::{self, Kind, SpawnDef},
     world,
 };
-use lmoxide_content::git;
+use lmoxide_content::{contrib, git};
 use lmoxide_content::id::RecordKind;
 use lmoxide_content::work::{Key, Work};
 
@@ -1282,7 +1282,9 @@ pub fn routes() -> Router {
         .route("/v1/survey/features", get(features).post(create_feature))
         .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/unpublished", get(unpublished))
-        .route("/v1/survey/publish", post(publish))
+        .route("/v1/survey/commit", post(commit))
+        .route("/v1/survey/commits", get(commits))
+        .route("/v1/survey/download", get(download))
         .route("/v1/survey/export", get(export))
 }
 
@@ -2198,8 +2200,8 @@ async fn copy_feature(headers: HeaderMap, Json(b): Json<CopyFeature>) -> R<Copie
 
 // ------------------------------------------------------------------ publishing
 
-/// One editor's changes to one feature in one playfield that aren't published yet (the working
-/// copy's records that differ from its last commit and aren't in the publish queue).
+/// One editor's changes to one feature in one playfield that aren't committed yet (the working
+/// copy's records that differ from its last commit and aren't on their author's branch).
 #[derive(Serialize)]
 struct Unpublished {
     /// 0: definitions (NPCs, achievements, ...), not a world's.
@@ -2237,10 +2239,18 @@ fn playfield_name(pf: u32) -> String {
     crate::teleport::destination(pf).map_or_else(|| pf.to_string(), |d| d.name.clone())
 }
 
-/// The working copy's records changed since its last commit and not published (queued) yet.
+/// The working copy's records changed since its last commit and not committed to their author's
+/// branch as they are (lmoxide_content::contrib).
 fn unpublished_changes(work: &Work) -> Result<Vec<git::Change>, Error> {
-    let queue = lmoxide_content::queue::Queue::new(&crate::editor::queue_dir(work));
-    Ok(git::changes(work).map_err(|e| Error::Invalid(format!("{e:#}")))?.into_iter().filter(|c| !queue.has(&c.key, c.after.as_ref())).collect())
+    let mut branches: HashMap<String, BTreeMap<Key, Option<serde_json::Value>>> = HashMap::new();
+    let all = git::changes(work).map_err(|e| Error::Invalid(format!("{e:#}")))?;
+    Ok(all
+        .into_iter()
+        .filter(|c| {
+            let on = branches.entry(c.author.clone()).or_insert_with(|| contrib::committed(work.dir(), &c.author));
+            on.get(&c.key) != Some(&c.after)
+        })
+        .collect())
 }
 
 /// The unpublished changes by world, feature and author (the caller's first).
@@ -2293,44 +2303,105 @@ async fn unpublished(headers: HeaderMap) -> R<Vec<Unpublished>> {
 }
 
 #[derive(Deserialize)]
-struct PublishRequest {
+struct CommitRequest {
+    /// The commit message: what changed and why.
+    message: String,
     /// Only this playfield's changes.
     playfield: Option<u32>,
     /// Only this feature's changes.
     feature: Option<String>,
-    /// Whose changes: default the caller's; `*`: everyone's.
+    /// Whose changes (they go on that editor's branch): default the caller's.
     author: Option<String>,
     /// Only these records.
     ids: Option<Vec<String>>,
 }
 
 #[derive(Serialize)]
-struct Published {
+struct Committed {
+    /// The new commit, on `branch`.
+    commit: String,
+    branch: String,
     records: usize,
-    /// What is still unpublished.
+    /// What is still uncommitted.
     unpublished: Vec<Unpublished>,
 }
 
-/// Publishes changes: they become one entry of the publish queue (var/content-queue), for an
-/// admin to approve; they stay in the working copy as they are.
-async fn publish(headers: HeaderMap, Json(r): Json<PublishRequest>) -> R<Published> {
+/// Commits changes of one editor (default the caller) to their branch, `contrib/<name>`
+/// (lmoxide_content::contrib): for an admin to merge into the content. They stay in the working
+/// copy as they are.
+async fn commit(headers: HeaderMap, Json(r): Json<CommitRequest>) -> R<Committed> {
     let me = author_of(&headers);
-    let author = r.author.clone().unwrap_or(me.clone());
-    with_work(|work, st| {
-        let chosen: Vec<git::Change> = unpublished_changes(work)?
-            .into_iter()
-            .filter(|c| r.playfield.is_none_or(|p| c.key.id.world.unwrap_or(0) == p) && r.feature.as_ref().is_none_or(|f| &c.key.feature == f) && (author == "*" || c.author == author))
-            .filter(|c| r.ids.as_ref().is_none_or(|ids| ids.contains(&c.key.id.to_string())))
-            .collect();
-        let records = chosen.len();
-        if records > 0 {
-            let summary = summary_of(&chosen);
-            let entry = lmoxide_content::queue::Entry { seq: 0, created: ids::now(), by: me.clone(), summary, status: "queued".into(), reason: None, records: chosen.into_iter().map(Into::into).collect() };
-            let e = lmoxide_content::queue::Queue::new(&crate::editor::queue_dir(work)).add(entry).map_err(|e| Error::Invalid(format!("not queued: {e}")))?;
-            info!(by = %me, author = %author, records, seq = e.seq, "survey: published (queued)");
-        }
-        Ok(Json(Published { records, unpublished: unpublished_of(st, work, &me)? }))
+    let author = r.author.clone().filter(|a| !a.is_empty()).unwrap_or(me.clone());
+    if author == "*" {
+        return Err(Error::Invalid("a commit holds one editor's changes: name the author".into()));
+    }
+    if r.message.trim().is_empty() {
+        return Err(Error::Invalid("a commit needs a message: what changed and why".into()));
+    }
+    tokio::task::spawn_blocking(move || {
+        with_work(|work, st| {
+            let chosen: Vec<git::Change> = unpublished_changes(work)?
+                .into_iter()
+                .filter(|c| r.playfield.is_none_or(|p| c.key.id.world.unwrap_or(0) == p) && r.feature.as_ref().is_none_or(|f| &c.key.feature == f) && c.author == author)
+                .filter(|c| r.ids.as_ref().is_none_or(|ids| ids.contains(&c.key.id.to_string())))
+                .collect();
+            if chosen.is_empty() {
+                return Err(Error::Invalid(format!("{author} has nothing uncommitted there")));
+            }
+            let records = chosen.len();
+            let hash = contrib::commit(work, &chosen, &author, &me, &r.message).map_err(|e| Error::Invalid(format!("not committed: {e:#}")))?;
+            info!(by = %me, author = %author, records, commit = %hash, "survey: committed");
+            Ok(Json(Committed { commit: hash, branch: contrib::branch_of(&author), records, unpublished: unpublished_of(st, work, &me)? }))
+        })
     })
+    .await
+    .map_err(|e| Error::Invalid(e.to_string()))?
+}
+
+#[derive(Deserialize)]
+struct CommitsQuery {
+    /// Whose commits: default the caller's; `*`: everyone's.
+    author: Option<String>,
+}
+
+/// An editor's commits (default the caller's), oldest first: pending, merged or rejected (with
+/// the admin's reason), each with its records before and after.
+async fn commits(headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<CommitsQuery>) -> R<Vec<contrib::Contribution>> {
+    let author = q.author.filter(|a| !a.is_empty()).unwrap_or_else(|| author_of(&headers));
+    tokio::task::spawn_blocking(move || {
+        with_work(|work, _| {
+            let all = contrib::list(work.dir()).map_err(|e| Error::Invalid(format!("{e:#}")))?;
+            let branch = contrib::branch_of(&author);
+            Ok(Json(all.into_iter().filter(|c| author == "*" || c.branch == branch).collect()))
+        })
+    })
+    .await
+    .map_err(|e| Error::Invalid(e.to_string()))?
+}
+
+#[derive(Deserialize)]
+struct DownloadQuery {
+    /// Whose commits: default the caller's.
+    author: Option<String>,
+    /// `patch` (default: `git am` applies it) or `bundle` (`git fetch <file> contrib/<name>`).
+    format: Option<String>,
+}
+
+/// An editor's commits not merged yet (default the caller's), as patches or a git bundle.
+async fn download(headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<DownloadQuery>) -> Result<Response, Error> {
+    let author = q.author.filter(|a| !a.is_empty()).unwrap_or_else(|| author_of(&headers));
+    let format = match q.format.as_deref() {
+        None | Some("patch") => contrib::Format::Patch,
+        Some("bundle") => contrib::Format::Bundle,
+        Some(f) => return Err(Error::Invalid(format!("format {f}: patch or bundle"))),
+    };
+    let bytes = tokio::task::spawn_blocking(move || {
+        with_work(|work, _| contrib::download(work.dir(), &author, format).map_err(|e| Error::NotFound(format!("{e:#}"))))
+    })
+    .await
+    .map_err(|e| Error::Invalid(e.to_string()))??;
+    let content_type = if format == contrib::Format::Patch { "text/x-patch; charset=utf-8" } else { "application/x-git-bundle" };
+    Ok(([(axum::http::header::CONTENT_TYPE, content_type)], bytes).into_response())
 }
 
 /// "Isle of Yarr, Definitions: 3 records (feature live)".

@@ -19,6 +19,7 @@ pub mod action;
 pub mod canon;
 pub mod catalog;
 pub mod compat;
+pub mod contrib;
 pub mod git;
 pub mod id;
 pub mod import;

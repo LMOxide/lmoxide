@@ -200,7 +200,7 @@ The `data` volume holds everything that matters:
 | `lmoxide.db` | the database: accounts, characters, friendships, bans, API keys, the audit log, and the login key (patched into every client the server hands out: a new one means every player has to update) |
 | `patch-data/manifest-signing.key` | the patch server's signing key (patchers trust it: a new one makes them ask again) |
 | `patch-data/` | the patch server's caches |
-| `content-work/`, `content-queue/` | the world editor's working copy and publish queue, if you use it |
+| `content-work/`, `content-work-review.json` | the world editor's working copy (with the contributors' branches) and the admins' decisions on their commits, if you use it |
 
 Stop the server for a consistent copy:
 
@@ -222,7 +222,7 @@ the content the image plays, committed, its `origin` the content repository); wi
 World Editor's worlds would be empty. At every start after that it takes the image's content again
 (committed on top) when the copy has no unpublished edits, so after `docker compose pull` the
 World Editor edits what players play. With unpublished edits it keeps the copy as it is and logs
-a warning ("content working copy ... not brought up"): publish or discard them, then restart.
+a warning ("content working copy ... not brought up"): commit and merge or discard them, then restart.
 
 How edits are reviewed and published: [WORLD-EDITOR-CONTENT.md](WORLD-EDITOR-CONTENT.md).
 

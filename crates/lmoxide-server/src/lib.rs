@@ -192,9 +192,9 @@ pub struct Config {
     /// before content records: taken into the content working copy once (its migrated.json).
     #[arg(long, env = "LMOXIDE_SURVEY_SET")]
     pub survey_set: Option<PathBuf>,
-    /// The world editor's publish queue (var/content-queue), which admins see and decide on
-    /// (docs/WORLD-CONTENT.md).
-    #[arg(long, env = "LMOXIDE_CONTENT_QUEUE")]
+    /// Unused: the world editor's old publish queue. Contributors commit to branches of the
+    /// working copy since (docs/WORLD-CONTENT.md); still accepted so old configs start.
+    #[arg(long, env = "LMOXIDE_CONTENT_QUEUE", hide = true)]
     pub content_queue: Option<PathBuf>,
     /// The game's content tree (docs/CONTENT.md; default: the source checkout's content/).
     #[arg(long, env = "LMOXIDE_CONTENT_DIR")]
@@ -350,7 +350,7 @@ pub async fn serve(cfg: Config, storage: Storage) -> anyhow::Result<()> {
         editor::init(&cfg.editor_content_dir.clone().unwrap_or_else(|| play.clone()), &play);
     }
     if cfg.runs(instance::Mode::Progression) || cfg.runs(instance::Mode::Maxed) {
-        content::init(cfg.content_queue.clone());
+        content::init();
     }
     instance::set_open_world_cap(cfg.open_world_cap);
     story::set_windows(cfg.story_windows);

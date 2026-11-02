@@ -4,14 +4,13 @@
 //! count toward which achievements (achievements.rs), the area quests (quests.rs), trigger areas and
 //! walls (triggers.rs); jump pads come with world_data.rs.
 //!
-//! What editors publish waits in the world editor's publish queue (`--content-queue`, the
-//! survey server's `var/content-queue`, lmoxide_content::queue); admins see it and reject it
-//! here (`/v1/content` on the control interface, through lmoxide-api). Approving commits the
-//! entry to the content repository, which servers then pull: not built yet
-//! (docs/WORLD-EDITOR-CONTENT.md, phase 3).
+//! What editors commit goes on their branches of the world editor's working copy
+//! (lmoxide_content::contrib); admins see those commits and merge or reject them here
+//! (`/v1/content` on the control interface, through lmoxide-api), on a server that runs the
+//! world editor. Merged commits are on the working copy's `main`; play servers take them once
+//! they are in the content they run (pushed to the content repository, pulled).
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 use std::sync::{
     LazyLock, Mutex,
     atomic::{AtomicBool, Ordering},
@@ -20,31 +19,30 @@ use std::sync::{
 use axum::{
     Json, Router,
     extract::Path as UrlPath,
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
 };
 use lmoxide_content::id::RecordKind;
-use lmoxide_content::queue::{Entry, Queue};
+use lmoxide_content::contrib::Contribution;
 use lmoxide_content::views;
 use lmoxide_content::work::Work;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use tracing::{info, warn};
 
+use crate::editor::ReviewError;
+
 static ENABLED: AtomicBool = AtomicBool::new(false);
-/// The publish queue's folder, if this server has one.
-static QUEUE: LazyLock<Mutex<Option<PathBuf>>> = LazyLock::new(Mutex::default);
 
 /// Whether this (play) server runs the content's world editor work.
 pub fn enabled() -> bool {
     ENABLED.load(Ordering::Relaxed)
 }
 
-/// A play server, with the world editor's publish queue in `queue` if given.
-pub fn init(queue: Option<PathBuf>) {
-    info!(queue = ?queue, "world content");
-    *QUEUE.lock().unwrap() = queue;
+/// A play server.
+pub fn init() {
+    info!("world content");
     ENABLED.store(true, Ordering::Relaxed);
 }
 
@@ -143,61 +141,76 @@ pub fn save_point(pf: u32, name: &str, pos: [f32; 3], heading: f32, author: &str
 pub fn routes() -> Router {
     Router::new()
         .route("/v1/content/state", get(state))
-        .route("/v1/content/queue", get(queue))
-        .route("/v1/content/queue/{seq}", get(entry))
-        .route("/v1/content/approve", post(approve))
-        .route("/v1/content/reject", post(reject))
+        .route("/v1/content/commits", get(commits))
+        .route("/v1/content/commits/{hash}", get(commit))
+        .route("/v1/content/commits/{hash}/merge", post(merge))
+        .route("/v1/content/commits/{hash}/reject", post(reject))
 }
 
-struct Error(StatusCode, String);
+struct Error(StatusCode, String, Vec<String>);
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        (self.0, Json(json!({ "error": { "code": "content", "message": self.1 } }))).into_response()
+        let mut body = json!({ "code": "content", "message": self.1 });
+        if !self.2.is_empty() {
+            body["files"] = json!(self.2);
+        }
+        (self.0, Json(json!({ "error": body }))).into_response()
     }
 }
 
-fn the_queue() -> Result<Queue, Error> {
-    if !enabled() {
-        return Err(Error(StatusCode::NOT_FOUND, "this server doesn't run world content (a survey server?)".into()));
+impl From<ReviewError> for Error {
+    fn from(e: ReviewError) -> Self {
+        match e {
+            ReviewError::Off => Error(StatusCode::NOT_FOUND, "this server has no world editor content (a working copy, --editor-content-dir)".into(), Vec::new()),
+            ReviewError::NotFound(m) => Error(StatusCode::NOT_FOUND, m, Vec::new()),
+            ReviewError::Conflict(m, files) => Error(StatusCode::CONFLICT, m, files),
+            ReviewError::Internal(m) => Error(StatusCode::INTERNAL_SERVER_ERROR, m, Vec::new()),
+        }
     }
-    QUEUE.lock().unwrap().as_deref().map(Queue::new).ok_or_else(|| Error(StatusCode::NOT_FOUND, "no publish queue here (--content-queue)".into()))
 }
 
-/// The content this server runs and how many publishes wait.
-async fn state() -> Result<Json<Value>, Error> {
-    let queued = the_queue().map(|q| q.entries().iter().filter(|e| e.status == "queued").count()).ok();
-    Ok(Json(json!({ "content": crate::gamedata::loaded_from(), "queue": *QUEUE.lock().unwrap(), "queued": queued })))
+/// The content this server runs, how many contributor commits wait, and how many merged ones
+/// the content repository (`origin`) doesn't have yet.
+async fn state() -> Json<Value> {
+    let review = crate::editor::review(|ed| Ok(crate::editor::review_state(ed))).await.ok();
+    Json(json!({
+        "content": crate::gamedata::loaded_from(),
+        "pending": review.map(|r| r.0),
+        "unpushed": review.and_then(|r| r.1),
+    }))
 }
 
-/// Every publish waiting (and rejected ones), oldest first.
-async fn queue() -> Result<Json<Vec<Entry>>, Error> {
-    Ok(Json(the_queue()?.entries()))
+/// Every contributor commit, oldest first: pending, merged and rejected.
+async fn commits() -> Result<Json<Vec<Contribution>>, Error> {
+    Ok(Json(crate::editor::review(crate::editor::contributions).await?))
 }
 
-async fn entry(UrlPath(seq): UrlPath<u64>) -> Result<Json<Entry>, Error> {
-    the_queue()?.get(seq).map(Json).ok_or_else(|| Error(StatusCode::NOT_FOUND, format!("no queue entry {seq}")))
+async fn commit(UrlPath(hash): UrlPath<String>) -> Result<Json<Contribution>, Error> {
+    let all = crate::editor::review(crate::editor::contributions).await?;
+    all.into_iter()
+        .find(|c| c.hash == hash || (hash.len() >= 7 && c.hash.starts_with(&hash)))
+        .map(Json)
+        .ok_or_else(|| Error(StatusCode::NOT_FOUND, format!("no contributor commit {hash}"), Vec::new()))
 }
 
-#[derive(Deserialize)]
-struct Decision {
-    seq: u64,
-    #[serde(default)]
+/// Merges a pending commit into the content (the working copy's `main`), as its contributor,
+/// with `Approved-By:` the caller. 409 with `files` when the content changed them since.
+async fn merge(headers: HeaderMap, UrlPath(hash): UrlPath<String>) -> Result<Json<Value>, Error> {
+    let by = crate::survey::author_of(&headers);
+    let (c, merged) = crate::editor::review(move |ed| crate::editor::merge_contribution(ed, &hash, &by)).await?;
+    Ok(Json(json!({ "merged": merged, "commit": c })))
+}
+
+#[derive(Deserialize, Default)]
+#[serde(default)]
+struct Rejection {
     reason: Option<String>,
 }
 
-/// Approving commits the entry to the content repository: not built yet.
-async fn approve(Json(_): Json<Decision>) -> Result<Json<Value>, Error> {
-    Err(Error(StatusCode::NOT_IMPLEMENTED, "approving (committing to the content repository) isn't built yet".into()))
-}
-
-/// Rejects an entry: it stays in the queue as rejected, with the reason, until its author
-/// publishes those records again.
-async fn reject(Json(d): Json<Decision>) -> Result<Json<Entry>, Error> {
-    let q = the_queue()?;
-    let mut e = q.get(d.seq).ok_or_else(|| Error(StatusCode::NOT_FOUND, format!("no queue entry {}", d.seq)))?;
-    e.status = "rejected".into();
-    e.reason = d.reason;
-    q.write(&e).map_err(|err| Error(StatusCode::INTERNAL_SERVER_ERROR, err.to_string()))?;
-    Ok(Json(e))
+/// Rejects a pending commit with a reason; it stays on the contributor's branch.
+async fn reject(headers: HeaderMap, UrlPath(hash): UrlPath<String>, body: Option<Json<Rejection>>) -> Result<Json<Contribution>, Error> {
+    let by = crate::survey::author_of(&headers);
+    let reason = body.and_then(|b| b.0.reason).filter(|r| !r.trim().is_empty());
+    Ok(Json(crate::editor::review(move |ed| crate::editor::reject_contribution(ed, &hash, &by, reason)).await?))
 }

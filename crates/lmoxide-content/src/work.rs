@@ -664,6 +664,13 @@ impl Work {
         }
     }
 
+    /// The record after `key` in its file's section (where a copy of it goes elsewhere).
+    pub fn next_in_file(&self, key: &Key) -> Option<Key> {
+        let file = &self.records.get(key)?.file;
+        let Some(Layout::Sections(list)) = self.files.get(file) else { return None };
+        list.iter().find_map(|(_, keys)| keys.iter().position(|k| k == key).and_then(|i| keys.get(i + 1)).cloned())
+    }
+
     /// Moves `key` before `before` in their file's section (when both are there).
     fn move_before(&mut self, key: &Key, before: &Key) {
         let Some(file) = self.records.get(key).map(|e| e.file.clone()) else { return };

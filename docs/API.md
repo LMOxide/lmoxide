@@ -93,7 +93,7 @@ Errors are `{"error": {"code": "...", "message": "..."}}` with codes such as `un
 | GET | `/v1/players` | read | online players with account ids, usernames, game mode, playfield and copy |
 | GET | `/v1/instances` | moderate | running copies of worlds (each game mode's main copies, team copies, previews): mode, kind, players, NPCs; the AI's tick time |
 | POST | `/v1/players/{account_id}/kick` | moderate | `{reason?}` |
-| any | `/v1/content/{path}` | admin | a play server's world content (docs/WORLD-CONTENT.md: approval queue, rules, summaries, features), passed to the game server as they are. Not in openapi.json |
+| any | `/v1/content/{path}` | admin | a play server's world content (docs/WORLD-CONTENT.md: contributor commits to merge or reject), passed to the game server as they are. Not in openapi.json |
 | any | `/v1/survey/{path}` | contributor (GM ≥ `--editor-gm-level`) or moderate | the world editor's routes (docs/SURVEY.md "API"), passed to the game server as they are; the caller is the author of what they change. Not in openapi.json; bodies up to 16 MB |
 | any | `/v1/editor/{path}` | contributor or moderate | the world editor's content editing routes (docs/WORLD-EDITOR-CONTENT.md: records, schemas, catalogs, changes, history), passed on like `/v1/survey`; the caller is the author |
 | POST | `/v1/players/{account_id}/command` | admin | `{command}`: a test command (`!fx 163540`, `!skin 2212`, `!state 29`) run as the player, as if typed in chat (its GM level still applies) → `{affected, replies}`: the chat answers it produced |

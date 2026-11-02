@@ -8,15 +8,18 @@ through the content repository's `main`, after an admin approved it.
 ```
 world editor (survey server, docs/SURVEY.md)
   var/content-work/            a git checkout of LMOxide/lmoxide-content: every editor's work,
-                               saved as they make it (unpublished: differs from its last commit)
-        │ Publish (the editor's header)
+                               saved as they make it (uncommitted: differs from main)
+        │ Commit (the editor's header): one editor's chosen changes and a message
         ▼
-  var/content-queue/<seq>.json one entry per publish: the records it changes, before and after
-        │ approve (web UI, admin)            ── not built yet: see "Approval" below
+  contrib/<name> branches      one branch per contributor in that checkout, a commit per Commit,
+                               authored as the editor (Content-Author:; Committed-By: when an
+                               admin committed someone's changes); downloadable as patches or
+                               a git bundle
+        │ merge (web UI, admin)              reject: stays on the branch, with the reason
         ▼
-  LMOxide/lmoxide-content main  a commit per approved entry, authored as the editor, with
-                               Content-Author:, Approved-By:, Lmoxide-Change: (content/README.md)
-        │ git pull
+  var/content-work main        the commit's change on top, authored as the editor, with
+                               Approved-By: and Lmoxide-Contribution: <the branch commit>
+        │ push to lmoxide-content main (by hand for now), play servers pull
         ▼
 play servers (content/ or --content-dir): run it from their next start
 ```
@@ -30,20 +33,21 @@ crossing one does what it says), trigger areas and walls (triggers.rs, below), s
 (scripts.rs, `!script list|start|stop`), smash rules (achievements.rs). Features: `live` and what is nested under the server's active features
 (lmoxide-content `Options::features`).
 
-`--content-queue <dir>` (tools/lan-server.sh passes `../var/content-queue`, the survey server's)
-lets admins see and decide on what editors published, on the control interface and through
-lmoxide-api (admin):
+Contributor commits (lmoxide_content::contrib). Contributors, on the survey server (`/v1/survey`,
+docs/SURVEY.md): `POST /commit`, `GET /commits`, `GET /download`. Admins, on a server that runs
+the world editor, on the control interface and through lmoxide-api (admin):
 
 | Route | |
 |---|---|
-| `GET /v1/content/state` | `content` (the tree it runs), `queue` (the folder), `queued` (how many wait) |
-| `GET /v1/content/queue` | every entry, oldest first: `seq`, `created`, `by` (who published), `summary`, `status` (`queued`, `rejected`), `reason`, `records: [{ id, feature, change, file, author, before, after }]` |
-| `GET /v1/content/queue/{seq}` | one entry |
-| `POST /v1/content/reject` | `{ seq, reason }`: the entry stays, rejected, with the reason |
-| `POST /v1/content/approve` | `{ seq }`: 501 for now (approval commits; below) |
+| `GET /v1/content/state` | `content` (the tree it runs), `pending` (commits waiting), `unpushed` (merged commits `origin/main` doesn't have) |
+| `GET /v1/content/commits` | every contributor commit, oldest first: `hash`, `branch`, `author` (whose changes), `by` (who committed them), `created`, `subject`, `message` (the whole message, trailers left out), `status` (`pending`, `merged`, `rejected`), `decision` (`{status, by, at, reason?, merged_as?}`), `records: [{ id, feature, change, file, author, before, after }]` |
+| `GET /v1/content/commits/{hash}` | one (a hash prefix of 7+ works) |
+| `POST /v1/content/commits/{hash}/merge` | merges it into the working copy's `main` (as a cherry-pick: only that commit's change, without touching the files); records of the working copy still as the commit found them take its version and the editor's worlds respawn them. `{merged, commit}`. 409 when it was decided already, or with `files` when `main` changed those files since the commit's base (the contributor commits their records again: their next commit is on top of the content) |
+| `POST /v1/content/commits/{hash}/reject` | `{ reason }`: rejected, with the reason; it stays on the branch |
 
-The survey server lists and withdraws entries too (`GET /v1/editor/queue`,
-`DELETE /v1/editor/queue/{seq}`), and leaves queued records out of what it calls unpublished.
+Decisions are kept beside the working copy (`var/content-work-review.json`). A merge doesn't push:
+play servers get merged commits once `main` is pushed to the content repository and they pull
+(on the LAN: `git -C content pull ../var/content-work main`).
 
 ## Walls and trigger areas
 
@@ -139,16 +143,12 @@ The quarry crystals (quest/medieval-story goal 3UX1, items 464315-464318) drop f
 smashables defeated in the Quarry (`drops_in: area/5210/quest-quarry`) while the player is on that
 step (2026-10-30: nothing dropped them before).
 
-## Approval (not built yet)
+## Not built yet
 
-Decided (docs/WORLD-EDITOR-CONTENT.md): approving an entry commits exactly its records to the
-content repository's `main` (the server holds the token, e.g. `LMOXIDE_CONTENT_GIT_TOKEN`; never
-the web UI), with the trailers above, pushes, and play servers pull and spawn again what they
-can (spawns, walls, scripts, bouncers), the rest on restart; undo is `git revert` of that commit.
-Pull requests merged on GitHub arrive the same way. Before approving, an admin can **preview** an
-entry: the play server applies its records in memory for a while (15 minutes), then drops them.
-On hold at the user's request (they may change the approach), so approve answers 501 and preview
-isn't there yet.
+Pushing merged commits to the content repository from the server (a server-side token), and
+play servers pulling and respawning what they can; a preview of a commit in a play copy before
+merging. Until 2026-11-02 Publish made publish queue entries (`var/content-queue`,
+`--content-queue`, now ignored); the queue entries left there aren't read any more.
 
 ## Before content records
 

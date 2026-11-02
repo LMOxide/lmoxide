@@ -118,6 +118,10 @@ history on play servers), `crates/lmoxide-content/src/model.rs` (every record ty
 
 ## What remains (2026-10-28)
 
+2026-11-02: the publish queue was replaced by contributor commits (branches `contrib/<name>` of
+the working copy, merged or rejected by admins: docs/WORLD-CONTENT.md); items 1 and 4 below are
+done that way, without the push.
+
 1. **Approval** (on hold: the user may rethink it): approving a publish queue entry commits
    exactly its records to lmoxide-content `main` with the trailers (content/README.md), pushes
    (server-side token), and play servers pull; undo is `git revert`. Today

@@ -10,7 +10,7 @@ use serde_json::Value;
 
 use crate::work::{Key, Work};
 
-fn git(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
+pub(crate) fn git(dir: &Path, args: &[&str]) -> anyhow::Result<String> {
     let out = Command::new("git").arg("-C").arg(dir).args(args).output()?;
     anyhow::ensure!(
         out.status.success(),

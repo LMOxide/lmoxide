@@ -17,12 +17,12 @@ use axum::{
     routing::get,
 };
 use lmoxide_content::work::{EditError, Key, NewRecord, Work};
-use lmoxide_content::{Options, Severity, git, kind_of, schema};
+use lmoxide_content::{Options, Severity, contrib, git, kind_of, schema};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use tracing::{info, warn};
 
-struct Editor {
+pub(crate) struct Editor {
     work: Work,
     /// The client data folder (looks, effects, stats).
     reference: PathBuf,
@@ -177,11 +177,6 @@ fn problems(ed: &mut Editor) -> Arc<Problems> {
     out
 }
 
-/// The publish queue's folder, beside the working copy (`var/content-queue`).
-pub(crate) fn queue_dir(work: &Work) -> PathBuf {
-    work.dir().with_file_name("content-queue")
-}
-
 /// Runs `f` on the working copy (survey.rs: in-game edits). Lock order: the working copy, then
 /// survey.rs's state. The tree's problems are checked again when next asked for.
 pub(crate) fn work<T>(f: impl FnOnce(&mut Work) -> T) -> Option<T> {
@@ -199,6 +194,82 @@ fn changed(ed: &mut Editor, keys: &[Key]) {
     crate::survey::content_changed(&ed.work, keys);
 }
 
+// ------------------------------------------------------------------ contributors' commits
+
+/// Why an admin's review of a contributor commit didn't go through (content.rs answers it).
+pub(crate) enum ReviewError {
+    /// No world editor here (no working copy).
+    Off,
+    NotFound(String),
+    /// Merged or rejected already, or files changed on both sides.
+    Conflict(String, Vec<String>),
+    Internal(String),
+}
+
+impl From<contrib::MergeError> for ReviewError {
+    fn from(e: contrib::MergeError) -> Self {
+        match e {
+            contrib::MergeError::NotFound => ReviewError::NotFound("no such contributor commit".into()),
+            contrib::MergeError::Decided(s) => ReviewError::Conflict(format!("that commit is {s} already"), Vec::new()),
+            contrib::MergeError::Conflicts(files) => ReviewError::Conflict(
+                "the commit and the content both changed these files since the commit's base: the contributor needs to commit their records again on top of the content".into(),
+                files,
+            ),
+            contrib::MergeError::Other(e) => ReviewError::Internal(format!("{e:#}")),
+        }
+    }
+}
+
+/// Runs `f` on the working copy's folder, off the async threads, with the editor locked (so no
+/// commit or save runs meanwhile).
+pub(crate) async fn review<T: Send + 'static>(f: impl FnOnce(&mut Editor) -> Result<T, ReviewError> + Send + 'static) -> Result<T, ReviewError> {
+    tokio::task::spawn_blocking(move || {
+        let mut guard = EDITOR.lock().unwrap();
+        let ed = guard.as_mut().ok_or(ReviewError::Off)?;
+        f(ed)
+    })
+    .await
+    .map_err(|e| ReviewError::Internal(e.to_string()))?
+}
+
+/// Every contributor commit (pending, merged, rejected), oldest first.
+pub(crate) fn contributions(ed: &mut Editor) -> Result<Vec<contrib::Contribution>, ReviewError> {
+    contrib::list(ed.work.dir()).map_err(|e| ReviewError::Internal(format!("{e:#}")))
+}
+
+/// How many commits wait, and how many merged ones `origin` doesn't have yet.
+pub(crate) fn review_state(ed: &mut Editor) -> (usize, Option<u64>) {
+    let pending = contrib::list(ed.work.dir()).map(|l| l.iter().filter(|c| c.status == "pending").count()).unwrap_or(0);
+    (pending, contrib::unpushed(ed.work.dir()))
+}
+
+/// Merges a contributor commit into the working copy's branch. Records of the working copy
+/// still as the commit found them take its version (others changed them since or not at all:
+/// they stay), and the world editor's worlds spawn them again. The commit as merged and the
+/// new commit's hash.
+pub(crate) fn merge_contribution(ed: &mut Editor, hash: &str, approver: &str) -> Result<(contrib::Contribution, String), ReviewError> {
+    let (c, new) = contrib::merge(ed.work.dir(), hash, approver, now())?;
+    let mut keys = Vec::new();
+    for r in &c.records {
+        let current = ed.work.get(&r.key).map(|e| e.value.clone());
+        if current != r.after && current == r.before {
+            ed.work.reset(&r.key, r.after.clone()).map_err(|e| ReviewError::Internal(e.to_string()))?;
+            keys.push(r.key.clone());
+        }
+    }
+    if !keys.is_empty() {
+        changed(ed, &keys);
+    }
+    info!(commit = %c.hash, merged_as = %new, by = %approver, author = %c.author, records = c.records.len(), "content: contributor commit merged");
+    Ok((c, new))
+}
+
+pub(crate) fn reject_contribution(ed: &mut Editor, hash: &str, by: &str, reason: Option<String>) -> Result<contrib::Contribution, ReviewError> {
+    let c = contrib::reject(ed.work.dir(), hash, by, reason, now())?;
+    info!(commit = %c.hash, by = %by, author = %c.author, "content: contributor commit rejected");
+    Ok(c)
+}
+
 // ------------------------------------------------------------------ routes
 
 pub fn routes() -> Router {
@@ -212,8 +283,6 @@ pub fn routes() -> Router {
         .route("/v1/editor/catalog/{name}", get(catalog))
         .route("/v1/editor/reload", axum::routing::post(reload))
         .route("/v1/editor/loot/simulate", axum::routing::post(simulate_loot))
-        .route("/v1/editor/queue", get(queue))
-        .route("/v1/editor/queue/{seq}", axum::routing::delete(withdraw))
 }
 
 /// The kinds index and every schema.
@@ -493,22 +562,6 @@ async fn changes(Query(q): Query<ChangesQuery>) -> R<Vec<git::Change>> {
     with(move |ed| {
         let list = git::changes(&ed.work)?;
         Ok(list.into_iter().filter(|c| q.author.as_deref().is_none_or(|a| c.author.eq_ignore_ascii_case(a))).collect())
-    })
-    .await
-}
-
-/// What editors published, waiting for approval (newest last).
-async fn queue() -> R<Vec<lmoxide_content::queue::Entry>> {
-    with(|ed| Ok(lmoxide_content::queue::Queue::new(&queue_dir(&ed.work)).entries())).await
-}
-
-/// Takes an entry out of the queue (its changes are unpublished again).
-async fn withdraw(UrlPath(seq): UrlPath<u64>) -> R<Value> {
-    with(move |ed| {
-        let q = lmoxide_content::queue::Queue::new(&queue_dir(&ed.work));
-        q.get(seq).ok_or_else(|| Error::NotFound(format!("no queue entry {seq}")))?;
-        q.remove(seq).map_err(|e| Error::Internal(e.to_string()))?;
-        Ok(json!({ "withdrawn": seq }))
     })
     .await
 }

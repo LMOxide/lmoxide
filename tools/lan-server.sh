@@ -14,8 +14,8 @@
 # as live), Maxxed (everything unlocked) and World Editor (for GM level 2 and up; nothing moves
 # or attacks, the dev UI's world editor places content). Each has its own characters.
 # World content: the world editor edits ../var/content-work (a git clone of content/, made here
-# the first time); what it publishes waits in ../var/content-queue for an admin
-# (docs/WORLD-CONTENT.md; LMOXIDE_CONTENT_QUEUE= moves it).
+# the first time); editors commit their changes to branches of it (contrib/<name>) and admins
+# merge them in the web UI (docs/WORLD-CONTENT.md).
 # The game server runs under tools/keep-listening.py: its ports stay open across restarts (a
 # client pressing "relocate? Yes" meanwhile waits instead of failing), and a server that exits
 # is started again; the API is started again too. Rebuild and restart both while this runs:
@@ -169,7 +169,6 @@ python3 "$ROOT/tools/keep-listening.py" --bind 0.0.0.0 --ports "$MODE_PORTS,7101
   --holder-pidfile "$ROOT/logs/lan-holder.pid" -- \
   "$BIN/lmoxide-server" --data-dir "$DATA" --bind 0.0.0.0 --public-host "$IP" "${CONTROL_ARGS[@]}" \
   --auto-register --default-gm-level "${LMOXIDE_DEFAULT_GM_LEVEL:-0}" --modes "$MODES" \
-  --content-queue "${LMOXIDE_CONTENT_QUEUE:-$VAR/content-queue}" \
   --editor-content-dir "$WORK" --survey-set "${LMOXIDE_SURVEY_SET:-$VAR/survey-set}" \
   ${LMOXIDE_SERVER_ARGS:-} 2>&1 \
   | tee "$ROOT/logs/lan-server.log"
