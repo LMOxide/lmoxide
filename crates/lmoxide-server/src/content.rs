@@ -164,6 +164,7 @@ impl From<ReviewError> for Error {
         match e {
             ReviewError::Off => Error(StatusCode::NOT_FOUND, "this server has no world editor content (a working copy, --editor-content-dir)".into(), Vec::new()),
             ReviewError::NotFound(m) => Error(StatusCode::NOT_FOUND, m, Vec::new()),
+            ReviewError::Conflict(m, files) if !files.is_empty() => Error(StatusCode::CONFLICT, format!("{m} ({})", files.join(", ")), files),
             ReviewError::Conflict(m, files) => Error(StatusCode::CONFLICT, m, files),
             ReviewError::Internal(m) => Error(StatusCode::INTERNAL_SERVER_ERROR, m, Vec::new()),
         }
