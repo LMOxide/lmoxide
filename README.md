@@ -215,6 +215,7 @@ See [docs/PATCHING.md](docs/PATCHING.md) and
 | [GAME-OPTIONS.md](docs/GAME-OPTIONS.md) | the game modes (progression by default) and options for aiming and story windows |
 | [HOSTING.md](docs/HOSTING.md) | running a public server from the published images: Docker Compose, Caddy, the web UI, dev UI and Discord bot, updates, backups |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | test runs, in-game test commands, scripts, reverse-engineering tools |
+| [GOD-CAMERA.md](docs/GOD-CAMERA.md) | the GM free camera: every key, and saving camera spots |
 | [PROTOCOL.md](docs/PROTOCOL.md) | how the client talks to the server: boot, framing, RPCs, login, game systems |
 | [CONTENT.md](docs/CONTENT.md) | the game's data in one editable tree (`content/`): its format, commands, what the import did |
 | [TUNABLES.md](docs/TUNABLES.md) | values that are guessed because the client data doesn't contain them |

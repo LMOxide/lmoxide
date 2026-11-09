@@ -590,10 +590,15 @@ The release client keeps Funcom's debug free camera ("Godcam"); it needs bit 4 o
   gm <user> 6`: 6 = 2|4, still admin for the server), then log in again. Verified 2026-10-27 on
   Hyprland with the native client: Ctrl+Alt+V works by hand and when sent with `hyprctl dispatch
   send_key_state` (Control_L down, Alt_L down with mods "CTRL", v with mods "CTRL ALT").
-- Keys in god cam (`GodCameraMode::SlotKeyboardKeyDown`, HID codes mapped to letters): X toggles
-  flying (movement), R back to the player, F places the player's character at the camera
-  (`Vehicle_t::PlaceAt`, client side), Z forced height, PageUp/PageDown speed, 0-9 jump to
-  bookmarks, Shift/Ctrl+0-9 set one. Its keys are cleared while a GUI input node is active.
+- Keys in god cam (`GodCameraMode::SlotKeyboardKeyDown`, HID codes mapped to letters; full list for
+  players in [GOD-CAMERA.md](GOD-CAMERA.md)): X freeze (byte +0x198, the legend's "freeze camera"),
+  R back to the player, F places the player's character at the camera (`Vehicle_t::PlaceAt`, client
+  side), Z forced height, PageUp/PageDown speed, 0-9 jump to bookmarks, Ctrl+0-9 set one (in
+  memory only). Its keys are cleared while a GUI input node is active.
+- Alt+F9 (`Debug_PosToClipboard`, `CoreHotkeyDispatcher::DebugPosToClipboardMessage`) in god cam
+  copies `/luac camera.god{pos={x, y, z}, rot={x, y, z, w}, fov=f}`; outside it, the plain position.
+  `/luac` (chat command, mask 2) runs Lua; `camera.god{...}` (`Lua::LuaCameraGod`) sets the FOV,
+  calls `ActivateGodCamera` and `SetPositionRotation`. The dev UI's Camera spots keep these lines.
 - The server never learns the camera's position (no message carries it). Integration options:
   F (character to the camera) then the server sees the move; the server can drive the camera with
   ScryScript camera commands (`SetCameraTargetScriptCommand_c`, `CameraPathScriptCommand_c`,
