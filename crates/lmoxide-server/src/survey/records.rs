@@ -94,6 +94,7 @@ pub fn object_of(work: &Work, key: &Key) -> Option<Object> {
             wave: w.wave,
         }),
         replaces: None,
+        live_at: s.live_at,
         comment: s.comment,
         feature: key.feature.clone(),
         tags: s.tags,
@@ -224,7 +225,20 @@ pub fn store(work: &mut Work, o: &Object, author: &str, now: u64) -> Result<Valu
     } else {
         r.insert("feature".into(), json!(o.feature));
     }
-    r.insert("source".into(), json!("surveyed"));
+    if o.category == Category::Live {
+        // a live spawn stays live; moved, it keeps where live had it (and leaves its named point)
+        match &o.live_at {
+            Some(l) => {
+                r.insert("live_at".into(), serde_json::to_value(l).expect("live_at"));
+                r.remove("at");
+            }
+            None => {
+                r.remove("live_at");
+            }
+        }
+    } else {
+        r.insert("source".into(), json!("surveyed"));
+    }
     // its level, when it isn't its template's
     let template_level = o
         .template
@@ -259,6 +273,37 @@ pub fn store(work: &mut Work, o: &Object, author: &str, now: u64) -> Result<Valu
         overrides.as_object().is_none_or(|o| o.is_empty()),
     );
     Ok(work.put(record, author, now)?)
+}
+
+/// Where live had a live spawn before an editor first moves it: its record's own `pos`, `rot`
+/// and `at` (the position as spawned, `pos` being the point's when it stands on one).
+pub fn live_place(work: &Work, o: &Object) -> lmoxide_content::LiveAt {
+    let r = work.get(&o.key).map(|e| e.value.clone()).unwrap_or_default();
+    lmoxide_content::LiveAt {
+        pos: o.def.pos,
+        rot: r.get("rot").and_then(|v| serde_json::from_value(v.clone()).ok()),
+        at: r.get("at").and_then(Value::as_str).map(str::to_string),
+    }
+}
+
+/// A moved live spawn back where live had it (its `live_at` gone).
+pub fn revert_live(work: &mut Work, key: &Key, author: &str, now: u64) -> Result<(), Error> {
+    let mut record = work.get(key).map(|e| e.value.clone()).ok_or_else(|| Error::NotFound(format!("no record {}", key.id)))?;
+    let r = record.as_object_mut().expect("a record");
+    let Some(l) = r.remove("live_at") else {
+        return Err(Error::Invalid(format!("{} is where live had it", key.id)));
+    };
+    let l: lmoxide_content::LiveAt = serde_json::from_value(l).map_err(|e| Error::Invalid(format!("its live_at: {e}")))?;
+    r.insert("pos".into(), json!(l.pos));
+    match l.rot {
+        Some(rot) => r.insert("rot".into(), serde_json::to_value(rot).expect("rot")),
+        None => r.remove("rot"),
+    };
+    if let Some(at) = l.at {
+        r.insert("at".into(), json!(at));
+    }
+    work.put(record, author, now)?;
+    Ok(())
 }
 
 /// A new spawn's key in playfield `pf`, from its name (numbered when taken).
@@ -316,6 +361,7 @@ pub fn new_object(
         def,
         wave: None,
         replaces: None,
+        live_at: None,
         comment: String::new(),
         tags: Vec::new(),
         author: String::new(),

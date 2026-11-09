@@ -85,6 +85,8 @@ struct Object {
     def: SpawnDef,
     wave: Option<WaveRef>,
     replaces: Option<Origin>,
+    /// A live spawn an editor moved: where live had it (Revert to live puts it back).
+    live_at: Option<lmoxide_content::LiveAt>,
     comment: String,
     /// lmoxide_survey::features (base objects: live)
     feature: String,
@@ -281,6 +283,11 @@ impl Object {
             updated: self.updated,
             playfield: self.playfield,
             replaces: self.replaces.clone(),
+            live_at: self.live_at.as_ref().map(|l| LivePlace {
+                pos: l.pos,
+                heading: l.rot.map_or(self.def.rot.unwrap_or(0.0), |r| r.heading()),
+                at: l.at.clone(),
+            }),
             size: None,
             radius: None,
             color: None,
@@ -363,8 +370,13 @@ fn replace_object(st: &mut State, work: &Work, id: &str, key: &Key) -> Option<Su
 
 /// The object `id` if editors may change it (guesses and surveyed ones).
 fn editable(st: &State, id: &str) -> Result<Object, Error> {
+    editable_or(st, id, false)
+}
+
+/// The object `id` if editors may change it; with `live`, live spawns too (their position).
+fn editable_or(st: &State, id: &str, live: bool) -> Result<Object, Error> {
     let o = st.objects.get(id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?;
-    if !o.category.editable() {
+    if !o.category.editable() && !(live && o.category == Category::Live) {
         return Err(Error::Invalid(format!("{} objects can only be hidden", label(o.category))));
     }
     Ok(o.clone())
@@ -971,6 +983,7 @@ fn buildie_view(b: &crate::buildie::Listed) -> SurveyObject {
         updated: 0,
         playfield: b.playfield.model(),
         replaces: None,
+        live_at: None,
         size: None,
         radius: None,
         color: None,
@@ -1006,6 +1019,7 @@ fn bouncer_view(l: &crate::jumppad::Listed) -> SurveyObject {
         updated: p.map_or(0, |p| p.updated),
         playfield: l.playfield,
         replaces: p.and_then(|p| p.replaces.clone()),
+        live_at: None,
         size: None,
         radius: None,
         color: None,
@@ -1135,6 +1149,9 @@ struct SurveyObject {
     /// The guess it replaces (confirmed or edited), which Reset brings back.
     #[serde(skip_serializing_if = "Option::is_none")]
     replaces: Option<Origin>,
+    /// A live spawn editors moved or turned: where live had it (POST .../revert-live).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    live_at: Option<LivePlace>,
     /// Trigger walls: width, height, depth; look; what crossing does; only once.
     #[serde(skip_serializing_if = "Option::is_none")]
     size: Option<[f32; 3]>,
@@ -1153,6 +1170,17 @@ struct SurveyObject {
     /// Bouncers whose landing point is on pads that throw on: the hops after `target`.
     #[serde(skip_serializing_if = "Option::is_none")]
     chain: Option<Vec<[f32; 3]>>,
+}
+
+/// Where live had a moved live spawn.
+#[derive(Serialize)]
+struct LivePlace {
+    pos: [f32; 3],
+    /// radians
+    heading: f32,
+    /// the named point it stood on
+    #[serde(skip_serializing_if = "Option::is_none")]
+    at: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -1314,6 +1342,7 @@ pub fn routes() -> Router {
         .route("/v1/survey/objects/{id}", axum::routing::patch(edit).delete(remove).put(put_object))
         .route("/v1/survey/objects/{id}/confirm", post(confirm))
         .route("/v1/survey/objects/{id}/forget", post(forget))
+        .route("/v1/survey/objects/{id}/revert-live", post(revert_live))
         .route("/v1/survey/features", get(features).post(create_feature))
         .route("/v1/survey/features/copy", post(copy_feature))
         .route("/v1/survey/unpublished", get(unpublished))
@@ -1730,8 +1759,18 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
             return edit_bouncer(st, work, &l, c, &author);
         }
         let feature = c.feature.clone().map(|f| checked_feature(&st.features, Some(f))).transpose()?;
-        let mut o = editable(st, &id)?;
+        let mut o = editable_or(st, &id, true)?;
         let pf = o.playfield;
+        if o.category == Category::Live {
+            // live spawns: only where they stand and face; the first move keeps live's place
+            let other = c.kind.is_some() || c.monster_data.is_some() || c.template.is_some() || c.patrol.is_some() || c.level.is_some() || c.name.is_some() || c.comment.is_some() || c.wave.is_some() || c.feature.is_some() || c.tags.is_some() || c.size.is_some() || c.radius.is_some() || c.color.is_some() || c.action.is_some() || c.once.is_some() || c.target.is_some();
+            if other {
+                return Err(Error::Invalid("live spawns: only their position and heading can change".into()));
+            }
+            if o.live_at.is_none() {
+                o.live_at = Some(records::live_place(work, &o));
+            }
+        }
         if let Some(Some(w)) = &c.wave
             && !has_wave(&st.notes, pf, w)
         {
@@ -1770,6 +1809,19 @@ async fn edit(Path(id): Path<String>, headers: HeaderMap, Json(c): Json<Changes>
         }
         if let Some(p) = c.patrol {
             o.def.patrol = if walks(o.def.kind) { p } else { Vec::new() };
+        }
+        // moved back onto live's place: just live again
+        if let Some(l) = &o.live_at {
+            let live_heading = l.rot.map_or(0.0, |r| r.heading());
+            let turn = (o.def.rot.unwrap_or(0.0) - live_heading).rem_euclid(std::f32::consts::TAU);
+            if distance(o.def.pos, l.pos) < 0.01 && turn.min(std::f32::consts::TAU - turn) < 0.001 {
+                records::revert_live(work, &o.key, &author, now)?;
+                let view = replace_object(st, work, &id, &o.key).ok_or_else(|| Error::Invalid(format!("{id} can't be spawned")))?;
+                sync_all(st);
+                mark_selecting(st, &id);
+                bump(st, pf);
+                return Ok(view);
+            }
         }
         let old = o.key.clone();
         if let Some(f) = feature {
@@ -1849,6 +1901,23 @@ async fn remove(Path(id): Path<String>, headers: HeaderMap) -> R<Removed> {
         // (forget it to bring it back: its committed version)
         Ok(Json(Removed { id }))
     })
+}
+
+/// A live spawn editors moved back where live had it.
+async fn revert_live(Path(id): Path<String>, headers: HeaderMap) -> R<SurveyObject> {
+    with_work(|work, st| {
+        let o = st.objects.get(&id).ok_or_else(|| Error::NotFound(format!("no object {id}")))?.clone();
+        if o.category != Category::Live {
+            return Err(Error::Invalid(format!("{id} isn't a live spawn")));
+        }
+        records::revert_live(work, &o.key, &author_of(&headers), ids::now())?;
+        let view = replace_object(st, work, &id, &o.key).ok_or_else(|| Error::Invalid(format!("{id} can't be spawned")))?;
+        sync_all(st);
+        mark_selecting(st, &id);
+        bump(st, o.playfield);
+        Ok(view)
+    })
+    .map(Json)
 }
 
 /// Nobody has `id` selected any more.
@@ -2559,6 +2628,7 @@ impl Wall {
             updated: d.updated,
             playfield: self.playfield,
             replaces: None,
+            live_at: None,
             size: Some(d.size),
             radius: d.radius,
             color: Some(d.color.clone()),
@@ -3404,6 +3474,45 @@ mod tests {
         let uses = tag_uses(&work);
         assert_eq!(uses[0..2].iter().map(|u| (u.tag.as_str(), u.count, u.suggested)).collect::<Vec<_>>(), [("rough", 2, false), ("todo", 1, true)]);
         assert!(uses.iter().any(|u| u.tag == "approximate" && u.count == 0));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn live_spawns_move_and_revert() {
+        // a live spawn on a named point
+        let dir = std::env::temp_dir().join(format!("lmoxide-survey-live-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("worlds/1200-hub")).unwrap();
+        std::fs::create_dir_all(dir.join("npcs")).unwrap();
+        let put = |rel: &str, v: serde_json::Value| std::fs::write(dir.join(rel), serde_json::to_string(&v).unwrap()).unwrap();
+        put("content.json", serde_json::json!({ "format": 1, "reference": "../data" }));
+        put("worlds/1200-hub/world.json", serde_json::json!({ "id": "world/hub", "playfield": 1200 }));
+        put("worlds/1200-hub/areas.json", serde_json::json!({ "areas": [{ "id": "area/1200/p", "shape": { "point": { "pos": [1.0, 2.0, 3.0] } } }] }));
+        put("npcs/pirate.json", serde_json::json!({ "id": "npc/pirate", "name": "Pirate", "kind": "enemy", "level": 3 }));
+        put("worlds/1200-hub/spawns.json", serde_json::json!({ "spawns": [{ "id": "spawn/1200/pirate", "kind": "enemy", "template": "npc/pirate", "at": "area/1200/p", "rot": 0.5, "source": "live" }] }));
+        let mut work = Work::open(&dir).unwrap();
+        let key = Key::parse("spawn/1200/pirate", "live").unwrap();
+        let what = Placeable { kind: SKind::Enemy, name: "Pirate".into(), monster_data: None, template: None, level: Some(3), used: None, names: Vec::new() };
+        let mut o = records::new_object(key.clone(), "npc/pirate".into(), &what, None).unwrap();
+        o.category = Category::Live;
+        o.def.pos = [1.0, 2.0, 3.0];
+        o.def.rot = Some(0.5);
+        // moved: still live, live's place kept, off its point
+        o.live_at = Some(records::live_place(&work, &o));
+        o.def.pos = [5.0, 2.0, 3.0];
+        o.def.rot = Some(1.0);
+        records::store(&mut work, &o, "ann", 100).unwrap();
+        let r = work.get(&key).unwrap().value.clone();
+        assert_eq!(r["source"], "live");
+        assert_eq!(r["pos"], serde_json::json!([5.0, 2.0, 3.0]));
+        assert_eq!(r["live_at"], serde_json::json!({ "pos": [1.0, 2.0, 3.0], "rot": 0.5, "at": "area/1200/p" }));
+        assert!(r.get("at").is_none());
+        // reverted: as live had it
+        records::revert_live(&mut work, &key, "ann", 101).unwrap();
+        let r = work.get(&key).unwrap().value.clone();
+        assert_eq!((r["at"].clone(), r["rot"].clone()), (serde_json::json!("area/1200/p"), serde_json::json!(0.5)));
+        assert!(r.get("live_at").is_none());
+        assert!(matches!(records::revert_live(&mut work, &key, "ann", 102), Err(Error::Invalid(_))));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

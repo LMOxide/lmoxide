@@ -37,7 +37,7 @@ Every enemy, NPC, smashable, buildie and bouncer a server spawns has a category,
 
 | Category | `source` | In survey mode |
 |---|---|---|
-| **live** | `live`: recorded from the live server (the 2016 capture) | hide only |
+| **live** | `live`: recorded from the live server (the 2016 capture) | move and turn (the record keeps `live_at`, where live had it; revert puts it back), hide |
 | **demo** | `demo`: the recorded session in the client folder | hide only |
 | **client** | `client` (or none): the client's own data (RDB dynels, buildies, cinematic points) | hide only |
 | **guessed** | `proposed`, `server`, `guess`: proposed by a tool or guessed | confirm, edit, delete, hide |
@@ -172,8 +172,9 @@ crate's (`Note`, `Script`, `TriggerWall`, ...), written into content records
 | GET | `/playfields/{pf}/notes` | | `{notes, scripts}` |
 | PUT / DELETE | `/playfields/{pf}/notes/{id}` | `Note` | `Note` |
 | PUT / DELETE | `/playfields/{pf}/scripts/{id}` | `Script` | `Script` |
-| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `tags`, `feature`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once`; bouncers: `pos`, `heading`, `name`, `comment`, `tags`, `feature`, `target` (`[x,y,z]` or null), `template` (another pad look) | the `SurveyObject` (a guess comes back surveyed; `feature` moves the record to that feature's version) |
+| PATCH | `/objects/{id}` | any of `pos`, `heading`, `level`, `name`, `comment`, `tags`, `feature`, `wave`, `patrol`, and `kind` + `monster_data` + `template` (change it into another spawn); trigger walls: `size`, `color`, `action`, `once`; bouncers: `pos`, `heading`, `name`, `comment`, `tags`, `feature`, `target` (`[x,y,z]` or null), `template` (another pad look) | the `SurveyObject` (a guess comes back surveyed; `feature` moves the record to that feature's version). Live spawns take only `pos` and `heading` (else 422) and stay live: the first move saves live's `pos`/`rot`/`at` in the record's `live_at`, and the object carries `live_at: {pos, heading, at?}`; moved back onto that spot it is live's again (`live_at` dropped) |
 | POST | `/objects/{id}/confirm` | | the surveyed `SurveyObject` |
+| POST | `/objects/{id}/revert-live` | | a moved live spawn back where live had it (`pos`, `rot` and `at` from its `live_at`, which goes): its `SurveyObject`. 422 for one that isn't live or wasn't moved |
 | DELETE | `/objects/{id}` | | `{id}`: its record is deleted (forget it to bring it back) |
 | POST | `/objects/{id}/forget` | | its record back to its last commit (a new one goes, a deleted one comes back, where it was in its file): its `SurveyObject`, else `null`. Undoing a placement, a delete or an edit |
 | PUT | `/objects/{id}` | a `SurveyObject` snapshot (with `playfield`; bouncers: with `template` and `target`) | writes the record exactly so, spawned again. Redo, undoing a delete |

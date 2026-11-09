@@ -220,6 +220,20 @@ pub struct WaveRef {
     pub wave: String,
 }
 
+/// Where live had a spawn an editor has moved: its `pos`, `rot` and `at` as recorded.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct LiveAt {
+    #[schemars(extend("x-lmoxide-position" = true))]
+    pub pos: Vec3,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-rotation" = true))]
+    pub rot: Option<Rot>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(extend("x-lmoxide-ref" = ["area"]))]
+    pub at: Option<Ref>,
+}
+
 /// Client placement details the server sends as they are.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
@@ -306,6 +320,9 @@ record! {
         pub appeared_at: Option<f64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub fight: Option<FightRole>,
+        /// A live spawn an editor moved or turned: where live had it (reverting puts it back).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub live_at: Option<LiveAt>,
         /// A world-editor placement that replaced a proposed spawn: that spawn's id.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         #[schemars(extend("x-lmoxide-ref" = ["spawn"]))]
