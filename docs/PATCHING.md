@@ -45,7 +45,7 @@ LMOxide game server.
 
 The client's patcher window (before "Play") shows the banners `/banner` lists, one after another
 (5 s each). Without `--banner-dir` that is live's last list: `brickagain_<language>.jpg` from
-Funcom's CDN (`en`, `de`, `fr` or `es`, else `en`). With `--banner-dir <dir>`, read on every
+Funcom's CDN (`en`, `de`, `fr` or `es`, else `en`), the 2016 shutdown notice. With `--banner-dir <dir>`, read on every
 request:
 
 - `bannerconfig_<language>.xml`, else `bannerconfig.xml`, is sent as written, with `{base}`

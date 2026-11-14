@@ -53,6 +53,9 @@ Relative to `HttpPatchAddr`:
   and `thanksgiving`, `stars`, `firstpatch`, `new_membership_rewards`, `nonmember1`,
   `nonmember_2`, `member2`, `member3` (copies in `var/loading-banners/funcom-cdn/`). Every
   recorded request had `subscription_flags=0`; how live chose member or non-member lists isn't known.
+  The client keeps the list and images in `<user data>/Funcom/Lego/Banners/PatcherBanners/`
+  (Linux: `~/.local/share/…`). `brickagain_*.jpg` is the shutdown notice ("…will be closing on
+  September 30th, 2016"). **verified** (Linux client, 2026-11-13)
 
 ## TCP framing **verified**
 
