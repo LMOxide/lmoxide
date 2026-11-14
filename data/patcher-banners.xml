@@ -4,9 +4,10 @@
      client's language (en, de, fr or es; English for others). Funcom's CDN has: welcome,
      welcome2, s14, s15, brickagain (the 2016 shutdown notice) in all four languages, and
      thanksgiving, stars, firstpatch, new_membership_rewards, nonmember1, nonmember_2, member2,
-     member3 (English only). -->
+     member3 (English only). DisplayTime is in seconds (live sent 5). -->
 <Banners>
-<Banner ImageURL="{base}welcome_{lang}.jpg" TargetURL="" DisplayTime="5"/>
-<Banner ImageURL="{base}welcome2_{lang}.jpg" TargetURL="" DisplayTime="5"/>
-<Banner ImageURL="{base}s15_{lang}.jpg" TargetURL="" DisplayTime="5"/>
+<Banner ImageURL="{base}welcome_{lang}.jpg" TargetURL="" DisplayTime="8"/>
+<Banner ImageURL="{base}welcome2_{lang}.jpg" TargetURL="" DisplayTime="8"/>
+<Banner ImageURL="{base}s14_{lang}.jpg" TargetURL="" DisplayTime="8"/>
+<Banner ImageURL="{base}s15_{lang}.jpg" TargetURL="" DisplayTime="8"/>
 </Banners>

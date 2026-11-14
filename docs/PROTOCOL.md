@@ -56,6 +56,14 @@ Relative to `HttpPatchAddr`:
   The client keeps the list and images in `<user data>/Funcom/Lego/Banners/PatcherBanners/`
   (Linux: `~/.local/share/…`). `brickagain_*.jpg` is the shutdown notice ("…will be closing on
   September 30th, 2016"). **verified** (Linux client, 2026-11-13)
+  The carousel (`IngamePatcher.swf`, `Toolkit.BannerCarousel`): `DisplayTime` is seconds; after a
+  manual change it waits `2 x DisplayTime`; clicking a banner opens a non-empty `TargetURL`.
+  It has prev/next buttons (`m_PrevBannerButton`/`m_NextBannerButton`, art `ButtonArrowLeft/Right`)
+  that the code always hides (`visible = false`; only gamepad L2/R2 and touch swipes change
+  banners) and page dots (`m_StateIndicator`, bottom centre, clickable) that never draw: the
+  indicator creates `Toolkit.StateIndicatorIcon`, an empty MovieClip, while the dot art (symbol
+  117, frames `unselected`/`selected`) is linked to the subclass `GUI.Patcher.StateIndicatorIcon`.
+  So live showed neither.
 
 ## TCP framing **verified**
 

@@ -44,10 +44,10 @@ LMOxide game server.
 ## Patcher banners
 
 The client's patcher window (before "Play") shows the banners `/banner` lists, one after another
-(5 s each), in the client's language (`en`, `de`, `fr` or `es`, else `en`).
+(`DisplayTime` seconds each; live sent 5, ours are 8), in the client's language (`en`, `de`, `fr` or `es`, else `en`).
 
 Without `--banner-dir` the list is [`data/patcher-banners.xml`](../data/patcher-banners.xml), built
-into the server: Funcom's welcome banners and the Series 15 announcement. Their images are served
+into the server: Funcom's two welcome banners and the Series 14 and 15 announcements. Their images are served
 at `/banner/<file>` from `<data-dir>/banner-cache/`; the first request for one fetches it from
 Funcom's CDN (`http://cdn.funcom.com/lego/patcherbanner/`, still up in 2026-11), so the
 banners keep working if the CDN goes away. Nothing to set up.
@@ -57,7 +57,7 @@ With `--banner-dir <dir>`, read on every request:
 - `bannerconfig_<language>.xml`, else `bannerconfig.xml`, is sent as written, with `{base}`
   replaced by the `/banner/` URL (`http://<public host:port>/banner/`) and `{lang}` by the
   language, e.g. `<Banners><Banner ImageURL="{base}news_{lang}.jpg" TargetURL="" DisplayTime="5"/></Banners>`;
-- otherwise every `.jpg`/`.jpeg`/`.png` in the folder is listed in name order, 5 s each, no link.
+- otherwise every `.jpg`/`.jpeg`/`.png` in the folder is listed in name order, 8 s each, no link.
   `<name>_<en|de|fr|es>.jpg` is a language version: the client's language is shown, else the
   English one. Live used 1920x662 JPEGs; PNG is untested in the client.
 
