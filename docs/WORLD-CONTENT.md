@@ -35,8 +35,8 @@ crossing one does what it says), trigger areas and walls (triggers.rs, below), s
 (lmoxide-content `Options::features`).
 
 Contributor branches (lmoxide_content::contrib). Editors, on the survey server (`/v1/survey`,
-docs/SURVEY.md): `POST /commit`, `GET /branches`, `POST /branches/{editor}/{name}/reset`,
-`DELETE /branches/{editor}/{name}`, `GET /download`. Admins, on a server that runs the world
+docs/SURVEY.md): `POST /commit`, `GET /branches`, `POST /branch/reset?branch=`,
+`DELETE /branch?branch=`, `GET /download`. Admins, on a server that runs the world
 editor, on the control interface and through lmoxide-api (admin):
 
 | Route | |

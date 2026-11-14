@@ -192,7 +192,7 @@ port, every account an admin there). Keep them separate from the play servers' `
 - The working copy is a git checkout of `lmoxide-content` (decision 1); writes are autosaved
   (debounced, as the survey set is today). `lmoxide-content` gets the merge (three-way, per
   field, on `serde_json::Value`) and single-record validation, with unit tests.
-- **In-game routes change underneath.** `place`, `objects/{id}` (move, edit), `confirm`,
+- **In-game routes change underneath.** `place`, `object?id=` (move, edit), `confirm`,
   `forget`, `place-trigger`, waves and notes write content records: a placement is a `spawn`,
   `bouncer` or `trigger` in its world's file; a guess is confirmed by editing that spawn
   (`source: surveyed`, tag `verified`), deleted by removing it (or `removed: true` in a non-live

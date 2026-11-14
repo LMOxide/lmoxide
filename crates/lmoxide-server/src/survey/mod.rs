@@ -1340,6 +1340,17 @@ pub fn routes() -> Router {
         .route("/v1/survey/playfields/{pf}/notes/{id}", put(save_note).delete(delete_note))
         .route("/v1/survey/playfields/{pf}/scripts/{id}", put(save_script).delete(delete_script))
         .route("/v1/survey/objects/{id}", axum::routing::patch(edit).delete(remove).put(put_object))
+        // the same with the id in the query string (`?id=spawn/1200/x`): proxies such as Traefik
+        // refuse paths with an encoded slash (`%2F`), and record ids have slashes
+        .route("/v1/survey/object", axum::routing::patch(edit_q).delete(remove_q).put(put_object_q))
+        .route("/v1/survey/object/confirm", post(confirm_q))
+        .route("/v1/survey/object/forget", post(forget_q))
+        .route("/v1/survey/object/revert-live", post(revert_live_q))
+        .route("/v1/survey/playfields/{pf}/note", put(save_note_q).delete(delete_note_q))
+        .route("/v1/survey/playfields/{pf}/script", put(save_script_q).delete(delete_script_q))
+        .route("/v1/survey/smash-achievement", put(save_smash_rule_q).delete(delete_smash_rule_q))
+        .route("/v1/survey/branch", axum::routing::delete(delete_branch_q))
+        .route("/v1/survey/branch/reset", post(reset_branch_q))
         .route("/v1/survey/objects/{id}/confirm", post(confirm))
         .route("/v1/survey/objects/{id}/forget", post(forget))
         .route("/v1/survey/objects/{id}/revert-live", post(revert_live))
@@ -1352,6 +1363,83 @@ pub fn routes() -> Router {
         .route("/v1/survey/branches/{owner}/{name}/reset", post(reset_branch))
         .route("/v1/survey/download", get(download))
         .route("/v1/survey/export", get(export))
+}
+
+// ------------------------------------------------- ids in the query string
+
+/// `?id=`: a record id for the query-string forms of the routes that take one in the path.
+#[derive(Deserialize)]
+struct IdQuery {
+    id: String,
+}
+
+type IdQ = axum::extract::Query<IdQuery>;
+
+async fn edit_q(q: IdQ, headers: HeaderMap, body: Json<Changes>) -> R<SurveyObject> {
+    edit(Path(q.0.id), headers, body).await
+}
+async fn remove_q(q: IdQ, headers: HeaderMap) -> R<Removed> {
+    remove(Path(q.0.id), headers).await
+}
+async fn put_object_q(q: IdQ, headers: HeaderMap, body: Json<Snapshot>) -> R<SurveyObject> {
+    put_object(Path(q.0.id), headers, body).await
+}
+async fn confirm_q(q: IdQ, headers: HeaderMap) -> R<SurveyObject> {
+    confirm(Path(q.0.id), headers).await
+}
+async fn forget_q(q: IdQ) -> R<Option<SurveyObject>> {
+    forget(Path(q.0.id)).await
+}
+async fn revert_live_q(q: IdQ, headers: HeaderMap) -> R<SurveyObject> {
+    revert_live(Path(q.0.id), headers).await
+}
+async fn save_note_q(Path(pf): Path<u32>, q: IdQ, headers: HeaderMap, body: Json<Note>) -> R<Note> {
+    save_note(Path((pf, q.0.id)), headers, body).await
+}
+async fn delete_note_q(Path(pf): Path<u32>, q: IdQ, headers: HeaderMap) -> Result<StatusCode, Error> {
+    delete_note(Path((pf, q.0.id)), headers).await
+}
+async fn save_script_q(Path(pf): Path<u32>, q: IdQ, headers: HeaderMap, body: Json<Script>) -> R<Script> {
+    save_script(Path((pf, q.0.id)), headers, body).await
+}
+async fn delete_script_q(Path(pf): Path<u32>, q: IdQ, headers: HeaderMap) -> Result<StatusCode, Error> {
+    delete_script(Path((pf, q.0.id)), headers).await
+}
+
+/// `?key=`: a smash rule's key.
+#[derive(Deserialize)]
+struct KeyQuery {
+    key: String,
+}
+
+async fn save_smash_rule_q(q: axum::extract::Query<KeyQuery>, headers: HeaderMap, body: Json<SmashRuleBody>) -> R<SmashEntry> {
+    save_smash_rule(Path(q.0.key), headers, body).await
+}
+async fn delete_smash_rule_q(q: axum::extract::Query<KeyQuery>, headers: HeaderMap) -> Result<StatusCode, Error> {
+    delete_smash_rule(Path(q.0.key), headers).await
+}
+
+/// `?branch=contrib/<editor>/<name>` (`contrib/` may be left out).
+#[derive(Deserialize)]
+struct BranchQuery {
+    branch: String,
+}
+
+impl BranchQuery {
+    fn owner_name(&self) -> Result<Path<(String, String)>, Error> {
+        let b = self.branch.strip_prefix("contrib/").unwrap_or(&self.branch);
+        match b.split_once('/') {
+            Some((owner, name)) if !owner.is_empty() && !name.is_empty() && !name.contains('/') => Ok(Path((owner.to_string(), name.to_string()))),
+            _ => Err(Error::Invalid(format!("not a branch (contrib/<editor>/<name>): {}", self.branch))),
+        }
+    }
+}
+
+async fn reset_branch_q(headers: HeaderMap, q: axum::extract::Query<BranchQuery>) -> R<ResetBranch> {
+    reset_branch(headers, q.0.owner_name()?).await
+}
+async fn delete_branch_q(headers: HeaderMap, q: axum::extract::Query<BranchQuery>) -> R<ResetBranch> {
+    delete_branch(headers, q.0.owner_name()?).await
 }
 
 #[derive(Deserialize, Default)]
@@ -3458,6 +3546,45 @@ async fn delete_smash_rule(Path(key): Path<String>, headers: HeaderMap) -> Resul
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Status and body of one request to the survey routes.
+    async fn ask(method: &str, uri: &str, body: &str) -> (u16, String) {
+        use tower::ServiceExt;
+        let req = axum::http::Request::builder()
+            .method(method)
+            .uri(uri)
+            .header("content-type", "application/json")
+            .body(axum::body::Body::from(body.to_string()))
+            .unwrap();
+        let res = routes().oneshot(req).await.unwrap();
+        let status = res.status().as_u16();
+        let bytes = axum::body::to_bytes(res.into_body(), 1 << 20).await.unwrap();
+        (status, String::from_utf8_lossy(&bytes).into_owned())
+    }
+
+    #[tokio::test]
+    async fn ids_in_the_query_string_reach_the_same_routes() {
+        // each query-string form answers as the path form does (whatever the survey state is)
+        for (method, old, new, body) in [
+            ("PATCH", "/v1/survey/objects/spawn%2F1200%2Fx", "/v1/survey/object?id=spawn%2F1200%2Fx", r#"{"pos":[1,2,3]}"#),
+            ("DELETE", "/v1/survey/objects/spawn%2F1200%2Fx", "/v1/survey/object?id=spawn/1200/x", ""),
+            ("POST", "/v1/survey/objects/spawn%2F1200%2Fx/confirm", "/v1/survey/object/confirm?id=spawn%2F1200%2Fx", ""),
+            ("POST", "/v1/survey/objects/spawn%2F1200%2Fx/forget", "/v1/survey/object/forget?id=spawn%2F1200%2Fx", ""),
+            ("POST", "/v1/survey/objects/spawn%2F1200%2Fx/revert-live", "/v1/survey/object/revert-live?id=spawn%2F1200%2Fx", ""),
+            ("DELETE", "/v1/survey/playfields/1200/notes/area%2F1200%2Fn", "/v1/survey/playfields/1200/note?id=area%2F1200%2Fn", ""),
+            ("DELETE", "/v1/survey/playfields/1200/scripts/script%2F1200%2Fs", "/v1/survey/playfields/1200/script?id=script%2F1200%2Fs", ""),
+            ("DELETE", "/v1/survey/smash-achievements/category%3Ax", "/v1/survey/smash-achievement?key=category%3Ax", ""),
+            ("POST", "/v1/survey/branches/ed/b/reset", "/v1/survey/branch/reset?branch=contrib%2Fed%2Fb", ""),
+            ("DELETE", "/v1/survey/branches/ed/b", "/v1/survey/branch?branch=ed%2Fb", ""),
+        ] {
+            let (a, b) = (ask(method, old, body).await, ask(method, new, body).await);
+            assert_eq!(a, b, "{method} {new}");
+            assert!(b.1.contains("\"error\"") || b.0 < 300, "{method} {new}: {b:?}");
+        }
+        // the id is needed
+        assert_eq!(ask("DELETE", "/v1/survey/object", "").await.0, 400);
+        assert_eq!(ask("POST", "/v1/survey/branch/reset?branch=nope", "").await.0, 422);
+    }
 
     #[test]
     fn tags_are_counted() {
