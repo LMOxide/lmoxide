@@ -19,7 +19,7 @@
 - Patcher banners' arrows: Data/Gui/Default/Flash/GUIFramework3.swf (stock copy kept as .orig),
   whose Toolkit.BannerCarousel the patcher window runs, hides its prev/next buttons in code; two
   same-length bytecode changes (pushfalse -> pushtrue) show them once there is more than one
-  banner. See lmoxide-patch-server's patching.rs SWF_PATCHES.
+  banner, and two more make them fully opaque (alpha 0.5 -> 1). See lmoxide-patch-server's patching.rs SWF_PATCHES.
 - New-minifigure window: the same file's BagOpenEvent module ("Congratulations! You got a new
   minifigure.") loads when the GUI starts (GMF_PRELOAD) instead of only after the login
   screen's Login button (GMF_PRELOAD_AT_ENTER_GAME: ModuleController_c::ProcessAtLoginPreloads),
@@ -45,6 +45,8 @@ MODULES = os.path.join("Data", "Gui", "Default", "Modules.xml")
 GUI_FRAMEWORK_SWF = os.path.join("Data", "Gui", "Default", "Flash", "GUIFramework3.swf")
 # (what, stock, patched): lmoxide-patch-server patching.rs SWF_PATCHES
 SWF_PATCHES = [
+    ("previous banner button opacity", "d06685112f0461a01f", "d0668511240161a01f"),
+    ("next banner button opacity", "d06686112f0461a01f", "d0668611240161a01f"),
     ("previous banner button", "f0bb02d06685112761fe0e", "f0bb02d06685112661fe0e"),
     ("next banner button", "f0bc02d06686112761fe0e", "f0bc02d06686112661fe0e"),
 ]

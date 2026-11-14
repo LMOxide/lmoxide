@@ -109,9 +109,21 @@ pub const GUI_FRAMEWORK_SWF: &str = "Data/Gui/Default/Flash/GUIFramework3.swf";
 /// 315 and 316), `m_PrevBannerButton.visible = false` / `m_NextBannerButton.visible = false`
 /// (pushfalse 0x27) become true (pushtrue 0x26); the constructor still hides them while there is
 /// only one. Stock ABC multinames: 2181/2182 `m_PrevBannerButton`/`m_NextBannerButton` (u30
-/// `85 11`/`86 11`), 1918 `visible` (`fe 0e`). The carousel's page dots stay invisible: the
+/// `85 11`/`86 11`), 1918 `visible` (`fe 0e`). The constructor's `alpha = 0.5` (pushdouble 4 =
+/// 0.5, multiname 4000 `alpha` = `a0 1f`) becomes `alpha = 1` (pushbyte 1): the arrows only show
+/// when there are several banners, then fully visible. The carousel's page dots stay invisible: the
 /// framework has no art for them (IngamePatcher.swf's is linked to a class nothing creates).
 const SWF_PATCHES: &[(&str, &[u8], &[u8])] = &[
+    (
+        "previous banner button opacity",
+        &[0xd0, 0x66, 0x85, 0x11, 0x2f, 0x04, 0x61, 0xa0, 0x1f],
+        &[0xd0, 0x66, 0x85, 0x11, 0x24, 0x01, 0x61, 0xa0, 0x1f],
+    ),
+    (
+        "next banner button opacity",
+        &[0xd0, 0x66, 0x86, 0x11, 0x2f, 0x04, 0x61, 0xa0, 0x1f],
+        &[0xd0, 0x66, 0x86, 0x11, 0x24, 0x01, 0x61, 0xa0, 0x1f],
+    ),
     (
         "previous banner button",
         &[0xf0, 0xbb, 0x02, 0xd0, 0x66, 0x85, 0x11, 0x27, 0x61, 0xfe, 0x0e],

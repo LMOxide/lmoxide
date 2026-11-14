@@ -27,8 +27,8 @@ same length and in place:
    (default host: the public HTTP address; at most 21 characters for `host:port`).
 3. **Patcher banner arrows.** `Data/Gui/Default/Flash/GUIFramework3.swf` (whose banner carousel
    the patcher window runs) hides the previous/next buttons in code; two same-length bytecode
-   changes show them once there is more than one banner (`patching::patch_banner_arrows`, also
-   in `patch-client.py`). The page dots stay hidden: the client never had art for them there.
+   changes show them once there is more than one banner, and two more make them fully opaque
+   (the code set `alpha = 0.5`) (`patching::patch_banner_arrows`, also in `patch-client.py`). The page dots stay hidden: the client never had art for them there.
 4. **Patcher banner URL.** `http://register.minifigures.funcom.com/banner?subscription_id=%u&…`
    becomes `http://<chat-filter-host>/banner?subscription_id=%u&…` the same way (at most 31
    characters for `host:port`).
@@ -48,7 +48,7 @@ LMOxide game server.
 ## Patcher banners
 
 The client's patcher window (before "Play") shows the banners `/banner` lists, one after another
-(`DisplayTime` seconds each; live sent 5, ours are 8), in the client's language (`en`, `de`, `fr` or `es`, else `en`).
+(`DisplayTime`: 5 s each, as live; after a click on an arrow or a swipe the client waits twice as long), in the client's language (`en`, `de`, `fr` or `es`, else `en`).
 
 Without `--banner-dir` the list is [`data/patcher-banners.xml`](../data/patcher-banners.xml), built
 into the server: Funcom's two welcome banners and the Series 14 and 15 announcements. Their images are served
@@ -61,7 +61,7 @@ With `--banner-dir <dir>`, read on every request:
 - `bannerconfig_<language>.xml`, else `bannerconfig.xml`, is sent as written, with `{base}`
   replaced by the `/banner/` URL (`http://<public host:port>/banner/`) and `{lang}` by the
   language, e.g. `<Banners><Banner ImageURL="{base}news_{lang}.jpg" TargetURL="" DisplayTime="5"/></Banners>`;
-- otherwise every `.jpg`/`.jpeg`/`.png` in the folder is listed in name order, 8 s each, no link.
+- otherwise every `.jpg`/`.jpeg`/`.png` in the folder is listed in name order, 5 s each, no link.
   `<name>_<en|de|fr|es>.jpg` is a language version: the client's language is shown, else the
   English one. Live used 1920x662 JPEGs; PNG is untested in the client.
 

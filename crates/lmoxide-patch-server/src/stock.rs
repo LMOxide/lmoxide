@@ -412,8 +412,8 @@ const DEFAULT_BANNERS: &str = include_str!("../../../data/patcher-banners.xml");
 const FUNCOM_BANNERS: &str = "http://cdn.funcom.com/lego/patcherbanner/";
 /// Largest banner fetched from Funcom (theirs are 0.15-1.2 MB).
 const MAX_BANNER_BYTES: usize = 8 << 20;
-/// Seconds per banner listed from `--banner-dir`'s images (live's `DisplayTime` was 5).
-const BANNER_SECONDS: u32 = 8;
+/// Seconds per banner listed from `--banner-dir`'s images (live's `DisplayTime`).
+const BANNER_SECONDS: u32 = 5;
 
 /// The banners shown in the client's patcher window before "Play" (the URL is patched into the
 /// executable, see `patching.rs`): `--banner-dir`'s, or `data/patcher-banners.xml`. The client sends
@@ -803,8 +803,8 @@ mod tests {
             banner_list(dir.path(), "de", base).unwrap(),
             concat!(
                 "<Banners>\n",
-                "<Banner ImageURL=\"http://h:1/banner/news &amp; more.png\" TargetURL=\"\" DisplayTime=\"8\"/>\n",
-                "<Banner ImageURL=\"http://h:1/banner/welcome_de.jpg\" TargetURL=\"\" DisplayTime=\"8\"/>\n",
+                "<Banner ImageURL=\"http://h:1/banner/news &amp; more.png\" TargetURL=\"\" DisplayTime=\"5\"/>\n",
+                "<Banner ImageURL=\"http://h:1/banner/welcome_de.jpg\" TargetURL=\"\" DisplayTime=\"5\"/>\n",
                 "</Banners>\n"
             )
         );
@@ -819,7 +819,7 @@ mod tests {
     #[test]
     fn default_banners() {
         let xml = fill_banner_config(DEFAULT_BANNERS, "http://h:1/banner/", "de");
-        assert!(xml.contains(r#"<Banner ImageURL="http://h:1/banner/welcome_de.jpg" TargetURL="" DisplayTime="8"/>"#));
+        assert!(xml.contains(r#"<Banner ImageURL="http://h:1/banner/welcome_de.jpg" TargetURL="" DisplayTime="5"/>"#));
         assert!(xml.contains("http://h:1/banner/s14_de.jpg"));
         assert!(xml.contains("http://h:1/banner/s15_de.jpg"));
         assert!(!xml.contains('{'));
