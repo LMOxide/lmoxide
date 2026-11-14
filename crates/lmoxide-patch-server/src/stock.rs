@@ -438,7 +438,8 @@ pub async fn banner(State(app): State<Arc<App>>, Query(q): Query<HashMap<String,
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
         },
-        None => fill_banner_config(DEFAULT_BANNERS, &base, lang),
+        // the file's leading comment stays out
+        None => fill_banner_config(&DEFAULT_BANNERS[DEFAULT_BANNERS.find("<Banners>").unwrap_or(0)..], &base, lang),
     };
     ([(header::CONTENT_TYPE, "text/xml")], xml).into_response()
 }
@@ -821,6 +822,7 @@ mod tests {
         assert!(xml.contains(r#"<Banner ImageURL="http://h:1/banner/welcome_de.jpg" TargetURL="" DisplayTime="5"/>"#));
         assert!(xml.contains("http://h:1/banner/s15_de.jpg"));
         assert!(!xml.contains('{'));
+        assert!(DEFAULT_BANNERS.contains("\n<Banners>\n"));
     }
 
     #[test]
