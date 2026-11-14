@@ -44,19 +44,26 @@ LMOxide game server.
 ## Patcher banners
 
 The client's patcher window (before "Play") shows the banners `/banner` lists, one after another
-(5 s each). Without `--banner-dir` that is live's last list: `brickagain_<language>.jpg` from
-Funcom's CDN (`en`, `de`, `fr` or `es`, else `en`), the 2016 shutdown notice. With `--banner-dir <dir>`, read on every
-request:
+(5 s each), in the client's language (`en`, `de`, `fr` or `es`, else `en`).
+
+Without `--banner-dir` the list is [`data/patcher-banners.xml`](../data/patcher-banners.xml), built
+into the server: Funcom's welcome banners and the Series 15 announcement. Their images are served
+at `/banner/<file>` from `<data-dir>/banner-cache/`; the first request for one fetches it from
+Funcom's CDN (`http://cdn.funcom.com/lego/patcherbanner/`, still up in 2026-11), so the
+banners keep working if the CDN goes away. Nothing to set up.
+
+With `--banner-dir <dir>`, read on every request:
 
 - `bannerconfig_<language>.xml`, else `bannerconfig.xml`, is sent as written, with `{base}`
-  replaced by the folder's URL (`http://<public host:port>/banner/`), e.g.
-  `<Banners><Banner ImageURL="{base}news.jpg" TargetURL="" DisplayTime="5"/></Banners>`;
+  replaced by the `/banner/` URL (`http://<public host:port>/banner/`) and `{lang}` by the
+  language, e.g. `<Banners><Banner ImageURL="{base}news_{lang}.jpg" TargetURL="" DisplayTime="5"/></Banners>`;
 - otherwise every `.jpg`/`.jpeg`/`.png` in the folder is listed in name order, 5 s each, no link.
   `<name>_<en|de|fr|es>.jpg` is a language version: the client's language is shown, else the
   English one. Live used 1920x662 JPEGs; PNG is untested in the client.
 
-Images are served at `/banner/<file>`. The request's `subscription_id`, `subscription_flags`
-and `platform` are only logged.
+`/banner/<file>` serves the folder's files, and Funcom's (as above) for names it doesn't have.
+The request's `subscription_id`, `subscription_flags` and `platform` are only logged. The
+client caches the list and images in `<user data>/Funcom/Lego/Banners/PatcherBanners/`.
 
 ## Install sources
 
@@ -217,7 +224,7 @@ Every flag has an `LMOXIDE_…` environment variable (`--help` shows them):
 | `--cache-dir` | `LMOXIDE_CACHE_DIR` | `<data-dir>/rdb-cache` |
 | `--no-filter-download-list` | `LMOXIDE_NO_FILTER_DOWNLOAD_LIST` | off |
 | `--client-kit` | `LMOXIDE_CLIENT_KIT` | off |
-| `--banner-dir` | `LMOXIDE_BANNER_DIR` | off: live's last banner list (`brickagain_<language>.jpg` on Funcom's CDN) |
+| `--banner-dir` | `LMOXIDE_BANNER_DIR` | off: `data/patcher-banners.xml` (Funcom's banners, cached in `<data-dir>/banner-cache`) |
 
 Logging uses `tracing`; set `RUST_LOG` (default `info,lmoxide_patch_server=debug`). Client dirs
 can be mounted read-only; only the data dir is written. All routes are GET; request bodies over

@@ -50,7 +50,7 @@ Everything on the HTTP side shares the one host name (`docker/Caddyfile`):
 | `/` and every other path | the web UI |
 | `/api/...` | the REST API (`/api` is stripped: `/api/v1/status` is the API's `/v1/status`) |
 | `/dev/` | the dev UI (`/dev/debugger/`, `/dev/editor/`) |
-| `/control/`, `/patch/`, `/auth/`, `/track`, `/rest/`, `/lmoxide/`, `/client-kit.tar.gz` | the patch server, on HTTP (port 80) and HTTPS |
+| `/control/`, `/patch/`, `/auth/`, `/track`, `/rest/`, `/banner`, `/lmoxide/`, `/client-kit.tar.gz` | the patch server, on HTTP (port 80) and HTTPS |
 
 Both UIs call the API at `/api` on their own origin, so there is no CORS to set up. Players
 point their patcher at `https://lmo.example.org` (or `http://`).

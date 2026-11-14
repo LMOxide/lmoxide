@@ -178,8 +178,8 @@ pub struct Config {
     pub client_kit: Option<PathBuf>,
     /// Banners for the client's patcher window (`/banner`): its JPEG images in name order
     /// (`<name>_<en|de|fr|es>.jpg` only for that language), or `bannerconfig_<language>.xml` /
-    /// `bannerconfig.xml` as written (`{base}` = the folder's URL). Read on every request.
-    /// Default: live's last banner, on Funcom's CDN.
+    /// `bannerconfig.xml` as written (`{base}` = the folder's URL, `{lang}` the language).
+    /// Read on every request. Default: data/patcher-banners.xml (Funcom's banners, cached).
     #[arg(long, env = "LMOXIDE_BANNER_DIR")]
     pub banner_dir: Option<PathBuf>,
 }

@@ -1,0 +1,12 @@
+<!-- The patcher window's banners when the patch server has no --banner-dir (docs/PATCHING.md
+     "Patcher banners"). {base} = the patch server's /banner/, which serves Funcom's banners
+     (cdn.funcom.com/lego/patcherbanner/) from its cache, fetching each once; {lang} = the
+     client's language (en, de, fr or es; English for others). Funcom's CDN has: welcome,
+     welcome2, s14, s15, brickagain (the 2016 shutdown notice) in all four languages, and
+     thanksgiving, stars, firstpatch, new_membership_rewards, nonmember1, nonmember_2, member2,
+     member3 (English only). -->
+<Banners>
+<Banner ImageURL="{base}welcome_{lang}.jpg" TargetURL="" DisplayTime="5"/>
+<Banner ImageURL="{base}welcome2_{lang}.jpg" TargetURL="" DisplayTime="5"/>
+<Banner ImageURL="{base}s15_{lang}.jpg" TargetURL="" DisplayTime="5"/>
+</Banners>

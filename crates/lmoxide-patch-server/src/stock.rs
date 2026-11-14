@@ -404,16 +404,19 @@ pub async fn chat_filter(Query(q): Query<HashMap<String, String>>) -> Response {
 
 /// Languages Funcom made patcher banners in (`brickagain_<lang>.jpg` and others on its CDN).
 const BANNER_LANGUAGES: &[&str] = &["en", "de", "fr", "es"];
-/// Live's last banner list (2016 until the shutdown) had one banner: this image, in the
-/// client's language, still on Funcom's CDN (2026-11). Its TargetURL,
-/// `http://www.playminifigures.com/`, no longer resolves, so it is left empty, as every banner
-/// of the 2014 list the Wayback Machine kept had it.
-const FUNCOM_BANNER: &str = "http://cdn.funcom.com/lego/patcherbanner/brickagain_";
+/// The banner list without `--banner-dir`: `{base}` and `{lang}` as in a banner dir's
+/// `bannerconfig.xml`.
+const DEFAULT_BANNERS: &str = include_str!("../../../data/patcher-banners.xml");
+/// Funcom's banners, still hosted (2026-11): `/banner/<file>` not in `--banner-dir` is fetched
+/// from here once and kept in `<data-dir>/banner-cache/`.
+const FUNCOM_BANNERS: &str = "http://cdn.funcom.com/lego/patcherbanner/";
+/// Largest banner fetched from Funcom (theirs are 0.15-1.2 MB).
+const MAX_BANNER_BYTES: usize = 8 << 20;
 /// Seconds per banner (live's `DisplayTime`).
 const BANNER_SECONDS: u32 = 5;
 
 /// The banners shown in the client's patcher window before "Play" (the URL is patched into the
-/// executable, see `patching.rs`): `--banner-dir`, or live's last list. The client sends
+/// executable, see `patching.rs`): `--banner-dir`'s, or `data/patcher-banners.xml`. The client sends
 /// `subscription_id`, `subscription_flags`, `language` and `platform`; only the language
 /// is used (what the flags meant for live's member/non-member lists isn't known).
 pub async fn banner(State(app): State<Arc<App>>, Query(q): Query<HashMap<String, String>>) -> Response {
@@ -426,34 +429,87 @@ pub async fn banner(State(app): State<Arc<App>>, Query(q): Query<HashMap<String,
         platform = get("platform"),
         "patcher banners"
     );
+    let base = format!("http://{}/banner/", app.cfg.public_http_addr());
     let xml = match &app.cfg.banner_dir {
-        Some(dir) => {
-            let base = format!("http://{}/banner/", app.cfg.public_http_addr());
-            match banner_list(dir, lang, &base) {
-                Ok(xml) => xml,
-                Err(e) => {
-                    warn!(dir = %dir.display(), "banner dir: {e}");
-                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
-                }
+        Some(dir) => match banner_list(dir, lang, &base) {
+            Ok(xml) => xml,
+            Err(e) => {
+                warn!(dir = %dir.display(), "banner dir: {e}");
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
-        }
-        None => banner_xml(&[format!("{FUNCOM_BANNER}{lang}.jpg")]),
+        },
+        None => fill_banner_config(DEFAULT_BANNERS, &base, lang),
     };
     ([(header::CONTENT_TYPE, "text/xml")], xml).into_response()
 }
 
-/// An image of `--banner-dir` (`/banner/<file>`).
+/// A banner image (`/banner/<file>`): from `--banner-dir`, else one of Funcom's, from
+/// `<data-dir>/banner-cache/` or fetched into it.
 pub async fn banner_image(State(app): State<Arc<App>>, Path(file): Path<String>) -> Response {
-    let (Some(dir), Some(kind)) = (&app.cfg.banner_dir, banner_image_type(&file)) else {
+    let Some(kind) = banner_image_type(&file) else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let path = dir.join(&file);
-    if file.starts_with('.') || file.contains(['/', '\\']) || !path.is_file() {
+    if file.starts_with('.') || !file.chars().all(|c| c.is_ascii_alphanumeric() || "_-.".contains(c)) {
         return StatusCode::NOT_FOUND.into_response();
     }
+    let local = app.cfg.banner_dir.as_ref().map(|d| d.join(&file)).filter(|p| p.is_file());
+    let path = match local {
+        Some(p) => p,
+        None => match funcom_banner(&app.cfg.data_dir.join("banner-cache"), &file).await {
+            Some(p) => p,
+            None => return StatusCode::NOT_FOUND.into_response(),
+        },
+    };
     let mut resp = send_file(path).await;
     resp.headers_mut().insert(header::CONTENT_TYPE, header::HeaderValue::from_static(kind));
     resp
+}
+
+/// Funcom's banner `file` in `cache`, fetched from its CDN the first time.
+async fn funcom_banner(cache: &std::path::Path, file: &str) -> Option<PathBuf> {
+    let path = cache.join(file);
+    if path.is_file() {
+        return Some(path);
+    }
+    let url = format!("{FUNCOM_BANNERS}{file}");
+    let fetched = async {
+        let resp = reqwest::Client::builder().timeout(std::time::Duration::from_secs(30)).build()?.get(&url).send().await?;
+        let ok = resp.status().is_success()
+            && resp.headers().get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).is_some_and(|t| t.starts_with("image/"));
+        Ok::<_, reqwest::Error>(if ok { Some(resp.bytes().await?) } else { None })
+    };
+    let data = match fetched.await {
+        Ok(Some(data)) if data.len() <= MAX_BANNER_BYTES => data,
+        Ok(_) => {
+            warn!(%url, "no such banner on Funcom's CDN");
+            return None;
+        }
+        Err(e) => {
+            warn!(%url, "fetching banner: {e}");
+            return None;
+        }
+    };
+    let tmp = cache.join(format!(".{file}.tmp"));
+    let saved = async {
+        tokio::fs::create_dir_all(cache).await?;
+        tokio::fs::write(&tmp, &data).await?;
+        tokio::fs::rename(&tmp, &path).await
+    };
+    match saved.await {
+        Ok(()) => {
+            info!(%url, len = data.len(), "banner fetched from Funcom");
+            Some(path)
+        }
+        Err(e) => {
+            warn!(path = %path.display(), "caching banner: {e}");
+            None
+        }
+    }
+}
+
+/// A banner list template with `{base}` (the `/banner/` URL) and `{lang}` filled in.
+fn fill_banner_config(xml: &str, base: &str, lang: &str) -> String {
+    xml.replace("{base}", base).replace("{lang}", lang)
 }
 
 /// The client's language if Funcom made banners in it, else English.
@@ -472,11 +528,11 @@ fn banner_image_type(file: &str) -> Option<&'static str> {
 }
 
 /// `--banner-dir`'s list for `lang`: `bannerconfig_<lang>.xml` or `bannerconfig.xml` with
-/// `{base}` replaced by the folder's URL, else its images (see [`banner_images`]).
+/// `{base}` and `{lang}` filled in, else its images (see [`banner_images`]).
 fn banner_list(dir: &std::path::Path, lang: &str, base: &str) -> std::io::Result<String> {
     for name in [format!("bannerconfig_{lang}.xml"), "bannerconfig.xml".to_string()] {
         match std::fs::read_to_string(dir.join(name)) {
-            Ok(xml) => return Ok(xml.replace("{base}", base)),
+            Ok(xml) => return Ok(fill_banner_config(&xml, base, lang)),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
             Err(e) => return Err(e),
         }
@@ -757,6 +813,14 @@ mod tests {
         assert_eq!(banner_list(dir.path(), "fr", base).unwrap(), "fr");
         assert_eq!(banner_image_type("A.JPG"), Some("image/jpeg"));
         assert_eq!(banner_image_type("bannerconfig.xml"), None);
+    }
+
+    #[test]
+    fn default_banners() {
+        let xml = fill_banner_config(DEFAULT_BANNERS, "http://h:1/banner/", "de");
+        assert!(xml.contains(r#"<Banner ImageURL="http://h:1/banner/welcome_de.jpg" TargetURL="" DisplayTime="5"/>"#));
+        assert!(xml.contains("http://h:1/banner/s15_de.jpg"));
+        assert!(!xml.contains('{'));
     }
 
     #[test]

@@ -63,6 +63,6 @@ website = "https://lmo.example.org/"
 # from the PATCHER_DIR folder in .env; docs/HOSTING.md
 patcher-dir = "/patchers"
 upstream = "http://update.lego.funcom.com/legoupm"
-# banners in the client's patcher window (docs/PATCHING.md "Patcher banners"); default: live's last
-# banner on Funcom's CDN
+# banners in the client's patcher window (docs/PATCHING.md "Patcher banners"); default: the
+# repo's data/patcher-banners.xml (Funcom's banners, cached in the data volume)
 # banner-dir = "/banners"

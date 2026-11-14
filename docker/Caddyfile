@@ -2,7 +2,7 @@
 # from Let's Encrypt (automatic). docs/HOSTING.md has the layout.
 #
 #   /api/...                 the REST API (lmoxide, /api stripped)
-#   /control/, /patch/, /auth/, /track, /rest/, /lmoxide/, /client-kit.tar.gz
+#   /control/, /patch/, /auth/, /track, /rest/, /banner, /lmoxide/, /client-kit.tar.gz
 #                            the patch server (lmoxide); also on plain HTTP, port 80
 #   /dev/                    the dev UI (debugger, world editor)
 #   everything else          the web UI
@@ -11,14 +11,14 @@
 # docker-compose.yml publishes them from the lmoxide container directly.
 
 (patch_server) {
-	@patch path /control/* /patch/* /auth/* /track /rest/* /lmoxide/* /client-kit.tar.gz
+	@patch path /control/* /patch/* /auth/* /track /rest/* /banner /banner/* /lmoxide/* /client-kit.tar.gz
 	handle @patch {
 		reverse_proxy lmoxide:8080
 	}
 }
 
 # The game client speaks only plain HTTP to the patch server (LocalConfig.xml, client files, the
-# login page, the chat filter): its paths stay on port 80. Everything else goes to HTTPS.
+# login page, the chat filter, the patcher banners): its paths stay on port 80. Everything else goes to HTTPS.
 http://{$LMOXIDE_PUBLIC_HOST} {
 	import patch_server
 	handle {
