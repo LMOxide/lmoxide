@@ -5,6 +5,9 @@
   http://chatfilter.funcom.com/rest/chat_filter?... (ProjectChatServerInterface::SendMessage)
   and only sends it if that answers result 0. The URL is a format string
   ("http://chatfilter.funcom.com/rest/%s", 36 chars); it becomes "http://<host>/rest/%s".
+- Patcher banners: the patcher window (before "Play") loads its banner list from
+  "http://register.minifigures.funcom.com/banner?subscription_id=%u&subscription_flags=%u&language=%s&platform=%s";
+  the host becomes <host> too (the patch server's /banner).
 - Login key (--login-key): the client encrypts the password against a server public key
   compiled in (global `session`, 512 hex digits; Funcom's, whose private half is lost). It is
   replaced by the LMOxide server's key (`lmoxide-server login-key`), or fetched from the server
@@ -29,6 +32,8 @@ import argparse, os, re, shutil, sys, urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_EXE = os.path.join(HERE, "../../clients/windows/LEGO Minifigures Online/LMO.exe")
 CHAT_FILTER = b"http://chatfilter.funcom.com/rest/%s"
+BANNER_HOST = b"http://register.minifigures.funcom.com"
+BANNER = BANNER_HOST + b"/banner?subscription_id=%u&subscription_flags=%u&language=%s&platform=%s"
 # empty DoTell, then SetCookie; DoTell -> mov rax,[rdi]; jmp [rax+0x18] (SendTell)
 DO_TELL = bytes.fromhex("554889e55dc3" "554889e58977185dc3")
 DO_TELL_PATCHED = bytes.fromhex("488b07ff6018" "554889e58977185dc3")
@@ -59,7 +64,7 @@ def replace_once(data, old, new, what):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--exe", default=DEFAULT_EXE)
-    ap.add_argument("--host", default="127.0.0.1:8080", help="the patch server, host:port (chat filter)")
+    ap.add_argument("--host", default="127.0.0.1:8080", help="the patch server, host:port (chat filter, banners)")
     ap.add_argument("--login-key", help="the server's login public key (hex)")
     ap.add_argument("--login-key-url", help="fetch the login key, e.g. http://host:8080/lmoxide/v1/login-key")
     ap.add_argument("--revert", action="store_true")
@@ -84,6 +89,12 @@ def main():
         sys.exit(f"URL too long ({len(url)} > {len(CHAT_FILTER)} bytes)")
     at = replace_once(data, CHAT_FILTER + b"\0", url.ljust(len(CHAT_FILTER) + 1, b"\0"), "chat filter URL")
     print(f"patched chat filter URL at file offset {at:#x} -> {url.decode()}")
+
+    url = f"http://{a.host}".encode() + BANNER[len(BANNER_HOST):]
+    if len(url) > len(BANNER):
+        sys.exit(f"banner URL too long ({len(url)} > {len(BANNER)} bytes)")
+    at = replace_once(data, BANNER + b"\0", url.ljust(len(BANNER) + 1, b"\0"), "banner URL")
+    print(f"patched banner URL at file offset {at:#x} -> {url.decode()}")
 
     key = a.login_key
     if a.login_key_url:

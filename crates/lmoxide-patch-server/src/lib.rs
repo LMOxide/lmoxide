@@ -75,8 +75,8 @@ pub struct Config {
     /// The game server's universe agent port (the client's `UniverseAddr`).
     #[arg(long, env = "LMOXIDE_UNIVERSE_PORT", default_value_t = 7100)]
     pub universe_port: u16,
-    /// `host:port` patched into the executables' chat filter URL (at most 21 characters);
-    /// default: the public HTTP address.
+    /// `host:port` patched into the executables' chat filter URL (at most 21 characters) and
+    /// patcher banner URL; default: the public HTTP address.
     #[arg(long, env = "LMOXIDE_CHAT_FILTER_HOST")]
     pub chat_filter_host: Option<String>,
     /// HTTPS port (needs --tls-cert and --tls-key). Off when unset.
@@ -176,6 +176,12 @@ pub struct Config {
     /// Client kit tarball (patches/linux-client/make-kit.sh) served at `/client-kit.tar.gz`.
     #[arg(long, env = "LMOXIDE_CLIENT_KIT")]
     pub client_kit: Option<PathBuf>,
+    /// Banners for the client's patcher window (`/banner`): its JPEG images in name order
+    /// (`<name>_<en|de|fr|es>.jpg` only for that language), or `bannerconfig_<language>.xml` /
+    /// `bannerconfig.xml` as written (`{base}` = the folder's URL). Read on every request.
+    /// Default: live's last banner, on Funcom's CDN.
+    #[arg(long, env = "LMOXIDE_BANNER_DIR")]
+    pub banner_dir: Option<PathBuf>,
 }
 
 impl Config {
@@ -268,6 +274,9 @@ fn router(app: Arc<App>) -> Router {
         .route("/patch/{*path}", get(stock::patch_file))
         .route("/track", get(stock::track))
         .route("/rest/chat_filter", get(stock::chat_filter))
+        .route("/banner", get(stock::banner))
+        .route("/banner/", get(stock::banner))
+        .route("/banner/{file}", get(stock::banner_image))
         .route("/auth/", get(stock::login_page))
         .route("/client-kit.tar.gz", get(stock::client_kit))
         .route("/lmoxide/v1/info", get(api::info))
@@ -297,7 +306,11 @@ pub async fn run_cli() -> anyhow::Result<()> {
 /// background, then watched) and returns its HTTP routes, for a process that serves them
 /// itself (lmoxide: one HTTP listener). Its data dir stays locked while the file lives.
 pub async fn start(cfg: Arc<Config>) -> anyhow::Result<(Router, std::fs::File)> {
-    for (what, dir) in [("--client-dir", &cfg.client_dir), ("--linux-client-dir", &cfg.linux_client_dir)] {
+    for (what, dir) in [
+        ("--client-dir", &cfg.client_dir),
+        ("--linux-client-dir", &cfg.linux_client_dir),
+        ("--banner-dir", &cfg.banner_dir),
+    ] {
         if let Some(d) = dir {
             anyhow::ensure!(d.is_dir(), "{what} {} is not a directory", d.display());
         }

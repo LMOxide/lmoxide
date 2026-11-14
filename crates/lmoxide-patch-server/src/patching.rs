@@ -4,7 +4,8 @@
 //! - the login server public key: Funcom's ([`FUNCOM_SESSION_KEY`], the global `session`)
 //!   replaced with the game server's (see `lmoxide_net::login`), and
 //! - the chat filter URL (`http://chatfilter.funcom.com/rest/%s`, asked before every chat
-//!   line) pointed at this server, exactly like `patches/patch-client.py`, and
+//!   line) pointed at this server, exactly like `patches/patch-client.py`,
+//! - the patcher window's banner list URL ([`BANNER_URL`]) pointed at this server's `/banner`, and
 //! - private messages: 1.5 emptied `ChatServerInterface_c::DoTell` (used by "/tell" and the
 //!   friends list), so tells went nowhere; it becomes a call of the working virtual `SendTell`
 //!   (chat filter, then IRC PRIVMSG). Linux build only (see [`patch_tells`]).
@@ -26,10 +27,10 @@ pub enum PatchError {
     KeyNotFound,
     #[error("login key found more than once")]
     KeyAmbiguous,
-    #[error("chat filter URL {url:?} longer than the original ({max} bytes)", url = .0, max = CHAT_FILTER_URL.len())]
-    UrlTooLong(String),
-    #[error("chat filter URL not found in the executable")]
-    UrlNotFound,
+    #[error("{what} URL {url:?} longer than the original ({max} bytes)")]
+    UrlTooLong { what: &'static str, url: String, max: usize },
+    #[error("{0} URL not found in the executable")]
+    UrlNotFound(&'static str),
     #[error("DoTell not found (only the Linux build is patched)")]
     TellNotFound,
     #[error("the chat window's GM condition not found")]
@@ -151,28 +152,45 @@ pub fn patch_login_key(data: &mut [u8], new_key: &str) -> Result<usize, PatchErr
     Ok(at)
 }
 
+/// The patcher window's banner list (`AppPatcher`, before "Play"): a printf format filled with
+/// the subscription id and flags, the language and the platform. Its path and query are kept.
+pub const BANNER_URL: &[u8] =
+    b"http://register.minifigures.funcom.com/banner?subscription_id=%u&subscription_flags=%u&language=%s&platform=%s";
+const BANNER_PATH: &str = "/banner?subscription_id=%u&subscription_flags=%u&language=%s&platform=%s";
+
 /// Points the chat filter at `http://<host>/rest/%s` (`host` = `host:port`). Returns the offset.
 pub fn patch_chat_filter(data: &mut [u8], host: &str) -> Result<usize, PatchError> {
-    let url = format!("http://{host}/rest/%s");
-    if url.len() > CHAT_FILTER_URL.len() {
-        return Err(PatchError::UrlTooLong(url));
+    patch_url(data, "chat filter", CHAT_FILTER_URL, "/rest/%s", host)
+}
+
+/// Points the patcher banners at `http://<host>/banner?...` (`host` = `host:port`). Returns the
+/// offset.
+pub fn patch_banner_url(data: &mut [u8], host: &str) -> Result<usize, PatchError> {
+    patch_url(data, "banner", BANNER_URL, BANNER_PATH, host)
+}
+
+/// Replaces the NUL-terminated URL `stock` with `http://<host><path>`, NUL-padded to the same
+/// length. A URL patched earlier is found by its `path` (as patch-client.py does).
+fn patch_url(data: &mut [u8], what: &'static str, stock: &[u8], path: &str, host: &str) -> Result<usize, PatchError> {
+    let url = format!("http://{host}{path}");
+    if url.len() > stock.len() {
+        return Err(PatchError::UrlTooLong { what, url, max: stock.len() });
     }
-    let at = match memfind_all(data, CHAT_FILTER_URL).first() {
+    let at = match memfind_all(data, &[stock, b"\0"].concat()).first() {
         Some(&at) => at,
         None => {
-            // Already patched: find our earlier URL by its suffix (as patch-client.py does).
-            let suffix = b"/rest/%s\0";
-            let end = memfind_all(data, suffix)
+            let suffix = [path.as_bytes(), b"\0"].concat();
+            let end = memfind_all(data, &suffix)
                 .into_iter()
                 .find(|&e| {
                     let start = string_start(data, e);
-                    data[start..].starts_with(b"http://") && e + suffix.len() - start <= CHAT_FILTER_URL.len() + 1
+                    data[start..].starts_with(b"http://") && e + suffix.len() - start <= stock.len() + 1
                 })
-                .ok_or(PatchError::UrlNotFound)?;
+                .ok_or(PatchError::UrlNotFound(what))?;
             string_start(data, end)
         }
     };
-    let slot = &mut data[at..at + CHAT_FILTER_URL.len() + 1];
+    let slot = &mut data[at..at + stock.len() + 1];
     slot.fill(0);
     slot[..url.len()].copy_from_slice(url.as_bytes());
     Ok(at)
@@ -223,7 +241,9 @@ mod tests {
         d.extend_from_slice(b.as_bytes());
         d.extend_from_slice(b"\0\0\0\0%.2X\0more\0");
         d.extend_from_slice(CHAT_FILTER_URL);
-        d.extend_from_slice(b"\0tail");
+        d.extend_from_slice(b"\0tail\0");
+        d.extend_from_slice(BANNER_URL);
+        d.extend_from_slice(b"\0end");
         d
     }
 
@@ -276,8 +296,29 @@ mod tests {
         assert_eq!(patch_chat_filter(&mut d, "192.168.100.100:18080").unwrap(), at);
         assert!(count(&d, b"http://192.168.100.100:18080/rest/%s\0") == 1);
         assert!(count(&d, b"127.0.0.1") == 0);
-        assert!(matches!(patch_chat_filter(&mut d, "a-very-long-host-name.example.org:8080"), Err(PatchError::UrlTooLong(_))));
-        assert_eq!(patch_chat_filter(&mut b"no url".to_vec(), "h:1"), Err(PatchError::UrlNotFound));
+        assert!(matches!(patch_chat_filter(&mut d, "a-very-long-host-name.example.org:8080"), Err(PatchError::UrlTooLong { .. })));
+        assert_eq!(patch_chat_filter(&mut b"no url".to_vec(), "h:1"), Err(PatchError::UrlNotFound("chat filter")));
+    }
+
+    #[test]
+    fn banner_url_patch_and_repatch() {
+        let orig = fake_exe(true);
+        let mut d = orig.clone();
+        let at = patch_banner_url(&mut d, "127.0.0.1:8080").unwrap();
+        assert_eq!(d.len(), orig.len());
+        let url = format!("http://127.0.0.1:8080{BANNER_PATH}");
+        let mut expected = url.as_bytes().to_vec();
+        expected.resize(BANNER_URL.len() + 1, 0);
+        assert_eq!(&d[at..at + expected.len()], &expected[..]);
+        assert_eq!(&d[at + expected.len()..], b"end");
+        // the chat filter URL before it is untouched, and both patch independently
+        assert_eq!(count(&d, CHAT_FILTER_URL), 1);
+        patch_chat_filter(&mut d, "127.0.0.1:8080").unwrap();
+        assert_eq!(patch_banner_url(&mut d, "lmo.some-long-name.example:80").unwrap(), at);
+        assert_eq!(count(&d, b"http://lmo.some-long-name.example:80/banner?subscription_id=%u&"), 1);
+        assert_eq!(count(&d, b"http://127.0.0.1:8080/banner"), 0);
+        assert!(matches!(patch_banner_url(&mut d, "a-much-too-long-host-name.example.org:8080"), Err(PatchError::UrlTooLong { .. })));
+        assert_eq!(patch_banner_url(&mut b"no url".to_vec(), "h:1"), Err(PatchError::UrlNotFound("banner")));
     }
 
     #[test]

@@ -157,7 +157,7 @@ fn executable_name(p: Platform) -> &'static str {
     }
 }
 
-/// Patches the platform's executable in `tree` (login key and chat filter URL), replacing its
+/// Patches the platform's executable in `tree` (login key, chat filter and banner URLs), replacing its
 /// source with the patched blob.
 fn patch_executable(
     cfg: &Config,
@@ -176,6 +176,10 @@ fn patch_executable(
     match patching::patch_chat_filter(&mut data, &cfg.chat_filter_host()) {
         Ok(at) => info!(%platform, at = format_args!("{at:#x}"), host = cfg.chat_filter_host(), "patched chat filter URL"),
         Err(e) => warnings.push(format!("{platform}: chat filter not patched: {e} (see --chat-filter-host)")),
+    }
+    match patching::patch_banner_url(&mut data, &cfg.chat_filter_host()) {
+        Ok(at) => info!(%platform, at = format_args!("{at:#x}"), host = cfg.chat_filter_host(), "patched banner URL"),
+        Err(e) => warnings.push(format!("{platform}: patcher banners not patched: {e} (see --chat-filter-host)")),
     }
     match patching::patch_tells(&mut data) {
         Ok(at) => info!(%platform, at = format_args!("{at:#x}"), "patched DoTell (private messages)"),

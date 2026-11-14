@@ -42,6 +42,17 @@ Relative to `HttpPatchAddr`:
   entries with rdbtype 1010061; on `<DownloadList>`, `ResourceCount`/`DownloadSize` count unique
   hashes. **verified**
 - Funnel tracker: `GET <FunnelTrackerAddr>?category=..&platform=..&action=..`; any 200 is fine.
+- Patcher banners: the patcher window (before "Play") loads a hard-coded
+  `http://register.minifigures.funcom.com/banner?subscription_id=%u&subscription_flags=%u&language=%s&platform=%s`
+  (patched to our `/banner`, see PATCHING.md) and shows each `<Banner ImageURL="…" TargetURL="…"
+  DisplayTime="5"/>` of the `<Banners>` answer (`text/xml`) in turn; images are 1920x662 JPEGs
+  (a few 1600x551). Live's 2014 answer (Wayback Machine, 2014-11-29) listed five images from
+  `http://cdn.funcom.com/lego/patcherbanner/` with empty `TargetURL`s; its last one (2016) only
+  `brickagain_en.jpg` (TargetURL `http://www.playminifigures.com/`). Funcom's CDN still serves
+  28 of them (2026-11): `brickagain`, `welcome`, `welcome2`, `s14`, `s15` as `_en/_de/_fr/_es`,
+  and `thanksgiving`, `stars`, `firstpatch`, `new_membership_rewards`, `nonmember1`,
+  `nonmember_2`, `member2`, `member3` (copies in `var/loading-banners/funcom-cdn/`). Every
+  recorded request had `subscription_flags=0`; how live chose member or non-member lists isn't known.
 
 ## TCP framing **verified**
 

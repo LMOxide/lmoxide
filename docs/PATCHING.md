@@ -5,7 +5,7 @@ server:
 
 - the **stock client endpoints** (what Funcom's launcher and the in-client patcher use, see
   [PROTOCOL.md](PROTOCOL.md) "Boot sequence" and "HTTP patch layout"): `/control/…`, `/patch/…`,
-  `/track`, `/rest/chat_filter`, `/auth/`, `/client-kit.tar.gz`;
+  `/track`, `/rest/chat_filter`, `/banner` (and `/banner/<image>`), `/auth/`, `/client-kit.tar.gz`;
 - the **LMOxide patcher protocol** under `/lmoxide/v1/`: signed manifests of complete Windows
   and Linux installs, already patched for this server, so `lmoxide-patcher` (or a GUI built on
   the `lmoxide-patch` crate) only has to sync files.
@@ -25,6 +25,9 @@ same length and in place:
 2. **Chat filter URL.** `http://chatfilter.funcom.com/rest/%s` becomes
    `http://<chat-filter-host>/rest/%s`, NUL-padded, exactly as `patches/patch-client.py` does
    (default host: the public HTTP address; at most 21 characters for `host:port`).
+3. **Patcher banner URL.** `http://register.minifigures.funcom.com/banner?subscription_id=%u&…`
+   becomes `http://<chat-filter-host>/banner?subscription_id=%u&…` the same way (at most 31
+   characters for `host:port`).
 
 The patched executables, the generated `LocalConfig.xml` (identical to
 `/control/lmo_live/LocalConfig.xml`) and, for Linux installs with the kit's `lmo` launcher, an
@@ -37,6 +40,23 @@ The login key file is polled (`--key-poll-secs`, default 10): when the game serv
 key, binaries are re-patched and manifests re-signed. Without the file the binaries keep Funcom's
 key (`/lmoxide/v1/info` lists a warning, and so does the log); clients can't then log in to an
 LMOxide game server.
+
+## Patcher banners
+
+The client's patcher window (before "Play") shows the banners `/banner` lists, one after another
+(5 s each). Without `--banner-dir` that is live's last list: `brickagain_<language>.jpg` from
+Funcom's CDN (`en`, `de`, `fr` or `es`, else `en`). With `--banner-dir <dir>`, read on every
+request:
+
+- `bannerconfig_<language>.xml`, else `bannerconfig.xml`, is sent as written, with `{base}`
+  replaced by the folder's URL (`http://<public host:port>/banner/`), e.g.
+  `<Banners><Banner ImageURL="{base}news.jpg" TargetURL="" DisplayTime="5"/></Banners>`;
+- otherwise every `.jpg`/`.jpeg`/`.png` in the folder is listed in name order, 5 s each, no link.
+  `<name>_<en|de|fr|es>.jpg` is a language version: the client's language is shown, else the
+  English one. Live used 1920x662 JPEGs; PNG is untested in the client.
+
+Images are served at `/banner/<file>`. The request's `subscription_id`, `subscription_flags`
+and `platform` are only logged.
 
 ## Install sources
 
@@ -197,6 +217,7 @@ Every flag has an `LMOXIDE_…` environment variable (`--help` shows them):
 | `--cache-dir` | `LMOXIDE_CACHE_DIR` | `<data-dir>/rdb-cache` |
 | `--no-filter-download-list` | `LMOXIDE_NO_FILTER_DOWNLOAD_LIST` | off |
 | `--client-kit` | `LMOXIDE_CLIENT_KIT` | off |
+| `--banner-dir` | `LMOXIDE_BANNER_DIR` | off: live's last banner list (`brickagain_<language>.jpg` on Funcom's CDN) |
 
 Logging uses `tracing`; set `RUST_LOG` (default `info,lmoxide_patch_server=debug`). Client dirs
 can be mounted read-only; only the data dir is written. All routes are GET; request bodies over

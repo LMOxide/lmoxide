@@ -7,6 +7,7 @@
 //! - `/patch/...` - files from the installed client
 //! - `/track?category=...` - analytics pings, logged and ignored
 //! - `/rest/chat_filter` - the chat filter the patched executable asks
+//! - `/banner` - the patcher window's banner list (also patched in), `/banner/<file>` its images
 //! - `/auth/` - the login page, `/client-kit.tar.gz` - the Linux client kit
 //!
 //! The Windows client files served here are the same as in the LMOxide `windows` manifest
@@ -401,6 +402,127 @@ pub async fn chat_filter(Query(q): Query<HashMap<String, String>>) -> Response {
     ([(header::CONTENT_TYPE, "application/json")], body).into_response()
 }
 
+/// Languages Funcom made patcher banners in (`brickagain_<lang>.jpg` and others on its CDN).
+const BANNER_LANGUAGES: &[&str] = &["en", "de", "fr", "es"];
+/// Live's last banner list (2016 until the shutdown) had one banner: this image, in the
+/// client's language, still on Funcom's CDN (2026-11). Its TargetURL,
+/// `http://www.playminifigures.com/`, no longer resolves, so it is left empty, as every banner
+/// of the 2014 list the Wayback Machine kept had it.
+const FUNCOM_BANNER: &str = "http://cdn.funcom.com/lego/patcherbanner/brickagain_";
+/// Seconds per banner (live's `DisplayTime`).
+const BANNER_SECONDS: u32 = 5;
+
+/// The banners shown in the client's patcher window before "Play" (the URL is patched into the
+/// executable, see `patching.rs`): `--banner-dir`, or live's last list. The client sends
+/// `subscription_id`, `subscription_flags`, `language` and `platform`; only the language
+/// is used (what the flags meant for live's member/non-member lists isn't known).
+pub async fn banner(State(app): State<Arc<App>>, Query(q): Query<HashMap<String, String>>) -> Response {
+    let get = |k: &str| q.get(k).map(String::as_str).unwrap_or("");
+    let lang = banner_language(get("language"));
+    info!(
+        subscription_id = get("subscription_id"),
+        subscription_flags = get("subscription_flags"),
+        language = get("language"),
+        platform = get("platform"),
+        "patcher banners"
+    );
+    let xml = match &app.cfg.banner_dir {
+        Some(dir) => {
+            let base = format!("http://{}/banner/", app.cfg.public_http_addr());
+            match banner_list(dir, lang, &base) {
+                Ok(xml) => xml,
+                Err(e) => {
+                    warn!(dir = %dir.display(), "banner dir: {e}");
+                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                }
+            }
+        }
+        None => banner_xml(&[format!("{FUNCOM_BANNER}{lang}.jpg")]),
+    };
+    ([(header::CONTENT_TYPE, "text/xml")], xml).into_response()
+}
+
+/// An image of `--banner-dir` (`/banner/<file>`).
+pub async fn banner_image(State(app): State<Arc<App>>, Path(file): Path<String>) -> Response {
+    let (Some(dir), Some(kind)) = (&app.cfg.banner_dir, banner_image_type(&file)) else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let path = dir.join(&file);
+    if file.starts_with('.') || file.contains(['/', '\\']) || !path.is_file() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let mut resp = send_file(path).await;
+    resp.headers_mut().insert(header::CONTENT_TYPE, header::HeaderValue::from_static(kind));
+    resp
+}
+
+/// The client's language if Funcom made banners in it, else English.
+fn banner_language(lang: &str) -> &'static str {
+    BANNER_LANGUAGES.iter().find(|l| l.eq_ignore_ascii_case(lang)).unwrap_or(&"en")
+}
+
+/// Content type of a banner image by extension (live's were all JPEG).
+fn banner_image_type(file: &str) -> Option<&'static str> {
+    let (_, ext) = file.rsplit_once('.')?;
+    match ext.to_ascii_lowercase().as_str() {
+        "jpg" | "jpeg" => Some("image/jpeg"),
+        "png" => Some("image/png"),
+        _ => None,
+    }
+}
+
+/// `--banner-dir`'s list for `lang`: `bannerconfig_<lang>.xml` or `bannerconfig.xml` with
+/// `{base}` replaced by the folder's URL, else its images (see [`banner_images`]).
+fn banner_list(dir: &std::path::Path, lang: &str, base: &str) -> std::io::Result<String> {
+    for name in [format!("bannerconfig_{lang}.xml"), "bannerconfig.xml".to_string()] {
+        match std::fs::read_to_string(dir.join(name)) {
+            Ok(xml) => return Ok(xml.replace("{base}", base)),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(e),
+        }
+    }
+    let mut files = Vec::new();
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        if let Some(name) = entry.file_name().to_str()
+            && banner_image_type(name).is_some()
+            && !name.starts_with('.')
+            && entry.file_type()?.is_file()
+        {
+            files.push(name.to_string());
+        }
+    }
+    files.sort();
+    Ok(banner_xml(&banner_images(&files, lang).iter().map(|f| format!("{base}{f}")).collect::<Vec<_>>()))
+}
+
+/// The images shown for `lang`, in order: every `<name>.jpg`, and of `<name>_<language>.jpg`
+/// the one in `lang`, or the English one when `lang`'s is missing.
+fn banner_images<'a>(files: &'a [String], lang: &str) -> Vec<&'a str> {
+    let split = |f: &'a str| {
+        let (name, l) = f.rsplit_once('.')?.0.rsplit_once('_')?;
+        BANNER_LANGUAGES.contains(&l).then_some((name, l))
+    };
+    files
+        .iter()
+        .map(String::as_str)
+        .filter(|f| match split(f) {
+            None => true,
+            Some((name, l)) => l == lang || (l == "en" && !files.iter().any(|g| split(g) == Some((name, lang)))),
+        })
+        .collect()
+}
+
+/// A banner list as live wrote it.
+fn banner_xml(images: &[String]) -> String {
+    let mut xml = String::from("<Banners>\n");
+    for url in images {
+        let url = url.replace('&', "&amp;").replace('"', "&quot;").replace('<', "&lt;");
+        xml += &format!("<Banner ImageURL=\"{url}\" TargetURL=\"\" DisplayTime=\"{BANNER_SECONDS}\"/>\n");
+    }
+    xml + "</Banners>\n"
+}
+
 pub async fn track(RawQuery(q): RawQuery) -> &'static str {
     debug!(query = q.unwrap_or_default(), "track");
     "OK"
@@ -599,6 +721,42 @@ mod tests {
         assert!(out.contains(r#"<DownloadList DownloadSize="2" Name="X" ResourceCount="1">"#));
         assert!(out.contains(r#"DownloadSize="2" Order="0" ResourceCount="1" SubstanceCount="0""#));
         assert!(!out.contains(">aa<"));
+    }
+
+    #[test]
+    fn banner_languages() {
+        let files: Vec<String> =
+            ["a_de.jpg", "a_en.jpg", "b_en.jpg", "c.jpg", "d_fr.jpg"].iter().map(|s| s.to_string()).collect();
+        assert_eq!(banner_images(&files, "de"), ["a_de.jpg", "b_en.jpg", "c.jpg"]);
+        assert_eq!(banner_images(&files, "en"), ["a_en.jpg", "b_en.jpg", "c.jpg"]);
+        assert_eq!(banner_images(&files, "fr"), ["a_en.jpg", "b_en.jpg", "c.jpg", "d_fr.jpg"]);
+        assert_eq!(banner_language("FR"), "fr");
+        assert_eq!(banner_language("pl"), "en");
+        assert_eq!(banner_language(""), "en");
+    }
+
+    #[test]
+    fn banner_dir_lists() {
+        let dir = tempfile::tempdir().unwrap();
+        for f in ["welcome_en.jpg", "welcome_de.jpg", "news & more.png", "notes.txt", ".hidden.jpg"] {
+            std::fs::write(dir.path().join(f), b"x").unwrap();
+        }
+        let base = "http://h:1/banner/";
+        assert_eq!(
+            banner_list(dir.path(), "de", base).unwrap(),
+            concat!(
+                "<Banners>\n",
+                "<Banner ImageURL=\"http://h:1/banner/news &amp; more.png\" TargetURL=\"\" DisplayTime=\"5\"/>\n",
+                "<Banner ImageURL=\"http://h:1/banner/welcome_de.jpg\" TargetURL=\"\" DisplayTime=\"5\"/>\n",
+                "</Banners>\n"
+            )
+        );
+        std::fs::write(dir.path().join("bannerconfig.xml"), "<Banners><Banner ImageURL=\"{base}x.jpg\"/></Banners>").unwrap();
+        std::fs::write(dir.path().join("bannerconfig_fr.xml"), "fr").unwrap();
+        assert_eq!(banner_list(dir.path(), "en", base).unwrap(), r#"<Banners><Banner ImageURL="http://h:1/banner/x.jpg"/></Banners>"#);
+        assert_eq!(banner_list(dir.path(), "fr", base).unwrap(), "fr");
+        assert_eq!(banner_image_type("A.JPG"), Some("image/jpeg"));
+        assert_eq!(banner_image_type("bannerconfig.xml"), None);
     }
 
     #[test]
