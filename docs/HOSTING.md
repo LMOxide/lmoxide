@@ -180,6 +180,19 @@ command-line patcher's releases (`lmoxide-patcher-<version>-linux`, `-windows.ex
 ## Updating
 
 ```sh
+tools/docker-update.sh
+```
+
+does everything: `git pull` (compose files, `docker/Caddyfile`), `docker compose pull`,
+`docker compose up -d`, and recreates Caddy when the Caddyfile changed (a running Caddy keeps
+the file it started with). It is safe to run unattended, e.g. hourly from cron:
+`0 * * * * cd /srv/lmoxide && tools/docker-update.sh >>update.log 2>&1`. With images built from
+source: `tools/docker-update.sh --build`.
+
+By hand, the same without the Caddy step:
+
+```sh
+git pull
 docker compose pull
 docker compose up -d
 ```
