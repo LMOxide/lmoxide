@@ -8,12 +8,15 @@
 //! content/worlds/*/bouncers.json (world_data.rs); outside
 //! the recorded worlds the landing points are guesses.
 //!
+//! A player's escort (Video Game Guy in the tutorial) follows them over a pad: it walks onto it
+//! and flies the same arc ([`escort_follow`]).
+//!
 //! The world editor's bouncers are content records like the rest; the survey server puts its
 //! working copy's in as they change ([`set_records`]).
 
 use crate::instance::Pf;
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, HashMap, HashSet},
     sync::{
         Arc, LazyLock, Mutex, RwLock,
         atomic::{AtomicBool, Ordering},
@@ -69,6 +72,11 @@ const LANDING_EFFECT: u32 = 102632;
 const INVISIBLE_VISUAL: u32 = 95472;
 /// Most pads one jump may chain through (the longest route, 6200's PondToSwamp, has 4).
 const MAX_HOPS: usize = 8;
+/// How long an escort walks to its owner's pad at most; then it jumps from where it got to
+/// (assumed, see docs/TUNABLES.md).
+const ESCORT_WALK: Duration = Duration::from_secs(5);
+/// How close to the pad's centre an escort's walk counts as there.
+const ESCORT_ON_PAD: f32 = 0.5;
 
 #[derive(Debug, Clone, Deserialize)]
 struct Pad {
@@ -463,6 +471,8 @@ struct State {
 }
 
 static STATES: LazyLock<Mutex<HashMap<Id32, State>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+/// Escorts walking to their owner's pad or flying from it: they don't follow meanwhile.
+static ESCORT_JUMPS: LazyLock<Mutex<HashSet<Id32>>> = LazyLock::new(Default::default);
 /// The pads in the world, by copy and guid.
 static PRESENCES: LazyLock<Mutex<HashMap<(Pf, u32), world::Presence>>> = LazyLock::new(Default::default);
 
@@ -638,8 +648,19 @@ pub fn player_left(player: Id32) {
     STATES.lock().unwrap().remove(&player);
 }
 
-/// The jump, and on through every pad it lands on that throws on (`Pad::throws_on`).
-async fn launch(player: Id32, playfield: Pf, mut pad: Arc<Live>, pos: world::Position) {
+/// The jump, and on through every pad it lands on that throws on (`Pad::throws_on`); a player's
+/// escorts follow.
+async fn launch(player: Id32, playfield: Pf, pad: Arc<Live>, pos: world::Position) {
+    if crate::npc::is_player(player) {
+        for npc in crate::npc::escorts_of(player, playfield) {
+            tokio::spawn(escort_follow(npc, playfield, pad.clone()));
+        }
+    }
+    hops(player, playfield, pad, pos).await;
+}
+
+/// `launch`'s jumps.
+async fn hops(player: Id32, playfield: Pf, mut pad: Arc<Live>, pos: world::Position) {
     for _ in 0..MAX_HOPS {
         let Some(end) = hop(player, &pad.pad, &pos).await else { break };
         let next = pad_at(playfield, end).filter(|p| p.pad.guid != pad.pad.guid);
@@ -666,6 +687,36 @@ async fn hop(player: Id32, pad: &Pad, pos: &world::Position) -> Option<[f32; 3]>
     let end = fly(player, pos, target, pad.apex.unwrap_or(DEFAULT_APEX), world::whereabouts(player).map(|(pf, _)| effects::effect_package(pad.id_in(pf), pad.effect())), how.direction).await;
     world::send_playfield(player, true, world::Out::Records(how.end_records(player)));
     Some(end)
+}
+
+/// Escort `npc` follows its owner over `pad`: it walks onto the pad (at most `ESCORT_WALK`) and
+/// is thrown along the pad's arc, chaining on as the owner did. Live's Video Game Guy did so in
+/// the tutorial (recorded on its first two pads: he walked onto the pad and flew the player's
+/// arc, the same landing point, flight time and BCC substate, 1.7 s after the player on the
+/// second); he would otherwise walk straight at the player across the gap.
+async fn escort_follow(npc: Id32, playfield: Pf, pad: Arc<Live>) {
+    if !ESCORT_JUMPS.lock().unwrap().insert(npc) {
+        return;
+    }
+    let until = Instant::now() + ESCORT_WALK;
+    let at = pad.pad.pos;
+    while let Some(here) = crate::npc::walk_to(npc, at) {
+        if ((here[0] - at[0]).powi(2) + (here[2] - at[2]).powi(2)).sqrt() <= ESCORT_ON_PAD || Instant::now() >= until {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    if let Some(pos) = crate::npc::halt(npc) {
+        info!(?npc, pad = pad.pad.guid, "escort follows over the pad");
+        hops(npc, playfield, pad, pos).await;
+    }
+    STATES.lock().unwrap().remove(&npc);
+    ESCORT_JUMPS.lock().unwrap().remove(&npc);
+}
+
+/// Whether escort `npc` is on its way over a pad (`escort_follow`): its following waits.
+pub fn escort_jumping(npc: Id32) -> bool {
+    ESCORT_JUMPS.lock().unwrap().contains(&npc)
 }
 
 /// Whether `player` is in the air from a jump pad or a throw now.
