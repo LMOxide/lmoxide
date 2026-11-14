@@ -25,7 +25,11 @@ same length and in place:
 2. **Chat filter URL.** `http://chatfilter.funcom.com/rest/%s` becomes
    `http://<chat-filter-host>/rest/%s`, NUL-padded, exactly as `patches/patch-client.py` does
    (default host: the public HTTP address; at most 21 characters for `host:port`).
-3. **Patcher banner URL.** `http://register.minifigures.funcom.com/banner?subscription_id=%u&…`
+3. **Patcher banner arrows.** `Data/Gui/Default/Flash/GUIFramework3.swf` (whose banner carousel
+   the patcher window runs) hides the previous/next buttons in code; two same-length bytecode
+   changes show them once there is more than one banner (`patching::patch_banner_arrows`, also
+   in `patch-client.py`). The page dots stay hidden: the client never had art for them there.
+4. **Patcher banner URL.** `http://register.minifigures.funcom.com/banner?subscription_id=%u&…`
    becomes `http://<chat-filter-host>/banner?subscription_id=%u&…` the same way (at most 31
    characters for `host:port`).
 

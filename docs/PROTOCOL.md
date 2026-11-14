@@ -60,10 +60,13 @@ Relative to `HttpPatchAddr`:
   manual change it waits `2 x DisplayTime`; clicking a banner opens a non-empty `TargetURL`.
   It has prev/next buttons (`m_PrevBannerButton`/`m_NextBannerButton`, art `ButtonArrowLeft/Right`)
   that the code always hides (`visible = false`; only gamepad L2/R2 and touch swipes change
-  banners) and page dots (`m_StateIndicator`, bottom centre, clickable) that never draw: the
-  indicator creates `Toolkit.StateIndicatorIcon`, an empty MovieClip, while the dot art (symbol
-  117, frames `unselected`/`selected`) is linked to the subclass `GUI.Patcher.StateIndicatorIcon`.
-  So live showed neither.
+  banners) and page dots (`m_StateIndicator`, bottom centre, clickable) that never draw. The code
+  that runs is `GUIFramework3.swf`'s: it loads first and its `Toolkit` classes win over the
+  module SWFs' copies. Its `StateIndicator` creates `Toolkit.StateIndicatorIcon`, an empty
+  MovieClip; the dot art (IngamePatcher.swf symbol 117, frames `unselected`/`selected`) is linked
+  to `GUI.Patcher.StateIndicatorIcon`, which nothing creates (re-linking the symbol to the Toolkit
+  class doesn't help). So live showed neither. The patch server shows the arrows (PATCHING.md);
+  the dots stay hidden (user's choice: no dots of our own).
 
 ## TCP framing **verified**
 

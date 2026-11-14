@@ -233,6 +233,25 @@ fn patch_modules_xml(cfg: &Config, platform: Platform, tree: &mut Tree, warnings
     Ok(())
 }
 
+/// The patcher window's banner arrows (see `patching::patch_banner_arrows`).
+fn patch_banner_arrows(cfg: &Config, platform: Platform, tree: &mut Tree, warnings: &mut Vec<String>) -> io::Result<()> {
+    let Some((rel, src)) = tree.get_ci(patching::GUI_FRAMEWORK_SWF).map(|(k, v)| (k.clone(), v.clone())) else {
+        warnings.push(format!("{platform}: no {}; banner arrows stay hidden", patching::GUI_FRAMEWORK_SWF));
+        return Ok(());
+    };
+    let original = fs::read(&src.path)?;
+    match patching::patch_banner_arrows(&original) {
+        Ok(swf) if swf != original => {
+            info!(%platform, "patched the patcher window's banner arrows");
+            let blob = write_blob(cfg, &swf, false)?;
+            tree.files.insert(rel, blob);
+        }
+        Ok(_) => {}
+        Err(e) => warnings.push(format!("{platform}: banner arrows stay hidden: {e}")),
+    }
+    Ok(())
+}
+
 /// Phase 1: scan, patch, rebuild the stock endpoints.
 pub async fn prepare(app: &Arc<App>) -> anyhow::Result<Prepared> {
     let app2 = app.clone();
@@ -283,6 +302,7 @@ fn prepare_blocking(app: &App) -> anyhow::Result<Prepared> {
         .with_context(|| format!("scanning {}", dir.display()))?;
         patch_executable(cfg, platform, &mut tree, login_key.as_deref(), &mut warnings)?;
         patch_modules_xml(cfg, platform, &mut tree, &mut warnings)?;
+        patch_banner_arrows(cfg, platform, &mut tree, &mut warnings)?;
         info!(%platform, files = tree.files.len(), remove = tree.remove.len(), "install scanned");
         trees.push((platform, tree));
     }

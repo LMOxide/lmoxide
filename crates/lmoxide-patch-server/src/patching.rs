@@ -10,6 +10,9 @@
 //!   friends list), so tells went nowhere; it becomes a call of the working virtual `SendTell`
 //!   (chat filter, then IRC PRIVMSG). Linux build only (see [`patch_tells`]).
 //!
+//! [`patch_banner_arrows`] shows the patcher window's banner arrows
+//! (`Data/Gui/Default/Flash/GUIFramework3.swf`).
+//!
 //! [`patch_chat_gui`] patches `Data/Gui/Default/Modules.xml`: 1.5 also showed the chat window
 //! to GMs only (`stat:gmlevel!=0`), unlike live before it. [`patch_bag_open_event`] makes the
 //! "You got a new minifigure" window (BagOpenEvent) load when the GUI starts.
@@ -37,6 +40,8 @@ pub enum PatchError {
     ChatGuiNotFound,
     #[error("the BagOpenEvent module not found")]
     BagOpenEventNotFound,
+    #[error("GUIFramework3.swf: {0}")]
+    Swf(String),
 }
 
 /// Linux `ChatServerInterface_c::DoTell(String const&, String const&, int)` (empty: `push rbp;
@@ -92,6 +97,62 @@ pub fn patch_bag_open_event(xml: &str) -> Result<String, PatchError> {
         return Err(PatchError::BagOpenEventNotFound);
     }
     Ok(format!("{}{}{}", &xml[..start], module.replace(BAG_OPEN_EVENT_FLAGS, BAG_OPEN_EVENT_PRELOAD), &xml[end..]))
+}
+
+/// The client's shared GUI framework (one ABC block, same file in the Windows and Linux 1.5
+/// clients). It is loaded before the module SWFs and its classes win over their own copies, so the
+/// patcher window's banner carousel runs its `Toolkit.BannerCarousel`, not IngamePatcher.swf's.
+pub const GUI_FRAMEWORK_SWF: &str = "Data/Gui/Default/Flash/GUIFramework3.swf";
+
+/// Same-length bytecode changes in [`GUI_FRAMEWORK_SWF`]: (what, stock, patched). In
+/// `Toolkit.BannerCarousel.SlotBannerNodeAdded`, once there is more than one banner (debuglines
+/// 315 and 316), `m_PrevBannerButton.visible = false` / `m_NextBannerButton.visible = false`
+/// (pushfalse 0x27) become true (pushtrue 0x26); the constructor still hides them while there is
+/// only one. Stock ABC multinames: 2181/2182 `m_PrevBannerButton`/`m_NextBannerButton` (u30
+/// `85 11`/`86 11`), 1918 `visible` (`fe 0e`). The carousel's page dots stay invisible: the
+/// framework has no art for them (IngamePatcher.swf's is linked to a class nothing creates).
+const SWF_PATCHES: &[(&str, &[u8], &[u8])] = &[
+    (
+        "previous banner button",
+        &[0xf0, 0xbb, 0x02, 0xd0, 0x66, 0x85, 0x11, 0x27, 0x61, 0xfe, 0x0e],
+        &[0xf0, 0xbb, 0x02, 0xd0, 0x66, 0x85, 0x11, 0x26, 0x61, 0xfe, 0x0e],
+    ),
+    (
+        "next banner button",
+        &[0xf0, 0xbc, 0x02, 0xd0, 0x66, 0x86, 0x11, 0x27, 0x61, 0xfe, 0x0e],
+        &[0xf0, 0xbc, 0x02, 0xd0, 0x66, 0x86, 0x11, 0x26, 0x61, 0xfe, 0x0e],
+    ),
+];
+
+/// Shows the patcher window's previous/next banner arrows (`GUIFramework3.swf`, zlib-compressed
+/// `CWS`): the 1.5 client has them but hides them in code (see [`SWF_PATCHES`]). Returns the
+/// file unchanged when it is already patched.
+pub fn patch_banner_arrows(swf: &[u8]) -> Result<Vec<u8>, PatchError> {
+    use std::io::{Read, Write};
+    let err = |s: &str| PatchError::Swf(s.to_string());
+    if swf.len() < 8 || &swf[..3] != b"CWS" {
+        return Err(err("not a compressed SWF"));
+    }
+    let mut body = Vec::new();
+    flate2::read::ZlibDecoder::new(&swf[8..]).read_to_end(&mut body).map_err(|e| err(&e.to_string()))?;
+    let mut changed = false;
+    for (what, stock, patched) in SWF_PATCHES {
+        let hits = memfind_all(&body, stock);
+        match hits.as_slice() {
+            [at] => {
+                body[*at..*at + patched.len()].copy_from_slice(patched);
+                changed = true;
+            }
+            [] if memfind_all(&body, patched).len() == 1 => {}
+            _ => return Err(PatchError::Swf(format!("{what}: bytecode not found"))),
+        }
+    }
+    if !changed {
+        return Ok(swf.to_vec());
+    }
+    let mut z = flate2::write::ZlibEncoder::new(swf[..8].to_vec(), flate2::Compression::default());
+    z.write_all(&body).map_err(|e| err(&e.to_string()))?;
+    z.finish().map_err(|e| err(&e.to_string()))
 }
 
 /// The chat filter format string as shipped.
@@ -329,6 +390,43 @@ mod tests {
         assert_eq!(patch_tells(&mut d), Ok(at));
         // an empty function elsewhere (no SetCookie after it) is left alone
         assert_eq!(patch_tells(&mut [DO_TELL_STOCK, b"\x90"].concat()), Err(PatchError::TellNotFound));
+    }
+
+    fn cws(body: &[u8]) -> Vec<u8> {
+        use std::io::Write;
+        let mut head = b"CWS\x0f".to_vec();
+        head.extend_from_slice(&((body.len() + 8) as u32).to_le_bytes());
+        let mut z = flate2::write::ZlibEncoder::new(head, flate2::Compression::default());
+        z.write_all(body).unwrap();
+        z.finish().unwrap()
+    }
+
+    fn uncws(swf: &[u8]) -> Vec<u8> {
+        use std::io::Read;
+        let mut out = Vec::new();
+        flate2::read::ZlibDecoder::new(&swf[8..]).read_to_end(&mut out).unwrap();
+        out
+    }
+
+    #[test]
+    fn banner_arrows() {
+        let mut body = b"abc".to_vec();
+        for (_, stock, _) in SWF_PATCHES {
+            body.extend_from_slice(stock);
+            body.extend_from_slice(b"\x90\x90");
+        }
+        let swf = cws(&body);
+        let patched = patch_banner_arrows(&swf).unwrap();
+        assert_eq!(&patched[..8], &swf[..8], "header (and length) unchanged");
+        let out = uncws(&patched);
+        assert_eq!(out.len(), body.len());
+        for (_, stock, new) in SWF_PATCHES {
+            assert_eq!(count(&out, stock), 0);
+            assert_eq!(count(&out, new), 1);
+        }
+        assert_eq!(patch_banner_arrows(&patched).unwrap(), patched, "already patched: left alone");
+        assert!(matches!(patch_banner_arrows(&cws(b"other")), Err(PatchError::Swf(_))));
+        assert!(matches!(patch_banner_arrows(b"FWS\x0f...."), Err(PatchError::Swf(_))));
     }
 
     #[test]

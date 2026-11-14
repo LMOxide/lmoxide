@@ -16,6 +16,10 @@
   nothing; it becomes a call of the vtable's working SendTell.
 - Chat for everyone: Data/Gui/Default/Modules.xml (next to the exe, stock copy kept as .orig)
   loses the ChatGUI module's GM-only condition `stat:gmlevel!=0` (added in 1.5).
+- Patcher banners' arrows: Data/Gui/Default/Flash/GUIFramework3.swf (stock copy kept as .orig),
+  whose Toolkit.BannerCarousel the patcher window runs, hides its prev/next buttons in code; two
+  same-length bytecode changes (pushfalse -> pushtrue) show them once there is more than one
+  banner. See lmoxide-patch-server's patching.rs SWF_PATCHES.
 - New-minifigure window: the same file's BagOpenEvent module ("Congratulations! You got a new
   minifigure.") loads when the GUI starts (GMF_PRELOAD) instead of only after the login
   screen's Login button (GMF_PRELOAD_AT_ENTER_GAME: ModuleController_c::ProcessAtLoginPreloads),
@@ -38,6 +42,12 @@ BANNER = BANNER_HOST + b"/banner?subscription_id=%u&subscription_flags=%u&langua
 DO_TELL = bytes.fromhex("554889e55dc3" "554889e58977185dc3")
 DO_TELL_PATCHED = bytes.fromhex("488b07ff6018" "554889e58977185dc3")
 MODULES = os.path.join("Data", "Gui", "Default", "Modules.xml")
+GUI_FRAMEWORK_SWF = os.path.join("Data", "Gui", "Default", "Flash", "GUIFramework3.swf")
+# (what, stock, patched): lmoxide-patch-server patching.rs SWF_PATCHES
+SWF_PATCHES = [
+    ("previous banner button", "f0bb02d06685112761fe0e", "f0bb02d06685112661fe0e"),
+    ("next banner button", "f0bc02d06686112761fe0e", "f0bc02d06686112661fe0e"),
+]
 CHAT_GUI_GM = "stat:gmlevel!=0 &amp;&amp; !fullscreen_menu"
 # modules loaded at login: GMF_PRELOAD_AT_ENTER_GAME -> GMF_PRELOAD (the flag stays first)
 PRELOADED = ["BagOpenEvent"]
@@ -75,10 +85,11 @@ def main():
             sys.exit("no backup to restore")
         shutil.copy2(backup, a.exe)
         print("restored", a.exe)
-        modules = os.path.join(os.path.dirname(os.path.abspath(a.exe)), MODULES)
-        if os.path.exists(modules + ".orig"):
-            shutil.copy2(modules + ".orig", modules)
-            print("restored", modules)
+        for rel in (MODULES, GUI_FRAMEWORK_SWF):
+            path = os.path.join(os.path.dirname(os.path.abspath(a.exe)), rel)
+            if os.path.exists(path + ".orig"):
+                shutil.copy2(path + ".orig", path)
+                print("restored", path)
         return
     if not os.path.exists(backup):
         shutil.copy2(a.exe, backup)
@@ -116,6 +127,7 @@ def main():
         print("DoTell not found (only the Linux build is patched): no private messages", file=sys.stderr)
 
     patch_modules(os.path.join(os.path.dirname(os.path.abspath(a.exe)), MODULES))
+    patch_swf(os.path.join(os.path.dirname(os.path.abspath(a.exe)), GUI_FRAMEWORK_SWF))
 
     tmp = a.exe + ".tmp"
     open(tmp, "wb").write(data)
@@ -143,6 +155,31 @@ def patch_modules(path):
     else:
         print(f"{path}: {n} of the modules {PRELOADED} patched", file=sys.stderr)
     open(path, "w", encoding="utf-8", newline="").write(xml)
+
+
+
+def patch_swf(path):
+    """The patcher window's banner arrows (GUIFramework3.swf)."""
+    import zlib
+    if not os.path.exists(path):
+        print(f"no {path}: banner arrows stay hidden", file=sys.stderr)
+        return
+    if not os.path.exists(path + ".orig"):
+        shutil.copy2(path, path + ".orig")
+    swf = open(path + ".orig", "rb").read()
+    if swf[:3] != b"CWS":
+        print(f"{path}: not a compressed SWF; left as is", file=sys.stderr)
+        return
+    body = bytearray(zlib.decompress(swf[8:]))
+    for what, stock, patched in SWF_PATCHES:
+        stock, patched = bytes.fromhex(stock), bytes.fromhex(patched)
+        if body.count(stock) != 1:
+            print(f"{path}: {what} not found; left as is", file=sys.stderr)
+            return
+        at = body.find(stock)
+        body[at : at + len(stock)] = patched
+    open(path, "wb").write(swf[:8] + zlib.compress(bytes(body)))
+    print(f"patched {path}: banner arrows")
 
 
 if __name__ == "__main__":
